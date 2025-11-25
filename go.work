@@ -4,5 +4,4 @@ use (
     ./core
     ./auth
     ./databricks
-    ./foo
 )
