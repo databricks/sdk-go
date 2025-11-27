@@ -15,6 +15,12 @@ func NewHTTPClient(ctx context.Context, opts ...options.ClientOption) (*http.Cli
 			return nil, err
 		}
 	}
-	_ = copts // not used for now
-	return http.DefaultClient, nil
+
+	if copts.HTTPClient == nil {
+		copts.HTTPClient = http.DefaultClient
+	}
+
+	// TODO: Actually use the options...
+
+	return copts.HTTPClient, nil
 }

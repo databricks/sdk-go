@@ -9,6 +9,7 @@ import (
 	"github.com/databricks/sdk-go/databricks/internal"
 )
 
+// ClientOption is an option to configure Databricks API clients.
 type ClientOption func(*internal.ClientOptions) error
 
 // WithHTTPClient returns a ClientOption to use a specific
