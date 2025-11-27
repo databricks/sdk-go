@@ -234,14 +234,14 @@ func TestCachedTokenProvider_Token(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			gotCalls := int32(0)
+			var gotCalls atomic.Int32
 			cts := &cachedTokenProvider{
 				disableAsync:  tc.disableAsync,
 				staleDuration: 10 * time.Minute,
 				cachedToken:   tc.cachedToken,
 				timeNow:       func() time.Time { return now },
 				TokenProvider: TokenProviderFn(func(_ context.Context) (*Token, error) {
-					atomic.AddInt32(&gotCalls, 1)
+					gotCalls.Add(1)
 					time.Sleep(10 * time.Millisecond)
 					return tc.returnedToken, tc.returnedError
 				}),
@@ -252,7 +252,7 @@ func TestCachedTokenProvider_Token(t *testing.T) {
 				wg.Add(1)
 				go func() {
 					defer wg.Done()
-					cts.Token(context.Background())
+					_, _ = cts.Token(context.Background())
 				}()
 			}
 
@@ -260,14 +260,18 @@ func TestCachedTokenProvider_Token(t *testing.T) {
 
 			// Wait for async refreshes to finish. This part is a little brittle
 			// but necessary to ensure that the async refresh is done before
-			// checking the results.
+			// checking the results. The use of the mutex is to avoid a potential
+			// data race if the timeout is not long enough.
 			time.Sleep(20 * time.Millisecond)
+			cts.mu.Lock()
+			gotToken := cts.cachedToken
+			cts.mu.Unlock()
 
-			if int(gotCalls) != tc.wantCalls {
-				t.Errorf("want %d calls to cts.TokenProvider.Token(), got %d", tc.wantCalls, gotCalls)
+			if int(gotCalls.Load()) != tc.wantCalls {
+				t.Errorf("want %d calls to cts.TokenProvider.Token(), got %d", tc.wantCalls, gotCalls.Load())
 			}
-			if !reflect.DeepEqual(tc.wantToken, cts.cachedToken) {
-				t.Errorf("want cached token %v, got %v", tc.wantToken, cts.cachedToken)
+			if !reflect.DeepEqual(tc.wantToken, gotToken) {
+				t.Errorf("want cached token %v, got %v", tc.wantToken, gotToken)
 			}
 		})
 	}
