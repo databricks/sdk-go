@@ -22,7 +22,22 @@ on:
       - main
 
 jobs:
+  discover:
+    runs-on: linux-ubuntu-latest
+    outputs:
+      modules: ${{ steps.find.outputs.modules }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Find modules
+        id: find
+        run: |
+          modules=$(find . -name 'go.mod' -exec dirname {} \; | sed 's|^\./||' | sort | jq -Rnc '[inputs]')
+          echo "modules=$modules" >> $GITHUB_OUTPUT
+
   tests:
+    needs: discover
     runs-on: linux-ubuntu-latest
     strategy:
       fail-fast: false
@@ -30,6 +45,7 @@ jobs:
         go-version:
           - "1.25"
           # - "1.26"
+        module: ${{ fromJson(needs.discover.outputs.modules) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,10 +56,16 @@ jobs:
           go-version: ${{ matrix.go-version }}
 
       - name: Run tests
+        working-directory: ${{ matrix.module }}
         run: go test -v -race ./...
 
   lint:
+    needs: discover
     runs-on: linux-ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJson(needs.discover.outputs.modules) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -53,15 +75,13 @@ jobs:
         with:
           go-version: "1.25"
 
-      - name: Install golangci-lint
-        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-
       - name: Run golangci-lint
-        run: | # Run golangci-lint in each directory with a go.mod file
-          for mod in $(find . -name 'go.mod' -exec dirname {} \;); do
-            echo "Linting $mod..."
-            (cd "$mod" && golangci-lint run --timeout=5m ./...)
-          done
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          install-mode: goinstall
+          working-directory: ${{ matrix.module }}
+          args: --timeout=5m ./...
 
   fmt:
     runs-on: linux-ubuntu-latest

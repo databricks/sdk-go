@@ -252,7 +252,7 @@ func TestCachedTokenProvider_Token(t *testing.T) {
 				wg.Add(1)
 				go func() {
 					defer wg.Done()
-					cts.Token(context.Background())
+					_, _ = cts.Token(context.Background())
 				}()
 			}
 
