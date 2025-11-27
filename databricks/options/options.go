@@ -12,8 +12,8 @@ import (
 // ClientOption is an option to configure Databricks API clients.
 type ClientOption func(*internal.ClientOptions) error
 
-// WithHTTPClient returns a ClientOption to use a specific
-// HTTP Client when making HTTP requests.
+// WithHTTPClient returns a ClientOption to use a specific HTTP Client when
+// making HTTP requests.
 func WithHTTPClient(c *http.Client) ClientOption {
 	return func(o *internal.ClientOptions) error {
 		o.HTTPClient = c
@@ -21,8 +21,7 @@ func WithHTTPClient(c *http.Client) ClientOption {
 	}
 }
 
-// WithCredentials returns a ClientOption to set a
-// specific credentials.
+// WithCredentials returns a ClientOption to set a specific credentials.
 func WithCredentials(c auth.Credentials) ClientOption {
 	return func(o *internal.ClientOptions) error {
 		o.Credentials = c
@@ -30,8 +29,8 @@ func WithCredentials(c auth.Credentials) ClientOption {
 	}
 }
 
-// WithTimeout returns a ClientOption to set the overall
-// API call timeout to the given duration by default.
+// WithTimeout returns a ClientOption to set the overall API call timeout to
+// the given duration by default.
 func WithTimeout(d time.Duration) ClientOption {
 	return func(o *internal.ClientOptions) error {
 		o.Timeout = d
@@ -39,8 +38,8 @@ func WithTimeout(d time.Duration) ClientOption {
 	}
 }
 
-// WithLogger returns a ClientOption to use the provided
-// logger instead of the default logger.
+// WithLogger returns a ClientOption to use the provided logger instead of
+// the default logger.
 func WithLogger(l log.Logger) ClientOption {
 	return func(o *internal.ClientOptions) error {
 		o.Logger = l
