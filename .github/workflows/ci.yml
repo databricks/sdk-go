@@ -57,7 +57,8 @@ jobs:
 
       - name: Run tests
         working-directory: ${{ matrix.module }}
-        run: go test -v -race ./...
+        # Only run tests if there are any packages to test.
+        run: go list ./... | xargs -r go test -v -race
 
   lint:
     needs: discover
