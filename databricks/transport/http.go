@@ -11,6 +11,7 @@ import (
 	"github.com/databricks/sdk-go/databricks/options"
 )
 
+// NewHTTPClient creates a new HTTP client with the given options.
 func NewHTTPClient(ctx context.Context, opts ...options.ClientOption) (*http.Client, error) {
 	copts := &internal.ClientOptions{}
 	for _, opt := range opts {
@@ -27,7 +28,7 @@ func NewHTTPClient(ctx context.Context, opts ...options.ClientOption) (*http.Cli
 
 	if copts.Credentials == nil {
 		// TODO: Load default credentials from profile
-		return nil, errors.New("No credentials provided")
+		return nil, errors.New("no credentials provided")
 	}
 
 	transport := &authTransport{
@@ -59,10 +60,10 @@ func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		// RoundTripper must always close the request, including on errors.
 		if req.Body != nil {
 			closeErr := req.Body.Close()
-			// Ignore cleanup error; the credentials error is the primary
-			// failure and more actionable for callers.
+			// Swallow the cleanup error; the credentials error is the primary
+			// failure and the one that is the most actionable for callers.
 			if closeErr != nil {
-				t.log(req.Context(), "error closing request body: %v", closeErr)
+				t.logDebug(req.Context(), "error closing request body: %v", closeErr)
 			}
 		}
 		return nil, err
@@ -76,8 +77,9 @@ func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return t.base.RoundTrip(clone)
 }
 
-func (t *authTransport) log(ctx context.Context, msg string, args ...any) {
+// logDebug logs a debug message if and only if the transport has a logger.
+func (t *authTransport) logDebug(ctx context.Context, fmt string, args ...any) {
 	if t.logger != nil {
-		t.logger.Log(ctx, log.LevelDebug, msg, args...)
+		t.logger.Log(ctx, log.LevelDebug, fmt, args...)
 	}
 }

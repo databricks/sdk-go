@@ -43,7 +43,7 @@ func WithAsyncRefresh(b bool) Option {
 // function), it is returned as is.
 func NewCachedTokenProvider(ts TokenProvider, opts ...Option) TokenProvider {
 	// This is meant as a niche optimization to avoid double caching of the
-	// token source in situations where the user calls needs caching guarantees
+	// token source in situations where the caller needs caching guarantees
 	// but does not know if the token source is already cached.
 	if cts, ok := ts.(*cachedTokenProvider); ok {
 		return cts
