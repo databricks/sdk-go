@@ -1,0 +1,4 @@
+# Ignore private files and directories by default.
+.*
+!.gitignore
+!.github
