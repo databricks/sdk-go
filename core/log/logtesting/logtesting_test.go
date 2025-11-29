@@ -9,7 +9,8 @@ import (
 )
 
 func TestLogger_Log(t *testing.T) {
-	testContext := context.WithValue(context.Background(), "test-key", "test-value")
+	type ctxKey string
+	testContext := context.WithValue(context.Background(), ctxKey("test-key"), "test-value")
 
 	testCases := []struct {
 		desc        string
