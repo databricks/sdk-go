@@ -1,11 +1,11 @@
 package options
 
 import (
+	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/databricks/sdk-go/auth"
-	"github.com/databricks/sdk-go/core/log"
 	"github.com/databricks/sdk-go/databricks/internal"
 )
 
@@ -42,22 +42,9 @@ func WithTimeout(d time.Duration) ClientOption {
 
 // WithLogger returns a ClientOption to use the provided logger instead of
 // the default logger. If no logger is provided, a default logger is used.
-func WithLogger(l log.Logger) ClientOption {
+func WithLogger(l *slog.Logger) ClientOption {
 	return func(o *internal.ClientOptions) error {
-		o.Logger = l
-		return nil
-	}
-}
-
-// WithDebugEnabled returns a ClientOption to enable debug logging. Debug
-// logging is disabled by default.
-//
-// Debug logging is useful for troubleshooting issues with the SDK. It is
-// recommended to enable debug logging for development and testing purposes.
-// It is not recommended to enable debug logging in production.
-func WithDebugEnabled() ClientOption {
-	return func(o *internal.ClientOptions) error {
-		o.Debug = true
+		o.Logger = internal.NewLogger(l)
 		return nil
 	}
 }

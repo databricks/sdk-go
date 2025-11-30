@@ -1,14 +1,17 @@
 package transport
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/databricks/sdk-go/auth"
-	"github.com/databricks/sdk-go/core/log/logtesting"
 )
 
 // Sentinel test errors for use with errors.Is.
@@ -241,7 +244,10 @@ func TestAuthTransport_RoundTrip_PassesContextToCredentials(t *testing.T) {
 }
 
 func TestAuthTransport_RoundTrip_LogsCloseError(t *testing.T) {
-	logger := &logtesting.Logger{}
+	wantLog := `level=ERROR msg="error closing request body" error="close error"`
+
+	buf := bytes.Buffer{}
+	logger := slog.New(slog.NewTextHandler(&buf, nil))
 	transport := &authTransport{
 		base:   &mockTransport{},
 		creds:  &mockCredentials{err: errCredentials},
@@ -259,11 +265,8 @@ func TestAuthTransport_RoundTrip_LogsCloseError(t *testing.T) {
 		t.Fatalf("got error %v, want %v", err, errCredentials)
 	}
 
-	records := logger.Records()
-	if len(records) != 1 {
-		t.Fatalf("got %d log records, want 1", len(records))
-	}
-	if len(records[0].Args) != 1 || !errors.Is(records[0].Args[0].(error), errClose) {
-		t.Errorf("log record args = %v, want [%v]", records[0].Args, errClose)
+	fmt.Println(buf.String())
+	if !strings.Contains(buf.String(), wantLog) {
+		t.Errorf("log record args = %v, want [%v]", buf.String(), wantLog)
 	}
 }

@@ -3,10 +3,10 @@ package transport
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/databricks/sdk-go/auth"
-	"github.com/databricks/sdk-go/core/log"
 	"github.com/databricks/sdk-go/databricks/internal"
 	"github.com/databricks/sdk-go/databricks/options"
 )
@@ -32,14 +32,9 @@ func NewHTTPClient(ctx context.Context, opts ...options.ClientOption) (*http.Cli
 	}
 
 	transport := &authTransport{
-		base:  http.DefaultTransport,
-		creds: copts.Credentials,
-	}
-	if copts.Debug {
-		if copts.Logger == nil {
-			copts.Logger = log.NewLogger()
-		}
-		transport.logger = copts.Logger
+		base:   http.DefaultTransport,
+		creds:  copts.Credentials,
+		logger: copts.Logger,
 	}
 
 	return &http.Client{
@@ -51,7 +46,7 @@ func NewHTTPClient(ctx context.Context, opts ...options.ClientOption) (*http.Cli
 type authTransport struct {
 	base   http.RoundTripper // base transport to wrap
 	creds  auth.Credentials  // credentials to use for authentication
-	logger log.Logger        // optional logger for debugging
+	logger *slog.Logger
 }
 
 func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -63,7 +58,7 @@ func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 			// Swallow the cleanup error; the credentials error is the primary
 			// failure and the one that is the most actionable for callers.
 			if closeErr != nil {
-				t.logDebug(req.Context(), "error closing request body: %v", closeErr)
+				t.logger.ErrorContext(req.Context(), "error closing request body", "error", closeErr)
 			}
 		}
 		return nil, err
@@ -75,11 +70,4 @@ func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		clone.Header.Add(header.Key, header.Value)
 	}
 	return t.base.RoundTrip(clone)
-}
-
-// logDebug logs a debug message if and only if the transport has a logger.
-func (t *authTransport) logDebug(ctx context.Context, fmt string, args ...any) {
-	if t.logger != nil {
-		t.logger.Log(ctx, log.LevelDebug, fmt, args...)
-	}
 }
