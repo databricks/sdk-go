@@ -40,8 +40,8 @@ func WithTimeout(d time.Duration) ClientOption {
 	}
 }
 
-// WithLogger returns a ClientOption to use the provided logger instead of
-// the default logger. If no logger is provided, a default logger is used.
+// WithLogger returns a ClientOption to use the provided logger. Log messages
+// are only logged if the logger is enabled.
 func WithLogger(l *slog.Logger) ClientOption {
 	return func(o *internal.ClientOptions) error {
 		o.Logger = l
