@@ -17,11 +17,12 @@ type ClientOptions struct {
 	Debug       bool
 }
 
-func NewLogger(l *slog.Logger) *slog.Logger {
-	if l == nil {
-		return slog.New(noopHandler{})
+// Initialize initializes the client options and validates its configuration.
+func (o *ClientOptions) Initialize() error {
+	if o.Logger == nil {
+		o.Logger = slog.New(noopHandler{})
 	}
-	return l
+	return nil
 }
 
 // nopHandler is a handler that does nothing.

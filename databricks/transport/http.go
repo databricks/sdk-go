@@ -19,6 +19,9 @@ func NewHTTPClient(ctx context.Context, opts ...options.ClientOption) (*http.Cli
 			return nil, err
 		}
 	}
+	if err := copts.Initialize(); err != nil {
+		return nil, err
+	}
 
 	// If an HTTP client is provided, use it as is without any additional
 	// configuration.

@@ -44,7 +44,7 @@ func WithTimeout(d time.Duration) ClientOption {
 // the default logger. If no logger is provided, a default logger is used.
 func WithLogger(l *slog.Logger) ClientOption {
 	return func(o *internal.ClientOptions) error {
-		o.Logger = internal.NewLogger(l)
+		o.Logger = l
 		return nil
 	}
 }

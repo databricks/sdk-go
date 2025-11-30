@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -43,6 +42,9 @@ type mockTransport struct {
 }
 
 func (m *mockTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if req.Body != nil {
+		defer req.Body.Close()
+	}
 	m.capturedReq = req
 	return m.response, m.err
 }
@@ -65,11 +67,13 @@ func (m *mockBody) Close() error {
 func TestAuthTransport_RoundTrip(t *testing.T) {
 	testCases := []struct {
 		desc          string
-		credHeaders   []auth.Header
-		credErr       error
-		transportResp *http.Response
-		transportErr  error
-		wantErr       error
+		credHeaders   []auth.Header  // headers returned by the credentials
+		credErr       error          // error returned by the credentials
+		transportResp *http.Response // response returned by the base transport
+		transportErr  error          // error returned by the base transport
+		bodycloseErr  error          // error returned by the body close
+		wantErr       error          // error returned by the transport
+		wantLog       string         // message that should be logged
 	}{
 		{
 			desc: "adds single auth header",
@@ -87,17 +91,24 @@ func TestAuthTransport_RoundTrip(t *testing.T) {
 			transportResp: &http.Response{StatusCode: 200},
 		},
 		{
-			desc:    "returns credentials error",
-			credErr: errCredentials,
-			wantErr: errCredentials,
-		},
-		{
 			desc: "propagates transport error",
 			credHeaders: []auth.Header{
 				{Key: "Authorization", Value: "Bearer token123"},
 			},
 			transportErr: errTransport,
 			wantErr:      errTransport,
+		},
+		{
+			desc:    "credentials error with no close error",
+			credErr: errCredentials,
+			wantErr: errCredentials,
+		},
+		{
+			desc:         "credentials error with close error",
+			bodycloseErr: errClose,
+			credErr:      errCredentials,
+			wantErr:      errCredentials,
+			wantLog:      "level=ERROR msg=\"error closing request body\" error=\"close error\"\n",
 		},
 	}
 
@@ -111,30 +122,42 @@ func TestAuthTransport_RoundTrip(t *testing.T) {
 				response: tc.transportResp,
 				err:      tc.transportErr,
 			}
+			buf := bytes.Buffer{} // collect logs
 			transport := &authTransport{
-				base:  base,
-				creds: creds,
+				base:   base,
+				creds:  creds,
+				logger: slog.New(slog.NewTextHandler(&buf, nil)),
 			}
 
-			req, err := http.NewRequest("GET", "https://example.com/api", nil)
+			body := &mockBody{closeErr: tc.bodycloseErr}
+			req, err := http.NewRequest("GET", "https://example.com/api", body)
 			if err != nil {
 				t.Fatalf("failed to create request: %v", err)
 			}
+
 			gotResp, gotErr := transport.RoundTrip(req)
 
+			// The body should always be closed by the transport, even in case
+			// of errors.
+			if !body.closed {
+				t.Error("request body was not closed")
+			}
 			if !errors.Is(gotErr, tc.wantErr) {
 				t.Fatalf("got error %v, want %v", gotErr, tc.wantErr)
 			}
 			if gotResp != tc.transportResp {
 				t.Errorf("response: got %v, want %v", gotResp, tc.transportResp)
 			}
-
 			// Check that the auth headers were added to the request sent to
 			// the base transport.
 			for _, h := range tc.credHeaders {
 				if got := base.capturedReq.Header.Get(h.Key); got != h.Value {
 					t.Errorf("%s header: got %q, want %q", h.Key, got, h.Value)
 				}
+			}
+			// Validate that the expected logs were logged.
+			if gotLog := buf.String(); !strings.Contains(gotLog, tc.wantLog) {
+				t.Errorf("got log %q, want %q", gotLog, tc.wantLog)
 			}
 		})
 	}
@@ -177,37 +200,6 @@ func TestAuthTransport_RoundTrip_DoesNotModifyOriginalRequest(t *testing.T) {
 	}
 }
 
-func TestAuthTransport_RoundTrip_ClosesBodyOnCredentialsError(t *testing.T) {
-	creds := &mockCredentials{
-		err: errCredentials,
-	}
-	transport := &authTransport{
-		base:  &mockTransport{},
-		creds: creds,
-	}
-
-	body := &mockBody{
-		closeErr: errClose,
-	}
-	req, err := http.NewRequest("POST", "https://example.com/api", body)
-	if err != nil {
-		t.Fatalf("failed to create request: %v", err)
-	}
-
-	_, err = transport.RoundTrip(req)
-
-	if !body.closed {
-		t.Error("request body was not closed")
-	}
-	// Should return credentials error, not close error
-	if !errors.Is(err, errCredentials) {
-		t.Errorf("got error %v, want %v", err, errCredentials)
-	}
-	if errors.Is(err, errClose) {
-		t.Errorf("should not return close error, got: %v", err)
-	}
-}
-
 func TestAuthTransport_RoundTrip_PassesContextToCredentials(t *testing.T) {
 	type ctxKey string
 	key := ctxKey("test-key")
@@ -240,33 +232,5 @@ func TestAuthTransport_RoundTrip_PassesContextToCredentials(t *testing.T) {
 	}
 	if got := creds.capturedCtx.Value(key); got != wantValue {
 		t.Errorf("context value = %v, want %v", got, wantValue)
-	}
-}
-
-func TestAuthTransport_RoundTrip_LogsCloseError(t *testing.T) {
-	wantLog := `level=ERROR msg="error closing request body" error="close error"`
-
-	buf := bytes.Buffer{}
-	logger := slog.New(slog.NewTextHandler(&buf, nil))
-	transport := &authTransport{
-		base:   &mockTransport{},
-		creds:  &mockCredentials{err: errCredentials},
-		logger: logger,
-	}
-
-	body := &mockBody{closeErr: errClose}
-	req, err := http.NewRequest("POST", "https://example.com/api", body)
-	if err != nil {
-		t.Fatalf("failed to create request: %v", err)
-	}
-
-	_, err = transport.RoundTrip(req)
-	if !errors.Is(err, errCredentials) {
-		t.Fatalf("got error %v, want %v", err, errCredentials)
-	}
-
-	fmt.Println(buf.String())
-	if !strings.Contains(buf.String(), wantLog) {
-		t.Errorf("log record args = %v, want [%v]", buf.String(), wantLog)
 	}
 }
