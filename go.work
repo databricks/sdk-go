@@ -2,6 +2,5 @@ go 1.25.4
 
 use (
     ./auth
-    ./core
     ./databricks
 )

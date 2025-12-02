@@ -1,11 +1,11 @@
 package options
 
 import (
+	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/databricks/sdk-go/auth"
-	"github.com/databricks/sdk-go/core/log"
 	"github.com/databricks/sdk-go/databricks/internal"
 )
 
@@ -14,6 +14,8 @@ type ClientOption func(*internal.ClientOptions) error
 
 // WithHTTPClient returns a ClientOption to use a specific HTTP Client when
 // making HTTP requests.
+//
+// Important: When set, this option ignores all other options.
 func WithHTTPClient(c *http.Client) ClientOption {
 	return func(o *internal.ClientOptions) error {
 		o.HTTPClient = c
@@ -38,9 +40,9 @@ func WithTimeout(d time.Duration) ClientOption {
 	}
 }
 
-// WithLogger returns a ClientOption to use the provided logger instead of
-// the default logger.
-func WithLogger(l log.Logger) ClientOption {
+// WithLogger returns a ClientOption to use the provided logger. Log messages
+// are only logged if the logger is enabled.
+func WithLogger(l *slog.Logger) ClientOption {
 	return func(o *internal.ClientOptions) error {
 		o.Logger = l
 		return nil

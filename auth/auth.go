@@ -27,11 +27,12 @@ type Token struct {
 	// access token but can represent other types of tokens (e.g. ID tokens).
 	Value string
 
-	// Type is the type of token.
-	// If unset, the token type is assumed to be "Bearer".
+	// Type is the type of token. If Type is empty, the token type is
+	// assumed to be "Bearer".
 	Type string
 
-	// Expiry is the time at which the token expires.
+	// Expiry is the time at which the token expires. If Expiry is zero, the
+	// token is considered to be valid indefinitely.
 	Expiry time.Time
 }
 
