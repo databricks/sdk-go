@@ -14,7 +14,6 @@ type ClientOptions struct {
 	Credentials auth.Credentials
 	Timeout     time.Duration
 	Logger      *slog.Logger
-	Debug       bool
 }
 
 // Initialize initializes the client options and validates its configuration.
