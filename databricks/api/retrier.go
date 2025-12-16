@@ -2,7 +2,11 @@ package api
 
 import (
 	"math/rand"
+	"slices"
 	"time"
+
+	"github.com/databricks/sdk-go/databricks/apierr"
+	"github.com/databricks/sdk-go/databricks/apierr/codes"
 )
 
 // Retrier defines a retry behavior.
@@ -20,12 +24,11 @@ type Retrier interface {
 // Important: the retrier has its own copy of the backoff policy which cannot
 // be trivially reset by design. Users who need to reset the backoff policy
 // should rather create a new retrier.
-// func RetryOnCodes(bp BackoffPolicy, codes ...codes.Code) Retrier {
-// 	return RetryOn(bp, func(err error) bool {
-// 		c := apierr.CodeFromError(err)
-// 		return slices.Contains(codes, c)
-// 	})
-// }
+func RetryOnCodes(bp BackoffPolicy, codes ...codes.Code) Retrier {
+	return RetryOn(bp, func(err error) bool {
+		return slices.Contains(codes, apierr.Code(err))
+	})
+}
 
 // RetryOn returns a Retrier that retries based on the isRetriable predicate
 // and relies on the given backoff policy to decide how long to wait between

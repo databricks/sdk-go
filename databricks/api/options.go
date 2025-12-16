@@ -27,11 +27,18 @@ func WithRetrier(provider func() Retrier) Option {
 	})
 }
 
+// WithDisableRetry is a convenience option to disable retries.
+func WithDisableRetry() Option {
+	return optionFn(func(o *Options) {
+		o.retrier = nil
+	})
+}
+
 // WithTimeout is a convenience option to set the timeout duration in the Call
 // context. If the context already has a deadline, that deadline is updated to
 // the minimum of the context's deadline and the timeout.
 //
-// The timeout covers the whole Call execution; it is not a timeout of each
+// The timeout covers the whole Call execution; it is not a timeout for each
 // intermediary API call.
 func WithTimeout(t time.Duration) Option {
 	return optionFn(func(o *Options) {
