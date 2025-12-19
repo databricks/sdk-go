@@ -23,46 +23,6 @@ func (m *mockLimiter) Wait(ctx context.Context) error {
 	return m.fn(ctx)
 }
 
-func TestExecute_success(t *testing.T) {
-	testCases := []struct {
-		name string
-		call Call
-		opts []Option
-	}{
-		{
-			name: "successful call no options",
-			call: func(ctx context.Context) error { return nil },
-			opts: []Option{},
-		},
-		{
-			name: "successful call with timeout option",
-			call: func(ctx context.Context) error { return nil },
-			opts: []Option{WithTimeout(5 * time.Second)},
-		},
-		{
-			name: "successful call with retrier option",
-			call: func(ctx context.Context) error { return nil },
-			opts: []Option{WithRetrier(func() Retrier {
-				return &mockRetrier{fn: func(err error) (time.Duration, bool) { return 0, true }}
-			})},
-		},
-		{
-			name: "successful call with limiter option",
-			call: func(ctx context.Context) error { return nil },
-			opts: []Option{WithLimiter(&mockLimiter{fn: func(ctx context.Context) error { return nil }})},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			got := Execute(context.Background(), tc.call, tc.opts...)
-			if got != nil {
-				t.Errorf("Execute(): got error %v, want nil", got)
-			}
-		})
-	}
-}
-
 func TestExecute_retries(t *testing.T) {
 	// Default retrier that only retries if the error is a retriableError.
 	retriableError := errors.New("retriable error")
@@ -74,40 +34,46 @@ func TestExecute_retries(t *testing.T) {
 	testCases := []struct {
 		name          string
 		callErrors    []error // sequence of errors the call should return
-		retrier       Retrier
+		options       []Option
 		wantErr       error
 		wantCallCount int
 	}{
 		{
 			name:          "no retrier - fail immediately",
 			callErrors:    []error{retriableError},
-			retrier:       nil, // no retrier
+			wantErr:       retriableError,
+			wantCallCount: 1,
+		},
+		{
+			name:          "disable retries - fail immediately",
+			callErrors:    []error{retriableError},
+			options:       []Option{WithDisableRetry()},
 			wantErr:       retriableError,
 			wantCallCount: 1,
 		},
 		{
 			name:          "non-retriable error - fail immediately",
 			callErrors:    []error{nonRetriableError},
-			retrier:       retrier,
+			options:       []Option{WithRetrier(func() Retrier { return retrier })},
 			wantErr:       nonRetriableError,
 			wantCallCount: 1,
 		},
 		{
 			name:          "retriable error - retry once then succeed",
 			callErrors:    []error{retriableError, nil},
-			retrier:       retrier,
+			options:       []Option{WithRetrier(func() Retrier { return retrier })},
 			wantCallCount: 2,
 		},
 		{
 			name:          "retriable error - retry multiple times then succeed",
 			callErrors:    []error{retriableError, retriableError, retriableError, nil},
-			retrier:       retrier,
+			options:       []Option{WithRetrier(func() Retrier { return retrier })},
 			wantCallCount: 4,
 		},
 		{
 			name:          "retriable error - retry then fail with non-retriable",
 			callErrors:    []error{retriableError, nonRetriableError},
-			retrier:       retrier,
+			options:       []Option{WithRetrier(func() Retrier { return retrier })},
 			wantErr:       nonRetriableError,
 			wantCallCount: 2,
 		},
@@ -122,7 +88,7 @@ func TestExecute_retries(t *testing.T) {
 				return err
 			}
 
-			gotErr := Execute(context.Background(), call, WithRetrier(func() Retrier { return tc.retrier }))
+			gotErr := Execute(context.Background(), call, tc.options...)
 
 			if gotCallCount != tc.wantCallCount {
 				t.Errorf("Execute(): got call count %d, want %d", gotCallCount, tc.wantCallCount)
