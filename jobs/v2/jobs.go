@@ -34,6 +34,7 @@ func NewClient(ctx context.Context, opts ...options.ClientOption) (*Client, erro
 	return &Client{
 		httpClient: httpClient,
 		logger:     resolved.Logger,
+		host:       resolved.Host,
 	}, nil
 }
 
@@ -55,10 +56,11 @@ func (c *Client) CreateJob(ctx context.Context, req *CreateJobRequest, opts ...a
 
 	resp := &Job{}
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequestWithContext(ctx, "POST", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
+		httpReq = httpReq.WithContext(ctx)
 		httpReq.Header = headers
 
 		respBody, err := executeHTTPCall(httpCallOptions{
@@ -81,18 +83,18 @@ func (c *Client) CreateJob(ctx context.Context, req *CreateJobRequest, opts ...a
 	return resp, nil
 }
 
-func ListJobs(ctx context.Context, req *ListJobsRequest, opts ...api.Option) (*ListJobsResponse, error) {
+func (c *Client) ListJobs(ctx context.Context, req *ListJobsRequest, opts ...api.Option) (*ListJobsResponse, error) {
 	return nil, nil
 }
 
-func ListJobsIter(ctx context.Context, req *ListJobsRequest, opts ...api.Option) iter.Seq2[*Job, error] {
+func (c *Client) ListJobsIter(ctx context.Context, req *ListJobsRequest, opts ...api.Option) iter.Seq2[*Job, error] {
 	return func(yield func(*Job, error) bool) {
 		pageReq := &ListJobsRequest{
 			PageSize:  req.PageSize,
 			PageToken: req.PageToken,
 		}
 		for {
-			resp, err := ListJobs(ctx, pageReq, opts...)
+			resp, err := c.ListJobs(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return

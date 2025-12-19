@@ -17,6 +17,7 @@ import (
 // ResolvedOptions contains the resolved configuration values from ClientOptions.
 type ResolvedOptions struct {
 	Logger *slog.Logger
+	Host   string
 }
 
 // Resolve applies all ClientOptions and returns the resolved configuration.

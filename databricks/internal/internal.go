@@ -10,6 +10,7 @@ import (
 )
 
 type ClientOptions struct {
+	Host        string
 	HTTPClient  *http.Client
 	Credentials auth.Credentials
 	Timeout     time.Duration

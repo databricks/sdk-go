@@ -12,6 +12,14 @@ import (
 // ClientOption is an option to configure Databricks API clients.
 type ClientOption func(*internal.ClientOptions) error
 
+// WithHost returns a ClientOption to set the host for the client.
+func WithHost(h string) ClientOption {
+	return func(o *internal.ClientOptions) error {
+		o.Host = h
+		return nil
+	}
+}
+
 // WithHTTPClient returns a ClientOption to use a specific HTTP Client when
 // making HTTP requests.
 //
