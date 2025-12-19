@@ -55,11 +55,10 @@ func (c *Client) CreateJob(ctx context.Context, req *CreateJobRequest, opts ...a
 
 	resp := &Job{}
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequestWithContext(ctx, "POST", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
-		httpReq = httpReq.WithContext(ctx)
 		httpReq.Header = headers
 
 		respBody, err := executeHTTPCall(httpCallOptions{
