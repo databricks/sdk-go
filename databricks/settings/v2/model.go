@@ -235,7 +235,7 @@ func (f *WeekDayFrequency) Type() string {
 
 type AibiDashboardEmbeddingAccessPolicy struct {
 	
-	AccessPolicyType AccessPolicyType `json:"accessPolicyType"`
+	AccessPolicyType *AccessPolicyType `json:"accessPolicyType"`
 	
 }
 
@@ -251,7 +251,7 @@ type AibiDashboardEmbeddingApprovedDomains struct {
 
 type BooleanMessage struct {
 	
-	Value bool `json:"value"`
+	Value *bool `json:"value"`
 	
 }
 
@@ -259,15 +259,15 @@ type BooleanMessage struct {
 
 type ClusterAutoRestartMessage struct {
 	
-	Enabled bool `json:"enabled"`
+	Enabled *bool `json:"enabled"`
 	
-	CanToggle bool `json:"canToggle"`
+	CanToggle *bool `json:"canToggle"`
 	
-	MaintenanceWindow MaintenanceWindow `json:"maintenanceWindow"`
+	MaintenanceWindow *MaintenanceWindow `json:"maintenanceWindow"`
 	
-	EnablementDetails EnablementDetails `json:"enablementDetails"`
+	EnablementDetails *EnablementDetails `json:"enablementDetails"`
 	
-	RestartEvenIfNoUpdatesAvailable bool `json:"restartEvenIfNoUpdatesAvailable"`
+	RestartEvenIfNoUpdatesAvailable *bool `json:"restartEvenIfNoUpdatesAvailable"`
 	
 }
 
@@ -275,11 +275,11 @@ type ClusterAutoRestartMessage struct {
 
 type EnablementDetails struct {
 	
-	UnavailableForNonEnterpriseTier bool `json:"unavailableForNonEnterpriseTier"`
+	UnavailableForNonEnterpriseTier *bool `json:"unavailableForNonEnterpriseTier"`
 	
-	UnavailableForDisabledEntitlement bool `json:"unavailableForDisabledEntitlement"`
+	UnavailableForDisabledEntitlement *bool `json:"unavailableForDisabledEntitlement"`
 	
-	ForcedForComplianceMode bool `json:"forcedForComplianceMode"`
+	ForcedForComplianceMode *bool `json:"forcedForComplianceMode"`
 	
 }
 
@@ -287,9 +287,9 @@ type EnablementDetails struct {
 
 type GetPublicAccountSettingRequest struct {
 	
-	AccountId string `json:"accountId"`
+	AccountId *string `json:"accountId"`
 	
-	Name string `json:"name"`
+	Name *string `json:"name"`
 	
 }
 
@@ -297,11 +297,11 @@ type GetPublicAccountSettingRequest struct {
 
 type GetPublicAccountUserPreferenceRequest struct {
 	
-	AccountId string `json:"accountId"`
+	AccountId *string `json:"accountId"`
 	
-	UserId string `json:"userId"`
+	UserId *string `json:"userId"`
 	
-	Name string `json:"name"`
+	Name *string `json:"name"`
 	
 }
 
@@ -309,7 +309,7 @@ type GetPublicAccountUserPreferenceRequest struct {
 
 type GetPublicWorkspaceSettingRequest struct {
 	
-	Name string `json:"name"`
+	Name *string `json:"name"`
 	
 }
 
@@ -317,7 +317,7 @@ type GetPublicWorkspaceSettingRequest struct {
 
 type IntegerMessage struct {
 	
-	Value int `json:"value"`
+	Value *int `json:"value"`
 	
 }
 
@@ -325,11 +325,11 @@ type IntegerMessage struct {
 
 type ListAccountSettingsMetadataRequest struct {
 	
-	AccountId string `json:"accountId"`
+	AccountId *string `json:"accountId"`
 	
-	PageSize int `json:"pageSize"`
+	PageSize *int `json:"pageSize"`
 	
-	PageToken string `json:"pageToken"`
+	PageToken *string `json:"pageToken"`
 	
 }
 
@@ -339,7 +339,7 @@ type ListAccountSettingsMetadataResponse struct {
 	
 	SettingsMetadata []SettingsMetadata `json:"settingsMetadata"`
 	
-	NextPageToken string `json:"nextPageToken"`
+	NextPageToken *string `json:"nextPageToken"`
 	
 }
 
@@ -347,13 +347,13 @@ type ListAccountSettingsMetadataResponse struct {
 
 type ListAccountUserPreferencesMetadataRequest struct {
 	
-	AccountId string `json:"accountId"`
+	AccountId *string `json:"accountId"`
 	
-	UserId string `json:"userId"`
+	UserId *string `json:"userId"`
 	
-	PageSize int `json:"pageSize"`
+	PageSize *int `json:"pageSize"`
 	
-	PageToken string `json:"pageToken"`
+	PageToken *string `json:"pageToken"`
 	
 }
 
@@ -363,7 +363,7 @@ type ListAccountUserPreferencesMetadataResponse struct {
 	
 	SettingsMetadata []SettingsMetadata `json:"settingsMetadata"`
 	
-	NextPageToken string `json:"nextPageToken"`
+	NextPageToken *string `json:"nextPageToken"`
 	
 }
 
@@ -371,9 +371,9 @@ type ListAccountUserPreferencesMetadataResponse struct {
 
 type ListWorkspaceSettingsMetadataRequest struct {
 	
-	PageSize int `json:"pageSize"`
+	PageSize *int `json:"pageSize"`
 	
-	PageToken string `json:"pageToken"`
+	PageToken *string `json:"pageToken"`
 	
 }
 
@@ -383,7 +383,7 @@ type ListWorkspaceSettingsMetadataResponse struct {
 	
 	SettingsMetadata []SettingsMetadata `json:"settingsMetadata"`
 	
-	NextPageToken string `json:"nextPageToken"`
+	NextPageToken *string `json:"nextPageToken"`
 	
 }
 
@@ -391,7 +391,7 @@ type ListWorkspaceSettingsMetadataResponse struct {
 
 type MaintenanceWindow struct {
 	
-	WeekDayBasedSchedule WeekDayBasedSchedule `json:"weekDayBasedSchedule"`
+	WeekDayBasedSchedule *WeekDayBasedSchedule `json:"weekDayBasedSchedule"`
 	
 }
 
@@ -399,11 +399,11 @@ type MaintenanceWindow struct {
 
 type PatchPublicAccountSettingRequest struct {
 	
-	AccountId string `json:"accountId"`
+	AccountId *string `json:"accountId"`
 	
-	Name string `json:"name"`
+	Name *string `json:"name"`
 	
-	Setting Setting `json:"setting"`
+	Setting *Setting `json:"setting"`
 	
 }
 
@@ -411,13 +411,13 @@ type PatchPublicAccountSettingRequest struct {
 
 type PatchPublicAccountUserPreferenceRequest struct {
 	
-	AccountId string `json:"accountId"`
+	AccountId *string `json:"accountId"`
 	
-	UserId string `json:"userId"`
+	UserId *string `json:"userId"`
 	
-	Name string `json:"name"`
+	Name *string `json:"name"`
 	
-	Setting UserPreference `json:"setting"`
+	Setting *UserPreference `json:"setting"`
 	
 }
 
@@ -425,9 +425,9 @@ type PatchPublicAccountUserPreferenceRequest struct {
 
 type PatchPublicWorkspaceSettingRequest struct {
 	
-	Name string `json:"name"`
+	Name *string `json:"name"`
 	
-	Setting Setting `json:"setting"`
+	Setting *Setting `json:"setting"`
 	
 }
 
@@ -435,7 +435,7 @@ type PatchPublicWorkspaceSettingRequest struct {
 
 type PersonalComputeMessage struct {
 	
-	Value PersonalComputeMessageEnum `json:"value"`
+	Value *PersonalComputeMessageEnum `json:"value"`
 	
 }
 
@@ -443,7 +443,7 @@ type PersonalComputeMessage struct {
 
 type RestrictWorkspaceAdminsMessage struct {
 	
-	Status Status `json:"status"`
+	Status *Status `json:"status"`
 	
 }
 
@@ -451,39 +451,39 @@ type RestrictWorkspaceAdminsMessage struct {
 
 type Setting struct {
 	
-	Name string `json:"name"`
+	Name *string `json:"name"`
 	
-	BooleanVal BooleanMessage `json:"booleanVal"`
+	BooleanVal *BooleanMessage `json:"booleanVal"`
 	
-	StringVal StringMessage `json:"stringVal"`
+	StringVal *StringMessage `json:"stringVal"`
 	
-	IntegerVal IntegerMessage `json:"integerVal"`
+	IntegerVal *IntegerMessage `json:"integerVal"`
 	
-	AutomaticClusterUpdateWorkspace ClusterAutoRestartMessage `json:"automaticClusterUpdateWorkspace"`
+	AutomaticClusterUpdateWorkspace *ClusterAutoRestartMessage `json:"automaticClusterUpdateWorkspace"`
 	
-	AibiDashboardEmbeddingApprovedDomains AibiDashboardEmbeddingApprovedDomains `json:"aibiDashboardEmbeddingApprovedDomains"`
+	AibiDashboardEmbeddingApprovedDomains *AibiDashboardEmbeddingApprovedDomains `json:"aibiDashboardEmbeddingApprovedDomains"`
 	
-	AibiDashboardEmbeddingAccessPolicy AibiDashboardEmbeddingAccessPolicy `json:"aibiDashboardEmbeddingAccessPolicy"`
+	AibiDashboardEmbeddingAccessPolicy *AibiDashboardEmbeddingAccessPolicy `json:"aibiDashboardEmbeddingAccessPolicy"`
 	
-	RestrictWorkspaceAdmins RestrictWorkspaceAdminsMessage `json:"restrictWorkspaceAdmins"`
+	RestrictWorkspaceAdmins *RestrictWorkspaceAdminsMessage `json:"restrictWorkspaceAdmins"`
 	
-	PersonalCompute PersonalComputeMessage `json:"personalCompute"`
+	PersonalCompute *PersonalComputeMessage `json:"personalCompute"`
 	
-	EffectiveBooleanVal BooleanMessage `json:"effectiveBooleanVal"`
+	EffectiveBooleanVal *BooleanMessage `json:"effectiveBooleanVal"`
 	
-	EffectiveStringVal StringMessage `json:"effectiveStringVal"`
+	EffectiveStringVal *StringMessage `json:"effectiveStringVal"`
 	
-	EffectiveIntegerVal IntegerMessage `json:"effectiveIntegerVal"`
+	EffectiveIntegerVal *IntegerMessage `json:"effectiveIntegerVal"`
 	
-	EffectiveAutomaticClusterUpdateWorkspace ClusterAutoRestartMessage `json:"effectiveAutomaticClusterUpdateWorkspace"`
+	EffectiveAutomaticClusterUpdateWorkspace *ClusterAutoRestartMessage `json:"effectiveAutomaticClusterUpdateWorkspace"`
 	
-	EffectiveAibiDashboardEmbeddingApprovedDomains AibiDashboardEmbeddingApprovedDomains `json:"effectiveAibiDashboardEmbeddingApprovedDomains"`
+	EffectiveAibiDashboardEmbeddingApprovedDomains *AibiDashboardEmbeddingApprovedDomains `json:"effectiveAibiDashboardEmbeddingApprovedDomains"`
 	
-	EffectiveAibiDashboardEmbeddingAccessPolicy AibiDashboardEmbeddingAccessPolicy `json:"effectiveAibiDashboardEmbeddingAccessPolicy"`
+	EffectiveAibiDashboardEmbeddingAccessPolicy *AibiDashboardEmbeddingAccessPolicy `json:"effectiveAibiDashboardEmbeddingAccessPolicy"`
 	
-	EffectiveRestrictWorkspaceAdmins RestrictWorkspaceAdminsMessage `json:"effectiveRestrictWorkspaceAdmins"`
+	EffectiveRestrictWorkspaceAdmins *RestrictWorkspaceAdminsMessage `json:"effectiveRestrictWorkspaceAdmins"`
 	
-	EffectivePersonalCompute PersonalComputeMessage `json:"effectivePersonalCompute"`
+	EffectivePersonalCompute *PersonalComputeMessage `json:"effectivePersonalCompute"`
 	
 }
 
@@ -491,13 +491,13 @@ type Setting struct {
 
 type SettingsMetadata struct {
 	
-	Name string `json:"name"`
+	Name *string `json:"name"`
 	
-	Description string `json:"description"`
+	Description *string `json:"description"`
 	
-	Type string `json:"type"`
+	Type *string `json:"type"`
 	
-	DocsLink string `json:"docsLink"`
+	DocsLink *string `json:"docsLink"`
 	
 }
 
@@ -505,7 +505,7 @@ type SettingsMetadata struct {
 
 type StringMessage struct {
 	
-	Value string `json:"value"`
+	Value *string `json:"value"`
 	
 }
 
@@ -513,17 +513,17 @@ type StringMessage struct {
 
 type UserPreference struct {
 	
-	Name string `json:"name"`
+	Name *string `json:"name"`
 	
-	UserId string `json:"userId"`
+	UserId *string `json:"userId"`
 	
-	BooleanVal BooleanMessage `json:"booleanVal"`
+	BooleanVal *BooleanMessage `json:"booleanVal"`
 	
-	StringVal StringMessage `json:"stringVal"`
+	StringVal *StringMessage `json:"stringVal"`
 	
-	EffectiveBooleanVal BooleanMessage `json:"effectiveBooleanVal"`
+	EffectiveBooleanVal *BooleanMessage `json:"effectiveBooleanVal"`
 	
-	EffectiveStringVal StringMessage `json:"effectiveStringVal"`
+	EffectiveStringVal *StringMessage `json:"effectiveStringVal"`
 	
 }
 
@@ -531,11 +531,11 @@ type UserPreference struct {
 
 type WeekDayBasedSchedule struct {
 	
-	Frequency WeekDayFrequency `json:"frequency"`
+	Frequency *WeekDayFrequency `json:"frequency"`
 	
-	DayOfWeek DayOfWeek `json:"dayOfWeek"`
+	DayOfWeek *DayOfWeek `json:"dayOfWeek"`
 	
-	WindowStartTime WindowStartTime `json:"windowStartTime"`
+	WindowStartTime *WindowStartTime `json:"windowStartTime"`
 	
 }
 
@@ -543,9 +543,9 @@ type WeekDayBasedSchedule struct {
 
 type WindowStartTime struct {
 	
-	Hours int `json:"hours"`
+	Hours *int `json:"hours"`
 	
-	Minutes int `json:"minutes"`
+	Minutes *int `json:"minutes"`
 	
 }
 

@@ -89,6 +89,7 @@ func (c *Client) GetPublicAccountSetting(ctx context.Context, req *GetPublicAcco
 
 
 
+
 func (c *Client) GetPublicAccountUserPreference(ctx context.Context, req *GetPublicAccountUserPreferenceRequest, opts ...api.Option) (*UserPreference, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -134,6 +135,7 @@ func (c *Client) GetPublicAccountUserPreference(ctx context.Context, req *GetPub
 	}
 	return resp, nil
 }
+
 
 
 
@@ -185,6 +187,7 @@ func (c *Client) GetPublicWorkspaceSetting(ctx context.Context, req *GetPublicWo
 
 
 
+
 func (c *Client) ListAccountSettingsMetadata(ctx context.Context, req *ListAccountSettingsMetadataRequest, opts ...api.Option) (*ListAccountSettingsMetadataResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -230,6 +233,32 @@ func (c *Client) ListAccountSettingsMetadata(ctx context.Context, req *ListAccou
 	}
 	return resp, nil
 }
+
+func (c *Client) ListAccountSettingsMetadataIter(ctx context.Context, req *ListAccountSettingsMetadataRequest, opts ...api.Option) iter.Seq2[*SettingsMetadata, error] {
+	return func(yield func(*SettingsMetadata, error) bool) {
+		pageReq := &ListAccountSettingsMetadataRequest{
+			PageSize:  req.PageSize,
+			PageToken: req.PageToken,
+		}
+		for {
+			resp, err := c.ListAccountSettingsMetadata(ctx, pageReq, opts...)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			for i := range resp.SettingsMetadata {
+				if !yield(&resp.SettingsMetadata[i], nil) {
+					return
+				}
+			}
+			if resp.NextPageToken == "" {
+				return
+			}
+			pageReq.PageToken = resp.NextPageToken
+		}
+	}
+}
+
 
 
 
@@ -279,6 +308,32 @@ func (c *Client) ListAccountUserPreferencesMetadata(ctx context.Context, req *Li
 	return resp, nil
 }
 
+func (c *Client) ListAccountUserPreferencesMetadataIter(ctx context.Context, req *ListAccountUserPreferencesMetadataRequest, opts ...api.Option) iter.Seq2[*SettingsMetadata, error] {
+	return func(yield func(*SettingsMetadata, error) bool) {
+		pageReq := &ListAccountUserPreferencesMetadataRequest{
+			PageSize:  req.PageSize,
+			PageToken: req.PageToken,
+		}
+		for {
+			resp, err := c.ListAccountUserPreferencesMetadata(ctx, pageReq, opts...)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			for i := range resp.SettingsMetadata {
+				if !yield(&resp.SettingsMetadata[i], nil) {
+					return
+				}
+			}
+			if resp.NextPageToken == "" {
+				return
+			}
+			pageReq.PageToken = resp.NextPageToken
+		}
+	}
+}
+
+
 
 
 func (c *Client) ListWorkspaceSettingsMetadata(ctx context.Context, req *ListWorkspaceSettingsMetadataRequest, opts ...api.Option) (*ListWorkspaceSettingsMetadataResponse, error) {
@@ -326,6 +381,32 @@ func (c *Client) ListWorkspaceSettingsMetadata(ctx context.Context, req *ListWor
 	}
 	return resp, nil
 }
+
+func (c *Client) ListWorkspaceSettingsMetadataIter(ctx context.Context, req *ListWorkspaceSettingsMetadataRequest, opts ...api.Option) iter.Seq2[*SettingsMetadata, error] {
+	return func(yield func(*SettingsMetadata, error) bool) {
+		pageReq := &ListWorkspaceSettingsMetadataRequest{
+			PageSize:  req.PageSize,
+			PageToken: req.PageToken,
+		}
+		for {
+			resp, err := c.ListWorkspaceSettingsMetadata(ctx, pageReq, opts...)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			for i := range resp.SettingsMetadata {
+				if !yield(&resp.SettingsMetadata[i], nil) {
+					return
+				}
+			}
+			if resp.NextPageToken == "" {
+				return
+			}
+			pageReq.PageToken = resp.NextPageToken
+		}
+	}
+}
+
 
 
 
@@ -377,6 +458,7 @@ func (c *Client) PatchPublicAccountSetting(ctx context.Context, req *PatchPublic
 
 
 
+
 func (c *Client) PatchPublicAccountUserPreference(ctx context.Context, req *PatchPublicAccountUserPreferenceRequest, opts ...api.Option) (*UserPreference, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -425,6 +507,7 @@ func (c *Client) PatchPublicAccountUserPreference(ctx context.Context, req *Patc
 
 
 
+
 func (c *Client) PatchPublicWorkspaceSetting(ctx context.Context, req *PatchPublicWorkspaceSettingRequest, opts ...api.Option) (*Setting, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -470,6 +553,7 @@ func (c *Client) PatchPublicWorkspaceSetting(ctx context.Context, req *PatchPubl
 	}
 	return resp, nil
 }
+
 
 
 

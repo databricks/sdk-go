@@ -145,15 +145,15 @@ func (f *ThresholdType) Type() string {
 
 type AnomalyDetectionConfig struct {
 	
-	LastRunId string `json:"lastRunId"`
+	LastRunId *string `json:"lastRunId"`
 	
-	LatestRunStatus AnomalyDetectionRunStatus `json:"latestRunStatus"`
+	LatestRunStatus *AnomalyDetectionRunStatus `json:"latestRunStatus"`
 	
-	JobType AnomalyDetectionJobType `json:"jobType"`
+	JobType *AnomalyDetectionJobType `json:"jobType"`
 	
 	ExcludedTableFullNames []string `json:"excludedTableFullNames"`
 	
-	CustomCheckConfiguration CustomCheckConfiguration `json:"customCheckConfiguration"`
+	CustomCheckConfiguration *CustomCheckConfiguration `json:"customCheckConfiguration"`
 	
 }
 
@@ -161,7 +161,7 @@ type AnomalyDetectionConfig struct {
 
 type ColumnMatcher struct {
 	
-	VariableName string `json:"variableName"`
+	VariableName *string `json:"variableName"`
 	
 	ColumnNames []string `json:"columnNames"`
 	
@@ -171,7 +171,7 @@ type ColumnMatcher struct {
 
 type CreateQualityMonitorRequest struct {
 	
-	QualityMonitor QualityMonitor `json:"qualityMonitor"`
+	QualityMonitor *QualityMonitor `json:"qualityMonitor"`
 	
 }
 
@@ -179,7 +179,7 @@ type CreateQualityMonitorRequest struct {
 
 type CustomCheckConfiguration struct {
 	
-	ScalarCheck CustomScalarCheck `json:"scalarCheck"`
+	ScalarCheck *CustomScalarCheck `json:"scalarCheck"`
 	
 }
 
@@ -187,9 +187,9 @@ type CustomCheckConfiguration struct {
 
 type CustomCheckThresholds struct {
 	
-	LowerBound Threshold `json:"lowerBound"`
+	LowerBound *Threshold `json:"lowerBound"`
 	
-	UpperBound Threshold `json:"upperBound"`
+	UpperBound *Threshold `json:"upperBound"`
 	
 }
 
@@ -197,13 +197,13 @@ type CustomCheckThresholds struct {
 
 type CustomScalarCheck struct {
 	
-	CheckName string `json:"checkName"`
+	CheckName *string `json:"checkName"`
 	
-	SqlQuery string `json:"sqlQuery"`
+	SqlQuery *string `json:"sqlQuery"`
 	
 	ColumnMatchers []ColumnMatcher `json:"columnMatchers"`
 	
-	Thresholds CustomCheckThresholds `json:"thresholds"`
+	Thresholds *CustomCheckThresholds `json:"thresholds"`
 	
 }
 
@@ -211,9 +211,9 @@ type CustomScalarCheck struct {
 
 type DeleteQualityMonitorRequest struct {
 	
-	ObjectType string `json:"objectType"`
+	ObjectType *string `json:"objectType"`
 	
-	ObjectId string `json:"objectId"`
+	ObjectId *string `json:"objectId"`
 	
 }
 
@@ -221,9 +221,9 @@ type DeleteQualityMonitorRequest struct {
 
 type GetQualityMonitorRequest struct {
 	
-	ObjectType string `json:"objectType"`
+	ObjectType *string `json:"objectType"`
 	
-	ObjectId string `json:"objectId"`
+	ObjectId *string `json:"objectId"`
 	
 }
 
@@ -231,9 +231,9 @@ type GetQualityMonitorRequest struct {
 
 type ListQualityMonitorRequest struct {
 	
-	PageToken string `json:"pageToken"`
+	PageToken *string `json:"pageToken"`
 	
-	PageSize int `json:"pageSize"`
+	PageSize *int `json:"pageSize"`
 	
 }
 
@@ -243,7 +243,7 @@ type ListQualityMonitorResponse struct {
 	
 	QualityMonitors []QualityMonitor `json:"qualityMonitors"`
 	
-	NextPageToken string `json:"nextPageToken"`
+	NextPageToken *string `json:"nextPageToken"`
 	
 }
 
@@ -251,11 +251,11 @@ type ListQualityMonitorResponse struct {
 
 type QualityMonitor struct {
 	
-	ObjectType string `json:"objectType"`
+	ObjectType *string `json:"objectType"`
 	
-	ObjectId string `json:"objectId"`
+	ObjectId *string `json:"objectId"`
 	
-	AnomalyDetectionConfig AnomalyDetectionConfig `json:"anomalyDetectionConfig"`
+	AnomalyDetectionConfig *AnomalyDetectionConfig `json:"anomalyDetectionConfig"`
 	
 }
 
@@ -263,9 +263,9 @@ type QualityMonitor struct {
 
 type Threshold struct {
 	
-	BoundValue int64 `json:"boundValue"`
+	BoundValue *int64 `json:"boundValue"`
 	
-	ThresholdType ThresholdType `json:"thresholdType"`
+	ThresholdType *ThresholdType `json:"thresholdType"`
 	
 }
 
@@ -273,11 +273,11 @@ type Threshold struct {
 
 type UpdateQualityMonitorRequest struct {
 	
-	ObjectType string `json:"objectType"`
+	ObjectType *string `json:"objectType"`
 	
-	ObjectId string `json:"objectId"`
+	ObjectId *string `json:"objectId"`
 	
-	QualityMonitor QualityMonitor `json:"qualityMonitor"`
+	QualityMonitor *QualityMonitor `json:"qualityMonitor"`
 	
 }
 

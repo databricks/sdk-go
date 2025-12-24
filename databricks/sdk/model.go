@@ -67,11 +67,11 @@ type Binding struct {
 
 type BindingPair struct {
 	
-	PollMethodField string `json:"pollMethodField"`
+	PollMethodField *string `json:"pollMethodField"`
 	
-	RequestField string `json:"requestField"`
+	RequestField *string `json:"requestField"`
 	
-	ResponseField string `json:"responseField"`
+	ResponseField *string `json:"responseField"`
 	
 }
 
@@ -79,9 +79,9 @@ type BindingPair struct {
 
 type LongRunningOperation struct {
 	
-	OperationInfo OperationInfo `json:"operationInfo"`
+	OperationInfo *OperationInfo `json:"operationInfo"`
 	
-	OperationMethods OperationMethods `json:"operationMethods"`
+	OperationMethods *OperationMethods `json:"operationMethods"`
 	
 }
 
@@ -89,11 +89,11 @@ type LongRunningOperation struct {
 
 type OffsetInfo struct {
 	
-	Offset string `json:"offset"`
+	Offset *string `json:"offset"`
 	
-	MaxResults string `json:"maxResults"`
+	MaxResults *string `json:"maxResults"`
 	
-	DefaultMaxResults int `json:"defaultMaxResults"`
+	DefaultMaxResults *int `json:"defaultMaxResults"`
 	
 }
 
@@ -101,9 +101,9 @@ type OffsetInfo struct {
 
 type OperationInfo struct {
 	
-	ResponseType string `json:"responseType"`
+	ResponseType *string `json:"responseType"`
 	
-	MetadataType string `json:"metadataType"`
+	MetadataType *string `json:"metadataType"`
 	
 }
 
@@ -111,15 +111,15 @@ type OperationInfo struct {
 
 type OperationMethods struct {
 	
-	Get string `json:"get"`
+	Get *string `json:"get"`
 	
-	List string `json:"list"`
+	List *string `json:"list"`
 	
-	Wait string `json:"wait"`
+	Wait *string `json:"wait"`
 	
-	Delete string `json:"delete"`
+	Delete *string `json:"delete"`
 	
-	Cancel string `json:"cancel"`
+	Cancel *string `json:"cancel"`
 	
 }
 
@@ -127,13 +127,13 @@ type OperationMethods struct {
 
 type PageTokenInfo struct {
 	
-	Request string `json:"request"`
+	Request *string `json:"request"`
 	
-	Response string `json:"response"`
+	Response *string `json:"response"`
 	
-	MaxResults string `json:"maxResults"`
+	MaxResults *string `json:"maxResults"`
 	
-	DefaultMaxResults int `json:"defaultMaxResults"`
+	DefaultMaxResults *int `json:"defaultMaxResults"`
 	
 }
 
@@ -141,11 +141,11 @@ type PageTokenInfo struct {
 
 type Pagination struct {
 	
-	OffsetInfo OffsetInfo `json:"offsetInfo"`
+	OffsetInfo *OffsetInfo `json:"offsetInfo"`
 	
-	TokenInfo PageTokenInfo `json:"tokenInfo"`
+	TokenInfo *PageTokenInfo `json:"tokenInfo"`
 	
-	Results string `json:"results"`
+	Results *string `json:"results"`
 	
 }
 
@@ -167,11 +167,11 @@ type StateInfo struct {
 
 type WaitForState struct {
 	
-	MethodToPoll string `json:"methodToPoll"`
+	MethodToPoll *string `json:"methodToPoll"`
 	
-	Binding Binding `json:"binding"`
+	Binding *Binding `json:"binding"`
 	
-	StateInfo StateInfo `json:"stateInfo"`
+	StateInfo *StateInfo `json:"stateInfo"`
 	
 }
 

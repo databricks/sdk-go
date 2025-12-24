@@ -63,9 +63,9 @@ func (f *FieldBehavior) Type() string {
 
 type CustomHttpPattern struct {
 	
-	Kind string `json:"kind"`
+	Kind *string `json:"kind"`
 	
-	Path string `json:"path"`
+	Path *string `json:"path"`
 	
 }
 
@@ -75,7 +75,7 @@ type Http struct {
 	
 	Rules []HttpRule `json:"rules"`
 	
-	FullyDecodeReservedExpansion bool `json:"fullyDecodeReservedExpansion"`
+	FullyDecodeReservedExpansion *bool `json:"fullyDecodeReservedExpansion"`
 	
 }
 
@@ -83,23 +83,23 @@ type Http struct {
 
 type HttpRule struct {
 	
-	Selector string `json:"selector"`
+	Selector *string `json:"selector"`
 	
-	Get string `json:"get"`
+	Get *string `json:"get"`
 	
-	Put string `json:"put"`
+	Put *string `json:"put"`
 	
-	Post string `json:"post"`
+	Post *string `json:"post"`
 	
-	Delete string `json:"delete"`
+	Delete *string `json:"delete"`
 	
-	Patch string `json:"patch"`
+	Patch *string `json:"patch"`
 	
-	Custom CustomHttpPattern `json:"custom"`
+	Custom *CustomHttpPattern `json:"custom"`
 	
-	Body string `json:"body"`
+	Body *string `json:"body"`
 	
-	ResponseBody string `json:"responseBody"`
+	ResponseBody *string `json:"responseBody"`
 	
 	AdditionalBindings []HttpRule `json:"additionalBindings"`
 	
