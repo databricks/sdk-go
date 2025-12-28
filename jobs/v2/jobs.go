@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -84,7 +85,49 @@ func (c *Client) CreateJob(ctx context.Context, req *CreateJobRequest, opts ...a
 }
 
 func (c *Client) ListJobs(ctx context.Context, req *ListJobsRequest, opts ...api.Option) (*ListJobsResponse, error) {
-	return nil, nil
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	queryParams := url.Values{}
+	if req.PageSize > 0 {
+		queryParams.Set("page_size", fmt.Sprintf("%d", req.PageSize))
+	}
+	if req.PageToken != "" {
+		queryParams.Set("page_token", req.PageToken)
+	}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &ListJobsResponse{}
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("GET", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
 func (c *Client) ListJobsIter(ctx context.Context, req *ListJobsRequest, opts ...api.Option) iter.Seq2[*Job, error] {
