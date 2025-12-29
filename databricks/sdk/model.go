@@ -11,46 +11,18 @@ import (
 
 type LaunchStage string
 
-const LaunchStageLaunchStageUnspecified LaunchStage = `LAUNCH_STAGE_UNSPECIFIED`
-const LaunchStageDevelopment LaunchStage = `DEVELOPMENT`
-const LaunchStagePrivatePreview LaunchStage = `PRIVATE_PREVIEW`
-const LaunchStagePublicBeta LaunchStage = `PUBLIC_BETA`
-const LaunchStagePublicPreview LaunchStage = `PUBLIC_PREVIEW`
-const LaunchStageGa LaunchStage = `GA`
+const (
+	LaunchStageLaunchStageUnspecified LaunchStage = "LAUNCH_STAGE_UNSPECIFIED"
+	LaunchStageDevelopment LaunchStage = "DEVELOPMENT"
+	LaunchStagePrivatePreview LaunchStage = "PRIVATE_PREVIEW"
+	LaunchStagePublicBeta LaunchStage = "PUBLIC_BETA"
+	LaunchStagePublicPreview LaunchStage = "PUBLIC_PREVIEW"
+	LaunchStageGa LaunchStage = "GA"
+)
 
-// String representation for [fmt.Print]
+// String representation for [fmt.Print].
 func (f *LaunchStage) String() string {
 	return string(*f)
-}
-
-// Set raw string value and validate it against allowed values
-func (f *LaunchStage) Set(v string) error {
-	switch v {
-	case `LAUNCH_STAGE_UNSPECIFIED`, `DEVELOPMENT`, `PRIVATE_PREVIEW`, `PUBLIC_BETA`, `PUBLIC_PREVIEW`, `GA`:
-		*f = LaunchStage(v)
-		return nil
-	default:
-		return fmt.Errorf(`value "%s" is not one of "LAUNCH_STAGE_UNSPECIFIED", "DEVELOPMENT", "PRIVATE_PREVIEW", "PUBLIC_BETA", "PUBLIC_PREVIEW", "GA"`, v)
-	}
-}
-
-// Values returns all possible values for LaunchStage.
-//
-// There is no guarantee on the order of the values in the slice.
-func (f *LaunchStage) Values() []LaunchStage {
-	return []LaunchStage{
-		LaunchStageLaunchStageUnspecified,
-		LaunchStageDevelopment,
-		LaunchStagePrivatePreview,
-		LaunchStagePublicBeta,
-		LaunchStagePublicPreview,
-		LaunchStageGa,
-	}
-}
-
-// Type always returns LaunchStage to satisfy [pflag.Value] interface
-func (f *LaunchStage) Type() string {
-	return "LaunchStage"
 }
 
 

@@ -135,6 +135,55 @@ func (c *Client) DeleteAccountAccessIdentityRule(ctx context.Context, req *Delet
 
 
 
+func (c *Client) GetAccountAccessIdentityRule(ctx context.Context, req *GetAccountAccessIdentityRuleRequest, opts ...api.Option) (*AccountAccessIdentityRule, error) {
+	body, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &AccountAccessIdentityRule{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+
+
+
 func (c *Client) ListAccountAccessIdentityRules(ctx context.Context, req *ListAccountAccessIdentityRulesRequest, opts ...api.Option) (*ListAccountAccessIdentityRulesResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {

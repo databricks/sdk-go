@@ -11,242 +11,91 @@ import (
 
 type AccessType string
 
-const AccessTypeAccessTypeUnspecified AccessType = `ACCESS_TYPE_UNSPECIFIED`
-const AccessTypeDirect AccessType = `DIRECT`
-const AccessTypeIndirect AccessType = `INDIRECT`
+const (
+	AccessTypeAccessTypeUnspecified AccessType = "ACCESS_TYPE_UNSPECIFIED"
+	AccessTypeDirect AccessType = "DIRECT"
+	AccessTypeIndirect AccessType = "INDIRECT"
+)
 
-// String representation for [fmt.Print]
+// String representation for [fmt.Print].
 func (f *AccessType) String() string {
 	return string(*f)
-}
-
-// Set raw string value and validate it against allowed values
-func (f *AccessType) Set(v string) error {
-	switch v {
-	case `ACCESS_TYPE_UNSPECIFIED`, `DIRECT`, `INDIRECT`:
-		*f = AccessType(v)
-		return nil
-	default:
-		return fmt.Errorf(`value "%s" is not one of "ACCESS_TYPE_UNSPECIFIED", "DIRECT", "INDIRECT"`, v)
-	}
-}
-
-// Values returns all possible values for AccessType.
-//
-// There is no guarantee on the order of the values in the slice.
-func (f *AccessType) Values() []AccessType {
-	return []AccessType{
-		AccessTypeAccessTypeUnspecified,
-		AccessTypeDirect,
-		AccessTypeIndirect,
-	}
-}
-
-// Type always returns AccessType to satisfy [pflag.Value] interface
-func (f *AccessType) Type() string {
-	return "AccessType"
 }
 
 
 
 type AccountAccessRuleAction string
 
-const AccountAccessRuleActionAccountAccessRuleActionUnspecified AccountAccessRuleAction = `ACCOUNT_ACCESS_RULE_ACTION_UNSPECIFIED`
-const AccountAccessRuleActionAllow AccountAccessRuleAction = `ALLOW`
-const AccountAccessRuleActionDeny AccountAccessRuleAction = `DENY`
+const (
+	AccountAccessRuleActionAccountAccessRuleActionUnspecified AccountAccessRuleAction = "ACCOUNT_ACCESS_RULE_ACTION_UNSPECIFIED"
+	AccountAccessRuleActionAllow AccountAccessRuleAction = "ALLOW"
+	AccountAccessRuleActionDeny AccountAccessRuleAction = "DENY"
+)
 
-// String representation for [fmt.Print]
+// String representation for [fmt.Print].
 func (f *AccountAccessRuleAction) String() string {
 	return string(*f)
-}
-
-// Set raw string value and validate it against allowed values
-func (f *AccountAccessRuleAction) Set(v string) error {
-	switch v {
-	case `ACCOUNT_ACCESS_RULE_ACTION_UNSPECIFIED`, `ALLOW`, `DENY`:
-		*f = AccountAccessRuleAction(v)
-		return nil
-	default:
-		return fmt.Errorf(`value "%s" is not one of "ACCOUNT_ACCESS_RULE_ACTION_UNSPECIFIED", "ALLOW", "DENY"`, v)
-	}
-}
-
-// Values returns all possible values for AccountAccessRuleAction.
-//
-// There is no guarantee on the order of the values in the slice.
-func (f *AccountAccessRuleAction) Values() []AccountAccessRuleAction {
-	return []AccountAccessRuleAction{
-		AccountAccessRuleActionAccountAccessRuleActionUnspecified,
-		AccountAccessRuleActionAllow,
-		AccountAccessRuleActionDeny,
-	}
-}
-
-// Type always returns AccountAccessRuleAction to satisfy [pflag.Value] interface
-func (f *AccountAccessRuleAction) Type() string {
-	return "AccountAccessRuleAction"
 }
 
 
 
 type PrincipalType string
 
-const PrincipalTypePrincipalTypeUnspecified PrincipalType = `PRINCIPAL_TYPE_UNSPECIFIED`
-const PrincipalTypeUser PrincipalType = `USER`
-const PrincipalTypeServicePrincipal PrincipalType = `SERVICE_PRINCIPAL`
-const PrincipalTypeGroup PrincipalType = `GROUP`
+const (
+	PrincipalTypePrincipalTypeUnspecified PrincipalType = "PRINCIPAL_TYPE_UNSPECIFIED"
+	PrincipalTypeUser PrincipalType = "USER"
+	PrincipalTypeServicePrincipal PrincipalType = "SERVICE_PRINCIPAL"
+	PrincipalTypeGroup PrincipalType = "GROUP"
+)
 
-// String representation for [fmt.Print]
+// String representation for [fmt.Print].
 func (f *PrincipalType) String() string {
 	return string(*f)
-}
-
-// Set raw string value and validate it against allowed values
-func (f *PrincipalType) Set(v string) error {
-	switch v {
-	case `PRINCIPAL_TYPE_UNSPECIFIED`, `USER`, `SERVICE_PRINCIPAL`, `GROUP`:
-		*f = PrincipalType(v)
-		return nil
-	default:
-		return fmt.Errorf(`value "%s" is not one of "PRINCIPAL_TYPE_UNSPECIFIED", "USER", "SERVICE_PRINCIPAL", "GROUP"`, v)
-	}
-}
-
-// Values returns all possible values for PrincipalType.
-//
-// There is no guarantee on the order of the values in the slice.
-func (f *PrincipalType) Values() []PrincipalType {
-	return []PrincipalType{
-		PrincipalTypePrincipalTypeUnspecified,
-		PrincipalTypeUser,
-		PrincipalTypeServicePrincipal,
-		PrincipalTypeGroup,
-	}
-}
-
-// Type always returns PrincipalType to satisfy [pflag.Value] interface
-func (f *PrincipalType) Type() string {
-	return "PrincipalType"
 }
 
 
 
 type State string
 
-const StateStateUnspecified State = `STATE_UNSPECIFIED`
-const StateActive State = `ACTIVE`
-const StateInactive State = `INACTIVE`
+const (
+	StateStateUnspecified State = "STATE_UNSPECIFIED"
+	StateActive State = "ACTIVE"
+	StateInactive State = "INACTIVE"
+)
 
-// String representation for [fmt.Print]
+// String representation for [fmt.Print].
 func (f *State) String() string {
 	return string(*f)
-}
-
-// Set raw string value and validate it against allowed values
-func (f *State) Set(v string) error {
-	switch v {
-	case `STATE_UNSPECIFIED`, `ACTIVE`, `INACTIVE`:
-		*f = State(v)
-		return nil
-	default:
-		return fmt.Errorf(`value "%s" is not one of "STATE_UNSPECIFIED", "ACTIVE", "INACTIVE"`, v)
-	}
-}
-
-// Values returns all possible values for State.
-//
-// There is no guarantee on the order of the values in the slice.
-func (f *State) Values() []State {
-	return []State{
-		StateStateUnspecified,
-		StateActive,
-		StateInactive,
-	}
-}
-
-// Type always returns State to satisfy [pflag.Value] interface
-func (f *State) Type() string {
-	return "State"
 }
 
 
 
 type WorkspaceAccessDetailView string
 
-const WorkspaceAccessDetailViewWorkspaceAccessDetailViewUnspecified WorkspaceAccessDetailView = `WORKSPACE_ACCESS_DETAIL_VIEW_UNSPECIFIED`
-const WorkspaceAccessDetailViewBasic WorkspaceAccessDetailView = `BASIC`
-const WorkspaceAccessDetailViewFull WorkspaceAccessDetailView = `FULL`
+const (
+	WorkspaceAccessDetailViewWorkspaceAccessDetailViewUnspecified WorkspaceAccessDetailView = "WORKSPACE_ACCESS_DETAIL_VIEW_UNSPECIFIED"
+	WorkspaceAccessDetailViewBasic WorkspaceAccessDetailView = "BASIC"
+	WorkspaceAccessDetailViewFull WorkspaceAccessDetailView = "FULL"
+)
 
-// String representation for [fmt.Print]
+// String representation for [fmt.Print].
 func (f *WorkspaceAccessDetailView) String() string {
 	return string(*f)
-}
-
-// Set raw string value and validate it against allowed values
-func (f *WorkspaceAccessDetailView) Set(v string) error {
-	switch v {
-	case `WORKSPACE_ACCESS_DETAIL_VIEW_UNSPECIFIED`, `BASIC`, `FULL`:
-		*f = WorkspaceAccessDetailView(v)
-		return nil
-	default:
-		return fmt.Errorf(`value "%s" is not one of "WORKSPACE_ACCESS_DETAIL_VIEW_UNSPECIFIED", "BASIC", "FULL"`, v)
-	}
-}
-
-// Values returns all possible values for WorkspaceAccessDetailView.
-//
-// There is no guarantee on the order of the values in the slice.
-func (f *WorkspaceAccessDetailView) Values() []WorkspaceAccessDetailView {
-	return []WorkspaceAccessDetailView{
-		WorkspaceAccessDetailViewWorkspaceAccessDetailViewUnspecified,
-		WorkspaceAccessDetailViewBasic,
-		WorkspaceAccessDetailViewFull,
-	}
-}
-
-// Type always returns WorkspaceAccessDetailView to satisfy [pflag.Value] interface
-func (f *WorkspaceAccessDetailView) Type() string {
-	return "WorkspaceAccessDetailView"
 }
 
 
 
 type WorkspacePermission string
 
-const WorkspacePermissionWorkspacePermissionUnspecified WorkspacePermission = `WORKSPACE_PERMISSION_UNSPECIFIED`
-const WorkspacePermissionUserPermission WorkspacePermission = `USER_PERMISSION`
-const WorkspacePermissionAdminPermission WorkspacePermission = `ADMIN_PERMISSION`
+const (
+	WorkspacePermissionWorkspacePermissionUnspecified WorkspacePermission = "WORKSPACE_PERMISSION_UNSPECIFIED"
+	WorkspacePermissionUserPermission WorkspacePermission = "USER_PERMISSION"
+	WorkspacePermissionAdminPermission WorkspacePermission = "ADMIN_PERMISSION"
+)
 
-// String representation for [fmt.Print]
+// String representation for [fmt.Print].
 func (f *WorkspacePermission) String() string {
 	return string(*f)
-}
-
-// Set raw string value and validate it against allowed values
-func (f *WorkspacePermission) Set(v string) error {
-	switch v {
-	case `WORKSPACE_PERMISSION_UNSPECIFIED`, `USER_PERMISSION`, `ADMIN_PERMISSION`:
-		*f = WorkspacePermission(v)
-		return nil
-	default:
-		return fmt.Errorf(`value "%s" is not one of "WORKSPACE_PERMISSION_UNSPECIFIED", "USER_PERMISSION", "ADMIN_PERMISSION"`, v)
-	}
-}
-
-// Values returns all possible values for WorkspacePermission.
-//
-// There is no guarantee on the order of the values in the slice.
-func (f *WorkspacePermission) Values() []WorkspacePermission {
-	return []WorkspacePermission{
-		WorkspacePermissionWorkspacePermissionUnspecified,
-		WorkspacePermissionUserPermission,
-		WorkspacePermissionAdminPermission,
-	}
-}
-
-// Type always returns WorkspacePermission to satisfy [pflag.Value] interface
-func (f *WorkspacePermission) Type() string {
-	return "WorkspacePermission"
 }
 
 
@@ -430,6 +279,16 @@ type DeleteWorkspaceAccessDetailRequest struct {
 	WorkspaceId *int64 `json:"workspaceId"`
 	
 	PrincipalId *int64 `json:"principalId"`
+	
+}
+
+
+
+type GetAccountAccessIdentityRuleRequest struct {
+	
+	AccountId *string `json:"accountId"`
+	
+	ExternalId *string `json:"externalId"`
 	
 }
 
