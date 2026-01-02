@@ -1,13 +1,9 @@
-
 package v2
 
 import (
-	
 	"fmt"
 	"io"
 )
-
-
 
 type AccessPolicyType string
 
@@ -22,8 +18,6 @@ const (
 func (f *AccessPolicyType) String() string {
 	return string(*f)
 }
-
-
 
 type DayOfWeek string
 
@@ -43,8 +37,6 @@ func (f *DayOfWeek) String() string {
 	return string(*f)
 }
 
-
-
 type PersonalComputeMessageEnum string
 
 const (
@@ -58,8 +50,6 @@ func (f *PersonalComputeMessageEnum) String() string {
 	return string(*f)
 }
 
-
-
 type Status string
 
 const (
@@ -72,8 +62,6 @@ const (
 func (f *Status) String() string {
 	return string(*f)
 }
-
-
 
 type WeekDayFrequency string
 
@@ -93,324 +81,171 @@ func (f *WeekDayFrequency) String() string {
 	return string(*f)
 }
 
-
-
-
-
 type AibiDashboardEmbeddingAccessPolicy struct {
-	
 	AccessPolicyType *AccessPolicyType `json:"accessPolicyType"`
-	
 }
-
-
 
 type AibiDashboardEmbeddingApprovedDomains struct {
-	
 	ApprovedDomains []string `json:"approvedDomains"`
-	
 }
-
-
 
 type BooleanMessage struct {
-	
 	Value *bool `json:"value"`
-	
 }
-
-
 
 type ClusterAutoRestartMessage struct {
-	
 	Enabled *bool `json:"enabled"`
-	
 	CanToggle *bool `json:"canToggle"`
-	
 	MaintenanceWindow *MaintenanceWindow `json:"maintenanceWindow"`
-	
 	EnablementDetails *EnablementDetails `json:"enablementDetails"`
-	
 	RestartEvenIfNoUpdatesAvailable *bool `json:"restartEvenIfNoUpdatesAvailable"`
-	
 }
 
-
-
+// Contains an information about the enablement status judging (e.g. whether the
+// enterprise tier is enabled) This is only additional information that MUST NOT
+// be used to decide whether the setting is enabled or not. This is intended to
+// use only for purposes like showing an error message to the customer with the
+// additional details. For example, using these details we can check why exactly
+// the feature is disabled for this customer.
 type EnablementDetails struct {
-	
 	UnavailableForNonEnterpriseTier *bool `json:"unavailableForNonEnterpriseTier"`
-	
 	UnavailableForDisabledEntitlement *bool `json:"unavailableForDisabledEntitlement"`
-	
 	ForcedForComplianceMode *bool `json:"forcedForComplianceMode"`
-	
 }
-
-
 
 type GetPublicAccountSettingRequest struct {
-	
 	AccountId *string `json:"accountId"`
-	
 	Name *string `json:"name"`
-	
 }
-
-
 
 type GetPublicAccountUserPreferenceRequest struct {
-	
 	AccountId *string `json:"accountId"`
-	
 	UserId *string `json:"userId"`
-	
 	Name *string `json:"name"`
-	
 }
-
-
 
 type GetPublicWorkspaceSettingRequest struct {
-	
 	Name *string `json:"name"`
-	
 }
-
-
 
 type IntegerMessage struct {
-	
 	Value *int `json:"value"`
-	
 }
-
-
 
 type ListAccountSettingsMetadataRequest struct {
-	
 	AccountId *string `json:"accountId"`
-	
 	PageSize *int `json:"pageSize"`
-	
 	PageToken *string `json:"pageToken"`
-	
 }
-
-
 
 type ListAccountSettingsMetadataResponse struct {
-	
 	SettingsMetadata []SettingsMetadata `json:"settingsMetadata"`
-	
 	NextPageToken *string `json:"nextPageToken"`
-	
 }
-
-
 
 type ListAccountUserPreferencesMetadataRequest struct {
-	
 	AccountId *string `json:"accountId"`
-	
 	UserId *string `json:"userId"`
-	
 	PageSize *int `json:"pageSize"`
-	
 	PageToken *string `json:"pageToken"`
-	
 }
-
-
 
 type ListAccountUserPreferencesMetadataResponse struct {
-	
 	SettingsMetadata []SettingsMetadata `json:"settingsMetadata"`
-	
 	NextPageToken *string `json:"nextPageToken"`
-	
 }
-
-
 
 type ListWorkspaceSettingsMetadataRequest struct {
-	
 	PageSize *int `json:"pageSize"`
-	
 	PageToken *string `json:"pageToken"`
-	
 }
-
-
 
 type ListWorkspaceSettingsMetadataResponse struct {
-	
 	SettingsMetadata []SettingsMetadata `json:"settingsMetadata"`
-	
 	NextPageToken *string `json:"nextPageToken"`
-	
 }
-
-
 
 type MaintenanceWindow struct {
-	
 	WeekDayBasedSchedule *WeekDayBasedSchedule `json:"weekDayBasedSchedule"`
-	
 }
-
-
 
 type PatchPublicAccountSettingRequest struct {
-	
 	AccountId *string `json:"accountId"`
-	
 	Name *string `json:"name"`
-	
 	Setting *Setting `json:"setting"`
-	
 }
-
-
 
 type PatchPublicAccountUserPreferenceRequest struct {
-	
 	AccountId *string `json:"accountId"`
-	
 	UserId *string `json:"userId"`
-	
 	Name *string `json:"name"`
-	
 	Setting *UserPreference `json:"setting"`
-	
 }
-
-
 
 type PatchPublicWorkspaceSettingRequest struct {
-	
 	Name *string `json:"name"`
-	
 	Setting *Setting `json:"setting"`
-	
 }
-
-
 
 type PersonalComputeMessage struct {
-	
 	Value *PersonalComputeMessageEnum `json:"value"`
-	
 }
-
-
 
 type RestrictWorkspaceAdminsMessage struct {
-	
 	Status *Status `json:"status"`
-	
 }
-
-
 
 type Setting struct {
-	
 	Name *string `json:"name"`
-	
 	BooleanVal *BooleanMessage `json:"booleanVal"`
-	
 	StringVal *StringMessage `json:"stringVal"`
-	
 	IntegerVal *IntegerMessage `json:"integerVal"`
-	
 	AutomaticClusterUpdateWorkspace *ClusterAutoRestartMessage `json:"automaticClusterUpdateWorkspace"`
-	
 	AibiDashboardEmbeddingApprovedDomains *AibiDashboardEmbeddingApprovedDomains `json:"aibiDashboardEmbeddingApprovedDomains"`
-	
 	AibiDashboardEmbeddingAccessPolicy *AibiDashboardEmbeddingAccessPolicy `json:"aibiDashboardEmbeddingAccessPolicy"`
-	
 	RestrictWorkspaceAdmins *RestrictWorkspaceAdminsMessage `json:"restrictWorkspaceAdmins"`
-	
 	PersonalCompute *PersonalComputeMessage `json:"personalCompute"`
-	
 	EffectiveBooleanVal *BooleanMessage `json:"effectiveBooleanVal"`
-	
 	EffectiveStringVal *StringMessage `json:"effectiveStringVal"`
-	
 	EffectiveIntegerVal *IntegerMessage `json:"effectiveIntegerVal"`
-	
 	EffectiveAutomaticClusterUpdateWorkspace *ClusterAutoRestartMessage `json:"effectiveAutomaticClusterUpdateWorkspace"`
-	
 	EffectiveAibiDashboardEmbeddingApprovedDomains *AibiDashboardEmbeddingApprovedDomains `json:"effectiveAibiDashboardEmbeddingApprovedDomains"`
-	
 	EffectiveAibiDashboardEmbeddingAccessPolicy *AibiDashboardEmbeddingAccessPolicy `json:"effectiveAibiDashboardEmbeddingAccessPolicy"`
-	
 	EffectiveRestrictWorkspaceAdmins *RestrictWorkspaceAdminsMessage `json:"effectiveRestrictWorkspaceAdmins"`
-	
 	EffectivePersonalCompute *PersonalComputeMessage `json:"effectivePersonalCompute"`
-	
 }
-
-
 
 type SettingsMetadata struct {
-	
 	Name *string `json:"name"`
-	
 	Description *string `json:"description"`
-	
 	Type *string `json:"type"`
-	
 	DocsLink *string `json:"docsLink"`
-	
 }
-
-
 
 type StringMessage struct {
-	
 	Value *string `json:"value"`
-	
 }
 
-
-
+// User Preference represents a user-specific setting scoped to an individual
+// user within an account. Unlike workspace or account settings that apply to
+// all users, user preferences allow personal customization (e.g., UI theme,
+// editor preferences) without affecting other users.
 type UserPreference struct {
-	
 	Name *string `json:"name"`
-	
 	UserId *string `json:"userId"`
-	
 	BooleanVal *BooleanMessage `json:"booleanVal"`
-	
 	StringVal *StringMessage `json:"stringVal"`
-	
 	EffectiveBooleanVal *BooleanMessage `json:"effectiveBooleanVal"`
-	
 	EffectiveStringVal *StringMessage `json:"effectiveStringVal"`
-	
 }
-
-
 
 type WeekDayBasedSchedule struct {
-	
 	Frequency *WeekDayFrequency `json:"frequency"`
-	
 	DayOfWeek *DayOfWeek `json:"dayOfWeek"`
-	
 	WindowStartTime *WindowStartTime `json:"windowStartTime"`
-	
 }
-
-
 
 type WindowStartTime struct {
-	
 	Hours *int `json:"hours"`
-	
 	Minutes *int `json:"minutes"`
-	
 }
-
-
