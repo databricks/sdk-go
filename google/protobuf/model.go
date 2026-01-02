@@ -1,13 +1,9 @@
-
 package protobuf
 
 import (
-	
 	"fmt"
 	"io"
 )
-
-
 
 type CType string
 
@@ -21,8 +17,6 @@ const (
 func (f *CType) String() string {
 	return string(*f)
 }
-
-
 
 type DefaultSymbolVisibility string
 
@@ -38,8 +32,6 @@ const (
 func (f *DefaultSymbolVisibility) String() string {
 	return string(*f)
 }
-
-
 
 type Edition string
 
@@ -63,8 +55,6 @@ func (f *Edition) String() string {
 	return string(*f)
 }
 
-
-
 type EnforceNamingStyle string
 
 const (
@@ -78,8 +68,6 @@ func (f *EnforceNamingStyle) String() string {
 	return string(*f)
 }
 
-
-
 type EnumType string
 
 const (
@@ -92,8 +80,6 @@ const (
 func (f *EnumType) String() string {
 	return string(*f)
 }
-
-
 
 type FieldPresence string
 
@@ -109,8 +95,6 @@ func (f *FieldPresence) String() string {
 	return string(*f)
 }
 
-
-
 type IdempotencyLevel string
 
 const (
@@ -123,8 +107,6 @@ const (
 func (f *IdempotencyLevel) String() string {
 	return string(*f)
 }
-
-
 
 type JsType string
 
@@ -139,8 +121,6 @@ func (f *JsType) String() string {
 	return string(*f)
 }
 
-
-
 type JsonFormat string
 
 const (
@@ -153,8 +133,6 @@ const (
 func (f *JsonFormat) String() string {
 	return string(*f)
 }
-
-
 
 type Label string
 
@@ -169,8 +147,6 @@ func (f *Label) String() string {
 	return string(*f)
 }
 
-
-
 type MessageEncoding string
 
 const (
@@ -183,8 +159,6 @@ const (
 func (f *MessageEncoding) String() string {
 	return string(*f)
 }
-
-
 
 type OptimizeMode string
 
@@ -199,8 +173,6 @@ func (f *OptimizeMode) String() string {
 	return string(*f)
 }
 
-
-
 type OptionRetention string
 
 const (
@@ -213,8 +185,6 @@ const (
 func (f *OptionRetention) String() string {
 	return string(*f)
 }
-
-
 
 type OptionTargetType string
 
@@ -236,8 +206,6 @@ func (f *OptionTargetType) String() string {
 	return string(*f)
 }
 
-
-
 type RepeatedFieldEncoding string
 
 const (
@@ -250,8 +218,6 @@ const (
 func (f *RepeatedFieldEncoding) String() string {
 	return string(*f)
 }
-
-
 
 type Semantic string
 
@@ -266,8 +232,6 @@ func (f *Semantic) String() string {
 	return string(*f)
 }
 
-
-
 type SymbolVisibility string
 
 const (
@@ -280,8 +244,6 @@ const (
 func (f *SymbolVisibility) String() string {
 	return string(*f)
 }
-
-
 
 type Type string
 
@@ -311,8 +273,6 @@ func (f *Type) String() string {
 	return string(*f)
 }
 
-
-
 type Utf8Validation string
 
 const (
@@ -326,8 +286,6 @@ func (f *Utf8Validation) String() string {
 	return string(*f)
 }
 
-
-
 type VerificationState string
 
 const (
@@ -340,574 +298,286 @@ func (f *VerificationState) String() string {
 	return string(*f)
 }
 
-
-
-
-
 type Annotation struct {
-	
 	Path []int `json:"path"`
-	
 	SourceFile *string `json:"sourceFile"`
-	
 	Begin *int `json:"begin"`
-	
 	End *int `json:"end"`
-	
 	Semantic *Semantic `json:"semantic"`
-	
 }
-
-
 
 type Declaration struct {
-	
 	Number *int `json:"number"`
-	
 	FullName *string `json:"fullName"`
-	
 	Type *string `json:"type"`
-	
 	Reserved *bool `json:"reserved"`
-	
 	Repeated *bool `json:"repeated"`
-	
 }
-
-
 
 type DescriptorProto struct {
-	
 	Name *string `json:"name"`
-	
 	Field []FieldDescriptorProto `json:"field"`
-	
 	Extension []FieldDescriptorProto `json:"extension"`
-	
 	NestedType []DescriptorProto `json:"nestedType"`
-	
 	EnumType []EnumDescriptorProto `json:"enumType"`
-	
 	ExtensionRange []ExtensionRange `json:"extensionRange"`
-	
 	OneofDecl []OneofDescriptorProto `json:"oneofDecl"`
-	
 	Options *MessageOptions `json:"options"`
-	
 	ReservedRange []ReservedRange `json:"reservedRange"`
-	
 	ReservedName []string `json:"reservedName"`
-	
 	Visibility *SymbolVisibility `json:"visibility"`
-	
 }
-
-
 
 type EditionDefault struct {
-	
 	Edition *Edition `json:"edition"`
-	
 	Value *string `json:"value"`
-	
 }
-
-
 
 type Empty struct {
-	
 }
-
-
 
 type EnumDescriptorProto struct {
-	
 	Name *string `json:"name"`
-	
 	Value []EnumValueDescriptorProto `json:"value"`
-	
 	Options *EnumOptions `json:"options"`
-	
 	ReservedRange []EnumReservedRange `json:"reservedRange"`
-	
 	ReservedName []string `json:"reservedName"`
-	
 	Visibility *SymbolVisibility `json:"visibility"`
-	
 }
-
-
 
 type EnumOptions struct {
-	
 	AllowAlias *bool `json:"allowAlias"`
-	
 	Deprecated *bool `json:"deprecated"`
-	
 	DeprecatedLegacyJsonFieldConflicts *bool `json:"deprecatedLegacyJsonFieldConflicts"`
-	
 	Features *FeatureSet `json:"features"`
-	
 	UninterpretedOption []UninterpretedOption `json:"uninterpretedOption"`
-	
 }
-
-
 
 type EnumReservedRange struct {
-	
 	Start *int `json:"start"`
-	
 	End *int `json:"end"`
-	
 }
-
-
 
 type EnumValueDescriptorProto struct {
-	
 	Name *string `json:"name"`
-	
 	Number *int `json:"number"`
-	
 	Options *EnumValueOptions `json:"options"`
-	
 }
-
-
 
 type EnumValueOptions struct {
-	
 	Deprecated *bool `json:"deprecated"`
-	
 	Features *FeatureSet `json:"features"`
-	
 	DebugRedact *bool `json:"debugRedact"`
-	
 	FeatureSupport *FeatureSupport `json:"featureSupport"`
-	
 	UninterpretedOption []UninterpretedOption `json:"uninterpretedOption"`
-	
 }
-
-
 
 type ExtensionRange struct {
-	
 	Start *int `json:"start"`
-	
 	End *int `json:"end"`
-	
 	Options *ExtensionRangeOptions `json:"options"`
-	
 }
-
-
 
 type ExtensionRangeOptions struct {
-	
 	UninterpretedOption []UninterpretedOption `json:"uninterpretedOption"`
-	
 	Declaration []Declaration `json:"declaration"`
-	
 	Features *FeatureSet `json:"features"`
-	
 	Verification *VerificationState `json:"verification"`
-	
 }
-
-
 
 type FeatureSet struct {
-	
 	FieldPresence *FieldPresence `json:"fieldPresence"`
-	
 	EnumType *EnumType `json:"enumType"`
-	
 	RepeatedFieldEncoding *RepeatedFieldEncoding `json:"repeatedFieldEncoding"`
-	
 	Utf8Validation *Utf8Validation `json:"utf8Validation"`
-	
 	MessageEncoding *MessageEncoding `json:"messageEncoding"`
-	
 	JsonFormat *JsonFormat `json:"jsonFormat"`
-	
 	EnforceNamingStyle *EnforceNamingStyle `json:"enforceNamingStyle"`
-	
 	DefaultSymbolVisibility *DefaultSymbolVisibility `json:"defaultSymbolVisibility"`
-	
 }
-
-
 
 type FeatureSetDefaults struct {
-	
 	Defaults []FeatureSetEditionDefault `json:"defaults"`
-	
 	MinimumEdition *Edition `json:"minimumEdition"`
-	
 	MaximumEdition *Edition `json:"maximumEdition"`
-	
 }
-
-
 
 type FeatureSetEditionDefault struct {
-	
 	Edition *Edition `json:"edition"`
-	
 	OverridableFeatures *FeatureSet `json:"overridableFeatures"`
-	
 	FixedFeatures *FeatureSet `json:"fixedFeatures"`
-	
 }
-
-
 
 type FeatureSupport struct {
-	
 	EditionIntroduced *Edition `json:"editionIntroduced"`
-	
 	EditionDeprecated *Edition `json:"editionDeprecated"`
-	
 	DeprecationWarning *string `json:"deprecationWarning"`
-	
 	EditionRemoved *Edition `json:"editionRemoved"`
-	
 }
-
-
 
 type FieldDescriptorProto struct {
-	
 	Name *string `json:"name"`
-	
 	Number *int `json:"number"`
-	
 	Label *Label `json:"label"`
-	
 	Type *Type `json:"type"`
-	
 	TypeName *string `json:"typeName"`
-	
 	Extendee *string `json:"extendee"`
-	
 	DefaultValue *string `json:"defaultValue"`
-	
 	OneofIndex *int `json:"oneofIndex"`
-	
 	JsonName *string `json:"jsonName"`
-	
 	Options *FieldOptions `json:"options"`
-	
 	Proto3Optional *bool `json:"proto3Optional"`
-	
 }
-
-
 
 type FieldMask struct {
-	
 	Paths []string `json:"paths"`
-	
 }
-
-
 
 type FieldOptions struct {
-	
 	Ctype *CType `json:"ctype"`
-	
 	Packed *bool `json:"packed"`
-	
 	Jstype *JsType `json:"jstype"`
-	
 	Lazy *bool `json:"lazy"`
-	
 	UnverifiedLazy *bool `json:"unverifiedLazy"`
-	
 	Deprecated *bool `json:"deprecated"`
-	
 	Weak *bool `json:"weak"`
-	
 	DebugRedact *bool `json:"debugRedact"`
-	
 	Retention *OptionRetention `json:"retention"`
-	
 	Targets []OptionTargetType `json:"targets"`
-	
 	EditionDefaults []EditionDefault `json:"editionDefaults"`
-	
 	Features *FeatureSet `json:"features"`
-	
 	FeatureSupport *FeatureSupport `json:"featureSupport"`
-	
 	UninterpretedOption []UninterpretedOption `json:"uninterpretedOption"`
-	
 }
-
-
 
 type FileDescriptorProto struct {
-	
 	Name *string `json:"name"`
-	
 	Package *string `json:"package"`
-	
 	Dependency []string `json:"dependency"`
-	
 	PublicDependency []int `json:"publicDependency"`
-	
 	WeakDependency []int `json:"weakDependency"`
-	
 	OptionDependency []string `json:"optionDependency"`
-	
 	MessageType []DescriptorProto `json:"messageType"`
-	
 	EnumType []EnumDescriptorProto `json:"enumType"`
-	
 	Service []ServiceDescriptorProto `json:"service"`
-	
 	Extension []FieldDescriptorProto `json:"extension"`
-	
 	Options *FileOptions `json:"options"`
-	
 	SourceCodeInfo *SourceCodeInfo `json:"sourceCodeInfo"`
-	
 	Syntax *string `json:"syntax"`
-	
 	Edition *Edition `json:"edition"`
-	
 }
-
-
 
 type FileDescriptorSet struct {
-	
 	File []FileDescriptorProto `json:"file"`
-	
 }
-
-
 
 type FileOptions struct {
-	
 	JavaPackage *string `json:"javaPackage"`
-	
 	JavaOuterClassname *string `json:"javaOuterClassname"`
-	
 	JavaMultipleFiles *bool `json:"javaMultipleFiles"`
-	
 	JavaGenerateEqualsAndHash *bool `json:"javaGenerateEqualsAndHash"`
-	
 	JavaStringCheckUtf8 *bool `json:"javaStringCheckUtf8"`
-	
 	OptimizeFor *OptimizeMode `json:"optimizeFor"`
-	
 	GoPackage *string `json:"goPackage"`
-	
 	CcGenericServices *bool `json:"ccGenericServices"`
-	
 	JavaGenericServices *bool `json:"javaGenericServices"`
-	
 	PyGenericServices *bool `json:"pyGenericServices"`
-	
 	Deprecated *bool `json:"deprecated"`
-	
 	CcEnableArenas *bool `json:"ccEnableArenas"`
-	
 	ObjcClassPrefix *string `json:"objcClassPrefix"`
-	
 	CsharpNamespace *string `json:"csharpNamespace"`
-	
 	SwiftPrefix *string `json:"swiftPrefix"`
-	
 	PhpClassPrefix *string `json:"phpClassPrefix"`
-	
 	PhpNamespace *string `json:"phpNamespace"`
-	
 	PhpMetadataNamespace *string `json:"phpMetadataNamespace"`
-	
 	RubyPackage *string `json:"rubyPackage"`
-	
 	Features *FeatureSet `json:"features"`
-	
 	UninterpretedOption []UninterpretedOption `json:"uninterpretedOption"`
-	
 }
-
-
 
 type GeneratedCodeInfo struct {
-	
 	Annotation []Annotation `json:"annotation"`
-	
 }
-
-
 
 type Location struct {
-	
 	Path []int `json:"path"`
-	
 	Span []int `json:"span"`
-	
 	LeadingComments *string `json:"leadingComments"`
-	
 	TrailingComments *string `json:"trailingComments"`
-	
 	LeadingDetachedComments []string `json:"leadingDetachedComments"`
-	
 }
-
-
 
 type MessageOptions struct {
-	
 	MessageSetWireFormat *bool `json:"messageSetWireFormat"`
-	
 	NoStandardDescriptorAccessor *bool `json:"noStandardDescriptorAccessor"`
-	
 	Deprecated *bool `json:"deprecated"`
-	
 	MapEntry *bool `json:"mapEntry"`
-	
 	DeprecatedLegacyJsonFieldConflicts *bool `json:"deprecatedLegacyJsonFieldConflicts"`
-	
 	Features *FeatureSet `json:"features"`
-	
 	UninterpretedOption []UninterpretedOption `json:"uninterpretedOption"`
-	
 }
-
-
 
 type MethodDescriptorProto struct {
-	
 	Name *string `json:"name"`
-	
 	InputType *string `json:"inputType"`
-	
 	OutputType *string `json:"outputType"`
-	
 	Options *MethodOptions `json:"options"`
-	
 	ClientStreaming *bool `json:"clientStreaming"`
-	
 	ServerStreaming *bool `json:"serverStreaming"`
-	
 }
-
-
 
 type MethodOptions struct {
-	
 	Deprecated *bool `json:"deprecated"`
-	
 	IdempotencyLevel *IdempotencyLevel `json:"idempotencyLevel"`
-	
 	Features *FeatureSet `json:"features"`
-	
 	UninterpretedOption []UninterpretedOption `json:"uninterpretedOption"`
-	
 }
-
-
 
 type NamePart struct {
-	
 	NamePart *string `json:"namePart"`
-	
 	IsExtension *bool `json:"isExtension"`
-	
 }
-
-
 
 type OneofDescriptorProto struct {
-	
 	Name *string `json:"name"`
-	
 	Options *OneofOptions `json:"options"`
-	
 }
-
-
 
 type OneofOptions struct {
-	
 	Features *FeatureSet `json:"features"`
-	
 	UninterpretedOption []UninterpretedOption `json:"uninterpretedOption"`
-	
 }
-
-
 
 type ReservedRange struct {
-	
 	Start *int `json:"start"`
-	
 	End *int `json:"end"`
-	
 }
-
-
 
 type ServiceDescriptorProto struct {
-	
 	Name *string `json:"name"`
-	
 	Method []MethodDescriptorProto `json:"method"`
-	
 	Options *ServiceOptions `json:"options"`
-	
 }
-
-
 
 type ServiceOptions struct {
-	
 	Features *FeatureSet `json:"features"`
-	
 	Deprecated *bool `json:"deprecated"`
-	
 	UninterpretedOption []UninterpretedOption `json:"uninterpretedOption"`
-	
 }
-
-
 
 type SourceCodeInfo struct {
-	
 	Location []Location `json:"location"`
-	
 }
-
-
 
 type UninterpretedOption struct {
-	
 	Name []NamePart `json:"name"`
-	
 	IdentifierValue *string `json:"identifierValue"`
-	
 	PositiveIntValue *int64 `json:"positiveIntValue"`
-	
 	NegativeIntValue *int64 `json:"negativeIntValue"`
-	
 	DoubleValue *float64 `json:"doubleValue"`
-	
 	StringValue *io.ReadCloser `json:"stringValue"`
-	
 	AggregateValue *string `json:"aggregateValue"`
-	
 }
-
-
 
 type VisibilityFeature struct {
-	
 }
-
-
