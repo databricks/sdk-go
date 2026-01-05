@@ -60,7 +60,7 @@ func (c *Client) GetPublicAccountSetting(ctx context.Context, req *GetPublicAcco
 	resp := &Setting{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -109,7 +109,7 @@ func (c *Client) GetPublicAccountUserPreference(ctx context.Context, req *GetPub
 	resp := &UserPreference{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -158,7 +158,7 @@ func (c *Client) GetPublicWorkspaceSetting(ctx context.Context, req *GetPublicWo
 	resp := &Setting{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -207,7 +207,7 @@ func (c *Client) ListAccountSettingsMetadata(ctx context.Context, req *ListAccou
 	resp := &ListAccountSettingsMetadataResponse{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -281,7 +281,7 @@ func (c *Client) ListAccountUserPreferencesMetadata(ctx context.Context, req *Li
 	resp := &ListAccountUserPreferencesMetadataResponse{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -355,7 +355,7 @@ func (c *Client) ListWorkspaceSettingsMetadata(ctx context.Context, req *ListWor
 	resp := &ListWorkspaceSettingsMetadataResponse{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -429,7 +429,7 @@ func (c *Client) PatchPublicAccountSetting(ctx context.Context, req *PatchPublic
 	resp := &Setting{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("PATCH", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -478,7 +478,7 @@ func (c *Client) PatchPublicAccountUserPreference(ctx context.Context, req *Patc
 	resp := &UserPreference{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("PATCH", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -527,7 +527,7 @@ func (c *Client) PatchPublicWorkspaceSetting(ctx context.Context, req *PatchPubl
 	resp := &Setting{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("PATCH", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}

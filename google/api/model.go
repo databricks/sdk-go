@@ -232,7 +232,8 @@ type Http struct {
 // Transcoding implementations may not support this feature.
 //
 // [Cloud Endpoints]: https://cloud.google.com/endpoints
-// [Discovery Document]: https://developers.google.com/discovery/v1/reference/apis
+// [Discovery
+ Document]: https://developers.google.com/discovery/v1/reference/apis
 // [Envoy]: https://github.com/envoyproxy/envoy
 // [Google
  APIs]: https://github.com/googleapis/googleapis

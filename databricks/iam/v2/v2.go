@@ -60,7 +60,7 @@ func (c *Client) CreateAccountAccessIdentityRule(ctx context.Context, req *Creat
 	resp := &AccountAccessIdentityRule{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -107,7 +107,7 @@ func (c *Client) DeleteAccountAccessIdentityRule(ctx context.Context, req *Delet
 	baseURL.RawQuery = queryParams.Encode()
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("DELETE", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -154,7 +154,7 @@ func (c *Client) GetAccountAccessIdentityRule(ctx context.Context, req *GetAccou
 	resp := &AccountAccessIdentityRule{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -203,7 +203,7 @@ func (c *Client) ListAccountAccessIdentityRules(ctx context.Context, req *ListAc
 	resp := &ListAccountAccessIdentityRulesResponse{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -252,7 +252,7 @@ func (c *Client) CreateGroup(ctx context.Context, req *CreateGroupRequest, opts 
 	resp := &Group{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -301,7 +301,7 @@ func (c *Client) CreateGroupProxy(ctx context.Context, req *CreateGroupProxyRequ
 	resp := &Group{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -348,7 +348,7 @@ func (c *Client) DeleteGroup(ctx context.Context, req *DeleteGroupRequest, opts 
 	baseURL.RawQuery = queryParams.Encode()
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("DELETE", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -393,7 +393,7 @@ func (c *Client) DeleteGroupProxy(ctx context.Context, req *DeleteGroupProxyRequ
 	baseURL.RawQuery = queryParams.Encode()
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("DELETE", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -440,7 +440,7 @@ func (c *Client) GetGroup(ctx context.Context, req *GetGroupRequest, opts ...api
 	resp := &Group{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -489,7 +489,7 @@ func (c *Client) GetGroupProxy(ctx context.Context, req *GetGroupProxyRequest, o
 	resp := &Group{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -538,7 +538,7 @@ func (c *Client) ListGroups(ctx context.Context, req *ListGroupsRequest, opts ..
 	resp := &ListGroupsResponse{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -587,7 +587,7 @@ func (c *Client) ListGroupsProxy(ctx context.Context, req *ListGroupsProxyReques
 	resp := &ListGroupsResponse{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -636,7 +636,7 @@ func (c *Client) ResolveGroup(ctx context.Context, req *ResolveGroupRequest, opt
 	resp := &ResolveGroupResponse{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -685,7 +685,7 @@ func (c *Client) ResolveGroupProxy(ctx context.Context, req *ResolveGroupProxyRe
 	resp := &ResolveGroupResponse{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -734,7 +734,7 @@ func (c *Client) UpdateGroup(ctx context.Context, req *UpdateGroupRequest, opts 
 	resp := &Group{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("PATCH", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -783,7 +783,7 @@ func (c *Client) UpdateGroupProxy(ctx context.Context, req *UpdateGroupProxyRequ
 	resp := &Group{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("PATCH", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -832,7 +832,7 @@ func (c *Client) CreateServicePrincipal(ctx context.Context, req *CreateServiceP
 	resp := &ServicePrincipal{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -881,7 +881,7 @@ func (c *Client) CreateServicePrincipalProxy(ctx context.Context, req *CreateSer
 	resp := &ServicePrincipal{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -928,7 +928,7 @@ func (c *Client) DeleteServicePrincipal(ctx context.Context, req *DeleteServiceP
 	baseURL.RawQuery = queryParams.Encode()
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("DELETE", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -973,7 +973,7 @@ func (c *Client) DeleteServicePrincipalProxy(ctx context.Context, req *DeleteSer
 	baseURL.RawQuery = queryParams.Encode()
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("DELETE", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1020,7 +1020,7 @@ func (c *Client) GetServicePrincipal(ctx context.Context, req *GetServicePrincip
 	resp := &ServicePrincipal{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1069,7 +1069,7 @@ func (c *Client) GetServicePrincipalProxy(ctx context.Context, req *GetServicePr
 	resp := &ServicePrincipal{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1118,7 +1118,7 @@ func (c *Client) ListServicePrincipals(ctx context.Context, req *ListServicePrin
 	resp := &ListServicePrincipalsResponse{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1167,7 +1167,7 @@ func (c *Client) ListServicePrincipalsProxy(ctx context.Context, req *ListServic
 	resp := &ListServicePrincipalsResponse{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1216,7 +1216,7 @@ func (c *Client) ResolveServicePrincipal(ctx context.Context, req *ResolveServic
 	resp := &ResolveServicePrincipalResponse{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1265,7 +1265,7 @@ func (c *Client) ResolveServicePrincipalProxy(ctx context.Context, req *ResolveS
 	resp := &ResolveServicePrincipalResponse{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1314,7 +1314,7 @@ func (c *Client) UpdateServicePrincipal(ctx context.Context, req *UpdateServiceP
 	resp := &ServicePrincipal{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("PATCH", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1363,7 +1363,7 @@ func (c *Client) UpdateServicePrincipalProxy(ctx context.Context, req *UpdateSer
 	resp := &ServicePrincipal{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("PATCH", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1412,7 +1412,7 @@ func (c *Client) CreateUser(ctx context.Context, req *CreateUserRequest, opts ..
 	resp := &User{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1461,7 +1461,7 @@ func (c *Client) CreateUserProxy(ctx context.Context, req *CreateUserProxyReques
 	resp := &User{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1508,7 +1508,7 @@ func (c *Client) DeleteUser(ctx context.Context, req *DeleteUserRequest, opts ..
 	baseURL.RawQuery = queryParams.Encode()
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("DELETE", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1553,7 +1553,7 @@ func (c *Client) DeleteUserProxy(ctx context.Context, req *DeleteUserProxyReques
 	baseURL.RawQuery = queryParams.Encode()
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("DELETE", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1600,7 +1600,7 @@ func (c *Client) GetUser(ctx context.Context, req *GetUserRequest, opts ...api.O
 	resp := &User{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1649,7 +1649,7 @@ func (c *Client) GetUserProxy(ctx context.Context, req *GetUserProxyRequest, opt
 	resp := &User{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1698,7 +1698,7 @@ func (c *Client) ListUsers(ctx context.Context, req *ListUsersRequest, opts ...a
 	resp := &ListUsersResponse{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1747,7 +1747,7 @@ func (c *Client) ListUsersProxy(ctx context.Context, req *ListUsersProxyRequest,
 	resp := &ListUsersResponse{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1796,7 +1796,7 @@ func (c *Client) ResolveUser(ctx context.Context, req *ResolveUserRequest, opts 
 	resp := &ResolveUserResponse{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1845,7 +1845,7 @@ func (c *Client) ResolveUserProxy(ctx context.Context, req *ResolveUserProxyRequ
 	resp := &ResolveUserResponse{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1894,7 +1894,7 @@ func (c *Client) UpdateUser(ctx context.Context, req *UpdateUserRequest, opts ..
 	resp := &User{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("PATCH", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1943,7 +1943,7 @@ func (c *Client) UpdateUserProxy(ctx context.Context, req *UpdateUserProxyReques
 	resp := &User{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("PATCH", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1992,7 +1992,7 @@ func (c *Client) CreateWorkspaceAccessDetail(ctx context.Context, req *CreateWor
 	resp := &WorkspaceAccessDetail{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -2041,7 +2041,7 @@ func (c *Client) CreateWorkspaceAccessDetailLocal(ctx context.Context, req *Crea
 	resp := &WorkspaceAccessDetail{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -2088,7 +2088,7 @@ func (c *Client) DeleteWorkspaceAccessDetail(ctx context.Context, req *DeleteWor
 	baseURL.RawQuery = queryParams.Encode()
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("DELETE", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -2133,7 +2133,7 @@ func (c *Client) DeleteWorkspaceAccessDetailLocal(ctx context.Context, req *Dele
 	baseURL.RawQuery = queryParams.Encode()
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("DELETE", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -2180,7 +2180,7 @@ func (c *Client) GetWorkspaceAccessDetail(ctx context.Context, req *GetWorkspace
 	resp := &WorkspaceAccessDetail{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -2229,7 +2229,7 @@ func (c *Client) GetWorkspaceAccessDetailLocal(ctx context.Context, req *GetWork
 	resp := &WorkspaceAccessDetail{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -2278,7 +2278,7 @@ func (c *Client) ListWorkspaceAccessDetails(ctx context.Context, req *ListWorksp
 	resp := &ListWorkspaceAccessDetailsResponse{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -2327,7 +2327,7 @@ func (c *Client) ListWorkspaceAccessDetailsLocal(ctx context.Context, req *ListW
 	resp := &ListWorkspaceAccessDetailsResponse{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -2376,7 +2376,7 @@ func (c *Client) UpdateWorkspaceAccessDetail(ctx context.Context, req *UpdateWor
 	resp := &WorkspaceAccessDetail{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("PATCH", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -2425,7 +2425,7 @@ func (c *Client) UpdateWorkspaceAccessDetailLocal(ctx context.Context, req *Upda
 	resp := &WorkspaceAccessDetail{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("PATCH", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}

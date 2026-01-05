@@ -60,7 +60,7 @@ func (c *Client) CreateQualityMonitor(ctx context.Context, req *CreateQualityMon
 	resp := &QualityMonitor{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -107,7 +107,7 @@ func (c *Client) DeleteQualityMonitor(ctx context.Context, req *DeleteQualityMon
 	baseURL.RawQuery = queryParams.Encode()
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("DELETE", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -154,7 +154,7 @@ func (c *Client) GetQualityMonitor(ctx context.Context, req *GetQualityMonitorRe
 	resp := &QualityMonitor{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -203,7 +203,7 @@ func (c *Client) ListQualityMonitor(ctx context.Context, req *ListQualityMonitor
 	resp := &ListQualityMonitorResponse{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("GET", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -277,7 +277,7 @@ func (c *Client) UpdateQualityMonitor(ctx context.Context, req *UpdateQualityMon
 	resp := &QualityMonitor{}
 
 	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("", baseURL.String(), bytes.NewBuffer(body))
+		httpReq, err := http.NewRequest("PUT", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
