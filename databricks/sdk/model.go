@@ -34,10 +34,10 @@ type BindingPair struct {
 }
 
 // Long-Running Operation (LRO) configuration for API methods.
-//
+// 
 // This annotation is used to mark methods that return a long-running operation
 // and specify the associated operation management methods and types.
-//
+// 
 // Long-running operations are asynchronous operations that may take an extended
 // period of time to complete. Instead of blocking until completion, these
 // methods immediately return an operation handle that can be used to track
@@ -48,11 +48,11 @@ type LongRunningOperation struct {
 }
 
 // Offset-based pagination.
-//
+// 
 // To retrieve results: 1. Set the offset field to 0 (or omit it) for the first
 // page. 2. Set max_results to control how many items per page. 3. For
 // subsequent pages, increment offset by the page size.
-//
+// 
 // Example: To get items 0-99, set offset=0 and max_results=100. To get items
 // 100-199, set offset=100 and max_results=100.
 type OffsetInfo struct {
@@ -68,7 +68,7 @@ type OperationInfo struct {
 }
 
 // References to methods that manage the long-running operation.
-//
+// 
 // These methods allow clients to check status, wait for completion, list
 // operations, and cancel or delete operations.
 type OperationMethods struct {
@@ -80,12 +80,12 @@ type OperationMethods struct {
 }
 
 // Token-based pagination.
-//
+// 
 // To retrieve results: 1. Make the first request without a page token (or with
 // an empty token). 2. Check the response for a next page token. 3. If present,
 // include that token in the next request. 4. Repeat until the response contains
 // no next page token.
-//
+// 
 // Note: Page tokens are opaque strings and should not be parsed or constructed
 // by clients. Always use the exact token returned by the API.
 type PageTokenInfo struct {
@@ -96,7 +96,7 @@ type PageTokenInfo struct {
 }
 
 // Indicates that an API method returns paginated results.
-//
+// 
 // Methods annotated with this option may not return all results in a single
 // call. Multiple requests are required to retrieve the complete dataset.
 type Pagination struct {
@@ -118,10 +118,10 @@ type StateInfo struct {
 // status of the operations. * binding: a mapping of fields used to construct
 // the request to such method. * state_info: a message describing how to find
 // and interpret the operation's state.
-//
+// 
 // The following example demonstrates how to annotate an RPC, `Create`, which
 // initiates a long-running operation.
-//
+// 
 // 1. A client calls `Create(CreateRequest)`, which returns an `Object` response
 // immediately. 2. The `wait_for_state` annotation tells the client generator
 // that this operation isn't finished and must be polled. 3. To check the
@@ -139,13 +139,13 @@ type StateInfo struct {
 // complete and has failed (per `state_info.failure_states: ["STOPPED",
 // "FAILED"]`). 8. If the state is anything else, the client continues to poll
 // the `Get` method until the timeout is reached.
-//
+// 
 // rpc Create(CreateRequest) returns Object { option
 // (databricks.sdk.wait_for_state) = { method_to_poll: "Get" binding: {
 // binding_pairs: { poll_method_field: "id" response_field: "object_id" } }
 // state_info: { state_path: "state" success_states: "RUNNING" failure_states:
 // ["STOPPED", "FAILED"] } } } rpc Get(GetRequest) returns Object { }
-//
+// 
 // message Object { optional string object_id = 1; optional State state = 2; }
 // message GetRequest { optional string id = 1; }
 type WaitForState struct {
