@@ -89,12 +89,9 @@ func (c *Client) ListJobs(ctx context.Context, req *ListJobsRequest, opts ...api
 
 func (c *Client) ListJobsIter(ctx context.Context, req *ListJobsRequest, opts ...api.Option) iter.Seq2[*Job, error] {
 	return func(yield func(*Job, error) bool) {
-		pageReq := &ListJobsRequest{
-			PageSize:  req.PageSize,
-			PageToken: req.PageToken,
-		}
+		pageReq := *req
 		for {
-			resp, err := c.ListJobs(ctx, pageReq, opts...)
+			resp, err := c.ListJobs(ctx, &pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
