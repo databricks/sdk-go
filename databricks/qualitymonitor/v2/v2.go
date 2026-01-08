@@ -1,4 +1,3 @@
-
 package v2
 
 import (
@@ -38,9 +37,6 @@ func NewClient(ctx context.Context, opts ...options.ClientOption) (*Client, erro
 		host:       resolved.Host,
 	}, nil
 }
-
-
-
 
 func (c *Client) CreateQualityMonitor(ctx context.Context, req *CreateQualityMonitorRequest, opts ...api.Option) (*QualityMonitor, error) {
 	body, err := json.Marshal(req)
@@ -88,12 +84,6 @@ func (c *Client) CreateQualityMonitor(ctx context.Context, req *CreateQualityMon
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) DeleteQualityMonitor(ctx context.Context, req *DeleteQualityMonitorRequest, opts ...api.Option) error {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -135,12 +125,6 @@ func (c *Client) DeleteQualityMonitor(ctx context.Context, req *DeleteQualityMon
 	}
 	return nil
 }
-
-
-
-
-
-
 
 func (c *Client) GetQualityMonitor(ctx context.Context, req *GetQualityMonitorRequest, opts ...api.Option) (*QualityMonitor, error) {
 	body, err := json.Marshal(req)
@@ -188,12 +172,6 @@ func (c *Client) GetQualityMonitor(ctx context.Context, req *GetQualityMonitorRe
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) ListQualityMonitor(ctx context.Context, req *ListQualityMonitorRequest, opts ...api.Option) (*ListQualityMonitorResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -240,8 +218,6 @@ func (c *Client) ListQualityMonitor(ctx context.Context, req *ListQualityMonitor
 	return resp, nil
 }
 
-
-
 func (c *Client) ListQualityMonitorIter(ctx context.Context, req *ListQualityMonitorRequest, opts ...api.Option) iter.Seq2[*QualityMonitor, error] {
 	return func(yield func(*QualityMonitor, error) bool) {
 		pageReq := *req
@@ -263,10 +239,6 @@ func (c *Client) ListQualityMonitorIter(ctx context.Context, req *ListQualityMon
 		}
 	}
 }
-
-
-
-
 
 func (c *Client) UpdateQualityMonitor(ctx context.Context, req *UpdateQualityMonitorRequest, opts ...api.Option) (*QualityMonitor, error) {
 	body, err := json.Marshal(req)
@@ -313,9 +285,3 @@ func (c *Client) UpdateQualityMonitor(ctx context.Context, req *UpdateQualityMon
 	}
 	return resp, nil
 }
-
-
-
-
-
-

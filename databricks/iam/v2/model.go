@@ -1,16 +1,11 @@
 package v2
 
-import (
-	"fmt"
-	"io"
-)
-
 type AccessType string
 
 const (
 	AccessTypeAccessTypeUnspecified AccessType = "ACCESS_TYPE_UNSPECIFIED"
-	AccessTypeDirect AccessType = "DIRECT"
-	AccessTypeIndirect AccessType = "INDIRECT"
+	AccessTypeDirect                AccessType = "DIRECT"
+	AccessTypeIndirect              AccessType = "INDIRECT"
 )
 
 // String representation for [fmt.Print].
@@ -22,8 +17,8 @@ type AccountAccessRuleAction string
 
 const (
 	AccountAccessRuleActionAccountAccessRuleActionUnspecified AccountAccessRuleAction = "ACCOUNT_ACCESS_RULE_ACTION_UNSPECIFIED"
-	AccountAccessRuleActionAllow AccountAccessRuleAction = "ALLOW"
-	AccountAccessRuleActionDeny AccountAccessRuleAction = "DENY"
+	AccountAccessRuleActionAllow                              AccountAccessRuleAction = "ALLOW"
+	AccountAccessRuleActionDeny                               AccountAccessRuleAction = "DENY"
 )
 
 // String representation for [fmt.Print].
@@ -35,9 +30,9 @@ type PrincipalType string
 
 const (
 	PrincipalTypePrincipalTypeUnspecified PrincipalType = "PRINCIPAL_TYPE_UNSPECIFIED"
-	PrincipalTypeUser PrincipalType = "USER"
-	PrincipalTypeServicePrincipal PrincipalType = "SERVICE_PRINCIPAL"
-	PrincipalTypeGroup PrincipalType = "GROUP"
+	PrincipalTypeUser                     PrincipalType = "USER"
+	PrincipalTypeServicePrincipal         PrincipalType = "SERVICE_PRINCIPAL"
+	PrincipalTypeGroup                    PrincipalType = "GROUP"
 )
 
 // String representation for [fmt.Print].
@@ -49,8 +44,8 @@ type State string
 
 const (
 	StateStateUnspecified State = "STATE_UNSPECIFIED"
-	StateActive State = "ACTIVE"
-	StateInactive State = "INACTIVE"
+	StateActive           State = "ACTIVE"
+	StateInactive         State = "INACTIVE"
 )
 
 // String representation for [fmt.Print].
@@ -62,8 +57,8 @@ type WorkspaceAccessDetailView string
 
 const (
 	WorkspaceAccessDetailViewWorkspaceAccessDetailViewUnspecified WorkspaceAccessDetailView = "WORKSPACE_ACCESS_DETAIL_VIEW_UNSPECIFIED"
-	WorkspaceAccessDetailViewBasic WorkspaceAccessDetailView = "BASIC"
-	WorkspaceAccessDetailViewFull WorkspaceAccessDetailView = "FULL"
+	WorkspaceAccessDetailViewBasic                                WorkspaceAccessDetailView = "BASIC"
+	WorkspaceAccessDetailViewFull                                 WorkspaceAccessDetailView = "FULL"
 )
 
 // String representation for [fmt.Print].
@@ -75,8 +70,8 @@ type WorkspacePermission string
 
 const (
 	WorkspacePermissionWorkspacePermissionUnspecified WorkspacePermission = "WORKSPACE_PERMISSION_UNSPECIFIED"
-	WorkspacePermissionUserPermission WorkspacePermission = "USER_PERMISSION"
-	WorkspacePermissionAdminPermission WorkspacePermission = "ADMIN_PERMISSION"
+	WorkspacePermissionUserPermission                 WorkspacePermission = "USER_PERMISSION"
+	WorkspacePermissionAdminPermission                WorkspacePermission = "ADMIN_PERMISSION"
 )
 
 // String representation for [fmt.Print].
@@ -85,14 +80,14 @@ func (f *WorkspacePermission) String() string {
 }
 
 type AccountAccessIdentityRule struct {
-	Action *AccountAccessRuleAction `json:"action"`
-	ExternalId *string `json:"external_id"`
-	DisplayName *string `json:"display_name"`
-	PrincipalType *PrincipalType `json:"principal_type"`
+	Action        *AccountAccessRuleAction `json:"action"`
+	ExternalId    *string                  `json:"external_id"`
+	DisplayName   *string                  `json:"display_name"`
+	PrincipalType *PrincipalType           `json:"principal_type"`
 }
 
 type CreateAccountAccessIdentityRuleRequest struct {
-	AccountId *string `json:"account_id"`
+	AccountId                 *string                    `json:"account_id"`
 	AccountAccessIdentityRule *AccountAccessIdentityRule `json:"account_access_identity_rule"`
 }
 
@@ -102,7 +97,7 @@ type CreateGroupProxyRequest struct {
 
 type CreateGroupRequest struct {
 	AccountId *string `json:"account_id"`
-	Group *Group `json:"group"`
+	Group     *Group  `json:"group"`
 }
 
 type CreateServicePrincipalProxyRequest struct {
@@ -110,7 +105,7 @@ type CreateServicePrincipalProxyRequest struct {
 }
 
 type CreateServicePrincipalRequest struct {
-	AccountId *string `json:"account_id"`
+	AccountId        *string           `json:"account_id"`
 	ServicePrincipal *ServicePrincipal `json:"service_principal"`
 }
 
@@ -120,7 +115,7 @@ type CreateUserProxyRequest struct {
 
 type CreateUserRequest struct {
 	AccountId *string `json:"account_id"`
-	User *User `json:"user"`
+	User      *User   `json:"user"`
 }
 
 type CreateWorkspaceAccessDetailLocalRequest struct {
@@ -128,13 +123,13 @@ type CreateWorkspaceAccessDetailLocalRequest struct {
 }
 
 type CreateWorkspaceAccessDetailRequest struct {
-	AccountId *string `json:"account_id"`
-	Parent *string `json:"parent"`
+	AccountId             *string                `json:"account_id"`
+	Parent                *string                `json:"parent"`
 	WorkspaceAccessDetail *WorkspaceAccessDetail `json:"workspace_access_detail"`
 }
 
 type DeleteAccountAccessIdentityRuleRequest struct {
-	AccountId *string `json:"account_id"`
+	AccountId  *string `json:"account_id"`
 	ExternalId *string `json:"external_id"`
 }
 
@@ -143,8 +138,8 @@ type DeleteGroupProxyRequest struct {
 }
 
 type DeleteGroupRequest struct {
-	AccountId *string `json:"account_id"`
-	InternalId *int64 `json:"internal_id"`
+	AccountId  *string `json:"account_id"`
+	InternalId *int64  `json:"internal_id"`
 }
 
 type DeleteServicePrincipalProxyRequest struct {
@@ -152,8 +147,8 @@ type DeleteServicePrincipalProxyRequest struct {
 }
 
 type DeleteServicePrincipalRequest struct {
-	AccountId *string `json:"account_id"`
-	InternalId *int64 `json:"internal_id"`
+	AccountId  *string `json:"account_id"`
+	InternalId *int64  `json:"internal_id"`
 }
 
 type DeleteUserProxyRequest struct {
@@ -161,8 +156,8 @@ type DeleteUserProxyRequest struct {
 }
 
 type DeleteUserRequest struct {
-	AccountId *string `json:"account_id"`
-	InternalId *int64 `json:"internal_id"`
+	AccountId  *string `json:"account_id"`
+	InternalId *int64  `json:"internal_id"`
 }
 
 type DeleteWorkspaceAccessDetailLocalRequest struct {
@@ -170,13 +165,13 @@ type DeleteWorkspaceAccessDetailLocalRequest struct {
 }
 
 type DeleteWorkspaceAccessDetailRequest struct {
-	AccountId *string `json:"account_id"`
-	WorkspaceId *int64 `json:"workspace_id"`
-	PrincipalId *int64 `json:"principal_id"`
+	AccountId   *string `json:"account_id"`
+	WorkspaceId *int64  `json:"workspace_id"`
+	PrincipalId *int64  `json:"principal_id"`
 }
 
 type GetAccountAccessIdentityRuleRequest struct {
-	AccountId *string `json:"account_id"`
+	AccountId  *string `json:"account_id"`
 	ExternalId *string `json:"external_id"`
 }
 
@@ -185,8 +180,8 @@ type GetGroupProxyRequest struct {
 }
 
 type GetGroupRequest struct {
-	AccountId *string `json:"account_id"`
-	InternalId *int64 `json:"internal_id"`
+	AccountId  *string `json:"account_id"`
+	InternalId *int64  `json:"internal_id"`
 }
 
 type GetServicePrincipalProxyRequest struct {
@@ -194,8 +189,8 @@ type GetServicePrincipalProxyRequest struct {
 }
 
 type GetServicePrincipalRequest struct {
-	AccountId *string `json:"account_id"`
-	InternalId *int64 `json:"internal_id"`
+	AccountId  *string `json:"account_id"`
+	InternalId *int64  `json:"internal_id"`
 }
 
 type GetUserProxyRequest struct {
@@ -203,114 +198,114 @@ type GetUserProxyRequest struct {
 }
 
 type GetUserRequest struct {
-	AccountId *string `json:"account_id"`
-	InternalId *int64 `json:"internal_id"`
+	AccountId  *string `json:"account_id"`
+	InternalId *int64  `json:"internal_id"`
 }
 
 type GetWorkspaceAccessDetailLocalRequest struct {
-	PrincipalId *int64 `json:"principal_id"`
-	View *WorkspaceAccessDetailView `json:"view"`
+	PrincipalId *int64                     `json:"principal_id"`
+	View        *WorkspaceAccessDetailView `json:"view"`
 }
 
 type GetWorkspaceAccessDetailRequest struct {
-	AccountId *string `json:"account_id"`
-	WorkspaceId *int64 `json:"workspace_id"`
-	PrincipalId *int64 `json:"principal_id"`
-	View *WorkspaceAccessDetailView `json:"view"`
+	AccountId   *string                    `json:"account_id"`
+	WorkspaceId *int64                     `json:"workspace_id"`
+	PrincipalId *int64                     `json:"principal_id"`
+	View        *WorkspaceAccessDetailView `json:"view"`
 }
 
 type Group struct {
-	AccountId *string `json:"account_id"`
-	InternalId *int64 `json:"internal_id"`
+	AccountId  *string `json:"account_id"`
+	InternalId *int64  `json:"internal_id"`
 	ExternalId *string `json:"external_id"`
-	GroupName *string `json:"group_name"`
+	GroupName  *string `json:"group_name"`
 }
 
 type ListAccountAccessIdentityRulesRequest struct {
 	AccountId *string `json:"account_id"`
-	PageSize *int `json:"page_size"`
+	PageSize  *int    `json:"page_size"`
 	PageToken *string `json:"page_token"`
-	Filter *string `json:"filter"`
+	Filter    *string `json:"filter"`
 }
 
 type ListAccountAccessIdentityRulesResponse struct {
 	AccountAccessIdentityRules []AccountAccessIdentityRule `json:"account_access_identity_rules"`
-	NextPageToken *string `json:"next_page_token"`
+	NextPageToken              *string                     `json:"next_page_token"`
 }
 
 type ListGroupsProxyRequest struct {
-	PageSize *int `json:"page_size"`
+	PageSize  *int    `json:"page_size"`
 	PageToken *string `json:"page_token"`
-	Filter *string `json:"filter"`
+	Filter    *string `json:"filter"`
 }
 
 type ListGroupsRequest struct {
 	AccountId *string `json:"account_id"`
-	PageSize *int `json:"page_size"`
+	PageSize  *int    `json:"page_size"`
 	PageToken *string `json:"page_token"`
-	Filter *string `json:"filter"`
+	Filter    *string `json:"filter"`
 }
 
 type ListGroupsResponse struct {
-	Groups []Group `json:"groups"`
+	Groups        []Group `json:"groups"`
 	NextPageToken *string `json:"next_page_token"`
 }
 
 type ListServicePrincipalsProxyRequest struct {
-	PageSize *int `json:"page_size"`
+	PageSize  *int    `json:"page_size"`
 	PageToken *string `json:"page_token"`
-	Filter *string `json:"filter"`
+	Filter    *string `json:"filter"`
 }
 
 type ListServicePrincipalsRequest struct {
 	AccountId *string `json:"account_id"`
-	PageSize *int `json:"page_size"`
+	PageSize  *int    `json:"page_size"`
 	PageToken *string `json:"page_token"`
-	Filter *string `json:"filter"`
+	Filter    *string `json:"filter"`
 }
 
 type ListServicePrincipalsResponse struct {
 	ServicePrincipals []ServicePrincipal `json:"service_principals"`
-	NextPageToken *string `json:"next_page_token"`
+	NextPageToken     *string            `json:"next_page_token"`
 }
 
 type ListUsersProxyRequest struct {
-	PageSize *int `json:"page_size"`
+	PageSize  *int    `json:"page_size"`
 	PageToken *string `json:"page_token"`
-	Filter *string `json:"filter"`
+	Filter    *string `json:"filter"`
 }
 
 type ListUsersRequest struct {
 	AccountId *string `json:"account_id"`
-	PageSize *int `json:"page_size"`
+	PageSize  *int    `json:"page_size"`
 	PageToken *string `json:"page_token"`
-	Filter *string `json:"filter"`
+	Filter    *string `json:"filter"`
 }
 
 type ListUsersResponse struct {
-	Users []User `json:"users"`
+	Users         []User  `json:"users"`
 	NextPageToken *string `json:"next_page_token"`
 }
 
 type ListWorkspaceAccessDetailsLocalRequest struct {
-	PageSize *int `json:"page_size"`
+	PageSize  *int    `json:"page_size"`
 	PageToken *string `json:"page_token"`
 }
 
 type ListWorkspaceAccessDetailsRequest struct {
-	AccountId *string `json:"account_id"`
-	WorkspaceId *int64 `json:"workspace_id"`
-	PageSize *int `json:"page_size"`
-	PageToken *string `json:"page_token"`
+	AccountId   *string `json:"account_id"`
+	WorkspaceId *int64  `json:"workspace_id"`
+	PageSize    *int    `json:"page_size"`
+	PageToken   *string `json:"page_token"`
 }
 
 type ListWorkspaceAccessDetailsResponse struct {
 	WorkspaceAccessDetails []WorkspaceAccessDetail `json:"workspace_access_details"`
-	NextPageToken *string `json:"next_page_token"`
+	NextPageToken          *string                 `json:"next_page_token"`
 }
 
 type Name struct {
-	GivenName *string `json:"given_name"`
+	GivenName  *string `json:"given_name"`
 	FamilyName *string `json:"family_name"`
 }
 
@@ -319,7 +314,7 @@ type ResolveGroupProxyRequest struct {
 }
 
 type ResolveGroupRequest struct {
-	AccountId *string `json:"account_id"`
+	AccountId  *string `json:"account_id"`
 	ExternalId *string `json:"external_id"`
 }
 
@@ -332,7 +327,7 @@ type ResolveServicePrincipalProxyRequest struct {
 }
 
 type ResolveServicePrincipalRequest struct {
-	AccountId *string `json:"account_id"`
+	AccountId  *string `json:"account_id"`
 	ExternalId *string `json:"external_id"`
 }
 
@@ -345,7 +340,7 @@ type ResolveUserProxyRequest struct {
 }
 
 type ResolveUserRequest struct {
-	AccountId *string `json:"account_id"`
+	AccountId  *string `json:"account_id"`
 	ExternalId *string `json:"external_id"`
 }
 
@@ -354,82 +349,82 @@ type ResolveUserResponse struct {
 }
 
 type ServicePrincipal struct {
-	AccountId *string `json:"account_id"`
-	InternalId *int64 `json:"internal_id"`
-	ExternalId *string `json:"external_id"`
-	ApplicationId *string `json:"application_id"`
-	DisplayName *string `json:"display_name"`
-	AccountSpStatus *State `json:"account_sp_status"`
+	AccountId       *string `json:"account_id"`
+	InternalId      *int64  `json:"internal_id"`
+	ExternalId      *string `json:"external_id"`
+	ApplicationId   *string `json:"application_id"`
+	DisplayName     *string `json:"display_name"`
+	AccountSpStatus *State  `json:"account_sp_status"`
 }
 
 type UpdateGroupProxyRequest struct {
-	InternalId *int64 `json:"internal_id"`
-	Group *Group `json:"group"`
+	InternalId *int64  `json:"internal_id"`
+	Group      *Group  `json:"group"`
 	UpdateMask *string `json:"update_mask"`
 }
 
 type UpdateGroupRequest struct {
-	AccountId *string `json:"account_id"`
-	InternalId *int64 `json:"internal_id"`
-	Group *Group `json:"group"`
+	AccountId  *string `json:"account_id"`
+	InternalId *int64  `json:"internal_id"`
+	Group      *Group  `json:"group"`
 	UpdateMask *string `json:"update_mask"`
 }
 
 type UpdateServicePrincipalProxyRequest struct {
-	InternalId *int64 `json:"internal_id"`
+	InternalId       *int64            `json:"internal_id"`
 	ServicePrincipal *ServicePrincipal `json:"service_principal"`
-	UpdateMask *string `json:"update_mask"`
+	UpdateMask       *string           `json:"update_mask"`
 }
 
 type UpdateServicePrincipalRequest struct {
-	AccountId *string `json:"account_id"`
-	InternalId *int64 `json:"internal_id"`
+	AccountId        *string           `json:"account_id"`
+	InternalId       *int64            `json:"internal_id"`
 	ServicePrincipal *ServicePrincipal `json:"service_principal"`
-	UpdateMask *string `json:"update_mask"`
+	UpdateMask       *string           `json:"update_mask"`
 }
 
 type UpdateUserProxyRequest struct {
-	InternalId *int64 `json:"internal_id"`
-	User *User `json:"user"`
+	InternalId *int64  `json:"internal_id"`
+	User       *User   `json:"user"`
 	UpdateMask *string `json:"update_mask"`
 }
 
 type UpdateUserRequest struct {
-	AccountId *string `json:"account_id"`
-	InternalId *int64 `json:"internal_id"`
-	User *User `json:"user"`
+	AccountId  *string `json:"account_id"`
+	InternalId *int64  `json:"internal_id"`
+	User       *User   `json:"user"`
 	UpdateMask *string `json:"update_mask"`
 }
 
 type UpdateWorkspaceAccessDetailLocalRequest struct {
-	PrincipalId *int64 `json:"principal_id"`
+	PrincipalId           *int64                 `json:"principal_id"`
 	WorkspaceAccessDetail *WorkspaceAccessDetail `json:"workspace_access_detail"`
-	UpdateMask *string `json:"update_mask"`
+	UpdateMask            *string                `json:"update_mask"`
 }
 
 type UpdateWorkspaceAccessDetailRequest struct {
-	AccountId *string `json:"account_id"`
-	WorkspaceId *int64 `json:"workspace_id"`
-	PrincipalId *int64 `json:"principal_id"`
+	AccountId             *string                `json:"account_id"`
+	WorkspaceId           *int64                 `json:"workspace_id"`
+	PrincipalId           *int64                 `json:"principal_id"`
 	WorkspaceAccessDetail *WorkspaceAccessDetail `json:"workspace_access_detail"`
-	UpdateMask *string `json:"update_mask"`
+	UpdateMask            *string                `json:"update_mask"`
 }
 
 type User struct {
-	AccountId *string `json:"account_id"`
-	InternalId *int64 `json:"internal_id"`
-	ExternalId *string `json:"external_id"`
-	Username *string `json:"username"`
-	Name *Name `json:"name"`
-	AccountUserStatus *State `json:"account_user_status"`
+	AccountId         *string `json:"account_id"`
+	InternalId        *int64  `json:"internal_id"`
+	ExternalId        *string `json:"external_id"`
+	Username          *string `json:"username"`
+	Name              *Name   `json:"name"`
+	AccountUserStatus *State  `json:"account_user_status"`
 }
 
 type WorkspaceAccessDetail struct {
-	PrincipalId *int64 `json:"principal_id"`
-	WorkspaceId *int64 `json:"workspace_id"`
-	AccountId *string `json:"account_id"`
-	PrincipalType *PrincipalType `json:"principal_type"`
-	AccessType *AccessType `json:"access_type"`
-	Status *State `json:"status"`
-	Permissions []WorkspacePermission `json:"permissions"`
+	PrincipalId   *int64                `json:"principal_id"`
+	WorkspaceId   *int64                `json:"workspace_id"`
+	AccountId     *string               `json:"account_id"`
+	PrincipalType *PrincipalType        `json:"principal_type"`
+	AccessType    *AccessType           `json:"access_type"`
+	Status        *State                `json:"status"`
+	Permissions   []WorkspacePermission `json:"permissions"`
 }

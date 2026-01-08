@@ -1,15 +1,15 @@
 package protobuf
 
 import (
-	"fmt"
+	"encoding/json"
 	"io"
 )
 
 type CType string
 
 const (
-	CTypeString CType = "STRING"
-	CTypeCord CType = "CORD"
+	CTypeString      CType = "STRING"
+	CTypeCord        CType = "CORD"
 	CTypeStringPiece CType = "STRING_PIECE"
 )
 
@@ -22,8 +22,8 @@ type IdempotencyLevel string
 
 const (
 	IdempotencyLevelIdempotencyUnknown IdempotencyLevel = "IDEMPOTENCY_UNKNOWN"
-	IdempotencyLevelNoSideEffects IdempotencyLevel = "NO_SIDE_EFFECTS"
-	IdempotencyLevelIdempotent IdempotencyLevel = "IDEMPOTENT"
+	IdempotencyLevelNoSideEffects      IdempotencyLevel = "NO_SIDE_EFFECTS"
+	IdempotencyLevelIdempotent         IdempotencyLevel = "IDEMPOTENT"
 )
 
 // String representation for [fmt.Print].
@@ -71,8 +71,8 @@ func (f *NullValue) String() string {
 type OptimizeMode string
 
 const (
-	OptimizeModeSpeed OptimizeMode = "SPEED"
-	OptimizeModeCodeSize OptimizeMode = "CODE_SIZE"
+	OptimizeModeSpeed       OptimizeMode = "SPEED"
+	OptimizeModeCodeSize    OptimizeMode = "CODE_SIZE"
 	OptimizeModeLiteRuntime OptimizeMode = "LITE_RUNTIME"
 )
 
@@ -84,24 +84,24 @@ func (f *OptimizeMode) String() string {
 type Type string
 
 const (
-	TypeTypeDouble Type = "TYPE_DOUBLE"
-	TypeTypeFloat Type = "TYPE_FLOAT"
-	TypeTypeInt64 Type = "TYPE_INT64"
-	TypeTypeUint64 Type = "TYPE_UINT64"
-	TypeTypeInt32 Type = "TYPE_INT32"
-	TypeTypeFixed64 Type = "TYPE_FIXED64"
-	TypeTypeFixed32 Type = "TYPE_FIXED32"
-	TypeTypeBool Type = "TYPE_BOOL"
-	TypeTypeString Type = "TYPE_STRING"
-	TypeTypeGroup Type = "TYPE_GROUP"
-	TypeTypeMessage Type = "TYPE_MESSAGE"
-	TypeTypeBytes Type = "TYPE_BYTES"
-	TypeTypeUint32 Type = "TYPE_UINT32"
-	TypeTypeEnum Type = "TYPE_ENUM"
+	TypeTypeDouble   Type = "TYPE_DOUBLE"
+	TypeTypeFloat    Type = "TYPE_FLOAT"
+	TypeTypeInt64    Type = "TYPE_INT64"
+	TypeTypeUint64   Type = "TYPE_UINT64"
+	TypeTypeInt32    Type = "TYPE_INT32"
+	TypeTypeFixed64  Type = "TYPE_FIXED64"
+	TypeTypeFixed32  Type = "TYPE_FIXED32"
+	TypeTypeBool     Type = "TYPE_BOOL"
+	TypeTypeString   Type = "TYPE_STRING"
+	TypeTypeGroup    Type = "TYPE_GROUP"
+	TypeTypeMessage  Type = "TYPE_MESSAGE"
+	TypeTypeBytes    Type = "TYPE_BYTES"
+	TypeTypeUint32   Type = "TYPE_UINT32"
+	TypeTypeEnum     Type = "TYPE_ENUM"
 	TypeTypeSfixed32 Type = "TYPE_SFIXED32"
 	TypeTypeSfixed64 Type = "TYPE_SFIXED64"
-	TypeTypeSint32 Type = "TYPE_SINT32"
-	TypeTypeSint64 Type = "TYPE_SINT64"
+	TypeTypeSint32   Type = "TYPE_SINT32"
+	TypeTypeSint64   Type = "TYPE_SINT64"
 )
 
 // String representation for [fmt.Print].
@@ -110,61 +110,61 @@ func (f *Type) String() string {
 }
 
 type Annotation struct {
-	Path []int `json:"path"`
+	Path       []int   `json:"path"`
 	SourceFile *string `json:"sourceFile"`
-	Begin *int `json:"begin"`
-	End *int `json:"end"`
+	Begin      *int    `json:"begin"`
+	End        *int    `json:"end"`
 }
 
 type DescriptorProto struct {
-	Name *string `json:"name"`
-	Field []FieldDescriptorProto `json:"field"`
-	Extension []FieldDescriptorProto `json:"extension"`
-	NestedType []DescriptorProto `json:"nestedType"`
-	EnumType []EnumDescriptorProto `json:"enumType"`
-	ExtensionRange []ExtensionRange `json:"extensionRange"`
-	OneofDecl []OneofDescriptorProto `json:"oneofDecl"`
-	Options *MessageOptions `json:"options"`
-	ReservedRange []ReservedRange `json:"reservedRange"`
-	ReservedName []string `json:"reservedName"`
+	Name           *string                `json:"name"`
+	Field          []FieldDescriptorProto `json:"field"`
+	Extension      []FieldDescriptorProto `json:"extension"`
+	NestedType     []DescriptorProto      `json:"nestedType"`
+	EnumType       []EnumDescriptorProto  `json:"enumType"`
+	ExtensionRange []ExtensionRange       `json:"extensionRange"`
+	OneofDecl      []OneofDescriptorProto `json:"oneofDecl"`
+	Options        *MessageOptions        `json:"options"`
+	ReservedRange  []ReservedRange        `json:"reservedRange"`
+	ReservedName   []string               `json:"reservedName"`
 }
 
 type Empty struct {
 }
 
 type EnumDescriptorProto struct {
-	Name *string `json:"name"`
-	Value []EnumValueDescriptorProto `json:"value"`
-	Options *EnumOptions `json:"options"`
-	ReservedRange []EnumReservedRange `json:"reservedRange"`
-	ReservedName []string `json:"reservedName"`
+	Name          *string                    `json:"name"`
+	Value         []EnumValueDescriptorProto `json:"value"`
+	Options       *EnumOptions               `json:"options"`
+	ReservedRange []EnumReservedRange        `json:"reservedRange"`
+	ReservedName  []string                   `json:"reservedName"`
 }
 
 type EnumOptions struct {
-	AllowAlias *bool `json:"allowAlias"`
-	Deprecated *bool `json:"deprecated"`
+	AllowAlias          *bool                 `json:"allowAlias"`
+	Deprecated          *bool                 `json:"deprecated"`
 	UninterpretedOption []UninterpretedOption `json:"uninterpretedOption"`
 }
 
 type EnumReservedRange struct {
 	Start *int `json:"start"`
-	End *int `json:"end"`
+	End   *int `json:"end"`
 }
 
 type EnumValueDescriptorProto struct {
-	Name *string `json:"name"`
-	Number *int `json:"number"`
+	Name    *string           `json:"name"`
+	Number  *int              `json:"number"`
 	Options *EnumValueOptions `json:"options"`
 }
 
 type EnumValueOptions struct {
-	Deprecated *bool `json:"deprecated"`
+	Deprecated          *bool                 `json:"deprecated"`
 	UninterpretedOption []UninterpretedOption `json:"uninterpretedOption"`
 }
 
 type ExtensionRange struct {
-	Start *int `json:"start"`
-	End *int `json:"end"`
+	Start   *int                   `json:"start"`
+	End     *int                   `json:"end"`
 	Options *ExtensionRangeOptions `json:"options"`
 }
 
@@ -173,17 +173,17 @@ type ExtensionRangeOptions struct {
 }
 
 type FieldDescriptorProto struct {
-	Name *string `json:"name"`
-	Number *int `json:"number"`
-	Label *Label `json:"label"`
-	Type *Type `json:"type"`
-	TypeName *string `json:"typeName"`
-	Extendee *string `json:"extendee"`
-	DefaultValue *string `json:"defaultValue"`
-	OneofIndex *int `json:"oneofIndex"`
-	JsonName *string `json:"jsonName"`
-	Options *FieldOptions `json:"options"`
-	Proto3Optional *bool `json:"proto3Optional"`
+	Name           *string       `json:"name"`
+	Number         *int          `json:"number"`
+	Label          *Label        `json:"label"`
+	Type           *Type         `json:"type"`
+	TypeName       *string       `json:"typeName"`
+	Extendee       *string       `json:"extendee"`
+	DefaultValue   *string       `json:"defaultValue"`
+	OneofIndex     *int          `json:"oneofIndex"`
+	JsonName       *string       `json:"jsonName"`
+	Options        *FieldOptions `json:"options"`
+	Proto3Optional *bool         `json:"proto3Optional"`
 }
 
 type FieldMask struct {
@@ -191,33 +191,33 @@ type FieldMask struct {
 }
 
 type FieldOptions struct {
-	Ctype *CType `json:"ctype"`
-	Packed *bool `json:"packed"`
-	Jstype *JsType `json:"jstype"`
-	Lazy *bool `json:"lazy"`
-	Deprecated *bool `json:"deprecated"`
-	Weak *bool `json:"weak"`
+	Ctype               *CType                `json:"ctype"`
+	Packed              *bool                 `json:"packed"`
+	Jstype              *JsType               `json:"jstype"`
+	Lazy                *bool                 `json:"lazy"`
+	Deprecated          *bool                 `json:"deprecated"`
+	Weak                *bool                 `json:"weak"`
 	UninterpretedOption []UninterpretedOption `json:"uninterpretedOption"`
 }
 
 type FieldsEntry struct {
-	Key *string `json:"key"`
+	Key   *string          `json:"key"`
 	Value *json.RawMessage `json:"value"`
 }
 
 type FileDescriptorProto struct {
-	Name *string `json:"name"`
-	Package *string `json:"package"`
-	Dependency []string `json:"dependency"`
-	PublicDependency []int `json:"publicDependency"`
-	WeakDependency []int `json:"weakDependency"`
-	MessageType []DescriptorProto `json:"messageType"`
-	EnumType []EnumDescriptorProto `json:"enumType"`
-	Service []ServiceDescriptorProto `json:"service"`
-	Extension []FieldDescriptorProto `json:"extension"`
-	Options *FileOptions `json:"options"`
-	SourceCodeInfo *SourceCodeInfo `json:"sourceCodeInfo"`
-	Syntax *string `json:"syntax"`
+	Name             *string                  `json:"name"`
+	Package          *string                  `json:"package"`
+	Dependency       []string                 `json:"dependency"`
+	PublicDependency []int                    `json:"publicDependency"`
+	WeakDependency   []int                    `json:"weakDependency"`
+	MessageType      []DescriptorProto        `json:"messageType"`
+	EnumType         []EnumDescriptorProto    `json:"enumType"`
+	Service          []ServiceDescriptorProto `json:"service"`
+	Extension        []FieldDescriptorProto   `json:"extension"`
+	Options          *FileOptions             `json:"options"`
+	SourceCodeInfo   *SourceCodeInfo          `json:"sourceCodeInfo"`
+	Syntax           *string                  `json:"syntax"`
 }
 
 type FileDescriptorSet struct {
@@ -225,27 +225,27 @@ type FileDescriptorSet struct {
 }
 
 type FileOptions struct {
-	JavaPackage *string `json:"javaPackage"`
-	JavaOuterClassname *string `json:"javaOuterClassname"`
-	JavaMultipleFiles *bool `json:"javaMultipleFiles"`
-	JavaGenerateEqualsAndHash *bool `json:"javaGenerateEqualsAndHash"`
-	JavaStringCheckUtf8 *bool `json:"javaStringCheckUtf8"`
-	OptimizeFor *OptimizeMode `json:"optimizeFor"`
-	GoPackage *string `json:"goPackage"`
-	CcGenericServices *bool `json:"ccGenericServices"`
-	JavaGenericServices *bool `json:"javaGenericServices"`
-	PyGenericServices *bool `json:"pyGenericServices"`
-	PhpGenericServices *bool `json:"phpGenericServices"`
-	Deprecated *bool `json:"deprecated"`
-	CcEnableArenas *bool `json:"ccEnableArenas"`
-	ObjcClassPrefix *string `json:"objcClassPrefix"`
-	CsharpNamespace *string `json:"csharpNamespace"`
-	SwiftPrefix *string `json:"swiftPrefix"`
-	PhpClassPrefix *string `json:"phpClassPrefix"`
-	PhpNamespace *string `json:"phpNamespace"`
-	PhpMetadataNamespace *string `json:"phpMetadataNamespace"`
-	RubyPackage *string `json:"rubyPackage"`
-	UninterpretedOption []UninterpretedOption `json:"uninterpretedOption"`
+	JavaPackage               *string               `json:"javaPackage"`
+	JavaOuterClassname        *string               `json:"javaOuterClassname"`
+	JavaMultipleFiles         *bool                 `json:"javaMultipleFiles"`
+	JavaGenerateEqualsAndHash *bool                 `json:"javaGenerateEqualsAndHash"`
+	JavaStringCheckUtf8       *bool                 `json:"javaStringCheckUtf8"`
+	OptimizeFor               *OptimizeMode         `json:"optimizeFor"`
+	GoPackage                 *string               `json:"goPackage"`
+	CcGenericServices         *bool                 `json:"ccGenericServices"`
+	JavaGenericServices       *bool                 `json:"javaGenericServices"`
+	PyGenericServices         *bool                 `json:"pyGenericServices"`
+	PhpGenericServices        *bool                 `json:"phpGenericServices"`
+	Deprecated                *bool                 `json:"deprecated"`
+	CcEnableArenas            *bool                 `json:"ccEnableArenas"`
+	ObjcClassPrefix           *string               `json:"objcClassPrefix"`
+	CsharpNamespace           *string               `json:"csharpNamespace"`
+	SwiftPrefix               *string               `json:"swiftPrefix"`
+	PhpClassPrefix            *string               `json:"phpClassPrefix"`
+	PhpNamespace              *string               `json:"phpNamespace"`
+	PhpMetadataNamespace      *string               `json:"phpMetadataNamespace"`
+	RubyPackage               *string               `json:"rubyPackage"`
+	UninterpretedOption       []UninterpretedOption `json:"uninterpretedOption"`
 }
 
 type GeneratedCodeInfo struct {
@@ -257,43 +257,43 @@ type ListValue struct {
 }
 
 type Location struct {
-	Path []int `json:"path"`
-	Span []int `json:"span"`
-	LeadingComments *string `json:"leadingComments"`
-	TrailingComments *string `json:"trailingComments"`
+	Path                    []int    `json:"path"`
+	Span                    []int    `json:"span"`
+	LeadingComments         *string  `json:"leadingComments"`
+	TrailingComments        *string  `json:"trailingComments"`
 	LeadingDetachedComments []string `json:"leadingDetachedComments"`
 }
 
 type MessageOptions struct {
-	MessageSetWireFormat *bool `json:"messageSetWireFormat"`
-	NoStandardDescriptorAccessor *bool `json:"noStandardDescriptorAccessor"`
-	Deprecated *bool `json:"deprecated"`
-	MapEntry *bool `json:"mapEntry"`
-	UninterpretedOption []UninterpretedOption `json:"uninterpretedOption"`
+	MessageSetWireFormat         *bool                 `json:"messageSetWireFormat"`
+	NoStandardDescriptorAccessor *bool                 `json:"noStandardDescriptorAccessor"`
+	Deprecated                   *bool                 `json:"deprecated"`
+	MapEntry                     *bool                 `json:"mapEntry"`
+	UninterpretedOption          []UninterpretedOption `json:"uninterpretedOption"`
 }
 
 type MethodDescriptorProto struct {
-	Name *string `json:"name"`
-	InputType *string `json:"inputType"`
-	OutputType *string `json:"outputType"`
-	Options *MethodOptions `json:"options"`
-	ClientStreaming *bool `json:"clientStreaming"`
-	ServerStreaming *bool `json:"serverStreaming"`
+	Name            *string        `json:"name"`
+	InputType       *string        `json:"inputType"`
+	OutputType      *string        `json:"outputType"`
+	Options         *MethodOptions `json:"options"`
+	ClientStreaming *bool          `json:"clientStreaming"`
+	ServerStreaming *bool          `json:"serverStreaming"`
 }
 
 type MethodOptions struct {
-	Deprecated *bool `json:"deprecated"`
-	IdempotencyLevel *IdempotencyLevel `json:"idempotencyLevel"`
+	Deprecated          *bool                 `json:"deprecated"`
+	IdempotencyLevel    *IdempotencyLevel     `json:"idempotencyLevel"`
 	UninterpretedOption []UninterpretedOption `json:"uninterpretedOption"`
 }
 
 type NamePart struct {
-	NamePart *string `json:"namePart"`
-	IsExtension *bool `json:"isExtension"`
+	NamePart    *string `json:"namePart"`
+	IsExtension *bool   `json:"isExtension"`
 }
 
 type OneofDescriptorProto struct {
-	Name *string `json:"name"`
+	Name    *string       `json:"name"`
 	Options *OneofOptions `json:"options"`
 }
 
@@ -303,17 +303,17 @@ type OneofOptions struct {
 
 type ReservedRange struct {
 	Start *int `json:"start"`
-	End *int `json:"end"`
+	End   *int `json:"end"`
 }
 
 type ServiceDescriptorProto struct {
-	Name *string `json:"name"`
-	Method []MethodDescriptorProto `json:"method"`
-	Options *ServiceOptions `json:"options"`
+	Name    *string                 `json:"name"`
+	Method  []MethodDescriptorProto `json:"method"`
+	Options *ServiceOptions         `json:"options"`
 }
 
 type ServiceOptions struct {
-	Deprecated *bool `json:"deprecated"`
+	Deprecated          *bool                 `json:"deprecated"`
 	UninterpretedOption []UninterpretedOption `json:"uninterpretedOption"`
 }
 
@@ -326,20 +326,20 @@ type Struct struct {
 }
 
 type UninterpretedOption struct {
-	Name []NamePart `json:"name"`
-	IdentifierValue *string `json:"identifierValue"`
-	PositiveIntValue *int64 `json:"positiveIntValue"`
-	NegativeIntValue *int64 `json:"negativeIntValue"`
-	DoubleValue *float64 `json:"doubleValue"`
-	StringValue *io.ReadCloser `json:"stringValue"`
-	AggregateValue *string `json:"aggregateValue"`
+	Name             []NamePart     `json:"name"`
+	IdentifierValue  *string        `json:"identifierValue"`
+	PositiveIntValue *int64         `json:"positiveIntValue"`
+	NegativeIntValue *int64         `json:"negativeIntValue"`
+	DoubleValue      *float64       `json:"doubleValue"`
+	StringValue      *io.ReadCloser `json:"stringValue"`
+	AggregateValue   *string        `json:"aggregateValue"`
 }
 
 type Value struct {
-	NullValue *NullValue `json:"nullValue"`
-	NumberValue *float64 `json:"numberValue"`
-	StringValue *string `json:"stringValue"`
-	BoolValue *bool `json:"boolValue"`
+	NullValue   *NullValue       `json:"nullValue"`
+	NumberValue *float64         `json:"numberValue"`
+	StringValue *string          `json:"stringValue"`
+	BoolValue   *bool            `json:"boolValue"`
 	StructValue *json.RawMessage `json:"structValue"`
-	ListValue *json.RawMessage `json:"listValue"`
+	ListValue   *json.RawMessage `json:"listValue"`
 }

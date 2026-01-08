@@ -1,11 +1,9 @@
-
 package v2
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"iter"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -38,9 +36,6 @@ func NewClient(ctx context.Context, opts ...options.ClientOption) (*Client, erro
 		host:       resolved.Host,
 	}, nil
 }
-
-
-
 
 func (c *Client) CreateAccountAccessIdentityRule(ctx context.Context, req *CreateAccountAccessIdentityRuleRequest, opts ...api.Option) (*AccountAccessIdentityRule, error) {
 	body, err := json.Marshal(req)
@@ -88,12 +83,6 @@ func (c *Client) CreateAccountAccessIdentityRule(ctx context.Context, req *Creat
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) DeleteAccountAccessIdentityRule(ctx context.Context, req *DeleteAccountAccessIdentityRuleRequest, opts ...api.Option) error {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -135,12 +124,6 @@ func (c *Client) DeleteAccountAccessIdentityRule(ctx context.Context, req *Delet
 	}
 	return nil
 }
-
-
-
-
-
-
 
 func (c *Client) GetAccountAccessIdentityRule(ctx context.Context, req *GetAccountAccessIdentityRuleRequest, opts ...api.Option) (*AccountAccessIdentityRule, error) {
 	body, err := json.Marshal(req)
@@ -188,12 +171,6 @@ func (c *Client) GetAccountAccessIdentityRule(ctx context.Context, req *GetAccou
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) ListAccountAccessIdentityRules(ctx context.Context, req *ListAccountAccessIdentityRulesRequest, opts ...api.Option) (*ListAccountAccessIdentityRulesResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -239,12 +216,6 @@ func (c *Client) ListAccountAccessIdentityRules(ctx context.Context, req *ListAc
 	}
 	return resp, nil
 }
-
-
-
-
-
-
 
 func (c *Client) CreateGroup(ctx context.Context, req *CreateGroupRequest, opts ...api.Option) (*Group, error) {
 	body, err := json.Marshal(req)
@@ -292,12 +263,6 @@ func (c *Client) CreateGroup(ctx context.Context, req *CreateGroupRequest, opts 
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) CreateGroupProxy(ctx context.Context, req *CreateGroupProxyRequest, opts ...api.Option) (*Group, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -344,12 +309,6 @@ func (c *Client) CreateGroupProxy(ctx context.Context, req *CreateGroupProxyRequ
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) DeleteGroup(ctx context.Context, req *DeleteGroupRequest, opts ...api.Option) error {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -392,12 +351,6 @@ func (c *Client) DeleteGroup(ctx context.Context, req *DeleteGroupRequest, opts 
 	return nil
 }
 
-
-
-
-
-
-
 func (c *Client) DeleteGroupProxy(ctx context.Context, req *DeleteGroupProxyRequest, opts ...api.Option) error {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -439,12 +392,6 @@ func (c *Client) DeleteGroupProxy(ctx context.Context, req *DeleteGroupProxyRequ
 	}
 	return nil
 }
-
-
-
-
-
-
 
 func (c *Client) GetGroup(ctx context.Context, req *GetGroupRequest, opts ...api.Option) (*Group, error) {
 	body, err := json.Marshal(req)
@@ -492,12 +439,6 @@ func (c *Client) GetGroup(ctx context.Context, req *GetGroupRequest, opts ...api
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) GetGroupProxy(ctx context.Context, req *GetGroupProxyRequest, opts ...api.Option) (*Group, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -543,12 +484,6 @@ func (c *Client) GetGroupProxy(ctx context.Context, req *GetGroupProxyRequest, o
 	}
 	return resp, nil
 }
-
-
-
-
-
-
 
 func (c *Client) ListGroups(ctx context.Context, req *ListGroupsRequest, opts ...api.Option) (*ListGroupsResponse, error) {
 	body, err := json.Marshal(req)
@@ -596,12 +531,6 @@ func (c *Client) ListGroups(ctx context.Context, req *ListGroupsRequest, opts ..
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) ListGroupsProxy(ctx context.Context, req *ListGroupsProxyRequest, opts ...api.Option) (*ListGroupsResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -647,12 +576,6 @@ func (c *Client) ListGroupsProxy(ctx context.Context, req *ListGroupsProxyReques
 	}
 	return resp, nil
 }
-
-
-
-
-
-
 
 func (c *Client) ResolveGroup(ctx context.Context, req *ResolveGroupRequest, opts ...api.Option) (*ResolveGroupResponse, error) {
 	body, err := json.Marshal(req)
@@ -700,12 +623,6 @@ func (c *Client) ResolveGroup(ctx context.Context, req *ResolveGroupRequest, opt
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) ResolveGroupProxy(ctx context.Context, req *ResolveGroupProxyRequest, opts ...api.Option) (*ResolveGroupResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -751,12 +668,6 @@ func (c *Client) ResolveGroupProxy(ctx context.Context, req *ResolveGroupProxyRe
 	}
 	return resp, nil
 }
-
-
-
-
-
-
 
 func (c *Client) UpdateGroup(ctx context.Context, req *UpdateGroupRequest, opts ...api.Option) (*Group, error) {
 	body, err := json.Marshal(req)
@@ -804,12 +715,6 @@ func (c *Client) UpdateGroup(ctx context.Context, req *UpdateGroupRequest, opts 
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) UpdateGroupProxy(ctx context.Context, req *UpdateGroupProxyRequest, opts ...api.Option) (*Group, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -855,12 +760,6 @@ func (c *Client) UpdateGroupProxy(ctx context.Context, req *UpdateGroupProxyRequ
 	}
 	return resp, nil
 }
-
-
-
-
-
-
 
 func (c *Client) CreateServicePrincipal(ctx context.Context, req *CreateServicePrincipalRequest, opts ...api.Option) (*ServicePrincipal, error) {
 	body, err := json.Marshal(req)
@@ -908,12 +807,6 @@ func (c *Client) CreateServicePrincipal(ctx context.Context, req *CreateServiceP
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) CreateServicePrincipalProxy(ctx context.Context, req *CreateServicePrincipalProxyRequest, opts ...api.Option) (*ServicePrincipal, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -960,12 +853,6 @@ func (c *Client) CreateServicePrincipalProxy(ctx context.Context, req *CreateSer
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) DeleteServicePrincipal(ctx context.Context, req *DeleteServicePrincipalRequest, opts ...api.Option) error {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -1008,12 +895,6 @@ func (c *Client) DeleteServicePrincipal(ctx context.Context, req *DeleteServiceP
 	return nil
 }
 
-
-
-
-
-
-
 func (c *Client) DeleteServicePrincipalProxy(ctx context.Context, req *DeleteServicePrincipalProxyRequest, opts ...api.Option) error {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -1055,12 +936,6 @@ func (c *Client) DeleteServicePrincipalProxy(ctx context.Context, req *DeleteSer
 	}
 	return nil
 }
-
-
-
-
-
-
 
 func (c *Client) GetServicePrincipal(ctx context.Context, req *GetServicePrincipalRequest, opts ...api.Option) (*ServicePrincipal, error) {
 	body, err := json.Marshal(req)
@@ -1108,12 +983,6 @@ func (c *Client) GetServicePrincipal(ctx context.Context, req *GetServicePrincip
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) GetServicePrincipalProxy(ctx context.Context, req *GetServicePrincipalProxyRequest, opts ...api.Option) (*ServicePrincipal, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -1159,12 +1028,6 @@ func (c *Client) GetServicePrincipalProxy(ctx context.Context, req *GetServicePr
 	}
 	return resp, nil
 }
-
-
-
-
-
-
 
 func (c *Client) ListServicePrincipals(ctx context.Context, req *ListServicePrincipalsRequest, opts ...api.Option) (*ListServicePrincipalsResponse, error) {
 	body, err := json.Marshal(req)
@@ -1212,12 +1075,6 @@ func (c *Client) ListServicePrincipals(ctx context.Context, req *ListServicePrin
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) ListServicePrincipalsProxy(ctx context.Context, req *ListServicePrincipalsProxyRequest, opts ...api.Option) (*ListServicePrincipalsResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -1263,12 +1120,6 @@ func (c *Client) ListServicePrincipalsProxy(ctx context.Context, req *ListServic
 	}
 	return resp, nil
 }
-
-
-
-
-
-
 
 func (c *Client) ResolveServicePrincipal(ctx context.Context, req *ResolveServicePrincipalRequest, opts ...api.Option) (*ResolveServicePrincipalResponse, error) {
 	body, err := json.Marshal(req)
@@ -1316,12 +1167,6 @@ func (c *Client) ResolveServicePrincipal(ctx context.Context, req *ResolveServic
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) ResolveServicePrincipalProxy(ctx context.Context, req *ResolveServicePrincipalProxyRequest, opts ...api.Option) (*ResolveServicePrincipalResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -1367,12 +1212,6 @@ func (c *Client) ResolveServicePrincipalProxy(ctx context.Context, req *ResolveS
 	}
 	return resp, nil
 }
-
-
-
-
-
-
 
 func (c *Client) UpdateServicePrincipal(ctx context.Context, req *UpdateServicePrincipalRequest, opts ...api.Option) (*ServicePrincipal, error) {
 	body, err := json.Marshal(req)
@@ -1420,12 +1259,6 @@ func (c *Client) UpdateServicePrincipal(ctx context.Context, req *UpdateServiceP
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) UpdateServicePrincipalProxy(ctx context.Context, req *UpdateServicePrincipalProxyRequest, opts ...api.Option) (*ServicePrincipal, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -1471,12 +1304,6 @@ func (c *Client) UpdateServicePrincipalProxy(ctx context.Context, req *UpdateSer
 	}
 	return resp, nil
 }
-
-
-
-
-
-
 
 func (c *Client) CreateUser(ctx context.Context, req *CreateUserRequest, opts ...api.Option) (*User, error) {
 	body, err := json.Marshal(req)
@@ -1524,12 +1351,6 @@ func (c *Client) CreateUser(ctx context.Context, req *CreateUserRequest, opts ..
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) CreateUserProxy(ctx context.Context, req *CreateUserProxyRequest, opts ...api.Option) (*User, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -1576,12 +1397,6 @@ func (c *Client) CreateUserProxy(ctx context.Context, req *CreateUserProxyReques
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) DeleteUser(ctx context.Context, req *DeleteUserRequest, opts ...api.Option) error {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -1624,12 +1439,6 @@ func (c *Client) DeleteUser(ctx context.Context, req *DeleteUserRequest, opts ..
 	return nil
 }
 
-
-
-
-
-
-
 func (c *Client) DeleteUserProxy(ctx context.Context, req *DeleteUserProxyRequest, opts ...api.Option) error {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -1671,12 +1480,6 @@ func (c *Client) DeleteUserProxy(ctx context.Context, req *DeleteUserProxyReques
 	}
 	return nil
 }
-
-
-
-
-
-
 
 func (c *Client) GetUser(ctx context.Context, req *GetUserRequest, opts ...api.Option) (*User, error) {
 	body, err := json.Marshal(req)
@@ -1724,12 +1527,6 @@ func (c *Client) GetUser(ctx context.Context, req *GetUserRequest, opts ...api.O
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) GetUserProxy(ctx context.Context, req *GetUserProxyRequest, opts ...api.Option) (*User, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -1775,12 +1572,6 @@ func (c *Client) GetUserProxy(ctx context.Context, req *GetUserProxyRequest, opt
 	}
 	return resp, nil
 }
-
-
-
-
-
-
 
 func (c *Client) ListUsers(ctx context.Context, req *ListUsersRequest, opts ...api.Option) (*ListUsersResponse, error) {
 	body, err := json.Marshal(req)
@@ -1828,12 +1619,6 @@ func (c *Client) ListUsers(ctx context.Context, req *ListUsersRequest, opts ...a
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) ListUsersProxy(ctx context.Context, req *ListUsersProxyRequest, opts ...api.Option) (*ListUsersResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -1879,12 +1664,6 @@ func (c *Client) ListUsersProxy(ctx context.Context, req *ListUsersProxyRequest,
 	}
 	return resp, nil
 }
-
-
-
-
-
-
 
 func (c *Client) ResolveUser(ctx context.Context, req *ResolveUserRequest, opts ...api.Option) (*ResolveUserResponse, error) {
 	body, err := json.Marshal(req)
@@ -1932,12 +1711,6 @@ func (c *Client) ResolveUser(ctx context.Context, req *ResolveUserRequest, opts 
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) ResolveUserProxy(ctx context.Context, req *ResolveUserProxyRequest, opts ...api.Option) (*ResolveUserResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -1983,12 +1756,6 @@ func (c *Client) ResolveUserProxy(ctx context.Context, req *ResolveUserProxyRequ
 	}
 	return resp, nil
 }
-
-
-
-
-
-
 
 func (c *Client) UpdateUser(ctx context.Context, req *UpdateUserRequest, opts ...api.Option) (*User, error) {
 	body, err := json.Marshal(req)
@@ -2036,12 +1803,6 @@ func (c *Client) UpdateUser(ctx context.Context, req *UpdateUserRequest, opts ..
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) UpdateUserProxy(ctx context.Context, req *UpdateUserProxyRequest, opts ...api.Option) (*User, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -2087,12 +1848,6 @@ func (c *Client) UpdateUserProxy(ctx context.Context, req *UpdateUserProxyReques
 	}
 	return resp, nil
 }
-
-
-
-
-
-
 
 func (c *Client) CreateWorkspaceAccessDetail(ctx context.Context, req *CreateWorkspaceAccessDetailRequest, opts ...api.Option) (*WorkspaceAccessDetail, error) {
 	body, err := json.Marshal(req)
@@ -2140,12 +1895,6 @@ func (c *Client) CreateWorkspaceAccessDetail(ctx context.Context, req *CreateWor
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) CreateWorkspaceAccessDetailLocal(ctx context.Context, req *CreateWorkspaceAccessDetailLocalRequest, opts ...api.Option) (*WorkspaceAccessDetail, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -2192,12 +1941,6 @@ func (c *Client) CreateWorkspaceAccessDetailLocal(ctx context.Context, req *Crea
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) DeleteWorkspaceAccessDetail(ctx context.Context, req *DeleteWorkspaceAccessDetailRequest, opts ...api.Option) error {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -2240,12 +1983,6 @@ func (c *Client) DeleteWorkspaceAccessDetail(ctx context.Context, req *DeleteWor
 	return nil
 }
 
-
-
-
-
-
-
 func (c *Client) DeleteWorkspaceAccessDetailLocal(ctx context.Context, req *DeleteWorkspaceAccessDetailLocalRequest, opts ...api.Option) error {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -2287,12 +2024,6 @@ func (c *Client) DeleteWorkspaceAccessDetailLocal(ctx context.Context, req *Dele
 	}
 	return nil
 }
-
-
-
-
-
-
 
 func (c *Client) GetWorkspaceAccessDetail(ctx context.Context, req *GetWorkspaceAccessDetailRequest, opts ...api.Option) (*WorkspaceAccessDetail, error) {
 	body, err := json.Marshal(req)
@@ -2340,12 +2071,6 @@ func (c *Client) GetWorkspaceAccessDetail(ctx context.Context, req *GetWorkspace
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) GetWorkspaceAccessDetailLocal(ctx context.Context, req *GetWorkspaceAccessDetailLocalRequest, opts ...api.Option) (*WorkspaceAccessDetail, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -2391,12 +2116,6 @@ func (c *Client) GetWorkspaceAccessDetailLocal(ctx context.Context, req *GetWork
 	}
 	return resp, nil
 }
-
-
-
-
-
-
 
 func (c *Client) ListWorkspaceAccessDetails(ctx context.Context, req *ListWorkspaceAccessDetailsRequest, opts ...api.Option) (*ListWorkspaceAccessDetailsResponse, error) {
 	body, err := json.Marshal(req)
@@ -2444,12 +2163,6 @@ func (c *Client) ListWorkspaceAccessDetails(ctx context.Context, req *ListWorksp
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) ListWorkspaceAccessDetailsLocal(ctx context.Context, req *ListWorkspaceAccessDetailsLocalRequest, opts ...api.Option) (*ListWorkspaceAccessDetailsResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -2495,12 +2208,6 @@ func (c *Client) ListWorkspaceAccessDetailsLocal(ctx context.Context, req *ListW
 	}
 	return resp, nil
 }
-
-
-
-
-
-
 
 func (c *Client) UpdateWorkspaceAccessDetail(ctx context.Context, req *UpdateWorkspaceAccessDetailRequest, opts ...api.Option) (*WorkspaceAccessDetail, error) {
 	body, err := json.Marshal(req)
@@ -2548,12 +2255,6 @@ func (c *Client) UpdateWorkspaceAccessDetail(ctx context.Context, req *UpdateWor
 	return resp, nil
 }
 
-
-
-
-
-
-
 func (c *Client) UpdateWorkspaceAccessDetailLocal(ctx context.Context, req *UpdateWorkspaceAccessDetailLocalRequest, opts ...api.Option) (*WorkspaceAccessDetail, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -2599,9 +2300,3 @@ func (c *Client) UpdateWorkspaceAccessDetailLocal(ctx context.Context, req *Upda
 	}
 	return resp, nil
 }
-
-
-
-
-
-
