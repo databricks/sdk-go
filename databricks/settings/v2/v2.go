@@ -41,6 +41,7 @@ func NewClient(ctx context.Context, opts ...options.ClientOption) (*Client, erro
 
 
 
+
 func (c *Client) GetPublicAccountSetting(ctx context.Context, req *GetPublicAccountSettingRequest, opts ...api.Option) (*Setting, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -86,6 +87,9 @@ func (c *Client) GetPublicAccountSetting(ctx context.Context, req *GetPublicAcco
 	}
 	return resp, nil
 }
+
+
+
 
 
 
@@ -139,6 +143,9 @@ func (c *Client) GetPublicAccountUserPreference(ctx context.Context, req *GetPub
 
 
 
+
+
+
 func (c *Client) GetPublicWorkspaceSetting(ctx context.Context, req *GetPublicWorkspaceSettingRequest, opts ...api.Option) (*Setting, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -184,6 +191,9 @@ func (c *Client) GetPublicWorkspaceSetting(ctx context.Context, req *GetPublicWo
 	}
 	return resp, nil
 }
+
+
+
 
 
 
@@ -234,14 +244,13 @@ func (c *Client) ListAccountSettingsMetadata(ctx context.Context, req *ListAccou
 	return resp, nil
 }
 
+
+
 func (c *Client) ListAccountSettingsMetadataIter(ctx context.Context, req *ListAccountSettingsMetadataRequest, opts ...api.Option) iter.Seq2[*SettingsMetadata, error] {
 	return func(yield func(*SettingsMetadata, error) bool) {
-		pageReq := &ListAccountSettingsMetadataRequest{
-			PageSize:  req.PageSize,
-			PageToken: req.PageToken,
-		}
+		pageReq := *req
 		for {
-			resp, err := c.ListAccountSettingsMetadata(ctx, pageReq, opts...)
+			resp, err := c.ListAccountSettingsMetadata(ctx, &pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -258,6 +267,7 @@ func (c *Client) ListAccountSettingsMetadataIter(ctx context.Context, req *ListA
 		}
 	}
 }
+
 
 
 
@@ -308,14 +318,13 @@ func (c *Client) ListAccountUserPreferencesMetadata(ctx context.Context, req *Li
 	return resp, nil
 }
 
+
+
 func (c *Client) ListAccountUserPreferencesMetadataIter(ctx context.Context, req *ListAccountUserPreferencesMetadataRequest, opts ...api.Option) iter.Seq2[*SettingsMetadata, error] {
 	return func(yield func(*SettingsMetadata, error) bool) {
-		pageReq := &ListAccountUserPreferencesMetadataRequest{
-			PageSize:  req.PageSize,
-			PageToken: req.PageToken,
-		}
+		pageReq := *req
 		for {
-			resp, err := c.ListAccountUserPreferencesMetadata(ctx, pageReq, opts...)
+			resp, err := c.ListAccountUserPreferencesMetadata(ctx, &pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -332,6 +341,7 @@ func (c *Client) ListAccountUserPreferencesMetadataIter(ctx context.Context, req
 		}
 	}
 }
+
 
 
 
@@ -382,14 +392,13 @@ func (c *Client) ListWorkspaceSettingsMetadata(ctx context.Context, req *ListWor
 	return resp, nil
 }
 
+
+
 func (c *Client) ListWorkspaceSettingsMetadataIter(ctx context.Context, req *ListWorkspaceSettingsMetadataRequest, opts ...api.Option) iter.Seq2[*SettingsMetadata, error] {
 	return func(yield func(*SettingsMetadata, error) bool) {
-		pageReq := &ListWorkspaceSettingsMetadataRequest{
-			PageSize:  req.PageSize,
-			PageToken: req.PageToken,
-		}
+		pageReq := *req
 		for {
-			resp, err := c.ListWorkspaceSettingsMetadata(ctx, pageReq, opts...)
+			resp, err := c.ListWorkspaceSettingsMetadata(ctx, &pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -406,6 +415,7 @@ func (c *Client) ListWorkspaceSettingsMetadataIter(ctx context.Context, req *Lis
 		}
 	}
 }
+
 
 
 
@@ -459,6 +469,9 @@ func (c *Client) PatchPublicAccountSetting(ctx context.Context, req *PatchPublic
 
 
 
+
+
+
 func (c *Client) PatchPublicAccountUserPreference(ctx context.Context, req *PatchPublicAccountUserPreferenceRequest, opts ...api.Option) (*UserPreference, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -508,6 +521,9 @@ func (c *Client) PatchPublicAccountUserPreference(ctx context.Context, req *Patc
 
 
 
+
+
+
 func (c *Client) PatchPublicWorkspaceSetting(ctx context.Context, req *PatchPublicWorkspaceSettingRequest, opts ...api.Option) (*Setting, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -553,6 +569,8 @@ func (c *Client) PatchPublicWorkspaceSetting(ctx context.Context, req *PatchPubl
 	}
 	return resp, nil
 }
+
+
 
 
 

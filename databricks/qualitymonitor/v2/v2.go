@@ -41,6 +41,7 @@ func NewClient(ctx context.Context, opts ...options.ClientOption) (*Client, erro
 
 
 
+
 func (c *Client) CreateQualityMonitor(ctx context.Context, req *CreateQualityMonitorRequest, opts ...api.Option) (*QualityMonitor, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -90,6 +91,9 @@ func (c *Client) CreateQualityMonitor(ctx context.Context, req *CreateQualityMon
 
 
 
+
+
+
 func (c *Client) DeleteQualityMonitor(ctx context.Context, req *DeleteQualityMonitorRequest, opts ...api.Option) error {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -131,6 +135,9 @@ func (c *Client) DeleteQualityMonitor(ctx context.Context, req *DeleteQualityMon
 	}
 	return nil
 }
+
+
+
 
 
 
@@ -184,6 +191,9 @@ func (c *Client) GetQualityMonitor(ctx context.Context, req *GetQualityMonitorRe
 
 
 
+
+
+
 func (c *Client) ListQualityMonitor(ctx context.Context, req *ListQualityMonitorRequest, opts ...api.Option) (*ListQualityMonitorResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -230,14 +240,13 @@ func (c *Client) ListQualityMonitor(ctx context.Context, req *ListQualityMonitor
 	return resp, nil
 }
 
+
+
 func (c *Client) ListQualityMonitorIter(ctx context.Context, req *ListQualityMonitorRequest, opts ...api.Option) iter.Seq2[*QualityMonitor, error] {
 	return func(yield func(*QualityMonitor, error) bool) {
-		pageReq := &ListQualityMonitorRequest{
-			PageSize:  req.PageSize,
-			PageToken: req.PageToken,
-		}
+		pageReq := *req
 		for {
-			resp, err := c.ListQualityMonitor(ctx, pageReq, opts...)
+			resp, err := c.ListQualityMonitor(ctx, &pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -254,6 +263,7 @@ func (c *Client) ListQualityMonitorIter(ctx context.Context, req *ListQualityMon
 		}
 	}
 }
+
 
 
 
@@ -303,6 +313,8 @@ func (c *Client) UpdateQualityMonitor(ctx context.Context, req *UpdateQualityMon
 	}
 	return resp, nil
 }
+
+
 
 
 

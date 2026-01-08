@@ -15,8 +15,15 @@ type CreateJobRequest struct {
 }
 
 type ListJobsRequest struct {
-	PageSize  int    `json:"page_size"`
-	PageToken string `json:"page_token"`
+	PageSize  int      `json:"page_size"`
+	PageToken string   `json:"page_token"`
+	Tags      []string `json:"tags"`
+	Types     []Type   `json:"types"`
+}
+
+type Type struct {
+	Kind  string `json:"kind"`
+	Value string `json:"value"`
 }
 
 type ListJobsResponse struct {

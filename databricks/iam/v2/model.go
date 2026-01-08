@@ -84,426 +84,352 @@ func (f *WorkspacePermission) String() string {
 	return string(*f)
 }
 
-// An identity rule that controls which principals can access an account.
 type AccountAccessIdentityRule struct {
 	Action *AccountAccessRuleAction `json:"action"`
-	ExternalId *string `json:"externalId"`
-	DisplayName *string `json:"displayName"`
-	PrincipalType *PrincipalType `json:"principalType"`
+	ExternalId *string `json:"external_id"`
+	DisplayName *string `json:"display_name"`
+	PrincipalType *PrincipalType `json:"principal_type"`
 }
 
-// Request message for creating an account access identity rule.
 type CreateAccountAccessIdentityRuleRequest struct {
-	AccountId *string `json:"accountId"`
-	AccountAccessIdentityRule *AccountAccessIdentityRule `json:"accountAccessIdentityRule"`
+	AccountId *string `json:"account_id"`
+	AccountAccessIdentityRule *AccountAccessIdentityRule `json:"account_access_identity_rule"`
 }
 
-// TODO: Write description later when this method is implemented
 type CreateGroupProxyRequest struct {
 	Group *Group `json:"group"`
 }
 
-// TODO: Write description later when this method is implemented
 type CreateGroupRequest struct {
-	AccountId *string `json:"accountId"`
+	AccountId *string `json:"account_id"`
 	Group *Group `json:"group"`
 }
 
-// TODO: Write description later when this method is implemented
 type CreateServicePrincipalProxyRequest struct {
-	ServicePrincipal *ServicePrincipal `json:"servicePrincipal"`
+	ServicePrincipal *ServicePrincipal `json:"service_principal"`
 }
 
-// TODO: Write description later when this method is implemented
 type CreateServicePrincipalRequest struct {
-	AccountId *string `json:"accountId"`
-	ServicePrincipal *ServicePrincipal `json:"servicePrincipal"`
+	AccountId *string `json:"account_id"`
+	ServicePrincipal *ServicePrincipal `json:"service_principal"`
 }
 
-// TODO: Write description later when this method is implemented
 type CreateUserProxyRequest struct {
 	User *User `json:"user"`
 }
 
-// TODO: Write description later when this method is implemented
 type CreateUserRequest struct {
-	AccountId *string `json:"accountId"`
+	AccountId *string `json:"account_id"`
 	User *User `json:"user"`
 }
 
-// TODO: Write description later when this method is implemented
 type CreateWorkspaceAccessDetailLocalRequest struct {
-	WorkspaceAccessDetail *WorkspaceAccessDetail `json:"workspaceAccessDetail"`
+	WorkspaceAccessDetail *WorkspaceAccessDetail `json:"workspace_access_detail"`
 }
 
-// TODO: Write description later when this method is implemented
 type CreateWorkspaceAccessDetailRequest struct {
-	AccountId *string `json:"accountId"`
+	AccountId *string `json:"account_id"`
 	Parent *string `json:"parent"`
-	WorkspaceAccessDetail *WorkspaceAccessDetail `json:"workspaceAccessDetail"`
+	WorkspaceAccessDetail *WorkspaceAccessDetail `json:"workspace_access_detail"`
 }
 
-// Request message for deleting an account access identity rule.
 type DeleteAccountAccessIdentityRuleRequest struct {
-	AccountId *string `json:"accountId"`
-	ExternalId *string `json:"externalId"`
+	AccountId *string `json:"account_id"`
+	ExternalId *string `json:"external_id"`
 }
 
-// TODO: Write description later when this method is implemented
 type DeleteGroupProxyRequest struct {
-	InternalId *int64 `json:"internalId"`
+	InternalId *int64 `json:"internal_id"`
 }
 
-// TODO: Write description later when this method is implemented
 type DeleteGroupRequest struct {
-	AccountId *string `json:"accountId"`
-	InternalId *int64 `json:"internalId"`
+	AccountId *string `json:"account_id"`
+	InternalId *int64 `json:"internal_id"`
 }
 
-// TODO: Write description later when this method is implemented
 type DeleteServicePrincipalProxyRequest struct {
-	InternalId *int64 `json:"internalId"`
+	InternalId *int64 `json:"internal_id"`
 }
 
-// TODO: Write description later when this method is implemented
 type DeleteServicePrincipalRequest struct {
-	AccountId *string `json:"accountId"`
-	InternalId *int64 `json:"internalId"`
+	AccountId *string `json:"account_id"`
+	InternalId *int64 `json:"internal_id"`
 }
 
-// TODO: Write description later when this method is implemented
 type DeleteUserProxyRequest struct {
-	InternalId *int64 `json:"internalId"`
+	InternalId *int64 `json:"internal_id"`
 }
 
-// TODO: Write description later when this method is implemented
 type DeleteUserRequest struct {
-	AccountId *string `json:"accountId"`
-	InternalId *int64 `json:"internalId"`
+	AccountId *string `json:"account_id"`
+	InternalId *int64 `json:"internal_id"`
 }
 
-// TODO: Write description later when this method is implemented
 type DeleteWorkspaceAccessDetailLocalRequest struct {
-	PrincipalId *int64 `json:"principalId"`
+	PrincipalId *int64 `json:"principal_id"`
 }
 
-// TODO: Write description later when this method is implemented
 type DeleteWorkspaceAccessDetailRequest struct {
-	AccountId *string `json:"accountId"`
-	WorkspaceId *int64 `json:"workspaceId"`
-	PrincipalId *int64 `json:"principalId"`
+	AccountId *string `json:"account_id"`
+	WorkspaceId *int64 `json:"workspace_id"`
+	PrincipalId *int64 `json:"principal_id"`
 }
 
-// Request message for getting an account access identity rule.
 type GetAccountAccessIdentityRuleRequest struct {
-	AccountId *string `json:"accountId"`
-	ExternalId *string `json:"externalId"`
+	AccountId *string `json:"account_id"`
+	ExternalId *string `json:"external_id"`
 }
 
-// TODO: Write description later when this method is implemented
 type GetGroupProxyRequest struct {
-	InternalId *int64 `json:"internalId"`
+	InternalId *int64 `json:"internal_id"`
 }
 
-// TODO: Write description later when this method is implemented
 type GetGroupRequest struct {
-	AccountId *string `json:"accountId"`
-	InternalId *int64 `json:"internalId"`
+	AccountId *string `json:"account_id"`
+	InternalId *int64 `json:"internal_id"`
 }
 
-// TODO: Write description later when this method is implemented
 type GetServicePrincipalProxyRequest struct {
-	InternalId *int64 `json:"internalId"`
+	InternalId *int64 `json:"internal_id"`
 }
 
-// TODO: Write description later when this method is implemented
 type GetServicePrincipalRequest struct {
-	AccountId *string `json:"accountId"`
-	InternalId *int64 `json:"internalId"`
+	AccountId *string `json:"account_id"`
+	InternalId *int64 `json:"internal_id"`
 }
 
-// TODO: Write description later when this method is implemented
 type GetUserProxyRequest struct {
-	InternalId *int64 `json:"internalId"`
+	InternalId *int64 `json:"internal_id"`
 }
 
-// TODO: Write description later when this method is implemented
 type GetUserRequest struct {
-	AccountId *string `json:"accountId"`
-	InternalId *int64 `json:"internalId"`
+	AccountId *string `json:"account_id"`
+	InternalId *int64 `json:"internal_id"`
 }
 
-// Request message for getting the access details for a principal in the current
-// workspace.
 type GetWorkspaceAccessDetailLocalRequest struct {
-	PrincipalId *int64 `json:"principalId"`
+	PrincipalId *int64 `json:"principal_id"`
 	View *WorkspaceAccessDetailView `json:"view"`
 }
 
-// Request message for getting the access details for a principal in a
-// workspace.
 type GetWorkspaceAccessDetailRequest struct {
-	AccountId *string `json:"accountId"`
-	WorkspaceId *int64 `json:"workspaceId"`
-	PrincipalId *int64 `json:"principalId"`
+	AccountId *string `json:"account_id"`
+	WorkspaceId *int64 `json:"workspace_id"`
+	PrincipalId *int64 `json:"principal_id"`
 	View *WorkspaceAccessDetailView `json:"view"`
 }
 
-// The details of a Group resource.
 type Group struct {
-	AccountId *string `json:"accountId"`
-	InternalId *int64 `json:"internalId"`
-	ExternalId *string `json:"externalId"`
-	GroupName *string `json:"groupName"`
+	AccountId *string `json:"account_id"`
+	InternalId *int64 `json:"internal_id"`
+	ExternalId *string `json:"external_id"`
+	GroupName *string `json:"group_name"`
 }
 
-// Request message for listing account access identity rules.
 type ListAccountAccessIdentityRulesRequest struct {
-	AccountId *string `json:"accountId"`
-	PageSize *int `json:"pageSize"`
-	PageToken *string `json:"pageToken"`
+	AccountId *string `json:"account_id"`
+	PageSize *int `json:"page_size"`
+	PageToken *string `json:"page_token"`
 	Filter *string `json:"filter"`
 }
 
-// Response message for listing account access identity rules.
 type ListAccountAccessIdentityRulesResponse struct {
-	AccountAccessIdentityRules []AccountAccessIdentityRule `json:"accountAccessIdentityRules"`
-	NextPageToken *string `json:"nextPageToken"`
+	AccountAccessIdentityRules []AccountAccessIdentityRule `json:"account_access_identity_rules"`
+	NextPageToken *string `json:"next_page_token"`
 }
 
-// TODO: Write description later when this method is implemented
 type ListGroupsProxyRequest struct {
-	PageSize *int `json:"pageSize"`
-	PageToken *string `json:"pageToken"`
+	PageSize *int `json:"page_size"`
+	PageToken *string `json:"page_token"`
 	Filter *string `json:"filter"`
 }
 
-// TODO: Write description later when this method is implemented
 type ListGroupsRequest struct {
-	AccountId *string `json:"accountId"`
-	PageSize *int `json:"pageSize"`
-	PageToken *string `json:"pageToken"`
+	AccountId *string `json:"account_id"`
+	PageSize *int `json:"page_size"`
+	PageToken *string `json:"page_token"`
 	Filter *string `json:"filter"`
 }
 
-// TODO: Write description later when this method is implemented
 type ListGroupsResponse struct {
 	Groups []Group `json:"groups"`
-	NextPageToken *string `json:"nextPageToken"`
+	NextPageToken *string `json:"next_page_token"`
 }
 
-// TODO: Write description later when this method is implemented
 type ListServicePrincipalsProxyRequest struct {
-	PageSize *int `json:"pageSize"`
-	PageToken *string `json:"pageToken"`
+	PageSize *int `json:"page_size"`
+	PageToken *string `json:"page_token"`
 	Filter *string `json:"filter"`
 }
 
-// TODO: Write description later when this method is implemented
 type ListServicePrincipalsRequest struct {
-	AccountId *string `json:"accountId"`
-	PageSize *int `json:"pageSize"`
-	PageToken *string `json:"pageToken"`
+	AccountId *string `json:"account_id"`
+	PageSize *int `json:"page_size"`
+	PageToken *string `json:"page_token"`
 	Filter *string `json:"filter"`
 }
 
-// TODO: Write description later when this method is implemented
 type ListServicePrincipalsResponse struct {
-	ServicePrincipals []ServicePrincipal `json:"servicePrincipals"`
-	NextPageToken *string `json:"nextPageToken"`
+	ServicePrincipals []ServicePrincipal `json:"service_principals"`
+	NextPageToken *string `json:"next_page_token"`
 }
 
-// TODO: Write description later when this method is implemented
 type ListUsersProxyRequest struct {
-	PageSize *int `json:"pageSize"`
-	PageToken *string `json:"pageToken"`
+	PageSize *int `json:"page_size"`
+	PageToken *string `json:"page_token"`
 	Filter *string `json:"filter"`
 }
 
-// TODO: Write description later when this method is implemented
 type ListUsersRequest struct {
-	AccountId *string `json:"accountId"`
-	PageSize *int `json:"pageSize"`
-	PageToken *string `json:"pageToken"`
+	AccountId *string `json:"account_id"`
+	PageSize *int `json:"page_size"`
+	PageToken *string `json:"page_token"`
 	Filter *string `json:"filter"`
 }
 
-// TODO: Write description later when this method is implemented
 type ListUsersResponse struct {
 	Users []User `json:"users"`
-	NextPageToken *string `json:"nextPageToken"`
+	NextPageToken *string `json:"next_page_token"`
 }
 
-// TODO: Write description later when this method is implemented
 type ListWorkspaceAccessDetailsLocalRequest struct {
-	PageSize *int `json:"pageSize"`
-	PageToken *string `json:"pageToken"`
+	PageSize *int `json:"page_size"`
+	PageToken *string `json:"page_token"`
 }
 
-// TODO: Write description later when this method is implemented
 type ListWorkspaceAccessDetailsRequest struct {
-	AccountId *string `json:"accountId"`
-	WorkspaceId *int64 `json:"workspaceId"`
-	PageSize *int `json:"pageSize"`
-	PageToken *string `json:"pageToken"`
+	AccountId *string `json:"account_id"`
+	WorkspaceId *int64 `json:"workspace_id"`
+	PageSize *int `json:"page_size"`
+	PageToken *string `json:"page_token"`
 }
 
-// TODO: Write description later when this method is implemented
 type ListWorkspaceAccessDetailsResponse struct {
-	WorkspaceAccessDetails []WorkspaceAccessDetail `json:"workspaceAccessDetails"`
-	NextPageToken *string `json:"nextPageToken"`
+	WorkspaceAccessDetails []WorkspaceAccessDetail `json:"workspace_access_details"`
+	NextPageToken *string `json:"next_page_token"`
 }
 
 type Name struct {
-	GivenName *string `json:"givenName"`
-	FamilyName *string `json:"familyName"`
+	GivenName *string `json:"given_name"`
+	FamilyName *string `json:"family_name"`
 }
 
-// Request message for resolving a group with the given external ID from the
-// customer's IdP into <Databricks>. Will resolve metadata such as the group's
-// groupname, and inherited parent groups.
 type ResolveGroupProxyRequest struct {
-	ExternalId *string `json:"externalId"`
+	ExternalId *string `json:"external_id"`
 }
 
-// Request message for resolving a group with the given external ID from the
-// customer's IdP into <Databricks>. Will resolve metadata such as the group's
-// groupname, and inherited parent groups.
 type ResolveGroupRequest struct {
-	AccountId *string `json:"accountId"`
-	ExternalId *string `json:"externalId"`
+	AccountId *string `json:"account_id"`
+	ExternalId *string `json:"external_id"`
 }
 
 type ResolveGroupResponse struct {
 	Group *Group `json:"group"`
 }
 
-// Request message for resolving a service principal with the given external ID
-// from the customer's IdP into <Databricks>. Will resolve metadata such as the
-// service principal's displayname, status, and inherited parent groups.
 type ResolveServicePrincipalProxyRequest struct {
-	ExternalId *string `json:"externalId"`
+	ExternalId *string `json:"external_id"`
 }
 
-// Request message for resolving a service principal with the given external ID
-// from the customer's IdP into <Databricks>. Will resolve metadata such as the
-// service principal's displayname, status, and inherited parent groups.
 type ResolveServicePrincipalRequest struct {
-	AccountId *string `json:"accountId"`
-	ExternalId *string `json:"externalId"`
+	AccountId *string `json:"account_id"`
+	ExternalId *string `json:"external_id"`
 }
 
 type ResolveServicePrincipalResponse struct {
-	ServicePrincipal *ServicePrincipal `json:"servicePrincipal"`
+	ServicePrincipal *ServicePrincipal `json:"service_principal"`
 }
 
-// Request message for resolving a user with the given external ID from the
-// customer's IdP into <Databricks>. Will resolve metadata such as the user's
-// displayname, status, and inherited parent groups.
 type ResolveUserProxyRequest struct {
-	ExternalId *string `json:"externalId"`
+	ExternalId *string `json:"external_id"`
 }
 
-// Request message for resolving a user with the given external ID from the
-// customer's IdP into <Databricks>. Will resolve metadata such as the user's
-// displayname, status, and inherited parent groups.
 type ResolveUserRequest struct {
-	AccountId *string `json:"accountId"`
-	ExternalId *string `json:"externalId"`
+	AccountId *string `json:"account_id"`
+	ExternalId *string `json:"external_id"`
 }
 
 type ResolveUserResponse struct {
 	User *User `json:"user"`
 }
 
-// The details of a ServicePrincipal resource.
 type ServicePrincipal struct {
-	AccountId *string `json:"accountId"`
-	InternalId *int64 `json:"internalId"`
-	ExternalId *string `json:"externalId"`
-	ApplicationId *string `json:"applicationId"`
-	DisplayName *string `json:"displayName"`
-	AccountSpStatus *State `json:"accountSpStatus"`
+	AccountId *string `json:"account_id"`
+	InternalId *int64 `json:"internal_id"`
+	ExternalId *string `json:"external_id"`
+	ApplicationId *string `json:"application_id"`
+	DisplayName *string `json:"display_name"`
+	AccountSpStatus *State `json:"account_sp_status"`
 }
 
-// TODO: Write description later when this method is implemented
 type UpdateGroupProxyRequest struct {
-	InternalId *int64 `json:"internalId"`
+	InternalId *int64 `json:"internal_id"`
 	Group *Group `json:"group"`
-	UpdateMask *string `json:"updateMask"`
+	UpdateMask *string `json:"update_mask"`
 }
 
-// TODO: Write description later when this method is implemented
 type UpdateGroupRequest struct {
-	AccountId *string `json:"accountId"`
-	InternalId *int64 `json:"internalId"`
+	AccountId *string `json:"account_id"`
+	InternalId *int64 `json:"internal_id"`
 	Group *Group `json:"group"`
-	UpdateMask *string `json:"updateMask"`
+	UpdateMask *string `json:"update_mask"`
 }
 
-// TODO: Write description later when this method is implemented
 type UpdateServicePrincipalProxyRequest struct {
-	InternalId *int64 `json:"internalId"`
-	ServicePrincipal *ServicePrincipal `json:"servicePrincipal"`
-	UpdateMask *string `json:"updateMask"`
+	InternalId *int64 `json:"internal_id"`
+	ServicePrincipal *ServicePrincipal `json:"service_principal"`
+	UpdateMask *string `json:"update_mask"`
 }
 
-// TODO: Write description later when this method is implemented
 type UpdateServicePrincipalRequest struct {
-	AccountId *string `json:"accountId"`
-	InternalId *int64 `json:"internalId"`
-	ServicePrincipal *ServicePrincipal `json:"servicePrincipal"`
-	UpdateMask *string `json:"updateMask"`
+	AccountId *string `json:"account_id"`
+	InternalId *int64 `json:"internal_id"`
+	ServicePrincipal *ServicePrincipal `json:"service_principal"`
+	UpdateMask *string `json:"update_mask"`
 }
 
-// TODO: Write description later when this method is implemented
 type UpdateUserProxyRequest struct {
-	InternalId *int64 `json:"internalId"`
+	InternalId *int64 `json:"internal_id"`
 	User *User `json:"user"`
-	UpdateMask *string `json:"updateMask"`
+	UpdateMask *string `json:"update_mask"`
 }
 
-// TODO: Write description later when this method is implemented
 type UpdateUserRequest struct {
-	AccountId *string `json:"accountId"`
-	InternalId *int64 `json:"internalId"`
+	AccountId *string `json:"account_id"`
+	InternalId *int64 `json:"internal_id"`
 	User *User `json:"user"`
-	UpdateMask *string `json:"updateMask"`
+	UpdateMask *string `json:"update_mask"`
 }
 
-// TODO: Write description later when this method is implemented
 type UpdateWorkspaceAccessDetailLocalRequest struct {
-	PrincipalId *int64 `json:"principalId"`
-	WorkspaceAccessDetail *WorkspaceAccessDetail `json:"workspaceAccessDetail"`
-	UpdateMask *string `json:"updateMask"`
+	PrincipalId *int64 `json:"principal_id"`
+	WorkspaceAccessDetail *WorkspaceAccessDetail `json:"workspace_access_detail"`
+	UpdateMask *string `json:"update_mask"`
 }
 
-// TODO: Write description later when this method is implemented
 type UpdateWorkspaceAccessDetailRequest struct {
-	AccountId *string `json:"accountId"`
-	WorkspaceId *int64 `json:"workspaceId"`
-	PrincipalId *int64 `json:"principalId"`
-	WorkspaceAccessDetail *WorkspaceAccessDetail `json:"workspaceAccessDetail"`
-	UpdateMask *string `json:"updateMask"`
+	AccountId *string `json:"account_id"`
+	WorkspaceId *int64 `json:"workspace_id"`
+	PrincipalId *int64 `json:"principal_id"`
+	WorkspaceAccessDetail *WorkspaceAccessDetail `json:"workspace_access_detail"`
+	UpdateMask *string `json:"update_mask"`
 }
 
-// The details of a User resource.
 type User struct {
-	AccountId *string `json:"accountId"`
-	InternalId *int64 `json:"internalId"`
-	ExternalId *string `json:"externalId"`
+	AccountId *string `json:"account_id"`
+	InternalId *int64 `json:"internal_id"`
+	ExternalId *string `json:"external_id"`
 	Username *string `json:"username"`
 	Name *Name `json:"name"`
-	AccountUserStatus *State `json:"accountUserStatus"`
+	AccountUserStatus *State `json:"account_user_status"`
 }
 
-// The details of a principal's access to a workspace.
 type WorkspaceAccessDetail struct {
-	PrincipalId *int64 `json:"principalId"`
-	WorkspaceId *int64 `json:"workspaceId"`
-	AccountId *string `json:"accountId"`
-	PrincipalType *PrincipalType `json:"principalType"`
-	AccessType *AccessType `json:"accessType"`
+	PrincipalId *int64 `json:"principal_id"`
+	WorkspaceId *int64 `json:"workspace_id"`
+	AccountId *string `json:"account_id"`
+	PrincipalType *PrincipalType `json:"principal_type"`
+	AccessType *AccessType `json:"access_type"`
 	Status *State `json:"status"`
 	Permissions []WorkspacePermission `json:"permissions"`
 }

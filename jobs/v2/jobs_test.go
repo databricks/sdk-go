@@ -47,6 +47,58 @@ func TestCreateJob(t *testing.T) {
 	}
 }
 
+func TestListJobs(t *testing.T) {
+	seq := fixture.NewSequence(
+		fixture.Fixture{
+			Method:   "GET",
+			Path:     "/api/2.1/jobs/list?page_size=2&tags=tag1&tags=tag2&types[0].kind=kind1&types[0].value=value1&types[1].kind=kind2&types[1].value=value2",
+			Response: []byte(`{"jobs":[{"id":"1","name":"job-1"},{"id":"2","name":"job-2"}],"next_page_token":"page2"}`),
+		},
+	)
+	transport := httpfixture.NewTransport(seq)
+	ctx := context.Background()
+	client, err := NewClient(ctx,
+		options.WithHost("https://example.com/api/2.1/jobs/list"),
+		options.WithHTTPClient(transport.Client()),
+		options.WithLogger(slog.Default()),
+	)
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+
+	jobs, err := client.ListJobs(ctx, &ListJobsRequest{
+		PageSize: 2,
+		Tags:     []string{"tag1", "tag2"},
+		Types: []Type{
+			{
+				Kind:  "kind1",
+				Value: "value1",
+			},
+			{
+				Kind:  "kind2",
+				Value: "value2",
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("ListJobs failed: %v", err)
+	}
+
+	want := &ListJobsResponse{
+		Jobs: []Job{
+			{ID: "1", Name: "job-1"},
+			{ID: "2", Name: "job-2"},
+		},
+		NextPageToken: "page2",
+	}
+	if diff := cmp.Diff(want, jobs); diff != "" {
+		t.Errorf("ListJobs mismatch (-want +got):\n%s", diff)
+	}
+
+	if err := transport.Verify(); err != nil {
+		t.Errorf("fixture verification failed: %v", err)
+	}
+}
 func TestListJobsIter(t *testing.T) {
 	seq := fixture.NewSequence(
 		fixture.Fixture{

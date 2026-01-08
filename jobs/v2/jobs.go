@@ -99,6 +99,26 @@ func (c *Client) ListJobs(ctx context.Context, req *ListJobsRequest, opts ...api
 	if req.PageToken != "" {
 		queryParams.Set("page_token", req.PageToken)
 	}
+	if len(req.Tags) > 0 {
+		queryParams.Set("tags", req.Tags[0])
+		for _, tag := range req.Tags[1:] {
+			queryParams.Add("tags", tag)
+		}
+	}
+	if len(req.Types) > 0 {
+		types, err := json.Marshal(req.Types[0])
+		if err != nil {
+			return nil, err
+		}
+		queryParams.Set("types", string(types))
+		for _, typi := range req.Types[1:] {
+			types, err := json.Marshal(typi)
+			if err != nil {
+				return nil, err
+			}
+			queryParams.Add("types", string(types))
+		}
+	}
 	baseURL.RawQuery = queryParams.Encode()
 
 	resp := &ListJobsResponse{}

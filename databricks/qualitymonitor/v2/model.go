@@ -51,71 +51,71 @@ func (f *ThresholdType) String() string {
 }
 
 type AnomalyDetectionConfig struct {
-	LastRunId *string `json:"lastRunId"`
-	LatestRunStatus *AnomalyDetectionRunStatus `json:"latestRunStatus"`
-	JobType *AnomalyDetectionJobType `json:"jobType"`
-	ExcludedTableFullNames []string `json:"excludedTableFullNames"`
-	CustomCheckConfigurations []CustomCheckConfiguration `json:"customCheckConfigurations"`
+	LastRunId *string `json:"last_run_id"`
+	LatestRunStatus *AnomalyDetectionRunStatus `json:"latest_run_status"`
+	JobType *AnomalyDetectionJobType `json:"job_type"`
+	ExcludedTableFullNames []string `json:"excluded_table_full_names"`
+	CustomCheckConfigurations []CustomCheckConfiguration `json:"custom_check_configurations"`
 }
 
 type ColumnMatcher struct {
-	VariableName *string `json:"variableName"`
-	ColumnNames []string `json:"columnNames"`
+	VariableName *string `json:"variable_name"`
+	ColumnNames []string `json:"column_names"`
 }
 
 type CreateQualityMonitorRequest struct {
-	QualityMonitor *QualityMonitor `json:"qualityMonitor"`
+	QualityMonitor *QualityMonitor `json:"quality_monitor"`
 }
 
 type CustomCheckConfiguration struct {
-	ScalarCheck *CustomScalarCheck `json:"scalarCheck"`
+	ScalarCheck *CustomScalarCheck `json:"scalar_check"`
 }
 
 type CustomCheckThresholds struct {
-	LowerBound *Threshold `json:"lowerBound"`
-	UpperBound *Threshold `json:"upperBound"`
+	LowerBound *Threshold `json:"lower_bound"`
+	UpperBound *Threshold `json:"upper_bound"`
 }
 
 type CustomScalarCheck struct {
-	CheckName *string `json:"checkName"`
-	SqlQuery *string `json:"sqlQuery"`
-	ColumnMatchers []ColumnMatcher `json:"columnMatchers"`
+	CheckName *string `json:"check_name"`
+	SqlQuery *string `json:"sql_query"`
+	ColumnMatchers []ColumnMatcher `json:"column_matchers"`
 	Thresholds *CustomCheckThresholds `json:"thresholds"`
 }
 
 type DeleteQualityMonitorRequest struct {
-	ObjectType *string `json:"objectType"`
-	ObjectId *string `json:"objectId"`
+	ObjectType *string `json:"object_type"`
+	ObjectId *string `json:"object_id"`
 }
 
 type GetQualityMonitorRequest struct {
-	ObjectType *string `json:"objectType"`
-	ObjectId *string `json:"objectId"`
+	ObjectType *string `json:"object_type"`
+	ObjectId *string `json:"object_id"`
 }
 
 type ListQualityMonitorRequest struct {
-	PageToken *string `json:"pageToken"`
-	PageSize *int `json:"pageSize"`
+	PageToken *string `json:"page_token"`
+	PageSize *int `json:"page_size"`
 }
 
 type ListQualityMonitorResponse struct {
-	QualityMonitors []QualityMonitor `json:"qualityMonitors"`
-	NextPageToken *string `json:"nextPageToken"`
+	QualityMonitors []QualityMonitor `json:"quality_monitors"`
+	NextPageToken *string `json:"next_page_token"`
 }
 
 type QualityMonitor struct {
-	ObjectType *string `json:"objectType"`
-	ObjectId *string `json:"objectId"`
-	AnomalyDetectionConfig *AnomalyDetectionConfig `json:"anomalyDetectionConfig"`
+	ObjectType *string `json:"object_type"`
+	ObjectId *string `json:"object_id"`
+	AnomalyDetectionConfig *AnomalyDetectionConfig `json:"anomaly_detection_config"`
 }
 
 type Threshold struct {
-	BoundValue *int64 `json:"boundValue"`
-	ThresholdType *ThresholdType `json:"thresholdType"`
+	BoundValue *int64 `json:"bound_value"`
+	ThresholdType *ThresholdType `json:"threshold_type"`
 }
 
 type UpdateQualityMonitorRequest struct {
-	ObjectType *string `json:"objectType"`
-	ObjectId *string `json:"objectId"`
-	QualityMonitor *QualityMonitor `json:"qualityMonitor"`
+	ObjectType *string `json:"object_type"`
+	ObjectId *string `json:"object_id"`
+	QualityMonitor *QualityMonitor `json:"quality_monitor"`
 }
