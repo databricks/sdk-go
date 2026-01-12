@@ -46,11 +46,12 @@ func (f *ThresholdType) String() string {
 }
 
 type AnomalyDetectionConfig struct {
-	LastRunId                 *string                    `json:"last_run_id"`
-	LatestRunStatus           *AnomalyDetectionRunStatus `json:"latest_run_status"`
-	JobType                   *AnomalyDetectionJobType   `json:"job_type"`
-	ExcludedTableFullNames    []string                   `json:"excluded_table_full_names"`
-	CustomCheckConfigurations []CustomCheckConfiguration `json:"custom_check_configurations"`
+	LastRunId                   *string                      `json:"last_run_id"`
+	LatestRunStatus             *AnomalyDetectionRunStatus   `json:"latest_run_status"`
+	JobType                     *AnomalyDetectionJobType     `json:"job_type"`
+	ExcludedTableFullNames      []string                     `json:"excluded_table_full_names"`
+	CustomCheckConfigurations   []CustomCheckConfiguration   `json:"custom_check_configurations"`
+	ValidityCheckConfigurations []ValidityCheckConfiguration `json:"validity_check_configurations"`
 }
 
 type ColumnMatcher struct {
@@ -98,10 +99,21 @@ type ListQualityMonitorResponse struct {
 	NextPageToken   *string          `json:"next_page_token"`
 }
 
+type PercentNullValidityCheck struct {
+	ColumnNames []string `json:"column_names"`
+	UpperBound  *float64 `json:"upper_bound"`
+}
+
 type QualityMonitor struct {
 	ObjectType             *string                 `json:"object_type"`
 	ObjectId               *string                 `json:"object_id"`
 	AnomalyDetectionConfig *AnomalyDetectionConfig `json:"anomaly_detection_config"`
+}
+
+type RangeValidityCheck struct {
+	ColumnNames []string `json:"column_names"`
+	LowerBound  *float64 `json:"lower_bound"`
+	UpperBound  *float64 `json:"upper_bound"`
 }
 
 type Threshold struct {
@@ -109,8 +121,19 @@ type Threshold struct {
 	ThresholdType *ThresholdType `json:"threshold_type"`
 }
 
+type UniquenessValidityCheck struct {
+	ColumnNames []string `json:"column_names"`
+}
+
 type UpdateQualityMonitorRequest struct {
 	ObjectType     *string         `json:"object_type"`
 	ObjectId       *string         `json:"object_id"`
 	QualityMonitor *QualityMonitor `json:"quality_monitor"`
+}
+
+type ValidityCheckConfiguration struct {
+	Name                     *string                   `json:"name"`
+	PercentNullValidityCheck *PercentNullValidityCheck `json:"percent_null_validity_check"`
+	RangeValidityCheck       *RangeValidityCheck       `json:"range_validity_check"`
+	UniquenessValidityCheck  *UniquenessValidityCheck  `json:"uniqueness_validity_check"`
 }
