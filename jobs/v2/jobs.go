@@ -51,6 +51,7 @@ func (c *Client) CreateJob(ctx context.Context, req *CreateJobRequest, opts ...a
 	if err != nil {
 		return nil, err
 	}
+	baseURL.Path = "/api/2.2/jobs/create"
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
 

@@ -30,5 +30,6 @@ func Resolve(opts ...options.ClientOption) (ResolvedOptions, error) {
 	}
 	return ResolvedOptions{
 		Logger: o.Logger,
+		Host:   o.Host,
 	}, nil
 }
