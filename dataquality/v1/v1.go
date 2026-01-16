@@ -1,0 +1,723 @@
+package v1
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"iter"
+	"log/slog"
+	"net/http"
+	"net/url"
+
+	"github.com/databricks/sdk-go/databricks/api"
+	"github.com/databricks/sdk-go/databricks/options"
+	"github.com/databricks/sdk-go/databricks/options/unstable"
+	"github.com/databricks/sdk-go/databricks/transport"
+)
+
+type Client struct {
+	httpClient *http.Client
+	logger     *slog.Logger
+	host       string
+}
+
+func NewClient(ctx context.Context, opts ...options.ClientOption) (*Client, error) {
+	resolved, err := unstable.Resolve(opts...)
+	if err != nil {
+		return nil, err
+	}
+	httpClient, err := transport.NewHTTPClient(ctx, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Client{
+		httpClient: httpClient,
+		logger:     resolved.Logger,
+		host:       resolved.Host,
+	}, nil
+}
+
+// Cancels a data quality monitor refresh. Currently only supported for the
+// `table` `object_type`. The call must be made in the same workspace as where
+// the monitor was created.
+//
+// The caller must have either of the following sets of permissions: 1.
+// **MANAGE** and **USE_CATALOG** on the table's parent catalog. 2.
+// **USE_CATALOG** on the table's parent catalog, and **MANAGE** and
+// **USE_SCHEMA** on the table's parent schema. 3. **USE_CATALOG** on the
+// table's parent catalog, **USE_SCHEMA** on the table's parent schema, and
+// **MANAGE** on the table.
+func (c *Client) CancelRefresh(ctx context.Context, req *CancelRefreshRequest, opts ...api.Option) (*CancelRefreshResponse, error) {
+	body, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/data-quality/v1/monitors/%v/%v/refreshes/%v/cancel", *req.ObjectType, *req.ObjectId, *req.RefreshId)
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &CancelRefreshResponse{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Create a data quality monitor on a Unity Catalog object. The caller must
+// provide either `anomaly_detection_config` for a schema monitor or
+// `data_profiling_config` for a table monitor.
+//
+// For the `table` `object_type`, the caller must have either of the following
+// sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the table's parent
+// catalog, **USE_SCHEMA** on the table's parent schema, and **SELECT** on the
+// table 2. **USE_CATALOG** on the table's parent catalog, **MANAGE** and
+// **USE_SCHEMA** on the table's parent schema, and **SELECT** on the table. 3.
+// **USE_CATALOG** on the table's parent catalog, **USE_SCHEMA** on the table's
+// parent schema, and **MANAGE** and **SELECT** on the table.
+//
+// Workspace assets, such as the dashboard, will be created in the workspace
+// where this call was made.
+//
+// For the `schema` `object_type`, the caller must have either of the following
+// sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the schema's parent
+// catalog. 2. **USE_CATALOG** on the schema's parent catalog, and **MANAGE**
+// and **USE_SCHEMA** on the schema.
+func (c *Client) CreateMonitor(ctx context.Context, req *CreateMonitorRequest, opts ...api.Option) (*Monitor, error) {
+	body, err := json.Marshal(req.Monitor)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/data-quality/v1/monitors")
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &Monitor{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Creates a refresh. Currently only supported for the `table` `object_type`.
+// The call must be made in the same workspace as where the monitor was created.
+//
+// The caller must have either of the following sets of permissions: 1.
+// **MANAGE** and **USE_CATALOG** on the table's parent catalog. 2.
+// **USE_CATALOG** on the table's parent catalog, and **MANAGE** and
+// **USE_SCHEMA** on the table's parent schema. 3. **USE_CATALOG** on the
+// table's parent catalog, **USE_SCHEMA** on the table's parent schema, and
+// **MANAGE** on the table.
+func (c *Client) CreateRefresh(ctx context.Context, req *CreateRefreshRequest, opts ...api.Option) (*Refresh, error) {
+	body, err := json.Marshal(req.Refresh)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/data-quality/v1/monitors/%v/%v/refreshes", *req.Refresh.ObjectType, *req.Refresh.ObjectId)
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &Refresh{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Delete a data quality monitor on Unity Catalog object.
+//
+// For the `table` `object_type`, the caller must have either of the following
+// sets of permissions: **MANAGE** and **USE_CATALOG** on the table's parent
+// catalog. **USE_CATALOG** on the table's parent catalog, and **MANAGE** and
+// **USE_SCHEMA** on the table's parent schema. **USE_CATALOG** on the table's
+// parent catalog, **USE_SCHEMA** on the table's parent schema, and **MANAGE**
+// on the table.
+//
+// Note that the metric tables and dashboard will not be deleted as part of this
+// call; those assets must be manually cleaned up (if desired).
+//
+// For the `schema` `object_type`, the caller must have either of the following
+// sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the schema's parent
+// catalog. 2. **USE_CATALOG** on the schema's parent catalog, and **MANAGE**
+// and **USE_SCHEMA** on the schema.
+func (c *Client) DeleteMonitor(ctx context.Context, req *DeleteMonitorRequest, opts ...api.Option) error {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return err
+	}
+	baseURL.Path = fmt.Sprintf("/api/data-quality/v1/monitors/%v/%v", *req.ObjectType, *req.ObjectId)
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("DELETE", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		_ = respBody
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return err
+	}
+	return nil
+}
+
+// (Unimplemented) Delete a refresh
+func (c *Client) DeleteRefresh(ctx context.Context, req *DeleteRefreshRequest, opts ...api.Option) error {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return err
+	}
+	baseURL.Path = fmt.Sprintf("/api/data-quality/v1/monitors/%v/%v/refreshes/%v", *req.ObjectType, *req.ObjectId, *req.RefreshId)
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("DELETE", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		_ = respBody
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Read a data quality monitor on a Unity Catalog object.
+//
+// For the `table` `object_type`, the caller must have either of the following
+// sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the table's parent
+// catalog. 2. **USE_CATALOG** on the table's parent catalog, and **MANAGE** and
+// **USE_SCHEMA** on the table's parent schema. 3. **USE_CATALOG** on the
+// table's parent catalog, **USE_SCHEMA** on the table's parent schema, and
+// **SELECT** on the table.
+//
+// For the `schema` `object_type`, the caller must have either of the following
+// sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the schema's parent
+// catalog. 2. **USE_CATALOG** on the schema's parent catalog, and
+// **USE_SCHEMA** on the schema.
+//
+// The returned information includes configuration values on the entity and
+// parent entity as well as information on assets created by the monitor. Some
+// information (e.g. dashboard) may be filtered out if the caller is in a
+// different workspace than where the monitor was created.
+func (c *Client) GetMonitor(ctx context.Context, req *GetMonitorRequest, opts ...api.Option) (*Monitor, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/data-quality/v1/monitors/%v/%v", *req.ObjectType, *req.ObjectId)
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &Monitor{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("GET", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Get data quality monitor refresh. The call must be made in the same workspace
+// as where the monitor was created.
+//
+// For the `table` `object_type`, the caller must have either of the following
+// sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the table's parent
+// catalog. 2. **USE_CATALOG** on the table's parent catalog, and **MANAGE** and
+// **USE_SCHEMA** on the table's parent schema. 3. **USE_CATALOG** on the
+// table's parent catalog, **USE_SCHEMA** on the table's parent schema, and
+// **SELECT** on the table.
+//
+// For the `schema` `object_type`, the caller must have either of the following
+// sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the schema's parent
+// catalog. 2. **USE_CATALOG** on the schema's parent catalog, and
+// **USE_SCHEMA** on the schema.
+func (c *Client) GetRefresh(ctx context.Context, req *GetRefreshRequest, opts ...api.Option) (*Refresh, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/data-quality/v1/monitors/%v/%v/refreshes/%v", *req.ObjectType, *req.ObjectId, *req.RefreshId)
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &Refresh{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("GET", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// (Unimplemented) List data quality monitors.
+func (c *Client) ListMonitor(ctx context.Context, req *ListMonitorRequest, opts ...api.Option) (*ListMonitorResponse, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/data-quality/v1/monitors")
+	queryParams := url.Values{}
+	if req.PageToken != nil {
+		queryParams.Add("page_token", fmt.Sprintf("%v", *req.PageToken))
+	}
+	if req.PageSize != nil {
+		queryParams.Add("page_size", fmt.Sprintf("%v", *req.PageSize))
+	}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &ListMonitorResponse{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("GET", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *Client) ListMonitorIter(ctx context.Context, req *ListMonitorRequest, opts ...api.Option) iter.Seq2[*Monitor, error] {
+	return func(yield func(*Monitor, error) bool) {
+		// Deep copy the request via JSON round-trip to avoid modifying the original.
+		reqBody, err := json.Marshal(req)
+		if err != nil {
+			yield(nil, err)
+			return
+		}
+		pageReq := ListMonitorRequest{}
+		if err := json.Unmarshal(reqBody, &pageReq); err != nil {
+			yield(nil, err)
+			return
+		}
+		for {
+			resp, err := c.ListMonitor(ctx, &pageReq, opts...)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			for i := range resp.Monitors {
+				if !yield(&resp.Monitors[i], nil) {
+					return
+				}
+			}
+			if resp.NextPageToken == nil || *resp.NextPageToken == "" {
+				return
+			}
+			pageReq.PageToken = resp.NextPageToken
+		}
+	}
+}
+
+// List data quality monitor refreshes. The call must be made in the same
+// workspace as where the monitor was created.
+//
+// For the `table` `object_type`, the caller must have either of the following
+// sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the table's parent
+// catalog. 2. **USE_CATALOG** on the table's parent catalog, and **MANAGE** and
+// **USE_SCHEMA** on the table's parent schema. 3. **USE_CATALOG** on the
+// table's parent catalog, **USE_SCHEMA** on the table's parent schema, and
+// **SELECT** on the table.
+//
+// For the `schema` `object_type`, the caller must have either of the following
+// sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the schema's parent
+// catalog. 2. **USE_CATALOG** on the schema's parent catalog, and
+// **USE_SCHEMA** on the schema.
+func (c *Client) ListRefresh(ctx context.Context, req *ListRefreshRequest, opts ...api.Option) (*ListRefreshResponse, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/data-quality/v1/monitors/%v/%v/refreshes", *req.ObjectType, *req.ObjectId)
+	queryParams := url.Values{}
+	if req.PageToken != nil {
+		queryParams.Add("page_token", fmt.Sprintf("%v", *req.PageToken))
+	}
+	if req.PageSize != nil {
+		queryParams.Add("page_size", fmt.Sprintf("%v", *req.PageSize))
+	}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &ListRefreshResponse{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("GET", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *Client) ListRefreshIter(ctx context.Context, req *ListRefreshRequest, opts ...api.Option) iter.Seq2[*Refresh, error] {
+	return func(yield func(*Refresh, error) bool) {
+		// Deep copy the request via JSON round-trip to avoid modifying the original.
+		reqBody, err := json.Marshal(req)
+		if err != nil {
+			yield(nil, err)
+			return
+		}
+		pageReq := ListRefreshRequest{}
+		if err := json.Unmarshal(reqBody, &pageReq); err != nil {
+			yield(nil, err)
+			return
+		}
+		for {
+			resp, err := c.ListRefresh(ctx, &pageReq, opts...)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			for i := range resp.Refreshes {
+				if !yield(&resp.Refreshes[i], nil) {
+					return
+				}
+			}
+			if resp.NextPageToken == nil || *resp.NextPageToken == "" {
+				return
+			}
+			pageReq.PageToken = resp.NextPageToken
+		}
+	}
+}
+
+// Update a data quality monitor on Unity Catalog object.
+//
+// For the `table` `object_type`, the caller must have either of the following
+// sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the table's parent
+// catalog. 2. **USE_CATALOG** on the table's parent catalog, and **MANAGE** and
+// **USE_SCHEMA** on the table's parent schema. 3. **USE_CATALOG** on the
+// table's parent catalog, **USE_SCHEMA** on the table's parent schema, and
+// **MANAGE** on the table.
+//
+// For the `schema` `object_type`, the caller must have either of the following
+// sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the schema's parent
+// catalog. 2. **USE_CATALOG** on the schema's parent catalog, and **MANAGE**
+// and **USE_SCHEMA** on the schema.
+func (c *Client) UpdateMonitor(ctx context.Context, req *UpdateMonitorRequest, opts ...api.Option) (*Monitor, error) {
+	body, err := json.Marshal(req.Monitor)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/data-quality/v1/monitors/%v/%v", *req.ObjectType, *req.ObjectId)
+	queryParams := url.Values{}
+	if req.UpdateMask != nil {
+		queryParams.Add("update_mask", fmt.Sprintf("%v", *req.UpdateMask))
+	}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &Monitor{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("PATCH", baseURL.String(), bytes.NewBuffer(body))
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// (Unimplemented) Update a refresh
+func (c *Client) UpdateRefresh(ctx context.Context, req *UpdateRefreshRequest, opts ...api.Option) (*Refresh, error) {
+	body, err := json.Marshal(req.Refresh)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/data-quality/v1/monitors/%v/%v/refreshes/%v", *req.ObjectType, *req.ObjectId, *req.RefreshId)
+	queryParams := url.Values{}
+	if req.UpdateMask != nil {
+		queryParams.Add("update_mask", fmt.Sprintf("%v", *req.UpdateMask))
+	}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &Refresh{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("PATCH", baseURL.String(), bytes.NewBuffer(body))
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}

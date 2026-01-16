@@ -3,5 +3,10 @@ go 1.25.4
 use (
 	./auth
 	./databricks
+	./dataquality
+	./iam
 	./jobs
+	./qualitymonitor
+	./sdk
+	./settings
 )
