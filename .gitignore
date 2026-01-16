@@ -1,4 +1,5 @@
 # Ignore private files and directories by default.
 .*
+!.codegen.json
 !.gitignore
 !.github
