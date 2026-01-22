@@ -54,7 +54,7 @@ func (c *Client) CreateQualityMonitor(ctx context.Context, req *CreateQualityMon
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/quality-monitors")
+	baseURL.Path = "/api/2.0/quality-monitors"
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
 
@@ -185,7 +185,7 @@ func (c *Client) ListQualityMonitor(ctx context.Context, req *ListQualityMonitor
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/quality-monitors")
+	baseURL.Path = "/api/2.0/quality-monitors"
 	queryParams := url.Values{}
 	if req.PageToken != nil {
 		queryParams.Add("page_token", fmt.Sprintf("%v", *req.PageToken))

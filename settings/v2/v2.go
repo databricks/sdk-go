@@ -190,7 +190,7 @@ func (c *Client) ListAccountSettingsMetadata(ctx context.Context, req *ListAccou
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.1/accounts//settings-metadata")
+	baseURL.Path = "/api/2.1/accounts/{account_id}/settings-metadata"
 	queryParams := url.Values{}
 	if req.PageSize != nil {
 		queryParams.Add("page_size", fmt.Sprintf("%v", *req.PageSize))
@@ -360,7 +360,7 @@ func (c *Client) ListWorkspaceSettingsMetadata(ctx context.Context, req *ListWor
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.1/settings-metadata")
+	baseURL.Path = "/api/2.1/settings-metadata"
 	queryParams := url.Values{}
 	if req.PageSize != nil {
 		queryParams.Add("page_size", fmt.Sprintf("%v", *req.PageSize))

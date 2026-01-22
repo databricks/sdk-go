@@ -54,7 +54,7 @@ func (c *Client) CreateAccountAccessIdentityRule(ctx context.Context, req *Creat
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/accounts//aim-control-policy/account-access-identity-rules")
+	baseURL.Path = "/api/2.0/accounts/{account_id}/aim-control-policy/account-access-identity-rules"
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
 
@@ -184,7 +184,7 @@ func (c *Client) ListAccountAccessIdentityRules(ctx context.Context, req *ListAc
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/accounts//aim-control-policy/account-access-identity-rules")
+	baseURL.Path = "/api/2.0/accounts/{account_id}/aim-control-policy/account-access-identity-rules"
 	queryParams := url.Values{}
 	if req.PageSize != nil {
 		queryParams.Add("page_size", fmt.Sprintf("%v", *req.PageSize))
@@ -241,7 +241,7 @@ func (c *Client) CreateGroup(ctx context.Context, req *CreateGroupRequest, opts 
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//groups")
+	baseURL.Path = "/api/2.0/identity/accounts/{account_id}/groups"
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
 
@@ -289,7 +289,7 @@ func (c *Client) CreateGroupProxy(ctx context.Context, req *CreateGroupProxyRequ
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/groups")
+	baseURL.Path = "/api/2.0/identity/groups"
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
 
@@ -501,7 +501,7 @@ func (c *Client) ListGroups(ctx context.Context, req *ListGroupsRequest, opts ..
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//groups")
+	baseURL.Path = "/api/2.0/identity/accounts/{account_id}/groups"
 	queryParams := url.Values{}
 	if req.PageSize != nil {
 		queryParams.Add("page_size", fmt.Sprintf("%v", *req.PageSize))
@@ -554,7 +554,7 @@ func (c *Client) ListGroupsProxy(ctx context.Context, req *ListGroupsProxyReques
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/groups")
+	baseURL.Path = "/api/2.0/identity/groups"
 	queryParams := url.Values{}
 	if req.PageSize != nil {
 		queryParams.Add("page_size", fmt.Sprintf("%v", *req.PageSize))
@@ -614,7 +614,7 @@ func (c *Client) ResolveGroup(ctx context.Context, req *ResolveGroupRequest, opt
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//groups/resolveByExternalId")
+	baseURL.Path = "/api/2.0/identity/accounts/{account_id}/groups/resolveByExternalId"
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
 
@@ -665,7 +665,7 @@ func (c *Client) ResolveGroupProxy(ctx context.Context, req *ResolveGroupProxyRe
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/groups/resolveByExternalId")
+	baseURL.Path = "/api/2.0/identity/groups/resolveByExternalId"
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
 
@@ -815,7 +815,7 @@ func (c *Client) CreateServicePrincipal(ctx context.Context, req *CreateServiceP
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//servicePrincipals")
+	baseURL.Path = "/api/2.0/identity/accounts/{account_id}/servicePrincipals"
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
 
@@ -863,7 +863,7 @@ func (c *Client) CreateServicePrincipalProxy(ctx context.Context, req *CreateSer
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/servicePrincipals")
+	baseURL.Path = "/api/2.0/identity/servicePrincipals"
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
 
@@ -1075,7 +1075,7 @@ func (c *Client) ListServicePrincipals(ctx context.Context, req *ListServicePrin
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//servicePrincipals")
+	baseURL.Path = "/api/2.0/identity/accounts/{account_id}/servicePrincipals"
 	queryParams := url.Values{}
 	if req.PageSize != nil {
 		queryParams.Add("page_size", fmt.Sprintf("%v", *req.PageSize))
@@ -1128,7 +1128,7 @@ func (c *Client) ListServicePrincipalsProxy(ctx context.Context, req *ListServic
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/servicePrincipals")
+	baseURL.Path = "/api/2.0/identity/servicePrincipals"
 	queryParams := url.Values{}
 	if req.PageSize != nil {
 		queryParams.Add("page_size", fmt.Sprintf("%v", *req.PageSize))
@@ -1187,7 +1187,7 @@ func (c *Client) ResolveServicePrincipal(ctx context.Context, req *ResolveServic
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//servicePrincipals/resolveByExternalId")
+	baseURL.Path = "/api/2.0/identity/accounts/{account_id}/servicePrincipals/resolveByExternalId"
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
 
@@ -1237,7 +1237,7 @@ func (c *Client) ResolveServicePrincipalProxy(ctx context.Context, req *ResolveS
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/servicePrincipals/resolveByExternalId")
+	baseURL.Path = "/api/2.0/identity/servicePrincipals/resolveByExternalId"
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
 
@@ -1387,7 +1387,7 @@ func (c *Client) CreateUser(ctx context.Context, req *CreateUserRequest, opts ..
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//users")
+	baseURL.Path = "/api/2.0/identity/accounts/{account_id}/users"
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
 
@@ -1435,7 +1435,7 @@ func (c *Client) CreateUserProxy(ctx context.Context, req *CreateUserProxyReques
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/users")
+	baseURL.Path = "/api/2.0/identity/users"
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
 
@@ -1647,7 +1647,7 @@ func (c *Client) ListUsers(ctx context.Context, req *ListUsersRequest, opts ...a
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//users")
+	baseURL.Path = "/api/2.0/identity/accounts/{account_id}/users"
 	queryParams := url.Values{}
 	if req.PageSize != nil {
 		queryParams.Add("page_size", fmt.Sprintf("%v", *req.PageSize))
@@ -1700,7 +1700,7 @@ func (c *Client) ListUsersProxy(ctx context.Context, req *ListUsersProxyRequest,
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/users")
+	baseURL.Path = "/api/2.0/identity/users"
 	queryParams := url.Values{}
 	if req.PageSize != nil {
 		queryParams.Add("page_size", fmt.Sprintf("%v", *req.PageSize))
@@ -1759,7 +1759,7 @@ func (c *Client) ResolveUser(ctx context.Context, req *ResolveUserRequest, opts 
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//users/resolveByExternalId")
+	baseURL.Path = "/api/2.0/identity/accounts/{account_id}/users/resolveByExternalId"
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
 
@@ -1809,7 +1809,7 @@ func (c *Client) ResolveUserProxy(ctx context.Context, req *ResolveUserProxyRequ
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/users/resolveByExternalId")
+	baseURL.Path = "/api/2.0/identity/users/resolveByExternalId"
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
 
@@ -2007,7 +2007,7 @@ func (c *Client) CreateWorkspaceAccessDetailLocal(ctx context.Context, req *Crea
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/workspaceAccessDetails")
+	baseURL.Path = "/api/2.0/identity/workspaceAccessDetails"
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
 
@@ -2286,7 +2286,7 @@ func (c *Client) ListWorkspaceAccessDetailsLocal(ctx context.Context, req *ListW
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/workspaceAccessDetails")
+	baseURL.Path = "/api/2.0/identity/workspaceAccessDetails"
 	queryParams := url.Values{}
 	if req.PageSize != nil {
 		queryParams.Add("page_size", fmt.Sprintf("%v", *req.PageSize))
