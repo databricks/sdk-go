@@ -3,7 +3,6 @@ go 1.25.5
 use (
 	./auth
 	./databricks
-	./google
 	./iam
 	./internal
 	./jobs

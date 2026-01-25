@@ -105,9 +105,10 @@ type PercentNullValidityCheck struct {
 }
 
 type QualityMonitor struct {
-	ObjectType             *string                 `json:"object_type"`
-	ObjectId               *string                 `json:"object_id"`
-	AnomalyDetectionConfig *AnomalyDetectionConfig `json:"anomaly_detection_config"`
+	ObjectType                  *string                      `json:"object_type"`
+	ObjectId                    *string                      `json:"object_id"`
+	AnomalyDetectionConfig      *AnomalyDetectionConfig      `json:"anomaly_detection_config"`
+	ValidityCheckConfigurations []ValidityCheckConfiguration `json:"validity_check_configurations"`
 }
 
 type RangeValidityCheck struct {
