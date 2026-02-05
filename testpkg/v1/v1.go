@@ -99,7 +99,7 @@ type CancelTaskWaiter struct {
 }
 
 // Wait polls the server until the operation reaches a terminal state or encounters an error.
-// This method will return an error if a failure state is reached.
+// This method will return an error if a failure state is reached or an unknown state is encountered.
 func (w *CancelTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task, error) {
 	errOperationInProgress := errors.New("operation still in progress")
 	var result *Task
@@ -115,18 +115,17 @@ func (w *CancelTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task,
 
 		state := *pollResp.Status.State
 
-		// Check for success states
-		if state == TaskStateCancelled {
+		switch state {
+		case TaskStateCancelled:
 			result = pollResp
 			return nil
-		}
-
-		// Check for failure states
-		if state == TaskStateFailed {
+		case TaskStateFailed:
 			return fmt.Errorf("operation failed with state %s: %s", state, *pollResp.Status.Message)
+		case TaskStateTaskStateUnspecified, TaskStatePending, TaskStateRunning, TaskStateCompleted, TaskStateInternalError:
+			return errOperationInProgress
+		default:
+			return fmt.Errorf("unknown state %q while waiting for operation - consider updating SDK", state)
 		}
-
-		return errOperationInProgress
 	}
 
 	retrier := api.RetryOn(api.BackoffPolicy{}, func(err error) bool {
@@ -145,6 +144,7 @@ func (w *CancelTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task,
 }
 
 // Done reports whether the operation has completed.
+// Returns an error if an unknown state is encountered.
 func (w *CancelTaskWaiter) Done() (bool, error) {
 	pollReq := &GetTaskRequest{}
 	pollReq.TaskId = w.taskId
@@ -156,15 +156,16 @@ func (w *CancelTaskWaiter) Done() (bool, error) {
 
 	state := *pollResp.Status.State
 
-	// Check for terminal states (success or failure)
-	if state == TaskStateCancelled {
+	switch state {
+	case TaskStateCancelled:
 		return true, nil
-	}
-	if state == TaskStateFailed {
+	case TaskStateFailed:
 		return true, nil
+	case TaskStateTaskStateUnspecified, TaskStatePending, TaskStateRunning, TaskStateCompleted, TaskStateInternalError:
+		return false, nil
+	default:
+		return false, fmt.Errorf("unknown state %q while waiting for operation - consider updating SDK", state)
 	}
-
-	return false, nil
 }
 
 // Create a new task and start its execution. This method returns immediately,
@@ -227,7 +228,7 @@ type CreateTaskWaiter struct {
 }
 
 // Wait polls the server until the operation reaches a terminal state or encounters an error.
-// This method will return an error if a failure state is reached.
+// This method will return an error if a failure state is reached or an unknown state is encountered.
 func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task, error) {
 	errOperationInProgress := errors.New("operation still in progress")
 	var result *Task
@@ -243,24 +244,17 @@ func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task,
 
 		state := *pollResp.Status.State
 
-		// Check for success states
-		if state == TaskStateCompleted {
+		switch state {
+		case TaskStateCompleted, TaskStateCancelled:
 			result = pollResp
 			return nil
-		} else if state == TaskStateCancelled {
-			result = pollResp
-			return nil
-		}
-
-		// Check for failure states
-		if state == TaskStateFailed {
+		case TaskStateFailed, TaskStateInternalError:
 			return fmt.Errorf("operation failed with state %s: %s", state, *pollResp.Status.Message)
+		case TaskStateTaskStateUnspecified, TaskStatePending, TaskStateRunning:
+			return errOperationInProgress
+		default:
+			return fmt.Errorf("unknown state %q while waiting for operation - consider updating SDK", state)
 		}
-		if state == TaskStateInternalError {
-			return fmt.Errorf("operation failed with state %s: %s", state, *pollResp.Status.Message)
-		}
-
-		return errOperationInProgress
 	}
 
 	retrier := api.RetryOn(api.BackoffPolicy{}, func(err error) bool {
@@ -279,6 +273,7 @@ func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task,
 }
 
 // Done reports whether the operation has completed.
+// Returns an error if an unknown state is encountered.
 func (w *CreateTaskWaiter) Done() (bool, error) {
 	pollReq := &GetTaskRequest{}
 	pollReq.TaskId = w.taskId
@@ -290,15 +285,16 @@ func (w *CreateTaskWaiter) Done() (bool, error) {
 
 	state := *pollResp.Status.State
 
-	// Check for terminal states (success or failure)
-	if state == TaskStateCompleted || state == TaskStateCancelled {
+	switch state {
+	case TaskStateCompleted, TaskStateCancelled:
 		return true, nil
-	}
-	if state == TaskStateFailed || state == TaskStateInternalError {
+	case TaskStateFailed, TaskStateInternalError:
 		return true, nil
+	case TaskStateTaskStateUnspecified, TaskStatePending, TaskStateRunning:
+		return false, nil
+	default:
+		return false, fmt.Errorf("unknown state %q while waiting for operation - consider updating SDK", state)
 	}
-
-	return false, nil
 }
 
 // Get the current state of a task.
