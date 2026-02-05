@@ -1,0 +1,171 @@
+syntax = "proto2";
+
+import "deco/public_proto/public_proto_out/databricks/sdk/wait_for_state.proto";
+import "google/api/annotations.proto";
+
+package databricks.testpkg.v1;
+
+option go_package = "github.com/databricks/sdk-go/testpkg/v1/pb;testpkgv1pb";
+option java_multiple_files = true;
+option java_outer_classname = "TestpkgV1Proto";
+option java_package = "com.databricks.api.proto.testpkg.v1.jproto";
+
+/* 
+ * TaskService is a dummy service for testing wait_for_state annotation.
+ * It mimics the Jobs pattern: create a task, poll until completion.
+ */
+service TaskService {
+  /* 
+   * Cancel a running task.
+   * Returns the task with updated status once cancellation is confirmed.
+   */
+  rpc CancelTask(CancelTaskRequest) returns (Task) {
+    option (databricks.sdk.wait_for_state) = {
+      method_to_poll: "GetTask"
+      binding: {
+        pairs: {
+          poll_method_field: "task_id"
+          request_field: "task_id"
+        }
+      }
+      state_info: {
+        state_path: "status"
+        state_path: "state"
+        success_states: "CANCELLED"
+        failure_states: "FAILED"
+        message_path: "status"
+        message_path: "message"
+      }
+    };
+    option (google.api.http) = {
+      post: "/api/2.0/tasks/{task_id}/cancel"
+      body: "*"
+    };
+  }
+
+  /* 
+   * Create a new task and start its execution.
+   * This method returns immediately, but the task continues running.
+   * Use GetTask to poll for completion.
+   */
+  rpc CreateTask(CreateTaskRequest) returns (Task) {
+    option (databricks.sdk.wait_for_state) = {
+      method_to_poll: "GetTask"
+      binding: {
+        pairs: {
+          poll_method_field: "task_id"
+          response_field: "task_id"
+        }
+      }
+      state_info: {
+        state_path: "status"
+        state_path: "state"
+        success_states: "COMPLETED"
+        success_states: "CANCELLED"
+        failure_states: "FAILED"
+        failure_states: "INTERNAL_ERROR"
+        message_path: "status"
+        message_path: "message"
+      }
+    };
+    option (google.api.http) = {
+      post: "/api/2.0/tasks"
+      body: "*"
+    };
+  }
+
+  // Get the current state of a task.
+  rpc GetTask(GetTaskRequest) returns (Task) {
+    option (google.api.http) = {
+      get: "/api/2.0/tasks/{task_id}"
+    };
+  }
+}
+
+// Request to cancel a task.
+message CancelTaskRequest {
+  // The unique identifier of the task to cancel.
+  optional string task_id = 1 [json_name = "task_id"];
+  // Optional reason for cancellation.
+  optional string reason = 2 [json_name = "reason"];
+}
+
+// Request to create a new task.
+message CreateTaskRequest {
+  // Name of the task.
+  optional string name = 1 [json_name = "name"];
+  // Configuration for the task.
+  optional TaskConfig config = 2 [json_name = "config"];
+}
+
+// Request to get task status.
+message GetTaskRequest {
+  // The unique identifier of the task.
+  optional string task_id = 1 [json_name = "task_id"];
+}
+
+// Represents a task entity.
+message Task {
+  // Unique identifier for the task.
+  optional string task_id = 1 [json_name = "task_id"];
+  // Name of the task.
+  optional string name = 2 [json_name = "name"];
+  // Current status of the task.
+  optional TaskStatus status = 3 [json_name = "status"];
+  // Configuration used for this task.
+  optional TaskConfig config = 4 [json_name = "config"];
+  // Unix timestamp when the task was created.
+  optional int64 created_at = 5 [json_name = "created_at"];
+  // Unix timestamp when the task was last updated.
+  optional int64 updated_at = 6 [json_name = "updated_at"];
+}
+
+// Configuration for a task.
+message TaskConfig {
+  // Timeout in seconds.
+  optional int32 timeout_seconds = 1 [json_name = "timeout_seconds"];
+  // Number of retries on failure.
+  optional int32 max_retries = 2 [json_name = "max_retries"];
+  // Parameters to pass to the task.
+  repeated ParametersEntry parameters = 3 [json_name = "parameters"];
+
+  message ParametersEntry {
+    option map_entry = true;
+    optional string key = 1 [json_name = "key"];
+    optional string value = 2 [json_name = "value"];
+  }
+}
+
+// Status information for a task.
+message TaskStatus {
+  // Current state of the task.
+  optional TaskState state = 1 [json_name = "state"];
+  // Human-readable status message.
+  optional string message = 2 [json_name = "message"];
+  // Progress percentage (0-100).
+  optional int32 progress = 3 [json_name = "progress"];
+}
+
+// Possible states for a task.
+enum TaskState {
+  // State is not known or not set.
+  TASK_STATE_UNSPECIFIED = 0;
+  
+  // Task is waiting to be executed.
+  PENDING = 1;
+  
+  // Task is currently running.
+  RUNNING = 2;
+  
+  // Task completed successfully.
+  COMPLETED = 3;
+  
+  // Task failed with an error.
+  FAILED = 4;
+  
+  // Task was cancelled by the user.
+  CANCELLED = 5;
+  
+  // Task failed due to an internal error.
+  INTERNAL_ERROR = 6;
+}
