@@ -4,6 +4,7 @@ use (
 	./auth
 	./databricks
 	./dataquality
+	./examples
 	./iam
 	./qualitymonitor
 	./sdk
