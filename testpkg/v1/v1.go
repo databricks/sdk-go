@@ -87,19 +87,19 @@ func (c *Client) CreateTask(ctx context.Context, req *CreateTaskRequest, opts ..
 	return resp, nil
 }
 
-func (c *Client) CreateTaskAsync(ctx context.Context, req *CreateTaskRequest, opts ...api.Option) (*CreateTaskWaiter, error) {
+func (c *Client) CreateTaskOperation(ctx context.Context, req *CreateTaskRequest, opts ...api.Option) (*CreateTaskOperation, error) {
 	resp, err := c.CreateTask(ctx, req, opts...)
 	if err != nil {
 		return nil, err
 	}
-	return &CreateTaskWaiter{
+	return &CreateTaskOperation{
 		rawResponse: resp,
 		service:     c,
 		taskId:      resp.TaskId,
 	}, nil
 }
 
-type CreateTaskWaiter struct {
+type CreateTaskOperation struct {
 	rawResponse *Task
 	service     *Client
 	taskId      *string
@@ -114,7 +114,7 @@ type CreateTaskWaiter struct {
 //
 // The opts are passed through to each underlying API call (e.g. for rate
 // limiting).
-func (w *CreateTaskWaiter) Wait(ctx context.Context, cfg *api.WaitConfig, opts ...api.Option) (*Task, error) {
+func (w *CreateTaskOperation) Wait(ctx context.Context, cfg *api.WaitConfig, opts ...api.Option) (*Task, error) {
 	errOperationInProgress := errors.New("operation still in progress")
 	var result *Task
 
@@ -156,7 +156,7 @@ func (w *CreateTaskWaiter) Wait(ctx context.Context, cfg *api.WaitConfig, opts .
 }
 
 // Done reports whether the operation has completed.
-func (w *CreateTaskWaiter) Done(opts ...api.Option) (bool, error) {
+func (w *CreateTaskOperation) Done(opts ...api.Option) (bool, error) {
 	pollReq := &GetTaskRequest{}
 	pollReq.TaskId = w.taskId
 
