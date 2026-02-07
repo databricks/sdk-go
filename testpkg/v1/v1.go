@@ -140,9 +140,11 @@ func (w *CreateTaskWaiter) Wait(ctx context.Context, cfg *api.WaitConfig, opts .
 		}
 	}
 
+	defaultTimeout := 20 * time.Minute
+	defaultBackoff := api.BackoffPolicy{Initial: 5 * time.Second, Maximum: 30 * time.Second}
 	defaults := api.WaitConfig{
-		Timeout: 20 * time.Minute,
-		Backoff: api.BackoffPolicy{Initial: 5 * time.Second, Maximum: 30 * time.Second},
+		Timeout: &defaultTimeout,
+		Backoff: &defaultBackoff,
 	}
 	merged := defaults.WithOverrides(cfg)
 	if err := api.ExecuteWait(ctx, call, func(err error) bool {
@@ -154,11 +156,11 @@ func (w *CreateTaskWaiter) Wait(ctx context.Context, cfg *api.WaitConfig, opts .
 }
 
 // Done reports whether the operation has completed.
-func (w *CreateTaskWaiter) Done() (bool, error) {
+func (w *CreateTaskWaiter) Done(opts ...api.Option) (bool, error) {
 	pollReq := &GetTaskRequest{}
 	pollReq.TaskId = w.taskId
 
-	pollResp, err := w.service.GetTask(context.Background(), pollReq)
+	pollResp, err := w.service.GetTask(context.Background(), pollReq, opts...)
 	if err != nil {
 		return false, err
 	}

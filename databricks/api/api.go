@@ -24,33 +24,39 @@ func Execute(ctx context.Context, call Call, opts ...Option) error {
 
 // WaitConfig configures the behavior of [ExecuteWait].
 type WaitConfig struct {
-	// Timeout for the entire wait operation. If zero, no timeout is applied
-	// and the wait relies solely on the context's deadline.
-	Timeout time.Duration
+	// Timeout for the entire wait operation. If nil, the SDK default is used.
+	// If the context already has a deadline, the effective timeout is the
+	// minimum of the two.
+	Timeout *time.Duration
 
 	// Backoff controls the delay between poll attempts. See [BackoffPolicy]
 	// for the default values applied to zero-valued fields.
-	Backoff BackoffPolicy
+	Backoff *BackoffPolicy
 }
 
-// WithOverrides returns a copy of the WaitConfig with non-zero fields from
+// WithOverrides returns a copy of the WaitConfig with non-nil fields from
 // override applied on top. If override is nil, a copy of the original is
 // returned unchanged.
 func (c WaitConfig) WithOverrides(override *WaitConfig) WaitConfig {
 	if override == nil {
 		return c
 	}
-	if override.Timeout != 0 {
+	if override.Timeout != nil {
 		c.Timeout = override.Timeout
 	}
-	if override.Backoff.Initial != 0 {
-		c.Backoff.Initial = override.Backoff.Initial
-	}
-	if override.Backoff.Maximum != 0 {
-		c.Backoff.Maximum = override.Backoff.Maximum
-	}
-	if override.Backoff.Factor != 0 {
-		c.Backoff.Factor = override.Backoff.Factor
+	if override.Backoff != nil {
+		if c.Backoff == nil {
+			c.Backoff = &BackoffPolicy{}
+		}
+		if override.Backoff.Initial != 0 {
+			c.Backoff.Initial = override.Backoff.Initial
+		}
+		if override.Backoff.Maximum != 0 {
+			c.Backoff.Maximum = override.Backoff.Maximum
+		}
+		if override.Backoff.Factor != 0 {
+			c.Backoff.Factor = override.Backoff.Factor
+		}
 	}
 	return c
 }
@@ -64,10 +70,18 @@ func ExecuteWait(ctx context.Context, call Call, isRetriable func(error) bool, c
 	if cfg == nil {
 		cfg = &WaitConfig{}
 	}
+	var timeout time.Duration
+	if cfg.Timeout != nil {
+		timeout = *cfg.Timeout
+	}
+	var backoff BackoffPolicy
+	if cfg.Backoff != nil {
+		backoff = *cfg.Backoff
+	}
 	opts := Options{
-		timeout: cfg.Timeout,
+		timeout: timeout,
 		retrier: func() Retrier {
-			return RetryOn(cfg.Backoff, isRetriable)
+			return RetryOn(backoff, isRetriable)
 		},
 	}
 	return execute(ctx, call, opts, sleep)

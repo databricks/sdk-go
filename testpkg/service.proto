@@ -16,34 +16,6 @@ option java_package = "com.databricks.api.proto.testpkg.v1.jproto";
  */
 service TaskService {
   /* 
-   * Cancel a running task.
-   * Returns the task with updated status once cancellation is confirmed.
-   */
-  rpc CancelTask(CancelTaskRequest) returns (Task) {
-    option (databricks.sdk.wait_for_state) = {
-      method_to_poll: "GetTask"
-      binding: {
-        pairs: {
-          poll_method_field: "task_id"
-          request_field: "task_id"
-        }
-      }
-      state_info: {
-        state_path: "status"
-        state_path: "state"
-        success_states: "CANCELLED"
-        failure_states: "FAILED"
-        message_path: "status"
-        message_path: "message"
-      }
-    };
-    option (google.api.http) = {
-      post: "/api/2.0/tasks/{task_id}/cancel"
-      body: "*"
-    };
-  }
-
-  /* 
    * Create a new task and start its execution.
    * This method returns immediately, but the task continues running.
    * Use GetTask to poll for completion.
@@ -80,14 +52,6 @@ service TaskService {
       get: "/api/2.0/tasks/{task_id}"
     };
   }
-}
-
-// Request to cancel a task.
-message CancelTaskRequest {
-  // The unique identifier of the task to cancel.
-  optional string task_id = 1 [json_name = "task_id"];
-  // Optional reason for cancellation.
-  optional string reason = 2 [json_name = "reason"];
 }
 
 // Request to create a new task.
