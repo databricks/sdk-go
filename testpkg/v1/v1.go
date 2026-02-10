@@ -9,7 +9,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/databricks/sdk-go/databricks/api"
 	"github.com/databricks/sdk-go/databricks/options"
@@ -114,7 +113,7 @@ type CreateTaskOperation struct {
 //
 // The opts are passed through to each underlying API call (e.g. for rate
 // limiting).
-func (w *CreateTaskOperation) Wait(ctx context.Context, cfg *api.WaitConfig, opts ...api.Option) (*Task, error) {
+func (w *CreateTaskOperation) Wait(ctx context.Context, opts ...api.Option) (*Task, error) {
 	errOperationInProgress := errors.New("operation still in progress")
 	var result *Task
 
@@ -140,27 +139,22 @@ func (w *CreateTaskOperation) Wait(ctx context.Context, cfg *api.WaitConfig, opt
 		}
 	}
 
-	defaultTimeout := 20 * time.Minute
-	defaultBackoff := api.BackoffPolicy{Initial: 5 * time.Second, Maximum: 30 * time.Second}
-	defaults := api.WaitConfig{
-		Timeout: &defaultTimeout,
-		Backoff: &defaultBackoff,
-	}
-	merged := defaults.WithOverrides(cfg)
-	if err := api.ExecuteWait(ctx, call, func(err error) bool {
-		return errors.Is(err, errOperationInProgress)
-	}, &merged); err != nil {
+	if err := api.Execute(ctx, call, api.WithRetrier(func() api.Retrier {
+		return api.RetryOn(api.BackoffPolicy{}, func(err error) bool {
+			return errors.Is(err, errOperationInProgress)
+		})
+	})); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
 // Done reports whether the operation has completed.
-func (w *CreateTaskOperation) Done(opts ...api.Option) (bool, error) {
+func (w *CreateTaskOperation) Done(ctx context.Context, opts ...api.Option) (bool, error) {
 	pollReq := &GetTaskRequest{}
 	pollReq.TaskId = w.taskId
 
-	pollResp, err := w.service.GetTask(context.Background(), pollReq, opts...)
+	pollResp, err := w.service.GetTask(ctx, pollReq, opts...)
 	if err != nil {
 		return false, err
 	}
