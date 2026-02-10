@@ -105,14 +105,6 @@ type CreateTaskOperation struct {
 }
 
 // Wait polls the server until the operation reaches a terminal state or encounters an error.
-// This method will return an error if a failure state is reached.
-//
-// An optional [api.WaitConfig] can be provided to override the default polling
-// behavior. If cfg is nil, SDK defaults are used. Non-zero fields in cfg
-// override the corresponding defaults.
-//
-// The opts are passed through to each underlying API call (e.g. for rate
-// limiting).
 func (w *CreateTaskOperation) Wait(ctx context.Context, opts ...api.Option) (*Task, error) {
 	errOperationInProgress := errors.New("operation still in progress")
 	var result *Task
