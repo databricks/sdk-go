@@ -88,12 +88,14 @@ func (c *Client) CreateTask(ctx context.Context, req *CreateTaskRequest, opts ..
 	return resp, nil
 }
 
-// Create a new task and start its execution. This method returns immediately,
-// but the task continues running. Use GetTask to poll for completion.
+// CreateTaskWaiter starts the operation and returns a waiter to track its completion.
 func (c *Client) CreateTaskWaiter(ctx context.Context, req *CreateTaskRequest, opts ...api.Option) (*CreateTaskWaiter, error) {
 	resp, err := c.CreateTask(ctx, req, opts...)
 	if err != nil {
 		return nil, err
+	}
+	if resp.TaskId == nil {
+		return nil, fmt.Errorf("response field TaskId required for polling is nil")
 	}
 	return &CreateTaskWaiter{
 		rawResponse: resp,
@@ -123,6 +125,9 @@ func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task,
 			return err
 		}
 
+		if pollResp == nil || pollResp.Status == nil || pollResp.Status.State == nil {
+			return fmt.Errorf("response missing required status field")
+		}
 		state := *pollResp.Status.State
 
 		switch state {
@@ -130,7 +135,11 @@ func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task,
 			result = pollResp
 			return nil
 		case TaskStateFailed, TaskStateInternalError:
-			return fmt.Errorf("failed with state %s: %s", state, *pollResp.Status.Message)
+			msg := "(no message)"
+			if pollResp.Status.Message != nil {
+				msg = *pollResp.Status.Message
+			}
+			return fmt.Errorf("terminal state %s: %s", state, msg)
 		default:
 			return errStillRunning
 		}
@@ -146,7 +155,9 @@ func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task,
 	return result, nil
 }
 
-// Done checks whether a terminal state has been reached.
+// Done checks whether the operation has reached a terminal state (success or
+// failure). It returns (false, error) only if the poll request itself fails.
+// To wait for completion and get the result or failure error, use Wait instead.
 func (w *CreateTaskWaiter) Done(ctx context.Context, opts ...api.Option) (bool, error) {
 	pollReq := &GetTaskRequest{}
 	pollReq.TaskId = w.taskId
@@ -156,6 +167,9 @@ func (w *CreateTaskWaiter) Done(ctx context.Context, opts ...api.Option) (bool, 
 		return false, err
 	}
 
+	if pollResp == nil || pollResp.Status == nil || pollResp.Status.State == nil {
+		return false, fmt.Errorf("response missing required status field")
+	}
 	state := *pollResp.Status.State
 
 	switch state {
