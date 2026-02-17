@@ -90,67 +90,28 @@ func (c *Client) CreateTask(ctx context.Context, req *CreateTaskRequest, opts ..
 
 // Create a new task and start its execution. This method returns immediately,
 // but the task continues running. Use GetTask to poll for completion.
-func (c *Client) CreateTaskOperation(ctx context.Context, req *CreateTaskRequest, opts ...api.Option) (*CreateTaskOperation, error) {
-	body, err := json.Marshal(req)
+func (c *Client) CreateTaskWaiter(ctx context.Context, req *CreateTaskRequest, opts ...api.Option) (*CreateTaskWaiter, error) {
+	resp, err := c.CreateTask(ctx, req, opts...)
 	if err != nil {
 		return nil, err
 	}
-
-	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
-
-	baseURL, err := url.Parse(c.host)
-	if err != nil {
-		return nil, err
-	}
-	baseURL.Path = "/api/2.0/tasks"
-	queryParams := url.Values{}
-	baseURL.RawQuery = queryParams.Encode()
-
-	resp := &Task{}
-
-	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
-		if err != nil {
-			return err
-		}
-		httpReq = httpReq.WithContext(ctx)
-		httpReq.Header = headers
-
-		respBody, err := executeHTTPCall(httpCallOptions{
-			req:    httpReq,
-			client: c.httpClient,
-			logger: c.logger,
-		})
-		if err != nil {
-			return err
-		}
-		if err := json.Unmarshal(respBody, resp); err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if err := api.Execute(ctx, call, opts...); err != nil {
-		return nil, err
-	}
-	return &CreateTaskOperation{
+	return &CreateTaskWaiter{
 		rawResponse: resp,
 		service:     c,
 		taskId:      resp.TaskId,
 	}, nil
 }
 
-type CreateTaskOperation struct {
+type CreateTaskWaiter struct {
 	rawResponse *Task
 	service     *Client
 	taskId      *string
 }
 
-// Wait polls the server until the operation reaches a terminal state or encounters an error.
-// This method will return an error if a failure state is reached.
-func (w *CreateTaskOperation) Wait(ctx context.Context, opts ...api.Option) (*Task, error) {
-	errOperationInProgress := errors.New("operation still in progress")
+// Wait polls until a terminal state is reached or an error is encountered.
+// It returns an error if a failure state is reached.
+func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task, error) {
+	errStillRunning := errors.New("waiting for completion")
 	var result *Task
 
 	call := func(ctx context.Context) error {
@@ -169,15 +130,15 @@ func (w *CreateTaskOperation) Wait(ctx context.Context, opts ...api.Option) (*Ta
 			result = pollResp
 			return nil
 		case TaskStateFailed, TaskStateInternalError:
-			return fmt.Errorf("operation failed with state %s: %s", state, *pollResp.Status.Message)
+			return fmt.Errorf("failed with state %s: %s", state, *pollResp.Status.Message)
 		default:
-			return errOperationInProgress
+			return errStillRunning
 		}
 	}
 
 	if err := api.Execute(ctx, call, api.WithRetrier(func() api.Retrier {
 		return api.RetryOn(api.BackoffPolicy{}, func(err error) bool {
-			return errors.Is(err, errOperationInProgress)
+			return errors.Is(err, errStillRunning)
 		})
 	})); err != nil {
 		return nil, err
@@ -185,8 +146,8 @@ func (w *CreateTaskOperation) Wait(ctx context.Context, opts ...api.Option) (*Ta
 	return result, nil
 }
 
-// Done reports whether the operation has completed.
-func (w *CreateTaskOperation) Done(ctx context.Context, opts ...api.Option) (bool, error) {
+// Done checks whether a terminal state has been reached.
+func (w *CreateTaskWaiter) Done(ctx context.Context, opts ...api.Option) (bool, error) {
 	pollReq := &GetTaskRequest{}
 	pollReq.TaskId = w.taskId
 
@@ -208,7 +169,7 @@ func (w *CreateTaskOperation) Done(ctx context.Context, opts ...api.Option) (boo
 }
 
 // GetTaskId returns the taskId used for polling.
-func (w *CreateTaskOperation) GetTaskId() string {
+func (w *CreateTaskWaiter) GetTaskId() string {
 	return *w.taskId
 }
 
