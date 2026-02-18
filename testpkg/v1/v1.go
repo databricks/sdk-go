@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -108,83 +107,6 @@ type CreateTaskWaiter struct {
 	rawResponse *Task
 	service     *Client
 	taskId      *string
-}
-
-// Wait polls until a terminal state is reached or an error is encountered.
-// It returns an error if a failure state is reached.
-func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task, error) {
-	errStillRunning := errors.New("waiting for completion")
-	var result *Task
-
-	call := func(ctx context.Context) error {
-		pollReq := &GetTaskRequest{}
-		pollReq.TaskId = w.taskId
-
-		pollResp, err := w.service.GetTask(ctx, pollReq, opts...)
-		if err != nil {
-			return err
-		}
-
-		if pollResp == nil || pollResp.Status == nil || pollResp.Status.State == nil {
-			return fmt.Errorf("response missing required status field")
-		}
-		state := *pollResp.Status.State
-
-		switch state {
-		case TaskStateCompleted, TaskStateCancelled:
-			result = pollResp
-			return nil
-		case TaskStateFailed, TaskStateInternalError:
-			msg := "(no message)"
-			if pollResp.Status.Message != nil {
-				msg = *pollResp.Status.Message
-			}
-			return fmt.Errorf("terminal state %s: %s", state, msg)
-		default:
-			return errStillRunning
-		}
-	}
-
-	if err := api.Execute(ctx, call, api.WithRetrier(func() api.Retrier {
-		return api.RetryOn(api.BackoffPolicy{}, func(err error) bool {
-			return errors.Is(err, errStillRunning)
-		})
-	})); err != nil {
-		return nil, err
-	}
-	return result, nil
-}
-
-// Done checks whether the operation has reached a terminal state (success or
-// failure). It returns (false, error) only if the poll request itself fails.
-// To wait for completion and get the result or failure error, use Wait instead.
-func (w *CreateTaskWaiter) Done(ctx context.Context, opts ...api.Option) (bool, error) {
-	pollReq := &GetTaskRequest{}
-	pollReq.TaskId = w.taskId
-
-	pollResp, err := w.service.GetTask(ctx, pollReq, opts...)
-	if err != nil {
-		return false, err
-	}
-
-	if pollResp == nil || pollResp.Status == nil || pollResp.Status.State == nil {
-		return false, fmt.Errorf("response missing required status field")
-	}
-	state := *pollResp.Status.State
-
-	switch state {
-	case TaskStateCompleted, TaskStateCancelled:
-		return true, nil
-	case TaskStateFailed, TaskStateInternalError:
-		return true, nil
-	default:
-		return false, nil
-	}
-}
-
-// GetTaskId returns the taskId used for polling.
-func (w *CreateTaskWaiter) GetTaskId() string {
-	return *w.taskId
 }
 
 // Get the current state of a task.
