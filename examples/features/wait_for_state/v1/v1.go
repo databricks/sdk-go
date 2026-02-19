@@ -147,8 +147,7 @@ func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task,
 	}
 
 	defaultTimeout := 3 * time.Hour
-	// User set timeouts are for the entire wait operation.
-	// Use it to override the default timeout if user has set it.
+	// Order matters here. User set timeout is for the entire wait method so it should override the default if set.
 	waitOpts := append([]api.Option{api.WithTimeout(defaultTimeout)}, opts...)
 	// User set rate limiter and retrier are for API calls, not for controlling polling logic.
 	// Override them with our defaults.
