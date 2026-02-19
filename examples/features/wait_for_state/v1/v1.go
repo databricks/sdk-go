@@ -116,11 +116,18 @@ func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task,
 	errStillRunning := errors.New("waiting for completion")
 	var result *Task
 
-	pollOpts := append(append([]api.Option{}, opts...), api.WithTimeout(0))
+	options := api.Options{}
+	for _, opt := range opts {
+		if err := opt.Apply(&options); err != nil {
+			return err
+		}
+	}
 
 	call := func(ctx context.Context) error {
 		pollReq := &GetTaskRequest{}
 		pollReq.TaskId = w.taskId
+
+		pollOpts := []api.Option{options.rateLimiter, options.retrier}
 
 		pollResp, err := w.service.GetTask(ctx, pollReq, pollOpts...)
 		if err != nil {
@@ -147,12 +154,16 @@ func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task,
 		}
 	}
 
-	waitOpts := append(append([]api.Option{}, opts...), api.WithLimiter(nil))
-	waitOpts = append(waitOpts, api.WithRetrier(func() api.Retrier {
+	timeout 3 * time.Hour 
+	if options.timeout != 0 {
+		timeout = options.timeout
+	}
+	waitOpts := []api.Option{api.WithTimeout(timeout), api.WithRetrier(func() api.Retrier {
 		return api.RetryOn(api.BackoffPolicy{}, func(err error) bool {
 			return errors.Is(err, errStillRunning)
 		})
-	}))
+	})}
+
 	if err := api.Execute(ctx, call, waitOpts...); err != nil {
 		return nil, err
 	}
