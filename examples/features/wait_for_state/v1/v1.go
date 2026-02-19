@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/databricks/sdk-go/databricks/api"
 	"github.com/databricks/sdk-go/databricks/options"
@@ -154,7 +155,7 @@ func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task,
 		}
 	}
 
-	timeout 3 * time.Hour 
+	timeout := 3 * time.Hour
 	if options.timeout != 0 {
 		timeout = options.timeout
 	}
