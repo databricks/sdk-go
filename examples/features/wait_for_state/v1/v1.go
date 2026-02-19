@@ -117,20 +117,11 @@ func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task,
 	errStillRunning := errors.New("waiting for completion")
 	var result *Task
 
-	options := api.Options{}
-	for _, opt := range opts {
-		if err := opt.Apply(&options); err != nil {
-			return err
-		}
-	}
-
 	call := func(ctx context.Context) error {
 		pollReq := &GetTaskRequest{}
 		pollReq.TaskId = w.taskId
 
-		pollOpts := []api.Option{options.rateLimiter, options.retrier}
-
-		pollResp, err := w.service.GetTask(ctx, pollReq, pollOpts...)
+		pollResp, err := w.service.GetTask(ctx, pollReq, opts...)
 		if err != nil {
 			return err
 		}
@@ -155,15 +146,17 @@ func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task,
 		}
 	}
 
-	timeout := 3 * time.Hour
-	if options.timeout != 0 {
-		timeout = options.timeout
-	}
-	waitOpts := []api.Option{api.WithTimeout(timeout), api.WithRetrier(func() api.Retrier {
+	defaultTimeout := 3 * time.Hour
+	// User set timeouts are for the entire wait operation.
+	// Use it to override the default timeout if user has set it.
+	waitOpts := append([]api.Option{api.WithTimeout(defaultTimeout)}, opts...)
+	// User set rate limiter and retrier are for API calls, not for controlling polling logic.
+	// Override them with our defaults.
+	waitOpts = append(waitOpts, api.WithLimiter(nil), api.WithRetrier(func() api.Retrier {
 		return api.RetryOn(api.BackoffPolicy{}, func(err error) bool {
 			return errors.Is(err, errStillRunning)
 		})
-	})}
+	}))
 
 	if err := api.Execute(ctx, call, waitOpts...); err != nil {
 		return nil, err
