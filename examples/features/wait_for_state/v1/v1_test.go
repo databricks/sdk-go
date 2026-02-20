@@ -17,11 +17,9 @@ import (
 )
 
 const (
-	testTaskName          = "test-task"
-	defaultCreateTaskID   = "task-123"
-	successCreateTaskID   = "task-456"
-	errNilTaskIDForPoll   = "response field TaskId required for polling is nil"
-	errCreateTaskHTTPFail = "databricks-api error: mock create error"
+	testTaskName        = "test-task"
+	defaultCreateTaskID = "task-123"
+	successCreateTaskID = "task-456"
 )
 
 func ptr[T any](v T) *T { return &v }
@@ -118,14 +116,14 @@ func TestCreateTaskWaiter(t *testing.T) {
 			serverCfg: mockTaskServerConfig{
 				createResponse: &Task{Status: &TaskStatus{State: ptr(TaskStatePending)}},
 			},
-			wantErr: errNilTaskIDForPoll,
+			wantErr: "response field TaskId required for polling is nil",
 		},
 		{
 			name: "create task http error",
 			serverCfg: mockTaskServerConfig{
 				createStatus: http.StatusInternalServerError,
 			},
-			wantErr:       errCreateTaskHTTPFail,
+			wantErr:       "databricks-api error: mock create error",
 			wantErrStatus: http.StatusInternalServerError,
 		},
 	}
