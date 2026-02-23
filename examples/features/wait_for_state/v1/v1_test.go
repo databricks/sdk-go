@@ -35,10 +35,6 @@ func newTestClient(t *testing.T, server *httptest.Server) *Client {
 	return client
 }
 
-type mockTaskServerConfig struct {
-	createResponse *Task
-}
-
 func mustMarshalJSON(t *testing.T, v any) []byte {
 	t.Helper()
 	b, err := json.Marshal(v)
@@ -48,10 +44,9 @@ func mustMarshalJSON(t *testing.T, v any) []byte {
 	return b
 }
 
-func mockTaskServer(t *testing.T, cfg mockTaskServerConfig) *httptest.Server {
+func mockTaskServer(t *testing.T, createResponse *Task) *httptest.Server {
 	t.Helper()
 
-	createResponse := cfg.createResponse
 	if createResponse == nil {
 		createResponse = &Task{
 			TaskId: ptr(defaultCreateTaskID),
@@ -78,17 +73,15 @@ func mockTaskServer(t *testing.T, cfg mockTaskServerConfig) *httptest.Server {
 func TestCreateTaskWaiter(t *testing.T) {
 	testCases := []struct {
 		name            string
-		serverCfg       mockTaskServerConfig
+		createResponse  *Task
 		wantRawResponse *Task
 		wantErr         string
 	}{
 		{
 			name: "success",
-			serverCfg: mockTaskServerConfig{
-				createResponse: &Task{
-					TaskId: ptr(successCreateTaskID),
-					Status: &TaskStatus{State: ptr(TaskStatePending)},
-				},
+			createResponse: &Task{
+				TaskId: ptr(successCreateTaskID),
+				Status: &TaskStatus{State: ptr(TaskStatePending)},
 			},
 			wantRawResponse: &Task{
 				TaskId: ptr(successCreateTaskID),
@@ -96,17 +89,15 @@ func TestCreateTaskWaiter(t *testing.T) {
 			},
 		},
 		{
-			name: "nil TaskId in response",
-			serverCfg: mockTaskServerConfig{
-				createResponse: &Task{Status: &TaskStatus{State: ptr(TaskStatePending)}},
-			},
-			wantErr: "response field TaskId required for polling is nil",
+			name:           "nil TaskId in response",
+			createResponse: &Task{Status: &TaskStatus{State: ptr(TaskStatePending)}},
+			wantErr:        "response field TaskId required for polling is nil",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			server := mockTaskServer(t, tc.serverCfg)
+			server := mockTaskServer(t, tc.createResponse)
 			defer server.Close()
 
 			client := newTestClient(t, server)
