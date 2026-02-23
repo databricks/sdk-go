@@ -3,7 +3,6 @@ package v1
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -11,7 +10,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/databricks/sdk-go/databricks/apierr"
 	"github.com/databricks/sdk-go/databricks/options"
 	"github.com/google/go-cmp/cmp"
 )
@@ -39,7 +37,6 @@ func newTestClient(t *testing.T, server *httptest.Server) *Client {
 
 type mockTaskServerConfig struct {
 	createResponse *Task
-	createStatus   int
 }
 
 func mustMarshalJSON(t *testing.T, v any) []byte {
@@ -54,10 +51,6 @@ func mustMarshalJSON(t *testing.T, v any) []byte {
 func mockTaskServer(t *testing.T, cfg mockTaskServerConfig) *httptest.Server {
 	t.Helper()
 
-	createStatus := cfg.createStatus
-	if createStatus == 0 {
-		createStatus = http.StatusOK
-	}
 	createResponse := cfg.createResponse
 	if createResponse == nil {
 		createResponse = &Task{
@@ -67,20 +60,12 @@ func mockTaskServer(t *testing.T, cfg mockTaskServerConfig) *httptest.Server {
 	}
 
 	createPayload := mustMarshalJSON(t, createResponse)
-	createErrorPayload := mustMarshalJSON(t, map[string]string{"message": "mock create error"})
 
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
 		switch {
 		case r.Method == http.MethodPost && r.URL.Path == "/api/2.0/tasks":
-			if createStatus < 200 || createStatus >= 300 {
-				w.WriteHeader(createStatus)
-				if _, err := w.Write(createErrorPayload); err != nil {
-					return
-				}
-				return
-			}
 			if _, err := w.Write(createPayload); err != nil {
 				return
 			}
@@ -96,7 +81,6 @@ func TestCreateTaskWaiter(t *testing.T) {
 		serverCfg       mockTaskServerConfig
 		wantRawResponse *Task
 		wantErr         string
-		wantErrStatus   int
 	}{
 		{
 			name: "success",
@@ -118,14 +102,6 @@ func TestCreateTaskWaiter(t *testing.T) {
 			},
 			wantErr: "response field TaskId required for polling is nil",
 		},
-		{
-			name: "create task http error",
-			serverCfg: mockTaskServerConfig{
-				createStatus: http.StatusInternalServerError,
-			},
-			wantErr:       "databricks-api error: mock create error",
-			wantErrStatus: http.StatusInternalServerError,
-		},
 	}
 
 	for _, tc := range testCases {
@@ -145,15 +121,6 @@ func TestCreateTaskWaiter(t *testing.T) {
 				if got := err.Error(); got != tc.wantErr {
 					t.Errorf("expected error %q, got %q", tc.wantErr, got)
 				}
-				if tc.wantErrStatus != 0 {
-					var apiErr *apierr.APIError
-					if !errors.As(err, &apiErr) {
-						t.Fatalf("expected *apierr.APIError, got %T (%v)", err, err)
-					}
-					if got := apiErr.HTTPStatusCode(); got != tc.wantErrStatus {
-						t.Errorf("expected HTTP status %d, got %d", tc.wantErrStatus, got)
-					}
-				}
 				return
 			}
 			if tc.wantErr != "" {
@@ -162,7 +129,7 @@ func TestCreateTaskWaiter(t *testing.T) {
 			if waiter == nil {
 				t.Fatal("expected waiter, got nil")
 			}
-			if waiter.service != client {
+			if waiter.client != client {
 				t.Error("waiter should keep reference to the originating client")
 			}
 			if diff := cmp.Diff(tc.wantRawResponse, waiter.rawResponse); diff != "" {

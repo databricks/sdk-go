@@ -38,8 +38,7 @@ func NewClient(ctx context.Context, opts ...options.ClientOption) (*Client, erro
 	}, nil
 }
 
-// Create a new task and start its execution. This method returns immediately,
-// but the task continues running. Use GetTask to poll for completion.
+// Create a new task.
 func (c *Client) CreateTask(ctx context.Context, req *CreateTaskRequest, opts ...api.Option) (*Task, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -87,7 +86,7 @@ func (c *Client) CreateTask(ctx context.Context, req *CreateTaskRequest, opts ..
 	return resp, nil
 }
 
-// CreateTaskWaiter starts the operation and returns a waiter to track its completion.
+// Create a new Task.
 func (c *Client) CreateTaskWaiter(ctx context.Context, req *CreateTaskRequest, opts ...api.Option) (*CreateTaskWaiter, error) {
 	resp, err := c.CreateTask(ctx, req, opts...)
 	if err != nil {
@@ -98,13 +97,13 @@ func (c *Client) CreateTaskWaiter(ctx context.Context, req *CreateTaskRequest, o
 	}
 	return &CreateTaskWaiter{
 		rawResponse: resp,
-		service:     c,
+		client:      c,
 		taskId:      resp.TaskId,
 	}, nil
 }
 
 type CreateTaskWaiter struct {
 	rawResponse *Task
-	service     *Client
+	client      *Client
 	taskId      *string
 }
