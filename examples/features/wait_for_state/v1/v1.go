@@ -87,13 +87,15 @@ func (c *Client) CreateTask(ctx context.Context, req *CreateTaskRequest, opts ..
 }
 
 // Create a new Task.
+//
+// Returns a waiter.
 func (c *Client) CreateTaskWaiter(ctx context.Context, req *CreateTaskRequest, opts ...api.Option) (*CreateTaskWaiter, error) {
 	resp, err := c.CreateTask(ctx, req, opts...)
 	if err != nil {
 		return nil, err
 	}
 	if resp.TaskId == nil {
-		return nil, fmt.Errorf("response field TaskId required for polling is nil")
+		return nil, fmt.Errorf("nil TaskId in response")
 	}
 	return &CreateTaskWaiter{
 		rawResponse: resp,

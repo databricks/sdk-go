@@ -91,7 +91,7 @@ func TestCreateTaskWaiter(t *testing.T) {
 		{
 			name:           "nil TaskId in response",
 			createResponse: &Task{Status: &TaskStatus{State: ptr(TaskStatePending)}},
-			wantErr:        "response field TaskId required for polling is nil",
+			wantErr:        "nil TaskId in response",
 		},
 	}
 
