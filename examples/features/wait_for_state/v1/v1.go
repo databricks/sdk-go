@@ -113,8 +113,7 @@ type CreateTaskWaiter struct {
 	taskId      *string
 }
 
-// Wait polls until a terminal state is reached or an error is encountered.
-// It returns an error if a failure state is reached.
+// Wait blocks till a success state (TaskStateCompleted, TaskStateCancelled) or a failure state (TaskStateFailed, TaskStateInternalError) is reached.
 func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task, error) {
 	errStillRunning := errors.New("waiting for completion")
 	var result *Task
@@ -162,9 +161,7 @@ func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task,
 	return result, nil
 }
 
-// Done checks whether the operation has reached a terminal state (success or
-// failure). It returns (false, error) only if the poll request itself fails.
-// To wait for completion and get the result or failure error, use Wait instead.
+// Done returns true if a terminal state is reached (success or failure).
 func (w *CreateTaskWaiter) Done(ctx context.Context, opts ...api.Option) (bool, error) {
 	pollReq := &GetTaskRequest{}
 	pollReq.TaskId = w.taskId
@@ -189,7 +186,7 @@ func (w *CreateTaskWaiter) Done(ctx context.Context, opts ...api.Option) (bool, 
 	}
 }
 
-// GetTaskId returns the taskId used for polling.
+// GetTaskId returns the taskId.
 func (w *CreateTaskWaiter) GetTaskId() string {
 	return *w.taskId
 }
