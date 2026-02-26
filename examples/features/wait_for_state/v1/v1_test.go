@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/databricks/sdk-go/databricks/api"
+	"github.com/databricks/sdk-go/databricks/apierr/codes"
 	"github.com/databricks/sdk-go/databricks/options"
 	"github.com/google/go-cmp/cmp"
 )
@@ -342,21 +343,53 @@ func (l *countingLimiter) Wait(context.Context) error {
 	return nil
 }
 
-func TestWait_UserLimiterAppliesToGetTaskCalls(t *testing.T) {
-	pollResponses := []Task{
-		{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateRunning)}},
-		{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateRunning)}},
-		{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateCompleted)}},
+func TestWait_UserLimiterNotUsedByOuterExecute(t *testing.T) {
+	// A 429 on the first request forces an inner retry, producing 3 HTTP
+	// calls across only 2 outer poll iterations. If the limiter were on the
+	// outer Execute it would only fire twice.
+	var requestCount int
+	responses := []struct {
+		code int
+		body []byte
+	}{
+		{code: http.StatusTooManyRequests},
+		{body: mustMarshalJSON(t, Task{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateRunning)}})},
+		{body: mustMarshalJSON(t, Task{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateCompleted)}})},
 	}
-	server := mockWaitServer(t, pollResponses)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		idx := requestCount
+		requestCount++
+		if idx >= len(responses) {
+			http.Error(w, fmt.Sprintf(`{"error":"unexpected request %d"}`, idx), http.StatusInternalServerError)
+			return
+		}
+		resp := responses[idx]
+		if resp.code != 0 {
+			http.Error(w, `{"error":"rate limit"}`, resp.code)
+			return
+		}
+		if _, err := w.Write(resp.body); err != nil {
+			return
+		}
+	}))
 	defer server.Close()
 
 	waiter := newWaiter(newTestClient(t, server), defaultCreateTaskID)
 
-	var calls int
-	limiter := &countingLimiter{calls: &calls}
+	var limiterCalls int
+	limiter := &countingLimiter{calls: &limiterCalls}
 
-	result, err := waiter.Wait(context.Background(), api.WithLimiter(limiter))
+	result, err := waiter.Wait(context.Background(),
+		api.WithLimiter(limiter),
+		api.WithRetrier(func() api.Retrier {
+			return api.RetryOnCodes(api.BackoffPolicy{
+				Initial: time.Millisecond,
+				Maximum: time.Millisecond,
+			}, codes.ResourceExhausted)
+		}),
+	)
 	if err != nil {
 		t.Fatalf("Wait: %v", err)
 	}
@@ -364,8 +397,8 @@ func TestWait_UserLimiterAppliesToGetTaskCalls(t *testing.T) {
 	if diff := cmp.Diff(wantResult, result); diff != "" {
 		t.Errorf("unexpected result (-want +got):\n%s", diff)
 	}
-	if calls != len(pollResponses) {
-		t.Errorf("expected limiter to be called once per GetTask invocation (%d), got %d", len(pollResponses), calls)
+	if limiterCalls != len(responses) {
+		t.Errorf("expected limiter to fire once per HTTP request (%d), got %d", len(responses), limiterCalls)
 	}
 }
 
