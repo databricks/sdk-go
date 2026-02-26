@@ -16,7 +16,6 @@ import (
 
 const (
 	testTaskName        = "test-task"
-	defaultCreateTaskID = "task-123"
 	successCreateTaskID = "task-456"
 )
 
@@ -46,13 +45,6 @@ func mustMarshalJSON(t *testing.T, v any) []byte {
 
 func mockTaskServer(t *testing.T, createResponse *Task) *httptest.Server {
 	t.Helper()
-
-	if createResponse == nil {
-		createResponse = &Task{
-			TaskId: ptr(defaultCreateTaskID),
-			Status: &TaskStatus{State: ptr(TaskStatePending)},
-		}
-	}
 
 	createPayload := mustMarshalJSON(t, createResponse)
 
