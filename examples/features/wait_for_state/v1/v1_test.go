@@ -39,11 +39,6 @@ func newTestClient(t *testing.T, server *httptest.Server) *Client {
 	return client
 }
 
-type mockTaskServerConfig struct {
-	createResponse *Task
-	pollResponses  []Task
-}
-
 func mustMarshalJSON(t *testing.T, v any) []byte {
 	t.Helper()
 	b, err := json.Marshal(v)
@@ -53,16 +48,10 @@ func mustMarshalJSON(t *testing.T, v any) []byte {
 	return b
 }
 
-func mockTaskServer(t *testing.T, cfg mockTaskServerConfig) *httptest.Server {
+func mockTaskServer(t *testing.T, createResponse *Task) *httptest.Server {
 	t.Helper()
 
-	var pollCount int
-
-	createPayload := mustMarshalJSON(t, cfg.createResponse)
-	pollPayloads := make([][]byte, len(cfg.pollResponses))
-	for i, response := range cfg.pollResponses {
-		pollPayloads[i] = mustMarshalJSON(t, response)
-	}
+	createPayload := mustMarshalJSON(t, createResponse)
 
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -73,6 +62,26 @@ func mockTaskServer(t *testing.T, cfg mockTaskServerConfig) *httptest.Server {
 				return
 			}
 
+		default:
+			http.Error(w, fmt.Sprintf(`{"error":"not found: %s %s"}`, r.Method, r.URL.Path), http.StatusNotFound)
+		}
+	}))
+}
+
+func mockWaitServer(t *testing.T, pollResponses []Task) *httptest.Server {
+	t.Helper()
+
+	var pollCount int
+
+	pollPayloads := make([][]byte, len(pollResponses))
+	for i, response := range pollResponses {
+		pollPayloads[i] = mustMarshalJSON(t, response)
+	}
+
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		switch {
 		case r.Method == http.MethodGet && strings.HasPrefix(r.URL.Path, "/api/2.0/tasks/"):
 			if len(pollPayloads) == 0 {
 				http.Error(w, `{"error":"no poll responses configured"}`, http.StatusInternalServerError)
@@ -106,17 +115,15 @@ func newWaiter(client *Client, taskId string) *CreateTaskWaiter {
 func TestCreateTaskWaiter(t *testing.T) {
 	testCases := []struct {
 		name            string
-		serverCfg       mockTaskServerConfig
+		createResponse  *Task
 		wantRawResponse *Task
 		wantErr         string
 	}{
 		{
 			name: "success",
-			serverCfg: mockTaskServerConfig{
-				createResponse: &Task{
-					TaskId: ptr(successCreateTaskID),
-					Status: &TaskStatus{State: ptr(TaskStatePending)},
-				},
+			createResponse: &Task{
+				TaskId: ptr(successCreateTaskID),
+				Status: &TaskStatus{State: ptr(TaskStatePending)},
 			},
 			wantRawResponse: &Task{
 				TaskId: ptr(successCreateTaskID),
@@ -124,17 +131,15 @@ func TestCreateTaskWaiter(t *testing.T) {
 			},
 		},
 		{
-			name: "nil TaskId in response",
-			serverCfg: mockTaskServerConfig{
-				createResponse: &Task{Status: &TaskStatus{State: ptr(TaskStatePending)}},
-			},
-			wantErr: "nil TaskId in response",
+			name:           "nil TaskId in response",
+			createResponse: &Task{Status: &TaskStatus{State: ptr(TaskStatePending)}},
+			wantErr:        "nil TaskId in response",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			server := mockTaskServer(t, tc.serverCfg)
+			server := mockTaskServer(t, tc.createResponse)
 			defer server.Close()
 
 			client := newTestClient(t, server)
@@ -245,7 +250,7 @@ func TestWait(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			server := mockTaskServer(t, mockTaskServerConfig{pollResponses: tc.pollResponses})
+			server := mockWaitServer(t, tc.pollResponses)
 			defer server.Close()
 
 			client := newTestClient(t, server)
@@ -277,9 +282,9 @@ func TestWait(t *testing.T) {
 // the deadline), the retrier is overridden to drive polling, and the
 // rate limiter is disabled at the poll loop level.
 func TestWait_UserTimeout(t *testing.T) {
-	server := mockTaskServer(t, mockTaskServerConfig{pollResponses: []Task{
+	server := mockWaitServer(t, []Task{
 		{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateRunning)}},
-	}})
+	})
 	defer server.Close()
 
 	waiter := newWaiter(newTestClient(t, server), defaultCreateTaskID)
@@ -310,10 +315,10 @@ func TestWait_UserTimeout(t *testing.T) {
 func TestWait_PollingRetrierOverridesUserRetrier(t *testing.T) {
 	// If WithDisableRetry leaks into the outer polling loop, the first "still
 	// running" response will be treated as a fatal error and the test will fail.
-	server := mockTaskServer(t, mockTaskServerConfig{pollResponses: []Task{
+	server := mockWaitServer(t, []Task{
 		{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateRunning)}},
 		{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateCompleted)}},
-	}})
+	})
 	defer server.Close()
 
 	waiter := newWaiter(newTestClient(t, server), defaultCreateTaskID)
@@ -343,7 +348,7 @@ func TestWait_UserLimiterAppliesToGetTaskCalls(t *testing.T) {
 		{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateRunning)}},
 		{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateCompleted)}},
 	}
-	server := mockTaskServer(t, mockTaskServerConfig{pollResponses: pollResponses})
+	server := mockWaitServer(t, pollResponses)
 	defer server.Close()
 
 	waiter := newWaiter(newTestClient(t, server), defaultCreateTaskID)
@@ -411,7 +416,7 @@ func TestDone(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			server := mockTaskServer(t, mockTaskServerConfig{pollResponses: []Task{tc.pollResponse}})
+			server := mockWaitServer(t, []Task{tc.pollResponse})
 			defer server.Close()
 
 			waiter := newWaiter(newTestClient(t, server), defaultCreateTaskID)
