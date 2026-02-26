@@ -3,6 +3,7 @@ package v1
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -10,7 +11,10 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/databricks/sdk-go/databricks/api"
+	"github.com/databricks/sdk-go/databricks/apierr/codes"
 	"github.com/databricks/sdk-go/databricks/options"
 	"github.com/google/go-cmp/cmp"
 )
@@ -169,6 +173,232 @@ func TestCreateTaskWaiter(t *testing.T) {
 				t.Error("waiter.taskId should reference rawResponse.TaskId")
 			}
 		})
+	}
+}
+
+func TestWait(t *testing.T) {
+	testCases := []struct {
+		name          string
+		pollResponses []Task
+		wantResult    *Task
+		wantErr       string
+	}{
+		{
+			name: "completed after polling",
+			pollResponses: []Task{
+				{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateRunning)}},
+				{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateCompleted)}},
+			},
+			wantResult: &Task{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateCompleted)}},
+		},
+		{
+			name: "completed immediately",
+			pollResponses: []Task{
+				{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateCompleted)}},
+			},
+			wantResult: &Task{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateCompleted)}},
+		},
+		{
+			name: "cancelled",
+			pollResponses: []Task{
+				{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateCancelled)}},
+			},
+			wantResult: &Task{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateCancelled)}},
+		},
+		{
+			name: "failed with message",
+			pollResponses: []Task{
+				{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{
+					State:   ptr(TaskStateFailed),
+					Message: ptr("something went wrong"),
+				}},
+			},
+			wantErr: "terminal state FAILED: something went wrong",
+		},
+		{
+			name: "failed without message",
+			pollResponses: []Task{
+				{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{
+					State: ptr(TaskStateFailed),
+				}},
+			},
+			wantErr: "terminal state FAILED: (no message)",
+		},
+		{
+			name: "internal error",
+			pollResponses: []Task{
+				{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{
+					State: ptr(TaskStateInternalError),
+				}},
+			},
+			wantErr: "terminal state INTERNAL_ERROR: (no message)",
+		},
+		{
+			name: "missing status",
+			pollResponses: []Task{
+				{TaskId: ptr(defaultCreateTaskID)},
+			},
+			wantErr: errMissingStatus.Error(),
+		},
+		{
+			name: "nil state in status",
+			pollResponses: []Task{
+				{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{}},
+			},
+			wantErr: errMissingStatus.Error(),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			server := mockWaitServer(t, tc.pollResponses)
+			defer server.Close()
+
+			client := newTestClient(t, server)
+			waiter := newWaiter(client, defaultCreateTaskID)
+
+			result, err := waiter.Wait(context.Background())
+
+			if err != nil {
+				if tc.wantErr == "" {
+					t.Fatalf("Wait: %v", err)
+				}
+				if got := err.Error(); got != tc.wantErr {
+					t.Errorf("expected error %q, got %q", tc.wantErr, got)
+				}
+				return
+			}
+			if tc.wantErr != "" {
+				t.Fatalf("expected error %q, got nil", tc.wantErr)
+			}
+			if diff := cmp.Diff(tc.wantResult, result); diff != "" {
+				t.Errorf("unexpected result (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+// Option override tests verify the two-level option semantics in Wait:
+// the timeout is stripped from inner GetTask calls (the poll loop owns
+// the deadline), the retrier is overridden to drive polling, and the
+// rate limiter is disabled at the poll loop level.
+func TestWait_UserTimeout(t *testing.T) {
+	server := mockWaitServer(t, []Task{
+		{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateRunning)}},
+	})
+	defer server.Close()
+
+	waiter := newWaiter(newTestClient(t, server), defaultCreateTaskID)
+
+	// The timeout is too tight for the whole polling sequence (backoff sleeps
+	// exceed 50ms) but each individual GetTask call succeeds instantly. This
+	// verifies that WithTimeout bounds the entire Wait, not individual calls.
+	//
+	// A goroutine guards against Wait hanging if WithTimeout is broken.
+	// A context timeout cannot be the safety net because DeadlineExceeded
+	// from WithTimeout vs the parent context is indistinguishable.
+	errCh := make(chan error, 1)
+	go func() {
+		_, err := waiter.Wait(context.Background(), api.WithTimeout(50*time.Millisecond))
+		errCh <- err
+	}()
+
+	select {
+	case err := <-errCh:
+		if !errors.Is(err, context.DeadlineExceeded) {
+			t.Fatalf("expected DeadlineExceeded, got: %v", err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("api.WithTimeout did not fire within 5s")
+	}
+}
+
+func TestWait_PollingRetrierOverridesUserRetrier(t *testing.T) {
+	// If WithDisableRetry leaks into the outer polling loop, the first "still
+	// running" response will be treated as a fatal error and the test will fail.
+	server := mockWaitServer(t, []Task{
+		{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateRunning)}},
+		{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateCompleted)}},
+	})
+	defer server.Close()
+
+	waiter := newWaiter(newTestClient(t, server), defaultCreateTaskID)
+
+	result, err := waiter.Wait(context.Background(), api.WithDisableRetry())
+	if err != nil {
+		t.Fatalf("Wait should succeed despite WithDisableRetry: %v", err)
+	}
+	wantResult := &Task{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateCompleted)}}
+	if diff := cmp.Diff(wantResult, result); diff != "" {
+		t.Errorf("unexpected result (-want +got):\n%s", diff)
+	}
+}
+
+type countingLimiter struct {
+	calls *int
+}
+
+func (l *countingLimiter) Wait(context.Context) error {
+	(*l.calls)++
+	return nil
+}
+
+func TestWait_UserLimiterNotUsedByOuterExecute(t *testing.T) {
+	// A 429 on the first request forces an inner retry, producing 3 HTTP
+	// calls across only 2 outer poll iterations. If the limiter were on the
+	// outer Execute it would only fire twice.
+	var requestCount int
+	responses := []struct {
+		code int
+		body []byte
+	}{
+		{code: http.StatusTooManyRequests},
+		{body: mustMarshalJSON(t, Task{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateRunning)}})},
+		{body: mustMarshalJSON(t, Task{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateCompleted)}})},
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		idx := requestCount
+		requestCount++
+		if idx >= len(responses) {
+			http.Error(w, fmt.Sprintf(`{"error":"unexpected request %d"}`, idx), http.StatusInternalServerError)
+			return
+		}
+		resp := responses[idx]
+		if resp.code != 0 {
+			http.Error(w, `{"error":"rate limit"}`, resp.code)
+			return
+		}
+		if _, err := w.Write(resp.body); err != nil {
+			return
+		}
+	}))
+	defer server.Close()
+
+	waiter := newWaiter(newTestClient(t, server), defaultCreateTaskID)
+
+	var limiterCalls int
+	limiter := &countingLimiter{calls: &limiterCalls}
+
+	result, err := waiter.Wait(context.Background(),
+		api.WithLimiter(limiter),
+		api.WithRetrier(func() api.Retrier {
+			return api.RetryOnCodes(api.BackoffPolicy{
+				Initial: time.Millisecond,
+				Maximum: time.Millisecond,
+			}, codes.ResourceExhausted)
+		}),
+	)
+	if err != nil {
+		t.Fatalf("Wait: %v", err)
+	}
+	wantResult := &Task{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateCompleted)}}
+	if diff := cmp.Diff(wantResult, result); diff != "" {
+		t.Errorf("unexpected result (-want +got):\n%s", diff)
+	}
+	if limiterCalls != len(responses) {
+		t.Errorf("expected limiter to fire once per HTTP request (%d), got %d", len(responses), limiterCalls)
 	}
 }
 

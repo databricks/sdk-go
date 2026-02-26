@@ -113,6 +113,62 @@ type CreateTaskWaiter struct {
 	taskId      *string
 }
 
+// Wait blocks till a success state (TaskStateCompleted, TaskStateCancelled) or a failure state (TaskStateFailed, TaskStateInternalError) is reached.
+func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task, error) {
+	errStillRunning := errors.New("waiting for completion")
+	var result *Task
+
+	// Wait uses two levels of Execute: an outer one for the poll loop, and
+	// an inner one (inside GetTask) for each HTTP call. The user's timeout
+	// applies to the poll loop, not each individual call.
+	pollOpts := append([]api.Option(nil), opts...)
+	pollOpts = append(pollOpts, api.WithTimeout(0))
+
+	call := func(ctx context.Context) error {
+		pollReq := &GetTaskRequest{}
+		pollReq.TaskId = w.taskId
+
+		pollResp, err := w.client.GetTask(ctx, pollReq, pollOpts...)
+		if err != nil {
+			return err
+		}
+
+		if pollResp == nil || pollResp.Status == nil || pollResp.Status.State == nil {
+			return errMissingStatus
+		}
+		state := *pollResp.Status.State
+
+		switch state {
+		case TaskStateCompleted, TaskStateCancelled:
+			result = pollResp
+			return nil
+		case TaskStateFailed, TaskStateInternalError:
+			msg := "(no message)"
+			if pollResp.Status.Message != nil {
+				msg = *pollResp.Status.Message
+			}
+			return fmt.Errorf("terminal state %s: %s", state, msg)
+		default:
+			return errStillRunning
+		}
+	}
+
+	// Rate limiting belongs at the HTTP call level, not the poll loop. The
+	// retrier here determines when to stop polling, rather than when to retry
+	// HTTP errors.
+	waitOpts := append([]api.Option(nil), opts...)
+	waitOpts = append(waitOpts, api.WithLimiter(nil), api.WithRetrier(func() api.Retrier {
+		return api.RetryOn(api.BackoffPolicy{}, func(err error) bool {
+			return errors.Is(err, errStillRunning)
+		})
+	}))
+
+	if err := api.Execute(ctx, call, waitOpts...); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 // Done returns true if a terminal state is reached (success or failure).
 func (w *CreateTaskWaiter) Done(ctx context.Context, opts ...api.Option) (bool, error) {
 	pollReq := &GetTaskRequest{}
