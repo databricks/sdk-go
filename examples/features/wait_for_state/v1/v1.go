@@ -118,11 +118,17 @@ func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task,
 	errStillRunning := errors.New("waiting for completion")
 	var result *Task
 
+	// Wait uses two levels of Execute: an outer one for the poll loop, and
+	// an inner one (inside GetTask) for each HTTP call. The user's timeout
+	// applies to the poll loop, not each individual call.
+	pollOpts := append([]api.Option(nil), opts...)
+	pollOpts = append(pollOpts, api.WithTimeout(0))
+
 	call := func(ctx context.Context) error {
 		pollReq := &GetTaskRequest{}
 		pollReq.TaskId = w.taskId
 
-		pollResp, err := w.client.GetTask(ctx, pollReq, opts...)
+		pollResp, err := w.client.GetTask(ctx, pollReq, pollOpts...)
 		if err != nil {
 			return err
 		}
@@ -147,9 +153,11 @@ func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task,
 		}
 	}
 
-	// Set retrier to control polling behaviour and disable rate limiter as it makes no sense at the polling loop level.
-	// User-set timeout is preserved.
-	waitOpts := append(opts, api.WithLimiter(nil), api.WithRetrier(func() api.Retrier {
+	// Rate limiting belongs at the HTTP call level, not the poll loop. The
+	// retrier here determines when to stop polling, rather than when to retry
+	// HTTP errors.
+	waitOpts := append([]api.Option(nil), opts...)
+	waitOpts = append(waitOpts, api.WithLimiter(nil), api.WithRetrier(func() api.Retrier {
 		return api.RetryOn(api.BackoffPolicy{}, func(err error) bool {
 			return errors.Is(err, errStillRunning)
 		})

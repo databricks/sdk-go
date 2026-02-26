@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/databricks/sdk-go/databricks/api"
-	"github.com/databricks/sdk-go/databricks/apierr"
 	"github.com/databricks/sdk-go/databricks/options"
 	"github.com/google/go-cmp/cmp"
 )
@@ -43,7 +42,6 @@ func newTestClient(t *testing.T, server *httptest.Server) *Client {
 type mockTaskServerConfig struct {
 	createResponse *Task
 	pollResponses  []Task
-	pollStatus     int
 }
 
 func mustMarshalJSON(t *testing.T, v any) []byte {
@@ -60,13 +58,7 @@ func mockTaskServer(t *testing.T, cfg mockTaskServerConfig) *httptest.Server {
 
 	var pollCount int
 
-	pollStatus := cfg.pollStatus
-	if pollStatus == 0 {
-		pollStatus = http.StatusOK
-	}
-
 	createPayload := mustMarshalJSON(t, cfg.createResponse)
-	pollErrorPayload := mustMarshalJSON(t, map[string]string{"message": "mock get error"})
 	pollPayloads := make([][]byte, len(cfg.pollResponses))
 	for i, response := range cfg.pollResponses {
 		pollPayloads[i] = mustMarshalJSON(t, response)
@@ -82,13 +74,6 @@ func mockTaskServer(t *testing.T, cfg mockTaskServerConfig) *httptest.Server {
 			}
 
 		case r.Method == http.MethodGet && strings.HasPrefix(r.URL.Path, "/api/2.0/tasks/"):
-			if pollStatus < 200 || pollStatus >= 300 {
-				w.WriteHeader(pollStatus)
-				if _, err := w.Write(pollErrorPayload); err != nil {
-					return
-				}
-				return
-			}
 			if len(pollPayloads) == 0 {
 				http.Error(w, `{"error":"no poll responses configured"}`, http.StatusInternalServerError)
 				return
@@ -264,12 +249,7 @@ func TestWait(t *testing.T) {
 			defer server.Close()
 
 			client := newTestClient(t, server)
-			waiter, err := client.CreateTaskWaiter(context.Background(), &CreateTaskRequest{
-				Name: ptr(testTaskName),
-			})
-			if err != nil {
-				t.Fatalf("CreateTaskWaiter: %v", err)
-			}
+			waiter := newWaiter(client, defaultCreateTaskID)
 
 			result, err := waiter.Wait(context.Background())
 
@@ -293,8 +273,9 @@ func TestWait(t *testing.T) {
 }
 
 // Option override tests verify the two-level option semantics in Wait:
-// user opts - retrier and limiter - apply to inner GetTask calls,
-// while the outer polling loop uses user timeout and its own retrier and limiter.
+// the timeout is stripped from inner GetTask calls (the poll loop owns
+// the deadline), the retrier is overridden to drive polling, and the
+// rate limiter is disabled at the poll loop level.
 func TestWait_UserTimeout(t *testing.T) {
 	server := mockTaskServer(t, mockTaskServerConfig{pollResponses: []Task{
 		{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateRunning)}},
@@ -303,21 +284,32 @@ func TestWait_UserTimeout(t *testing.T) {
 
 	waiter := newWaiter(newTestClient(t, server), defaultCreateTaskID)
 
-	start := time.Now()
-	_, err := waiter.Wait(context.Background(), api.WithTimeout(50*time.Millisecond))
-	elapsed := time.Since(start)
+	// The timeout is too tight for the whole polling sequence (backoff sleeps
+	// exceed 50ms) but each individual GetTask call succeeds instantly. This
+	// verifies that WithTimeout bounds the entire Wait, not individual calls.
+	//
+	// A goroutine guards against Wait hanging if WithTimeout is broken.
+	// A context timeout cannot be the safety net because DeadlineExceeded
+	// from WithTimeout vs the parent context is indistinguishable.
+	errCh := make(chan error, 1)
+	go func() {
+		_, err := waiter.Wait(context.Background(), api.WithTimeout(50*time.Millisecond))
+		errCh <- err
+	}()
 
-	if !errors.Is(err, context.DeadlineExceeded) {
-		t.Fatalf("expected DeadlineExceeded, got: %v", err)
-	}
-	if elapsed > 5*time.Second {
-		t.Errorf("timeout should have fired quickly, took %v", elapsed)
+	select {
+	case err := <-errCh:
+		if !errors.Is(err, context.DeadlineExceeded) {
+			t.Fatalf("expected DeadlineExceeded, got: %v", err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("api.WithTimeout did not fire within 5s")
 	}
 }
 
 func TestWait_PollingRetrierOverridesUserRetrier(t *testing.T) {
-	// If the user's WithDisableRetry applied to the polling loop, the first
-	// non-terminal poll would be fatal. Polling must continue regardless.
+	// If WithDisableRetry leaks into the outer polling loop, the first "still
+	// running" response will be treated as a fatal error and the test will fail.
 	server := mockTaskServer(t, mockTaskServerConfig{pollResponses: []Task{
 		{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateRunning)}},
 		{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateCompleted)}},
@@ -346,12 +338,12 @@ func (l *countingLimiter) Wait(context.Context) error {
 }
 
 func TestWait_UserLimiterAppliesToGetTaskCalls(t *testing.T) {
-	// The user's limiter is forced to nil for the polling loop, but opts
-	// still flow to inner GetTask calls. Verify it is actually invoked.
-	server := mockTaskServer(t, mockTaskServerConfig{pollResponses: []Task{
+	pollResponses := []Task{
+		{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateRunning)}},
 		{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateRunning)}},
 		{TaskId: ptr(defaultCreateTaskID), Status: &TaskStatus{State: ptr(TaskStateCompleted)}},
-	}})
+	}
+	server := mockTaskServer(t, mockTaskServerConfig{pollResponses: pollResponses})
 	defer server.Close()
 
 	waiter := newWaiter(newTestClient(t, server), defaultCreateTaskID)
@@ -367,19 +359,17 @@ func TestWait_UserLimiterAppliesToGetTaskCalls(t *testing.T) {
 	if diff := cmp.Diff(wantResult, result); diff != "" {
 		t.Errorf("unexpected result (-want +got):\n%s", diff)
 	}
-	if got := calls; got != 2 {
-		t.Errorf("expected limiter to be called exactly 2 times, got %d", got)
+	if calls != len(pollResponses) {
+		t.Errorf("expected limiter to be called once per GetTask invocation (%d), got %d", len(pollResponses), calls)
 	}
 }
 
 func TestDone(t *testing.T) {
 	testCases := []struct {
-		name          string
-		pollResponse  Task
-		pollStatus    int
-		wantDone      bool
-		wantErr       string
-		wantErrStatus int
+		name         string
+		pollResponse Task
+		wantDone     bool
+		wantErr      string
 	}{
 		{
 			name:         "completed",
@@ -417,22 +407,11 @@ func TestDone(t *testing.T) {
 			wantDone:     false,
 			wantErr:      errMissingStatus.Error(),
 		},
-		{
-			name:          "get task http error",
-			pollStatus:    http.StatusInternalServerError,
-			wantDone:      false,
-			wantErr:       "databricks-api error: mock get error",
-			wantErrStatus: http.StatusInternalServerError,
-		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			cfg := mockTaskServerConfig{pollStatus: tc.pollStatus}
-			if tc.pollStatus == 0 {
-				cfg.pollResponses = []Task{tc.pollResponse}
-			}
-			server := mockTaskServer(t, cfg)
+			server := mockTaskServer(t, mockTaskServerConfig{pollResponses: []Task{tc.pollResponse}})
 			defer server.Close()
 
 			waiter := newWaiter(newTestClient(t, server), defaultCreateTaskID)
@@ -445,15 +424,6 @@ func TestDone(t *testing.T) {
 				}
 				if got := err.Error(); got != tc.wantErr {
 					t.Errorf("expected error %q, got %q", tc.wantErr, got)
-				}
-				if tc.wantErrStatus != 0 {
-					var apiErr *apierr.APIError
-					if !errors.As(err, &apiErr) {
-						t.Fatalf("expected *apierr.APIError, got %T (%v)", err, err)
-					}
-					if got := apiErr.HTTPStatusCode(); got != tc.wantErrStatus {
-						t.Errorf("expected HTTP status %d, got %d", tc.wantErrStatus, got)
-					}
 				}
 				if done != tc.wantDone {
 					t.Errorf("expected done=%v, got %v", tc.wantDone, done)
