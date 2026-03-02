@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -15,8 +14,6 @@ import (
 	"github.com/databricks/sdk-go/databricks/options/unstable"
 	"github.com/databricks/sdk-go/databricks/transport"
 )
-
-var errMissingStatus = errors.New("response missing required status field")
 
 type Client struct {
 	httpClient *http.Client
@@ -124,14 +121,12 @@ func (w *CreateTaskWaiter) Done(ctx context.Context, opts ...api.Option) (bool, 
 	}
 
 	if pollResp == nil || pollResp.Status == nil || pollResp.Status.State == nil {
-		return false, errMissingStatus
+		return false, fmt.Errorf("response missing required status field")
 	}
 	state := *pollResp.Status.State
 
 	switch state {
-	case TaskStateCompleted, TaskStateCancelled:
-		return true, nil
-	case TaskStateFailed, TaskStateInternalError:
+	case TaskStateCompleted, TaskStateCancelled, TaskStateFailed, TaskStateInternalError:
 		return true, nil
 	default:
 		return false, nil

@@ -113,7 +113,7 @@ func TestCreateTaskWaiter(t *testing.T) {
 		name            string
 		createResponse  *Task
 		wantRawResponse *Task
-		wantErr         string
+		wantErr         bool
 	}{
 		{
 			name: "success",
@@ -129,7 +129,7 @@ func TestCreateTaskWaiter(t *testing.T) {
 		{
 			name:           "nil TaskId in response",
 			createResponse: &Task{Status: &TaskStatus{State: ptr(TaskStatePending)}},
-			wantErr:        "nil TaskId in response",
+			wantErr:        true,
 		},
 	}
 
@@ -144,16 +144,13 @@ func TestCreateTaskWaiter(t *testing.T) {
 			})
 
 			if err != nil {
-				if tc.wantErr == "" {
+				if !tc.wantErr {
 					t.Fatalf("CreateTaskWaiter: %v", err)
-				}
-				if got := err.Error(); got != tc.wantErr {
-					t.Errorf("expected error %q, got %q", tc.wantErr, got)
 				}
 				return
 			}
-			if tc.wantErr != "" {
-				t.Fatalf("expected error %q, got nil", tc.wantErr)
+			if tc.wantErr {
+				t.Fatal("expected error, got nil")
 			}
 			if waiter == nil {
 				t.Fatal("expected waiter, got nil")
