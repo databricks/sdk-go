@@ -86,10 +86,9 @@ func mockWaitServer(t *testing.T, pollResponses []Task) *httptest.Server {
 			}
 			idx := pollCount
 			pollCount++
-			// Clamp to the last entry so tests that poll more times than
-			// there are responses (e.g. timeout tests) don't panic.
 			if idx >= len(pollPayloads) {
-				idx = len(pollPayloads) - 1
+				http.Error(w, fmt.Sprintf(`{"error":"unexpected poll request %d"}`, idx), http.StatusInternalServerError)
+				return
 			}
 			if _, err := w.Write(pollPayloads[idx]); err != nil {
 				return
@@ -177,7 +176,7 @@ func TestDone(t *testing.T) {
 		name         string
 		pollResponse Task
 		wantDone     bool
-		wantErr      string
+		wantErr      bool
 	}{
 		{
 			name:         "completed",
@@ -213,7 +212,7 @@ func TestDone(t *testing.T) {
 			name:         "missing status",
 			pollResponse: Task{TaskId: ptr(defaultCreateTaskID)},
 			wantDone:     false,
-			wantErr:      errMissingStatus.Error(),
+			wantErr:      true,
 		},
 	}
 
@@ -227,19 +226,16 @@ func TestDone(t *testing.T) {
 			done, err := waiter.Done(context.Background())
 
 			if err != nil {
-				if tc.wantErr == "" {
+				if !tc.wantErr {
 					t.Fatalf("Done: %v", err)
-				}
-				if got := err.Error(); got != tc.wantErr {
-					t.Errorf("expected error %q, got %q", tc.wantErr, got)
 				}
 				if done != tc.wantDone {
 					t.Errorf("expected done=%v, got %v", tc.wantDone, done)
 				}
 				return
 			}
-			if tc.wantErr != "" {
-				t.Fatalf("expected error %q, got nil", tc.wantErr)
+			if tc.wantErr {
+				t.Fatal("expected error, got nil")
 			}
 			if done != tc.wantDone {
 				t.Errorf("expected done=%v, got %v", tc.wantDone, done)

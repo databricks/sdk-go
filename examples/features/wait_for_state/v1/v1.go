@@ -113,7 +113,7 @@ type CreateTaskWaiter struct {
 	taskId      *string
 }
 
-// Done returns true if a terminal state is reached (success or failure).
+// Done reports whether the long-running operation has completed.
 func (w *CreateTaskWaiter) Done(ctx context.Context, opts ...api.Option) (bool, error) {
 	pollReq := &GetTaskRequest{}
 	pollReq.TaskId = w.taskId
