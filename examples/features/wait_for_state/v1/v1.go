@@ -113,7 +113,11 @@ type CreateTaskWaiter struct {
 	taskId      *string
 }
 
-// Wait blocks till a success state (TaskStateCompleted, TaskStateCancelled) or a failure state (TaskStateFailed, TaskStateInternalError) is reached.
+// Wait blocks until the task reaches a terminal state.
+//
+// Success states ([TaskStateCompleted], [TaskStateCancelled]) return the final
+// [Task]. Failure states ([TaskStateFailed], [TaskStateInternalError]) return
+// an error.
 func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task, error) {
 	errStillRunning := errors.New("waiting for completion")
 	var result *Task
@@ -143,6 +147,8 @@ func (w *CreateTaskWaiter) Wait(ctx context.Context, opts ...api.Option) (*Task,
 			result = pollResp
 			return nil
 		case TaskStateFailed, TaskStateInternalError:
+			// TODO: use a typed error so callers can distinguish task failure
+			// from transport errors via errors.As without parsing the message.
 			msg := "(no message)"
 			if pollResp.Status.Message != nil {
 				msg = *pollResp.Status.Message
