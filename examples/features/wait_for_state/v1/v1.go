@@ -138,8 +138,8 @@ func (w *CreateTaskWaiter) Done(ctx context.Context, opts ...api.Option) (bool, 
 	}
 }
 
-// GetTaskId returns the taskId.
-func (w *CreateTaskWaiter) GetTaskId() string {
+// TaskId returns the task ID.
+func (w *CreateTaskWaiter) TaskId() string {
 	return *w.taskId
 }
 
