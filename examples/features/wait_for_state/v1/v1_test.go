@@ -102,9 +102,9 @@ func mockWaitServer(t *testing.T, pollResponses []Task) *httptest.Server {
 
 func newWaiter(client *Client, taskId string) *CreateTaskWaiter {
 	return &CreateTaskWaiter{
-		rawResponse: &Task{TaskId: ptr(taskId)},
+		rawResponse: &Task{TaskId: &taskId},
 		client:      client,
-		taskId:      ptr(taskId),
+		taskId:      taskId,
 	}
 }
 
@@ -161,7 +161,7 @@ func TestCreateTaskWaiter(t *testing.T) {
 			if diff := cmp.Diff(tc.wantRawResponse, waiter.rawResponse); diff != "" {
 				t.Errorf("unexpected rawResponse (-want +got):\n%s", diff)
 			}
-			if waiter.taskId != waiter.rawResponse.TaskId {
+			if waiter.taskId != *waiter.rawResponse.TaskId {
 				t.Error("waiter.taskId should reference rawResponse.TaskId")
 			}
 		})

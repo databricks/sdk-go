@@ -100,20 +100,20 @@ func (c *Client) CreateTaskWaiter(ctx context.Context, req *CreateTaskRequest, o
 	return &CreateTaskWaiter{
 		rawResponse: resp,
 		client:      c,
-		taskId:      resp.TaskId,
+		taskId:      *resp.TaskId,
 	}, nil
 }
 
 type CreateTaskWaiter struct {
 	rawResponse *Task
 	client      *Client
-	taskId      *string
+	taskId      string
 }
 
 // Done reports whether the long-running operation has completed.
 func (w *CreateTaskWaiter) Done(ctx context.Context, opts ...api.Option) (bool, error) {
 	pollReq := &GetTaskRequest{}
-	pollReq.TaskId = w.taskId
+	pollReq.TaskId = &w.taskId
 
 	pollResp, err := w.client.GetTask(ctx, pollReq, opts...)
 	if err != nil {
@@ -135,7 +135,7 @@ func (w *CreateTaskWaiter) Done(ctx context.Context, opts ...api.Option) (bool, 
 
 // TaskId returns the task ID.
 func (w *CreateTaskWaiter) TaskId() string {
-	return *w.taskId
+	return w.taskId
 }
 
 // Get the current state of a task.
