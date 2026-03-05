@@ -10,14 +10,6 @@ import (
 	"time"
 )
 
-// withTimeNow returns an Option that sets the time source used by the cached
-// token source. This is intended for testing purposes only.
-func withTimeNow(f func() time.Time) Option {
-	return func(cts *cachedTokenProvider) {
-		cts.timeNow = f
-	}
-}
-
 func TestNewCachedTokenProvider_noCaching(t *testing.T) {
 	want := &cachedTokenProvider{}
 	got := NewCachedTokenProvider(want, nil)
