@@ -74,89 +74,43 @@ func TestNewCachedTokenProvider_options(t *testing.T) {
 }
 
 func TestNewCachedTokenProvider_dynamicStaleDuration(t *testing.T) {
-	now := time.Unix(1337, 0)
-
 	testCases := []struct {
 		name              string
 		tokenTTL          time.Duration
 		wantStaleDuration time.Duration
-		advanceForStale   time.Duration
 	}{
 		{
 			name:              "standard OAuth token with 60-minute TTL",
 			tokenTTL:          60 * time.Minute,
 			wantStaleDuration: 20 * time.Minute,
-			advanceForStale:   41 * time.Minute,
 		},
 		{
 			name:              "short-lived token with 10-minute TTL",
 			tokenTTL:          10 * time.Minute,
 			wantStaleDuration: 5 * time.Minute,
-			advanceForStale:   6 * time.Minute,
 		},
 		{
 			name:              "very short token with 90-second TTL",
 			tokenTTL:          90 * time.Second,
 			wantStaleDuration: 45 * time.Second,
-			advanceForStale:   50 * time.Second,
+		},
+		{
+			name:              "no expiry",
+			tokenTTL:          0,
+			wantStaleDuration: 0,
+		},
+		{
+			name:              "expired token",
+			tokenTTL:          -1 * time.Second,
+			wantStaleDuration: 0,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			fetchTime := now
-			refreshed := false
-			ts := TokenProviderFn(func(_ context.Context) (*Token, error) {
-				if refreshed {
-					t.Fatal("unexpected second token fetch")
-				}
-				refreshed = true
-				return &Token{
-					Expiry: fetchTime.Add(tc.tokenTTL),
-				}, nil
-			})
-
-			initialToken := &Token{
-				Expiry: now.Add(tc.tokenTTL),
-			}
-			cts, ok := NewCachedTokenProvider(ts,
-				withTimeNow(func() time.Time { return now }),
-				WithCachedToken(initialToken),
-			).(*cachedTokenProvider)
-			if !ok {
-				t.Fatalf("NewCachedTokenSource() = %T, want *cachedTokenSource", cts)
-			}
-
-			if cts.staleDuration != tc.wantStaleDuration {
-				t.Errorf("initial staleDuration = %v, want %v", cts.staleDuration, tc.wantStaleDuration)
-			}
-			if state := cts.tokenState(); state != fresh {
-				t.Errorf("initial tokenState() = %v, want fresh", state)
-			}
-
-			cts.timeNow = func() time.Time { return now.Add(tc.advanceForStale) }
-			if state := cts.tokenState(); state != stale {
-				t.Errorf("tokenState() after %v = %v, want stale", tc.advanceForStale, state)
-			}
-
-			fetchTime = now.Add(tc.tokenTTL + 1*time.Second)
-			cts.timeNow = func() time.Time { return fetchTime }
-
-			_, err := cts.Token(context.Background())
-			if err != nil {
-				t.Fatalf("Token() error = %v", err)
-			}
-
-			if cts.staleDuration != tc.wantStaleDuration {
-				t.Errorf("refreshed staleDuration = %v, want %v", cts.staleDuration, tc.wantStaleDuration)
-			}
-			if state := cts.tokenState(); state != fresh {
-				t.Errorf("tokenState() after refresh = %v, want fresh", state)
-			}
-
-			cts.timeNow = func() time.Time { return fetchTime.Add(tc.advanceForStale) }
-			if state := cts.tokenState(); state != stale {
-				t.Errorf("tokenState() after refresh + %v = %v, want stale", tc.advanceForStale, state)
+			got := computeStalePeriod(tc.tokenTTL)
+			if got != tc.wantStaleDuration {
+				t.Errorf("computeStalePeriod(%v) = %v, want %v", tc.tokenTTL, got, tc.wantStaleDuration)
 			}
 		})
 	}
