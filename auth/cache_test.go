@@ -65,7 +65,7 @@ func TestNewCachedTokenProvider_options(t *testing.T) {
 	}
 }
 
-func TestNewCachedTokenProvider_dynamicStaleDuration(t *testing.T) {
+func TestComputeStalePeriod(t *testing.T) {
 	testCases := []struct {
 		name              string
 		tokenTTL          time.Duration
@@ -87,6 +87,7 @@ func TestNewCachedTokenProvider_dynamicStaleDuration(t *testing.T) {
 			wantStaleDuration: 45 * time.Second,
 		},
 		{
+			// zero TTL means that the token is permanently valid.
 			name:              "no expiry",
 			tokenTTL:          0,
 			wantStaleDuration: 0,
