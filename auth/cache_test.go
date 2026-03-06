@@ -28,8 +28,8 @@ func TestNewCachedTokenProvider_default(t *testing.T) {
 		t.Fatalf("NewCachedTokenProvider() = %T, want *cachedTokenProvider", got)
 	}
 
-	if got.staleDuration != defaultStaleDuration {
-		t.Errorf("NewCachedTokenProvider() staleDuration = %v, want %v", got.staleDuration, defaultStaleDuration)
+	if got.staleDuration != maxStaleDuration {
+		t.Errorf("NewCachedTokenProvider() staleDuration = %v, want %v", got.staleDuration, maxStaleDuration)
 	}
 	if got.disableAsync != false {
 		t.Errorf("NewCachedTokenProvider() disableAsync = %v, want %v", got.disableAsync, false)
@@ -62,6 +62,50 @@ func TestNewCachedTokenProvider_options(t *testing.T) {
 	}
 	if got.cachedToken != wantCachedToken {
 		t.Errorf("NewCachedTokenProvider(): cachedToken = %v, want %v", got.cachedToken, wantCachedToken)
+	}
+}
+
+func TestComputeStalePeriod(t *testing.T) {
+	testCases := []struct {
+		name              string
+		tokenTTL          time.Duration
+		wantStaleDuration time.Duration
+	}{
+		{
+			name:              "standard OAuth token with 60-minute TTL",
+			tokenTTL:          60 * time.Minute,
+			wantStaleDuration: 20 * time.Minute,
+		},
+		{
+			name:              "short-lived token with 10-minute TTL",
+			tokenTTL:          10 * time.Minute,
+			wantStaleDuration: 5 * time.Minute,
+		},
+		{
+			name:              "very short token with 90-second TTL",
+			tokenTTL:          90 * time.Second,
+			wantStaleDuration: 45 * time.Second,
+		},
+		{
+			// zero TTL means that the token is permanently valid.
+			name:              "no expiry",
+			tokenTTL:          0,
+			wantStaleDuration: 0,
+		},
+		{
+			name:              "expired token",
+			tokenTTL:          -1 * time.Second,
+			wantStaleDuration: 0,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := computeStalePeriod(tc.tokenTTL)
+			if got != tc.wantStaleDuration {
+				t.Errorf("computeStalePeriod(%v) = %v, want %v", tc.tokenTTL, got, tc.wantStaleDuration)
+			}
+		})
 	}
 }
 
