@@ -3,3 +3,11 @@
 !.codegen.json
 !.gitignore
 !.github
+!.agent
+!.cursor
+!.cursorrules
+
+# Claude Code: track commands and settings, ignore local sessions.
+!.claude
+.claude/settings.local.json
+.claude/projects
