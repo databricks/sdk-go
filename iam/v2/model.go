@@ -1,24 +1,10 @@
 package v2
 
-type AccessType string
-
-const (
-	AccessTypeAccessTypeUnspecified AccessType = "ACCESS_TYPE_UNSPECIFIED"
-	AccessTypeDirect                AccessType = "DIRECT"
-	AccessTypeIndirect              AccessType = "INDIRECT"
-)
-
-// String representation for [fmt.Print].
-func (f *AccessType) String() string {
-	return string(*f)
-}
-
 type AccountAccessRuleAction string
 
 const (
-	AccountAccessRuleActionAccountAccessRuleActionUnspecified AccountAccessRuleAction = "ACCOUNT_ACCESS_RULE_ACTION_UNSPECIFIED"
-	AccountAccessRuleActionAllow                              AccountAccessRuleAction = "ALLOW"
-	AccountAccessRuleActionDeny                               AccountAccessRuleAction = "DENY"
+	AccountAccessRuleAction_AccountAccessRuleActionUnspecified AccountAccessRuleAction = "ACCOUNT_ACCESS_RULE_ACTION_UNSPECIFIED"
+	AccountAccessRuleAction_Deny                               AccountAccessRuleAction = "DENY"
 )
 
 // String representation for [fmt.Print].
@@ -26,13 +12,26 @@ func (f *AccountAccessRuleAction) String() string {
 	return string(*f)
 }
 
+type GroupMembershipSource string
+
+const (
+	GroupMembershipSource_GroupMembershipSourceUnspecified GroupMembershipSource = "GROUP_MEMBERSHIP_SOURCE_UNSPECIFIED"
+	GroupMembershipSource_Internal                         GroupMembershipSource = "INTERNAL"
+	GroupMembershipSource_IdentityProvider                 GroupMembershipSource = "IDENTITY_PROVIDER"
+)
+
+// String representation for [fmt.Print].
+func (f *GroupMembershipSource) String() string {
+	return string(*f)
+}
+
 type PrincipalType string
 
 const (
-	PrincipalTypePrincipalTypeUnspecified PrincipalType = "PRINCIPAL_TYPE_UNSPECIFIED"
-	PrincipalTypeUser                     PrincipalType = "USER"
-	PrincipalTypeServicePrincipal         PrincipalType = "SERVICE_PRINCIPAL"
-	PrincipalTypeGroup                    PrincipalType = "GROUP"
+	PrincipalType_PrincipalTypeUnspecified PrincipalType = "PRINCIPAL_TYPE_UNSPECIFIED"
+	PrincipalType_User                     PrincipalType = "USER"
+	PrincipalType_ServicePrincipal         PrincipalType = "SERVICE_PRINCIPAL"
+	PrincipalType_Group                    PrincipalType = "GROUP"
 )
 
 // String representation for [fmt.Print].
@@ -43,9 +42,9 @@ func (f *PrincipalType) String() string {
 type State string
 
 const (
-	StateStateUnspecified State = "STATE_UNSPECIFIED"
-	StateActive           State = "ACTIVE"
-	StateInactive         State = "INACTIVE"
+	State_StateUnspecified State = "STATE_UNSPECIFIED"
+	State_Active           State = "ACTIVE"
+	State_Inactive         State = "INACTIVE"
 )
 
 // String representation for [fmt.Print].
@@ -56,9 +55,9 @@ func (f *State) String() string {
 type WorkspaceAccessDetailView string
 
 const (
-	WorkspaceAccessDetailViewWorkspaceAccessDetailViewUnspecified WorkspaceAccessDetailView = "WORKSPACE_ACCESS_DETAIL_VIEW_UNSPECIFIED"
-	WorkspaceAccessDetailViewBasic                                WorkspaceAccessDetailView = "BASIC"
-	WorkspaceAccessDetailViewFull                                 WorkspaceAccessDetailView = "FULL"
+	WorkspaceAccessDetailView_WorkspaceAccessDetailViewUnspecified WorkspaceAccessDetailView = "WORKSPACE_ACCESS_DETAIL_VIEW_UNSPECIFIED"
+	WorkspaceAccessDetailView_Basic                                WorkspaceAccessDetailView = "BASIC"
+	WorkspaceAccessDetailView_Full                                 WorkspaceAccessDetailView = "FULL"
 )
 
 // String representation for [fmt.Print].
@@ -69,13 +68,26 @@ func (f *WorkspaceAccessDetailView) String() string {
 type WorkspacePermission string
 
 const (
-	WorkspacePermissionWorkspacePermissionUnspecified WorkspacePermission = "WORKSPACE_PERMISSION_UNSPECIFIED"
-	WorkspacePermissionUserPermission                 WorkspacePermission = "USER_PERMISSION"
-	WorkspacePermissionAdminPermission                WorkspacePermission = "ADMIN_PERMISSION"
+	WorkspacePermission_WorkspacePermissionUnspecified WorkspacePermission = "WORKSPACE_PERMISSION_UNSPECIFIED"
+	WorkspacePermission_UserPermission                 WorkspacePermission = "USER_PERMISSION"
+	WorkspacePermission_AdminPermission                WorkspacePermission = "ADMIN_PERMISSION"
 )
 
 // String representation for [fmt.Print].
 func (f *WorkspacePermission) String() string {
+	return string(*f)
+}
+
+type WorkspaceAccessDetail_AccessType string
+
+const (
+	WorkspaceAccessDetail_AccessType_AccessTypeUnspecified WorkspaceAccessDetail_AccessType = "ACCESS_TYPE_UNSPECIFIED"
+	WorkspaceAccessDetail_AccessType_Direct                WorkspaceAccessDetail_AccessType = "DIRECT"
+	WorkspaceAccessDetail_AccessType_Indirect              WorkspaceAccessDetail_AccessType = "INDIRECT"
+)
+
+// String representation for [fmt.Print].
+func (f *WorkspaceAccessDetail_AccessType) String() string {
 	return string(*f)
 }
 
@@ -91,6 +103,21 @@ type AccountAccessIdentityRule struct {
 type CreateAccountAccessIdentityRuleRequest struct {
 	AccountId                 *string                    `json:"account_id"`
 	AccountAccessIdentityRule *AccountAccessIdentityRule `json:"account_access_identity_rule"`
+}
+
+// Request message for creating a group membership (assigning a principal to a
+// group)..
+type CreateGroupMembershipProxyRequest struct {
+	GroupId         *int64           `json:"group_id"`
+	GroupMembership *GroupMembership `json:"group_membership"`
+}
+
+// Request message for creating a group membership (assigning a principal to a
+// group)..
+type CreateGroupMembershipRequest struct {
+	AccountId       *string          `json:"account_id"`
+	GroupId         *int64           `json:"group_id"`
+	GroupMembership *GroupMembership `json:"group_membership"`
 }
 
 // TODO: Write description later when this method is implemented.
@@ -115,33 +142,56 @@ type CreateServicePrincipalRequest struct {
 	ServicePrincipal *ServicePrincipal `json:"service_principal"`
 }
 
-// TODO: Write description later when this method is implemented.
+// Creates a user in Databricks and provisions it at the account level. Behavior
+// depends on whether Account Identity Management (AIM) is enabled: - When AIM
+// is enabled: The user is provisioned with an internalId. If an externalId is
+// provided, the identity provider is treated as the source of truth for user
+// metadata, and customer-supplied field values may be overridden. - When AIM is
+// disabled: The user is provisioned with an internalId only, and
+// customer-supplied metadata is used as-is..
 type CreateUserProxyRequest struct {
 	User *User `json:"user"`
 }
 
-// TODO: Write description later when this method is implemented.
+// Creates a user in Databricks and provisions it at the account level. Behavior
+// depends on whether Account Identity Management (AIM) is enabled: - When AIM
+// is enabled: The user is provisioned with an internalId. If an externalId is
+// provided, the identity provider is treated as the source of truth for user
+// metadata, and customer-supplied field values may be overridden. - When AIM is
+// disabled: The user is provisioned with an internalId only, and
+// customer-supplied metadata is used as-is..
 type CreateUserRequest struct {
 	AccountId *string `json:"account_id"`
 	User      *User   `json:"user"`
 }
 
-// TODO: Write description later when this method is implemented.
-type CreateWorkspaceAccessDetailLocalRequest struct {
-	WorkspaceAccessDetail *WorkspaceAccessDetail `json:"workspace_access_detail"`
-}
-
-// TODO: Write description later when this method is implemented.
-type CreateWorkspaceAccessDetailRequest struct {
-	AccountId             *string                `json:"account_id"`
-	Parent                *string                `json:"parent"`
-	WorkspaceAccessDetail *WorkspaceAccessDetail `json:"workspace_access_detail"`
+// Assign an identity directly to a workspace with the specified permissions and
+// workspace-level status..
+type CreateWorkspaceAssignmentDetailRequest struct {
+	AccountId                 *string                    `json:"account_id"`
+	WorkspaceId               *int64                     `json:"workspace_id"`
+	WorkspaceAssignmentDetail *WorkspaceAssignmentDetail `json:"workspace_assignment_detail"`
 }
 
 // Request message for deleting an account access identity rule..
 type DeleteAccountAccessIdentityRuleRequest struct {
 	AccountId  *string `json:"account_id"`
 	ExternalId *string `json:"external_id"`
+}
+
+// Request message for deleting a group membership (unassigning a principal from
+// a group)..
+type DeleteGroupMembershipProxyRequest struct {
+	GroupId     *int64 `json:"group_id"`
+	PrincipalId *int64 `json:"principal_id"`
+}
+
+// Request message for deleting a group membership (unassigning a principal from
+// a group)..
+type DeleteGroupMembershipRequest struct {
+	AccountId   *string `json:"account_id"`
+	GroupId     *int64  `json:"group_id"`
+	PrincipalId *int64  `json:"principal_id"`
 }
 
 // TODO: Write description later when this method is implemented.
@@ -177,16 +227,22 @@ type DeleteUserRequest struct {
 	InternalId *int64  `json:"internal_id"`
 }
 
-// TODO: Write description later when this method is implemented.
-type DeleteWorkspaceAccessDetailLocalRequest struct {
-	PrincipalId *int64 `json:"principal_id"`
-}
-
-// TODO: Write description later when this method is implemented.
-type DeleteWorkspaceAccessDetailRequest struct {
+// If the identity is directly assigned to the workspace, remove its assignment
+// from the workspace.
+type DeleteWorkspaceAssignmentDetailRequest struct {
 	AccountId   *string `json:"account_id"`
 	WorkspaceId *int64  `json:"workspace_id"`
 	PrincipalId *int64  `json:"principal_id"`
+}
+
+// Represents a principal that is a direct member of a group, with its source of
+// membership..
+type DirectGroupMember struct {
+	PrincipalId      *int64                 `json:"principal_id"`
+	PrincipalType    *PrincipalType         `json:"principal_type"`
+	MembershipSource *GroupMembershipSource `json:"membership_source"`
+	DisplayName      *string                `json:"display_name"`
+	ExternalId       *string                `json:"external_id"`
 }
 
 // Request message for getting an account access identity rule..
@@ -217,12 +273,28 @@ type GetServicePrincipalRequest struct {
 	InternalId *int64  `json:"internal_id"`
 }
 
-// TODO: Write description later when this method is implemented.
+// Creates a user in Databricks and returns the resulting User resource.
+// Readability of the created user depends on Account Identity Management (AIM)
+// and the configured Boundary Enforcement mode: - When AIM is enabled and
+// Boundary Enforcement is set to RULES_ONLY: - MVP: Any user with an internalId
+// is readable, including users with an externalId populated. - Phase 2:
+// Behavior to be defined. - When AIM is enabled and Boundary Enforcement is set
+// to ALLOW_ALL: - Any user with an internalId is readable, including users with
+// an externalId populated. - When AIM is disabled: - Returns the User resource
+// corresponding to the given internalId..
 type GetUserProxyRequest struct {
 	InternalId *int64 `json:"internal_id"`
 }
 
-// TODO: Write description later when this method is implemented.
+// Creates a user in Databricks and returns the resulting User resource.
+// Readability of the created user depends on Account Identity Management (AIM)
+// and the configured Boundary Enforcement mode: - When AIM is enabled and
+// Boundary Enforcement is set to RULES_ONLY: - MVP: Any user with an internalId
+// is readable, including users with an externalId populated. - Phase 2:
+// Behavior to be defined. - When AIM is enabled and Boundary Enforcement is set
+// to ALLOW_ALL: - Any user with an internalId is readable, including users with
+// an externalId populated. - When AIM is disabled: - Returns the User resource
+// corresponding to the given internalId..
 type GetUserRequest struct {
 	AccountId  *string `json:"account_id"`
 	InternalId *int64  `json:"internal_id"`
@@ -244,12 +316,28 @@ type GetWorkspaceAccessDetailRequest struct {
 	View        *WorkspaceAccessDetailView `json:"view"`
 }
 
+// Get the workspace assignment details of a principal that is provisioned in
+// the account and directly assigned to a workspace.
+type GetWorkspaceAssignmentDetailRequest struct {
+	AccountId   *string `json:"account_id"`
+	WorkspaceId *int64  `json:"workspace_id"`
+	PrincipalId *int64  `json:"principal_id"`
+}
+
 // The details of a Group resource..
 type Group struct {
 	AccountId  *string `json:"account_id"`
 	InternalId *int64  `json:"internal_id"`
 	ExternalId *string `json:"external_id"`
 	GroupName  *string `json:"group_name"`
+}
+
+// Represents membership of a principal (group/user/service principal) in a
+// group..
+type GroupMembership struct {
+	AccountId   *string `json:"account_id"`
+	GroupId     *int64  `json:"group_id"`
+	PrincipalId *int64  `json:"principal_id"`
 }
 
 // Request message for listing account access identity rules..
@@ -264,6 +352,27 @@ type ListAccountAccessIdentityRulesRequest struct {
 type ListAccountAccessIdentityRulesResponse struct {
 	AccountAccessIdentityRules []AccountAccessIdentityRule `json:"account_access_identity_rules"`
 	NextPageToken              *string                     `json:"next_page_token"`
+}
+
+// Request message for listing provisioned direct group members..
+type ListDirectGroupMembersProxyRequest struct {
+	GroupId   *int64  `json:"group_id"`
+	PageSize  *int    `json:"page_size"`
+	PageToken *string `json:"page_token"`
+}
+
+// Request message for listing provisioned direct group members..
+type ListDirectGroupMembersRequest struct {
+	AccountId *string `json:"account_id"`
+	GroupId   *int64  `json:"group_id"`
+	PageSize  *int    `json:"page_size"`
+	PageToken *string `json:"page_token"`
+}
+
+// Response message for listing direct group members..
+type ListDirectGroupMembersResponse struct {
+	DirectGroupMembers []DirectGroupMember `json:"direct_group_members"`
+	NextPageToken      *string             `json:"next_page_token"`
 }
 
 // TODO: Write description later when this method is implemented.
@@ -308,14 +417,55 @@ type ListServicePrincipalsResponse struct {
 	NextPageToken     *string            `json:"next_page_token"`
 }
 
-// TODO: Write description later when this method is implemented.
+// Request message for listing all transitive parent groups of a principal..
+type ListTransitiveParentGroupsProxyRequest struct {
+	PrincipalId *int64  `json:"principal_id"`
+	PageSize    *int    `json:"page_size"`
+	PageToken   *string `json:"page_token"`
+}
+
+// Request message for listing all transitive parent groups of a principal..
+type ListTransitiveParentGroupsRequest struct {
+	AccountId   *string `json:"account_id"`
+	PrincipalId *int64  `json:"principal_id"`
+	PageSize    *int    `json:"page_size"`
+	PageToken   *string `json:"page_token"`
+}
+
+// Response message for listing all transitive parent groups of a principal..
+type ListTransitiveParentGroupsResponse struct {
+	TransitiveParentGroups []TransitiveParentGroup `json:"transitive_parent_groups"`
+	NextPageToken          *string                 `json:"next_page_token"`
+}
+
+// Returns a paginated list of account-level users. Behavior depends on whether
+// Account Identity Management (AIM) is enabled: - When AIM is enabled: - The
+// "externalId eq" filter only evaluates provisioned Databricks users that have
+// an internalId. - The "username eq" filter only evaluates provisioned
+// Databricks users that have an internalId. - Listing without filters returns
+// all provisioned Databricks users. - AIM Boundary Enforcement Phase 2:
+// Behavior to be defined. - When AIM is disabled: - The "externalId eq" filter
+// only evaluates provisioned Databricks users that have an internalId. - The
+// "username eq" filter only evaluates provisioned Databricks users that have an
+// internalId. - Listing without filters returns all provisioned Databricks
+// users..
 type ListUsersProxyRequest struct {
 	PageSize  *int    `json:"page_size"`
 	PageToken *string `json:"page_token"`
 	Filter    *string `json:"filter"`
 }
 
-// TODO: Write description later when this method is implemented.
+// Returns a paginated list of account-level users. Behavior depends on whether
+// Account Identity Management (AIM) is enabled: - When AIM is enabled: - The
+// "externalId eq" filter only evaluates provisioned Databricks users that have
+// an internalId. - The "username eq" filter only evaluates provisioned
+// Databricks users that have an internalId. - Listing without filters returns
+// all provisioned Databricks users. - AIM Boundary Enforcement Phase 2:
+// Behavior to be defined. - When AIM is disabled: - The "externalId eq" filter
+// only evaluates provisioned Databricks users that have an internalId. - The
+// "username eq" filter only evaluates provisioned Databricks users that have an
+// internalId. - Listing without filters returns all provisioned Databricks
+// users..
 type ListUsersRequest struct {
 	AccountId *string `json:"account_id"`
 	PageSize  *int    `json:"page_size"`
@@ -323,7 +473,6 @@ type ListUsersRequest struct {
 	Filter    *string `json:"filter"`
 }
 
-// TODO: Write description later when this method is implemented.
 type ListUsersResponse struct {
 	Users         []User  `json:"users"`
 	NextPageToken *string `json:"next_page_token"`
@@ -349,7 +498,65 @@ type ListWorkspaceAccessDetailsResponse struct {
 	NextPageToken          *string                 `json:"next_page_token"`
 }
 
-type Name struct {
+// Returns a paginated list of direct assignments to the workspace..
+type ListWorkspaceAssignmentDetailsRequest struct {
+	AccountId   *string `json:"account_id"`
+	WorkspaceId *int64  `json:"workspace_id"`
+	PageSize    *int    `json:"page_size"`
+	PageToken   *string `json:"page_token"`
+}
+
+// Response message for listing workspace assignment details..
+type ListWorkspaceAssignmentDetailsResponse struct {
+	WorkspaceAssignmentDetails []WorkspaceAssignmentDetail `json:"workspace_assignment_details"`
+	NextPageToken              *string                     `json:"next_page_token"`
+}
+
+// Request message for matching a group against the IDP. This will perform a
+// sync by group_id before performing analysis to update local data which is
+// safe to fix..
+type MatchGroupWithIdpRequest struct {
+	AccountId *string `json:"account_id"`
+	GroupId   *int64  `json:"group_id"`
+}
+
+// Response message for matching a group against the IDP..
+type MatchGroupWithIdpResponse struct {
+	DatabricksGroup         *Group              `json:"databricks_group"`
+	IdpMatchesByGroupName   []Group             `json:"idp_matches_by_group_name"`
+	IdpMatchByExternalId    *Group              `json:"idp_match_by_external_id"`
+	LocalMembersNotInIdp    []DirectGroupMember `json:"local_members_not_in_idp"`
+	ExternalMembersNotInIdp []DirectGroupMember `json:"external_members_not_in_idp"`
+}
+
+// Request message for matching a service principal against the IDP. This will
+// perform a sync by service_principal_id before performing analysis to update
+// local data which is safe to fix..
+type MatchServicePrincipalWithIdpRequest struct {
+	AccountId          *string `json:"account_id"`
+	ServicePrincipalId *int64  `json:"service_principal_id"`
+}
+
+// Response message for matching a service principal against the IDP..
+type MatchServicePrincipalWithIdpResponse struct {
+	DatabricksServicePrincipal *ServicePrincipal `json:"databricks_service_principal"`
+	IdpMatchByAppId            *ServicePrincipal `json:"idp_match_by_app_id"`
+	IdpMatchByExternalId       *ServicePrincipal `json:"idp_match_by_external_id"`
+}
+
+// Request message for matching a user against the IDP. This will perform a sync
+// by user_id before performing analysis to update local data which is safe to
+// fix..
+type MatchUserWithIdpRequest struct {
+	AccountId *string `json:"account_id"`
+	UserId    *int64  `json:"user_id"`
+}
+
+// Response message for matching a user against the IDP..
+type MatchUserWithIdpResponse struct {
+	DatabricksUser       *User `json:"databricks_user"`
+	IdpMatchByUsername   *User `json:"idp_match_by_username"`
+	IdpMatchByExternalId *User `json:"idp_match_by_external_id"`
 }
 
 // Request message for resolving a group with the given external ID from the
@@ -419,6 +626,13 @@ type ServicePrincipal struct {
 	AccountSpStatus *State  `json:"account_sp_status"`
 }
 
+// Represents a group that is a transitive parent of a principal..
+type TransitiveParentGroup struct {
+	AccountId  *string `json:"account_id"`
+	InternalId *int64  `json:"internal_id"`
+	ExternalId *string `json:"external_id"`
+}
+
 // TODO: Write description later when this method is implemented.
 type UpdateGroupProxyRequest struct {
 	InternalId *int64  `json:"internal_id"`
@@ -449,14 +663,20 @@ type UpdateServicePrincipalRequest struct {
 	UpdateMask       *string           `json:"update_mask"`
 }
 
-// TODO: Write description later when this method is implemented.
+// Updates an existing user in Databricks. The behavior is consistent regardless
+// of whether Account Identity Management (AIM) is enabled or disabled. The
+// following fields are updatable: - name.familyName - name.givenName - status -
+// externalId.
 type UpdateUserProxyRequest struct {
 	InternalId *int64  `json:"internal_id"`
 	User       *User   `json:"user"`
 	UpdateMask *string `json:"update_mask"`
 }
 
-// TODO: Write description later when this method is implemented.
+// Updates an existing user in Databricks. The behavior is consistent regardless
+// of whether Account Identity Management (AIM) is enabled or disabled. The
+// following fields are updatable: - name.familyName - name.givenName - status -
+// externalId.
 type UpdateUserRequest struct {
 	AccountId  *string `json:"account_id"`
 	InternalId *int64  `json:"internal_id"`
@@ -464,39 +684,45 @@ type UpdateUserRequest struct {
 	UpdateMask *string `json:"update_mask"`
 }
 
-// TODO: Write description later when this method is implemented.
-type UpdateWorkspaceAccessDetailLocalRequest struct {
-	PrincipalId           *int64                 `json:"principal_id"`
-	WorkspaceAccessDetail *WorkspaceAccessDetail `json:"workspace_access_detail"`
-	UpdateMask            *string                `json:"update_mask"`
-}
-
-// TODO: Write description later when this method is implemented.
-type UpdateWorkspaceAccessDetailRequest struct {
-	AccountId             *string                `json:"account_id"`
-	WorkspaceId           *int64                 `json:"workspace_id"`
-	PrincipalId           *int64                 `json:"principal_id"`
-	WorkspaceAccessDetail *WorkspaceAccessDetail `json:"workspace_access_detail"`
-	UpdateMask            *string                `json:"update_mask"`
+// TBD since the only updatable field is permissions.
+type UpdateWorkspaceAssignmentDetailRequest struct {
+	AccountId                 *string                    `json:"account_id"`
+	WorkspaceId               *int64                     `json:"workspace_id"`
+	PrincipalId               *int64                     `json:"principal_id"`
+	WorkspaceAssignmentDetail *WorkspaceAssignmentDetail `json:"workspace_assignment_detail"`
+	UpdateMask                *string                    `json:"update_mask"`
 }
 
 // The details of a User resource..
 type User struct {
-	AccountId         *string `json:"account_id"`
-	InternalId        *int64  `json:"internal_id"`
-	ExternalId        *string `json:"external_id"`
-	Username          *string `json:"username"`
-	Name              *Name   `json:"name"`
-	AccountUserStatus *State  `json:"account_user_status"`
+	AccountId         *string    `json:"account_id"`
+	InternalId        *int64     `json:"internal_id"`
+	ExternalId        *string    `json:"external_id"`
+	Username          *string    `json:"username"`
+	Name              *User_Name `json:"name"`
+	AccountUserStatus *State     `json:"account_user_status"`
+}
+
+type User_Name struct {
+	GivenName  *string `json:"given_name"`
+	FamilyName *string `json:"family_name"`
 }
 
 // The details of a principal's access to a workspace..
 type WorkspaceAccessDetail struct {
-	PrincipalId   *int64                `json:"principal_id"`
-	WorkspaceId   *int64                `json:"workspace_id"`
-	AccountId     *string               `json:"account_id"`
-	PrincipalType *PrincipalType        `json:"principal_type"`
-	AccessType    *AccessType           `json:"access_type"`
-	Status        *State                `json:"status"`
-	Permissions   []WorkspacePermission `json:"permissions"`
+	PrincipalId   *int64                            `json:"principal_id"`
+	WorkspaceId   *int64                            `json:"workspace_id"`
+	AccountId     *string                           `json:"account_id"`
+	PrincipalType *PrincipalType                    `json:"principal_type"`
+	AccessType    *WorkspaceAccessDetail_AccessType `json:"access_type"`
+	Status        *State                            `json:"status"`
+	Permissions   []WorkspacePermission             `json:"permissions"`
+}
+
+// The details of a principal's assignment to a workspace..
+type WorkspaceAssignmentDetail struct {
+	PrincipalId   *int64         `json:"principal_id"`
+	WorkspaceId   *int64         `json:"workspace_id"`
+	AccountId     *string        `json:"account_id"`
+	PrincipalType *PrincipalType `json:"principal_type"`
 }
