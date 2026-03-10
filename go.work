@@ -1,12 +1,46 @@
 go 1.25.4
 
 use (
+	./accountaccesscontrol
+	./accountaccesscontrolproxy
+	./alerts
 	./auth
+	./billableusagedownload
+	./budgetpolicy
+	./budgets
+	./customllms
 	./databricks
+	./dataclassification
 	./dataquality
 	./examples
+	./features
+	./featurestore
+	./forecasting
 	./iam
+	./knowledgeassistants
+	./logdeliveryconfigurations
+	./marketplaces
+	./materializedfeatures
+	./modelservingmanagement
+	./modelservingquery
+	./notificationdestinations
+	./oauthcustomappintegration
+	./oauthpublishedapp
+	./permissionmigration
+	./permissions
 	./qualitymonitor
+	./qualitymonitors
+	./queries
+	./queryexecution
+	./queryhistory
+	./rfa
 	./sdk
+	./serviceprincipalsecrets
+	./serviceprincipalsecretsproxy
 	./settings
+	./tagassignments
+	./tagpolicies
+	./usagedashboards
+	./usagepolicy
+	./workspaceconf
 )
