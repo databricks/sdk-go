@@ -41,10 +41,7 @@ This is a **Go workspace** (`go.work`) with multiple modules:
 │   ├── credentials/ # Credential providers (CLI, PAT, etc.)
 │   └── ...          # Token types, interfaces
 ├── core/            # Core utilities shared across modules
-├── databricks/      # Databricks workspace APIs
-│   ├── jobs/        # Jobs API client
-│   ├── serving/     # Model serving API client
-│   └── ...
+├── databricks/      # Databricks client, transport, and API error handling
 ├── dataquality/     # Data quality APIs
 ├── iam/             # Identity and access management APIs
 ├── qualitymonitor/  # Quality monitor APIs
