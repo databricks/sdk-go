@@ -2,11 +2,24 @@ go 1.25.4
 
 use (
 	./auth
+	./budgets
+	./clusterpolicies
 	./databricks
 	./dataquality
 	./examples
+	./files
+	./globalinitscripts
 	./iam
+	./instancepools
+	./instanceprofiles
+	./logdeliveryconfigurations
+	./policyfamilies
 	./qualitymonitor
 	./sdk
+	./secrets
 	./settings
+	./tokenmanagement
+	./tokens
+	./usagedashboards
+	./workspaceassignment
 )
