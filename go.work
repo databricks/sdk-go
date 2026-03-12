@@ -2,11 +2,25 @@ go 1.25.4
 
 use (
 	./auth
+	./budgetpolicy
 	./databricks
+	./dataclassification
 	./dataquality
 	./examples
+	./features
+	./featurestore
 	./iam
+	./materializedfeatures
+	./oauthcustomappintegration
+	./oauthpublishedapp
+	./permissionmigration
+	./permissions
 	./qualitymonitor
+	./qualitymonitors
 	./sdk
+	./serviceprincipalsecrets
+	./serviceprincipalsecretsproxy
 	./settings
+	./usagepolicy
+	./workspaceconf
 )
