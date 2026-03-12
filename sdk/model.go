@@ -3,25 +3,17 @@ package sdk
 type LaunchStage string
 
 const (
-	LaunchStageLaunchStageUnspecified LaunchStage = "LAUNCH_STAGE_UNSPECIFIED"
-	LaunchStageDevelopment            LaunchStage = "DEVELOPMENT"
-	LaunchStagePrivatePreview         LaunchStage = "PRIVATE_PREVIEW"
-	LaunchStagePublicBeta             LaunchStage = "PUBLIC_BETA"
-	LaunchStagePublicPreview          LaunchStage = "PUBLIC_PREVIEW"
-	LaunchStageGa                     LaunchStage = "GA"
+	LaunchStage_LaunchStageUnspecified LaunchStage = "LAUNCH_STAGE_UNSPECIFIED"
+	LaunchStage_Development            LaunchStage = "DEVELOPMENT"
+	LaunchStage_PrivatePreview         LaunchStage = "PRIVATE_PREVIEW"
+	LaunchStage_PublicBeta             LaunchStage = "PUBLIC_BETA"
+	LaunchStage_PublicPreview          LaunchStage = "PUBLIC_PREVIEW"
+	LaunchStage_Ga                     LaunchStage = "GA"
 )
 
 // String representation for [fmt.Print].
 func (f *LaunchStage) String() string {
 	return string(*f)
-}
-
-type Binding struct {
-}
-
-// A BindingPair maps a single field in either the request or response of the
-// annotated method to a field of the method_to_poll operation..
-type BindingPair struct {
 }
 
 // Long-Running Operation (LRO) configuration for API methods.
@@ -34,8 +26,36 @@ type BindingPair struct {
 // methods immediately return an operation handle that can be used to track
 // progress and retrieve results..
 type LongRunningOperation struct {
-	OperationInfo    *OperationInfo    `json:"operation_info"`
-	OperationMethods *OperationMethods `json:"operation_methods"`
+	OperationInfo    *LongRunningOperation_OperationInfo    `json:"operation_info"`
+	OperationMethods *LongRunningOperation_OperationMethods `json:"operation_methods"`
+}
+
+// Specifies the response and metadata types for the operation..
+type LongRunningOperation_OperationInfo struct {
+	ResponseType *string `json:"response_type"`
+	MetadataType *string `json:"metadata_type"`
+}
+
+// References to methods that manage the long-running operation.
+//
+// These methods allow clients to check status, wait for completion, list
+// operations, and cancel or delete operations..
+type LongRunningOperation_OperationMethods struct {
+	Get    *string `json:"get"`
+	List   *string `json:"list"`
+	Wait   *string `json:"wait"`
+	Delete *string `json:"delete"`
+	Cancel *string `json:"cancel"`
+}
+
+// Indicates that an API method returns paginated results.
+//
+// Methods annotated with this option may not return all results in a single
+// call. Multiple requests are required to retrieve the complete dataset..
+type Pagination struct {
+	OffsetInfo *Pagination_OffsetInfo    `json:"offset_info"`
+	TokenInfo  *Pagination_PageTokenInfo `json:"token_info"`
+	Results    *string                   `json:"results"`
 }
 
 // Offset-based pagination.
@@ -46,18 +66,10 @@ type LongRunningOperation struct {
 //
 // Example: To get items 0-99, set offset=0 and max_results=100. To get items
 // 100-199, set offset=100 and max_results=100..
-type OffsetInfo struct {
-}
-
-// Specifies the response and metadata types for the operation..
-type OperationInfo struct {
-}
-
-// References to methods that manage the long-running operation.
-//
-// These methods allow clients to check status, wait for completion, list
-// operations, and cancel or delete operations..
-type OperationMethods struct {
+type Pagination_OffsetInfo struct {
+	Offset            *string `json:"offset"`
+	MaxResults        *string `json:"max_results"`
+	DefaultMaxResults *int    `json:"default_max_results"`
 }
 
 // Token-based pagination.
@@ -69,21 +81,11 @@ type OperationMethods struct {
 //
 // Note: Page tokens are opaque strings and should not be parsed or constructed
 // by clients. Always use the exact token returned by the API..
-type PageTokenInfo struct {
-}
-
-// Indicates that an API method returns paginated results.
-//
-// Methods annotated with this option may not return all results in a single
-// call. Multiple requests are required to retrieve the complete dataset..
-type Pagination struct {
-	OffsetInfo *OffsetInfo    `json:"offset_info"`
-	TokenInfo  *PageTokenInfo `json:"token_info"`
-	Results    *string        `json:"results"`
-}
-
-// Groups fields used to find and interpret the operation's state..
-type StateInfo struct {
+type Pagination_PageTokenInfo struct {
+	Request           *string `json:"request"`
+	Response          *string `json:"response"`
+	MaxResults        *string `json:"max_results"`
+	DefaultMaxResults *int    `json:"default_max_results"`
 }
 
 // Annotation used to describe legacy Long Running Operations. WaitForState
@@ -122,7 +124,27 @@ type StateInfo struct {
 // message Object { optional string object_id = 1; optional State state = 2; }
 // message GetRequest { optional string id = 1; }.
 type WaitForState struct {
-	MethodToPoll *string    `json:"method_to_poll"`
-	Binding      *Binding   `json:"binding"`
-	StateInfo    *StateInfo `json:"state_info"`
+	MethodToPoll *string                 `json:"method_to_poll"`
+	Binding      *WaitForState_Binding   `json:"binding"`
+	StateInfo    *WaitForState_StateInfo `json:"state_info"`
+}
+
+type WaitForState_Binding struct {
+	Pairs []WaitForState_Binding_BindingPair `json:"pairs"`
+}
+
+// A BindingPair maps a single field in either the request or response of the
+// annotated method to a field of the method_to_poll operation..
+type WaitForState_Binding_BindingPair struct {
+	PollMethodField *string `json:"poll_method_field"`
+	RequestField    *string `json:"request_field"`
+	ResponseField   *string `json:"response_field"`
+}
+
+// Groups fields used to find and interpret the operation's state..
+type WaitForState_StateInfo struct {
+	StatePath     []string `json:"state_path"`
+	SuccessStates []string `json:"success_states"`
+	FailureStates []string `json:"failure_states"`
+	MessagePath   []string `json:"message_path"`
 }
