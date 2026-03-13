@@ -5,8 +5,12 @@ use (
 	./databricks
 	./dataquality
 	./examples
+	./gitcredentials
 	./iam
 	./qualitymonitor
+	./repos
 	./sdk
 	./settings
+	./warehouses
+	./workspace
 )
