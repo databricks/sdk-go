@@ -56,3 +56,44 @@ func WithLogger(l *slog.Logger) ClientOption {
 		return nil
 	}
 }
+
+// WithoutResolution returns a ClientOption to disable profile resolution.
+func WithoutResolution() ClientOption {
+	return func(o *internal.ClientOptions) error {
+		o.NoResolution = true
+		return nil
+	}
+}
+
+// WithProfile returns a ClientOption to set the profile name to use for
+// default resolution.
+//
+// This option is ignored if resolution is disabled by WithoutResolution.
+func WithProfile(profile string) ClientOption {
+	return func(o *internal.ClientOptions) error {
+		o.Profile = profile
+		return nil
+	}
+}
+
+// WithProfileFile returns a ClientOption to set the path to the profile
+// file to use for default resolution.
+//
+// This option is ignored if resolution is disabled by WithoutResolution.
+func WithProfileFile(file string) ClientOption {
+	return func(o *internal.ClientOptions) error {
+		o.ProfileFile = file
+		return nil
+	}
+}
+
+// WithoutEnvResolution returns a ClientOption to disable environment
+// variable resolution.
+//
+// This option is ignored if resolution is disabled by WithoutResolution.
+func WithoutEnvResolution() ClientOption {
+	return func(o *internal.ClientOptions) error {
+		o.NoEnv = true
+		return nil
+	}
+}
