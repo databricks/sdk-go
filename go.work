@@ -7,6 +7,7 @@ use (
 	./dataquality
 	./examples
 	./iam
+	./profiles
 	./qualitymonitor
 	./sdk
 	./settings
