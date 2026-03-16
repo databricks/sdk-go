@@ -223,7 +223,7 @@ func (cts *cachedTokenProvider) triggerAsyncRefresh(ctx context.Context) {
 	genAtSubmit := cts.tokenGeneration
 	cts.isRefreshing = true
 	go func() {
-		refreshCtx, cancel := context.WithTimeout(ctx, asyncRefreshTimeout)
+		refreshCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), asyncRefreshTimeout)
 		defer cancel()
 
 		t, err := cts.TokenProvider.Token(refreshCtx)
