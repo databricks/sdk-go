@@ -6,7 +6,9 @@ use (
 	./dataquality
 	./examples
 	./iam
+	./postgres
 	./qualitymonitor
 	./sdk
 	./settings
+	./statementexecution
 )
