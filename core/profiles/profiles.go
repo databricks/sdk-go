@@ -40,6 +40,13 @@ var ErrConfigFileNotFound = errors.New("config file not found")
 // not exist in the config file.
 var ErrProfileNotFound = errors.New("profile not found")
 
+// ErrEmptyPath is returned when an empty path is passed to [SaveToFile].
+var ErrEmptyPath = errors.New("empty path")
+
+// ErrEmptyProfile is returned when an empty profile name is passed to
+// [SaveToFile].
+var ErrEmptyProfile = errors.New("empty profile")
+
 // Secret is a string that is obfuscated in all string representations.
 type Secret string
 
@@ -54,6 +61,8 @@ func (s Secret) LogValue() slog.Value         { return slog.StringValue(obfuscat
 // Profile holds configuration values resolved from a databrickscfg file and/or
 // environment variables. The zero value is meaningful: all empty strings means
 // nothing was configured.
+//
+// TODO: Consider filtering properties that are not relevant in SDK-Mod.
 type Profile struct {
 	Host        string
 	WorkspaceID string
@@ -475,10 +484,10 @@ func defaultConfigFilePath() string {
 // environment variables.
 func (p *Profile) SaveToFile(path, profile string) error {
 	if path == "" {
-		return fmt.Errorf("path must not be empty")
+		return ErrEmptyPath
 	}
 	if profile == "" {
-		return fmt.Errorf("profile must not be empty")
+		return ErrEmptyProfile
 	}
 
 	// Ensure the file exists with restrictive permissions before writing

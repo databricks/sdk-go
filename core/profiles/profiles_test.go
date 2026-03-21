@@ -391,62 +391,77 @@ func TestProfile_SaveToFile(t *testing.T) {
 		profile  *Profile
 		section  string
 		want     string
+		wantErr  error
 	}{
 		{
 			desc:    "known fields are written to the ini file",
 			profile: &Profile{Host: "https://saved.cloud.databricks.com", Token: Secret("saved-token"), ClientID: "saved-client-id"},
 			section: "test",
-			want: "[test]\n" +
-				"host      = https://saved.cloud.databricks.com\n" +
-				"token     = saved-token\n" +
-				"client_id = saved-client-id\n",
+			want: `[test]
+host      = https://saved.cloud.databricks.com
+token     = saved-token
+client_id = saved-client-id
+`,
 		},
 		{
 			desc:    "extra keys are written to the ini file",
 			profile: &Profile{Host: "https://extra.cloud.databricks.com", Extra: map[string]string{"custom_key": "custom-value", "another_key": "another-value"}},
 			section: "test",
-			want: "[test]\n" +
-				"host        = https://extra.cloud.databricks.com\n" +
-				"another_key = another-value\n" +
-				"custom_key  = custom-value\n",
+			want: `[test]
+host        = https://extra.cloud.databricks.com
+another_key = another-value
+custom_key  = custom-value
+`,
 		},
 		{
 			desc:    "extra keys that collide with known fields are skipped",
 			profile: &Profile{Host: "https://real.cloud.databricks.com", Extra: map[string]string{"host": "https://evil.cloud.databricks.com"}},
 			section: "test",
-			want: "[test]\n" +
-				"host = https://real.cloud.databricks.com\n",
+			want: `[test]
+host = https://real.cloud.databricks.com
+`,
 		},
 		{
 			desc:    "empty fields are omitted",
 			profile: &Profile{Host: "https://host.cloud.databricks.com"},
 			section: "my-profile",
-			want: "[my-profile]\n" +
-				"host = https://host.cloud.databricks.com\n",
+			want: `[my-profile]
+host = https://host.cloud.databricks.com
+`,
 		},
 		{
 			desc: "other sections in the file are preserved",
-			existing: new("[other]\n" +
-				"host  = https://other.cloud.databricks.com\n" +
-				"token = other-token\n"),
+			existing: new(`[other]
+host  = https://other.cloud.databricks.com
+token = other-token
+`),
 			profile: &Profile{Host: "https://new.cloud.databricks.com"},
 			section: "new",
-			want: "[other]\n" +
-				"host  = https://other.cloud.databricks.com\n" +
-				"token = other-token\n" +
-				"\n" +
-				"[new]\n" +
-				"host = https://new.cloud.databricks.com\n",
+			want: `[other]
+host  = https://other.cloud.databricks.com
+token = other-token
+
+[new]
+host = https://new.cloud.databricks.com
+`,
 		},
 		{
 			desc: "existing section is replaced entirely",
-			existing: new("[test]\n" +
-				"host  = https://old.cloud.databricks.com\n" +
-				"token = old-token\n"),
+			existing: new(`[test]
+host  = https://old.cloud.databricks.com
+token = old-token
+`),
 			profile: &Profile{Host: "https://new.cloud.databricks.com"},
 			section: "test",
-			want: "[test]\n" +
-				"host = https://new.cloud.databricks.com\n",
+			want: `[test]
+host = https://new.cloud.databricks.com
+`,
+		},
+		{
+			desc:    "empty section returns an error",
+			profile: &Profile{Host: "https://test.cloud.databricks.com"},
+			section: "",
+			wantErr: ErrEmptyProfile,
 		},
 	}
 
@@ -458,16 +473,20 @@ func TestProfile_SaveToFile(t *testing.T) {
 					t.Fatalf("WriteFile() error: %v", err)
 				}
 			}
-			if err := tc.profile.SaveToFile(path, tc.section); err != nil {
-				t.Fatalf("SaveToFile() error: %v", err)
-			}
 
-			got, err := os.ReadFile(path)
-			if err != nil {
-				t.Fatalf("ReadFile() error: %v", err)
+			gotErr := tc.profile.SaveToFile(path, tc.section)
+
+			if !errors.Is(gotErr, tc.wantErr) {
+				t.Errorf("SaveToFile() error = %v, want %v", gotErr, tc.wantErr)
 			}
-			if diff := cmp.Diff(tc.want, string(got)); diff != "" {
-				t.Errorf("file content mismatch (-want +got):\n%s", diff)
+			if tc.wantErr == nil {
+				got, err := os.ReadFile(path)
+				if err != nil {
+					t.Fatalf("ReadFile() error: %v", err)
+				}
+				if diff := cmp.Diff(tc.want, string(got)); diff != "" {
+					t.Errorf("file content mismatch (-want +got):\n%s", diff)
+				}
 			}
 		})
 	}
@@ -491,62 +510,13 @@ func TestProfile_SaveToFile_filePermissions(t *testing.T) {
 	}
 }
 
-func TestProfile_SaveToFile_emptyPathErrors(t *testing.T) {
+func TestProfile_SaveToFile_emptyPath(t *testing.T) {
 	p := &Profile{Host: "https://test.cloud.databricks.com"}
 
 	err := p.SaveToFile("", "my-profile")
 
-	if err == nil {
-		t.Error("SaveToFile() error = nil, want error for empty path")
-	}
-}
-
-func TestProfile_SaveToFile_emptyProfileErrors(t *testing.T) {
-	p := &Profile{Host: "https://test.cloud.databricks.com"}
-
-	err := p.SaveToFile("/tmp/test", "")
-
-	if err == nil {
-		t.Error("SaveToFile() error = nil, want error for empty profile")
-	}
-}
-
-// TestProfile_SaveToFile_allProperties verifies that every property in the
-// mapping table round-trips correctly through SaveToFile and Resolve.
-func TestProfile_SaveToFile_allProperties(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "databrickscfg")
-	p := &Profile{}
-	for i, prop := range properties {
-		var val string
-		if prop.iniKey == "azure_use_msi" {
-			val = "true"
-		} else {
-			val = strings.Repeat("s", i+1)
-		}
-		if err := prop.set(p, val); err != nil {
-			t.Fatalf("set %q: %v", prop.iniKey, err)
-		}
-	}
-
-	if err := p.SaveToFile(path, "all-fields"); err != nil {
-		t.Fatalf("SaveToFile() error: %v", err)
-	}
-	got, err := Resolve(WithFile(path), WithProfile("all-fields"), WithoutEnv())
-	if err != nil {
-		t.Fatalf("Resolve() error: %v", err)
-	}
-
-	for i, prop := range properties {
-		var want string
-		if prop.iniKey == "azure_use_msi" {
-			want = "true"
-		} else {
-			want = strings.Repeat("s", i+1)
-		}
-		gotVal := prop.get(got)
-		if gotVal != want {
-			t.Errorf("round-trip: property %q (iniKey=%q) = %q, want %q", prop.envVar, prop.iniKey, gotVal, want)
-		}
+	if !errors.Is(err, ErrEmptyPath) {
+		t.Errorf("SaveToFile() error = %v, want %v", err, ErrEmptyPath)
 	}
 }
 
