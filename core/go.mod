@@ -1,6 +1,6 @@
-module github.com/databricks/sdk-go/profiles
+module github.com/databricks/sdk-go/core
 
-go 1.25.4
+go 1.26.0
 
 require (
 	github.com/google/go-cmp v0.7.0

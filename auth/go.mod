@@ -1,6 +1,6 @@
 module github.com/databricks/sdk-go/auth
 
-go 1.25.4
+go 1.26.0
 
 require (
 	github.com/databricks/databricks-sdk-go v0.92.0

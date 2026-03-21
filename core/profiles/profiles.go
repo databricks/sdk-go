@@ -1,7 +1,7 @@
 // Package profiles resolves Databricks configuration from INI-style config
 // files (~/.databrickscfg) and environment variables.
 //
-// A [Profile] is a read-only snapshot of configuration values. Use [Resolve]
+// A Profile is a snapshot of configuration values. Use [Resolve]
 // to build a profile. By default, values are read from the config file first,
 // then environment variables are overlaid on top. Use [ResolveOption] values
 // to control which file, profile, or environment variables are used.
@@ -22,11 +22,12 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"log/slog"
 	"maps"
 	"os"
 	"path/filepath"
 	"slices"
-	"strings"
+	"strconv"
 
 	"gopkg.in/ini.v1"
 )
@@ -39,6 +40,17 @@ var ErrConfigFileNotFound = errors.New("config file not found")
 // not exist in the config file.
 var ErrProfileNotFound = errors.New("profile not found")
 
+// Secret is a string that is obfuscated in all string representations.
+type Secret string
+
+const obfuscatedSecret = "********"
+
+func (s Secret) String() string               { return obfuscatedSecret }
+func (s Secret) GoString() string             { return obfuscatedSecret }
+func (s Secret) MarshalText() ([]byte, error) { return []byte(obfuscatedSecret), nil }
+func (s Secret) MarshalJSON() ([]byte, error) { return []byte(obfuscatedSecret), nil }
+func (s Secret) LogValue() slog.Value         { return slog.StringValue(obfuscatedSecret) }
+
 // Profile holds configuration values resolved from a databrickscfg file and/or
 // environment variables. The zero value is meaningful: all empty strings means
 // nothing was configured.
@@ -46,24 +58,24 @@ type Profile struct {
 	Host        string
 	WorkspaceID string
 	AccountID   string
-	Token       string
+	Token       Secret
 	Username    string
-	Password    string
+	Password    Secret
 	AuthType    string
 
 	// OAuth M2M
 	ClientID     string
-	ClientSecret string
+	ClientSecret Secret
 
 	// Databricks CLI
 	DatabricksCLIPath string
 
 	// Metadata Service
-	MetadataServiceURL string
+	MetadataServiceURL Secret
 
 	// OIDC
 	ActionsIDTokenRequestURL   string
-	ActionsIDTokenRequestToken string
+	ActionsIDTokenRequestToken Secret
 	OIDCTokenEnv               string
 	OIDCTokenFilePath          string
 	TokenAudience              string
@@ -71,15 +83,15 @@ type Profile struct {
 
 	// Azure
 	AzureClientID     string
-	AzureClientSecret string
+	AzureClientSecret Secret
 	AzureTenantID     string
 	AzureResourceID   string
 	AzureEnvironment  string
 	AzureLoginAppID   string
-	AzureUseMSI       string
+	AzureUseMSI       *bool
 
 	// GCP
-	GoogleCredentials    string
+	GoogleCredentials    Secret
 	GoogleServiceAccount string
 
 	// Operational
@@ -93,26 +105,8 @@ type Profile struct {
 	Extra map[string]string
 }
 
-// String returns a human-readable representation of the profile. Sensitive
-// fields are redacted. [Extra] values are omitted since their sensitivity is
-// unknown.
-func (p *Profile) String() string {
-	var b strings.Builder
-	for _, prop := range properties {
-		v := prop.get(p)
-		if v == "" {
-			continue
-		}
-		if prop.sensitive {
-			v = "********"
-		}
-		fmt.Fprintf(&b, "%s=%s\n", prop.iniKey, v)
-	}
-	return b.String()
-}
-
 // ResolveOption configures the behavior of [Resolve].
-type ResolveOption func(o *options)
+type ResolveOption func(o *options) error
 
 type options struct {
 	filePath  *string
@@ -124,10 +118,11 @@ type options struct {
 // reads DATABRICKS_CONFIG_FILE from the environment, falling back to
 // ~/.databrickscfg. An empty string is treated as if WithFile was not called.
 func WithFile(path string) ResolveOption {
-	return func(o *options) {
+	return func(o *options) error {
 		if path != "" {
 			o.filePath = &path
 		}
+		return nil
 	}
 }
 
@@ -136,10 +131,11 @@ func WithFile(path string) ResolveOption {
 // to the DEFAULT section. An empty string is treated as if WithProfile was not
 // called.
 func WithProfile(profile string) ResolveOption {
-	return func(o *options) {
+	return func(o *options) error {
 		if profile != "" {
 			o.profile = &profile
 		}
+		return nil
 	}
 }
 
@@ -151,7 +147,10 @@ func WithProfile(profile string) ResolveOption {
 // which control where the config file is located. Use [WithFile] and
 // [WithProfile] to override those.
 func WithoutEnv() ResolveOption {
-	return func(o *options) { o.ignoreEnv = true }
+	return func(o *options) error {
+		o.ignoreEnv = true
+		return nil
+	}
 }
 
 // Resolve creates a Profile from the databrickscfg file and (optionally)
@@ -169,7 +168,9 @@ func WithoutEnv() ResolveOption {
 func Resolve(opts ...ResolveOption) (*Profile, error) {
 	o := options{}
 	for _, opt := range opts {
-		opt(&o)
+		if err := opt(&o); err != nil {
+			return nil, err
+		}
 	}
 
 	filePath := ""
@@ -194,7 +195,9 @@ func Resolve(opts ...ResolveOption) (*Profile, error) {
 		return nil, err
 	}
 	if !o.ignoreEnv {
-		loadEnv(p)
+		if err := loadEnv(p); err != nil {
+			return nil, err
+		}
 	}
 	return p, nil
 }
@@ -205,7 +208,11 @@ func Resolve(opts ...ResolveOption) (*Profile, error) {
 // keys.
 func ListProfiles(path string) ([]string, error) {
 	if path == "" {
-		return nil, fmt.Errorf("path must not be empty")
+		return nil, fmt.Errorf("%w: empty path", ErrConfigFileNotFound)
+	}
+
+	if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
+		return nil, fmt.Errorf("%w: %s", ErrConfigFileNotFound, path)
 	}
 
 	f, err := ini.LoadSources(iniLoadOptions, path)
@@ -226,199 +233,202 @@ func ListProfiles(path string) ([]string, error) {
 
 // property maps a Profile field to its environment variable name and INI key
 // name, with getter and setter functions. This avoids reflection while keeping
-// the mapping declarative. The sensitive flag indicates whether the field
-// contains secrets that should be redacted in string representations.
+// the mapping declarative.
 type property struct {
-	envVar    string
-	iniKey    string
-	sensitive bool
-	set       func(p *Profile, v string)
-	get       func(p *Profile) string
+	envVar string
+	iniKey string
+	set    func(p *Profile, v string) error
+	get    func(p *Profile) string
 }
 
 var properties = []property{
 	{
 		envVar: "DATABRICKS_HOST",
 		iniKey: "host",
-		set:    func(p *Profile, v string) { p.Host = v },
+		set:    func(p *Profile, v string) error { p.Host = v; return nil },
 		get:    func(p *Profile) string { return p.Host },
 	},
 	{
 		envVar: "DATABRICKS_WORKSPACE_ID",
 		iniKey: "workspace_id",
-		set:    func(p *Profile, v string) { p.WorkspaceID = v },
+		set:    func(p *Profile, v string) error { p.WorkspaceID = v; return nil },
 		get:    func(p *Profile) string { return p.WorkspaceID },
 	},
 	{
 		envVar: "DATABRICKS_ACCOUNT_ID",
 		iniKey: "account_id",
-		set:    func(p *Profile, v string) { p.AccountID = v },
+		set:    func(p *Profile, v string) error { p.AccountID = v; return nil },
 		get:    func(p *Profile) string { return p.AccountID },
 	},
 	{
-		envVar:    "DATABRICKS_TOKEN",
-		iniKey:    "token",
-		sensitive: true,
-		set:       func(p *Profile, v string) { p.Token = v },
-		get:       func(p *Profile) string { return p.Token },
+		envVar: "DATABRICKS_TOKEN",
+		iniKey: "token",
+		set:    func(p *Profile, v string) error { p.Token = Secret(v); return nil },
+		get:    func(p *Profile) string { return string(p.Token) },
 	},
 	{
 		envVar: "DATABRICKS_USERNAME",
 		iniKey: "username",
-		set:    func(p *Profile, v string) { p.Username = v },
+		set:    func(p *Profile, v string) error { p.Username = v; return nil },
 		get:    func(p *Profile) string { return p.Username },
 	},
 	{
-		envVar:    "DATABRICKS_PASSWORD",
-		iniKey:    "password",
-		sensitive: true,
-		set:       func(p *Profile, v string) { p.Password = v },
-		get:       func(p *Profile) string { return p.Password },
+		envVar: "DATABRICKS_PASSWORD",
+		iniKey: "password",
+		set:    func(p *Profile, v string) error { p.Password = Secret(v); return nil },
+		get:    func(p *Profile) string { return string(p.Password) },
 	},
 	{
 		envVar: "DATABRICKS_AUTH_TYPE",
 		iniKey: "auth_type",
-		set:    func(p *Profile, v string) { p.AuthType = v },
+		set:    func(p *Profile, v string) error { p.AuthType = v; return nil },
 		get:    func(p *Profile) string { return p.AuthType },
 	},
 	{
 		envVar: "DATABRICKS_CLIENT_ID",
 		iniKey: "client_id",
-		set:    func(p *Profile, v string) { p.ClientID = v },
+		set:    func(p *Profile, v string) error { p.ClientID = v; return nil },
 		get:    func(p *Profile) string { return p.ClientID },
 	},
 	{
-		envVar:    "DATABRICKS_CLIENT_SECRET",
-		iniKey:    "client_secret",
-		sensitive: true,
-		set:       func(p *Profile, v string) { p.ClientSecret = v },
-		get:       func(p *Profile) string { return p.ClientSecret },
+		envVar: "DATABRICKS_CLIENT_SECRET",
+		iniKey: "client_secret",
+		set:    func(p *Profile, v string) error { p.ClientSecret = Secret(v); return nil },
+		get:    func(p *Profile) string { return string(p.ClientSecret) },
 	},
 	{
 		envVar: "DATABRICKS_CLI_PATH",
 		iniKey: "databricks_cli_path",
-		set:    func(p *Profile, v string) { p.DatabricksCLIPath = v },
+		set:    func(p *Profile, v string) error { p.DatabricksCLIPath = v; return nil },
 		get:    func(p *Profile) string { return p.DatabricksCLIPath },
 	},
 	{
-		envVar:    "DATABRICKS_METADATA_SERVICE_URL",
-		iniKey:    "metadata_service_url",
-		sensitive: true,
-		set:       func(p *Profile, v string) { p.MetadataServiceURL = v },
-		get:       func(p *Profile) string { return p.MetadataServiceURL },
+		envVar: "DATABRICKS_METADATA_SERVICE_URL",
+		iniKey: "metadata_service_url",
+		set:    func(p *Profile, v string) error { p.MetadataServiceURL = Secret(v); return nil },
+		get:    func(p *Profile) string { return string(p.MetadataServiceURL) },
 	},
 	{
 		envVar: "ACTIONS_ID_TOKEN_REQUEST_URL",
 		iniKey: "actions_id_token_request_url",
-		set:    func(p *Profile, v string) { p.ActionsIDTokenRequestURL = v },
+		set:    func(p *Profile, v string) error { p.ActionsIDTokenRequestURL = v; return nil },
 		get:    func(p *Profile) string { return p.ActionsIDTokenRequestURL },
 	},
 	{
-		envVar:    "ACTIONS_ID_TOKEN_REQUEST_TOKEN",
-		iniKey:    "actions_id_token_request_token",
-		sensitive: true,
-		set:       func(p *Profile, v string) { p.ActionsIDTokenRequestToken = v },
-		get:       func(p *Profile) string { return p.ActionsIDTokenRequestToken },
+		envVar: "ACTIONS_ID_TOKEN_REQUEST_TOKEN",
+		iniKey: "actions_id_token_request_token",
+		set:    func(p *Profile, v string) error { p.ActionsIDTokenRequestToken = Secret(v); return nil },
+		get:    func(p *Profile) string { return string(p.ActionsIDTokenRequestToken) },
 	},
 	{
 		envVar: "DATABRICKS_OIDC_TOKEN_ENV",
 		iniKey: "oidc_token_env",
-		set:    func(p *Profile, v string) { p.OIDCTokenEnv = v },
+		set:    func(p *Profile, v string) error { p.OIDCTokenEnv = v; return nil },
 		get:    func(p *Profile) string { return p.OIDCTokenEnv },
 	},
 	{
 		// Intentional mismatch between envVar and iniKey for backward compatibility.
 		envVar: "DATABRICKS_OIDC_TOKEN_FILEPATH",
 		iniKey: "databricks_id_token_filepath",
-		set:    func(p *Profile, v string) { p.OIDCTokenFilePath = v },
+		set:    func(p *Profile, v string) error { p.OIDCTokenFilePath = v; return nil },
 		get:    func(p *Profile) string { return p.OIDCTokenFilePath },
 	},
 	{
 		// Intentional mismatch between envVar and iniKey for backward compatibility.
 		envVar: "DATABRICKS_TOKEN_AUDIENCE",
 		iniKey: "audience",
-		set:    func(p *Profile, v string) { p.TokenAudience = v },
+		set:    func(p *Profile, v string) error { p.TokenAudience = v; return nil },
 		get:    func(p *Profile) string { return p.TokenAudience },
 	},
 	{
 		envVar: "DATABRICKS_DISCOVERY_URL",
 		iniKey: "discovery_url",
-		set:    func(p *Profile, v string) { p.DiscoveryURL = v },
+		set:    func(p *Profile, v string) error { p.DiscoveryURL = v; return nil },
 		get:    func(p *Profile) string { return p.DiscoveryURL },
 	},
 	{
 		envVar: "ARM_CLIENT_ID",
 		iniKey: "azure_client_id",
-		set:    func(p *Profile, v string) { p.AzureClientID = v },
+		set:    func(p *Profile, v string) error { p.AzureClientID = v; return nil },
 		get:    func(p *Profile) string { return p.AzureClientID },
 	},
 	{
-		envVar:    "ARM_CLIENT_SECRET",
-		iniKey:    "azure_client_secret",
-		sensitive: true,
-		set:       func(p *Profile, v string) { p.AzureClientSecret = v },
-		get:       func(p *Profile) string { return p.AzureClientSecret },
+		envVar: "ARM_CLIENT_SECRET",
+		iniKey: "azure_client_secret",
+		set:    func(p *Profile, v string) error { p.AzureClientSecret = Secret(v); return nil },
+		get:    func(p *Profile) string { return string(p.AzureClientSecret) },
 	},
 	{
 		envVar: "ARM_TENANT_ID",
 		iniKey: "azure_tenant_id",
-		set:    func(p *Profile, v string) { p.AzureTenantID = v },
+		set:    func(p *Profile, v string) error { p.AzureTenantID = v; return nil },
 		get:    func(p *Profile) string { return p.AzureTenantID },
 	},
 	{
 		// Intentional mismatch between envVar and iniKey for backward compatibility.
 		envVar: "DATABRICKS_AZURE_RESOURCE_ID",
 		iniKey: "azure_workspace_resource_id",
-		set:    func(p *Profile, v string) { p.AzureResourceID = v },
+		set:    func(p *Profile, v string) error { p.AzureResourceID = v; return nil },
 		get:    func(p *Profile) string { return p.AzureResourceID },
 	},
 	{
 		envVar: "ARM_ENVIRONMENT",
 		iniKey: "azure_environment",
-		set:    func(p *Profile, v string) { p.AzureEnvironment = v },
+		set:    func(p *Profile, v string) error { p.AzureEnvironment = v; return nil },
 		get:    func(p *Profile) string { return p.AzureEnvironment },
 	},
 	{
 		envVar: "DATABRICKS_AZURE_LOGIN_APP_ID",
 		iniKey: "azure_login_app_id",
-		set:    func(p *Profile, v string) { p.AzureLoginAppID = v },
+		set:    func(p *Profile, v string) error { p.AzureLoginAppID = v; return nil },
 		get:    func(p *Profile) string { return p.AzureLoginAppID },
 	},
 	{
 		envVar: "ARM_USE_MSI",
 		iniKey: "azure_use_msi",
-		set:    func(p *Profile, v string) { p.AzureUseMSI = v },
-		get:    func(p *Profile) string { return p.AzureUseMSI },
+		set: func(p *Profile, v string) error {
+			b, err := strconv.ParseBool(v)
+			if err != nil {
+				return err
+			}
+			p.AzureUseMSI = &b
+			return nil
+		},
+		get: func(p *Profile) string {
+			if p.AzureUseMSI == nil {
+				return ""
+			}
+			return strconv.FormatBool(*p.AzureUseMSI)
+		},
 	},
 	{
-		envVar:    "GOOGLE_CREDENTIALS",
-		iniKey:    "google_credentials",
-		sensitive: true,
-		set:       func(p *Profile, v string) { p.GoogleCredentials = v },
-		get:       func(p *Profile) string { return p.GoogleCredentials },
+		envVar: "GOOGLE_CREDENTIALS",
+		iniKey: "google_credentials",
+		set:    func(p *Profile, v string) error { p.GoogleCredentials = Secret(v); return nil },
+		get:    func(p *Profile) string { return string(p.GoogleCredentials) },
 	},
 	{
 		envVar: "DATABRICKS_GOOGLE_SERVICE_ACCOUNT",
 		iniKey: "google_service_account",
-		set:    func(p *Profile, v string) { p.GoogleServiceAccount = v },
+		set:    func(p *Profile, v string) error { p.GoogleServiceAccount = v; return nil },
 		get:    func(p *Profile) string { return p.GoogleServiceAccount },
 	},
 	{
 		envVar: "DATABRICKS_CLUSTER_ID",
 		iniKey: "cluster_id",
-		set:    func(p *Profile, v string) { p.ClusterID = v },
+		set:    func(p *Profile, v string) error { p.ClusterID = v; return nil },
 		get:    func(p *Profile) string { return p.ClusterID },
 	},
 	{
 		envVar: "DATABRICKS_WAREHOUSE_ID",
 		iniKey: "warehouse_id",
-		set:    func(p *Profile, v string) { p.WarehouseID = v },
+		set:    func(p *Profile, v string) error { p.WarehouseID = v; return nil },
 		get:    func(p *Profile) string { return p.WarehouseID },
 	},
 	{
 		envVar: "DATABRICKS_SERVERLESS_COMPUTE_ID",
 		iniKey: "serverless_compute_id",
-		set:    func(p *Profile, v string) { p.ServerlessComputeID = v },
+		set:    func(p *Profile, v string) error { p.ServerlessComputeID = v; return nil },
 		get:    func(p *Profile) string { return p.ServerlessComputeID },
 	},
 }
@@ -460,6 +470,9 @@ func defaultConfigFilePath() string {
 // Both known fields and [Profile.Extra] entries are written, so a
 // [Resolve]/SaveToFile round-trip never loses unknown keys. Fields set to the
 // empty string are omitted from the output.
+//
+// Warning: this method will save properties that might have been loaded from
+// environment variables.
 func (p *Profile) SaveToFile(path, profile string) error {
 	if path == "" {
 		return fmt.Errorf("path must not be empty")
@@ -473,6 +486,8 @@ func (p *Profile) SaveToFile(path, profile string) error {
 	// if it does not already exist, avoiding a Stat/WriteFile TOCTOU race.
 	if f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600); err == nil {
 		f.Close()
+	} else if !errors.Is(err, fs.ErrExist) {
+		return fmt.Errorf("creating config file %q: %w", path, err)
 	}
 
 	// Load the existing file.
@@ -512,7 +527,13 @@ func (p *Profile) SaveToFile(path, profile string) error {
 		}
 	}
 
-	return f.SaveTo(path)
+	// Re-apply restrictive permissions after writing. ini.SaveTo may
+	// create a new file or truncate the existing one, potentially
+	// resetting the permissions to the user's umask default.
+	if err := f.SaveTo(path); err != nil {
+		return err
+	}
+	return os.Chmod(path, 0600)
 }
 
 // loadFile populates p from the named section of a databrickscfg file. If path
@@ -562,7 +583,9 @@ func loadFile(p *Profile, path, profile string, explicit bool) error {
 	for _, prop := range properties {
 		known[prop.iniKey] = true
 		if section.HasKey(prop.iniKey) {
-			prop.set(p, section.Key(prop.iniKey).String())
+			if err := prop.set(p, section.Key(prop.iniKey).String()); err != nil {
+				return fmt.Errorf("setting %q: %w", prop.iniKey, err)
+			}
 		}
 	}
 	for _, key := range section.Keys() {
@@ -579,10 +602,13 @@ func loadFile(p *Profile, path, profile string, explicit bool) error {
 
 // loadEnv populates p from environment variables. Empty environment variables
 // are treated as unset and do not override existing values.
-func loadEnv(p *Profile) {
+func loadEnv(p *Profile) error {
 	for _, prop := range properties {
 		if v := os.Getenv(prop.envVar); v != "" {
-			prop.set(p, v)
+			if err := prop.set(p, v); err != nil {
+				return fmt.Errorf("setting %q from %s: %w", prop.iniKey, prop.envVar, err)
+			}
 		}
 	}
+	return nil
 }

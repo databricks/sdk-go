@@ -1,12 +1,12 @@
-go 1.25.4
+go 1.26.0
 
 use (
 	./auth
+	./core
 	./databricks
 	./dataquality
 	./examples
 	./iam
-	./profiles
 	./qualitymonitor
 	./sdk
 	./settings
