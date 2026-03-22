@@ -64,48 +64,107 @@ func (s Secret) LogValue() slog.Value         { return slog.StringValue(obfuscat
 //
 // TODO: Consider filtering properties that are not relevant in SDK-Mod.
 type Profile struct {
-	Host        string
-	WorkspaceID string
-	AccountID   string
-	Token       Secret
-	Username    string
-	Password    Secret
-	AuthType    string
+	// Host is the Databricks workspace or Accounts API endpoint URL.
+	Host string
 
-	// OAuth M2M
-	ClientID     string
+	// WorkspaceID is the Databricks Workspace ID, used with unified hosts.
+	WorkspaceID string
+
+	// AccountID is the Databricks Account ID for Accounts API.
+	AccountID string
+
+	// Token is the personal access token for PAT authentication.
+	Token Secret
+
+	// Username is the username for basic authentication.
+	Username string
+
+	// Password is the password for basic authentication.
+	Password Secret
+
+	// AuthType selects a specific auth method when multiple credentials are
+	// available in the environment.
+	AuthType string
+
+	// ClientID is the OAuth client ID for M2M authentication.
+	ClientID string
+
+	// ClientSecret is the OAuth client secret for M2M authentication.
 	ClientSecret Secret
 
-	// Databricks CLI
+	// DatabricksCLIPath is the path to the Databricks CLI binary
+	// (version >= 0.100.0) used for CLI-based authentication.
 	DatabricksCLIPath string
 
-	// Metadata Service
+	// MetadataServiceURL is the URL of a metadata service that provides
+	// authentication credentials (e.g. Databricks VSCode extension).
 	MetadataServiceURL Secret
 
-	// OIDC
-	ActionsIDTokenRequestURL   string
+	// ActionsIDTokenRequestURL is the GitHub Actions URL for requesting an
+	// OIDC token. Set automatically by GitHub Actions runners.
+	ActionsIDTokenRequestURL string
+
+	// ActionsIDTokenRequestToken is the bearer token used to authenticate
+	// with the GitHub Actions OIDC provider.
 	ActionsIDTokenRequestToken Secret
-	OIDCTokenEnv               string
-	OIDCTokenFilePath          string
-	TokenAudience              string
-	DiscoveryURL               string
 
-	// Azure
-	AzureClientID     string
+	// OIDCTokenEnv is the name of an environment variable containing an
+	// OIDC ID token.
+	OIDCTokenEnv string
+
+	// OIDCTokenFilePath is the path to a file containing an OIDC ID token.
+	OIDCTokenFilePath string
+
+	// TokenAudience is the audience to specify when fetching an ID token
+	// for Workload Identity Federation.
+	TokenAudience string
+
+	// DiscoveryURL is an OpenID Connect discovery URL. When set, OIDC
+	// endpoints are fetched from this URL instead of the default
+	// host-based well-known endpoint.
+	DiscoveryURL string
+
+	// AzureClientID is the Azure AD application (client) ID for Azure
+	// client-secret or MSI authentication.
+	AzureClientID string
+
+	// AzureClientSecret is the Azure AD client secret for Azure
+	// client-secret authentication.
 	AzureClientSecret Secret
-	AzureTenantID     string
-	AzureResourceID   string
-	AzureEnvironment  string
-	AzureLoginAppID   string
-	AzureUseMSI       *bool
 
-	// GCP
-	GoogleCredentials    Secret
+	// AzureTenantID is the Azure AD tenant ID.
+	AzureTenantID string
+
+	// AzureResourceID is the Azure Resource Manager ID for an Azure
+	// Databricks workspace, exchanged for a host URL.
+	AzureResourceID string
+
+	// AzureEnvironment selects the Azure cloud environment (PUBLIC,
+	// USGOVERNMENT, CHINA). When empty, determined from the workspace host.
+	AzureEnvironment string
+
+	// AzureLoginAppID is the Azure Login Application ID. Deprecated: this
+	// field no longer has any effect and will be removed in the future.
+	AzureLoginAppID string
+
+	// AzureUseMSI enables Azure Managed Service Identity authentication.
+	AzureUseMSI *bool
+
+	// GoogleCredentials holds GCP service account credentials JSON for
+	// Google credentials-based authentication.
+	GoogleCredentials Secret
+
+	// GoogleServiceAccount is the GCP service account email for
+	// Google ID-based authentication.
 	GoogleServiceAccount string
 
-	// Operational
-	ClusterID           string
-	WarehouseID         string
+	// ClusterID is the default Databricks cluster ID for compute operations.
+	ClusterID string
+
+	// WarehouseID is the default Databricks SQL warehouse ID.
+	WarehouseID string
+
+	// ServerlessComputeID is the default serverless compute resource ID.
 	ServerlessComputeID string
 
 	// Extra holds INI keys that are not mapped to a known field. This is
