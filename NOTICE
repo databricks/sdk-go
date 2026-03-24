@@ -1,0 +1,15 @@
+Copyright (2025) Databricks, Inc.
+
+This Software includes software developed at Databricks (https://www.databricks.com/) and its use is subject to the included LICENSE file.
+
+This Software contains code from the following open source projects, licensed under the Apache 2.0 license:
+
+go-ini/ini - https://github.com/go-ini/ini
+Copyright 2014 Unknwon
+License - https://github.com/go-ini/ini/blob/main/LICENSE
+
+This Software contains code from the following open source projects, licensed under the BSD (3-clause) license:
+
+golang/oauth2 - https://github.com/golang/oauth2
+Copyright 2009 The Go Authors
+License - https://github.com/golang/oauth2/blob/main/LICENSE
