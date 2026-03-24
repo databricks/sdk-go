@@ -134,7 +134,7 @@ const (
 	SyncedTableState_SyncedTableOnlineContinuousUpdate          SyncedTableState = "SYNCED_TABLE_ONLINE_CONTINUOUS_UPDATE"
 	SyncedTableState_SyncedTableOnlineTriggeredUpdate           SyncedTableState = "SYNCED_TABLE_ONLINE_TRIGGERED_UPDATE"
 	SyncedTableState_SyncedTableOnlineNoPendingUpdate           SyncedTableState = "SYNCED_TABLE_ONLINE_NO_PENDING_UPDATE"
-	SyncedTableState_SyncedTabledOffline                        SyncedTableState = "SYNCED_TABLED_OFFLINE"
+	SyncedTableState_SyncedTableOffline                         SyncedTableState = "SYNCED_TABLE_OFFLINE"
 	SyncedTableState_SyncedTableOfflineFailed                   SyncedTableState = "SYNCED_TABLE_OFFLINE_FAILED"
 	SyncedTableState_SyncedTableOnlinePipelineFailed            SyncedTableState = "SYNCED_TABLE_ONLINE_PIPELINE_FAILED"
 	SyncedTableState_SyncedTableOnlineUpdatingPipelineResources SyncedTableState = "SYNCED_TABLE_ONLINE_UPDATING_PIPELINE_RESOURCES"
@@ -273,17 +273,17 @@ func (f *Role_MembershipRole) String() string {
 	return string(*f)
 }
 
-type SyncedTableSpec_SyncedTableSchedulingPolicy string
+type SyncedTable_SyncedTableSpec_SyncedTableSchedulingPolicy string
 
 const (
-	SyncedTableSpec_SyncedTableSchedulingPolicy_SyncedTableSchedulingPolicyUnspecified SyncedTableSpec_SyncedTableSchedulingPolicy = "SYNCED_TABLE_SCHEDULING_POLICY_UNSPECIFIED"
-	SyncedTableSpec_SyncedTableSchedulingPolicy_Continuous                             SyncedTableSpec_SyncedTableSchedulingPolicy = "CONTINUOUS"
-	SyncedTableSpec_SyncedTableSchedulingPolicy_Triggered                              SyncedTableSpec_SyncedTableSchedulingPolicy = "TRIGGERED"
-	SyncedTableSpec_SyncedTableSchedulingPolicy_Snapshot                               SyncedTableSpec_SyncedTableSchedulingPolicy = "SNAPSHOT"
+	SyncedTable_SyncedTableSpec_SyncedTableSchedulingPolicy_SyncedTableSchedulingPolicyUnspecified SyncedTable_SyncedTableSpec_SyncedTableSchedulingPolicy = "SYNCED_TABLE_SCHEDULING_POLICY_UNSPECIFIED"
+	SyncedTable_SyncedTableSpec_SyncedTableSchedulingPolicy_Continuous                             SyncedTable_SyncedTableSpec_SyncedTableSchedulingPolicy = "CONTINUOUS"
+	SyncedTable_SyncedTableSpec_SyncedTableSchedulingPolicy_Triggered                              SyncedTable_SyncedTableSpec_SyncedTableSchedulingPolicy = "TRIGGERED"
+	SyncedTable_SyncedTableSpec_SyncedTableSchedulingPolicy_Snapshot                               SyncedTable_SyncedTableSpec_SyncedTableSchedulingPolicy = "SNAPSHOT"
 )
 
 // String representation for [fmt.Print].
-func (f *SyncedTableSpec_SyncedTableSchedulingPolicy) String() string {
+func (f *SyncedTable_SyncedTableSpec_SyncedTableSchedulingPolicy) String() string {
 	return string(*f)
 }
 
@@ -295,6 +295,9 @@ type Branch struct {
 	UpdateTime *time.Time    `json:"update_time"`
 	Spec       *BranchSpec   `json:"spec"`
 	Status     *BranchStatus `json:"status"`
+}
+
+type BranchOperationMetadata struct {
 }
 
 type BranchSpec struct {
@@ -322,12 +325,29 @@ type BranchStatus struct {
 }
 
 type Catalog struct {
-	Name                      *string `json:"name"`
-	Database                  *string `json:"database"`
-	Uid                       *string `json:"uid"`
-	CreateDatabaseIfNotExists *bool   `json:"create_database_if_not_exists"`
-	Project                   *string `json:"project"`
-	Branch                    *string `json:"branch"`
+	Name       *string                `json:"name"`
+	Uid        *string                `json:"uid"`
+	Spec       *Catalog_CatalogSpec   `json:"spec"`
+	Status     *Catalog_CatalogStatus `json:"status"`
+	CreateTime *time.Time             `json:"create_time"`
+	UpdateTime *time.Time             `json:"update_time"`
+}
+
+// The desired state of the Catalog..
+type Catalog_CatalogSpec struct {
+	PostgresDatabase        *string `json:"postgres_database"`
+	CreateDatabaseIfMissing *bool   `json:"create_database_if_missing"`
+	Branch                  *string `json:"branch"`
+}
+
+// The observed state of the Catalog..
+type Catalog_CatalogStatus struct {
+	PostgresDatabase *string `json:"postgres_database"`
+	Project          *string `json:"project"`
+	Branch           *string `json:"branch"`
+}
+
+type CatalogOperationMetadata struct {
 }
 
 type ComputeInstance struct {
@@ -348,7 +368,8 @@ type CreateBranchRequest struct {
 }
 
 type CreateCatalogRequest struct {
-	Catalog *Catalog `json:"catalog"`
+	CatalogId *string  `json:"catalog_id"`
+	Catalog   *Catalog `json:"catalog"`
 }
 
 type CreateDatabaseRequest struct {
@@ -374,8 +395,11 @@ type CreateRoleRequest struct {
 	Role   *Role   `json:"role"`
 }
 
+// Establish a synchronisation to the Postgres database for Reverse ETL for the
+// source table selected from the Unity Catalog..
 type CreateSyncedTableRequest struct {
-	SyncedTable *SyncedTable `json:"synced_table"`
+	SyncedTableId *string      `json:"synced_table_id"`
+	SyncedTable   *SyncedTable `json:"synced_table"`
 }
 
 type CreateTableRequest struct {
@@ -405,6 +429,9 @@ type Database_DatabaseStatus struct {
 type DatabaseCredential struct {
 	Token      *string    `json:"token"`
 	ExpireTime *time.Time `json:"expire_time"`
+}
+
+type DatabaseOperationMetadata struct {
 }
 
 // Databricks Error that is returned by all Databricks APIs..
@@ -448,10 +475,9 @@ type DeleteTableRequest struct {
 	Name *string `json:"name"`
 }
 
-// Copied from database_table_statuses.proto to decouple SDK packages..
 type DeltaTableSyncInfo struct {
-	DeltaCommitVersion   *int64     `json:"delta_commit_version"`
-	DeltaCommitTimestamp *time.Time `json:"delta_commit_timestamp"`
+	DeltaCommitVersion *int64     `json:"delta_commit_version"`
+	DeltaCommitTime    *time.Time `json:"delta_commit_time"`
 }
 
 // Request to disable Forward ETL.
@@ -496,6 +522,9 @@ type EndpointHosts struct {
 	ReadOnlyHost        *string `json:"read_only_host"`
 	ReadWritePooledHost *string `json:"read_write_pooled_host"`
 	ReadOnlyPooledHost  *string `json:"read_only_pooled_host"`
+}
+
+type EndpointOperationMetadata struct {
 }
 
 // A collection of settings for a compute endpoint..
@@ -759,6 +788,9 @@ type ProjectDefaultEndpointSettings_PgSettingsEntry struct {
 	Value *string `json:"value"`
 }
 
+type ProjectOperationMetadata struct {
+}
+
 type ProjectSpec struct {
 	DisplayName              *string                         `json:"display_name"`
 	PgVersion                *int                            `json:"pg_version"`
@@ -786,8 +818,7 @@ type ProjectStatus struct {
 	DefaultBranch               *string                         `json:"default_branch"`
 }
 
-// Copied over from managed-catalog/api/messages/common.proto to decouple SDK
-// packages. xref go/unified-api-packages-dd.
+// The provisioning state of a resource in Unity Catalog..
 type ProvisioningInfo struct {
 }
 
@@ -838,88 +869,60 @@ type Role_RoleStatus struct {
 	PostgresRole    *string               `json:"postgres_role"`
 }
 
+type RoleOperationMetadata struct {
+}
+
 type SyncedTable struct {
-	Name                          *string                 `json:"name"`
-	Database                      *string                 `json:"database"`
-	Project                       *string                 `json:"project"`
-	Branch                        *string                 `json:"branch"`
-	Spec                          *SyncedTableSpec        `json:"spec"`
-	UnityCatalogProvisioningState *ProvisioningInfo_State `json:"unity_catalog_provisioning_state"`
-	DataSynchronizationStatus     *SyncedTableStatus      `json:"data_synchronization_status"`
-	TableServingUrl               *string                 `json:"table_serving_url"`
+	Name       *string                        `json:"name"`
+	Uid        *string                        `json:"uid"`
+	Spec       *SyncedTable_SyncedTableSpec   `json:"spec"`
+	Status     *SyncedTable_SyncedTableStatus `json:"status"`
+	CreateTime *time.Time                     `json:"create_time"`
 }
 
-// Detailed status of a synced table. Shown if the synced table is in the
-// SYNCED_CONTINUOUS_UPDATE or the SYNCED_UPDATING_PIPELINE_RESOURCES state.
-// Copied from database_table_statuses.proto to decouple SDK packages..
-type SyncedTableContinuousUpdateStatus struct {
-	LastProcessedCommitVersion  *int64                       `json:"last_processed_commit_version"`
-	Timestamp                   *time.Time                   `json:"timestamp"`
-	InitialPipelineSyncProgress *SyncedTablePipelineProgress `json:"initial_pipeline_sync_progress"`
+type SyncedTable_SyncedTableSpec struct {
+	PostgresDatabase               *string                                                  `json:"postgres_database"`
+	Project                        *string                                                  `json:"project"`
+	Branch                         *string                                                  `json:"branch"`
+	SchedulingPolicy               *SyncedTable_SyncedTableSpec_SyncedTableSchedulingPolicy `json:"scheduling_policy"`
+	SourceTableFullName            *string                                                  `json:"source_table_full_name"`
+	PrimaryKeyColumns              []string                                                 `json:"primary_key_columns"`
+	TimeseriesKey                  *string                                                  `json:"timeseries_key"`
+	ExistingPipelineId             *string                                                  `json:"existing_pipeline_id"`
+	CreateDatabaseObjectsIfMissing *bool                                                    `json:"create_database_objects_if_missing"`
+	NewPipelineSpec                *NewPipelineSpec                                         `json:"new_pipeline_spec"`
+	AcceleratedSync                *bool                                                    `json:"accelerated_sync"`
 }
 
-// Detailed status of a synced table. Shown if the synced table is in the
-// OFFLINE_FAILED or the SYNCED_PIPELINE_FAILED state. Copied from
-// database_table_statuses.proto to decouple SDK packages..
-type SyncedTableFailedStatus struct {
-	LastProcessedCommitVersion *int64     `json:"last_processed_commit_version"`
-	Timestamp                  *time.Time `json:"timestamp"`
+type SyncedTable_SyncedTableStatus struct {
+	Message                       *string                      `json:"message"`
+	DetailedState                 *SyncedTableState            `json:"detailed_state"`
+	LastSync                      *SyncedTablePosition         `json:"last_sync"`
+	OngoingSyncProgress           *SyncedTablePipelineProgress `json:"ongoing_sync_progress"`
+	ProvisioningPhase             *ProvisioningPhase           `json:"provisioning_phase"`
+	LastProcessedCommitVersion    *int64                       `json:"last_processed_commit_version"`
+	LastSyncTime                  *time.Time                   `json:"last_sync_time"`
+	PipelineId                    *string                      `json:"pipeline_id"`
+	UnityCatalogProvisioningState *ProvisioningInfo_State      `json:"unity_catalog_provisioning_state"`
 }
 
-// Progress information of the Synced Table data synchronization pipeline.
-// Copied from database_table_statuses.proto to decouple SDK packages..
+// Metadata for SyncedTable long-running operations..
+type SyncedTableOperationMetadata struct {
+}
+
+// Progress information of the Synced Table data synchronization pipeline..
 type SyncedTablePipelineProgress struct {
-	LatestVersionCurrentlyProcessing *int64             `json:"latest_version_currently_processing"`
-	SyncedRowCount                   *int64             `json:"synced_row_count"`
-	TotalRowCount                    *int64             `json:"total_row_count"`
-	SyncProgressCompletion           *float64           `json:"sync_progress_completion"`
-	EstimatedCompletionTimeSeconds   *float64           `json:"estimated_completion_time_seconds"`
-	ProvisioningPhase                *ProvisioningPhase `json:"provisioning_phase"`
+	LatestVersionCurrentlyProcessing *int64   `json:"latest_version_currently_processing"`
+	SyncedRowCount                   *int64   `json:"synced_row_count"`
+	TotalRowCount                    *int64   `json:"total_row_count"`
+	SyncProgressCompletion           *float64 `json:"sync_progress_completion"`
+	EstimatedCompletionTimeSeconds   *float64 `json:"estimated_completion_time_seconds"`
 }
 
-// Copied from database_table_statuses.proto to decouple SDK packages..
 type SyncedTablePosition struct {
-	SyncStartTimestamp *time.Time          `json:"sync_start_timestamp"`
-	SyncEndTimestamp   *time.Time          `json:"sync_end_timestamp"`
+	SyncStartTime      *time.Time          `json:"sync_start_time"`
+	SyncEndTime        *time.Time          `json:"sync_end_time"`
 	DeltaTableSyncInfo *DeltaTableSyncInfo `json:"delta_table_sync_info"`
-}
-
-// Detailed status of a synced table. Shown if the synced table is in the
-// PROVISIONING_PIPELINE_RESOURCES or the PROVISIONING_INITIAL_SNAPSHOT state.
-// Copied from database_table_statuses.proto to decouple SDK packages..
-type SyncedTableProvisioningStatus struct {
-	InitialPipelineSyncProgress *SyncedTablePipelineProgress `json:"initial_pipeline_sync_progress"`
-}
-
-type SyncedTableSpec struct {
-	SchedulingPolicy               *SyncedTableSpec_SyncedTableSchedulingPolicy `json:"scheduling_policy"`
-	SourceTableFullName            *string                                      `json:"source_table_full_name"`
-	PrimaryKeyColumns              []string                                     `json:"primary_key_columns"`
-	TimeseriesKey                  *string                                      `json:"timeseries_key"`
-	ExistingPipelineId             *string                                      `json:"existing_pipeline_id"`
-	CreateDatabaseObjectsIfMissing *bool                                        `json:"create_database_objects_if_missing"`
-	NewPipelineSpec                *NewPipelineSpec                             `json:"new_pipeline_spec"`
-	AcceleratedSync                *bool                                        `json:"accelerated_sync"`
-}
-
-type SyncedTableStatus struct {
-	Message                *string                            `json:"message"`
-	PipelineId             *string                            `json:"pipeline_id"`
-	DetailedState          *SyncedTableState                  `json:"detailed_state"`
-	ProvisioningStatus     *SyncedTableProvisioningStatus     `json:"provisioning_status"`
-	ContinuousUpdateStatus *SyncedTableContinuousUpdateStatus `json:"continuous_update_status"`
-	TriggeredUpdateStatus  *SyncedTableTriggeredUpdateStatus  `json:"triggered_update_status"`
-	FailedStatus           *SyncedTableFailedStatus           `json:"failed_status"`
-	LastSync               *SyncedTablePosition               `json:"last_sync"`
-}
-
-// Detailed status of a synced table. Shown if the synced table is in the
-// SYNCED_TRIGGERED_UPDATE or the SYNCED_NO_PENDING_UPDATE state. Copied from
-// database_table_statuses.proto to decouple SDK packages..
-type SyncedTableTriggeredUpdateStatus struct {
-	LastProcessedCommitVersion *int64                       `json:"last_processed_commit_version"`
-	Timestamp                  *time.Time                   `json:"timestamp"`
-	TriggeredUpdateProgress    *SyncedTablePipelineProgress `json:"triggered_update_progress"`
 }
 
 // Table represents a non-synced database table in a Lakebase project. Unlike

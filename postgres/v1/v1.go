@@ -90,8 +90,8 @@ func (c *Client) CreateBranch(ctx context.Context, req *CreateBranchRequest, opt
 	return resp, nil
 }
 
-// Register a Database in UC.
-func (c *Client) CreateCatalog(ctx context.Context, req *CreateCatalogRequest, opts ...api.Option) (*Catalog, error) {
+// Register a Postgres database in the Unity Catalog.
+func (c *Client) CreateCatalog(ctx context.Context, req *CreateCatalogRequest, opts ...api.Option) (*Operation, error) {
 	body, err := json.Marshal(req.Catalog)
 	if err != nil {
 		return nil, err
@@ -106,9 +106,12 @@ func (c *Client) CreateCatalog(ctx context.Context, req *CreateCatalogRequest, o
 	}
 	baseURL.Path = "/api/2.0/postgres/catalogs"
 	queryParams := url.Values{}
+	if req.CatalogId != nil {
+		queryParams.Add("catalog_id", fmt.Sprintf("%v", *req.CatalogId))
+	}
 	baseURL.RawQuery = queryParams.Encode()
 
-	resp := &Catalog{}
+	resp := &Operation{}
 
 	call := func(ctx context.Context) error {
 		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
@@ -347,7 +350,7 @@ func (c *Client) CreateRole(ctx context.Context, req *CreateRoleRequest, opts ..
 }
 
 // Create a Synced Table.
-func (c *Client) CreateSyncedTable(ctx context.Context, req *CreateSyncedTableRequest, opts ...api.Option) (*SyncedTable, error) {
+func (c *Client) CreateSyncedTable(ctx context.Context, req *CreateSyncedTableRequest, opts ...api.Option) (*Operation, error) {
 	body, err := json.Marshal(req.SyncedTable)
 	if err != nil {
 		return nil, err
@@ -362,9 +365,12 @@ func (c *Client) CreateSyncedTable(ctx context.Context, req *CreateSyncedTableRe
 	}
 	baseURL.Path = "/api/2.0/postgres/synced_tables"
 	queryParams := url.Values{}
+	if req.SyncedTableId != nil {
+		queryParams.Add("synced_table_id", fmt.Sprintf("%v", *req.SyncedTableId))
+	}
 	baseURL.RawQuery = queryParams.Encode()
 
-	resp := &SyncedTable{}
+	resp := &Operation{}
 
 	call := func(ctx context.Context) error {
 		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
@@ -488,18 +494,20 @@ func (c *Client) DeleteBranch(ctx context.Context, req *DeleteBranchRequest, opt
 }
 
 // Delete a Database Catalog.
-func (c *Client) DeleteCatalog(ctx context.Context, req *DeleteCatalogRequest, opts ...api.Option) error {
+func (c *Client) DeleteCatalog(ctx context.Context, req *DeleteCatalogRequest, opts ...api.Option) (*Operation, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	baseURL.Path = fmt.Sprintf("/api/2.0/postgres/%v", *req.Name)
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &Operation{}
 
 	call := func(ctx context.Context) error {
 		httpReq, err := http.NewRequest("DELETE", baseURL.String(), nil)
@@ -517,14 +525,16 @@ func (c *Client) DeleteCatalog(ctx context.Context, req *DeleteCatalogRequest, o
 		if err != nil {
 			return err
 		}
-		_ = respBody
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
 		return nil
 	}
 
 	if err := api.Execute(ctx, call, opts...); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return resp, nil
 }
 
 // Delete a Database.
@@ -707,18 +717,20 @@ func (c *Client) DeleteRole(ctx context.Context, req *DeleteRoleRequest, opts ..
 }
 
 // Delete a Synced Table.
-func (c *Client) DeleteSyncedTable(ctx context.Context, req *DeleteSyncedTableRequest, opts ...api.Option) error {
+func (c *Client) DeleteSyncedTable(ctx context.Context, req *DeleteSyncedTableRequest, opts ...api.Option) (*Operation, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/postgres/synced_tables/%v", *req.Name)
+	baseURL.Path = fmt.Sprintf("/api/2.0/postgres/%v", *req.Name)
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &Operation{}
 
 	call := func(ctx context.Context) error {
 		httpReq, err := http.NewRequest("DELETE", baseURL.String(), nil)
@@ -736,14 +748,16 @@ func (c *Client) DeleteSyncedTable(ctx context.Context, req *DeleteSyncedTableRe
 		if err != nil {
 			return err
 		}
-		_ = respBody
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
 		return nil
 	}
 
 	if err := api.Execute(ctx, call, opts...); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return resp, nil
 }
 
 // Delete a Table (non-synced database table for Autoscaling v2 Lakebase
@@ -1357,7 +1371,7 @@ func (c *Client) GetSyncedTable(ctx context.Context, req *GetSyncedTableRequest,
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/postgres/synced_tables/%v", *req.Name)
+	baseURL.Path = fmt.Sprintf("/api/2.0/postgres/%v", *req.Name)
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
 

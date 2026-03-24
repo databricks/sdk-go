@@ -1,12 +1,25 @@
 go 1.25.4
 
 use (
+	./accountaccesscontrol
+	./accountaccesscontrolproxy
 	./auth
+	./billableusagedownload
 	./databricks
 	./dataquality
+	./environments
 	./examples
+	./features
+	./featurestore
 	./iam
+	./materializedfeatures
+	./notificationdestinations
+	./postgres
 	./qualitymonitor
+	./rfa
 	./sdk
 	./settings
+	./statementexecution
+	./tagassignments
+	./tagpolicies
 )

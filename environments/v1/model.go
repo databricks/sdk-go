@@ -109,6 +109,19 @@ func (f *ErrorCode) String() string {
 	return string(*f)
 }
 
+type WorkspaceBaseEnvironmentProvider string
+
+const (
+	WorkspaceBaseEnvironmentProvider_WorkspaceBaseEnvironmentProviderUnspecified WorkspaceBaseEnvironmentProvider = "WORKSPACE_BASE_ENVIRONMENT_PROVIDER_UNSPECIFIED"
+	WorkspaceBaseEnvironmentProvider_Admin                                       WorkspaceBaseEnvironmentProvider = "ADMIN"
+	WorkspaceBaseEnvironmentProvider_Databricks                                  WorkspaceBaseEnvironmentProvider = "DATABRICKS"
+)
+
+// String representation for [fmt.Print].
+func (f *WorkspaceBaseEnvironmentProvider) String() string {
+	return string(*f)
+}
+
 type WorkspaceBaseEnvironmentCache_Status string
 
 const (
@@ -214,19 +227,26 @@ type UpdateWorkspaceBaseEnvironmentRequest struct {
 // configuration consisting of an environment version and a list of
 // dependencies..
 type WorkspaceBaseEnvironment struct {
-	Name                *string                               `json:"name"`
-	DisplayName         *string                               `json:"display_name"`
-	Filepath            *string                               `json:"filepath"`
-	CreatorUserId       *string                               `json:"creator_user_id"`
-	CreateTime          *time.Time                            `json:"create_time"`
-	LastUpdatedUserId   *string                               `json:"last_updated_user_id"`
-	UpdateTime          *time.Time                            `json:"update_time"`
-	Status              *WorkspaceBaseEnvironmentCache_Status `json:"status"`
-	Message             *string                               `json:"message"`
-	IsDefault           *bool                                 `json:"is_default"`
-	BaseEnvironmentType *BaseEnvironmentType                  `json:"base_environment_type"`
+	Name                    *string                               `json:"name"`
+	DisplayName             *string                               `json:"display_name"`
+	Filepath                *string                               `json:"filepath"`
+	CreatorUserId           *string                               `json:"creator_user_id"`
+	CreateTime              *time.Time                            `json:"create_time"`
+	LastUpdatedUserId       *string                               `json:"last_updated_user_id"`
+	UpdateTime              *time.Time                            `json:"update_time"`
+	Status                  *WorkspaceBaseEnvironmentCache_Status `json:"status"`
+	Message                 *string                               `json:"message"`
+	IsDefault               *bool                                 `json:"is_default"`
+	BaseEnvironmentType     *BaseEnvironmentType                  `json:"base_environment_type"`
+	BaseEnvironmentProvider *WorkspaceBaseEnvironmentProvider     `json:"base_environment_provider"`
 }
 
 // Materialized environment information for a WorkspaceBaseEnvironment..
 type WorkspaceBaseEnvironmentCache struct {
+}
+
+// Metadata for the WorkspaceBaseEnvironment long-running operations. This
+// message tracks the progress of the workspace base environment long-running
+// process..
+type WorkspaceBaseEnvironmentOperationMetadata struct {
 }

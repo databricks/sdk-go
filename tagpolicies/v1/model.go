@@ -51,6 +51,7 @@ type TagPolicy struct {
 	CreateTime        *time.Time         `json:"create_time"`
 	UpdateTime        *time.Time         `json:"update_time"`
 	PropagationConfig *PropagationConfig `json:"propagation_config"`
+	AccountId         *string            `json:"account_id"`
 }
 
 type UpdateTagPolicyRequest struct {

@@ -1,4 +1,4 @@
-module github.com/databricks/sdk-go/dataquality
+module github.com/databricks/sdk-go/statementexecution
 
 go 1.25.4
 
