@@ -160,7 +160,7 @@ func newMockServer() *httptest.Server {
 		case r.Method == http.MethodPost && path == "/api/data-quality/v1/monitors":
 			var body dq.Monitor
 			json.NewDecoder(r.Body).Decode(&body)
-			body.DataProfilingConfig.Status = ptr(dq.DataProfilingStatusDataProfilingStatusPending)
+			body.DataProfilingConfig.Status = ptr(dq.DataProfilingStatus_DataProfilingStatusPending)
 			json.NewEncoder(w).Encode(body)
 
 		case r.Method == http.MethodGet && strings.HasPrefix(path, "/api/data-quality/v1/monitors/") && !strings.Contains(path, "/refreshes"):
@@ -169,7 +169,7 @@ func newMockServer() *httptest.Server {
 				ObjectId:   ptr("main.default.my_table"),
 				DataProfilingConfig: &dq.DataProfilingConfig{
 					OutputSchemaId: ptr("main.default"),
-					Status:         ptr(dq.DataProfilingStatusDataProfilingStatusActive),
+					Status:         ptr(dq.DataProfilingStatus_DataProfilingStatusActive),
 					Snapshot:       &dq.SnapshotConfig{},
 				},
 			})
@@ -177,7 +177,7 @@ func newMockServer() *httptest.Server {
 		case r.Method == http.MethodPatch && strings.HasPrefix(path, "/api/data-quality/v1/monitors/"):
 			var body dq.Monitor
 			json.NewDecoder(r.Body).Decode(&body)
-			body.DataProfilingConfig.Status = ptr(dq.DataProfilingStatusDataProfilingStatusActive)
+			body.DataProfilingConfig.Status = ptr(dq.DataProfilingStatus_DataProfilingStatusActive)
 			json.NewEncoder(w).Encode(body)
 
 		case r.Method == http.MethodDelete && strings.HasPrefix(path, "/api/data-quality/v1/monitors/"):
@@ -189,8 +189,8 @@ func newMockServer() *httptest.Server {
 				ObjectType: ptr("table"),
 				ObjectId:   ptr("main.default.my_table"),
 				RefreshId:  ptr(id),
-				State:      ptr(dq.RefreshStateMonitorRefreshStatePending),
-				Trigger:    ptr(dq.RefreshTriggerMonitorRefreshTriggerManual),
+				State:      ptr(dq.RefreshState_MonitorRefreshStatePending),
+				Trigger:    ptr(dq.RefreshTrigger_MonitorRefreshTriggerManual),
 			}
 			refreshes = append(refreshes, ref)
 			json.NewEncoder(w).Encode(ref)

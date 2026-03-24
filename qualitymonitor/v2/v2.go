@@ -39,8 +39,8 @@ func NewClient(ctx context.Context, opts ...options.ClientOption) (*Client, erro
 	}, nil
 }
 
-// [DEPRECATED] Create a quality monitor on UC object. Use Data Quality
-// Monitoring API instead.
+// Deprecated: Use Data Quality Monitoring API instead
+// (/api/data-quality/v1/monitors). Create a quality monitor on UC object.
 func (c *Client) CreateQualityMonitor(ctx context.Context, req *CreateQualityMonitorRequest, opts ...api.Option) (*QualityMonitor, error) {
 	body, err := json.Marshal(req.QualityMonitor)
 	if err != nil {
@@ -88,8 +88,8 @@ func (c *Client) CreateQualityMonitor(ctx context.Context, req *CreateQualityMon
 	return resp, nil
 }
 
-// [DEPRECATED] Delete a quality monitor on UC object. Use Data Quality
-// Monitoring API instead.
+// Deprecated: Use Data Quality Monitoring API instead
+// (/api/data-quality/v1/monitors). Delete a quality monitor on UC object.
 func (c *Client) DeleteQualityMonitor(ctx context.Context, req *DeleteQualityMonitorRequest, opts ...api.Option) error {
 
 	headers := http.Header{}
@@ -129,8 +129,8 @@ func (c *Client) DeleteQualityMonitor(ctx context.Context, req *DeleteQualityMon
 	return nil
 }
 
-// [DEPRECATED] Read a quality monitor on UC object. Use Data Quality Monitoring
-// API instead.
+// Deprecated: Use Data Quality Monitoring API instead
+// (/api/data-quality/v1/monitors). Read a quality monitor on UC object.
 func (c *Client) GetQualityMonitor(ctx context.Context, req *GetQualityMonitorRequest, opts ...api.Option) (*QualityMonitor, error) {
 
 	headers := http.Header{}
@@ -174,8 +174,8 @@ func (c *Client) GetQualityMonitor(ctx context.Context, req *GetQualityMonitorRe
 	return resp, nil
 }
 
-// [DEPRECATED] (Unimplemented) List quality monitors. Use Data Quality
-// Monitoring API instead.
+// Deprecated: Use Data Quality Monitoring API instead
+// (/api/data-quality/v1/monitors). (Unimplemented) List quality monitors.
 func (c *Client) ListQualityMonitor(ctx context.Context, req *ListQualityMonitorRequest, opts ...api.Option) (*ListQualityMonitorResponse, error) {
 
 	headers := http.Header{}
@@ -257,8 +257,9 @@ func (c *Client) ListQualityMonitorIter(ctx context.Context, req *ListQualityMon
 	}
 }
 
-// [DEPRECATED] (Unimplemented) Update a quality monitor on UC object. Use Data
-// Quality Monitoring API instead.
+// Deprecated: Use Data Quality Monitoring API instead
+// (/api/data-quality/v1/monitors). (Unimplemented) Update a quality monitor on
+// UC object.
 func (c *Client) UpdateQualityMonitor(ctx context.Context, req *UpdateQualityMonitorRequest, opts ...api.Option) (*QualityMonitor, error) {
 	body, err := json.Marshal(req.QualityMonitor)
 	if err != nil {

@@ -3,9 +3,9 @@ package v2
 type AnomalyDetectionJobType string
 
 const (
-	AnomalyDetectionJobTypeAnomalyDetectionJobTypeUnspecified    AnomalyDetectionJobType = "ANOMALY_DETECTION_JOB_TYPE_UNSPECIFIED"
-	AnomalyDetectionJobTypeAnomalyDetectionJobTypeNormal         AnomalyDetectionJobType = "ANOMALY_DETECTION_JOB_TYPE_NORMAL"
-	AnomalyDetectionJobTypeAnomalyDetectionJobTypeInternalHidden AnomalyDetectionJobType = "ANOMALY_DETECTION_JOB_TYPE_INTERNAL_HIDDEN"
+	AnomalyDetectionJobType_AnomalyDetectionJobTypeUnspecified    AnomalyDetectionJobType = "ANOMALY_DETECTION_JOB_TYPE_UNSPECIFIED"
+	AnomalyDetectionJobType_AnomalyDetectionJobTypeNormal         AnomalyDetectionJobType = "ANOMALY_DETECTION_JOB_TYPE_NORMAL"
+	AnomalyDetectionJobType_AnomalyDetectionJobTypeInternalHidden AnomalyDetectionJobType = "ANOMALY_DETECTION_JOB_TYPE_INTERNAL_HIDDEN"
 )
 
 // String representation for [fmt.Print].
@@ -16,14 +16,14 @@ func (f *AnomalyDetectionJobType) String() string {
 type AnomalyDetectionRunStatus string
 
 const (
-	AnomalyDetectionRunStatusAnomalyDetectionRunStatusUnknown                AnomalyDetectionRunStatus = "ANOMALY_DETECTION_RUN_STATUS_UNKNOWN"
-	AnomalyDetectionRunStatusAnomalyDetectionRunStatusRunning                AnomalyDetectionRunStatus = "ANOMALY_DETECTION_RUN_STATUS_RUNNING"
-	AnomalyDetectionRunStatusAnomalyDetectionRunStatusCanceled               AnomalyDetectionRunStatus = "ANOMALY_DETECTION_RUN_STATUS_CANCELED"
-	AnomalyDetectionRunStatusAnomalyDetectionRunStatusPending                AnomalyDetectionRunStatus = "ANOMALY_DETECTION_RUN_STATUS_PENDING"
-	AnomalyDetectionRunStatusAnomalyDetectionRunStatusSuccess                AnomalyDetectionRunStatus = "ANOMALY_DETECTION_RUN_STATUS_SUCCESS"
-	AnomalyDetectionRunStatusAnomalyDetectionRunStatusFailed                 AnomalyDetectionRunStatus = "ANOMALY_DETECTION_RUN_STATUS_FAILED"
-	AnomalyDetectionRunStatusAnomalyDetectionRunStatusJobDeleted             AnomalyDetectionRunStatus = "ANOMALY_DETECTION_RUN_STATUS_JOB_DELETED"
-	AnomalyDetectionRunStatusAnomalyDetectionRunStatusWorkspaceMismatchError AnomalyDetectionRunStatus = "ANOMALY_DETECTION_RUN_STATUS_WORKSPACE_MISMATCH_ERROR"
+	AnomalyDetectionRunStatus_AnomalyDetectionRunStatusUnknown                AnomalyDetectionRunStatus = "ANOMALY_DETECTION_RUN_STATUS_UNKNOWN"
+	AnomalyDetectionRunStatus_AnomalyDetectionRunStatusRunning                AnomalyDetectionRunStatus = "ANOMALY_DETECTION_RUN_STATUS_RUNNING"
+	AnomalyDetectionRunStatus_AnomalyDetectionRunStatusCanceled               AnomalyDetectionRunStatus = "ANOMALY_DETECTION_RUN_STATUS_CANCELED"
+	AnomalyDetectionRunStatus_AnomalyDetectionRunStatusPending                AnomalyDetectionRunStatus = "ANOMALY_DETECTION_RUN_STATUS_PENDING"
+	AnomalyDetectionRunStatus_AnomalyDetectionRunStatusSuccess                AnomalyDetectionRunStatus = "ANOMALY_DETECTION_RUN_STATUS_SUCCESS"
+	AnomalyDetectionRunStatus_AnomalyDetectionRunStatusFailed                 AnomalyDetectionRunStatus = "ANOMALY_DETECTION_RUN_STATUS_FAILED"
+	AnomalyDetectionRunStatus_AnomalyDetectionRunStatusJobDeleted             AnomalyDetectionRunStatus = "ANOMALY_DETECTION_RUN_STATUS_JOB_DELETED"
+	AnomalyDetectionRunStatus_AnomalyDetectionRunStatusWorkspaceMismatchError AnomalyDetectionRunStatus = "ANOMALY_DETECTION_RUN_STATUS_WORKSPACE_MISMATCH_ERROR"
 )
 
 // String representation for [fmt.Print].
@@ -34,10 +34,10 @@ func (f *AnomalyDetectionRunStatus) String() string {
 type ThresholdType string
 
 const (
-	ThresholdTypeThresholdTypeUnspecified ThresholdType = "THRESHOLD_TYPE_UNSPECIFIED"
-	ThresholdTypeThresholdTypeAuto        ThresholdType = "THRESHOLD_TYPE_AUTO"
-	ThresholdTypeThresholdTypeUnbounded   ThresholdType = "THRESHOLD_TYPE_UNBOUNDED"
-	ThresholdTypeThresholdTypeManual      ThresholdType = "THRESHOLD_TYPE_MANUAL"
+	ThresholdType_ThresholdTypeUnspecified ThresholdType = "THRESHOLD_TYPE_UNSPECIFIED"
+	ThresholdType_ThresholdTypeAuto        ThresholdType = "THRESHOLD_TYPE_AUTO"
+	ThresholdType_ThresholdTypeUnbounded   ThresholdType = "THRESHOLD_TYPE_UNBOUNDED"
+	ThresholdType_ThresholdTypeManual      ThresholdType = "THRESHOLD_TYPE_MANUAL"
 )
 
 // String representation for [fmt.Print].

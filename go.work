@@ -4,10 +4,24 @@ use (
 	./auth
 	./core
 	./databricks
+	./dataclassification
 	./dataquality
 	./examples
+	./features
+	./featurestore
 	./iam
+	./materializedfeatures
+	./oauthcustomappintegration
+	./oauthpublishedapp
+	./permissionmigration
+	./permissions
+	./postgres
 	./qualitymonitor
+	./qualitymonitors
 	./sdk
+	./serviceprincipalsecrets
+	./serviceprincipalsecretsproxy
 	./settings
+	./statementexecution
+	./workspaceconf
 )
