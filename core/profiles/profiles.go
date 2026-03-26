@@ -32,20 +32,30 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-// ErrConfigFileNotFound is returned when an explicitly requested config file
-// (via [WithFile] or DATABRICKS_CONFIG_FILE) does not exist.
-var ErrConfigFileNotFound = errors.New("config file not found")
+var (
+	// ErrConfigFileNotFound is returned when an explicitly requested config file
+	// (via [WithFile] or DATABRICKS_CONFIG_FILE) does not exist.
+	ErrConfigFileNotFound = errors.New("config file not found")
 
-// ErrProfileNotFound is returned when the requested profile (INI section) does
-// not exist in the config file.
-var ErrProfileNotFound = errors.New("profile not found")
+	// ErrProfileNotFound is returned when the requested profile (INI section) does
+	// not exist in the config file.
+	ErrProfileNotFound = errors.New("profile not found")
 
-// ErrEmptyPath is returned when an empty path is passed to [SaveToFile].
-var ErrEmptyPath = errors.New("empty path")
+	// ErrEmptyPath is returned when an empty path is passed.
+	ErrEmptyPath = errors.New("empty path")
 
-// ErrEmptyProfile is returned when an empty profile name is passed to
-// [SaveToFile].
-var ErrEmptyProfile = errors.New("empty profile")
+	// ErrEmptyProfile is returned when an empty profile name is passed.
+	ErrEmptyProfile = errors.New("empty profile")
+
+	// ErrInvalidProfileName is returned when a profile name is reserved or
+	// otherwise not usable.
+	ErrInvalidProfileName = errors.New("invalid profile name")
+)
+
+// settingsSection is the reserved INI section name for SDK settings. It is
+// never treated as a profile. The default_profile key in this section
+// determines which profile to load when no profile is explicitly requested.
+const settingsSection = "__settings__"
 
 // Secret is a string that is obfuscated in all string representations.
 type Secret string
@@ -177,32 +187,31 @@ type Profile struct {
 type ResolveOption func(o *options) error
 
 type options struct {
-	filePath  *string
-	profile   *string
+	filePath  string
+	profile   string
 	ignoreEnv bool
 }
 
 // WithFile overrides the path to the databrickscfg file. If not set, Resolve
 // reads DATABRICKS_CONFIG_FILE from the environment, falling back to
-// ~/.databrickscfg. An empty string is treated as if WithFile was not called.
+// ~/.databrickscfg. An empty string returns [ErrEmptyPath].
 func WithFile(path string) ResolveOption {
 	return func(o *options) error {
-		if path != "" {
-			o.filePath = &path
+		if path == "" {
+			return ErrEmptyPath
 		}
+		o.filePath = path
 		return nil
 	}
 }
 
-// WithProfile overrides the profile (INI section) to load. If not set,
-// Resolve reads DATABRICKS_CONFIG_PROFILE from the environment, falling back
-// to the DEFAULT section. An empty string is treated as if WithProfile was not
-// called.
+// WithProfile overrides the profile (INI section) to load.
 func WithProfile(profile string) ResolveOption {
 	return func(o *options) error {
-		if profile != "" {
-			o.profile = &profile
+		if profile == "" {
+			return ErrEmptyProfile
 		}
+		o.profile = profile
 		return nil
 	}
 }
@@ -241,25 +250,8 @@ func Resolve(opts ...ResolveOption) (*Profile, error) {
 		}
 	}
 
-	filePath := ""
-	explicitFile := false
-	if o.filePath != nil {
-		filePath = *o.filePath
-		explicitFile = true
-	} else if v := os.Getenv("DATABRICKS_CONFIG_FILE"); v != "" {
-		filePath = v
-		explicitFile = true
-	}
-
-	profile := ""
-	if o.profile != nil {
-		profile = *o.profile
-	} else {
-		profile = os.Getenv("DATABRICKS_CONFIG_PROFILE")
-	}
-
 	p := &Profile{}
-	if err := loadFile(p, filePath, profile, explicitFile); err != nil {
+	if err := loadFile(p, o.filePath, o.profile); err != nil {
 		return nil, err
 	}
 	if !o.ignoreEnv {
@@ -291,6 +283,9 @@ func ListProfiles(path string) ([]string, error) {
 	var names []string
 	for _, section := range f.Sections() {
 		name := section.Name()
+		if name == settingsSection {
+			continue // the settings section is not a profile
+		}
 		if name == "DEFAULT" && len(section.Keys()) == 0 {
 			continue
 		}
@@ -519,8 +514,7 @@ func DefaultConfigFile() string {
 }
 
 // defaultConfigFilePath returns ~/.databrickscfg without checking environment
-// variables. Used by loadFile to avoid re-reading DATABRICKS_CONFIG_FILE,
-// which Resolve has already handled.
+// variables.
 func defaultConfigFilePath() string {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -604,29 +598,27 @@ func (p *Profile) SaveToFile(path, profile string) error {
 	return os.Chmod(path, 0600)
 }
 
-// loadFile populates p from the named section of a databrickscfg file. If path
-// is empty, it falls back to ~/.databrickscfg. If profile is
-// empty, it reads the DEFAULT section (a missing DEFAULT is not an error).
-// When explicit is false and the file does not exist, loadFile returns nil
-// without error.
-func loadFile(p *Profile, path, profile string, explicit bool) error {
+// loadFile populates p from the databrickscfg file. If path is empty, it
+// checks DATABRICKS_CONFIG_FILE, falling back to ~/.databrickscfg. If profile
+// is empty, it checks DATABRICKS_CONFIG_PROFILE, then the default_profile key
+// in the config file, falling back to the DEFAULT section. A missing file is
+// silently skipped unless an explicit path was provided. A missing DEFAULT
+// section is not an error.
+func loadFile(p *Profile, path, profile string) error {
+	explicitFile := path != ""
 	if path == "" {
-		path = defaultConfigFilePath()
-	}
-
-	// If the file doesn't exist and no explicit path was requested, skip
-	// silently. This allows env-only configurations to work without a
-	// config file on disk.
-	if !explicit {
-		if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
-			return nil
+		if v := os.Getenv("DATABRICKS_CONFIG_FILE"); v != "" {
+			path = v
+			explicitFile = true
+		} else {
+			path = defaultConfigFilePath()
 		}
 	}
-
-	if explicit {
-		if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
+	if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
+		if explicitFile {
 			return fmt.Errorf("%w: %s", ErrConfigFileNotFound, path)
 		}
+		return nil
 	}
 
 	f, err := ini.LoadSources(iniLoadOptions, path)
@@ -634,17 +626,33 @@ func loadFile(p *Profile, path, profile string, explicit bool) error {
 		return fmt.Errorf("loading config file %q: %w", path, err)
 	}
 
+	// Profile name resolution chain:
+	// 1. From environment variable
+	// 2. From default_profile key in __settings__ section
+	// 3. From DEFAULT section
 	if profile == "" {
+		profile = os.Getenv("DATABRICKS_CONFIG_PROFILE")
+	}
+	if profile == "" {
+		if s, err := f.GetSection(settingsSection); err == nil {
+			profile = s.Key("default_profile").String()
+		}
+	}
+	if profile == settingsSection {
+		return fmt.Errorf("%w: %q is a reserved section", ErrInvalidProfileName, settingsSection)
+	}
+	// If no profile was resolved, fall back to DEFAULT. A missing DEFAULT
+	// section is not an error since nobody explicitly asked for it.
+	explicitProfile := profile != ""
+	if !explicitProfile {
 		profile = "DEFAULT"
 	}
-
 	section, err := f.GetSection(profile)
 	if err != nil {
-		// A missing DEFAULT section is not an error; leave p unchanged.
-		if profile == "DEFAULT" {
-			return nil
+		if explicitProfile {
+			return fmt.Errorf("%w: %q in %s", ErrProfileNotFound, profile, path)
 		}
-		return fmt.Errorf("%w: %q in %s", ErrProfileNotFound, profile, path)
+		return nil
 	}
 
 	known := make(map[string]bool, len(properties))
