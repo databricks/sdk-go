@@ -461,6 +461,9 @@ func (c *Client) DeleteBranch(ctx context.Context, req *DeleteBranchRequest, opt
 	}
 	baseURL.Path = fmt.Sprintf("/api/2.0/postgres/%v", *req.Name)
 	queryParams := url.Values{}
+	if req.Purge != nil {
+		queryParams.Add("purge", fmt.Sprintf("%v", *req.Purge))
+	}
 	baseURL.RawQuery = queryParams.Encode()
 
 	resp := &Operation{}

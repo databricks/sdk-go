@@ -11,6 +11,7 @@ require (
 require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
+	github.com/stretchr/testify v1.11.1 // indirect
 	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225 // indirect
 	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect

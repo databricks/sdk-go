@@ -443,7 +443,8 @@ type DatabricksServiceExceptionWithDetailsProto struct {
 }
 
 type DeleteBranchRequest struct {
-	Name *string `json:"name"`
+	Name  *string `json:"name"`
+	Purge *bool   `json:"purge"`
 }
 
 type DeleteCatalogRequest struct {
@@ -882,7 +883,6 @@ type SyncedTable struct {
 
 type SyncedTable_SyncedTableSpec struct {
 	PostgresDatabase               *string                                                  `json:"postgres_database"`
-	Project                        *string                                                  `json:"project"`
 	Branch                         *string                                                  `json:"branch"`
 	SchedulingPolicy               *SyncedTable_SyncedTableSpec_SyncedTableSchedulingPolicy `json:"scheduling_policy"`
 	SourceTableFullName            *string                                                  `json:"source_table_full_name"`
@@ -904,6 +904,7 @@ type SyncedTable_SyncedTableStatus struct {
 	LastSyncTime                  *time.Time                   `json:"last_sync_time"`
 	PipelineId                    *string                      `json:"pipeline_id"`
 	UnityCatalogProvisioningState *ProvisioningInfo_State      `json:"unity_catalog_provisioning_state"`
+	Project                       *string                      `json:"project"`
 }
 
 // Metadata for SyncedTable long-running operations..

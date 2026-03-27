@@ -1,6 +1,6 @@
 module github.com/databricks/sdk-go/features
 
-go 1.25.4
+go 1.26.0
 
 replace github.com/databricks/sdk-go/auth => ../auth
 
