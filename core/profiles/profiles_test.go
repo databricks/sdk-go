@@ -232,10 +232,31 @@ func TestResolve(t *testing.T) {
 			},
 		},
 		{
-			name: "withFileEmptyStringIsNoOp",
-			opts: []ResolveOption{WithFile(""), WithoutEnv()},
-			env: map[string]string{
-				"DATABRICKS_CONFIG_FILE": "testdata/databrickscfg",
+			name:    "withFileEmptyStringIsError",
+			opts:    []ResolveOption{WithFile("")},
+			wantErr: ErrEmptyPath,
+		},
+		{
+			name:    "withProfileEmptyStringIsError",
+			opts:    []ResolveOption{WithProfile("")},
+			wantErr: ErrEmptyProfile,
+		},
+		{
+			name: "defaultProfileResolves",
+			opts: []ResolveOption{
+				WithFile("testdata/databrickscfg_settings"),
+				WithoutEnv(),
+			},
+			want: &Profile{
+				Host:  "https://my-workspace.cloud.databricks.com",
+				Token: Secret("my-workspace-token"),
+			},
+		},
+		{
+			name: "defaultProfileFallbackEmptyKey",
+			opts: []ResolveOption{
+				WithFile("testdata/databrickscfg_settings_empty"),
+				WithoutEnv(),
 			},
 			want: &Profile{
 				Host:  "https://default.cloud.databricks.com",
@@ -243,24 +264,55 @@ func TestResolve(t *testing.T) {
 			},
 		},
 		{
-			name: "withProfileEmptyStringIsNoOp",
+			name: "defaultProfileOverriddenByExplicitProfile",
 			opts: []ResolveOption{
-				WithFile("testdata/databrickscfg"),
-				WithProfile(""),
+				WithFile("testdata/databrickscfg_settings"),
+				WithProfile("DEFAULT"),
+				WithoutEnv(),
+			},
+			want: &Profile{
+				Host:  "https://default.cloud.databricks.com",
+				Token: Secret("default-token"),
+			},
+		},
+		{
+			name: "defaultProfileOverriddenByEnvProfile",
+			opts: []ResolveOption{
+				WithFile("testdata/databrickscfg_settings"),
 				WithoutEnv(),
 			},
 			env: map[string]string{
-				"DATABRICKS_CONFIG_PROFILE": "workspace",
+				"DATABRICKS_CONFIG_PROFILE": "DEFAULT",
 			},
 			want: &Profile{
-				Host:         "https://workspace.cloud.databricks.com",
-				Token:        Secret("workspace-token"),
-				AccountID:    "acc-123",
-				ClientID:     "client-abc",
-				ClientSecret: Secret("secret-xyz"),
-				ClusterID:    "0123-456789-abcdef",
-				WarehouseID:  "abc123def456",
+				Host:  "https://default.cloud.databricks.com",
+				Token: Secret("default-token"),
 			},
+		},
+		{
+			name: "defaultProfileSelfReference",
+			opts: []ResolveOption{
+				WithFile("testdata/databrickscfg_settings_self_ref"),
+				WithoutEnv(),
+			},
+			wantErr: ErrInvalidProfileName,
+		},
+		{
+			name: "defaultProfileNonexistentSection",
+			opts: []ResolveOption{
+				WithFile("testdata/databrickscfg_settings_nonexistent"),
+				WithoutEnv(),
+			},
+			wantErr: ErrProfileNotFound,
+		},
+		{
+			name: "explicitSettingsProfileRejected",
+			opts: []ResolveOption{
+				WithFile("testdata/databrickscfg_settings"),
+				WithProfile("__settings__"),
+				WithoutEnv(),
+			},
+			wantErr: ErrInvalidProfileName,
 		},
 	}
 
@@ -562,6 +614,11 @@ func TestListProfiles(t *testing.T) {
 			name: "noDefault",
 			path: "testdata/databrickscfg_no_default",
 			want: []string{"workspace"},
+		},
+		{
+			name: "settingsSectionExcluded",
+			path: "testdata/databrickscfg_settings",
+			want: []string{"DEFAULT", "my-workspace"},
 		},
 		{
 			name:    "missingFile",
