@@ -54,8 +54,11 @@ func (c *Client) CreateAccountAccessIdentityRule(ctx context.Context, req *Creat
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = "/api/2.0/accounts/{account_id}/aim-control-policy/account-access-identity-rules"
+	baseURL.Path = fmt.Sprintf("/api/2.0/%v/account-access-identity-rules", *req.Parent)
 	queryParams := url.Values{}
+	if req.ExternalPrincipalId != nil {
+		queryParams.Add("external_principal_id", fmt.Sprintf("%v", *req.ExternalPrincipalId))
+	}
 	baseURL.RawQuery = queryParams.Encode()
 
 	resp := &AccountAccessIdentityRule{}
@@ -98,7 +101,7 @@ func (c *Client) DeleteAccountAccessIdentityRule(ctx context.Context, req *Delet
 	if err != nil {
 		return err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/accounts//aim-control-policy/account-access-identity-rules/%v", *req.ExternalId)
+	baseURL.Path = fmt.Sprintf("/api/2.0/%v/account-access-identity-rules/%v", *req.Parent, *req.ExternalPrincipalId)
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
 
@@ -138,7 +141,7 @@ func (c *Client) GetAccountAccessIdentityRule(ctx context.Context, req *GetAccou
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/accounts//aim-control-policy/account-access-identity-rules/%v", *req.ExternalId)
+	baseURL.Path = fmt.Sprintf("/api/2.0/%v/account-access-identity-rules/%v", *req.Parent, *req.ExternalPrincipalId)
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
 
@@ -184,7 +187,7 @@ func (c *Client) ListAccountAccessIdentityRules(ctx context.Context, req *ListAc
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = "/api/2.0/accounts/{account_id}/aim-control-policy/account-access-identity-rules"
+	baseURL.Path = fmt.Sprintf("/api/2.0/%v/account-access-identity-rules", *req.Parent)
 	queryParams := url.Values{}
 	if req.PageSize != nil {
 		queryParams.Add("page_size", fmt.Sprintf("%v", *req.PageSize))
@@ -201,6 +204,102 @@ func (c *Client) ListAccountAccessIdentityRules(ctx context.Context, req *ListAc
 
 	call := func(ctx context.Context) error {
 		httpReq, err := http.NewRequest("GET", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Creates a group membership (assigns a principal to a group).
+func (c *Client) CreateDirectGroupMember(ctx context.Context, req *CreateDirectGroupMemberRequest, opts ...api.Option) (*DirectGroupMember, error) {
+	body, err := json.Marshal(req.DirectGroupMember)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//groups/%v/direct-members", *req.GroupId)
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &DirectGroupMember{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Creates a group membership (assigns a principal to a group).
+func (c *Client) CreateDirectGroupMemberProxy(ctx context.Context, req *CreateDirectGroupMemberProxyRequest, opts ...api.Option) (*DirectGroupMember, error) {
+	body, err := json.Marshal(req.DirectGroupMember)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/groups/%v/direct-members", *req.GroupId)
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &DirectGroupMember{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -323,6 +422,86 @@ func (c *Client) CreateGroupProxy(ctx context.Context, req *CreateGroupProxyRequ
 	return resp, nil
 }
 
+// Deletes a group membership (unassigns a principal from a group).
+func (c *Client) DeleteDirectGroupMember(ctx context.Context, req *DeleteDirectGroupMemberRequest, opts ...api.Option) error {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return err
+	}
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//groups/%v/direct-members/%v", *req.GroupId, *req.PrincipalId)
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("DELETE", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		_ = respBody
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Deletes a group membership (unassigns a principal from a group).
+func (c *Client) DeleteDirectGroupMemberProxy(ctx context.Context, req *DeleteDirectGroupMemberProxyRequest, opts ...api.Option) error {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return err
+	}
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/groups/%v/direct-members/%v", *req.GroupId, *req.PrincipalId)
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("DELETE", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		_ = respBody
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return err
+	}
+	return nil
+}
+
 // TODO: Write description later when this method is implemented
 func (c *Client) DeleteGroup(ctx context.Context, req *DeleteGroupRequest, opts ...api.Option) error {
 
@@ -403,6 +582,94 @@ func (c *Client) DeleteGroupProxy(ctx context.Context, req *DeleteGroupProxyRequ
 	return nil
 }
 
+// Gets a provisioned direct member of a group.
+func (c *Client) GetDirectGroupMember(ctx context.Context, req *GetDirectGroupMemberRequest, opts ...api.Option) (*DirectGroupMember, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//groups/%v/direct-members/%v", *req.GroupId, *req.PrincipalId)
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &DirectGroupMember{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("GET", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Gets a provisioned direct member of a group.
+func (c *Client) GetDirectGroupMemberProxy(ctx context.Context, req *GetDirectGroupMemberProxyRequest, opts ...api.Option) (*DirectGroupMember, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/groups/%v/direct-members/%v", *req.GroupId, *req.PrincipalId)
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &DirectGroupMember{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("GET", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // TODO: Write description later when this method is implemented
 func (c *Client) GetGroup(ctx context.Context, req *GetGroupRequest, opts ...api.Option) (*Group, error) {
 
@@ -462,6 +729,108 @@ func (c *Client) GetGroupProxy(ctx context.Context, req *GetGroupProxyRequest, o
 	baseURL.RawQuery = queryParams.Encode()
 
 	resp := &Group{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("GET", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Lists provisioned direct members of a group with their membership source
+// (internal or from identity provider).
+func (c *Client) ListDirectGroupMembers(ctx context.Context, req *ListDirectGroupMembersRequest, opts ...api.Option) (*ListDirectGroupMembersResponse, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//groups/%v/direct-members", *req.GroupId)
+	queryParams := url.Values{}
+	if req.PageSize != nil {
+		queryParams.Add("page_size", fmt.Sprintf("%v", *req.PageSize))
+	}
+	if req.PageToken != nil {
+		queryParams.Add("page_token", fmt.Sprintf("%v", *req.PageToken))
+	}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &ListDirectGroupMembersResponse{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("GET", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Lists provisioned direct members of a group with their membership source
+// (internal or from identity provider).
+func (c *Client) ListDirectGroupMembersProxy(ctx context.Context, req *ListDirectGroupMembersProxyRequest, opts ...api.Option) (*ListDirectGroupMembersResponse, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/groups/%v/direct-members", *req.GroupId)
+	queryParams := url.Values{}
+	if req.PageSize != nil {
+		queryParams.Add("page_size", fmt.Sprintf("%v", *req.PageSize))
+	}
+	if req.PageToken != nil {
+		queryParams.Add("page_token", fmt.Sprintf("%v", *req.PageToken))
+	}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &ListDirectGroupMembersResponse{}
 
 	call := func(ctx context.Context) error {
 		httpReq, err := http.NewRequest("GET", baseURL.String(), nil)
@@ -571,6 +940,154 @@ func (c *Client) ListGroupsProxy(ctx context.Context, req *ListGroupsProxyReques
 
 	call := func(ctx context.Context) error {
 		httpReq, err := http.NewRequest("GET", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Lists all transitive parent groups of a principal.
+func (c *Client) ListTransitiveParentGroups(ctx context.Context, req *ListTransitiveParentGroupsRequest, opts ...api.Option) (*ListTransitiveParentGroupsResponse, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//principals/%v/transitive-parent-groups", *req.PrincipalId)
+	queryParams := url.Values{}
+	if req.PageSize != nil {
+		queryParams.Add("page_size", fmt.Sprintf("%v", *req.PageSize))
+	}
+	if req.PageToken != nil {
+		queryParams.Add("page_token", fmt.Sprintf("%v", *req.PageToken))
+	}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &ListTransitiveParentGroupsResponse{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("GET", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Lists all transitive parent groups of a principal.
+func (c *Client) ListTransitiveParentGroupsProxy(ctx context.Context, req *ListTransitiveParentGroupsProxyRequest, opts ...api.Option) (*ListTransitiveParentGroupsResponse, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/principals/%v/transitive-parent-groups", *req.PrincipalId)
+	queryParams := url.Values{}
+	if req.PageSize != nil {
+		queryParams.Add("page_size", fmt.Sprintf("%v", *req.PageSize))
+	}
+	if req.PageToken != nil {
+		queryParams.Add("page_token", fmt.Sprintf("%v", *req.PageToken))
+	}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &ListTransitiveParentGroupsResponse{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("GET", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Matches a group against the IDP.
+func (c *Client) MatchGroupWithIdp(ctx context.Context, req *MatchGroupWithIdpRequest, opts ...api.Option) (*MatchGroupWithIdpResponse, error) {
+	body, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//groups/%v/matchWithIdp", *req.GroupId)
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &MatchGroupWithIdpResponse{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
 		if err != nil {
 			return err
 		}
@@ -1171,6 +1688,54 @@ func (c *Client) ListServicePrincipalsProxy(ctx context.Context, req *ListServic
 	return resp, nil
 }
 
+// Matches a service principal against the IDP.
+func (c *Client) MatchServicePrincipalWithIdp(ctx context.Context, req *MatchServicePrincipalWithIdpRequest, opts ...api.Option) (*MatchServicePrincipalWithIdpResponse, error) {
+	body, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//servicePrincipals/%v/matchWithIdp", *req.ServicePrincipalId)
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &MatchServicePrincipalWithIdpResponse{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Resolves an SP with the given external ID from the customer's IdP. If the SP
 // does not exist, it will be created. If the customer is not onboarded onto
 // Automatic Identity Management (AIM), this will return an error.
@@ -1743,6 +2308,54 @@ func (c *Client) ListUsersProxy(ctx context.Context, req *ListUsersProxyRequest,
 	return resp, nil
 }
 
+// Matches a user against the IDP.
+func (c *Client) MatchUserWithIdp(ctx context.Context, req *MatchUserWithIdpRequest, opts ...api.Option) (*MatchUserWithIdpResponse, error) {
+	body, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//users/%v/matchWithIdp", *req.UserId)
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &MatchUserWithIdpResponse{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Resolves a user with the given external ID from the customer's IdP. If the
 // user does not exist, it will be created. If the customer is not onboarded
 // onto Automatic Identity Management (AIM), this will return an error.
@@ -1943,182 +2556,6 @@ func (c *Client) UpdateUserProxy(ctx context.Context, req *UpdateUserProxyReques
 		return nil, err
 	}
 	return resp, nil
-}
-
-// TODO: Write description later when this method is implemented
-func (c *Client) CreateWorkspaceAccessDetail(ctx context.Context, req *CreateWorkspaceAccessDetailRequest, opts ...api.Option) (*WorkspaceAccessDetail, error) {
-	body, err := json.Marshal(req.WorkspaceAccessDetail)
-	if err != nil {
-		return nil, err
-	}
-
-	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
-
-	baseURL, err := url.Parse(c.host)
-	if err != nil {
-		return nil, err
-	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//workspaces/%v/workspaceAccessDetails", *req.Parent)
-	queryParams := url.Values{}
-	baseURL.RawQuery = queryParams.Encode()
-
-	resp := &WorkspaceAccessDetail{}
-
-	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
-		if err != nil {
-			return err
-		}
-		httpReq = httpReq.WithContext(ctx)
-		httpReq.Header = headers
-
-		respBody, err := executeHTTPCall(httpCallOptions{
-			req:    httpReq,
-			client: c.httpClient,
-			logger: c.logger,
-		})
-		if err != nil {
-			return err
-		}
-		if err := json.Unmarshal(respBody, resp); err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if err := api.Execute(ctx, call, opts...); err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-// TODO: Write description later when this method is implemented
-func (c *Client) CreateWorkspaceAccessDetailLocal(ctx context.Context, req *CreateWorkspaceAccessDetailLocalRequest, opts ...api.Option) (*WorkspaceAccessDetail, error) {
-	body, err := json.Marshal(req.WorkspaceAccessDetail)
-	if err != nil {
-		return nil, err
-	}
-
-	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
-
-	baseURL, err := url.Parse(c.host)
-	if err != nil {
-		return nil, err
-	}
-	baseURL.Path = "/api/2.0/identity/workspaceAccessDetails"
-	queryParams := url.Values{}
-	baseURL.RawQuery = queryParams.Encode()
-
-	resp := &WorkspaceAccessDetail{}
-
-	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
-		if err != nil {
-			return err
-		}
-		httpReq = httpReq.WithContext(ctx)
-		httpReq.Header = headers
-
-		respBody, err := executeHTTPCall(httpCallOptions{
-			req:    httpReq,
-			client: c.httpClient,
-			logger: c.logger,
-		})
-		if err != nil {
-			return err
-		}
-		if err := json.Unmarshal(respBody, resp); err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if err := api.Execute(ctx, call, opts...); err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-// TODO: Write description later when this method is implemented
-func (c *Client) DeleteWorkspaceAccessDetail(ctx context.Context, req *DeleteWorkspaceAccessDetailRequest, opts ...api.Option) error {
-
-	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
-
-	baseURL, err := url.Parse(c.host)
-	if err != nil {
-		return err
-	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//workspaces/%v/workspaceAccessDetails/%v", *req.WorkspaceId, *req.PrincipalId)
-	queryParams := url.Values{}
-	baseURL.RawQuery = queryParams.Encode()
-
-	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("DELETE", baseURL.String(), nil)
-		if err != nil {
-			return err
-		}
-		httpReq = httpReq.WithContext(ctx)
-		httpReq.Header = headers
-
-		respBody, err := executeHTTPCall(httpCallOptions{
-			req:    httpReq,
-			client: c.httpClient,
-			logger: c.logger,
-		})
-		if err != nil {
-			return err
-		}
-		_ = respBody
-		return nil
-	}
-
-	if err := api.Execute(ctx, call, opts...); err != nil {
-		return err
-	}
-	return nil
-}
-
-// TODO: Write description later when this method is implemented
-func (c *Client) DeleteWorkspaceAccessDetailLocal(ctx context.Context, req *DeleteWorkspaceAccessDetailLocalRequest, opts ...api.Option) error {
-
-	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
-
-	baseURL, err := url.Parse(c.host)
-	if err != nil {
-		return err
-	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/workspaceAccessDetails/%v", *req.PrincipalId)
-	queryParams := url.Values{}
-	baseURL.RawQuery = queryParams.Encode()
-
-	call := func(ctx context.Context) error {
-		httpReq, err := http.NewRequest("DELETE", baseURL.String(), nil)
-		if err != nil {
-			return err
-		}
-		httpReq = httpReq.WithContext(ctx)
-		httpReq.Header = headers
-
-		respBody, err := executeHTTPCall(httpCallOptions{
-			req:    httpReq,
-			client: c.httpClient,
-			logger: c.logger,
-		})
-		if err != nil {
-			return err
-		}
-		_ = respBody
-		return nil
-	}
-
-	if err := api.Execute(ctx, call, opts...); err != nil {
-		return err
-	}
-	return nil
 }
 
 // Returns the access details for a principal in a workspace. Allows for
@@ -2326,9 +2763,9 @@ func (c *Client) ListWorkspaceAccessDetailsLocal(ctx context.Context, req *ListW
 	return resp, nil
 }
 
-// TODO: Write description later when this method is implemented
-func (c *Client) UpdateWorkspaceAccessDetail(ctx context.Context, req *UpdateWorkspaceAccessDetailRequest, opts ...api.Option) (*WorkspaceAccessDetail, error) {
-	body, err := json.Marshal(req.WorkspaceAccessDetail)
+// Creates a workspace assignment detail for a principal.
+func (c *Client) CreateWorkspaceAssignmentDetail(ctx context.Context, req *CreateWorkspaceAssignmentDetailRequest, opts ...api.Option) (*WorkspaceAssignmentDetail, error) {
+	body, err := json.Marshal(req.WorkspaceAssignmentDetail)
 	if err != nil {
 		return nil, err
 	}
@@ -2340,14 +2777,381 @@ func (c *Client) UpdateWorkspaceAccessDetail(ctx context.Context, req *UpdateWor
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//workspaces/%v/workspaceAccessDetails/%v", *req.WorkspaceId, *req.PrincipalId)
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//workspaces/%v/workspaceAssignmentDetails", *req.WorkspaceId)
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &WorkspaceAssignmentDetail{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Creates a workspace assignment detail for a principal (workspace-level
+// proxy).
+func (c *Client) CreateWorkspaceAssignmentDetailProxy(ctx context.Context, req *CreateWorkspaceAssignmentDetailProxyRequest, opts ...api.Option) (*WorkspaceAssignmentDetail, error) {
+	body, err := json.Marshal(req.WorkspaceAssignmentDetail)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = "/api/2.0/identity/workspaceAssignmentDetails"
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &WorkspaceAssignmentDetail{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("POST", baseURL.String(), bytes.NewBuffer(body))
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Deletes a workspace assignment detail for a principal.
+func (c *Client) DeleteWorkspaceAssignmentDetail(ctx context.Context, req *DeleteWorkspaceAssignmentDetailRequest, opts ...api.Option) error {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return err
+	}
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//workspaces/%v/workspaceAssignmentDetails/%v", *req.WorkspaceId, *req.PrincipalId)
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("DELETE", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		_ = respBody
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Deletes a workspace assignment detail for a principal (workspace-level
+// proxy).
+func (c *Client) DeleteWorkspaceAssignmentDetailProxy(ctx context.Context, req *DeleteWorkspaceAssignmentDetailProxyRequest, opts ...api.Option) error {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return err
+	}
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/workspaceAssignmentDetails/%v", *req.PrincipalId)
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("DELETE", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		_ = respBody
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Returns the assignment details for a principal in a workspace.
+func (c *Client) GetWorkspaceAssignmentDetail(ctx context.Context, req *GetWorkspaceAssignmentDetailRequest, opts ...api.Option) (*WorkspaceAssignmentDetail, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//workspaces/%v/workspaceAssignmentDetails/%v", *req.WorkspaceId, *req.PrincipalId)
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &WorkspaceAssignmentDetail{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("GET", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Returns the assignment details for a principal in a workspace
+// (workspace-level proxy).
+func (c *Client) GetWorkspaceAssignmentDetailProxy(ctx context.Context, req *GetWorkspaceAssignmentDetailProxyRequest, opts ...api.Option) (*WorkspaceAssignmentDetail, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/workspaceAssignmentDetails/%v", *req.PrincipalId)
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &WorkspaceAssignmentDetail{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("GET", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Lists workspace assignment details for a workspace.
+func (c *Client) ListWorkspaceAssignmentDetails(ctx context.Context, req *ListWorkspaceAssignmentDetailsRequest, opts ...api.Option) (*ListWorkspaceAssignmentDetailsResponse, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//workspaces/%v/workspaceAssignmentDetails", *req.WorkspaceId)
+	queryParams := url.Values{}
+	if req.PageSize != nil {
+		queryParams.Add("page_size", fmt.Sprintf("%v", *req.PageSize))
+	}
+	if req.PageToken != nil {
+		queryParams.Add("page_token", fmt.Sprintf("%v", *req.PageToken))
+	}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &ListWorkspaceAssignmentDetailsResponse{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("GET", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Lists workspace assignment details for a workspace (workspace-level proxy).
+func (c *Client) ListWorkspaceAssignmentDetailsProxy(ctx context.Context, req *ListWorkspaceAssignmentDetailsProxyRequest, opts ...api.Option) (*ListWorkspaceAssignmentDetailsResponse, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = "/api/2.0/identity/workspaceAssignmentDetails"
+	queryParams := url.Values{}
+	if req.PageSize != nil {
+		queryParams.Add("page_size", fmt.Sprintf("%v", *req.PageSize))
+	}
+	if req.PageToken != nil {
+		queryParams.Add("page_token", fmt.Sprintf("%v", *req.PageToken))
+	}
+	baseURL.RawQuery = queryParams.Encode()
+
+	resp := &ListWorkspaceAssignmentDetailsResponse{}
+
+	call := func(ctx context.Context) error {
+		httpReq, err := http.NewRequest("GET", baseURL.String(), nil)
+		if err != nil {
+			return err
+		}
+		httpReq = httpReq.WithContext(ctx)
+		httpReq.Header = headers
+
+		respBody, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(respBody, resp); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := api.Execute(ctx, call, opts...); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Updates a workspace assignment detail for a principal.
+func (c *Client) UpdateWorkspaceAssignmentDetail(ctx context.Context, req *UpdateWorkspaceAssignmentDetailRequest, opts ...api.Option) (*WorkspaceAssignmentDetail, error) {
+	body, err := json.Marshal(req.WorkspaceAssignmentDetail)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/accounts//workspaces/%v/workspaceAssignmentDetails/%v", *req.WorkspaceId, *req.PrincipalId)
 	queryParams := url.Values{}
 	if req.UpdateMask != nil {
 		queryParams.Add("update_mask", fmt.Sprintf("%v", *req.UpdateMask))
 	}
 	baseURL.RawQuery = queryParams.Encode()
 
-	resp := &WorkspaceAccessDetail{}
+	resp := &WorkspaceAssignmentDetail{}
 
 	call := func(ctx context.Context) error {
 		httpReq, err := http.NewRequest("PATCH", baseURL.String(), bytes.NewBuffer(body))
@@ -2377,9 +3181,10 @@ func (c *Client) UpdateWorkspaceAccessDetail(ctx context.Context, req *UpdateWor
 	return resp, nil
 }
 
-// TODO: Write description later when this method is implemented
-func (c *Client) UpdateWorkspaceAccessDetailLocal(ctx context.Context, req *UpdateWorkspaceAccessDetailLocalRequest, opts ...api.Option) (*WorkspaceAccessDetail, error) {
-	body, err := json.Marshal(req.WorkspaceAccessDetail)
+// Updates a workspace assignment detail for a principal (workspace-level
+// proxy).
+func (c *Client) UpdateWorkspaceAssignmentDetailProxy(ctx context.Context, req *UpdateWorkspaceAssignmentDetailProxyRequest, opts ...api.Option) (*WorkspaceAssignmentDetail, error) {
+	body, err := json.Marshal(req.WorkspaceAssignmentDetail)
 	if err != nil {
 		return nil, err
 	}
@@ -2391,14 +3196,14 @@ func (c *Client) UpdateWorkspaceAccessDetailLocal(ctx context.Context, req *Upda
 	if err != nil {
 		return nil, err
 	}
-	baseURL.Path = fmt.Sprintf("/api/2.0/identity/workspaceAccessDetails/%v", *req.PrincipalId)
+	baseURL.Path = fmt.Sprintf("/api/2.0/identity/workspaceAssignmentDetails/%v", *req.PrincipalId)
 	queryParams := url.Values{}
 	if req.UpdateMask != nil {
 		queryParams.Add("update_mask", fmt.Sprintf("%v", *req.UpdateMask))
 	}
 	baseURL.RawQuery = queryParams.Encode()
 
-	resp := &WorkspaceAccessDetail{}
+	resp := &WorkspaceAssignmentDetail{}
 
 	call := func(ctx context.Context) error {
 		httpReq, err := http.NewRequest("PATCH", baseURL.String(), bytes.NewBuffer(body))

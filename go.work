@@ -1,13 +1,52 @@
 go 1.26.0
 
 use (
+	./abacpolicies
+	./alerts
+	./artifactallowlists
 	./auth
+	./catalogs
+	./connections
 	./core
+	./credentials
 	./databricks
+	./dataclassification
 	./dataquality
+	./entitytagassignments
 	./examples
+	./externallocations
+	./features
+	./featurestore
+	./functions
+	./genie
+	./grants
 	./iam
+	./materializedfeatures
+	./metastores
+	./modelservingdebug
+	./modelservingmanagement
+	./modelservingquery
+	./oauthcustomappintegration
+	./oauthpublishedapp
+	./permissionmigration
+	./permissions
+	./postgres
 	./qualitymonitor
+	./qualitymonitors
+	./queries
+	./queryhistory
+	./registeredmodels
+	./resourcequotas
+	./schemas
 	./sdk
+	./serviceprincipalsecrets
+	./serviceprincipalsecretsproxy
 	./settings
+	./statementexecution
+	./systemschemas
+	./tables
+	./volumes
+	./warehouses
+	./workspacebindings
+	./workspaceconf
 )
