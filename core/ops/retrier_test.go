@@ -1,4 +1,4 @@
-package api
+package ops
 
 import (
 	"errors"
@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/databricks/sdk-go/databricks/apierr"
-	"github.com/databricks/sdk-go/databricks/apierr/codes"
+	"github.com/databricks/sdk-go/core/apierr"
+	"github.com/databricks/sdk-go/core/apierr/codes"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )

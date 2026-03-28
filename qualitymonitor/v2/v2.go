@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/databricks/sdk-go/databricks/api"
+	"github.com/databricks/sdk-go/core/ops"
 	"github.com/databricks/sdk-go/databricks/options"
 	"github.com/databricks/sdk-go/databricks/options/unstable"
 	"github.com/databricks/sdk-go/databricks/transport"
@@ -41,7 +41,7 @@ func NewClient(ctx context.Context, opts ...options.ClientOption) (*Client, erro
 
 // [DEPRECATED] Create a quality monitor on UC object. Use Data Quality
 // Monitoring API instead.
-func (c *Client) CreateQualityMonitor(ctx context.Context, req *CreateQualityMonitorRequest, opts ...api.Option) (*QualityMonitor, error) {
+func (c *Client) CreateQualityMonitor(ctx context.Context, req *CreateQualityMonitorRequest, opts ...ops.Option) (*QualityMonitor, error) {
 	body, err := json.Marshal(req.QualityMonitor)
 	if err != nil {
 		return nil, err
@@ -82,7 +82,7 @@ func (c *Client) CreateQualityMonitor(ctx context.Context, req *CreateQualityMon
 		return nil
 	}
 
-	if err := api.Execute(ctx, call, opts...); err != nil {
+	if err := ops.Execute(ctx, call, opts...); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -90,7 +90,7 @@ func (c *Client) CreateQualityMonitor(ctx context.Context, req *CreateQualityMon
 
 // [DEPRECATED] Delete a quality monitor on UC object. Use Data Quality
 // Monitoring API instead.
-func (c *Client) DeleteQualityMonitor(ctx context.Context, req *DeleteQualityMonitorRequest, opts ...api.Option) error {
+func (c *Client) DeleteQualityMonitor(ctx context.Context, req *DeleteQualityMonitorRequest, opts ...ops.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -123,7 +123,7 @@ func (c *Client) DeleteQualityMonitor(ctx context.Context, req *DeleteQualityMon
 		return nil
 	}
 
-	if err := api.Execute(ctx, call, opts...); err != nil {
+	if err := ops.Execute(ctx, call, opts...); err != nil {
 		return err
 	}
 	return nil
@@ -131,7 +131,7 @@ func (c *Client) DeleteQualityMonitor(ctx context.Context, req *DeleteQualityMon
 
 // [DEPRECATED] Read a quality monitor on UC object. Use Data Quality Monitoring
 // API instead.
-func (c *Client) GetQualityMonitor(ctx context.Context, req *GetQualityMonitorRequest, opts ...api.Option) (*QualityMonitor, error) {
+func (c *Client) GetQualityMonitor(ctx context.Context, req *GetQualityMonitorRequest, opts ...ops.Option) (*QualityMonitor, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -168,7 +168,7 @@ func (c *Client) GetQualityMonitor(ctx context.Context, req *GetQualityMonitorRe
 		return nil
 	}
 
-	if err := api.Execute(ctx, call, opts...); err != nil {
+	if err := ops.Execute(ctx, call, opts...); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -176,7 +176,7 @@ func (c *Client) GetQualityMonitor(ctx context.Context, req *GetQualityMonitorRe
 
 // [DEPRECATED] (Unimplemented) List quality monitors. Use Data Quality
 // Monitoring API instead.
-func (c *Client) ListQualityMonitor(ctx context.Context, req *ListQualityMonitorRequest, opts ...api.Option) (*ListQualityMonitorResponse, error) {
+func (c *Client) ListQualityMonitor(ctx context.Context, req *ListQualityMonitorRequest, opts ...ops.Option) (*ListQualityMonitorResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -219,13 +219,13 @@ func (c *Client) ListQualityMonitor(ctx context.Context, req *ListQualityMonitor
 		return nil
 	}
 
-	if err := api.Execute(ctx, call, opts...); err != nil {
+	if err := ops.Execute(ctx, call, opts...); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
-func (c *Client) ListQualityMonitorIter(ctx context.Context, req *ListQualityMonitorRequest, opts ...api.Option) iter.Seq2[*QualityMonitor, error] {
+func (c *Client) ListQualityMonitorIter(ctx context.Context, req *ListQualityMonitorRequest, opts ...ops.Option) iter.Seq2[*QualityMonitor, error] {
 	return func(yield func(*QualityMonitor, error) bool) {
 		// Deep copy the request via JSON round-trip to avoid modifying the original.
 		reqBody, err := json.Marshal(req)
@@ -259,7 +259,7 @@ func (c *Client) ListQualityMonitorIter(ctx context.Context, req *ListQualityMon
 
 // [DEPRECATED] (Unimplemented) Update a quality monitor on UC object. Use Data
 // Quality Monitoring API instead.
-func (c *Client) UpdateQualityMonitor(ctx context.Context, req *UpdateQualityMonitorRequest, opts ...api.Option) (*QualityMonitor, error) {
+func (c *Client) UpdateQualityMonitor(ctx context.Context, req *UpdateQualityMonitorRequest, opts ...ops.Option) (*QualityMonitor, error) {
 	body, err := json.Marshal(req.QualityMonitor)
 	if err != nil {
 		return nil, err
@@ -300,7 +300,7 @@ func (c *Client) UpdateQualityMonitor(ctx context.Context, req *UpdateQualityMon
 		return nil
 	}
 
-	if err := api.Execute(ctx, call, opts...); err != nil {
+	if err := ops.Execute(ctx, call, opts...); err != nil {
 		return nil, err
 	}
 	return resp, nil
