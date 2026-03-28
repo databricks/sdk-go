@@ -291,7 +291,7 @@ func ListProfiles(path string) ([]string, error) {
 		if name == settingsSection {
 			continue // the settings section is not a profile
 		}
-		if name == "DEFAULT" && len(section.Keys()) == 0 {
+		if isPhantomDefault(section) {
 			continue
 		}
 		names = append(names, name)
@@ -507,6 +507,20 @@ var iniLoadOptions = ini.LoadOptions{
 	SpaceBeforeInlineComment: true,
 }
 
+// isPhantomDefault reports whether section is an empty DEFAULT section that
+// should be treated as non-existent.
+//
+// In the INI format, DEFAULT is typically treated as a special section that
+// provides fallback values to other sections, not a regular section. This
+// conflicts with Databricks's historical treatment of DEFAULT as a regular
+// profile name.
+//
+// Known limitation: an intentionally empty [DEFAULT] section in the file will
+// be silently ignored.
+func isPhantomDefault(section *ini.Section) bool {
+	return section != nil && section.Name() == "DEFAULT" && len(section.Keys()) == 0
+}
+
 // DefaultConfigFile returns the path to the default databrickscfg file. It
 // reads DATABRICKS_CONFIG_FILE from the environment, falling back to
 // ~/.databrickscfg. If the home directory cannot be determined, it returns an
@@ -656,7 +670,7 @@ func loadFile(p *Profile, path, profile string) error {
 		profile = "DEFAULT"
 	}
 	section, err := f.GetSection(profile)
-	if err != nil {
+	if err != nil || isPhantomDefault(section) {
 		if explicitProfile {
 			return fmt.Errorf("%w: %q in %s", ErrProfileNotFound, profile, path)
 		}

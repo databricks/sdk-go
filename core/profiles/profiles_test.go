@@ -92,7 +92,7 @@ func TestResolve(t *testing.T) {
 				WithFile("testdata/databrickscfg_no_default"),
 				WithoutEnv(),
 			},
-			want: &Profile{Name: "DEFAULT"},
+			want: &Profile{},
 		},
 		{
 			name: "hashInValues",
@@ -142,7 +142,6 @@ func TestResolve(t *testing.T) {
 				"DATABRICKS_CLIENT_ID": "env-client-id",
 			},
 			want: &Profile{
-				Name:     "DEFAULT",
 				Host:     "https://env.cloud.databricks.com",
 				Token:    Secret("env-token"),
 				ClientID: "env-client-id",
