@@ -74,6 +74,11 @@ func (s Secret) LogValue() slog.Value         { return slog.StringValue(obfuscat
 //
 // TODO: Consider filtering properties that are not relevant in SDK-Mod.
 type Profile struct {
+	// Name is the profile name (INI section name). Set automatically by
+	// [Resolve]; must be set manually when constructing a Profile for use
+	// with [SaveToFile].
+	Name string
+
 	// Host is the Databricks workspace or Accounts API endpoint URL.
 	Host string
 
@@ -286,7 +291,7 @@ func ListProfiles(path string) ([]string, error) {
 		if name == settingsSection {
 			continue // the settings section is not a profile
 		}
-		if name == "DEFAULT" && len(section.Keys()) == 0 {
+		if isPhantomDefault(section) {
 			continue
 		}
 		names = append(names, name)
@@ -502,6 +507,20 @@ var iniLoadOptions = ini.LoadOptions{
 	SpaceBeforeInlineComment: true,
 }
 
+// isPhantomDefault reports whether section is an empty DEFAULT section that
+// should be treated as non-existent.
+//
+// In the INI format, DEFAULT is typically treated as a special section that
+// provides fallback values to other sections, not a regular section. This
+// conflicts with Databricks's historical treatment of DEFAULT as a regular
+// profile name.
+//
+// Known limitation: an intentionally empty [DEFAULT] section in the file will
+// be silently ignored.
+func isPhantomDefault(section *ini.Section) bool {
+	return section != nil && section.Name() == "DEFAULT" && len(section.Keys()) == 0
+}
+
 // DefaultConfigFile returns the path to the default databrickscfg file. It
 // reads DATABRICKS_CONFIG_FILE from the environment, falling back to
 // ~/.databrickscfg. If the home directory cannot be determined, it returns an
@@ -523,11 +542,11 @@ func defaultConfigFilePath() string {
 	return filepath.Join(home, ".databrickscfg")
 }
 
-// SaveToFile writes the profile to the named section of a databrickscfg file.
-// Both path and profile must be non-empty. Use [DefaultConfigFile] to obtain
-// the conventional default path. If the file exists, other sections are
-// preserved; the named section is replaced entirely. If the file does not
-// exist, it is created with mode 0600.
+// SaveToFile writes the profile to the [Profile.Name] section of a
+// databrickscfg file. Path must be non-empty; use [DefaultConfigFile] to
+// obtain the conventional default path. [Profile.Name] must be non-empty. If
+// the file exists, other sections are preserved; the named section is replaced
+// entirely. If the file does not exist, it is created with mode 0600.
 //
 // Both known fields and [Profile.Extra] entries are written, so a
 // [Resolve]/SaveToFile round-trip never loses unknown keys. Fields set to the
@@ -535,12 +554,15 @@ func defaultConfigFilePath() string {
 //
 // Warning: this method will save properties that might have been loaded from
 // environment variables.
-func (p *Profile) SaveToFile(path, profile string) error {
+func (p *Profile) SaveToFile(path string) error {
 	if path == "" {
 		return ErrEmptyPath
 	}
-	if profile == "" {
+	if p.Name == "" {
 		return ErrEmptyProfile
+	}
+	if p.Name == settingsSection {
+		return fmt.Errorf("%w: %q is a reserved section", ErrInvalidProfileName, settingsSection)
 	}
 
 	// Ensure the file exists with restrictive permissions before writing
@@ -559,10 +581,10 @@ func (p *Profile) SaveToFile(path, profile string) error {
 	}
 
 	// Delete the section first to ensure a clean replacement.
-	f.DeleteSection(profile)
-	section, err := f.NewSection(profile)
+	f.DeleteSection(p.Name)
+	section, err := f.NewSection(p.Name)
 	if err != nil {
-		return fmt.Errorf("creating section %q: %w", profile, err)
+		return fmt.Errorf("creating section %q: %w", p.Name, err)
 	}
 
 	// Build a set of known INI keys so Extra entries don't collide.
@@ -648,12 +670,13 @@ func loadFile(p *Profile, path, profile string) error {
 		profile = "DEFAULT"
 	}
 	section, err := f.GetSection(profile)
-	if err != nil {
+	if err != nil || isPhantomDefault(section) {
 		if explicitProfile {
 			return fmt.Errorf("%w: %q in %s", ErrProfileNotFound, profile, path)
 		}
 		return nil
 	}
+	p.Name = profile
 
 	known := make(map[string]bool, len(properties))
 	for _, prop := range properties {

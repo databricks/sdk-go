@@ -40,6 +40,7 @@ func TestResolve(t *testing.T) {
 				WithoutEnv(),
 			},
 			want: &Profile{
+				Name:         "workspace",
 				Host:         "https://workspace.cloud.databricks.com",
 				Token:        Secret("workspace-token"),
 				AccountID:    "acc-123",
@@ -56,6 +57,7 @@ func TestResolve(t *testing.T) {
 				WithoutEnv(),
 			},
 			want: &Profile{
+				Name:  "DEFAULT",
 				Host:  "https://default.cloud.databricks.com",
 				Token: Secret("default-token"),
 			},
@@ -100,6 +102,7 @@ func TestResolve(t *testing.T) {
 				WithoutEnv(),
 			},
 			want: &Profile{
+				Name:         "hash-in-value",
 				Host:         "https://hash.cloud.databricks.com",
 				Token:        Secret("abc#def#ghi"),
 				ClientSecret: Secret("secret#with#hashes"),
@@ -113,6 +116,7 @@ func TestResolve(t *testing.T) {
 				WithoutEnv(),
 			},
 			want: &Profile{
+				Name:              "azure",
 				Host:              "https://adb-123.azuredatabricks.net",
 				AzureClientID:     "az-client-id",
 				AzureClientSecret: Secret("az-client-secret"),
@@ -127,7 +131,7 @@ func TestResolve(t *testing.T) {
 				WithProfile("empty"),
 				WithoutEnv(),
 			},
-			want: &Profile{},
+			want: &Profile{Name: "empty"},
 		},
 		{
 			name: "envOnly",
@@ -154,6 +158,7 @@ func TestResolve(t *testing.T) {
 				"DATABRICKS_TOKEN": "env-override-token",
 			},
 			want: &Profile{
+				Name:         "workspace",
 				Host:         "https://env-override.cloud.databricks.com",
 				Token:        Secret("env-override-token"),
 				AccountID:    "acc-123",
@@ -170,6 +175,7 @@ func TestResolve(t *testing.T) {
 				"DATABRICKS_CONFIG_PROFILE": "workspace",
 			},
 			want: &Profile{
+				Name:         "workspace",
 				Host:         "https://workspace.cloud.databricks.com",
 				Token:        Secret("workspace-token"),
 				AccountID:    "acc-123",
@@ -187,6 +193,7 @@ func TestResolve(t *testing.T) {
 				"DATABRICKS_HOST":           "https://override.cloud.databricks.com",
 			},
 			want: &Profile{
+				Name:         "workspace",
 				Host:         "https://override.cloud.databricks.com",
 				Token:        Secret("workspace-token"),
 				AccountID:    "acc-123",
@@ -207,6 +214,7 @@ func TestResolve(t *testing.T) {
 				"DATABRICKS_HOST": "https://should-be-ignored.cloud.databricks.com",
 			},
 			want: &Profile{
+				Name:         "workspace",
 				Host:         "https://workspace.cloud.databricks.com",
 				Token:        Secret("workspace-token"),
 				AccountID:    "acc-123",
@@ -224,6 +232,7 @@ func TestResolve(t *testing.T) {
 				WithoutEnv(),
 			},
 			want: &Profile{
+				Name: "extra-keys",
 				Host: "https://extra.cloud.databricks.com",
 				Extra: map[string]string{
 					"custom_key":  "custom-value",
@@ -248,6 +257,7 @@ func TestResolve(t *testing.T) {
 				WithoutEnv(),
 			},
 			want: &Profile{
+				Name:  "my-workspace",
 				Host:  "https://my-workspace.cloud.databricks.com",
 				Token: Secret("my-workspace-token"),
 			},
@@ -259,6 +269,7 @@ func TestResolve(t *testing.T) {
 				WithoutEnv(),
 			},
 			want: &Profile{
+				Name:  "DEFAULT",
 				Host:  "https://default.cloud.databricks.com",
 				Token: Secret("default-token"),
 			},
@@ -271,6 +282,7 @@ func TestResolve(t *testing.T) {
 				WithoutEnv(),
 			},
 			want: &Profile{
+				Name:  "DEFAULT",
 				Host:  "https://default.cloud.databricks.com",
 				Token: Secret("default-token"),
 			},
@@ -285,6 +297,7 @@ func TestResolve(t *testing.T) {
 				"DATABRICKS_CONFIG_PROFILE": "DEFAULT",
 			},
 			want: &Profile{
+				Name:  "DEFAULT",
 				Host:  "https://default.cloud.databricks.com",
 				Token: Secret("default-token"),
 			},
@@ -427,7 +440,7 @@ func TestResolve_allPropertiesCovered(t *testing.T) {
 	typ := reflect.TypeOf(Profile{})
 	for i := range typ.NumField() {
 		f := typ.Field(i)
-		if f.Name == "Extra" {
+		if f.Name == "Name" || f.Name == "Extra" {
 			continue
 		}
 		if !covered[f.Name] {
@@ -441,14 +454,12 @@ func TestProfile_SaveToFile(t *testing.T) {
 		desc     string
 		existing *string // initial ini content; nil means no file
 		profile  *Profile
-		section  string
 		want     string
 		wantErr  error
 	}{
 		{
 			desc:    "known fields are written to the ini file",
-			profile: &Profile{Host: "https://saved.cloud.databricks.com", Token: Secret("saved-token"), ClientID: "saved-client-id"},
-			section: "test",
+			profile: &Profile{Name: "test", Host: "https://saved.cloud.databricks.com", Token: Secret("saved-token"), ClientID: "saved-client-id"},
 			want: `[test]
 host      = https://saved.cloud.databricks.com
 token     = saved-token
@@ -457,8 +468,7 @@ client_id = saved-client-id
 		},
 		{
 			desc:    "extra keys are written to the ini file",
-			profile: &Profile{Host: "https://extra.cloud.databricks.com", Extra: map[string]string{"custom_key": "custom-value", "another_key": "another-value"}},
-			section: "test",
+			profile: &Profile{Name: "test", Host: "https://extra.cloud.databricks.com", Extra: map[string]string{"custom_key": "custom-value", "another_key": "another-value"}},
 			want: `[test]
 host        = https://extra.cloud.databricks.com
 another_key = another-value
@@ -467,16 +477,14 @@ custom_key  = custom-value
 		},
 		{
 			desc:    "extra keys that collide with known fields are skipped",
-			profile: &Profile{Host: "https://real.cloud.databricks.com", Extra: map[string]string{"host": "https://evil.cloud.databricks.com"}},
-			section: "test",
+			profile: &Profile{Name: "test", Host: "https://real.cloud.databricks.com", Extra: map[string]string{"host": "https://evil.cloud.databricks.com"}},
 			want: `[test]
 host = https://real.cloud.databricks.com
 `,
 		},
 		{
 			desc:    "empty fields are omitted",
-			profile: &Profile{Host: "https://host.cloud.databricks.com"},
-			section: "my-profile",
+			profile: &Profile{Name: "my-profile", Host: "https://host.cloud.databricks.com"},
 			want: `[my-profile]
 host = https://host.cloud.databricks.com
 `,
@@ -487,8 +495,7 @@ host = https://host.cloud.databricks.com
 host  = https://other.cloud.databricks.com
 token = other-token
 `),
-			profile: &Profile{Host: "https://new.cloud.databricks.com"},
-			section: "new",
+			profile: &Profile{Name: "new", Host: "https://new.cloud.databricks.com"},
 			want: `[other]
 host  = https://other.cloud.databricks.com
 token = other-token
@@ -503,16 +510,14 @@ host = https://new.cloud.databricks.com
 host  = https://old.cloud.databricks.com
 token = old-token
 `),
-			profile: &Profile{Host: "https://new.cloud.databricks.com"},
-			section: "test",
+			profile: &Profile{Name: "test", Host: "https://new.cloud.databricks.com"},
 			want: `[test]
 host = https://new.cloud.databricks.com
 `,
 		},
 		{
-			desc:    "empty section returns an error",
+			desc:    "empty name returns an error",
 			profile: &Profile{Host: "https://test.cloud.databricks.com"},
-			section: "",
 			wantErr: ErrEmptyProfile,
 		},
 	}
@@ -526,7 +531,7 @@ host = https://new.cloud.databricks.com
 				}
 			}
 
-			gotErr := tc.profile.SaveToFile(path, tc.section)
+			gotErr := tc.profile.SaveToFile(path)
 
 			if !errors.Is(gotErr, tc.wantErr) {
 				t.Errorf("SaveToFile() error = %v, want %v", gotErr, tc.wantErr)
@@ -546,9 +551,9 @@ host = https://new.cloud.databricks.com
 
 func TestProfile_SaveToFile_filePermissions(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "databrickscfg")
-	p := &Profile{Token: Secret("secret")}
+	p := &Profile{Name: "test", Token: Secret("secret")}
 
-	err := p.SaveToFile(path, "test")
+	err := p.SaveToFile(path)
 
 	if err != nil {
 		t.Fatalf("SaveToFile() error: %v", err)
@@ -563,12 +568,47 @@ func TestProfile_SaveToFile_filePermissions(t *testing.T) {
 }
 
 func TestProfile_SaveToFile_emptyPath(t *testing.T) {
-	p := &Profile{Host: "https://test.cloud.databricks.com"}
+	p := &Profile{Name: "my-profile", Host: "https://test.cloud.databricks.com"}
 
-	err := p.SaveToFile("", "my-profile")
+	err := p.SaveToFile("")
 
 	if !errors.Is(err, ErrEmptyPath) {
 		t.Errorf("SaveToFile() error = %v, want %v", err, ErrEmptyPath)
+	}
+}
+
+func TestProfile_SaveToFile_roundTrip(t *testing.T) {
+	resetEnv(t)
+	src := "testdata/databrickscfg"
+	p, err := Resolve(WithFile(src), WithProfile("workspace"), WithoutEnv())
+	if err != nil {
+		t.Fatalf("Resolve() error: %v", err)
+	}
+	if p.Name != "workspace" {
+		t.Fatalf("Name = %q, want %q", p.Name, "workspace")
+	}
+
+	dst := filepath.Join(t.TempDir(), "databrickscfg")
+	if err := p.SaveToFile(dst); err != nil {
+		t.Fatalf("SaveToFile() error: %v", err)
+	}
+
+	got, err := Resolve(WithFile(dst), WithProfile("workspace"), WithoutEnv())
+	if err != nil {
+		t.Fatalf("re-Resolve() error: %v", err)
+	}
+	if diff := cmp.Diff(p, got); diff != "" {
+		t.Errorf("round-trip mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestProfile_SaveToFile_settingsSectionRejected(t *testing.T) {
+	p := &Profile{Name: "__settings__", Host: "https://test.cloud.databricks.com"}
+
+	err := p.SaveToFile(filepath.Join(t.TempDir(), "databrickscfg"))
+
+	if !errors.Is(err, ErrInvalidProfileName) {
+		t.Errorf("SaveToFile() error = %v, want %v", err, ErrInvalidProfileName)
 	}
 }
 
