@@ -232,6 +232,7 @@ func WithFile(path string) ResolveOption {
 func WithDefaultProfile() ResolveOption {
 	return func(o *options) error {
 		o.withFile = true
+		o.profile = ""
 		return nil
 	}
 }

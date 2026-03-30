@@ -158,6 +158,19 @@ func TestResolve(t *testing.T) {
 			},
 		},
 		{
+			name: "defaultProfileOverridesWithProfile",
+			opts: []ResolveOption{
+				WithFile("testdata/databrickscfg"),
+				WithProfile("workspace"),
+				WithDefaultProfile(),
+			},
+			want: &Profile{
+				Name:  "DEFAULT",
+				Host:  "https://default.cloud.databricks.com",
+				Token: Secret("default-token"),
+			},
+		},
+		{
 			name: "fileOnly",
 			opts: []ResolveOption{
 				WithFile("testdata/databrickscfg"),
