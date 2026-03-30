@@ -1,20 +1,29 @@
-// Package profiles resolves Databricks configuration from INI-style config
-// files (~/.databrickscfg) and environment variables.
+// Package profiles contains utility to resolve Databricks configuration
+// profiles.
 //
-// A Profile is a snapshot of configuration values. Use [Resolve]
-// to build a profile. By default, values are read from the config file first,
-// then environment variables are overlaid on top. Use [ResolveOption] values
-// to control which file, profile, or environment variables are used.
+// A profile is a named collection of configuration values. It is typically
+// stored in a file called ~/.databrickscfg. Profiles can be resolved from the
+// file and/or environment variables using the Resolve function.
 //
-//	// Use defaults (DATABRICKS_CONFIG_FILE, DATABRICKS_CONFIG_PROFILE, env overwrite).
+// Examples:
+//
+//	// Use defaults: default profile + env overlay.
 //	p, err := profiles.Resolve()
 //
-//	// Use a specific file and profile, without env overlay.
+//	// Specific profile, no env overlay.
 //	p, err := profiles.Resolve(
 //	    profiles.WithFile("/path/to/databrickscfg"),
 //	    profiles.WithProfile("staging"),
-//	    profiles.WithoutEnv(),
 //	)
+//
+//	// Specific profile with env overlay.
+//	p, err := profiles.Resolve(
+//	    profiles.WithProfile("staging"),
+//	    profiles.WithEnv(),
+//	)
+//
+//	// Only env vars, no config file.
+//	p, err := profiles.Resolve(profiles.WithEnv())
 package profiles
 
 import (
@@ -192,9 +201,10 @@ type Profile struct {
 type ResolveOption func(o *options) error
 
 type options struct {
-	filePath  string
-	profile   string
-	ignoreEnv bool
+	withFile bool
+	withEnv  bool
+	filePath string
+	profile  string
 }
 
 // WithFile overrides the path to the databrickscfg file. If not set, Resolve
@@ -206,48 +216,71 @@ func WithFile(path string) ResolveOption {
 			return ErrEmptyPath
 		}
 		o.filePath = path
+		o.withFile = true
 		return nil
 	}
 }
 
-// WithProfile overrides the profile (INI section) to load.
+// WithDefaultProfile loads the default profile from the config file. The
+// profile name is resolved in order from: DATABRICKS_CONFIG_PROFILE
+// environment variable, the default_profile key in the [__settings__] section
+// of the config file, and finally the DEFAULT section.
+//
+// Note: DATABRICKS_CONFIG_PROFILE controls which profile NAME to load. This
+// is independent of [WithEnv], which controls whether profile values from
+// environment variables are overlaid on top of the profile.
+func WithDefaultProfile() ResolveOption {
+	return func(o *options) error {
+		o.withFile = true
+		o.profile = ""
+		return nil
+	}
+}
+
+// WithProfile loads a specific named profile (INI section) from the config
+// file. If the profile does not exist, [Resolve] returns [ErrProfileNotFound].
+// An empty string returns [ErrEmptyProfile].
 func WithProfile(profile string) ResolveOption {
 	return func(o *options) error {
 		if profile == "" {
 			return ErrEmptyProfile
 		}
 		o.profile = profile
+		o.withFile = true
 		return nil
 	}
 }
 
-// WithoutEnv disables overlaying profile field environment variables (e.g.
-// DATABRICKS_HOST, DATABRICKS_TOKEN) on top of the config file values. By
-// default, these environment variables take precedence over file values.
+// WithEnv enables overlaying environment variables (e.g. DATABRICKS_HOST) on
+// top of config file values. When enabled, environment variables take
+// precedence over file values.
 //
 // This does not affect DATABRICKS_CONFIG_FILE or DATABRICKS_CONFIG_PROFILE,
-// which control where the config file is located. Use [WithFile] and
-// [WithProfile] to override those.
-func WithoutEnv() ResolveOption {
+// which control file and profile selection. Use [WithFile] and [WithProfile]
+// to override those.
+func WithEnv() ResolveOption {
 	return func(o *options) error {
-		o.ignoreEnv = true
+		o.withEnv = true
 		return nil
 	}
 }
 
-// Resolve creates a Profile from the databrickscfg file and (optionally)
-// environment variables.
+var defaultResolveOptions = []ResolveOption{
+	WithDefaultProfile(),
+	WithEnv(),
+}
+
+// Resolve creates a [Profile] from a databrickscfg file and/or environment
+// variables.
 //
-// By default, Resolve reads DATABRICKS_CONFIG_FILE and
-// DATABRICKS_CONFIG_PROFILE from the environment to locate the config file and
-// profile, then overlays all profile environment variables on top. Use
-// [WithFile], [WithProfile], and [WithoutEnv] to override this behavior.
+// If no options are provided, the defaults are used:
 //
-// If the config file does not exist and no file was explicitly requested
-// (neither [WithFile] nor DATABRICKS_CONFIG_FILE), the file is silently
-// skipped. An explicitly provided path -- via [WithFile] or the environment
-// variable -- that does not exist is an error.
+//	Resolve() // equivalent to Resolve(WithDefaultProfile(), WithEnv())
 func Resolve(opts ...ResolveOption) (*Profile, error) {
+	if len(opts) == 0 {
+		opts = defaultResolveOptions
+	}
+
 	o := options{}
 	for _, opt := range opts {
 		if err := opt(&o); err != nil {
@@ -256,10 +289,12 @@ func Resolve(opts ...ResolveOption) (*Profile, error) {
 	}
 
 	p := &Profile{}
-	if err := loadFile(p, o.filePath, o.profile); err != nil {
-		return nil, err
+	if o.withFile {
+		if err := loadFile(p, o.filePath, o.profile); err != nil {
+			return nil, err
+		}
 	}
-	if !o.ignoreEnv {
+	if o.withEnv {
 		if err := loadEnv(p); err != nil {
 			return nil, err
 		}

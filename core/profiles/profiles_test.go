@@ -37,7 +37,6 @@ func TestResolve(t *testing.T) {
 			opts: []ResolveOption{
 				WithFile("testdata/databrickscfg"),
 				WithProfile("workspace"),
-				WithoutEnv(),
 			},
 			want: &Profile{
 				Name:         "workspace",
@@ -54,7 +53,7 @@ func TestResolve(t *testing.T) {
 			name: "defaultSection",
 			opts: []ResolveOption{
 				WithFile("testdata/databrickscfg"),
-				WithoutEnv(),
+				WithDefaultProfile(),
 			},
 			want: &Profile{
 				Name:  "DEFAULT",
@@ -64,7 +63,7 @@ func TestResolve(t *testing.T) {
 		},
 		{
 			name:    "missingExplicitFile",
-			opts:    []ResolveOption{WithFile("testdata/nonexistent"), WithoutEnv()},
+			opts:    []ResolveOption{WithFile("testdata/nonexistent"), WithDefaultProfile()},
 			wantErr: ErrConfigFileNotFound,
 		},
 		{
@@ -82,7 +81,6 @@ func TestResolve(t *testing.T) {
 			opts: []ResolveOption{
 				WithFile("testdata/databrickscfg"),
 				WithProfile("nonexistent"),
-				WithoutEnv(),
 			},
 			wantErr: ErrProfileNotFound,
 		},
@@ -90,7 +88,7 @@ func TestResolve(t *testing.T) {
 			name: "missingDefaultSection",
 			opts: []ResolveOption{
 				WithFile("testdata/databrickscfg_no_default"),
-				WithoutEnv(),
+				WithDefaultProfile(),
 			},
 			want: &Profile{},
 		},
@@ -99,7 +97,6 @@ func TestResolve(t *testing.T) {
 			opts: []ResolveOption{
 				WithFile("testdata/databrickscfg"),
 				WithProfile("hash-in-value"),
-				WithoutEnv(),
 			},
 			want: &Profile{
 				Name:         "hash-in-value",
@@ -113,7 +110,6 @@ func TestResolve(t *testing.T) {
 			opts: []ResolveOption{
 				WithFile("testdata/databrickscfg"),
 				WithProfile("azure"),
-				WithoutEnv(),
 			},
 			want: &Profile{
 				Name:              "azure",
@@ -129,13 +125,12 @@ func TestResolve(t *testing.T) {
 			opts: []ResolveOption{
 				WithFile("testdata/databrickscfg"),
 				WithProfile("empty"),
-				WithoutEnv(),
 			},
 			want: &Profile{Name: "empty"},
 		},
 		{
 			name: "envOnly",
-			opts: []ResolveOption{WithFile("testdata/databrickscfg_no_default")},
+			opts: []ResolveOption{WithEnv()},
 			env: map[string]string{
 				"DATABRICKS_HOST":      "https://env.cloud.databricks.com",
 				"DATABRICKS_TOKEN":     "env-token",
@@ -148,10 +143,50 @@ func TestResolve(t *testing.T) {
 			},
 		},
 		{
+			name: "defaultProfileOnly",
+			opts: []ResolveOption{
+				WithFile("testdata/databrickscfg"),
+				WithDefaultProfile(),
+			},
+			env: map[string]string{
+				"DATABRICKS_HOST": "https://should-be-ignored.cloud.databricks.com",
+			},
+			want: &Profile{
+				Name:  "DEFAULT",
+				Host:  "https://default.cloud.databricks.com",
+				Token: Secret("default-token"),
+			},
+		},
+		{
+			name: "defaultProfileOverridesWithProfile",
+			opts: []ResolveOption{
+				WithFile("testdata/databrickscfg"),
+				WithProfile("workspace"),
+				WithDefaultProfile(),
+			},
+			want: &Profile{
+				Name:  "DEFAULT",
+				Host:  "https://default.cloud.databricks.com",
+				Token: Secret("default-token"),
+			},
+		},
+		{
+			name: "fileOnly",
+			opts: []ResolveOption{
+				WithFile("testdata/databrickscfg"),
+			},
+			want: &Profile{
+				Name:  "DEFAULT",
+				Host:  "https://default.cloud.databricks.com",
+				Token: Secret("default-token"),
+			},
+		},
+		{
 			name: "envOverridesFile",
 			opts: []ResolveOption{
 				WithFile("testdata/databrickscfg"),
 				WithProfile("workspace"),
+				WithEnv(),
 			},
 			env: map[string]string{
 				"DATABRICKS_HOST":  "https://env-override.cloud.databricks.com",
@@ -204,11 +239,10 @@ func TestResolve(t *testing.T) {
 			},
 		},
 		{
-			name: "withoutEnv",
+			name: "envIgnoredWithoutWithEnv",
 			opts: []ResolveOption{
 				WithFile("testdata/databrickscfg"),
 				WithProfile("workspace"),
-				WithoutEnv(),
 			},
 			env: map[string]string{
 				"DATABRICKS_HOST": "https://should-be-ignored.cloud.databricks.com",
@@ -229,7 +263,6 @@ func TestResolve(t *testing.T) {
 			opts: []ResolveOption{
 				WithFile("testdata/databrickscfg"),
 				WithProfile("extra-keys"),
-				WithoutEnv(),
 			},
 			want: &Profile{
 				Name: "extra-keys",
@@ -254,7 +287,7 @@ func TestResolve(t *testing.T) {
 			name: "defaultProfileResolves",
 			opts: []ResolveOption{
 				WithFile("testdata/databrickscfg_settings"),
-				WithoutEnv(),
+				WithDefaultProfile(),
 			},
 			want: &Profile{
 				Name:  "my-workspace",
@@ -266,7 +299,7 @@ func TestResolve(t *testing.T) {
 			name: "defaultProfileFallbackEmptyKey",
 			opts: []ResolveOption{
 				WithFile("testdata/databrickscfg_settings_empty"),
-				WithoutEnv(),
+				WithDefaultProfile(),
 			},
 			want: &Profile{
 				Name:  "DEFAULT",
@@ -279,7 +312,6 @@ func TestResolve(t *testing.T) {
 			opts: []ResolveOption{
 				WithFile("testdata/databrickscfg_settings"),
 				WithProfile("DEFAULT"),
-				WithoutEnv(),
 			},
 			want: &Profile{
 				Name:  "DEFAULT",
@@ -291,7 +323,7 @@ func TestResolve(t *testing.T) {
 			name: "defaultProfileOverriddenByEnvProfile",
 			opts: []ResolveOption{
 				WithFile("testdata/databrickscfg_settings"),
-				WithoutEnv(),
+				WithDefaultProfile(),
 			},
 			env: map[string]string{
 				"DATABRICKS_CONFIG_PROFILE": "DEFAULT",
@@ -306,7 +338,7 @@ func TestResolve(t *testing.T) {
 			name: "defaultProfileSelfReference",
 			opts: []ResolveOption{
 				WithFile("testdata/databrickscfg_settings_self_ref"),
-				WithoutEnv(),
+				WithDefaultProfile(),
 			},
 			wantErr: ErrInvalidProfileName,
 		},
@@ -314,7 +346,7 @@ func TestResolve(t *testing.T) {
 			name: "defaultProfileNonexistentSection",
 			opts: []ResolveOption{
 				WithFile("testdata/databrickscfg_settings_nonexistent"),
-				WithoutEnv(),
+				WithDefaultProfile(),
 			},
 			wantErr: ErrProfileNotFound,
 		},
@@ -323,7 +355,6 @@ func TestResolve(t *testing.T) {
 			opts: []ResolveOption{
 				WithFile("testdata/databrickscfg_settings"),
 				WithProfile("__settings__"),
-				WithoutEnv(),
 			},
 			wantErr: ErrInvalidProfileName,
 		},
@@ -375,7 +406,7 @@ func TestResolve_allProperties(t *testing.T) {
 	}
 
 	// Test file loading: every field should be set to its file value.
-	fileProfile, err := Resolve(WithFile(cfgPath), WithProfile("all-fields"), WithoutEnv())
+	fileProfile, err := Resolve(WithFile(cfgPath), WithProfile("all-fields"))
 	if err != nil {
 		t.Fatalf("Resolve() file error: %v", err)
 	}
@@ -400,7 +431,7 @@ func TestResolve_allProperties(t *testing.T) {
 	if err := os.WriteFile(emptyCfg, []byte("[DEFAULT]\n"), 0600); err != nil {
 		t.Fatalf("writing empty config: %v", err)
 	}
-	envProfile, err := Resolve(WithFile(emptyCfg))
+	envProfile, err := Resolve(WithFile(emptyCfg), WithDefaultProfile(), WithEnv())
 	if err != nil {
 		t.Fatalf("Resolve() env error: %v", err)
 	}
@@ -580,7 +611,7 @@ func TestProfile_SaveToFile_emptyPath(t *testing.T) {
 func TestProfile_SaveToFile_roundTrip(t *testing.T) {
 	resetEnv(t)
 	src := "testdata/databrickscfg"
-	p, err := Resolve(WithFile(src), WithProfile("workspace"), WithoutEnv())
+	p, err := Resolve(WithFile(src), WithProfile("workspace"))
 	if err != nil {
 		t.Fatalf("Resolve() error: %v", err)
 	}
@@ -593,7 +624,7 @@ func TestProfile_SaveToFile_roundTrip(t *testing.T) {
 		t.Fatalf("SaveToFile() error: %v", err)
 	}
 
-	got, err := Resolve(WithFile(dst), WithProfile("workspace"), WithoutEnv())
+	got, err := Resolve(WithFile(dst), WithProfile("workspace"))
 	if err != nil {
 		t.Fatalf("re-Resolve() error: %v", err)
 	}
