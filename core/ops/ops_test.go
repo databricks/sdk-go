@@ -1,4 +1,4 @@
-package api
+package ops
 
 import (
 	"context"
@@ -268,5 +268,47 @@ func TestExecute_optionErrors(t *testing.T) {
 
 	if !errors.Is(got, testErr) {
 		t.Errorf("Execute(): got error %v, want %v", got, testErr)
+	}
+}
+
+func TestExecuteWithResult(t *testing.T) {
+	opErr := errors.New("op failed")
+	optErr := errors.New("option error")
+
+	testCases := []struct {
+		name       string
+		op         func(context.Context) (int, error)
+		opts       []Option
+		wantResult int
+		wantErr    error
+	}{
+		{
+			name:       "success",
+			op:         func(ctx context.Context) (int, error) { return 42, nil },
+			wantResult: 42,
+		},
+		{
+			name:    "op error returns zero value",
+			op:      func(ctx context.Context) (int, error) { return 99, opErr },
+			wantErr: opErr,
+		},
+		{
+			name:    "option error",
+			op:      func(ctx context.Context) (int, error) { return 99, nil },
+			opts:    []Option{errorOption{err: optErr}},
+			wantErr: optErr,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := ExecuteWithResult(context.Background(), tc.op, tc.opts...)
+			if !errors.Is(err, tc.wantErr) {
+				t.Errorf("got error %v, want %v", err, tc.wantErr)
+			}
+			if got != tc.wantResult {
+				t.Errorf("got %d, want %d", got, tc.wantResult)
+			}
+		})
 	}
 }

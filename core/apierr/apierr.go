@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/databricks/sdk-go/databricks/apierr/codes"
+	"github.com/databricks/sdk-go/core/apierr/codes"
 )
 
 // APIError is a transport-agnostic error representing a Databricks API error.

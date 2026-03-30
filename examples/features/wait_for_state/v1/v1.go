@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/databricks/sdk-go/databricks/api"
+	"github.com/databricks/sdk-go/core/ops"
 	"github.com/databricks/sdk-go/databricks/options"
 	"github.com/databricks/sdk-go/databricks/options/unstable"
 	"github.com/databricks/sdk-go/databricks/transport"
@@ -39,7 +39,7 @@ func NewClient(ctx context.Context, opts ...options.ClientOption) (*Client, erro
 }
 
 // Create a new task.
-func (c *Client) CreateTask(ctx context.Context, req *CreateTaskRequest, opts ...api.Option) (*Task, error) {
+func (c *Client) CreateTask(ctx context.Context, req *CreateTaskRequest, opts ...ops.Option) (*Task, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (c *Client) CreateTask(ctx context.Context, req *CreateTaskRequest, opts ..
 		return nil
 	}
 
-	if err := api.Execute(ctx, call, opts...); err != nil {
+	if err := ops.Execute(ctx, call, opts...); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -89,7 +89,7 @@ func (c *Client) CreateTask(ctx context.Context, req *CreateTaskRequest, opts ..
 // Create a new Task.
 //
 // Returns a waiter.
-func (c *Client) CreateTaskWaiter(ctx context.Context, req *CreateTaskRequest, opts ...api.Option) (*CreateTaskWaiter, error) {
+func (c *Client) CreateTaskWaiter(ctx context.Context, req *CreateTaskRequest, opts ...ops.Option) (*CreateTaskWaiter, error) {
 	resp, err := c.CreateTask(ctx, req, opts...)
 	if err != nil {
 		return nil, err

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/databricks/sdk-go/databricks/apierr/codes"
+	"github.com/databricks/sdk-go/core/apierr/codes"
 	"github.com/google/go-cmp/cmp"
 )
 

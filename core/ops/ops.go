@@ -1,25 +1,40 @@
-// Package api provides utilities to make API calls against the Databricks API.
+// Package ops provides utilities to execute operations with retry, timeout,
+// and rate limiting.
 //
 // This package draws inspiration from the AWS and GCP SDKs.
-package api
+package ops
 
 import (
 	"context"
 	"time"
 )
 
-// Call represents a call to a Databricks API.
-type Call func(context.Context) error
-
-// Execute makes a call to a Databricks API using the given options.
-func Execute(ctx context.Context, call Call, opts ...Option) error {
+// Execute executes operation op with the given options.
+func Execute(ctx context.Context, op func(context.Context) error, opts ...Option) error {
 	options := Options{}
 	for _, opt := range opts {
 		if err := opt.Apply(&options); err != nil {
 			return err
 		}
 	}
-	return execute(ctx, call, options, sleep)
+	return execute(ctx, op, options, sleep)
+}
+
+// ExecuteWithResult returns the result of calling op with the given options.
+// It is a convenience wrapper around Execute for operations that return a
+// value. In case of error, the zero value of T is returned.
+func ExecuteWithResult[T any](ctx context.Context, op func(context.Context) (T, error), opts ...Option) (T, error) {
+	var result T
+	err := Execute(ctx, func(ctx context.Context) error {
+		var err error
+		result, err = op(ctx)
+		return err
+	}, opts...)
+	if err != nil {
+		var zero T // guarantee zero value on error
+		return zero, err
+	}
+	return result, nil
 }
 
 // sleep sleeps for the given duration. It is mostly equivalent to time.Sleep,
@@ -41,7 +56,7 @@ type sleeper func(ctx context.Context, d time.Duration) error
 
 // execute is the actual implementation of Execute. Its purpose is to ease
 // testing by providing a convenient way to mock the sleeping logic.
-func execute(ctx context.Context, apiCall Call, opts Options, sleep sleeper) error {
+func execute(ctx context.Context, fn func(context.Context) error, opts Options, sleep sleeper) error {
 	// Optionally update the context with the timeout. If the context already
 	// has a deadline, that deadline is updated to the minimum of the context's
 	// deadline and the timeout.
@@ -62,7 +77,7 @@ func execute(ctx context.Context, apiCall Call, opts Options, sleep sleeper) err
 			}
 		}
 
-		err := apiCall(ctx)
+		err := fn(ctx)
 		if err == nil {
 			return nil // nothing to retry
 		}

@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/databricks/sdk-go/databricks/api"
+	"github.com/databricks/sdk-go/core/ops"
 	"github.com/databricks/sdk-go/databricks/options"
 	"github.com/databricks/sdk-go/databricks/options/unstable"
 	"github.com/databricks/sdk-go/databricks/transport"
@@ -49,7 +49,7 @@ func NewClient(ctx context.Context, opts ...options.ClientOption) (*Client, erro
 // **USE_SCHEMA** on the table's parent schema. 3. **USE_CATALOG** on the
 // table's parent catalog, **USE_SCHEMA** on the table's parent schema, and
 // **MANAGE** on the table.
-func (c *Client) CancelRefresh(ctx context.Context, req *CancelRefreshRequest, opts ...api.Option) (*CancelRefreshResponse, error) {
+func (c *Client) CancelRefresh(ctx context.Context, req *CancelRefreshRequest, opts ...ops.Option) (*CancelRefreshResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func (c *Client) CancelRefresh(ctx context.Context, req *CancelRefreshRequest, o
 		return nil
 	}
 
-	if err := api.Execute(ctx, call, opts...); err != nil {
+	if err := ops.Execute(ctx, call, opts...); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -115,7 +115,7 @@ func (c *Client) CancelRefresh(ctx context.Context, req *CancelRefreshRequest, o
 // sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the schema's parent
 // catalog. 2. **USE_CATALOG** on the schema's parent catalog, and **MANAGE**
 // and **USE_SCHEMA** on the schema.
-func (c *Client) CreateMonitor(ctx context.Context, req *CreateMonitorRequest, opts ...api.Option) (*Monitor, error) {
+func (c *Client) CreateMonitor(ctx context.Context, req *CreateMonitorRequest, opts ...ops.Option) (*Monitor, error) {
 	body, err := json.Marshal(req.Monitor)
 	if err != nil {
 		return nil, err
@@ -156,7 +156,7 @@ func (c *Client) CreateMonitor(ctx context.Context, req *CreateMonitorRequest, o
 		return nil
 	}
 
-	if err := api.Execute(ctx, call, opts...); err != nil {
+	if err := ops.Execute(ctx, call, opts...); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -171,7 +171,7 @@ func (c *Client) CreateMonitor(ctx context.Context, req *CreateMonitorRequest, o
 // **USE_SCHEMA** on the table's parent schema. 3. **USE_CATALOG** on the
 // table's parent catalog, **USE_SCHEMA** on the table's parent schema, and
 // **MANAGE** on the table.
-func (c *Client) CreateRefresh(ctx context.Context, req *CreateRefreshRequest, opts ...api.Option) (*Refresh, error) {
+func (c *Client) CreateRefresh(ctx context.Context, req *CreateRefreshRequest, opts ...ops.Option) (*Refresh, error) {
 	body, err := json.Marshal(req.Refresh)
 	if err != nil {
 		return nil, err
@@ -212,7 +212,7 @@ func (c *Client) CreateRefresh(ctx context.Context, req *CreateRefreshRequest, o
 		return nil
 	}
 
-	if err := api.Execute(ctx, call, opts...); err != nil {
+	if err := ops.Execute(ctx, call, opts...); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -234,7 +234,7 @@ func (c *Client) CreateRefresh(ctx context.Context, req *CreateRefreshRequest, o
 // sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the schema's parent
 // catalog. 2. **USE_CATALOG** on the schema's parent catalog, and **MANAGE**
 // and **USE_SCHEMA** on the schema.
-func (c *Client) DeleteMonitor(ctx context.Context, req *DeleteMonitorRequest, opts ...api.Option) error {
+func (c *Client) DeleteMonitor(ctx context.Context, req *DeleteMonitorRequest, opts ...ops.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -267,14 +267,14 @@ func (c *Client) DeleteMonitor(ctx context.Context, req *DeleteMonitorRequest, o
 		return nil
 	}
 
-	if err := api.Execute(ctx, call, opts...); err != nil {
+	if err := ops.Execute(ctx, call, opts...); err != nil {
 		return err
 	}
 	return nil
 }
 
 // (Unimplemented) Delete a refresh
-func (c *Client) DeleteRefresh(ctx context.Context, req *DeleteRefreshRequest, opts ...api.Option) error {
+func (c *Client) DeleteRefresh(ctx context.Context, req *DeleteRefreshRequest, opts ...ops.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -307,7 +307,7 @@ func (c *Client) DeleteRefresh(ctx context.Context, req *DeleteRefreshRequest, o
 		return nil
 	}
 
-	if err := api.Execute(ctx, call, opts...); err != nil {
+	if err := ops.Execute(ctx, call, opts...); err != nil {
 		return err
 	}
 	return nil
@@ -331,7 +331,7 @@ func (c *Client) DeleteRefresh(ctx context.Context, req *DeleteRefreshRequest, o
 // parent entity as well as information on assets created by the monitor. Some
 // information (e.g. dashboard) may be filtered out if the caller is in a
 // different workspace than where the monitor was created.
-func (c *Client) GetMonitor(ctx context.Context, req *GetMonitorRequest, opts ...api.Option) (*Monitor, error) {
+func (c *Client) GetMonitor(ctx context.Context, req *GetMonitorRequest, opts ...ops.Option) (*Monitor, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -368,7 +368,7 @@ func (c *Client) GetMonitor(ctx context.Context, req *GetMonitorRequest, opts ..
 		return nil
 	}
 
-	if err := api.Execute(ctx, call, opts...); err != nil {
+	if err := ops.Execute(ctx, call, opts...); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -388,7 +388,7 @@ func (c *Client) GetMonitor(ctx context.Context, req *GetMonitorRequest, opts ..
 // sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the schema's parent
 // catalog. 2. **USE_CATALOG** on the schema's parent catalog, and
 // **USE_SCHEMA** on the schema.
-func (c *Client) GetRefresh(ctx context.Context, req *GetRefreshRequest, opts ...api.Option) (*Refresh, error) {
+func (c *Client) GetRefresh(ctx context.Context, req *GetRefreshRequest, opts ...ops.Option) (*Refresh, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -425,14 +425,14 @@ func (c *Client) GetRefresh(ctx context.Context, req *GetRefreshRequest, opts ..
 		return nil
 	}
 
-	if err := api.Execute(ctx, call, opts...); err != nil {
+	if err := ops.Execute(ctx, call, opts...); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // (Unimplemented) List data quality monitors.
-func (c *Client) ListMonitor(ctx context.Context, req *ListMonitorRequest, opts ...api.Option) (*ListMonitorResponse, error) {
+func (c *Client) ListMonitor(ctx context.Context, req *ListMonitorRequest, opts ...ops.Option) (*ListMonitorResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -475,13 +475,13 @@ func (c *Client) ListMonitor(ctx context.Context, req *ListMonitorRequest, opts 
 		return nil
 	}
 
-	if err := api.Execute(ctx, call, opts...); err != nil {
+	if err := ops.Execute(ctx, call, opts...); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
-func (c *Client) ListMonitorIter(ctx context.Context, req *ListMonitorRequest, opts ...api.Option) iter.Seq2[*Monitor, error] {
+func (c *Client) ListMonitorIter(ctx context.Context, req *ListMonitorRequest, opts ...ops.Option) iter.Seq2[*Monitor, error] {
 	return func(yield func(*Monitor, error) bool) {
 		// Deep copy the request via JSON round-trip to avoid modifying the original.
 		reqBody, err := json.Marshal(req)
@@ -527,7 +527,7 @@ func (c *Client) ListMonitorIter(ctx context.Context, req *ListMonitorRequest, o
 // sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the schema's parent
 // catalog. 2. **USE_CATALOG** on the schema's parent catalog, and
 // **USE_SCHEMA** on the schema.
-func (c *Client) ListRefresh(ctx context.Context, req *ListRefreshRequest, opts ...api.Option) (*ListRefreshResponse, error) {
+func (c *Client) ListRefresh(ctx context.Context, req *ListRefreshRequest, opts ...ops.Option) (*ListRefreshResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -570,13 +570,13 @@ func (c *Client) ListRefresh(ctx context.Context, req *ListRefreshRequest, opts 
 		return nil
 	}
 
-	if err := api.Execute(ctx, call, opts...); err != nil {
+	if err := ops.Execute(ctx, call, opts...); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
-func (c *Client) ListRefreshIter(ctx context.Context, req *ListRefreshRequest, opts ...api.Option) iter.Seq2[*Refresh, error] {
+func (c *Client) ListRefreshIter(ctx context.Context, req *ListRefreshRequest, opts ...ops.Option) iter.Seq2[*Refresh, error] {
 	return func(yield func(*Refresh, error) bool) {
 		// Deep copy the request via JSON round-trip to avoid modifying the original.
 		reqBody, err := json.Marshal(req)
@@ -621,7 +621,7 @@ func (c *Client) ListRefreshIter(ctx context.Context, req *ListRefreshRequest, o
 // sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the schema's parent
 // catalog. 2. **USE_CATALOG** on the schema's parent catalog, and **MANAGE**
 // and **USE_SCHEMA** on the schema.
-func (c *Client) UpdateMonitor(ctx context.Context, req *UpdateMonitorRequest, opts ...api.Option) (*Monitor, error) {
+func (c *Client) UpdateMonitor(ctx context.Context, req *UpdateMonitorRequest, opts ...ops.Option) (*Monitor, error) {
 	body, err := json.Marshal(req.Monitor)
 	if err != nil {
 		return nil, err
@@ -665,14 +665,14 @@ func (c *Client) UpdateMonitor(ctx context.Context, req *UpdateMonitorRequest, o
 		return nil
 	}
 
-	if err := api.Execute(ctx, call, opts...); err != nil {
+	if err := ops.Execute(ctx, call, opts...); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // (Unimplemented) Update a refresh
-func (c *Client) UpdateRefresh(ctx context.Context, req *UpdateRefreshRequest, opts ...api.Option) (*Refresh, error) {
+func (c *Client) UpdateRefresh(ctx context.Context, req *UpdateRefreshRequest, opts ...ops.Option) (*Refresh, error) {
 	body, err := json.Marshal(req.Refresh)
 	if err != nil {
 		return nil, err
@@ -716,7 +716,7 @@ func (c *Client) UpdateRefresh(ctx context.Context, req *UpdateRefreshRequest, o
 		return nil
 	}
 
-	if err := api.Execute(ctx, call, opts...); err != nil {
+	if err := ops.Execute(ctx, call, opts...); err != nil {
 		return nil, err
 	}
 	return resp, nil

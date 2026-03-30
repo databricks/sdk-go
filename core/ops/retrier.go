@@ -1,12 +1,12 @@
-package api
+package ops
 
 import (
 	"math/rand"
 	"slices"
 	"time"
 
-	"github.com/databricks/sdk-go/databricks/apierr"
-	"github.com/databricks/sdk-go/databricks/apierr/codes"
+	"github.com/databricks/sdk-go/core/apierr"
+	"github.com/databricks/sdk-go/core/apierr/codes"
 )
 
 // Retrier defines a retry behavior.

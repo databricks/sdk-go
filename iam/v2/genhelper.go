@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/databricks/sdk-go/databricks/apierr"
+	"github.com/databricks/sdk-go/core/apierr"
 )
 
 type httpCallOptions struct {
