@@ -50,8 +50,7 @@ jobs:
       fail-fast: false
       matrix:
         go-version:
-          - "1.25"
-          # - "1.26"
+          - "1.26"
         module: ${{ fromJson(needs.discover.outputs.modules) }}
     steps:
       - name: Checkout
@@ -86,7 +85,7 @@ jobs:
       - name: Setup build environment
         uses: ./.github/actions/setup-build-environment
         with:
-          go-version: "1.25"
+          go-version: "1.26"
 
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@55c2c1448f86e01eaae002a5a3a9624417608d84 # v6.5.2
@@ -110,7 +109,7 @@ jobs:
       - name: Setup build environment
         uses: ./.github/actions/setup-build-environment
         with:
-          go-version: "1.25"
+          go-version: "1.26"
           go-cache: "false"
 
       - name: Run gofmt

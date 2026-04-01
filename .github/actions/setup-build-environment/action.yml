@@ -22,6 +22,10 @@ runs:
 
     - name: Setup Go
       uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+      env:
+        # Prevent Go from auto-downloading a newer toolchain via
+        # proxy.golang.org, which is blocked on hardened runners.
+        GOTOOLCHAIN: local
       with:
         go-version: ${{ inputs.go-version }}
         cache: ${{ inputs.go-cache }}
