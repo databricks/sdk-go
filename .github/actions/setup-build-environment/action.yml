@@ -34,7 +34,11 @@ runs:
       shell: bash
       run: |
         jf goc --repo-resolve=db-golang
-        jf go mod download
+
+        # jf go doesn't understand go.work; download per module.
+        for mod in $(find . -name 'go.mod' -exec dirname {} \;); do
+          (cd "$mod" && jf go mod download)
+        done
 
         # Point native go commands at the local module cache instead of
         # the network. go run pkg@version needs module lookups even when
