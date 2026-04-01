@@ -32,6 +32,11 @@ runs:
 
     - name: Download Go modules via JFrog
       shell: bash
+      env:
+        # jf go internally runs go list -mod=mod, which is incompatible
+        # with workspace mode. Disable it so each module is treated
+        # independently during download.
+        GOWORK: "off"
       run: |
         jf goc --repo-resolve=db-golang
 
