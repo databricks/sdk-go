@@ -269,15 +269,44 @@ func detectCICD(lookupEnv lookupFunc) string {
 	return ""
 }
 
-var cachedGoVersion = func() string {
-	v := runtime.Version()
-	v = strings.TrimPrefix(v, "go")
-	parts := strings.SplitN(v, ".", 3)
-	switch len(parts) {
-	case 1:
-		v = parts[0] + ".0.0"
-	case 2:
-		v = parts[0] + "." + parts[1] + ".0"
+// cachedGoVersion is computed once at package init because
+// runtime.Version() never changes during a process lifetime.
+var cachedGoVersion = normalizeGoVersion(runtime.Version())
+
+// normalizeGoVersion converts a Go version string (e.g., "go1.26",
+// "go1.26.0", "go1.26rc1") into a semver-compliant three-part version
+// string (e.g., "1.26.0", "1.26.0-rc1").
+func normalizeGoVersion(raw string) string {
+	raw = strings.TrimPrefix(raw, "go") // all go versions start with "go"
+
+	// Separate numeric prefix (e.g., "1.26.0") from pre-release suffix
+	// (e.g., "rc1", "beta2"). The suffix starts at the first character
+	// that is not a digit or dot.
+	var suffix string
+	prefix := raw
+	dotCount := 0
+	for i, c := range raw {
+		if c == '.' {
+			dotCount++
+			continue
+		}
+		if c < '0' || c > '9' {
+			suffix = raw[i:]
+			prefix = raw[:i]
+			break
+		}
 	}
-	return v
-}()
+
+	// Pad prefix.
+	switch dotCount {
+	case 0:
+		prefix += ".0.0"
+	case 1:
+		prefix += ".0"
+	}
+
+	if suffix != "" {
+		return fmt.Sprintf("%s-%s", prefix, suffix)
+	}
+	return prefix
+}

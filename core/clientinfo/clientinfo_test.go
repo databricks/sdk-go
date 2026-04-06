@@ -467,8 +467,24 @@ func TestSanitize(t *testing.T) {
 	}
 }
 
-func TestGoVersion(t *testing.T) {
-	if n := len(strings.Split(cachedGoVersion, ".")); n != 3 {
-		t.Errorf("cachedGoVersion = %q, got %d parts, want 3", cachedGoVersion, n)
+func TestNormalizeGoVersion(t *testing.T) {
+	testCases := []struct {
+		input string
+		want  string
+	}{
+		{"go1.26.0", "1.26.0"},
+		{"go1.26", "1.26.0"},
+		{"go1.26rc1", "1.26.0-rc1"},
+		{"go1.26.0rc1", "1.26.0-rc1"},
+		{"go1.26beta2", "1.26.0-beta2"},
+		{"go2", "2.0.0"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.input, func(t *testing.T) {
+			if got := normalizeGoVersion(tc.input); got != tc.want {
+				t.Errorf("normalizeGoVersion(%q) = %q, want %q", tc.input, got, tc.want)
+			}
+		})
 	}
 }
