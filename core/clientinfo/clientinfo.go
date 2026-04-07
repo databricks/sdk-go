@@ -48,12 +48,16 @@ type segment struct {
 }
 
 // With returns a new [ClientInfo] with the given key/value pairs appended.
-// The original is not modified. Keys and values must be alphanumeric. An
-// odd number of arguments returns an error. Exact key+value duplicates
-// are silently ignored. On error, no segments are added (all-or-nothing).
+// The original is not modified. An odd number of arguments returns an error.
+//
+// Keys and values must contain only alphanumeric characters plus the
+// characters: undescore ('_'), dot ('.'), plus ('+'), or hyphen ('-').
+//
+// Exact key+value duplicates are silently ignored. On error, the zero value
+// is returned (all-or-nothing).
 func (ci ClientInfo) With(keyvals ...string) (ClientInfo, error) {
 	if len(keyvals)%2 != 0 {
-		return ci, fmt.Errorf("%w: got %d", ErrOddKeyvals, len(keyvals))
+		return ClientInfo{}, fmt.Errorf("%w: got %d", ErrOddKeyvals, len(keyvals))
 	}
 	if len(keyvals) == 0 {
 		return ci, nil
@@ -64,11 +68,11 @@ func (ci ClientInfo) With(keyvals ...string) (ClientInfo, error) {
 
 	for i := 0; i < len(keyvals); i += 2 {
 		key, value := keyvals[i], keyvals[i+1]
-		if !isAlphanum(key) {
-			return ci, fmt.Errorf("%w: %s", ErrInvalidKey, key)
+		if !isValidSegment(key) {
+			return ClientInfo{}, fmt.Errorf("%w: %s", ErrInvalidKey, key)
 		}
-		if !isAlphanum(value) {
-			return ci, fmt.Errorf("%w for %q: %s", ErrInvalidValue, key, value)
+		if !isValidSegment(value) {
+			return ClientInfo{}, fmt.Errorf("%w for %q: %s", ErrInvalidValue, key, value)
 		}
 		if containsSegment(newSegments, key, value) {
 			continue
@@ -124,6 +128,10 @@ func defaultWithEnv(lookupEnv lookupFunc) ClientInfo {
 		segment{"os", runtime.GOOS},
 	)
 	s = append(s, base.segments...)
+	// DATABRICKS_SDK_UPSTREAM and DATABRICKS_SDK_UPSTREAM_VERSION are set
+	// by tools built on top of this SDK (e.g. Terraform provider, Pulumi)
+	// to identify themselves as the upstream product. Both must be present
+	// for the upstream segment to be included.
 	if p, ok := lookupEnv("DATABRICKS_SDK_UPSTREAM"); ok {
 		if v, ok := lookupEnv("DATABRICKS_SDK_UPSTREAM_VERSION"); ok {
 			s = append(s, segment{"upstream", sanitize(p)}, segment{"upstream-version", sanitize(v)})
@@ -180,19 +188,21 @@ const (
 	semVerBuildmetadata = `(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?`
 )
 
-var regexpSemVer = regexp.MustCompile(`^` + semVerCore + semVerPrerelease + semVerBuildmetadata + `$`)
-var regexpAlphanum = regexp.MustCompile(`^[0-9A-Za-z_.\+-]+$`)
-var regexpAlphanumInverse = regexp.MustCompile(`[^0-9A-Za-z_.\+-]`)
+var (
+	regexpSemVer             = regexp.MustCompile(`^` + semVerCore + semVerPrerelease + semVerBuildmetadata + `$`)
+	regexpValidSegment       = regexp.MustCompile(`^[0-9A-Za-z_.\+-]+$`)
+	regexpInvalidSegmentChar = regexp.MustCompile(`[^0-9A-Za-z_.\+-]`)
+)
+
+func isSemVer(s string) bool       { return regexpSemVer.MatchString(s) }
+func isValidSegment(s string) bool { return regexpValidSegment.MatchString(s) }
 
 // sanitize replaces characters that are not valid in segment values with
 // hyphens. Used for environment-sourced values (runtime version, upstream)
 // that we do not control and cannot reject.
 func sanitize(s string) string {
-	return regexpAlphanumInverse.ReplaceAllString(s, "-")
+	return regexpInvalidSegmentChar.ReplaceAllString(s, "-")
 }
-
-func isSemVer(s string) bool   { return regexpSemVer.MatchString(s) }
-func isAlphanum(s string) bool { return regexpAlphanum.MatchString(s) }
 
 type agentDef struct {
 	envVar  string
@@ -234,6 +244,12 @@ var cicdProviders = []cicdDef{
 	{"tf-cloud", []envCheck{{"TFC_RUN_ID", ""}}},
 }
 
+// detectAgent returns the name of a single detected AI coding agent, or
+// empty if zero or more than one agent is detected. When multiple agents
+// are present (e.g. Claude from within Cursor), we cannot reliably
+// determine which one initiated the request, so we omit the segment.
+//
+// TODO: support reporting multiple concurrent agents.
 func detectAgent(lookupEnv lookupFunc) string {
 	var detected string
 	count := 0
@@ -277,7 +293,13 @@ var cachedGoVersion = normalizeGoVersion(runtime.Version())
 // "go1.26.0", "go1.26rc1") into a semver-compliant three-part version
 // string (e.g., "1.26.0", "1.26.0-rc1").
 func normalizeGoVersion(raw string) string {
-	raw = strings.TrimPrefix(raw, "go") // all go versions start with "go"
+	// Development builds return "devel +<hash> <date>" or similar.
+	// These don't follow the "goX.Y.Z" convention, so return a fixed
+	// dev version rather than producing a malformed string.
+	if !strings.HasPrefix(raw, "go") {
+		return "0.0.0-dev"
+	}
+	raw = strings.TrimPrefix(raw, "go")
 
 	// Separate numeric prefix (e.g., "1.26.0") from pre-release suffix
 	// (e.g., "rc1", "beta2"). The suffix starts at the first character

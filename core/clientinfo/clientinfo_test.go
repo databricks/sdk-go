@@ -99,11 +99,10 @@ func TestClientInfo_WithAndString(t *testing.T) {
 			wantErr: ErrInvalidValue,
 		},
 		{
-			desc:       "error on first invalid pair leaves base unchanged",
-			base:       ClientInfo{segments: []segment{{"existing", "value"}}},
-			kvs:        []string{"bad key", "value"},
-			wantString: "existing/value",
-			wantErr:    ErrInvalidKey,
+			desc:    "error on first invalid pair returns zero value",
+			base:    ClientInfo{segments: []segment{{"existing", "value"}}},
+			kvs:     []string{"bad key", "value"},
+			wantErr: ErrInvalidKey,
 		},
 		{
 			desc:    "error on second pair leaves base unchanged",
@@ -417,7 +416,7 @@ func TestIsSemVer(t *testing.T) {
 	}
 }
 
-func TestIsAlphanum(t *testing.T) {
+func TestIsValidSegment(t *testing.T) {
 	testCases := []struct {
 		input string
 		want  bool
@@ -435,8 +434,8 @@ func TestIsAlphanum(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
-			if got := isAlphanum(tc.input); got != tc.want {
-				t.Errorf("isAlphanum(%q) = %v, want %v", tc.input, got, tc.want)
+			if got := isValidSegment(tc.input); got != tc.want {
+				t.Errorf("isValidSegment(%q) = %v, want %v", tc.input, got, tc.want)
 			}
 		})
 	}
@@ -478,6 +477,8 @@ func TestNormalizeGoVersion(t *testing.T) {
 		{"go1.26.0rc1", "1.26.0-rc1"},
 		{"go1.26beta2", "1.26.0-beta2"},
 		{"go2", "2.0.0"},
+		{"devel +abc123def Mon Jan 1 00:00:00 2024 +0000", "0.0.0-dev"},
+		{"devel go1.23-abc123", "0.0.0-dev"},
 	}
 
 	for _, tc := range testCases {
