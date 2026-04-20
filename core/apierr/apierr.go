@@ -92,8 +92,7 @@ func Code(err error) codes.Code {
 	if err == nil {
 		return codes.OK
 	}
-	var e *APIError
-	if errors.As(err, &e) {
+	if e, ok := errors.AsType[*APIError](err); ok {
 		return e.Code()
 	}
 	return codes.Unknown
@@ -102,7 +101,7 @@ func Code(err error) codes.Code {
 // FromHTTPError parses an HTTP error response into an APIError; it returns
 // nil if the status code is 2xx.
 func FromHTTPError(statusCode int, header http.Header, body []byte) *APIError {
-	if statusCode >= 200 && statusCode < 300 {
+	if 200 <= statusCode && statusCode < 300 {
 		return nil
 	}
 
