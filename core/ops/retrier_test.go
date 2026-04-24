@@ -2,12 +2,9 @@ package ops
 
 import (
 	"errors"
-	"net/http"
 	"testing"
 	"time"
 
-	"github.com/databricks/sdk-go/core/apierr"
-	"github.com/databricks/sdk-go/core/apierr/codes"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -16,43 +13,7 @@ func deterministicRand(n int64) int64 {
 	return n - 1 // always return max value
 }
 
-func TestRetryOnCodes(t *testing.T) {
-	testCases := []struct {
-		name      string
-		codes     []codes.Code
-		err       error
-		wantDelay time.Duration
-		wantOk    bool
-	}{
-		{
-			name:   "not an API error",
-			err:    errors.New("an error"),
-			wantOk: false,
-		},
-		{
-			name:   "API error with no code in list",
-			codes:  []codes.Code{codes.Internal},
-			err:    apierr.FromHTTPError(http.StatusNotFound, http.Header{}, []byte{}),
-			wantOk: false,
-		},
-		{
-			name:   "API error with code in list",
-			codes:  []codes.Code{codes.Internal},
-			err:    apierr.FromHTTPError(http.StatusInternalServerError, http.Header{}, []byte{}),
-			wantOk: true,
-		},
-	}
-
-	for _, tc := range testCases {
-		r := RetryOnCodes(BackoffPolicy{}, tc.codes...)
-
-		if _, gotOk := r.IsRetriable(tc.err); gotOk != tc.wantOk {
-			t.Errorf("IsRetriable() = %v, want %v", gotOk, tc.wantOk)
-		}
-	}
-}
-
-func TestRetrier_IsRetriable_success(t *testing.T) {
+func TestRetryIf(t *testing.T) {
 	testCases := []struct {
 		fn        func(error) bool
 		wantDelay time.Duration
@@ -80,7 +41,7 @@ func TestRetrier_IsRetriable_success(t *testing.T) {
 			int63n:  deterministicRand,
 		}
 
-		r := RetryOn(bp, tc.fn)
+		r := RetryIf(bp, tc.fn)
 		gotDelay, gotOk := r.IsRetriable(errors.New("an error"))
 
 		if gotOk != tc.wantOk {
