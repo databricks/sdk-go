@@ -25,7 +25,7 @@ type Client struct {
 func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	cfg := internaloptions.ClientOptions{}
 	for _, opt := range opts {
-		if err := opt.Apply(&cfg); err != nil {
+		if err := opt(&cfg); err != nil {
 			return nil, err
 		}
 	}
@@ -46,7 +46,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 func executeCall(ctx context.Context, op func(context.Context) error, opts []call.Option) error {
 	cfg := internaloptions.CallOptions{}
 	for _, opt := range opts {
-		if err := opt.Apply(&cfg); err != nil {
+		if err := opt(&cfg); err != nil {
 			return err
 		}
 	}

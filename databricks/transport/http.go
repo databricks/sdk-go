@@ -15,7 +15,7 @@ import (
 func NewHTTPClient(ctx context.Context, opts ...client.Option) (*http.Client, error) {
 	cfg := &internaloptions.ClientOptions{}
 	for _, opt := range opts {
-		if err := opt.Apply(cfg); err != nil {
+		if err := opt(cfg); err != nil {
 			return nil, err
 		}
 	}

@@ -1,4 +1,4 @@
-package client_test
+package client
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/databricks/sdk-go/auth"
-	"github.com/databricks/sdk-go/options/client"
 	"github.com/databricks/sdk-go/options/internaloptions"
 )
 
@@ -17,17 +16,17 @@ func TestOptionsApply_AllFields(t *testing.T) {
 	creds := stubCredentials{}
 	logger := slog.Default()
 
-	opts := []client.Option{
-		client.WithHost("https://example.cloud.databricks.com"),
-		client.WithHTTPClient(httpClient),
-		client.WithCredentials(creds),
-		client.WithTimeout(7 * time.Second),
-		client.WithLogger(logger),
+	opts := []Option{
+		WithHost("https://example.cloud.databricks.com"),
+		WithHTTPClient(httpClient),
+		WithCredentials(creds),
+		WithTimeout(7 * time.Second),
+		WithLogger(logger),
 	}
 
 	cfg := internaloptions.ClientOptions{}
 	for _, opt := range opts {
-		if err := opt.Apply(&cfg); err != nil {
+		if err := opt(&cfg); err != nil {
 			t.Fatalf("Apply: %v", err)
 		}
 	}

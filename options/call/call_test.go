@@ -1,4 +1,4 @@
-package call_test
+package call
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/databricks/sdk-go/core/ops"
-	"github.com/databricks/sdk-go/options/call"
 	"github.com/databricks/sdk-go/options/internaloptions"
 )
 
@@ -14,15 +13,15 @@ func TestOptionsApply_AllFields(t *testing.T) {
 	provider := func() ops.Retrier { return nil }
 	limiter := stubLimiter{}
 
-	opts := []call.Option{
-		call.WithRetrier(provider),
-		call.WithLimiter(limiter),
-		call.WithTimeout(3 * time.Second),
+	opts := []Option{
+		WithRetrier(provider),
+		WithLimiter(limiter),
+		WithTimeout(3 * time.Second),
 	}
 
 	cfg := internaloptions.CallOptions{}
 	for _, opt := range opts {
-		if err := opt.Apply(&cfg); err != nil {
+		if err := opt(&cfg); err != nil {
 			t.Fatalf("Apply: %v", err)
 		}
 	}
@@ -40,13 +39,13 @@ func TestOptionsApply_AllFields(t *testing.T) {
 
 func TestWithDisableRetry_OverridesEarlierRetrier(t *testing.T) {
 	cfg := internaloptions.CallOptions{}
-	if err := call.WithRetrier(func() ops.Retrier { return nil }).Apply(&cfg); err != nil {
+	if err := WithRetrier(func() ops.Retrier { return nil })(&cfg); err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
 	if cfg.Retrier == nil {
 		t.Fatal("expected Retrier to be set after WithRetrier")
 	}
-	if err := call.WithDisableRetry().Apply(&cfg); err != nil {
+	if err := WithDisableRetry()(&cfg); err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
 	if cfg.Retrier != nil {
