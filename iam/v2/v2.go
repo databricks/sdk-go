@@ -10,9 +10,10 @@ import (
 	"net/url"
 
 	"github.com/databricks/sdk-go/core/ops"
-	"github.com/databricks/sdk-go/databricks/options"
-	"github.com/databricks/sdk-go/databricks/options/unstable"
 	"github.com/databricks/sdk-go/databricks/transport"
+	"github.com/databricks/sdk-go/options/call"
+	"github.com/databricks/sdk-go/options/client"
+	"github.com/databricks/sdk-go/options/internaloptions"
 )
 
 type Client struct {
@@ -21,10 +22,12 @@ type Client struct {
 	host       string
 }
 
-func NewClient(ctx context.Context, opts ...options.ClientOption) (*Client, error) {
-	resolved, err := unstable.Resolve(opts...)
-	if err != nil {
-		return nil, err
+func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
+	cfg := internaloptions.ClientOptions{}
+	for _, opt := range opts {
+		if err := opt.Apply(&cfg); err != nil {
+			return nil, err
+		}
 	}
 	httpClient, err := transport.NewHTTPClient(ctx, opts...)
 	if err != nil {
@@ -33,15 +36,37 @@ func NewClient(ctx context.Context, opts ...options.ClientOption) (*Client, erro
 
 	return &Client{
 		httpClient: httpClient,
-		logger:     resolved.Logger,
-		host:       resolved.Host,
+		logger:     cfg.Logger,
+		host:       cfg.Host,
 	}, nil
+}
+
+// executeCall resolves call.Option values to ops.Option values and invokes
+// ops.Execute. Lives at the package level to keep call sites concise.
+func executeCall(ctx context.Context, op func(context.Context) error, opts []call.Option) error {
+	cfg := internaloptions.CallOptions{}
+	for _, opt := range opts {
+		if err := opt.Apply(&cfg); err != nil {
+			return err
+		}
+	}
+	var opsOpts []ops.Option
+	if cfg.Retrier != nil {
+		opsOpts = append(opsOpts, ops.WithRetrier(cfg.Retrier))
+	}
+	if cfg.RateLimiter != nil {
+		opsOpts = append(opsOpts, ops.WithLimiter(cfg.RateLimiter))
+	}
+	if cfg.Timeout != 0 {
+		opsOpts = append(opsOpts, ops.WithTimeout(cfg.Timeout))
+	}
+	return ops.Execute(ctx, op, opsOpts...)
 }
 
 // Creates a new account access identity rule for a given account. This allows
 // administrators to explicitly allow or deny specific principals from accessing
 // the account.
-func (c *Client) CreateAccountAccessIdentityRule(ctx context.Context, req *CreateAccountAccessIdentityRuleRequest, opts ...ops.Option) (*AccountAccessIdentityRule, error) {
+func (c *Client) CreateAccountAccessIdentityRule(ctx context.Context, req *CreateAccountAccessIdentityRuleRequest, opts ...call.Option) (*AccountAccessIdentityRule, error) {
 	body, err := json.Marshal(req.AccountAccessIdentityRule)
 	if err != nil {
 		return nil, err
@@ -82,14 +107,14 @@ func (c *Client) CreateAccountAccessIdentityRule(ctx context.Context, req *Creat
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // Deletes an account access identity rule for a given principal.
-func (c *Client) DeleteAccountAccessIdentityRule(ctx context.Context, req *DeleteAccountAccessIdentityRuleRequest, opts ...ops.Option) error {
+func (c *Client) DeleteAccountAccessIdentityRule(ctx context.Context, req *DeleteAccountAccessIdentityRuleRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -122,14 +147,14 @@ func (c *Client) DeleteAccountAccessIdentityRule(ctx context.Context, req *Delet
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
 }
 
 // Gets an account access identity rule for a given principal.
-func (c *Client) GetAccountAccessIdentityRule(ctx context.Context, req *GetAccountAccessIdentityRuleRequest, opts ...ops.Option) (*AccountAccessIdentityRule, error) {
+func (c *Client) GetAccountAccessIdentityRule(ctx context.Context, req *GetAccountAccessIdentityRuleRequest, opts ...call.Option) (*AccountAccessIdentityRule, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -166,7 +191,7 @@ func (c *Client) GetAccountAccessIdentityRule(ctx context.Context, req *GetAccou
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -175,7 +200,7 @@ func (c *Client) GetAccountAccessIdentityRule(ctx context.Context, req *GetAccou
 // Lists all account access identity rules for a given account. These rules
 // control which principals (users, service principals, groups) from the
 // customer's IdP are allowed or denied access to the <Databricks> account.
-func (c *Client) ListAccountAccessIdentityRules(ctx context.Context, req *ListAccountAccessIdentityRulesRequest, opts ...ops.Option) (*ListAccountAccessIdentityRulesResponse, error) {
+func (c *Client) ListAccountAccessIdentityRules(ctx context.Context, req *ListAccountAccessIdentityRulesRequest, opts ...call.Option) (*ListAccountAccessIdentityRulesResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -221,14 +246,14 @@ func (c *Client) ListAccountAccessIdentityRules(ctx context.Context, req *ListAc
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) CreateGroup(ctx context.Context, req *CreateGroupRequest, opts ...ops.Option) (*Group, error) {
+func (c *Client) CreateGroup(ctx context.Context, req *CreateGroupRequest, opts ...call.Option) (*Group, error) {
 	body, err := json.Marshal(req.Group)
 	if err != nil {
 		return nil, err
@@ -269,14 +294,14 @@ func (c *Client) CreateGroup(ctx context.Context, req *CreateGroupRequest, opts 
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) CreateGroupProxy(ctx context.Context, req *CreateGroupProxyRequest, opts ...ops.Option) (*Group, error) {
+func (c *Client) CreateGroupProxy(ctx context.Context, req *CreateGroupProxyRequest, opts ...call.Option) (*Group, error) {
 	body, err := json.Marshal(req.Group)
 	if err != nil {
 		return nil, err
@@ -317,14 +342,14 @@ func (c *Client) CreateGroupProxy(ctx context.Context, req *CreateGroupProxyRequ
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) DeleteGroup(ctx context.Context, req *DeleteGroupRequest, opts ...ops.Option) error {
+func (c *Client) DeleteGroup(ctx context.Context, req *DeleteGroupRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -357,14 +382,14 @@ func (c *Client) DeleteGroup(ctx context.Context, req *DeleteGroupRequest, opts 
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) DeleteGroupProxy(ctx context.Context, req *DeleteGroupProxyRequest, opts ...ops.Option) error {
+func (c *Client) DeleteGroupProxy(ctx context.Context, req *DeleteGroupProxyRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -397,14 +422,14 @@ func (c *Client) DeleteGroupProxy(ctx context.Context, req *DeleteGroupProxyRequ
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) GetGroup(ctx context.Context, req *GetGroupRequest, opts ...ops.Option) (*Group, error) {
+func (c *Client) GetGroup(ctx context.Context, req *GetGroupRequest, opts ...call.Option) (*Group, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -441,14 +466,14 @@ func (c *Client) GetGroup(ctx context.Context, req *GetGroupRequest, opts ...ops
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) GetGroupProxy(ctx context.Context, req *GetGroupProxyRequest, opts ...ops.Option) (*Group, error) {
+func (c *Client) GetGroupProxy(ctx context.Context, req *GetGroupProxyRequest, opts ...call.Option) (*Group, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -485,14 +510,14 @@ func (c *Client) GetGroupProxy(ctx context.Context, req *GetGroupProxyRequest, o
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) ListGroups(ctx context.Context, req *ListGroupsRequest, opts ...ops.Option) (*ListGroupsResponse, error) {
+func (c *Client) ListGroups(ctx context.Context, req *ListGroupsRequest, opts ...call.Option) (*ListGroupsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -538,14 +563,14 @@ func (c *Client) ListGroups(ctx context.Context, req *ListGroupsRequest, opts ..
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) ListGroupsProxy(ctx context.Context, req *ListGroupsProxyRequest, opts ...ops.Option) (*ListGroupsResponse, error) {
+func (c *Client) ListGroupsProxy(ctx context.Context, req *ListGroupsProxyRequest, opts ...call.Option) (*ListGroupsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -591,7 +616,7 @@ func (c *Client) ListGroupsProxy(ctx context.Context, req *ListGroupsProxyReques
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -601,7 +626,7 @@ func (c *Client) ListGroupsProxy(ctx context.Context, req *ListGroupsProxyReques
 // group does not exist, it will be created in the account. If the customer is
 // not onboarded onto Automatic Identity Management (AIM), this will return an
 // error.
-func (c *Client) ResolveGroup(ctx context.Context, req *ResolveGroupRequest, opts ...ops.Option) (*ResolveGroupResponse, error) {
+func (c *Client) ResolveGroup(ctx context.Context, req *ResolveGroupRequest, opts ...call.Option) (*ResolveGroupResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
 		return nil, err
@@ -642,7 +667,7 @@ func (c *Client) ResolveGroup(ctx context.Context, req *ResolveGroupRequest, opt
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -652,7 +677,7 @@ func (c *Client) ResolveGroup(ctx context.Context, req *ResolveGroupRequest, opt
 // group does not exist, it will be created in the account. If the customer is
 // not onboarded onto Automatic Identity Management (AIM), this will return an
 // error.
-func (c *Client) ResolveGroupProxy(ctx context.Context, req *ResolveGroupProxyRequest, opts ...ops.Option) (*ResolveGroupResponse, error) {
+func (c *Client) ResolveGroupProxy(ctx context.Context, req *ResolveGroupProxyRequest, opts ...call.Option) (*ResolveGroupResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
 		return nil, err
@@ -693,14 +718,14 @@ func (c *Client) ResolveGroupProxy(ctx context.Context, req *ResolveGroupProxyRe
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) UpdateGroup(ctx context.Context, req *UpdateGroupRequest, opts ...ops.Option) (*Group, error) {
+func (c *Client) UpdateGroup(ctx context.Context, req *UpdateGroupRequest, opts ...call.Option) (*Group, error) {
 	body, err := json.Marshal(req.Group)
 	if err != nil {
 		return nil, err
@@ -744,14 +769,14 @@ func (c *Client) UpdateGroup(ctx context.Context, req *UpdateGroupRequest, opts 
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) UpdateGroupProxy(ctx context.Context, req *UpdateGroupProxyRequest, opts ...ops.Option) (*Group, error) {
+func (c *Client) UpdateGroupProxy(ctx context.Context, req *UpdateGroupProxyRequest, opts ...call.Option) (*Group, error) {
 	body, err := json.Marshal(req.Group)
 	if err != nil {
 		return nil, err
@@ -795,14 +820,14 @@ func (c *Client) UpdateGroupProxy(ctx context.Context, req *UpdateGroupProxyRequ
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) CreateServicePrincipal(ctx context.Context, req *CreateServicePrincipalRequest, opts ...ops.Option) (*ServicePrincipal, error) {
+func (c *Client) CreateServicePrincipal(ctx context.Context, req *CreateServicePrincipalRequest, opts ...call.Option) (*ServicePrincipal, error) {
 	body, err := json.Marshal(req.ServicePrincipal)
 	if err != nil {
 		return nil, err
@@ -843,14 +868,14 @@ func (c *Client) CreateServicePrincipal(ctx context.Context, req *CreateServiceP
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) CreateServicePrincipalProxy(ctx context.Context, req *CreateServicePrincipalProxyRequest, opts ...ops.Option) (*ServicePrincipal, error) {
+func (c *Client) CreateServicePrincipalProxy(ctx context.Context, req *CreateServicePrincipalProxyRequest, opts ...call.Option) (*ServicePrincipal, error) {
 	body, err := json.Marshal(req.ServicePrincipal)
 	if err != nil {
 		return nil, err
@@ -891,14 +916,14 @@ func (c *Client) CreateServicePrincipalProxy(ctx context.Context, req *CreateSer
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) DeleteServicePrincipal(ctx context.Context, req *DeleteServicePrincipalRequest, opts ...ops.Option) error {
+func (c *Client) DeleteServicePrincipal(ctx context.Context, req *DeleteServicePrincipalRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -931,14 +956,14 @@ func (c *Client) DeleteServicePrincipal(ctx context.Context, req *DeleteServiceP
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) DeleteServicePrincipalProxy(ctx context.Context, req *DeleteServicePrincipalProxyRequest, opts ...ops.Option) error {
+func (c *Client) DeleteServicePrincipalProxy(ctx context.Context, req *DeleteServicePrincipalProxyRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -971,14 +996,14 @@ func (c *Client) DeleteServicePrincipalProxy(ctx context.Context, req *DeleteSer
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) GetServicePrincipal(ctx context.Context, req *GetServicePrincipalRequest, opts ...ops.Option) (*ServicePrincipal, error) {
+func (c *Client) GetServicePrincipal(ctx context.Context, req *GetServicePrincipalRequest, opts ...call.Option) (*ServicePrincipal, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1015,14 +1040,14 @@ func (c *Client) GetServicePrincipal(ctx context.Context, req *GetServicePrincip
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) GetServicePrincipalProxy(ctx context.Context, req *GetServicePrincipalProxyRequest, opts ...ops.Option) (*ServicePrincipal, error) {
+func (c *Client) GetServicePrincipalProxy(ctx context.Context, req *GetServicePrincipalProxyRequest, opts ...call.Option) (*ServicePrincipal, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1059,14 +1084,14 @@ func (c *Client) GetServicePrincipalProxy(ctx context.Context, req *GetServicePr
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) ListServicePrincipals(ctx context.Context, req *ListServicePrincipalsRequest, opts ...ops.Option) (*ListServicePrincipalsResponse, error) {
+func (c *Client) ListServicePrincipals(ctx context.Context, req *ListServicePrincipalsRequest, opts ...call.Option) (*ListServicePrincipalsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1112,14 +1137,14 @@ func (c *Client) ListServicePrincipals(ctx context.Context, req *ListServicePrin
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) ListServicePrincipalsProxy(ctx context.Context, req *ListServicePrincipalsProxyRequest, opts ...ops.Option) (*ListServicePrincipalsResponse, error) {
+func (c *Client) ListServicePrincipalsProxy(ctx context.Context, req *ListServicePrincipalsProxyRequest, opts ...call.Option) (*ListServicePrincipalsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1165,7 +1190,7 @@ func (c *Client) ListServicePrincipalsProxy(ctx context.Context, req *ListServic
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1174,7 +1199,7 @@ func (c *Client) ListServicePrincipalsProxy(ctx context.Context, req *ListServic
 // Resolves an SP with the given external ID from the customer's IdP. If the SP
 // does not exist, it will be created. If the customer is not onboarded onto
 // Automatic Identity Management (AIM), this will return an error.
-func (c *Client) ResolveServicePrincipal(ctx context.Context, req *ResolveServicePrincipalRequest, opts ...ops.Option) (*ResolveServicePrincipalResponse, error) {
+func (c *Client) ResolveServicePrincipal(ctx context.Context, req *ResolveServicePrincipalRequest, opts ...call.Option) (*ResolveServicePrincipalResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
 		return nil, err
@@ -1215,7 +1240,7 @@ func (c *Client) ResolveServicePrincipal(ctx context.Context, req *ResolveServic
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1224,7 +1249,7 @@ func (c *Client) ResolveServicePrincipal(ctx context.Context, req *ResolveServic
 // Resolves an SP with the given external ID from the customer's IdP. If the SP
 // does not exist, it will be created. If the customer is not onboarded onto
 // Automatic Identity Management (AIM), this will return an error.
-func (c *Client) ResolveServicePrincipalProxy(ctx context.Context, req *ResolveServicePrincipalProxyRequest, opts ...ops.Option) (*ResolveServicePrincipalResponse, error) {
+func (c *Client) ResolveServicePrincipalProxy(ctx context.Context, req *ResolveServicePrincipalProxyRequest, opts ...call.Option) (*ResolveServicePrincipalResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
 		return nil, err
@@ -1265,14 +1290,14 @@ func (c *Client) ResolveServicePrincipalProxy(ctx context.Context, req *ResolveS
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) UpdateServicePrincipal(ctx context.Context, req *UpdateServicePrincipalRequest, opts ...ops.Option) (*ServicePrincipal, error) {
+func (c *Client) UpdateServicePrincipal(ctx context.Context, req *UpdateServicePrincipalRequest, opts ...call.Option) (*ServicePrincipal, error) {
 	body, err := json.Marshal(req.ServicePrincipal)
 	if err != nil {
 		return nil, err
@@ -1316,14 +1341,14 @@ func (c *Client) UpdateServicePrincipal(ctx context.Context, req *UpdateServiceP
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) UpdateServicePrincipalProxy(ctx context.Context, req *UpdateServicePrincipalProxyRequest, opts ...ops.Option) (*ServicePrincipal, error) {
+func (c *Client) UpdateServicePrincipalProxy(ctx context.Context, req *UpdateServicePrincipalProxyRequest, opts ...call.Option) (*ServicePrincipal, error) {
 	body, err := json.Marshal(req.ServicePrincipal)
 	if err != nil {
 		return nil, err
@@ -1367,14 +1392,14 @@ func (c *Client) UpdateServicePrincipalProxy(ctx context.Context, req *UpdateSer
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) CreateUser(ctx context.Context, req *CreateUserRequest, opts ...ops.Option) (*User, error) {
+func (c *Client) CreateUser(ctx context.Context, req *CreateUserRequest, opts ...call.Option) (*User, error) {
 	body, err := json.Marshal(req.User)
 	if err != nil {
 		return nil, err
@@ -1415,14 +1440,14 @@ func (c *Client) CreateUser(ctx context.Context, req *CreateUserRequest, opts ..
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) CreateUserProxy(ctx context.Context, req *CreateUserProxyRequest, opts ...ops.Option) (*User, error) {
+func (c *Client) CreateUserProxy(ctx context.Context, req *CreateUserProxyRequest, opts ...call.Option) (*User, error) {
 	body, err := json.Marshal(req.User)
 	if err != nil {
 		return nil, err
@@ -1463,14 +1488,14 @@ func (c *Client) CreateUserProxy(ctx context.Context, req *CreateUserProxyReques
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) DeleteUser(ctx context.Context, req *DeleteUserRequest, opts ...ops.Option) error {
+func (c *Client) DeleteUser(ctx context.Context, req *DeleteUserRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1503,14 +1528,14 @@ func (c *Client) DeleteUser(ctx context.Context, req *DeleteUserRequest, opts ..
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) DeleteUserProxy(ctx context.Context, req *DeleteUserProxyRequest, opts ...ops.Option) error {
+func (c *Client) DeleteUserProxy(ctx context.Context, req *DeleteUserProxyRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1543,14 +1568,14 @@ func (c *Client) DeleteUserProxy(ctx context.Context, req *DeleteUserProxyReques
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) GetUser(ctx context.Context, req *GetUserRequest, opts ...ops.Option) (*User, error) {
+func (c *Client) GetUser(ctx context.Context, req *GetUserRequest, opts ...call.Option) (*User, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1587,14 +1612,14 @@ func (c *Client) GetUser(ctx context.Context, req *GetUserRequest, opts ...ops.O
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) GetUserProxy(ctx context.Context, req *GetUserProxyRequest, opts ...ops.Option) (*User, error) {
+func (c *Client) GetUserProxy(ctx context.Context, req *GetUserProxyRequest, opts ...call.Option) (*User, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1631,14 +1656,14 @@ func (c *Client) GetUserProxy(ctx context.Context, req *GetUserProxyRequest, opt
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) ListUsers(ctx context.Context, req *ListUsersRequest, opts ...ops.Option) (*ListUsersResponse, error) {
+func (c *Client) ListUsers(ctx context.Context, req *ListUsersRequest, opts ...call.Option) (*ListUsersResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1684,14 +1709,14 @@ func (c *Client) ListUsers(ctx context.Context, req *ListUsersRequest, opts ...o
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) ListUsersProxy(ctx context.Context, req *ListUsersProxyRequest, opts ...ops.Option) (*ListUsersResponse, error) {
+func (c *Client) ListUsersProxy(ctx context.Context, req *ListUsersProxyRequest, opts ...call.Option) (*ListUsersResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1737,7 +1762,7 @@ func (c *Client) ListUsersProxy(ctx context.Context, req *ListUsersProxyRequest,
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1746,7 +1771,7 @@ func (c *Client) ListUsersProxy(ctx context.Context, req *ListUsersProxyRequest,
 // Resolves a user with the given external ID from the customer's IdP. If the
 // user does not exist, it will be created. If the customer is not onboarded
 // onto Automatic Identity Management (AIM), this will return an error.
-func (c *Client) ResolveUser(ctx context.Context, req *ResolveUserRequest, opts ...ops.Option) (*ResolveUserResponse, error) {
+func (c *Client) ResolveUser(ctx context.Context, req *ResolveUserRequest, opts ...call.Option) (*ResolveUserResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
 		return nil, err
@@ -1787,7 +1812,7 @@ func (c *Client) ResolveUser(ctx context.Context, req *ResolveUserRequest, opts 
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1796,7 +1821,7 @@ func (c *Client) ResolveUser(ctx context.Context, req *ResolveUserRequest, opts 
 // Resolves a user with the given external ID from the customer's IdP. If the
 // user does not exist, it will be created. If the customer is not onboarded
 // onto Automatic Identity Management (AIM), this will return an error.
-func (c *Client) ResolveUserProxy(ctx context.Context, req *ResolveUserProxyRequest, opts ...ops.Option) (*ResolveUserResponse, error) {
+func (c *Client) ResolveUserProxy(ctx context.Context, req *ResolveUserProxyRequest, opts ...call.Option) (*ResolveUserResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
 		return nil, err
@@ -1837,14 +1862,14 @@ func (c *Client) ResolveUserProxy(ctx context.Context, req *ResolveUserProxyRequ
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) UpdateUser(ctx context.Context, req *UpdateUserRequest, opts ...ops.Option) (*User, error) {
+func (c *Client) UpdateUser(ctx context.Context, req *UpdateUserRequest, opts ...call.Option) (*User, error) {
 	body, err := json.Marshal(req.User)
 	if err != nil {
 		return nil, err
@@ -1888,14 +1913,14 @@ func (c *Client) UpdateUser(ctx context.Context, req *UpdateUserRequest, opts ..
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) UpdateUserProxy(ctx context.Context, req *UpdateUserProxyRequest, opts ...ops.Option) (*User, error) {
+func (c *Client) UpdateUserProxy(ctx context.Context, req *UpdateUserProxyRequest, opts ...call.Option) (*User, error) {
 	body, err := json.Marshal(req.User)
 	if err != nil {
 		return nil, err
@@ -1939,14 +1964,14 @@ func (c *Client) UpdateUserProxy(ctx context.Context, req *UpdateUserProxyReques
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) CreateWorkspaceAccessDetail(ctx context.Context, req *CreateWorkspaceAccessDetailRequest, opts ...ops.Option) (*WorkspaceAccessDetail, error) {
+func (c *Client) CreateWorkspaceAccessDetail(ctx context.Context, req *CreateWorkspaceAccessDetailRequest, opts ...call.Option) (*WorkspaceAccessDetail, error) {
 	body, err := json.Marshal(req.WorkspaceAccessDetail)
 	if err != nil {
 		return nil, err
@@ -1987,14 +2012,14 @@ func (c *Client) CreateWorkspaceAccessDetail(ctx context.Context, req *CreateWor
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) CreateWorkspaceAccessDetailLocal(ctx context.Context, req *CreateWorkspaceAccessDetailLocalRequest, opts ...ops.Option) (*WorkspaceAccessDetail, error) {
+func (c *Client) CreateWorkspaceAccessDetailLocal(ctx context.Context, req *CreateWorkspaceAccessDetailLocalRequest, opts ...call.Option) (*WorkspaceAccessDetail, error) {
 	body, err := json.Marshal(req.WorkspaceAccessDetail)
 	if err != nil {
 		return nil, err
@@ -2035,14 +2060,14 @@ func (c *Client) CreateWorkspaceAccessDetailLocal(ctx context.Context, req *Crea
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) DeleteWorkspaceAccessDetail(ctx context.Context, req *DeleteWorkspaceAccessDetailRequest, opts ...ops.Option) error {
+func (c *Client) DeleteWorkspaceAccessDetail(ctx context.Context, req *DeleteWorkspaceAccessDetailRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2075,14 +2100,14 @@ func (c *Client) DeleteWorkspaceAccessDetail(ctx context.Context, req *DeleteWor
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) DeleteWorkspaceAccessDetailLocal(ctx context.Context, req *DeleteWorkspaceAccessDetailLocalRequest, opts ...ops.Option) error {
+func (c *Client) DeleteWorkspaceAccessDetailLocal(ctx context.Context, req *DeleteWorkspaceAccessDetailLocalRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2115,7 +2140,7 @@ func (c *Client) DeleteWorkspaceAccessDetailLocal(ctx context.Context, req *Dele
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -2127,7 +2152,7 @@ func (c *Client) DeleteWorkspaceAccessDetailLocal(ctx context.Context, req *Dele
 // one that has been synced into <Databricks> from the customer's IdP or added
 // explicitly to <Databricks> via SCIM/UI. Allows for passing in a "view"
 // parameter to control what fields are returned (BASIC by default or FULL).
-func (c *Client) GetWorkspaceAccessDetail(ctx context.Context, req *GetWorkspaceAccessDetailRequest, opts ...ops.Option) (*WorkspaceAccessDetail, error) {
+func (c *Client) GetWorkspaceAccessDetail(ctx context.Context, req *GetWorkspaceAccessDetailRequest, opts ...call.Option) (*WorkspaceAccessDetail, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2167,7 +2192,7 @@ func (c *Client) GetWorkspaceAccessDetail(ctx context.Context, req *GetWorkspace
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2180,7 +2205,7 @@ func (c *Client) GetWorkspaceAccessDetail(ctx context.Context, req *GetWorkspace
 // or added explicitly to <Databricks> via SCIM/UI. Allows for passing in a
 // "view" parameter to control what fields are returned (BASIC by default or
 // FULL).
-func (c *Client) GetWorkspaceAccessDetailLocal(ctx context.Context, req *GetWorkspaceAccessDetailLocalRequest, opts ...ops.Option) (*WorkspaceAccessDetail, error) {
+func (c *Client) GetWorkspaceAccessDetailLocal(ctx context.Context, req *GetWorkspaceAccessDetailLocalRequest, opts ...call.Option) (*WorkspaceAccessDetail, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2220,14 +2245,14 @@ func (c *Client) GetWorkspaceAccessDetailLocal(ctx context.Context, req *GetWork
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) ListWorkspaceAccessDetails(ctx context.Context, req *ListWorkspaceAccessDetailsRequest, opts ...ops.Option) (*ListWorkspaceAccessDetailsResponse, error) {
+func (c *Client) ListWorkspaceAccessDetails(ctx context.Context, req *ListWorkspaceAccessDetailsRequest, opts ...call.Option) (*ListWorkspaceAccessDetailsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2270,14 +2295,14 @@ func (c *Client) ListWorkspaceAccessDetails(ctx context.Context, req *ListWorksp
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) ListWorkspaceAccessDetailsLocal(ctx context.Context, req *ListWorkspaceAccessDetailsLocalRequest, opts ...ops.Option) (*ListWorkspaceAccessDetailsResponse, error) {
+func (c *Client) ListWorkspaceAccessDetailsLocal(ctx context.Context, req *ListWorkspaceAccessDetailsLocalRequest, opts ...call.Option) (*ListWorkspaceAccessDetailsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2320,14 +2345,14 @@ func (c *Client) ListWorkspaceAccessDetailsLocal(ctx context.Context, req *ListW
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) UpdateWorkspaceAccessDetail(ctx context.Context, req *UpdateWorkspaceAccessDetailRequest, opts ...ops.Option) (*WorkspaceAccessDetail, error) {
+func (c *Client) UpdateWorkspaceAccessDetail(ctx context.Context, req *UpdateWorkspaceAccessDetailRequest, opts ...call.Option) (*WorkspaceAccessDetail, error) {
 	body, err := json.Marshal(req.WorkspaceAccessDetail)
 	if err != nil {
 		return nil, err
@@ -2371,14 +2396,14 @@ func (c *Client) UpdateWorkspaceAccessDetail(ctx context.Context, req *UpdateWor
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // TODO: Write description later when this method is implemented
-func (c *Client) UpdateWorkspaceAccessDetailLocal(ctx context.Context, req *UpdateWorkspaceAccessDetailLocalRequest, opts ...ops.Option) (*WorkspaceAccessDetail, error) {
+func (c *Client) UpdateWorkspaceAccessDetailLocal(ctx context.Context, req *UpdateWorkspaceAccessDetailLocalRequest, opts ...call.Option) (*WorkspaceAccessDetail, error) {
 	body, err := json.Marshal(req.WorkspaceAccessDetail)
 	if err != nil {
 		return nil, err
@@ -2422,7 +2447,7 @@ func (c *Client) UpdateWorkspaceAccessDetailLocal(ctx context.Context, req *Upda
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil

@@ -10,7 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/databricks/sdk-go/databricks/options"
+	"github.com/databricks/sdk-go/options/client"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -24,9 +24,9 @@ func ptr[T any](v T) *T { return &v }
 func newTestClient(t *testing.T, server *httptest.Server) *Client {
 	t.Helper()
 	client, err := NewClient(context.Background(),
-		options.WithHost(server.URL),
-		options.WithHTTPClient(server.Client()),
-		options.WithLogger(slog.New(slog.NewTextHandler(io.Discard, nil))),
+		client.WithHost(server.URL),
+		client.WithHTTPClient(server.Client()),
+		client.WithLogger(slog.New(slog.NewTextHandler(io.Discard, nil))),
 	)
 	if err != nil {
 		t.Fatalf("NewClient: %v", err)

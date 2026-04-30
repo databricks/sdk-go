@@ -13,8 +13,8 @@ import (
 	"sync/atomic"
 
 	"github.com/databricks/sdk-go/auth"
-	"github.com/databricks/sdk-go/databricks/options"
 	dq "github.com/databricks/sdk-go/dataquality/v1"
+	"github.com/databricks/sdk-go/options/client"
 )
 
 func ptr[T any](v T) *T { return &v }
@@ -42,9 +42,9 @@ func main() {
 	))
 
 	client, err := dq.NewClient(ctx,
-		options.WithHost(host),
-		options.WithCredentials(creds),
-		options.WithLogger(logger),
+		client.WithHost(host),
+		client.WithCredentials(creds),
+		client.WithLogger(logger),
 	)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
