@@ -7,41 +7,41 @@ import (
 	"net/http"
 
 	"github.com/databricks/sdk-go/auth"
-	"github.com/databricks/sdk-go/databricks/internal"
-	"github.com/databricks/sdk-go/databricks/options"
+	"github.com/databricks/sdk-go/options/client"
+	"github.com/databricks/sdk-go/options/internaloptions"
 )
 
 // NewHTTPClient creates a new HTTP client with the given options.
-func NewHTTPClient(ctx context.Context, opts ...options.ClientOption) (*http.Client, error) {
-	copts := &internal.ClientOptions{}
+func NewHTTPClient(ctx context.Context, opts ...client.Option) (*http.Client, error) {
+	cfg := &internaloptions.ClientOptions{}
 	for _, opt := range opts {
-		if err := opt(copts); err != nil {
+		if err := opt(cfg); err != nil {
 			return nil, err
 		}
 	}
-	if err := copts.Initialize(); err != nil {
+	if err := cfg.Initialize(); err != nil {
 		return nil, err
 	}
 
 	// If an HTTP client is provided, use it as is without any additional
 	// configuration.
-	if copts.HTTPClient != nil {
-		return copts.HTTPClient, nil
+	if cfg.HTTPClient != nil {
+		return cfg.HTTPClient, nil
 	}
 
-	if copts.Credentials == nil {
+	if cfg.Credentials == nil {
 		// TODO: Load default credentials from profile
 		return nil, errors.New("no credentials provided")
 	}
 
 	transport := &authTransport{
 		base:   http.DefaultTransport,
-		creds:  copts.Credentials,
-		logger: copts.Logger,
+		creds:  cfg.Credentials,
+		logger: cfg.Logger,
 	}
 
 	return &http.Client{
-		Timeout:   copts.Timeout,
+		Timeout:   cfg.Timeout,
 		Transport: transport,
 	}, nil
 }

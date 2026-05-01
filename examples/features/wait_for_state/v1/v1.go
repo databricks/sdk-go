@@ -10,9 +10,10 @@ import (
 	"net/url"
 
 	"github.com/databricks/sdk-go/core/ops"
-	"github.com/databricks/sdk-go/databricks/options"
-	"github.com/databricks/sdk-go/databricks/options/unstable"
 	"github.com/databricks/sdk-go/databricks/transport"
+	"github.com/databricks/sdk-go/options/call"
+	"github.com/databricks/sdk-go/options/client"
+	"github.com/databricks/sdk-go/options/internaloptions"
 )
 
 type Client struct {
@@ -21,10 +22,12 @@ type Client struct {
 	host       string
 }
 
-func NewClient(ctx context.Context, opts ...options.ClientOption) (*Client, error) {
-	resolved, err := unstable.Resolve(opts...)
-	if err != nil {
-		return nil, err
+func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
+	cfg := internaloptions.ClientOptions{}
+	for _, opt := range opts {
+		if err := opt(&cfg); err != nil {
+			return nil, err
+		}
 	}
 	httpClient, err := transport.NewHTTPClient(ctx, opts...)
 	if err != nil {
@@ -33,13 +36,35 @@ func NewClient(ctx context.Context, opts ...options.ClientOption) (*Client, erro
 
 	return &Client{
 		httpClient: httpClient,
-		logger:     resolved.Logger,
-		host:       resolved.Host,
+		logger:     cfg.Logger,
+		host:       cfg.Host,
 	}, nil
 }
 
+// executeCall resolves call.Option values to ops.Option values and invokes
+// ops.Execute. Lives at the package level to keep call sites concise.
+func executeCall(ctx context.Context, op func(context.Context) error, opts []call.Option) error {
+	cfg := internaloptions.CallOptions{}
+	for _, opt := range opts {
+		if err := opt(&cfg); err != nil {
+			return err
+		}
+	}
+	var opsOpts []ops.Option
+	if cfg.Retrier != nil {
+		opsOpts = append(opsOpts, ops.WithRetrier(cfg.Retrier))
+	}
+	if cfg.RateLimiter != nil {
+		opsOpts = append(opsOpts, ops.WithLimiter(cfg.RateLimiter))
+	}
+	if cfg.Timeout != 0 {
+		opsOpts = append(opsOpts, ops.WithTimeout(cfg.Timeout))
+	}
+	return ops.Execute(ctx, op, opsOpts...)
+}
+
 // Create a new task.
-func (c *Client) CreateTask(ctx context.Context, req *CreateTaskRequest, opts ...ops.Option) (*Task, error) {
+func (c *Client) CreateTask(ctx context.Context, req *CreateTaskRequest, opts ...call.Option) (*Task, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
 		return nil, err
@@ -80,7 +105,7 @@ func (c *Client) CreateTask(ctx context.Context, req *CreateTaskRequest, opts ..
 		return nil
 	}
 
-	if err := ops.Execute(ctx, call, opts...); err != nil {
+	if err := executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -89,7 +114,7 @@ func (c *Client) CreateTask(ctx context.Context, req *CreateTaskRequest, opts ..
 // Create a new Task.
 //
 // Returns a waiter.
-func (c *Client) CreateTaskWaiter(ctx context.Context, req *CreateTaskRequest, opts ...ops.Option) (*CreateTaskWaiter, error) {
+func (c *Client) CreateTaskWaiter(ctx context.Context, req *CreateTaskRequest, opts ...call.Option) (*CreateTaskWaiter, error) {
 	resp, err := c.CreateTask(ctx, req, opts...)
 	if err != nil {
 		return nil, err
