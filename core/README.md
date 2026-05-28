@@ -2,6 +2,11 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/databricks/sdk-go/core.svg)](https://pkg.go.dev/github.com/databricks/sdk-go/core)
 
+> [!WARNING]
+> **Preview: not for production use.** This SDK is in active development. APIs are
+> experimental and breaking changes may occur at any time. For production use
+> cases, use the current [Databricks SDK for Go](https://github.com/databricks/databricks-sdk-go).
+
 Internal core of the [Databricks Modular Go SDK](https://github.com/databricks/sdk-go), providing foundational primitives for error handling, operation execution with retry and rate limiting, configuration profile resolution, and client metadata collection.
 
 ## Installation

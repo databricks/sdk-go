@@ -82,10 +82,7 @@ func (bp *BackoffPolicy) Delay() time.Duration {
 	d := time.Duration(bp.int63n(int64(bp.current) + 1))
 
 	// Grow delay for the next call.
-	bp.current = time.Duration(float64(bp.current) * bp.Factor)
-	if bp.current > bp.Maximum {
-		bp.current = bp.Maximum
-	}
+	bp.current = min(time.Duration(float64(bp.current)*bp.Factor), bp.Maximum)
 
 	return d
 }

@@ -463,12 +463,12 @@ func TestResolve_allPropertiesCovered(t *testing.T) {
 		after := reflect.ValueOf(*p)
 		for i := range before.NumField() {
 			if !reflect.DeepEqual(before.Field(i).Interface(), after.Field(i).Interface()) {
-				covered[reflect.TypeOf(Profile{}).Field(i).Name] = true
+				covered[reflect.TypeFor[Profile]().Field(i).Name] = true
 			}
 		}
 	}
 
-	typ := reflect.TypeOf(Profile{})
+	typ := reflect.TypeFor[Profile]()
 	for i := range typ.NumField() {
 		f := typ.Field(i)
 		if f.Name == "Name" || f.Name == "Extra" {
