@@ -110,7 +110,7 @@ func TestParseErrorDetails(t *testing.T) {
 			},
 			want: ErrorDetails{
 				UnknownDetails: []any{
-					map[string]interface{}{
+					map[string]any{
 						"@type":  "foo",
 						"reason": "reason",
 					},
@@ -148,7 +148,7 @@ func TestParseErrorDetails(t *testing.T) {
 			},
 			want: ErrorDetails{
 				UnknownDetails: []any{
-					map[string]interface{}{
+					map[string]any{
 						"foo": "bar",
 					},
 				},
@@ -169,39 +169,39 @@ func TestParseErrorDetails(t *testing.T) {
 			},
 			want: ErrorDetails{
 				UnknownDetails: []any{
-					map[string]interface{}{
+					map[string]any{
 						"@type":  "type.googleapis.com/google.rpc.ErrorInfo",
 						"reason": 0.0,
 					},
-					map[string]interface{}{
+					map[string]any{
 						"@type":      "type.googleapis.com/google.rpc.RequestInfo",
 						"request_id": 0.0,
 					},
-					map[string]interface{}{
+					map[string]any{
 						"@type":       "type.googleapis.com/google.rpc.RetryInfo",
 						"retry_delay": 0.0,
 					},
-					map[string]interface{}{
+					map[string]any{
 						"@type":         "type.googleapis.com/google.rpc.DebugInfo",
 						"stack_entries": 0.0,
 					},
-					map[string]interface{}{
+					map[string]any{
 						"@type":      "type.googleapis.com/google.rpc.QuotaFailure",
 						"violations": 0.0,
 					},
-					map[string]interface{}{
+					map[string]any{
 						"@type":      "type.googleapis.com/google.rpc.PreconditionFailure",
 						"violations": 0.0,
 					},
-					map[string]interface{}{
+					map[string]any{
 						"@type":            "type.googleapis.com/google.rpc.BadRequest",
 						"field_violations": 0.0,
 					},
-					map[string]interface{}{
+					map[string]any{
 						"@type":         "type.googleapis.com/google.rpc.ResourceInfo",
 						"resource_type": 0.0,
 					},
-					map[string]interface{}{
+					map[string]any{
 						"@type": "type.googleapis.com/google.rpc.Help",
 						"links": 0.0,
 					},
@@ -227,7 +227,7 @@ func TestParseErrorDetails(t *testing.T) {
 			},
 			want: ErrorDetails{
 				UnknownDetails: []any{
-					map[string]interface{}{
+					map[string]any{
 						"@type":       "type.googleapis.com/google.rpc.RetryInfo",
 						"retry_delay": "invalid",
 					},

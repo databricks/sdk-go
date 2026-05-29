@@ -1,14 +1,5 @@
 go 1.26.0
 
 use (
-	./auth
 	./core
-	./databricks
-	./dataquality
-	./examples
-	./iam
-	./options
-	./qualitymonitor
-	./sdk
-	./settings
 )
