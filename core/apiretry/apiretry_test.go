@@ -69,7 +69,7 @@ func TestIsTransientNetworkError(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			if got := isTransientNetworkError(tc.err); got != tc.want {
+			if got := IsTransientNetworkError(tc.err); got != tc.want {
 				t.Errorf("isTransientNetworkError(%v) = %v, want %v", tc.err, got, tc.want)
 			}
 		})
@@ -185,7 +185,7 @@ func TestRetryDurationHint(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			if got := retryDurationHint(tc.err); got != tc.want {
+			if got := RetryDurationHint(tc.err); got != tc.want {
 				t.Errorf("retryDurationHint = %v, want %v", got, tc.want)
 			}
 		})

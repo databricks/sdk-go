@@ -120,6 +120,10 @@ func TestFromHTTPError(t *testing.T) {
 			statusCode: http.StatusNoContent,
 		},
 		{
+			desc:       "300 returns nil",
+			statusCode: http.StatusMultipleChoices,
+		},
+		{
 			desc:       "empty body with status",
 			statusCode: http.StatusBadRequest,
 			want: &APIError{

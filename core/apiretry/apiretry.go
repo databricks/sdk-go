@@ -59,11 +59,11 @@ func (r *retrier) IsRetriable(err error) (time.Duration, bool) {
 	if !r.isRetriable(err) {
 		return 0, false
 	}
-	return max(r.backoff.Delay(), retryDurationHint(err)), true
+	return max(r.backoff.Delay(), RetryDurationHint(err)), true
 }
 
 func (r *retrier) isRetriable(err error) bool {
-	if isTransientNetworkError(err) {
+	if IsTransientNetworkError(err) {
 		return true
 	}
 	// Code-prevails, but only when ErrorCodes is configured. Otherwise callers
@@ -78,9 +78,9 @@ func (r *retrier) isRetriable(err error) bool {
 	return false
 }
 
-// isTransientNetworkError reports whether err represents a transient network
+// IsTransientNetworkError reports whether err represents a transient network
 // condition that is likely to resolve on retry.
-func isTransientNetworkError(err error) bool {
+func IsTransientNetworkError(err error) bool {
 	if err == nil {
 		return false
 	}
@@ -100,14 +100,14 @@ func isTransientNetworkError(err error) bool {
 	return false
 }
 
-// retryDurationHint returns a retry-duration hint extracted from err, if one
+// RetryDurationHint returns a retry-duration hint extracted from err, if one
 // is available. It examines, in order:
 //
 //   - the Retry-After header on an [*apierr.APIError]'s HTTP response;
 //   - the [apierr.RetryInfo] detail on an [*apierr.APIError].
 //
 // Returns 0 when err does not carry a hint.
-func retryDurationHint(err error) time.Duration {
+func RetryDurationHint(err error) time.Duration {
 	apiErr, ok := errors.AsType[*apierr.APIError](err)
 	if !ok {
 		return 0
