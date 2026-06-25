@@ -99,9 +99,9 @@ func Code(err error) codes.Code {
 }
 
 // FromHTTPError parses an HTTP error response into an APIError; it returns
-// nil if the status code is 2xx.
+// nil if the status code is 2xx or 3xx.
 func FromHTTPError(statusCode int, header http.Header, body []byte) *APIError {
-	if 200 <= statusCode && statusCode < 300 {
+	if 200 <= statusCode && statusCode < 400 {
 		return nil
 	}
 
