@@ -36,7 +36,7 @@ func WithDisableRetry() Option {
 
 // WithTimeout sets the timeout duration for the operation. If the context
 // already has a deadline, it is updated to the minimum of the context's
-// deadline and the timeout.
+// deadline and the timeout. A timeout of 0 means no timeout.
 //
 // The timeout covers the entire execution, including retries.
 func WithTimeout(t time.Duration) Option {
