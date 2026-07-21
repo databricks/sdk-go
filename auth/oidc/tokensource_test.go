@@ -14,11 +14,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-//go:fix inline
-func errPrefix(s string) *string {
-	return new(s)
-}
-
 func hasPrefix(err error, prefix string) bool {
 	return strings.HasPrefix(err.Error(), prefix)
 }
