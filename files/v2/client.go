@@ -123,11 +123,8 @@ func (c *internalClient) AddBlock(ctx context.Context, req *AddBlockRequest, opt
 		if err != nil {
 			return err
 		}
-		var wireResp addBlockResponseWire
-		if err := json.Unmarshal(respBody, &wireResp); err != nil {
-			return err
-		}
-		resp = addBlockResponseFromWire(&wireResp)
+		_ = respBody
+		resp = &AddBlockResponse{}
 		return nil
 	}
 
@@ -182,11 +179,8 @@ func (c *internalClient) Close(ctx context.Context, req *CloseRequest, opts ...c
 		if err != nil {
 			return err
 		}
-		var wireResp closeResponseWire
-		if err := json.Unmarshal(respBody, &wireResp); err != nil {
-			return err
-		}
-		resp = closeResponseFromWire(&wireResp)
+		_ = respBody
+		resp = &CloseResponse{}
 		return nil
 	}
 
@@ -324,11 +318,8 @@ func (c *internalClient) Delete(ctx context.Context, req *DeleteRequest, opts ..
 		if err != nil {
 			return err
 		}
-		var wireResp deleteResponseWire
-		if err := json.Unmarshal(respBody, &wireResp); err != nil {
-			return err
-		}
-		resp = deleteResponseFromWire(&wireResp)
+		_ = respBody
+		resp = &DeleteResponse{}
 		return nil
 	}
 
@@ -509,11 +500,8 @@ func (c *internalClient) Mkdirs(ctx context.Context, req *MkDirsRequest, opts ..
 		if err != nil {
 			return err
 		}
-		var wireResp mkDirsResponseWire
-		if err := json.Unmarshal(respBody, &wireResp); err != nil {
-			return err
-		}
-		resp = mkDirsResponseFromWire(&wireResp)
+		_ = respBody
+		resp = &MkDirsResponse{}
 		return nil
 	}
 
@@ -571,11 +559,8 @@ func (c *internalClient) Move(ctx context.Context, req *MoveRequest, opts ...cal
 		if err != nil {
 			return err
 		}
-		var wireResp moveResponseWire
-		if err := json.Unmarshal(respBody, &wireResp); err != nil {
-			return err
-		}
-		resp = moveResponseFromWire(&wireResp)
+		_ = respBody
+		resp = &MoveResponse{}
 		return nil
 	}
 
@@ -640,11 +625,8 @@ func (c *internalClient) Put(ctx context.Context, req *PutRequest, opts ...call.
 		if err != nil {
 			return err
 		}
-		var wireResp putResponseWire
-		if err := json.Unmarshal(respBody, &wireResp); err != nil {
-			return err
-		}
-		resp = putResponseFromWire(&wireResp)
+		_ = respBody
+		resp = &PutResponse{}
 		return nil
 	}
 
@@ -768,11 +750,8 @@ func (c *internalClient) CreateDirectory(ctx context.Context, req *CreateDirecto
 		if err != nil {
 			return err
 		}
-		var wireResp createDirectoryResponseWire
-		if err := json.Unmarshal(respBody, &wireResp); err != nil {
-			return err
-		}
-		resp = createDirectoryResponseFromWire(&wireResp)
+		_ = respBody
+		resp = &CreateDirectoryResponse{}
 		return nil
 	}
 
@@ -828,11 +807,8 @@ func (c *internalClient) DeleteDirectory(ctx context.Context, req *DeleteDirecto
 		if err != nil {
 			return err
 		}
-		var wireResp deleteDirectoryResponseWire
-		if err := json.Unmarshal(respBody, &wireResp); err != nil {
-			return err
-		}
-		resp = deleteDirectoryResponseFromWire(&wireResp)
+		_ = respBody
+		resp = &DeleteDirectoryResponse{}
 		return nil
 	}
 
@@ -884,11 +860,8 @@ func (c *internalClient) DeleteFile(ctx context.Context, req *DeleteFileRequest,
 		if err != nil {
 			return err
 		}
-		var wireResp deleteFileResponseWire
-		if err := json.Unmarshal(respBody, &wireResp); err != nil {
-			return err
-		}
-		resp = deleteFileResponseFromWire(&wireResp)
+		_ = respBody
+		resp = &DeleteFileResponse{}
 		return nil
 	}
 
@@ -1009,7 +982,7 @@ func (c *internalClient) GetDirectoryMetadata(ctx context.Context, req *GetDirec
 
 	call := func(ctx context.Context) error {
 		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
-			Method:      "head",
+			Method:      "HEAD",
 			URL:         urlStr,
 			Credentials: c.credentials,
 			Headers:     headers,
@@ -1026,11 +999,8 @@ func (c *internalClient) GetDirectoryMetadata(ctx context.Context, req *GetDirec
 		if err != nil {
 			return err
 		}
-		var wireResp getDirectoryMetadataResponseWire
-		if err := json.Unmarshal(respBody, &wireResp); err != nil {
-			return err
-		}
-		resp = getDirectoryMetadataResponseFromWire(&wireResp)
+		_ = respBody
+		resp = &GetDirectoryMetadataResponse{}
 		return nil
 	}
 
@@ -1072,7 +1042,7 @@ func (c *internalClient) GetFileMetadata(ctx context.Context, req *GetFileMetada
 
 	call := func(ctx context.Context) error {
 		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
-			Method:      "head",
+			Method:      "HEAD",
 			URL:         urlStr,
 			Credentials: c.credentials,
 			Headers:     headers,
@@ -1288,11 +1258,8 @@ func (c *internalClient) UploadFile(ctx context.Context, req *UploadFileRequest,
 		if err != nil {
 			return err
 		}
-		var wireResp uploadFileResponseWire
-		if err := json.Unmarshal(respBody, &wireResp); err != nil {
-			return err
-		}
-		resp = uploadFileResponseFromWire(&wireResp)
+		_ = respBody
+		resp = &UploadFileResponse{}
 		return nil
 	}
 
