@@ -9,7 +9,8 @@ import (
 	"github.com/databricks/sdk-go/options/internaloptions"
 )
 
-// Option configures a single call against the Databricks API.
+// Option configures a single call against the Databricks API. If multiple
+// options configure the same setting, the last option takes precedence.
 type Option func(*internaloptions.CallOptions) error
 
 // WithRetrier returns an Option that uses the given Retrier provider. If no

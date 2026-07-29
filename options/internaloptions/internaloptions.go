@@ -111,3 +111,9 @@ type CallOptions struct {
 	RateLimiter ops.Limiter
 	Timeout     time.Duration
 }
+
+// LROOptions is the resolved configuration produced by applying lro.Option
+// values to a long-running operation wait.
+type LROOptions struct {
+	Timeout time.Duration
+}

@@ -9,7 +9,8 @@ import (
 	"time"
 )
 
-// Execute executes operation op with the given options.
+// Execute executes operation op with the given options. The operation is
+// expected to honor cancellation and deadlines on the context passed to it.
 func Execute(ctx context.Context, op func(context.Context) error, opts ...Option) error {
 	options := Options{}
 	for _, opt := range opts {

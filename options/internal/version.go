@@ -2,4 +2,4 @@ package internal
 
 const ModuleName = "sdk-go-options"
 
-const Version = "0.0.0-dev"
+const Version = "0.0.1-dev.1"
