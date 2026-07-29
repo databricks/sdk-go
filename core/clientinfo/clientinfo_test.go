@@ -2,6 +2,7 @@ package clientinfo
 
 import (
 	"errors"
+	"os"
 	"runtime"
 	"strings"
 	"testing"
@@ -206,9 +207,24 @@ func TestDefault(t *testing.T) {
 			want: prefix + " agent/claude-code",
 		},
 		{
-			desc: "multiple agents omitted",
+			desc: "multiple agents report the multiple sentinel",
 			env:  map[string]string{"CLAUDECODE": "1", "CURSOR_AGENT": "1"},
-			want: prefix,
+			want: prefix + " agent/multiple",
+		},
+		{
+			desc: "AGENT fallback",
+			env:  map[string]string{"AGENT": "goose"},
+			want: prefix + " agent/goose",
+		},
+		{
+			desc: "AI_AGENT fallback",
+			env:  map[string]string{"AI_AGENT": "cursor"},
+			want: prefix + " agent/cursor",
+		},
+		{
+			desc: "omnigent meta-harness",
+			env:  map[string]string{"OMNIGENT": "1"},
+			want: prefix + " meta-harness/omnigent",
 		},
 		{
 			desc: "databricks runtime",
@@ -234,6 +250,30 @@ func TestDefault(t *testing.T) {
 			want: prefix,
 		},
 		{
+			desc: "upstream omitted when product is empty",
+			env: map[string]string{
+				"DATABRICKS_SDK_UPSTREAM":         "",
+				"DATABRICKS_SDK_UPSTREAM_VERSION": "1.5.0",
+			},
+			want: prefix,
+		},
+		{
+			desc: "upstream omitted when version is empty",
+			env: map[string]string{
+				"DATABRICKS_SDK_UPSTREAM":         "terraform",
+				"DATABRICKS_SDK_UPSTREAM_VERSION": "",
+			},
+			want: prefix,
+		},
+		{
+			desc: "upstream sanitized when rendered",
+			env: map[string]string{
+				"DATABRICKS_SDK_UPSTREAM":         "terraform provider",
+				"DATABRICKS_SDK_UPSTREAM_VERSION": "1.5.0/dev",
+			},
+			want: prefix + " upstream/terraform-provider upstream-version/1.5.0-dev",
+		},
+		{
 			desc: "all env detection combined",
 			env: map[string]string{
 				"DATABRICKS_SDK_UPSTREAM":         "terraform",
@@ -241,8 +281,9 @@ func TestDefault(t *testing.T) {
 				"GITHUB_ACTIONS":                  "true",
 				"DATABRICKS_RUNTIME_VERSION":      "15.5",
 				"CLAUDECODE":                      "1",
+				"OMNIGENT":                        "1",
 			},
-			want: prefix + " upstream/terraform upstream-version/1.5.0 cicd/github runtime/15.5 agent/claude-code",
+			want: prefix + " upstream/terraform upstream-version/1.5.0 cicd/github runtime/15.5 agent/claude-code meta-harness/omnigent",
 		},
 	}
 
@@ -254,6 +295,245 @@ func TestDefault(t *testing.T) {
 
 			if got != tc.want {
 				t.Errorf("defaultWithEnv() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestDetectUpstream(t *testing.T) {
+	testCases := []struct {
+		desc        string
+		env         map[string]string
+		wantProduct string
+		wantVersion string
+	}{
+		{desc: "unset"},
+		{desc: "only product", env: map[string]string{"DATABRICKS_SDK_UPSTREAM": "terraform"}},
+		{desc: "only version", env: map[string]string{"DATABRICKS_SDK_UPSTREAM_VERSION": "1.5.0"}},
+		{desc: "empty product", env: map[string]string{"DATABRICKS_SDK_UPSTREAM": "", "DATABRICKS_SDK_UPSTREAM_VERSION": "1.5.0"}},
+		{desc: "empty version", env: map[string]string{"DATABRICKS_SDK_UPSTREAM": "terraform", "DATABRICKS_SDK_UPSTREAM_VERSION": ""}},
+		{
+			desc: "valid values unchanged",
+			env: map[string]string{
+				"DATABRICKS_SDK_UPSTREAM":         "terraform-provider",
+				"DATABRICKS_SDK_UPSTREAM_VERSION": "1.5.0-dev+build.1",
+			},
+			wantProduct: "terraform-provider",
+			wantVersion: "1.5.0-dev+build.1",
+		},
+		{
+			desc: "malformed values sanitized",
+			env: map[string]string{
+				"DATABRICKS_SDK_UPSTREAM":         "terraform provider/beta",
+				"DATABRICKS_SDK_UPSTREAM_VERSION": "1.5.0/dev\r\nnext",
+			},
+			wantProduct: "terraform-provider-beta",
+			wantVersion: "1.5.0-dev--next",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			gotProduct, gotVersion := detectUpstream(mockEnv(tc.env))
+			if gotProduct != tc.wantProduct || gotVersion != tc.wantVersion {
+				t.Errorf("detectUpstream() = (%q, %q), want (%q, %q)", gotProduct, gotVersion, tc.wantProduct, tc.wantVersion)
+			}
+		})
+	}
+}
+
+func TestDetectAgent(t *testing.T) {
+	testCases := []struct {
+		desc string
+		env  map[string]string
+		want string
+	}{
+		{desc: "no agent", want: ""},
+		{desc: "amp", env: map[string]string{"AMP_CURRENT_THREAD_ID": "thread"}, want: "amp"},
+		{desc: "antigravity", env: map[string]string{"ANTIGRAVITY_AGENT": "1"}, want: "antigravity"},
+		{desc: "augment", env: map[string]string{"AUGMENT_AGENT": "1"}, want: "augment"},
+		{desc: "claude code", env: map[string]string{"CLAUDECODE": "1"}, want: "claude-code"},
+		{desc: "cline", env: map[string]string{"CLINE_ACTIVE": "1"}, want: "cline"},
+		{desc: "codex", env: map[string]string{"CODEX_CI": "1"}, want: "codex"},
+		{desc: "copilot CLI", env: map[string]string{"COPILOT_CLI": "1"}, want: "copilot-cli"},
+		{desc: "cursor", env: map[string]string{"CURSOR_AGENT": "1"}, want: "cursor"},
+		{desc: "gemini CLI", env: map[string]string{"GEMINI_CLI": "1"}, want: "gemini-cli"},
+		{desc: "goose", env: map[string]string{"GOOSE_TERMINAL": "1"}, want: "goose"},
+		{desc: "kiro", env: map[string]string{"KIRO": "1"}, want: "kiro"},
+		{desc: "openclaw", env: map[string]string{"OPENCLAW_SHELL": "1"}, want: "openclaw"},
+		{desc: "opencode", env: map[string]string{"OPENCODE": "1"}, want: "opencode"},
+		{desc: "VS Code agent", env: map[string]string{"VSCODE_AGENT": "1"}, want: "vscode-agent"},
+		{desc: "windsurf", env: map[string]string{"WINDSURF_AGENT": "1"}, want: "windsurf"},
+		{desc: "empty explicit value counts", env: map[string]string{"CLAUDECODE": ""}, want: "claude-code"},
+		{desc: "multiple explicit agents", env: map[string]string{"CLAUDECODE": "1", "CURSOR_AGENT": "1"}, want: "multiple"},
+		{desc: "AGENT fallback", env: map[string]string{"AGENT": "goose"}, want: "goose"},
+		{desc: "AGENT sanitized", env: map[string]string{"AGENT": "claude code/agent"}, want: "claude-code-agent"},
+		{desc: "AGENT length capped", env: map[string]string{"AGENT": strings.Repeat("a", 100)}, want: strings.Repeat("a", 64)},
+		{desc: "empty AGENT falls through", env: map[string]string{"AGENT": "", "AI_AGENT": "cursor"}, want: "cursor"},
+		{desc: "AGENT wins over AI_AGENT", env: map[string]string{"AGENT": "claude-code", "AI_AGENT": "cursor"}, want: "claude-code"},
+		{desc: "explicit matcher wins over fallback", env: map[string]string{"CLAUDECODE": "1", "AGENT": "goose"}, want: "claude-code"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			if got := detectAgent(mockEnv(tc.env)); got != tc.want {
+				t.Errorf("detectAgent() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestDetectRuntime(t *testing.T) {
+	testCases := []struct {
+		desc string
+		env  map[string]string
+		want string
+	}{
+		{desc: "unset", want: ""},
+		{desc: "empty", env: map[string]string{"DATABRICKS_RUNTIME_VERSION": ""}, want: ""},
+		{desc: "version", env: map[string]string{"DATABRICKS_RUNTIME_VERSION": "15.5"}, want: "15.5"},
+		{desc: "sanitized", env: map[string]string{"DATABRICKS_RUNTIME_VERSION": "15.5 beta/2"}, want: "15.5-beta-2"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			if got := detectRuntimeVersion(mockEnv(tc.env)); got != tc.want {
+				t.Errorf("detectRuntimeVersion() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestDetectCICD(t *testing.T) {
+	testCases := []struct {
+		desc string
+		env  map[string]string
+		want string
+	}{
+		{desc: "unset", want: ""},
+		{desc: "github", env: map[string]string{"GITHUB_ACTIONS": "true"}, want: "github"},
+		{desc: "gitlab", env: map[string]string{"GITLAB_CI": "true"}, want: "gitlab"},
+		{desc: "jenkins", env: map[string]string{"JENKINS_URL": ""}, want: "jenkins"},
+		{desc: "azure devops", env: map[string]string{"TF_BUILD": "True"}, want: "azure-devops"},
+		{desc: "circle", env: map[string]string{"CIRCLECI": "true"}, want: "circle"},
+		{desc: "travis", env: map[string]string{"TRAVIS": "true"}, want: "travis"},
+		{desc: "bitbucket", env: map[string]string{"BITBUCKET_BUILD_NUMBER": ""}, want: "bitbucket"},
+		{desc: "google cloud build", env: map[string]string{"PROJECT_ID": "project", "BUILD_ID": "build", "PROJECT_NUMBER": "123", "LOCATION": "us-central1"}, want: "google-cloud-build"},
+		{desc: "aws codebuild", env: map[string]string{"CODEBUILD_BUILD_ARN": ""}, want: "aws-code-build"},
+		{desc: "terraform cloud", env: map[string]string{"TFC_RUN_ID": ""}, want: "tf-cloud"},
+		{desc: "github exact value", env: map[string]string{"GITHUB_ACTIONS": "True"}, want: ""},
+		{desc: "gitlab exact value", env: map[string]string{"GITLAB_CI": "1"}, want: ""},
+		{desc: "azure devops exact value", env: map[string]string{"TF_BUILD": "true"}, want: ""},
+		{desc: "circle exact value", env: map[string]string{"CIRCLECI": "1"}, want: ""},
+		{desc: "travis exact value", env: map[string]string{"TRAVIS": "1"}, want: ""},
+		{desc: "google cloud build missing project", env: map[string]string{"BUILD_ID": "build", "PROJECT_NUMBER": "123", "LOCATION": "us-central1"}, want: ""},
+		{desc: "google cloud build missing build", env: map[string]string{"PROJECT_ID": "project", "PROJECT_NUMBER": "123", "LOCATION": "us-central1"}, want: ""},
+		{desc: "google cloud build missing project number", env: map[string]string{"PROJECT_ID": "project", "BUILD_ID": "build", "LOCATION": "us-central1"}, want: ""},
+		{desc: "google cloud build missing location", env: map[string]string{"PROJECT_ID": "project", "BUILD_ID": "build", "PROJECT_NUMBER": "123"}, want: ""},
+		{desc: "first match wins", env: map[string]string{"GITHUB_ACTIONS": "true", "GITLAB_CI": "true"}, want: "github"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			if got := detectCICD(mockEnv(tc.env)); got != tc.want {
+				t.Errorf("detectCICD() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestDetectMetaHarness(t *testing.T) {
+	testCases := []struct {
+		desc string
+		env  map[string]string
+		want string
+	}{
+		{desc: "unset", want: ""},
+		{desc: "present", env: map[string]string{"OMNIGENT": "1"}, want: "omnigent"},
+		{desc: "empty value counts", env: map[string]string{"OMNIGENT": ""}, want: "omnigent"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			if got := detectMetaHarness(mockEnv(tc.env)); got != tc.want {
+				t.Errorf("detectMetaHarness() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestDetectMetaHarness_multiple(t *testing.T) {
+	metaHarnesses := []environmentProductDef{
+		{envVar: "FIRST_HARNESS", product: "first"},
+		{envVar: "SECOND_HARNESS", product: "second"},
+	}
+	env := mockEnv(map[string]string{"FIRST_HARNESS": "1", "SECOND_HARNESS": "1"})
+
+	if got, want := detectEnvironmentProduct(env, metaHarnesses), "multiple"; got != want {
+		t.Errorf("detectEnvironmentProduct() = %q, want %q", got, want)
+	}
+}
+
+func TestDetectFunctions(t *testing.T) {
+	isolateDetectionEnvironment(t)
+	t.Setenv("DATABRICKS_SDK_UPSTREAM", "terraform provider")
+	t.Setenv("DATABRICKS_SDK_UPSTREAM_VERSION", "1.5.0/dev")
+	t.Setenv("DATABRICKS_RUNTIME_VERSION", "15.5 beta")
+	t.Setenv("GITHUB_ACTIONS", "true")
+	t.Setenv("AGENT", "cursor")
+	t.Setenv("OMNIGENT", "1")
+
+	if product, version := DetectUpstream(); product != "terraform-provider" || version != "1.5.0-dev" {
+		t.Errorf("DetectUpstream() = (%q, %q), want (%q, %q)", product, version, "terraform-provider", "1.5.0-dev")
+	}
+	if got, want := DetectRuntimeVersion(), "15.5-beta"; got != want {
+		t.Errorf("DetectRuntimeVersion() = %q, want %q", got, want)
+	}
+	if got, want := DetectCICDProvider(), "github"; got != want {
+		t.Errorf("DetectCICDProvider() = %q, want %q", got, want)
+	}
+	if got, want := DetectAgentProvider(), "cursor"; got != want {
+		t.Errorf("DetectAgentProvider() = %q, want %q", got, want)
+	}
+	if got, want := DetectMetaHarnessProvider(), "omnigent"; got != want {
+		t.Errorf("DetectMetaHarnessProvider() = %q, want %q", got, want)
+	}
+
+	t.Setenv("AGENT", "claude-code")
+	if got, want := DetectAgentProvider(), "claude-code"; got != want {
+		t.Errorf("second DetectAgentProvider() = %q, want %q", got, want)
+	}
+}
+
+func isolateDetectionEnvironment(t *testing.T) {
+	t.Helper()
+	names := make([]string, 0, len(knownAgents)+len(cicdProviders)+len(knownMetaHarnesses)+5)
+	for _, agent := range knownAgents {
+		names = append(names, agent.envVar)
+	}
+	for _, provider := range cicdProviders {
+		for _, envVar := range provider.envVars {
+			names = append(names, envVar.name)
+		}
+	}
+	for _, metaHarness := range knownMetaHarnesses {
+		names = append(names, metaHarness.envVar)
+	}
+	names = append(names, "AGENT", "AI_AGENT", "DATABRICKS_RUNTIME_VERSION", "DATABRICKS_SDK_UPSTREAM", "DATABRICKS_SDK_UPSTREAM_VERSION")
+	for _, name := range names {
+		value, wasSet := os.LookupEnv(name)
+		if err := os.Unsetenv(name); err != nil {
+			t.Fatalf("unset %s: %v", name, err)
+		}
+		t.Cleanup(func() {
+			if wasSet {
+				if err := os.Setenv(name, value); err != nil {
+					t.Errorf("restore %s: %v", name, err)
+				}
+				return
+			}
+			if err := os.Unsetenv(name); err != nil {
+				t.Errorf("unset %s: %v", name, err)
 			}
 		})
 	}

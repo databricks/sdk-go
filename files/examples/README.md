@@ -11,7 +11,7 @@ workspace, reading its host and credentials from the default Databricks profile.
 
 ## Running
 
-    go run ./upload
+    bazel run //deco/oss/repos/sdk-go/files/examples/upload
 
 Configure the default Databricks profile before running (see the [Databricks
 Auth] documentation), and set `remotePath` in the program to a volume you own.
