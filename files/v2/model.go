@@ -7,14 +7,17 @@ import (
 )
 
 type AddBlockRequest struct {
+	// The handle on an open stream.
 	Handle *int64
-	Data   []byte
+	// The base64-encoded data to append to the stream. This has a limit of 1 MB.
+	Data []byte
 }
 
 type AddBlockResponse struct {
 }
 
 type CloseRequest struct {
+	// The handle on an open stream.
 	Handle *int64
 }
 
@@ -23,6 +26,7 @@ type CloseResponse struct {
 
 // Create a directory.
 type CreateDirectoryRequest struct {
+	// The absolute path of a directory.
 	DirectoryPath *string
 }
 
@@ -30,16 +34,21 @@ type CreateDirectoryResponse struct {
 }
 
 type CreateRequest struct {
-	Path      *string
+	// The path of the new file. The path should be the absolute DBFS path.
+	Path *string
+	// The flag that specifies whether to overwrite existing file/files.
 	Overwrite *bool
 }
 
 type CreateResponse struct {
+	// Handle which should subsequently be passed into the AddBlock and Close calls
+	// when writing to a file through a stream.
 	Handle *int64
 }
 
 // Delete a directory.
 type DeleteDirectoryRequest struct {
+	// The absolute path of a directory.
 	DirectoryPath *string
 }
 
@@ -48,6 +57,7 @@ type DeleteDirectoryResponse struct {
 
 // Delete a file.
 type DeleteFileRequest struct {
+	// The absolute path of the file.
 	FilePath *string
 }
 
@@ -55,7 +65,11 @@ type DeleteFileResponse struct {
 }
 
 type DeleteRequest struct {
-	Path      *string
+	// The path of the file or directory to delete. The path should be the absolute
+	// DBFS path.
+	Path *string
+	// Whether or not to recursively delete the directory's contents. Deleting empty
+	// directories can be done without providing the recursive flag.
 	Recursive *bool
 }
 
@@ -63,37 +77,59 @@ type DeleteResponse struct {
 }
 
 type DirectoryEntry struct {
-	FileSize     *int
-	IsDirectory  *bool
+	// The length of the file in bytes. This field is omitted for directories.
+	FileSize *int
+	// True if the path is a directory.
+	IsDirectory *bool
+	// Last modification time of given file in milliseconds since unix epoch.
 	LastModified *int
-	Name         *string
-	Path         *string
+	// The name of the file or directory. This is the last component of the path.
+	Name *string
+	// The absolute path of the file or directory.
+	Path *string
 }
 
 // Download a file.
 type DownloadFileRequest struct {
-	FilePath          *string
-	Range             *string
+	// The absolute path of the file.
+	FilePath *string
+	// The range of bytes to retrieve. The range is inclusive and zero-based, see
+	// [RFC 9110] for further details.
+	//
+	// [RFC 9110]: https://datatracker.ietf.org/doc/html/rfc9110#name-range
+	Range *string
+	// Download the file only if it has not been modified since the specified
+	// timestamp. If it has, a 412 Precondition Failed error will be returned. See
+	// [RFC 9110] for further details.
+	//
+	// [RFC 9110]: https://datatracker.ietf.org/doc/html/rfc9110#name-if-unmodified-since
 	IfUnmodifiedSince *string
 }
 
 type DownloadFileResponse struct {
+	// The length of the HTTP response body in bytes.
 	ContentLength *int64
 	ContentType   *string
 	Contents      io.ReadCloser
-	LastModified  *string
+	// The last modified time of the file in HTTP-date (RFC 7231) format.
+	LastModified *string
 }
 
 // Stores the attributes of a file or directory..
 type FileInfo struct {
-	Path             *string
-	IsDir            *bool
-	FileSize         *int64
+	// The absolute path of the file or directory.
+	Path *string
+	// True if the path is a directory.
+	IsDir *bool
+	// The length of the file in bytes. Set to 0 for directories.
+	FileSize *int64
+	// Last modification time of given file in milliseconds since epoch.
 	ModificationTime *int64
 }
 
 // Get directory metadata.
 type GetDirectoryMetadataRequest struct {
+	// The absolute path of a directory.
 	DirectoryPath *string
 }
 
@@ -102,49 +138,90 @@ type GetDirectoryMetadataResponse struct {
 
 // Get file metadata.
 type GetFileMetadataRequest struct {
-	FilePath          *string
-	Range             *string
+	// The absolute path of the file.
+	FilePath *string
+	// The range of bytes to retrieve. The range is inclusive and zero-based, see
+	// [RFC 9110] for further details.
+	//
+	// [RFC 9110]: https://datatracker.ietf.org/doc/html/rfc9110#name-range
+	Range *string
+	// Download the file only if it has not been modified since the specified
+	// timestamp. If it has, a 412 Precondition Failed error will be returned. See
+	// [RFC 9110] for further details.
+	//
+	// [RFC 9110]: https://datatracker.ietf.org/doc/html/rfc9110#name-if-unmodified-since
 	IfUnmodifiedSince *string
 }
 
 type GetFileMetadataResponse struct {
+	// The length of the HTTP response body in bytes.
 	ContentLength *int64
 	ContentType   *string
-	LastModified  *string
+	// The last modified time of the file in HTTP-date (RFC 7231) format.
+	LastModified *string
 }
 
 type GetStatusRequest struct {
+	// The path of the file or directory. The path should be the absolute DBFS path.
 	Path *string
 }
 
 type GetStatusResponse struct {
-	Path             *string
-	IsDir            *bool
-	FileSize         *int64
+	// The absolute path of the file or directory.
+	Path *string
+	// True if the path is a directory.
+	IsDir *bool
+	// The length of the file in bytes. Set to 0 for directories.
+	FileSize *int64
+	// Last modification time of given file in milliseconds since epoch.
 	ModificationTime *int64
 }
 
 // List directory contents.
 type ListDirectoryContentsRequest struct {
+	// The absolute path of a directory.
 	DirectoryPath *string
-	PageSize      *int64
-	PageToken     *string
+	// The maximum number of directory entries to return. The response may contain
+	// fewer entries. If the response contains a `next_page_token`, there may be
+	// more entries, even if fewer than `page_size` entries are in the response.
+	//
+	// We recommend not to set this value unless you are intentionally listing less
+	// than the complete directory contents.
+	//
+	// If unspecified, at most 1000 directory entries will be returned. The maximum
+	// value is 1000. Values above 1000 will be coerced to 1000.
+	PageSize *int64
+	// An opaque page token which was the `next_page_token` in the response of the
+	// previous request to list the contents of this directory. Provide this token
+	// to retrieve the next page of directory entries. When providing a
+	// `page_token`, all other parameters provided to the request must match the
+	// previous request. To list all of the entries in a directory, it is necessary
+	// to continue requesting pages of entries until the response contains no
+	// `next_page_token`. Note that the number of entries returned must not be used
+	// to determine when the listing is complete.
+	PageToken *string
 }
 
 type ListDirectoryResponse struct {
-	Contents      []DirectoryEntry
+	// Array of DirectoryEntry.
+	Contents []DirectoryEntry
+	// A token, which can be sent as `page_token` to retrieve the next page.
 	NextPageToken *string
 }
 
 type ListStatusRequest struct {
+	// The path of the file or directory. The path should be the absolute DBFS path.
 	Path *string
 }
 
 type ListStatusResponse struct {
+	// A list of FileInfo's that describe contents of directory or file. See example
+	// above.
 	Files []FileInfo
 }
 
 type MkDirsRequest struct {
+	// The path of the new directory. The path should be the absolute DBFS path.
 	Path *string
 }
 
@@ -152,7 +229,11 @@ type MkDirsResponse struct {
 }
 
 type MoveRequest struct {
-	SourcePath      *string
+	// The source path of the file or directory. The path should be the absolute
+	// DBFS path.
+	SourcePath *string
+	// The destination path of the file or directory. The path should be the
+	// absolute DBFS path.
 	DestinationPath *string
 }
 
@@ -160,8 +241,11 @@ type MoveResponse struct {
 }
 
 type PutRequest struct {
-	Path      *string
-	Contents  []byte
+	// The path of the new file. The path should be the absolute DBFS path.
+	Path *string
+	// This parameter might be absent, and instead a posted file will be used.
+	Contents []byte
+	// The flag that specifies whether to overwrite existing file/files.
 	Overwrite *bool
 }
 
@@ -169,20 +253,31 @@ type PutResponse struct {
 }
 
 type ReadRequest struct {
-	Path   *string
+	// The path of the file to read. The path should be the absolute DBFS path.
+	Path *string
+	// The offset to read from in bytes.
 	Offset *int64
+	// The number of bytes to read starting from the offset. This has a limit of 1
+	// MB, and a default value of 0.5 MB.
 	Length *int64
 }
 
 type ReadResponse struct {
+	// The number of bytes read (could be less than ``length`` if we hit end of
+	// file). This refers to number of bytes read in unencoded version (response
+	// data is base64-encoded).
 	BytesRead *int64
-	Data      []byte
+	// The base64-encoded contents of the file read.
+	Data []byte
 }
 
 // Upload a file.
 type UploadFileRequest struct {
-	FilePath  *string
-	Contents  io.ReadCloser
+	// The absolute path of the file.
+	FilePath *string
+	Contents io.ReadCloser
+	// If true or unspecified, an existing file will be overwritten. If false, an
+	// error will be returned if the path points to an existing file.
 	Overwrite *bool
 }
 

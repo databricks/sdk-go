@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/databricks/sdk-go/auth"
+	"github.com/databricks/sdk-go/auth/credentials"
 	"github.com/databricks/sdk-go/core/ops"
 	"github.com/databricks/sdk-go/core/profiles"
 )
@@ -62,15 +63,12 @@ func (c *ClientOptions) Resolve() error {
 
 // resolve fills unset options from the profile. Explicitly set options take
 // precedence and are never overwritten.
-//
-// TODO: Apply environment-variable overrides, and resolve workspace/account ID
-// and credentials from the profile when not provided.
 func (c *ClientOptions) resolve() error {
 	if c.DisableProfileResolution {
 		return nil
 	}
 
-	var opts []profiles.ResolveOption
+	opts := []profiles.ResolveOption{profiles.WithEnv()}
 	if c.ProfileName != "" {
 		opts = append(opts, profiles.WithProfile(c.ProfileName))
 	} else {
@@ -94,6 +92,9 @@ func (c *ClientOptions) resolve() error {
 	if c.WorkspaceID == "" {
 		c.WorkspaceID = p.WorkspaceID
 	}
+	if c.Credentials == nil {
+		c.Credentials = credentials.NewDefaultCredentials(credentials.DefaultCredentialsOptions{Profile: p})
+	}
 	return nil
 }
 
@@ -110,4 +111,10 @@ type CallOptions struct {
 	Retrier     func() ops.Retrier
 	RateLimiter ops.Limiter
 	Timeout     time.Duration
+}
+
+// LROOptions is the resolved configuration produced by applying lro.Option
+// values to a long-running operation wait.
+type LROOptions struct {
+	Timeout time.Duration
 }

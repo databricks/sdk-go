@@ -6,7 +6,7 @@
 // [ClientInfo.With] derives a new value with additional key/value
 // segments; it never mutates the original.
 //
-// Databricks tooling (Terraform provider, CLI, partner integrations)
+// Databricks tools (Terraform provider, CLI, partner integrations)
 // should call [SetProduct], [SetPartner], or [AddToDefault] at startup
 // to register global metadata before any client is created.
 package clientinfo
@@ -119,34 +119,52 @@ func Default() ClientInfo {
 // abstract environment access for testing.
 type lookupFunc func(string) (string, bool)
 
+func lookupNonEmpty(lookupEnv lookupFunc, name string) (string, bool) {
+	value, ok := lookupEnv(name)
+	return value, ok && value != ""
+}
+
 func defaultWithEnv(lookupEnv lookupFunc) ClientInfo {
-	// 3 fixed + base segments + up to 5 env detection segments.
-	s := make([]segment, 0, 3+len(base.segments)+5)
+	// 3 fixed + base segments + up to 6 environment-derived segments.
+	s := make([]segment, 0, 3+len(base.segments)+6)
 	s = append(s,
 		segment{internal.ModuleName, internal.Version},
 		segment{"go", cachedGoVersion},
 		segment{"os", runtime.GOOS},
 	)
 	s = append(s, base.segments...)
-	// DATABRICKS_SDK_UPSTREAM and DATABRICKS_SDK_UPSTREAM_VERSION are set
-	// by tools built on top of this SDK (e.g. Terraform provider, Pulumi)
-	// to identify themselves as the upstream product. Both must be present
-	// for the upstream segment to be included.
-	if p, ok := lookupEnv("DATABRICKS_SDK_UPSTREAM"); ok {
-		if v, ok := lookupEnv("DATABRICKS_SDK_UPSTREAM_VERSION"); ok {
-			s = append(s, segment{"upstream", sanitize(p)}, segment{"upstream-version", sanitize(v)})
-		}
+	if product, version := detectUpstream(lookupEnv); product != "" {
+		s = append(s, segment{"upstream", product}, segment{"upstream-version", version})
 	}
-	if p := detectCICD(lookupEnv); p != "" {
-		s = append(s, segment{"cicd", p})
+	if provider := detectCICD(lookupEnv); provider != "" {
+		s = append(s, segment{"cicd", provider})
 	}
-	if v, ok := lookupEnv("DATABRICKS_RUNTIME_VERSION"); ok && v != "" {
-		s = append(s, segment{"runtime", sanitize(v)})
+	if version := detectRuntimeVersion(lookupEnv); version != "" {
+		s = append(s, segment{"runtime", version})
 	}
-	if a := detectAgent(lookupEnv); a != "" {
-		s = append(s, segment{"agent", a})
+	if provider := detectAgent(lookupEnv); provider != "" {
+		s = append(s, segment{"agent", provider})
+	}
+	if provider := detectMetaHarness(lookupEnv); provider != "" {
+		s = append(s, segment{"meta-harness", provider})
 	}
 	return ClientInfo{segments: s}
+}
+
+func detectUpstream(lookupEnv lookupFunc) (product, version string) {
+	upstreamProduct, productSet := lookupNonEmpty(lookupEnv, "DATABRICKS_SDK_UPSTREAM")
+	upstreamVersion, versionSet := lookupNonEmpty(lookupEnv, "DATABRICKS_SDK_UPSTREAM_VERSION")
+	if !productSet || !versionSet {
+		return "", ""
+	}
+	return sanitize(upstreamProduct), sanitize(upstreamVersion)
+}
+
+func detectRuntimeVersion(lookupEnv lookupFunc) string {
+	if value, ok := lookupNonEmpty(lookupEnv, "DATABRICKS_RUNTIME_VERSION"); ok {
+		return sanitize(value)
+	}
+	return ""
 }
 
 // SetProduct sets the product name and version globally. The version must
@@ -204,22 +222,30 @@ func sanitize(s string) string {
 	return regexpInvalidSegmentChar.ReplaceAllString(s, "-")
 }
 
-type agentDef struct {
+type environmentProductDef struct {
 	envVar  string
 	product string
 }
 
-var knownAgents = []agentDef{
+var knownAgents = []environmentProductDef{
+	{"AMP_CURRENT_THREAD_ID", "amp"},
 	{"ANTIGRAVITY_AGENT", "antigravity"},
+	{"AUGMENT_AGENT", "augment"},
 	{"CLAUDECODE", "claude-code"},
 	{"CLINE_ACTIVE", "cline"},
 	{"CODEX_CI", "codex"},
 	{"COPILOT_CLI", "copilot-cli"},
 	{"CURSOR_AGENT", "cursor"},
 	{"GEMINI_CLI", "gemini-cli"},
-	{"OPENCODE", "opencode"},
+	{"GOOSE_TERMINAL", "goose"},
+	{"KIRO", "kiro"},
 	{"OPENCLAW_SHELL", "openclaw"},
+	{"OPENCODE", "opencode"},
+	{"VSCODE_AGENT", "vscode-agent"},
+	{"WINDSURF_AGENT", "windsurf"},
 }
+
+const maxAgentFallbackLength = 64
 
 type envCheck struct {
 	name          string
@@ -244,26 +270,52 @@ var cicdProviders = []cicdDef{
 	{"tf-cloud", []envCheck{{"TFC_RUN_ID", ""}}},
 }
 
-// detectAgent returns the name of a single detected AI coding agent, or
-// empty if zero or more than one agent is detected. When multiple agents
-// are present (e.g. Claude from within Cursor), we cannot reliably
-// determine which one initiated the request, so we omit the segment.
-//
-// TODO: support reporting multiple concurrent agents.
+// detectAgent returns the explicit agent name, "multiple" for stacked
+// explicit agents, or the sanitized AGENT/AI_AGENT fallback.
 func detectAgent(lookupEnv lookupFunc) string {
+	if agent := detectEnvironmentProduct(lookupEnv, knownAgents); agent != "" {
+		return agent
+	}
+	return detectAgentFallback(lookupEnv)
+}
+
+func detectAgentFallback(lookupEnv lookupFunc) string {
+	value, ok := lookupNonEmpty(lookupEnv, "AGENT")
+	if !ok {
+		value, ok = lookupNonEmpty(lookupEnv, "AI_AGENT")
+	}
+	if !ok {
+		return ""
+	}
+	value = sanitize(value)
+	if len(value) > maxAgentFallbackLength {
+		value = value[:maxAgentFallbackLength]
+	}
+	return value
+}
+
+var knownMetaHarnesses = []environmentProductDef{
+	{"OMNIGENT", "omnigent"},
+}
+
+func detectMetaHarness(lookupEnv lookupFunc) string {
+	return detectEnvironmentProduct(lookupEnv, knownMetaHarnesses)
+}
+
+func detectEnvironmentProduct(lookupEnv lookupFunc, products []environmentProductDef) string {
 	var detected string
 	count := 0
-	for _, a := range knownAgents {
-		if _, ok := lookupEnv(a.envVar); ok {
-			detected = a.product
+	for _, product := range products {
+		if _, ok := lookupEnv(product.envVar); ok {
+			detected = product.product
 			count++
-			if count > 1 {
-				break
-			}
 		}
 	}
 	if count == 1 {
 		return detected
+	}
+	if count > 1 {
+		return "multiple"
 	}
 	return ""
 }

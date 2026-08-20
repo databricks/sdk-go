@@ -1,11 +1,20 @@
 # Ignore private files and directories by default.
 .*
 !.codegen.json
+!.package.json
+# Track the release ledger + anchors under each module's .codegen/ (the
+# per-module releases.jsonl prepare-release reads to compute the next
+# version). The dir must be un-ignored explicitly — the .* rule above
+# excludes it, and git can't re-include a file whose parent dir is excluded.
+!.codegen/
 !.gitignore
 !.github
 !.agent
 !.cursor
 !.cursorrules
+
+**/go.sum
+!examples/go.sum
 
 # Claude Code: track commands and settings, ignore local sessions.
 !.claude
