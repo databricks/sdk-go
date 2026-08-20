@@ -2,11 +2,6 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/databricks/sdk-go/core.svg)](https://pkg.go.dev/github.com/databricks/sdk-go/core)
 
-> [!WARNING]
-> **Preview: not for production use.** This SDK is in active development. APIs are
-> experimental and breaking changes may occur at any time. For production use
-> cases, use the current [Databricks SDK for Go](https://github.com/databricks/databricks-sdk-go).
-
 Internal core of the [Databricks Modular Go SDK](https://github.com/databricks/sdk-go), providing foundational primitives for error handling, operation execution with retry and rate limiting, configuration profile resolution, and client metadata collection.
 
 ## Installation
@@ -20,9 +15,10 @@ go get github.com/databricks/sdk-go/core
 | Package | Description |
 | --- | --- |
 | [apierr](https://pkg.go.dev/github.com/databricks/sdk-go/core/apierr) | Transport-agnostic API error types with canonical error codes and structured error details. |
-| [clientinfo](https://pkg.go.dev/github.com/databricks/sdk-go/core/clientinfo) | Client and environment metadata for User-Agent headers, with auto-detection of CI/CD providers and runtimes. |
+| [clientinfo](https://pkg.go.dev/github.com/databricks/sdk-go/core/clientinfo) | Client metadata for User-Agent headers, with automatic detection of runtimes, CI/CD providers, coding agents, and agent meta-harnesses. |
 | [ops](https://pkg.go.dev/github.com/databricks/sdk-go/core/ops) | Operation execution with configurable retry, timeout, and rate limiting. |
 | [profiles](https://pkg.go.dev/github.com/databricks/sdk-go/core/profiles) | Resolution of Databricks configuration profiles from `~/.databrickscfg` files and environment variables. |
+| [types](https://pkg.go.dev/github.com/databricks/sdk-go/core/types) | Typed field masks and Protocol Buffer-compatible duration and timestamp values. |
 
 ## Go Version Support
 

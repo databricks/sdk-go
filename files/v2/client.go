@@ -37,7 +37,7 @@ type internalClient struct {
 	httpClient  *http.Client
 	credentials auth.Credentials
 	logger      *slog.Logger
-	userAgent   string
+	userAgent   func() (string, error)
 	host        string
 	workspaceID string
 	accountID   string
@@ -53,12 +53,15 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	if err := cfg.Resolve(); err != nil {
 		return nil, err
 	}
-	info, err := clientinfo.Default().With(
-		internal.ModuleName, internal.Version,
-		"auth", cfg.Credentials.Name(),
-	)
-	if err != nil {
-		return nil, err
+	userAgent := func() (string, error) {
+		info, err := clientinfo.Default().With(
+			internal.ModuleName, internal.Version,
+			"auth", cfg.Credentials.Name(),
+		)
+		if err != nil {
+			return "", err
+		}
+		return info.String(), nil
 	}
 
 	return &Client{
@@ -66,7 +69,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 			httpClient:  cfg.HTTPClient,
 			credentials: cfg.Credentials,
 			logger:      cfg.Logger,
-			userAgent:   info.String(),
+			userAgent:   userAgent,
 			host:        cfg.Host,
 			workspaceID: cfg.WorkspaceID,
 			accountID:   cfg.AccountID,
@@ -81,16 +84,20 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // If the block of data exceeds 1 MB, this call will throw an exception with
 // “MAX_BLOCK_SIZE_EXCEEDED“.
 func (c *internalClient) AddBlock(ctx context.Context, req *AddBlockRequest, opts ...call.Option) (*AddBlockResponse, error) {
-	body, err := json.Marshal(addBlockRequestToWire(req))
+	wireReq, err := addBlockRequestToWire(req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq)
 	if err != nil {
 		return nil, err
 	}
 
 	headers := http.Header{}
-	if c.userAgent != "" {
-		headers.Set("User-Agent", c.userAgent)
-	}
 	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -108,6 +115,7 @@ func (c *internalClient) AddBlock(ctx context.Context, req *AddBlockRequest, opt
 			Method:      "POST",
 			URL:         urlStr,
 			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
 			Headers:     headers,
 			Body:        bytes.NewBuffer(body),
 		})
@@ -137,16 +145,20 @@ func (c *internalClient) AddBlock(ctx context.Context, req *AddBlockRequest, opt
 // Closes the stream specified by the input handle. If the handle does not
 // exist, this call throws an exception with “RESOURCE_DOES_NOT_EXIST“.
 func (c *internalClient) Close(ctx context.Context, req *CloseRequest, opts ...call.Option) (*CloseResponse, error) {
-	body, err := json.Marshal(closeRequestToWire(req))
+	wireReq, err := closeRequestToWire(req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq)
 	if err != nil {
 		return nil, err
 	}
 
 	headers := http.Header{}
-	if c.userAgent != "" {
-		headers.Set("User-Agent", c.userAgent)
-	}
 	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -164,6 +176,7 @@ func (c *internalClient) Close(ctx context.Context, req *CloseRequest, opts ...c
 			Method:      "POST",
 			URL:         urlStr,
 			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
 			Headers:     headers,
 			Body:        bytes.NewBuffer(body),
 		})
@@ -201,16 +214,20 @@ func (c *internalClient) Close(ctx context.Context, req *CloseRequest, opts ...c
 // “add-block“ calls with the handle you have. 3. Issue a “close“ call with
 // the handle you have.
 func (c *internalClient) Create(ctx context.Context, req *CreateRequest, opts ...call.Option) (*CreateResponse, error) {
-	body, err := json.Marshal(createRequestToWire(req))
+	wireReq, err := createRequestToWire(req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq)
 	if err != nil {
 		return nil, err
 	}
 
 	headers := http.Header{}
-	if c.userAgent != "" {
-		headers.Set("User-Agent", c.userAgent)
-	}
 	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -228,6 +245,7 @@ func (c *internalClient) Create(ctx context.Context, req *CreateRequest, opts ..
 			Method:      "POST",
 			URL:         urlStr,
 			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
 			Headers:     headers,
 			Body:        bytes.NewBuffer(body),
 		})
@@ -247,7 +265,10 @@ func (c *internalClient) Create(ctx context.Context, req *CreateRequest, opts ..
 		if err := json.Unmarshal(respBody, &wireResp); err != nil {
 			return err
 		}
-		resp = createResponseFromWire(&wireResp)
+		resp, err = createResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 
@@ -276,16 +297,20 @@ func (c *internalClient) Create(ctx context.Context, req *CreateRequest, opts ..
 // such as selective deletes, and the possibility to automate periodic delete
 // jobs.
 func (c *internalClient) Delete(ctx context.Context, req *DeleteRequest, opts ...call.Option) (*DeleteResponse, error) {
-	body, err := json.Marshal(deleteRequestToWire(req))
+	wireReq, err := deleteRequestToWire(req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq)
 	if err != nil {
 		return nil, err
 	}
 
 	headers := http.Header{}
-	if c.userAgent != "" {
-		headers.Set("User-Agent", c.userAgent)
-	}
 	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -303,6 +328,7 @@ func (c *internalClient) Delete(ctx context.Context, req *DeleteRequest, opts ..
 			Method:      "POST",
 			URL:         urlStr,
 			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
 			Headers:     headers,
 			Body:        bytes.NewBuffer(body),
 		})
@@ -332,12 +358,16 @@ func (c *internalClient) Delete(ctx context.Context, req *DeleteRequest, opts ..
 // Gets the file information for a file or directory. If the file or directory
 // does not exist, this call throws an exception with `RESOURCE_DOES_NOT_EXIST`.
 func (c *internalClient) GetStatus(ctx context.Context, req *GetStatusRequest, opts ...call.Option) (*GetStatusResponse, error) {
+	wireReq, err := getStatusRequestToWire(req)
+	if err != nil {
+		return nil, err
+	}
 
 	headers := http.Header{}
-	if c.userAgent != "" {
-		headers.Set("User-Agent", c.userAgent)
-	}
 	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -345,7 +375,7 @@ func (c *internalClient) GetStatus(ctx context.Context, req *GetStatusRequest, o
 	}
 	baseURL.Path = "/api/2.0/dbfs/get-status"
 	queryParams := url.Values{}
-	if err := addQueryValue(queryParams, "path", req.Path); err != nil {
+	if err := addQueryValue(queryParams, "path", wireReq.Path); err != nil {
 		return nil, err
 	}
 	baseURL.RawQuery = queryParams.Encode()
@@ -358,6 +388,7 @@ func (c *internalClient) GetStatus(ctx context.Context, req *GetStatusRequest, o
 			Method:      "GET",
 			URL:         urlStr,
 			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
 			Headers:     headers,
 		})
 		if err != nil {
@@ -376,7 +407,10 @@ func (c *internalClient) GetStatus(ctx context.Context, req *GetStatusRequest, o
 		if err := json.Unmarshal(respBody, &wireResp); err != nil {
 			return err
 		}
-		resp = getStatusResponseFromWire(&wireResp)
+		resp, err = getStatusResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 
@@ -398,12 +432,16 @@ func (c *internalClient) GetStatus(ctx context.Context, req *GetStatusRequest, o
 // system utility (dbutils.fs)](/dev-tools/databricks-utils.html#dbutils-fs),
 // which provides the same functionality without timing out.
 func (c *internalClient) List(ctx context.Context, req *ListStatusRequest, opts ...call.Option) (*ListStatusResponse, error) {
+	wireReq, err := listStatusRequestToWire(req)
+	if err != nil {
+		return nil, err
+	}
 
 	headers := http.Header{}
-	if c.userAgent != "" {
-		headers.Set("User-Agent", c.userAgent)
-	}
 	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -411,7 +449,7 @@ func (c *internalClient) List(ctx context.Context, req *ListStatusRequest, opts 
 	}
 	baseURL.Path = "/api/2.0/dbfs/list"
 	queryParams := url.Values{}
-	if err := addQueryValue(queryParams, "path", req.Path); err != nil {
+	if err := addQueryValue(queryParams, "path", wireReq.Path); err != nil {
 		return nil, err
 	}
 	baseURL.RawQuery = queryParams.Encode()
@@ -424,6 +462,7 @@ func (c *internalClient) List(ctx context.Context, req *ListStatusRequest, opts 
 			Method:      "GET",
 			URL:         urlStr,
 			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
 			Headers:     headers,
 		})
 		if err != nil {
@@ -442,7 +481,10 @@ func (c *internalClient) List(ctx context.Context, req *ListStatusRequest, opts 
 		if err := json.Unmarshal(respBody, &wireResp); err != nil {
 			return err
 		}
-		resp = listStatusResponseFromWire(&wireResp)
+		resp, err = listStatusResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 
@@ -458,16 +500,20 @@ func (c *internalClient) List(ctx context.Context, req *ListStatusRequest, opts 
 // this operation fails, it might have succeeded in creating some of the
 // necessary parent directories.
 func (c *internalClient) Mkdirs(ctx context.Context, req *MkDirsRequest, opts ...call.Option) (*MkDirsResponse, error) {
-	body, err := json.Marshal(mkDirsRequestToWire(req))
+	wireReq, err := mkDirsRequestToWire(req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq)
 	if err != nil {
 		return nil, err
 	}
 
 	headers := http.Header{}
-	if c.userAgent != "" {
-		headers.Set("User-Agent", c.userAgent)
-	}
 	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -485,6 +531,7 @@ func (c *internalClient) Mkdirs(ctx context.Context, req *MkDirsRequest, opts ..
 			Method:      "POST",
 			URL:         urlStr,
 			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
 			Headers:     headers,
 			Body:        bytes.NewBuffer(body),
 		})
@@ -517,16 +564,20 @@ func (c *internalClient) Mkdirs(ctx context.Context, req *MkDirsRequest, opts ..
 // this call throws an exception with `RESOURCE_ALREADY_EXISTS`. If the given
 // source path is a directory, this call always recursively moves all files.
 func (c *internalClient) Move(ctx context.Context, req *MoveRequest, opts ...call.Option) (*MoveResponse, error) {
-	body, err := json.Marshal(moveRequestToWire(req))
+	wireReq, err := moveRequestToWire(req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq)
 	if err != nil {
 		return nil, err
 	}
 
 	headers := http.Header{}
-	if c.userAgent != "" {
-		headers.Set("User-Agent", c.userAgent)
-	}
 	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -544,6 +595,7 @@ func (c *internalClient) Move(ctx context.Context, req *MoveRequest, opts ...cal
 			Method:      "POST",
 			URL:         urlStr,
 			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
 			Headers:     headers,
 			Body:        bytes.NewBuffer(body),
 		})
@@ -583,16 +635,20 @@ func (c *internalClient) Move(ctx context.Context, req *MoveRequest, opts ...cal
 // If you want to upload large files, use the streaming upload. For details, see
 // :method:dbfs/create, :method:dbfs/addBlock, :method:dbfs/close.
 func (c *internalClient) Put(ctx context.Context, req *PutRequest, opts ...call.Option) (*PutResponse, error) {
-	body, err := json.Marshal(putRequestToWire(req))
+	wireReq, err := putRequestToWire(req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq)
 	if err != nil {
 		return nil, err
 	}
 
 	headers := http.Header{}
-	if c.userAgent != "" {
-		headers.Set("User-Agent", c.userAgent)
-	}
 	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -610,6 +666,7 @@ func (c *internalClient) Put(ctx context.Context, req *PutRequest, opts ...call.
 			Method:      "POST",
 			URL:         urlStr,
 			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
 			Headers:     headers,
 			Body:        bytes.NewBuffer(body),
 		})
@@ -645,12 +702,16 @@ func (c *internalClient) Put(ctx context.Context, req *PutRequest, opts ...call.
 // If `offset + length` exceeds the number of bytes in a file, it reads the
 // contents until the end of file.
 func (c *internalClient) Read(ctx context.Context, req *ReadRequest, opts ...call.Option) (*ReadResponse, error) {
+	wireReq, err := readRequestToWire(req)
+	if err != nil {
+		return nil, err
+	}
 
 	headers := http.Header{}
-	if c.userAgent != "" {
-		headers.Set("User-Agent", c.userAgent)
-	}
 	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -658,13 +719,13 @@ func (c *internalClient) Read(ctx context.Context, req *ReadRequest, opts ...cal
 	}
 	baseURL.Path = "/api/2.0/dbfs/read"
 	queryParams := url.Values{}
-	if err := addQueryValue(queryParams, "path", req.Path); err != nil {
+	if err := addQueryValue(queryParams, "path", wireReq.Path); err != nil {
 		return nil, err
 	}
-	if err := addQueryValue(queryParams, "offset", req.Offset); err != nil {
+	if err := addQueryValue(queryParams, "offset", wireReq.Offset); err != nil {
 		return nil, err
 	}
-	if err := addQueryValue(queryParams, "length", req.Length); err != nil {
+	if err := addQueryValue(queryParams, "length", wireReq.Length); err != nil {
 		return nil, err
 	}
 	baseURL.RawQuery = queryParams.Encode()
@@ -677,6 +738,7 @@ func (c *internalClient) Read(ctx context.Context, req *ReadRequest, opts ...cal
 			Method:      "GET",
 			URL:         urlStr,
 			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
 			Headers:     headers,
 		})
 		if err != nil {
@@ -695,7 +757,10 @@ func (c *internalClient) Read(ctx context.Context, req *ReadRequest, opts ...cal
 		if err := json.Unmarshal(respBody, &wireResp); err != nil {
 			return err
 		}
-		resp = readResponseFromWire(&wireResp)
+		resp, err = readResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 
@@ -712,10 +777,10 @@ func (c *internalClient) Read(ctx context.Context, req *ReadRequest, opts ...cal
 func (c *internalClient) CreateDirectory(ctx context.Context, req *CreateDirectoryRequest, opts ...call.Option) (*CreateDirectoryResponse, error) {
 
 	headers := http.Header{}
-	if c.userAgent != "" {
-		headers.Set("User-Agent", c.userAgent)
-	}
 	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -736,6 +801,7 @@ func (c *internalClient) CreateDirectory(ctx context.Context, req *CreateDirecto
 			Method:      "PUT",
 			URL:         urlStr,
 			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
 			Headers:     headers,
 		})
 		if err != nil {
@@ -769,10 +835,10 @@ func (c *internalClient) CreateDirectory(ctx context.Context, req *CreateDirecto
 func (c *internalClient) DeleteDirectory(ctx context.Context, req *DeleteDirectoryRequest, opts ...call.Option) (*DeleteDirectoryResponse, error) {
 
 	headers := http.Header{}
-	if c.userAgent != "" {
-		headers.Set("User-Agent", c.userAgent)
-	}
 	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -793,6 +859,7 @@ func (c *internalClient) DeleteDirectory(ctx context.Context, req *DeleteDirecto
 			Method:      "DELETE",
 			URL:         urlStr,
 			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
 			Headers:     headers,
 		})
 		if err != nil {
@@ -822,10 +889,10 @@ func (c *internalClient) DeleteDirectory(ctx context.Context, req *DeleteDirecto
 func (c *internalClient) DeleteFile(ctx context.Context, req *DeleteFileRequest, opts ...call.Option) (*DeleteFileResponse, error) {
 
 	headers := http.Header{}
-	if c.userAgent != "" {
-		headers.Set("User-Agent", c.userAgent)
-	}
 	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -846,6 +913,7 @@ func (c *internalClient) DeleteFile(ctx context.Context, req *DeleteFileRequest,
 			Method:      "DELETE",
 			URL:         urlStr,
 			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
 			Headers:     headers,
 		})
 		if err != nil {
@@ -877,9 +945,6 @@ func (c *internalClient) DeleteFile(ctx context.Context, req *DeleteFileRequest,
 func (c *internalClient) DownloadFile(ctx context.Context, req *DownloadFileRequest, opts ...call.Option) (*DownloadFileResponse, error) {
 
 	headers := http.Header{}
-	if c.userAgent != "" {
-		headers.Set("User-Agent", c.userAgent)
-	}
 	headers.Set("Content-Type", "application/json")
 	headers.Set("Accept", "application/octet-stream")
 	if req.Range != nil {
@@ -887,6 +952,9 @@ func (c *internalClient) DownloadFile(ctx context.Context, req *DownloadFileRequ
 	}
 	if req.IfUnmodifiedSince != nil {
 		headers.Set("If-Unmodified-Since", fmt.Sprintf("%v", *req.IfUnmodifiedSince))
+	}
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
 
 	baseURL, err := url.Parse(c.host)
@@ -908,6 +976,7 @@ func (c *internalClient) DownloadFile(ctx context.Context, req *DownloadFileRequ
 			Method:      "GET",
 			URL:         urlStr,
 			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
 			Headers:     headers,
 		})
 		if err != nil {
@@ -961,10 +1030,10 @@ func (c *internalClient) DownloadFile(ctx context.Context, req *DownloadFileRequ
 func (c *internalClient) GetDirectoryMetadata(ctx context.Context, req *GetDirectoryMetadataRequest, opts ...call.Option) (*GetDirectoryMetadataResponse, error) {
 
 	headers := http.Header{}
-	if c.userAgent != "" {
-		headers.Set("User-Agent", c.userAgent)
-	}
 	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -985,6 +1054,7 @@ func (c *internalClient) GetDirectoryMetadata(ctx context.Context, req *GetDirec
 			Method:      "HEAD",
 			URL:         urlStr,
 			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
 			Headers:     headers,
 		})
 		if err != nil {
@@ -1015,15 +1085,15 @@ func (c *internalClient) GetDirectoryMetadata(ctx context.Context, req *GetDirec
 func (c *internalClient) GetFileMetadata(ctx context.Context, req *GetFileMetadataRequest, opts ...call.Option) (*GetFileMetadataResponse, error) {
 
 	headers := http.Header{}
-	if c.userAgent != "" {
-		headers.Set("User-Agent", c.userAgent)
-	}
 	headers.Set("Content-Type", "application/json")
 	if req.Range != nil {
 		headers.Set("Range", fmt.Sprintf("%v", *req.Range))
 	}
 	if req.IfUnmodifiedSince != nil {
 		headers.Set("If-Unmodified-Since", fmt.Sprintf("%v", *req.IfUnmodifiedSince))
+	}
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
 
 	baseURL, err := url.Parse(c.host)
@@ -1045,6 +1115,7 @@ func (c *internalClient) GetFileMetadata(ctx context.Context, req *GetFileMetada
 			Method:      "HEAD",
 			URL:         urlStr,
 			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
 			Headers:     headers,
 		})
 		if err != nil {
@@ -1088,12 +1159,16 @@ func (c *internalClient) GetFileMetadata(ctx context.Context, req *GetFileMetada
 // Returns the contents of a directory. If there is no directory at the
 // specified path, the API returns an HTTP 404 error.
 func (c *internalClient) ListDirectoryContents(ctx context.Context, req *ListDirectoryContentsRequest, opts ...call.Option) (*ListDirectoryResponse, error) {
+	wireReq, err := listDirectoryContentsRequestToWire(req)
+	if err != nil {
+		return nil, err
+	}
 
 	headers := http.Header{}
-	if c.userAgent != "" {
-		headers.Set("User-Agent", c.userAgent)
-	}
 	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -1104,10 +1179,10 @@ func (c *internalClient) ListDirectoryContents(ctx context.Context, req *ListDir
 	pb.multiSegments(*req.DirectoryPath)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
-	if err := addQueryValue(queryParams, "page_size", req.PageSize); err != nil {
+	if err := addQueryValue(queryParams, "page_size", wireReq.PageSize); err != nil {
 		return nil, err
 	}
-	if err := addQueryValue(queryParams, "page_token", req.PageToken); err != nil {
+	if err := addQueryValue(queryParams, "page_token", wireReq.PageToken); err != nil {
 		return nil, err
 	}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1120,6 +1195,7 @@ func (c *internalClient) ListDirectoryContents(ctx context.Context, req *ListDir
 			Method:      "GET",
 			URL:         urlStr,
 			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
 			Headers:     headers,
 		})
 		if err != nil {
@@ -1138,7 +1214,10 @@ func (c *internalClient) ListDirectoryContents(ctx context.Context, req *ListDir
 		if err := json.Unmarshal(respBody, &wireResp); err != nil {
 			return err
 		}
-		resp = listDirectoryResponseFromWire(&wireResp)
+		resp, err = listDirectoryResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 
@@ -1167,16 +1246,11 @@ func (c *internalClient) ListDirectoryContents(ctx context.Context, req *ListDir
 // ListDirectoryContents directly.
 func (c *internalClient) ListDirectoryContentsIter(ctx context.Context, req *ListDirectoryContentsRequest, opts ...call.Option) iter.Seq2[*DirectoryEntry, error] {
 	return func(yield func(*DirectoryEntry, error) bool) {
-		// Deep copy the request via JSON round-trip to avoid modifying the original.
-		reqBody, err := json.Marshal(req)
-		if err != nil {
-			yield(nil, err)
-			return
-		}
+		// Copy the request so advancing the pagination field does not mutate the
+		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
 		pageReq := ListDirectoryContentsRequest{}
-		if err := json.Unmarshal(reqBody, &pageReq); err != nil {
-			yield(nil, err)
-			return
+		if req != nil {
+			pageReq = *req
 		}
 		for {
 			resp, err := c.ListDirectoryContents(ctx, &pageReq, opts...)
@@ -1203,12 +1277,16 @@ func (c *internalClient) ListDirectoryContentsIter(ctx context.Context, req *Lis
 // exactly the bytes sent in the request body. If the request is successful,
 // there is no response body.
 func (c *internalClient) UploadFile(ctx context.Context, req *UploadFileRequest, opts ...call.Option) (*UploadFileResponse, error) {
+	wireReq, err := uploadFileRequestToWire(req)
+	if err != nil {
+		return nil, err
+	}
 
 	headers := http.Header{}
-	if c.userAgent != "" {
-		headers.Set("User-Agent", c.userAgent)
-	}
 	headers.Set("Content-Type", "application/octet-stream")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -1219,7 +1297,7 @@ func (c *internalClient) UploadFile(ctx context.Context, req *UploadFileRequest,
 	pb.multiSegments(*req.FilePath)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
-	if err := addQueryValue(queryParams, "overwrite", req.Overwrite); err != nil {
+	if err := addQueryValue(queryParams, "overwrite", wireReq.Overwrite); err != nil {
 		return nil, err
 	}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1243,6 +1321,7 @@ func (c *internalClient) UploadFile(ctx context.Context, req *UploadFileRequest,
 			Method:      "PUT",
 			URL:         urlStr,
 			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
 			Headers:     headers,
 			Body:        reqBody,
 		})

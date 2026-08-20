@@ -11,12 +11,29 @@ import (
 )
 
 // newControlEngine builds an engine whose control plane points at an httptest
-// server running h.
+// server running h. h is only reached by a request that carries the client's
+// credentials: like the real control plane, an unauthenticated call is rejected
+// rather than served, so every test here also covers that invariant.
 func newControlEngine(t *testing.T, h http.HandlerFunc) *engine {
 	t.Helper()
-	srv := httptest.NewServer(h)
+	srv := httptest.NewServer(requireCredentials(t, h))
 	t.Cleanup(srv.Close)
 	return newEngine(buildUploadClient(t, srv.URL, srv.Client(), ""))
+}
+
+// requireCredentials rejects a control-plane request that does not carry
+// testToken, the way the Files API rejects one with "Credential was not sent".
+func requireCredentials(t *testing.T, h http.HandlerFunc) http.HandlerFunc {
+	t.Helper()
+	return func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Header.Get("Authorization"); got != testToken {
+			t.Errorf("%s %s: Authorization = %q, want %q", r.Method, r.URL.Path, got, testToken)
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = io.WriteString(w, `{"error_code":"UNAUTHENTICATED","message":"Credential was not sent or was of an unsupported type"}`)
+			return
+		}
+		h(w, r)
+	}
 }
 
 func TestInitiate(t *testing.T) {

@@ -6,10 +6,10 @@ package files
 // owns the single-shot octet-stream PUT used for small files and as the
 // multipart/resumable fallback.
 //
-// These calls run over the client's own authenticated transport (the same one
-// the generated methods use); the parts/chunks then transfer directly to cloud
-// storage over the URLs minted here (see the cloudstorage subpackage), carrying
-// no Databricks credentials.
+// These calls attach the client's credentials per request (via newHTTPRequest,
+// the same helper the generated methods use); the parts/chunks then transfer
+// directly to cloud storage over the URLs minted here (see the cloudstorage
+// subpackage), carrying no Databricks credentials.
 
 import (
 	"bytes"
@@ -168,11 +168,18 @@ func (e *engine) uploadSingleShot(ctx context.Context, path string, overwrite *b
 				return fmt.Errorf("rewinding upload body: %w", err)
 			}
 		}
-		req, err := http.NewRequestWithContext(ctx, http.MethodPut, urlStr, body)
+		headers := http.Header{}
+		headers.Set("Content-Type", "application/octet-stream")
+		req, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      http.MethodPut,
+			URL:         urlStr,
+			Credentials: e.c.credentials,
+			Headers:     headers,
+			Body:        body,
+		})
 		if err != nil {
 			return err
 		}
-		req.Header.Set("Content-Type", "application/octet-stream")
 		e.setWorkspaceHeader(req)
 		_, _, err = executeHTTPCall(httpCallOptions{req: req, client: e.c.httpClient, logger: e.c.logger})
 		return err
@@ -268,7 +275,8 @@ func (e *engine) createAbortURL(ctx context.Context, path, token string) (presig
 // controlPlaneJSON performs an authenticated JSON request against the Files API
 // control plane, retrying transient failures via core/ops. reqBody and out may
 // be nil. A fresh request is built on each attempt so retries re-apply
-// credentials (the auth transport handles token refresh) and rewind the body.
+// credentials (newHTTPRequest re-reads them, picking up any token refresh) and
+// rewind the body.
 func (e *engine) controlPlaneJSON(ctx context.Context, method, path string, query url.Values, reqBody, out any) error {
 	urlStr, err := e.controlPlaneURL(path, query)
 	if err != nil {
@@ -286,11 +294,18 @@ func (e *engine) controlPlaneJSON(ctx context.Context, method, path string, quer
 		if bodyBytes != nil {
 			rdr = bytes.NewReader(bodyBytes)
 		}
-		req, err := http.NewRequestWithContext(ctx, method, urlStr, rdr)
+		headers := http.Header{}
+		headers.Set("Content-Type", "application/json")
+		req, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      method,
+			URL:         urlStr,
+			Credentials: e.c.credentials,
+			Headers:     headers,
+			Body:        rdr,
+		})
 		if err != nil {
 			return err
 		}
-		req.Header.Set("Content-Type", "application/json")
 		e.setWorkspaceHeader(req)
 		respBody, _, err := executeHTTPCall(httpCallOptions{req: req, client: e.c.httpClient, logger: e.c.logger})
 		if err != nil {
@@ -310,7 +325,8 @@ func (e *engine) newControlPlaneRetrier() ops.Retrier {
 
 // setWorkspaceHeader applies the workspace routing header when the client is
 // workspace-scoped. The Files API control plane routes a request to the right
-// workspace by this header; the auth transport supplies only the credentials.
+// workspace by this header; the credentials are attached separately by
+// newHTTPRequest.
 func (e *engine) setWorkspaceHeader(req *http.Request) {
 	if e.c.workspaceID != "" {
 		req.Header.Set("X-Databricks-Workspace-Id", e.c.workspaceID)

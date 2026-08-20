@@ -30,6 +30,7 @@ type httpRequestOptions struct {
 	Method      string
 	URL         string
 	Credentials auth.Credentials
+	UserAgent   func() (string, error)
 	Headers     http.Header
 	Body        io.Reader
 }
@@ -50,6 +51,16 @@ func newHTTPRequest(ctx context.Context, opts httpRequestOptions) (*http.Request
 		}
 		for _, h := range headers {
 			req.Header.Add(h.Key, h.Value)
+		}
+	}
+	if opts.UserAgent != nil {
+		userAgent, err := opts.UserAgent()
+		if err != nil {
+			closeBody(opts.Body)
+			return nil, err
+		}
+		if userAgent != "" {
+			req.Header.Set("User-Agent", userAgent)
 		}
 	}
 
@@ -134,6 +145,7 @@ func executeCall(ctx context.Context, op func(context.Context) error, opts []cal
 	}
 	return ops.Execute(ctx, op, opsOpts...)
 }
+
 func addQueryValue(params url.Values, key string, value any) error {
 	data, err := json.Marshal(value)
 	if err != nil {

@@ -22,13 +22,21 @@ import (
 	"github.com/databricks/sdk-go/options/client"
 )
 
-// stubCredentials is a no-op credential for tests: NewClient requires
-// credentials, but these tests exercise the control plane through a fake server
-// that ignores auth headers.
-type stubCredentials struct{}
+// testToken is the Authorization value a Databricks-authenticated request in
+// these tests carries. Control-plane calls must attach it; presigned
+// cloud-storage transfers must not.
+const testToken = "Bearer test-token"
 
-func (stubCredentials) Name() string                                       { return "stub" }
-func (stubCredentials) AuthHeaders(context.Context) ([]auth.Header, error) { return nil, nil }
+// testCredentials stamps testToken on every request the client builds. It emits
+// a real value rather than nothing so that a request which drops the client's
+// credentials is distinguishable from one that carries them.
+type testCredentials struct{}
+
+func (testCredentials) Name() string { return "test" }
+
+func (testCredentials) AuthHeaders(context.Context) ([]auth.Header, error) {
+	return []auth.Header{{Key: "Authorization", Value: testToken}}, nil
+}
 
 // buildUploadClient builds a v2 Client whose control plane is served by hc and
 // addressed at host, with an optional workspace ID for the routing header.
@@ -37,7 +45,7 @@ func buildUploadClient(t *testing.T, host string, hc *http.Client, workspaceID s
 	opts := []client.Option{
 		client.WithHost(host),
 		client.WithHTTPClient(hc),
-		client.WithCredentials(stubCredentials{}),
+		client.WithCredentials(testCredentials{}),
 		client.WithLogger(slog.New(slog.NewTextHandler(io.Discard, nil))),
 		// Keep tests hermetic: without this, an unset workspace ID would be
 		// filled from the developer's local profile.
@@ -111,8 +119,27 @@ func newFakeServer(t *testing.T, mode string) *fakeServer {
 
 func (f *fakeServer) base() string { return f.srv.URL }
 
+// isControlPlane reports whether a path is a Files API control-plane endpoint,
+// as opposed to a presigned cloud-storage URL this server also mints.
+func isControlPlane(path string) bool { return strings.HasPrefix(path, "/api/2.0/fs/") }
+
 func (f *fakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
+
+	// Enforce the credential split the real deployment enforces, so any upload
+	// test fails when a call authenticates wrongly: the control plane rejects a
+	// request without the client's credentials ("Credential was not sent"), and a
+	// presigned cloud URL must never receive them.
+	if isControlPlane(path) && r.Header.Get("Authorization") != testToken {
+		w.WriteHeader(http.StatusUnauthorized)
+		_, _ = io.WriteString(w, `{"error_code":"UNAUTHENTICATED","message":"Credential was not sent or was of an unsupported type"}`)
+		return
+	}
+	if strings.HasPrefix(path, "/cloud/") && r.Header.Get("Authorization") != "" {
+		http.Error(w, "presigned cloud URL received Databricks credentials", http.StatusInternalServerError)
+		return
+	}
+
 	switch {
 	case r.Method == http.MethodPost && strings.HasSuffix(path, "/create-upload-part-urls"):
 		f.handleCreatePartURLs(w, r)
