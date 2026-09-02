@@ -27,7 +27,7 @@ func isolateProfileEnv(t *testing.T) {
 	for _, v := range []string{
 		"DATABRICKS_CONFIG_FILE", "DATABRICKS_CONFIG_PROFILE", "DATABRICKS_HOST",
 		"DATABRICKS_TOKEN", "DATABRICKS_CLIENT_ID", "DATABRICKS_CLIENT_SECRET",
-		"DATABRICKS_AUTH_TYPE",
+		"DATABRICKS_AUTH_TYPE", "DATABRICKS_GROUP_ID",
 	} {
 		t.Setenv(v, "")
 	}
@@ -66,25 +66,53 @@ func TestClientOptionsResolve_PreservesProvidedLogger(t *testing.T) {
 	}
 }
 
-func TestClientOptionsResolve_DefaultCredentialsFromProfile(t *testing.T) {
-	isolateProfileEnv(t)
-	path := writeConfigFile(t, "[DEFAULT]\nhost = https://workspace.example\ntoken = dapi-abc\n")
+func TestClientOptionsResolve_DefaultCredentialsFromEnabledSource(t *testing.T) {
+	const envToken = "dapi-env"
 
-	c := &ClientOptions{ProfileFile: path}
-	if err := c.Resolve(); err != nil {
-		t.Fatalf("Resolve: %v", err)
+	testCases := []struct {
+		name               string
+		configFileContents string
+		clientOptions      ClientOptions
+		wantToken          string
+	}{
+		{
+			name:               "config file without environment",
+			configFileContents: "[DEFAULT]\nhost = https://profile.example\ntoken = dapi-profile\n",
+			clientOptions:      ClientOptions{DisableEnv: true},
+			wantToken:          "dapi-profile",
+		},
+		{
+			name:          "environment without config file",
+			clientOptions: ClientOptions{DisableConfigFile: true},
+			wantToken:     envToken,
+		},
 	}
-	if c.Credentials == nil {
-		t.Fatal("expected credentials to be resolved from the profile")
-	}
-	// The PAT strategy should have won, and its header should carry the token.
-	headers, err := c.Credentials.AuthHeaders(context.Background())
-	if err != nil {
-		t.Fatalf("AuthHeaders: %v", err)
-	}
-	want := []auth.Header{{Key: "Authorization", Value: "Bearer dapi-abc"}}
-	if len(headers) != 1 || headers[0] != want[0] {
-		t.Errorf("AuthHeaders() = %v, want %v", headers, want)
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			isolateProfileEnv(t)
+			t.Setenv("DATABRICKS_HOST", "https://env.example")
+			t.Setenv("DATABRICKS_TOKEN", envToken)
+
+			options := tc.clientOptions
+			if tc.configFileContents != "" {
+				options.ConfigFile = writeConfigFile(t, tc.configFileContents)
+			}
+			if err := options.Resolve(); err != nil {
+				t.Fatalf("Resolve: %v", err)
+			}
+			if options.Credentials == nil {
+				t.Fatal("expected credentials to be resolved")
+			}
+			headers, err := options.Credentials.AuthHeaders(context.Background())
+			if err != nil {
+				t.Fatalf("AuthHeaders: %v", err)
+			}
+			want := []auth.Header{{Key: "Authorization", Value: "Bearer " + tc.wantToken}}
+			if len(headers) != 1 || headers[0] != want[0] {
+				t.Errorf("AuthHeaders() = %v, want %v", headers, want)
+			}
+		})
 	}
 }
 
@@ -93,7 +121,7 @@ func TestClientOptionsResolve_PreservesProvidedCredentials(t *testing.T) {
 	path := writeConfigFile(t, "[DEFAULT]\nhost = https://workspace.example\ntoken = dapi-abc\n")
 
 	provided := stubCredentials{}
-	c := &ClientOptions{ProfileFile: path, Credentials: provided}
+	c := &ClientOptions{ConfigFile: path, Credentials: provided}
 	if err := c.Resolve(); err != nil {
 		t.Fatalf("Resolve: %v", err)
 	}
@@ -102,17 +130,77 @@ func TestClientOptionsResolve_PreservesProvidedCredentials(t *testing.T) {
 	}
 }
 
-func TestClientOptionsResolve_NoCredentialsWithoutProfileResolution(t *testing.T) {
+// TestClientOptionsResolve_PreservesProvidedCredentialsWithProfileGroupID
+// verifies that profile group configuration does not affect explicitly supplied
+// credentials.
+func TestClientOptionsResolve_PreservesProvidedCredentialsWithProfileGroupID(t *testing.T) {
 	isolateProfileEnv(t)
 
-	c := &ClientOptions{DisableProfileResolution: true}
+	config := `[DEFAULT]
+host = https://workspace.example
+token = dapi-abc
+group_id = profile-group
+`
+	path := writeConfigFile(t, config)
+
+	provided := stubCredentials{}
+	c := &ClientOptions{ConfigFile: path, Credentials: provided}
+
+	if err := c.Resolve(); err != nil {
+		t.Fatalf("Resolve() error = %v", err)
+	}
+
+	if c.Credentials != auth.Credentials(provided) {
+		t.Error("expected explicitly provided credentials to be preserved")
+	}
+}
+
+func TestClientOptionsResolve_NoCredentialsWithoutAutomaticResolution(t *testing.T) {
+	isolateProfileEnv(t)
+
+	c := &ClientOptions{DisableConfigFile: true, DisableEnv: true}
 	err := c.Resolve()
 	if err == nil {
 		t.Fatal("expected an error when no credentials are available and resolution is disabled")
 	}
 }
 
-func TestClientOptionsResolve_ProfilePrecedence(t *testing.T) {
+func TestClientOptionsResolve_DisableConfigFileConflictsWithFileSelection(t *testing.T) {
+	const wantError = "cannot disable config file resolution when a config file or profile is specified"
+
+	testCases := []struct {
+		name          string
+		clientOptions ClientOptions
+	}{
+		{
+			name: "config file",
+			clientOptions: ClientOptions{
+				ConfigFile:        "databrickscfg",
+				DisableConfigFile: true,
+			},
+		},
+		{
+			name: "profile",
+			clientOptions: ClientOptions{
+				ProfileName:       "workspace",
+				DisableConfigFile: true,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.clientOptions.Resolve()
+			if err == nil || err.Error() != wantError {
+				t.Errorf("Resolve() error = %v, want %q", err, wantError)
+			}
+		})
+	}
+}
+
+func TestClientOptionsResolve_SourcePrecedence(t *testing.T) {
+	const configFileContents = "[DEFAULT]\nhost = https://profile.example.com\naccount_id = profile-account\nworkspace_id = profile-workspace\n"
+
 	testCases := []struct {
 		name               string
 		configFileContents string
@@ -135,7 +223,7 @@ func TestClientOptionsResolve_ProfilePrecedence(t *testing.T) {
 		},
 		{
 			name:               "environment overrides config file values",
-			configFileContents: "[DEFAULT]\nhost = https://profile.example.com\naccount_id = profile-account\nworkspace_id = profile-workspace\n",
+			configFileContents: configFileContents,
 			envHost:            "https://env.example.com",
 			envAccountID:       "env-account",
 			envWorkspaceID:     "env-workspace",
@@ -158,12 +246,40 @@ func TestClientOptionsResolve_ProfilePrecedence(t *testing.T) {
 			wantWorkspaceID: "explicit-workspace",
 		},
 		{
-			name:           "disabled profile resolution ignores environment",
-			envHost:        "https://env.example.com",
-			envAccountID:   "env-account",
-			envWorkspaceID: "env-workspace",
+			name:               "disabled config file uses environment values",
+			configFileContents: configFileContents,
+			envHost:            "https://env.example.com",
+			envAccountID:       "env-account",
+			envWorkspaceID:     "env-workspace",
 			clientOptions: ClientOptions{
-				DisableProfileResolution: true,
+				DisableConfigFile: true,
+			},
+			wantHost:        "https://env.example.com",
+			wantAccountID:   "env-account",
+			wantWorkspaceID: "env-workspace",
+		},
+		{
+			name:               "disabled environment uses config file values",
+			configFileContents: configFileContents,
+			envHost:            "https://env.example.com",
+			envAccountID:       "env-account",
+			envWorkspaceID:     "env-workspace",
+			clientOptions: ClientOptions{
+				DisableEnv: true,
+			},
+			wantHost:        "https://profile.example.com",
+			wantAccountID:   "profile-account",
+			wantWorkspaceID: "profile-workspace",
+		},
+		{
+			name:               "disabled config file and environment ignores both sources",
+			configFileContents: configFileContents,
+			envHost:            "https://env.example.com",
+			envAccountID:       "env-account",
+			envWorkspaceID:     "env-workspace",
+			clientOptions: ClientOptions{
+				DisableConfigFile: true,
+				DisableEnv:        true,
 			},
 		},
 	}
@@ -180,7 +296,12 @@ func TestClientOptionsResolve_ProfilePrecedence(t *testing.T) {
 			options := tc.clientOptions
 			options.Credentials = stubCredentials{}
 			if tc.configFileContents != "" {
-				options.ProfileFile = writeConfigFile(t, tc.configFileContents)
+				configFile := writeConfigFile(t, tc.configFileContents)
+				if options.DisableConfigFile {
+					t.Setenv("DATABRICKS_CONFIG_FILE", configFile)
+				} else {
+					options.ConfigFile = configFile
+				}
 			}
 			if err := options.Resolve(); err != nil {
 				t.Fatalf("Resolve: %v", err)

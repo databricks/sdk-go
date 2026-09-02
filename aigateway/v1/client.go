@@ -83,8 +83,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // `USE_SCHEMA` privileges on the parent schema and `USE_CATALOG` on the parent
 // catalog. You also need `USE_CONNECTION` on the connection the MCP service
 // references.
-func (c *internalClient) CreateMcpService(ctx context.Context, req *CreateMcpServiceRequest, opts ...call.Option) (*McpService, error) {
-	wireReq, err := createMcpServiceRequestToWire(req)
+func (c *internalClient) CreateMcpService(ctx context.Context, req CreateMcpServiceRequest, opts ...call.Option) (*McpService, error) {
+	wireReq, err := createMcpServiceRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -163,8 +163,8 @@ func (c *internalClient) CreateMcpService(ctx context.Context, req *CreateMcpSer
 // You must be the owner of the parent schema or have the `CREATE_SERVICE` and
 // `USE_SCHEMA` privileges on the parent schema and `USE_CATALOG` on the parent
 // catalog.
-func (c *internalClient) CreateModelProviderService(ctx context.Context, req *CreateModelProviderServiceRequest, opts ...call.Option) (*ModelProviderService, error) {
-	wireReq, err := createModelProviderServiceRequestToWire(req)
+func (c *internalClient) CreateModelProviderService(ctx context.Context, req CreateModelProviderServiceRequest, opts ...call.Option) (*ModelProviderService, error) {
+	wireReq, err := createModelProviderServiceRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -241,8 +241,8 @@ func (c *internalClient) CreateModelProviderService(ctx context.Context, req *Cr
 // You must be the owner of the parent schema or have the `CREATE_SERVICE` and
 // `USE_SCHEMA` privileges on the parent schema and `USE_CATALOG` on the parent
 // catalog.
-func (c *internalClient) CreateModelService(ctx context.Context, req *CreateModelServiceRequest, opts ...call.Option) (*ModelService, error) {
-	wireReq, err := createModelServiceRequestToWire(req)
+func (c *internalClient) CreateModelService(ctx context.Context, req CreateModelServiceRequest, opts ...call.Option) (*ModelService, error) {
+	wireReq, err := createModelServiceRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -318,8 +318,8 @@ func (c *internalClient) CreateModelService(ctx context.Context, req *CreateMode
 //
 // You must be the owner of the MCP service or have `MANAGE` on it, plus
 // `USE_CATALOG` on the parent catalog and `USE_SCHEMA` on the parent schema.
-func (c *internalClient) DeleteMcpService(ctx context.Context, req *DeleteMcpServiceRequest, opts ...call.Option) error {
-	wireReq, err := deleteMcpServiceRequestToWire(req)
+func (c *internalClient) DeleteMcpService(ctx context.Context, req DeleteMcpServiceRequest, opts ...call.Option) error {
+	wireReq, err := deleteMcpServiceRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -336,7 +336,11 @@ func (c *internalClient) DeleteMcpService(ctx context.Context, req *DeleteMcpSer
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "etag", wireReq.Etag); err != nil {
@@ -382,8 +386,8 @@ func (c *internalClient) DeleteMcpService(ctx context.Context, req *DeleteMcpSer
 // You must be the owner of the model provider service or have `MANAGE` on it,
 // plus `USE_CATALOG` on the parent catalog and `USE_SCHEMA` on the parent
 // schema.
-func (c *internalClient) DeleteModelProviderService(ctx context.Context, req *DeleteModelProviderServiceRequest, opts ...call.Option) error {
-	wireReq, err := deleteModelProviderServiceRequestToWire(req)
+func (c *internalClient) DeleteModelProviderService(ctx context.Context, req DeleteModelProviderServiceRequest, opts ...call.Option) error {
+	wireReq, err := deleteModelProviderServiceRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -400,7 +404,11 @@ func (c *internalClient) DeleteModelProviderService(ctx context.Context, req *De
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "etag", wireReq.Etag); err != nil {
@@ -445,8 +453,8 @@ func (c *internalClient) DeleteModelProviderService(ctx context.Context, req *De
 //
 // You must be the owner of the model service or have `MANAGE` on it, plus
 // `USE_CATALOG` on the parent catalog and `USE_SCHEMA` on the parent schema.
-func (c *internalClient) DeleteModelService(ctx context.Context, req *DeleteModelServiceRequest, opts ...call.Option) error {
-	wireReq, err := deleteModelServiceRequestToWire(req)
+func (c *internalClient) DeleteModelService(ctx context.Context, req DeleteModelServiceRequest, opts ...call.Option) error {
+	wireReq, err := deleteModelServiceRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -463,7 +471,11 @@ func (c *internalClient) DeleteModelService(ctx context.Context, req *DeleteMode
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "etag", wireReq.Etag); err != nil {
@@ -507,7 +519,7 @@ func (c *internalClient) DeleteModelService(ctx context.Context, req *DeleteMode
 // You must be the owner of the MCP service or have `EXECUTE`, `READ_METADATA`,
 // or `MANAGE` on it, plus `USE_CATALOG` on the parent catalog and `USE_SCHEMA`
 // on the parent schema.
-func (c *internalClient) GetMcpService(ctx context.Context, req *GetMcpServiceRequest, opts ...call.Option) (*McpService, error) {
+func (c *internalClient) GetMcpService(ctx context.Context, req GetMcpServiceRequest, opts ...call.Option) (*McpService, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -521,7 +533,11 @@ func (c *internalClient) GetMcpService(ctx context.Context, req *GetMcpServiceRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -571,7 +587,7 @@ func (c *internalClient) GetMcpService(ctx context.Context, req *GetMcpServiceRe
 // You must be the owner of the model provider service or have `EXECUTE`,
 // `READ_METADATA`, or `MANAGE` on it, plus `USE_CATALOG` on the parent catalog
 // and `USE_SCHEMA` on the parent schema.
-func (c *internalClient) GetModelProviderService(ctx context.Context, req *GetModelProviderServiceRequest, opts ...call.Option) (*ModelProviderService, error) {
+func (c *internalClient) GetModelProviderService(ctx context.Context, req GetModelProviderServiceRequest, opts ...call.Option) (*ModelProviderService, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -585,7 +601,11 @@ func (c *internalClient) GetModelProviderService(ctx context.Context, req *GetMo
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -635,7 +655,7 @@ func (c *internalClient) GetModelProviderService(ctx context.Context, req *GetMo
 // You must be the owner of the model service or have `EXECUTE`,
 // `READ_METADATA`, or `MANAGE` on it, plus `USE_CATALOG` on the parent catalog
 // and `USE_SCHEMA` on the parent schema.
-func (c *internalClient) GetModelService(ctx context.Context, req *GetModelServiceRequest, opts ...call.Option) (*ModelService, error) {
+func (c *internalClient) GetModelService(ctx context.Context, req GetModelServiceRequest, opts ...call.Option) (*ModelService, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -649,7 +669,11 @@ func (c *internalClient) GetModelService(ctx context.Context, req *GetModelServi
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -701,8 +725,8 @@ func (c *internalClient) GetModelService(ctx context.Context, req *GetModelServi
 // Requires `USE_CATALOG` on the parent catalog and `USE_SCHEMA` on the parent
 // schema. Only MCP services the caller can access (as owner or through
 // `EXECUTE`, `READ_METADATA`, or `MANAGE`) are returned.
-func (c *internalClient) ListMcpServices(ctx context.Context, req *ListMcpServicesRequest, opts ...call.Option) (*ListMcpServicesResponse, error) {
-	wireReq, err := listMcpServicesRequestToWire(req)
+func (c *internalClient) ListMcpServices(ctx context.Context, req ListMcpServicesRequest, opts ...call.Option) (*ListMcpServicesResponse, error) {
+	wireReq, err := listMcpServicesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -780,7 +804,7 @@ func (c *internalClient) ListMcpServices(ctx context.Context, req *ListMcpServic
 //
 // For example:
 //
-//	for item, err := range c.ListMcpServicesIter(ctx, &ListMcpServicesRequest{}) {
+//	for item, err := range c.ListMcpServicesIter(ctx, ListMcpServicesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -792,16 +816,13 @@ func (c *internalClient) ListMcpServices(ctx context.Context, req *ListMcpServic
 //
 // Callers who need custom pagination logic should use
 // ListMcpServices directly.
-func (c *internalClient) ListMcpServicesIter(ctx context.Context, req *ListMcpServicesRequest, opts ...call.Option) iter.Seq2[*McpService, error] {
+func (c *internalClient) ListMcpServicesIter(ctx context.Context, req ListMcpServicesRequest, opts ...call.Option) iter.Seq2[*McpService, error] {
 	return func(yield func(*McpService, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListMcpServicesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListMcpServices(ctx, &pageReq, opts...)
+			resp, err := c.ListMcpServices(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -826,8 +847,8 @@ func (c *internalClient) ListMcpServicesIter(ctx context.Context, req *ListMcpSe
 // Requires `USE_CATALOG` on the parent catalog and `USE_SCHEMA` on the parent
 // schema. Only model provider services the caller can access (as owner or
 // through `EXECUTE`, `READ_METADATA`, or `MANAGE`) are returned.
-func (c *internalClient) ListModelProviderServices(ctx context.Context, req *ListModelProviderServicesRequest, opts ...call.Option) (*ListModelProviderServicesResponse, error) {
-	wireReq, err := listModelProviderServicesRequestToWire(req)
+func (c *internalClient) ListModelProviderServices(ctx context.Context, req ListModelProviderServicesRequest, opts ...call.Option) (*ListModelProviderServicesResponse, error) {
+	wireReq, err := listModelProviderServicesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -905,7 +926,7 @@ func (c *internalClient) ListModelProviderServices(ctx context.Context, req *Lis
 //
 // For example:
 //
-//	for item, err := range c.ListModelProviderServicesIter(ctx, &ListModelProviderServicesRequest{}) {
+//	for item, err := range c.ListModelProviderServicesIter(ctx, ListModelProviderServicesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -917,16 +938,13 @@ func (c *internalClient) ListModelProviderServices(ctx context.Context, req *Lis
 //
 // Callers who need custom pagination logic should use
 // ListModelProviderServices directly.
-func (c *internalClient) ListModelProviderServicesIter(ctx context.Context, req *ListModelProviderServicesRequest, opts ...call.Option) iter.Seq2[*ModelProviderService, error] {
+func (c *internalClient) ListModelProviderServicesIter(ctx context.Context, req ListModelProviderServicesRequest, opts ...call.Option) iter.Seq2[*ModelProviderService, error] {
 	return func(yield func(*ModelProviderService, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListModelProviderServicesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListModelProviderServices(ctx, &pageReq, opts...)
+			resp, err := c.ListModelProviderServices(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -951,8 +969,8 @@ func (c *internalClient) ListModelProviderServicesIter(ctx context.Context, req 
 // Requires `USE_CATALOG` on the parent catalog and `USE_SCHEMA` on the parent
 // schema. Only model services the caller can access (as owner or through
 // `EXECUTE`, `READ_METADATA`, or `MANAGE`) are returned.
-func (c *internalClient) ListModelServices(ctx context.Context, req *ListModelServicesRequest, opts ...call.Option) (*ListModelServicesResponse, error) {
-	wireReq, err := listModelServicesRequestToWire(req)
+func (c *internalClient) ListModelServices(ctx context.Context, req ListModelServicesRequest, opts ...call.Option) (*ListModelServicesResponse, error) {
+	wireReq, err := listModelServicesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1030,7 +1048,7 @@ func (c *internalClient) ListModelServices(ctx context.Context, req *ListModelSe
 //
 // For example:
 //
-//	for item, err := range c.ListModelServicesIter(ctx, &ListModelServicesRequest{}) {
+//	for item, err := range c.ListModelServicesIter(ctx, ListModelServicesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1042,16 +1060,13 @@ func (c *internalClient) ListModelServices(ctx context.Context, req *ListModelSe
 //
 // Callers who need custom pagination logic should use
 // ListModelServices directly.
-func (c *internalClient) ListModelServicesIter(ctx context.Context, req *ListModelServicesRequest, opts ...call.Option) iter.Seq2[*ModelService, error] {
+func (c *internalClient) ListModelServicesIter(ctx context.Context, req ListModelServicesRequest, opts ...call.Option) iter.Seq2[*ModelService, error] {
 	return func(yield func(*ModelService, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListModelServicesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListModelServices(ctx, &pageReq, opts...)
+			resp, err := c.ListModelServices(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1075,8 +1090,8 @@ func (c *internalClient) ListModelServicesIter(ctx context.Context, req *ListMod
 //
 // You must be the owner of the MCP service or have `MANAGE` on it, plus
 // `USE_CATALOG` on the parent catalog and `USE_SCHEMA` on the parent schema.
-func (c *internalClient) UpdateMcpService(ctx context.Context, req *UpdateMcpServiceRequest, opts ...call.Option) (*McpService, error) {
-	wireReq, err := updateMcpServiceRequestToWire(req)
+func (c *internalClient) UpdateMcpService(ctx context.Context, req UpdateMcpServiceRequest, opts ...call.Option) (*McpService, error) {
+	wireReq, err := updateMcpServiceRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1097,7 +1112,11 @@ func (c *internalClient) UpdateMcpService(ctx context.Context, req *UpdateMcpSer
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/")
-	pb.singleSegment(*req.McpService.Name)
+	if req.McpService == nil || req.McpService.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.McpService.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -1157,8 +1176,8 @@ func (c *internalClient) UpdateMcpService(ctx context.Context, req *UpdateMcpSer
 // You must be the owner of the model provider service or have `MANAGE` on it,
 // plus `USE_CATALOG` on the parent catalog and `USE_SCHEMA` on the parent
 // schema.
-func (c *internalClient) UpdateModelProviderService(ctx context.Context, req *UpdateModelProviderServiceRequest, opts ...call.Option) (*ModelProviderService, error) {
-	wireReq, err := updateModelProviderServiceRequestToWire(req)
+func (c *internalClient) UpdateModelProviderService(ctx context.Context, req UpdateModelProviderServiceRequest, opts ...call.Option) (*ModelProviderService, error) {
+	wireReq, err := updateModelProviderServiceRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1179,7 +1198,11 @@ func (c *internalClient) UpdateModelProviderService(ctx context.Context, req *Up
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/")
-	pb.singleSegment(*req.ModelProviderService.Name)
+	if req.ModelProviderService == nil || req.ModelProviderService.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ModelProviderService.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -1237,8 +1260,8 @@ func (c *internalClient) UpdateModelProviderService(ctx context.Context, req *Up
 //
 // You must be the owner of the model service or have `MANAGE` on it, plus
 // `USE_CATALOG` on the parent catalog and `USE_SCHEMA` on the parent schema.
-func (c *internalClient) UpdateModelService(ctx context.Context, req *UpdateModelServiceRequest, opts ...call.Option) (*ModelService, error) {
-	wireReq, err := updateModelServiceRequestToWire(req)
+func (c *internalClient) UpdateModelService(ctx context.Context, req UpdateModelServiceRequest, opts ...call.Option) (*ModelService, error) {
+	wireReq, err := updateModelServiceRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1259,7 +1282,11 @@ func (c *internalClient) UpdateModelService(ctx context.Context, req *UpdateMode
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/")
-	pb.singleSegment(*req.ModelService.Name)
+	if req.ModelService == nil || req.ModelService.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ModelService.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

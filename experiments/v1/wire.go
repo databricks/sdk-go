@@ -3,8 +3,54 @@
 package experiments
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type createExperimentRequestWire struct {
 	Name             *string                      `json:"name,omitempty"`
@@ -98,13 +144,17 @@ type createRunRequestWire struct {
 	ExperimentId *string      `json:"experiment_id,omitempty"`
 	UserId       *string      `json:"user_id,omitempty"`
 	RunName      *string      `json:"run_name,omitempty"`
-	StartTime    *int64       `json:"start_time,omitempty"`
+	StartTime    *wireInt64   `json:"start_time,omitempty"`
 	Tags         []runTagWire `json:"tags,omitempty"`
 }
 
 func createRunRequestToWire(v *CreateRunRequest) (*createRunRequestWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	startTimeWireValue, err := int64ToWire(v.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRunRequest.StartTime", err)
 	}
 	tagsWireValue, err := convertSlice(v.Tags, runTagToWire)
 	if err != nil {
@@ -114,7 +164,7 @@ func createRunRequestToWire(v *CreateRunRequest) (*createRunRequestWire, error) 
 		ExperimentId: v.ExperimentId,
 		UserId:       v.UserId,
 		RunName:      v.RunName,
-		StartTime:    v.StartTime,
+		StartTime:    startTimeWireValue,
 		Tags:         tagsWireValue,
 	}, nil
 }
@@ -241,18 +291,22 @@ func deleteRunRequestToWire(v *DeleteRunRequest) (*deleteRunRequestWire, error) 
 }
 
 type deleteRunsRequestWire struct {
-	ExperimentId       *string `json:"experiment_id,omitempty"`
-	MaxTimestampMillis *int64  `json:"max_timestamp_millis,omitempty"`
-	MaxRuns            *int    `json:"max_runs,omitempty"`
+	ExperimentId       *string    `json:"experiment_id,omitempty"`
+	MaxTimestampMillis *wireInt64 `json:"max_timestamp_millis,omitempty"`
+	MaxRuns            *int       `json:"max_runs,omitempty"`
 }
 
 func deleteRunsRequestToWire(v *DeleteRunsRequest) (*deleteRunsRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	maxTimestampMillisWireValue, err := int64ToWire(v.MaxTimestampMillis)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteRunsRequest.MaxTimestampMillis", err)
+	}
 	return &deleteRunsRequestWire{
 		ExperimentId:       v.ExperimentId,
-		MaxTimestampMillis: v.MaxTimestampMillis,
+		MaxTimestampMillis: maxTimestampMillisWireValue,
 		MaxRuns:            v.MaxRuns,
 	}, nil
 }
@@ -290,8 +344,8 @@ type experimentWire struct {
 	Name             *string                      `json:"name,omitempty"`
 	ArtifactLocation *string                      `json:"artifact_location,omitempty"`
 	LifecycleStage   *string                      `json:"lifecycle_stage,omitempty"`
-	LastUpdateTime   *int64                       `json:"last_update_time,omitempty"`
-	CreationTime     *int64                       `json:"creation_time,omitempty"`
+	LastUpdateTime   *wireInt64                   `json:"last_update_time,omitempty"`
+	CreationTime     *wireInt64                   `json:"creation_time,omitempty"`
 	Tags             []experimentTagWire          `json:"tags,omitempty"`
 	TraceLocation    *experimentTraceLocationWire `json:"trace_location,omitempty"`
 }
@@ -299,6 +353,14 @@ type experimentWire struct {
 func experimentFromWire(w *experimentWire) (*Experiment, error) {
 	if w == nil {
 		return nil, nil
+	}
+	lastUpdateTimePublicValue, err := int64FromWire(w.LastUpdateTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Experiment.LastUpdateTime", err)
+	}
+	creationTimePublicValue, err := int64FromWire(w.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Experiment.CreationTime", err)
 	}
 	tagsPublicValue, err := convertSlice(w.Tags, experimentTagFromWire)
 	if err != nil {
@@ -313,8 +375,8 @@ func experimentFromWire(w *experimentWire) (*Experiment, error) {
 		Name:             w.Name,
 		ArtifactLocation: w.ArtifactLocation,
 		LifecycleStage:   w.LifecycleStage,
-		LastUpdateTime:   w.LastUpdateTime,
-		CreationTime:     w.CreationTime,
+		LastUpdateTime:   lastUpdateTimePublicValue,
+		CreationTime:     creationTimePublicValue,
 		Tags:             tagsPublicValue,
 		TraceLocation:    traceLocationPublicValue,
 	}, nil
@@ -398,19 +460,23 @@ func experimentTraceLocationFromWire(w *experimentTraceLocationWire) (*Experimen
 }
 
 type fileInfoWire struct {
-	Path     *string `json:"path,omitempty"`
-	IsDir    *bool   `json:"is_dir,omitempty"`
-	FileSize *int64  `json:"file_size,omitempty"`
+	Path     *string    `json:"path,omitempty"`
+	IsDir    *bool      `json:"is_dir,omitempty"`
+	FileSize *wireInt64 `json:"file_size,omitempty"`
 }
 
 func fileInfoFromWire(w *fileInfoWire) (*FileInfo, error) {
 	if w == nil {
 		return nil, nil
 	}
+	fileSizePublicValue, err := int64FromWire(w.FileSize)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FileInfo.FileSize", err)
+	}
 	return &FileInfo{
 		Path:     w.Path,
 		IsDir:    w.IsDir,
-		FileSize: w.FileSize,
+		FileSize: fileSizePublicValue,
 	}, nil
 }
 
@@ -646,18 +712,22 @@ func listArtifactsResponseFromWire(w *listArtifactsResponseWire) (*ListArtifacts
 }
 
 type listExperimentsRequestWire struct {
-	ViewType   ViewType `json:"view_type,omitempty"`
-	MaxResults *int64   `json:"max_results,omitempty"`
-	PageToken  *string  `json:"page_token,omitempty"`
+	ViewType   ViewType   `json:"view_type,omitempty"`
+	MaxResults *wireInt64 `json:"max_results,omitempty"`
+	PageToken  *string    `json:"page_token,omitempty"`
 }
 
 func listExperimentsRequestToWire(v *ListExperimentsRequest) (*listExperimentsRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	maxResultsWireValue, err := int64ToWire(v.MaxResults)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListExperimentsRequest.MaxResults", err)
+	}
 	return &listExperimentsRequestWire{
 		ViewType:   v.ViewType,
-		MaxResults: v.MaxResults,
+		MaxResults: maxResultsWireValue,
 		PageToken:  v.PageToken,
 	}, nil
 }
@@ -778,28 +848,36 @@ func logLoggedModelParamsRequestToWire(v *LogLoggedModelParamsRequest) (*logLogg
 }
 
 type logMetricRequestWire struct {
-	RunId         *string  `json:"run_id,omitempty"`
-	RunUuid       *string  `json:"run_uuid,omitempty"`
-	Key           *string  `json:"key,omitempty"`
-	Value         *float64 `json:"value,omitempty"`
-	Timestamp     *int64   `json:"timestamp,omitempty"`
-	Step          *int64   `json:"step,omitempty"`
-	ModelId       *string  `json:"model_id,omitempty"`
-	DatasetName   *string  `json:"dataset_name,omitempty"`
-	DatasetDigest *string  `json:"dataset_digest,omitempty"`
+	RunId         *string    `json:"run_id,omitempty"`
+	RunUuid       *string    `json:"run_uuid,omitempty"`
+	Key           *string    `json:"key,omitempty"`
+	Value         *float64   `json:"value,omitempty"`
+	Timestamp     *wireInt64 `json:"timestamp,omitempty"`
+	Step          *wireInt64 `json:"step,omitempty"`
+	ModelId       *string    `json:"model_id,omitempty"`
+	DatasetName   *string    `json:"dataset_name,omitempty"`
+	DatasetDigest *string    `json:"dataset_digest,omitempty"`
 }
 
 func logMetricRequestToWire(v *LogMetricRequest) (*logMetricRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	timestampWireValue, err := int64ToWire(v.Timestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LogMetricRequest.Timestamp", err)
+	}
+	stepWireValue, err := int64ToWire(v.Step)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LogMetricRequest.Step", err)
+	}
 	return &logMetricRequestWire{
 		RunId:         v.RunId,
 		RunUuid:       v.RunUuid,
 		Key:           v.Key,
 		Value:         v.Value,
-		Timestamp:     v.Timestamp,
-		Step:          v.Step,
+		Timestamp:     timestampWireValue,
+		Step:          stepWireValue,
 		ModelId:       v.ModelId,
 		DatasetName:   v.DatasetName,
 		DatasetDigest: v.DatasetDigest,
@@ -909,11 +987,11 @@ type loggedModelInfoWire struct {
 	ModelId                *string              `json:"model_id,omitempty"`
 	ExperimentId           *string              `json:"experiment_id,omitempty"`
 	Name                   *string              `json:"name,omitempty"`
-	CreationTimestampMs    *int64               `json:"creation_timestamp_ms,omitempty"`
-	LastUpdatedTimestampMs *int64               `json:"last_updated_timestamp_ms,omitempty"`
+	CreationTimestampMs    *wireInt64           `json:"creation_timestamp_ms,omitempty"`
+	LastUpdatedTimestampMs *wireInt64           `json:"last_updated_timestamp_ms,omitempty"`
 	ArtifactUri            *string              `json:"artifact_uri,omitempty"`
 	Status                 LoggedModelStatus    `json:"status,omitempty"`
-	CreatorId              *int64               `json:"creator_id,omitempty"`
+	CreatorId              *wireInt64           `json:"creator_id,omitempty"`
 	ModelType              *string              `json:"model_type,omitempty"`
 	SourceRunId            *string              `json:"source_run_id,omitempty"`
 	StatusMessage          *string              `json:"status_message,omitempty"`
@@ -924,6 +1002,18 @@ func loggedModelInfoFromWire(w *loggedModelInfoWire) (*LoggedModelInfo, error) {
 	if w == nil {
 		return nil, nil
 	}
+	creationTimestampMsPublicValue, err := int64FromWire(w.CreationTimestampMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LoggedModelInfo.CreationTimestampMs", err)
+	}
+	lastUpdatedTimestampMsPublicValue, err := int64FromWire(w.LastUpdatedTimestampMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LoggedModelInfo.LastUpdatedTimestampMs", err)
+	}
+	creatorIdPublicValue, err := int64FromWire(w.CreatorId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LoggedModelInfo.CreatorId", err)
+	}
 	tagsPublicValue, err := convertSlice(w.Tags, loggedModelTagFromWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "LoggedModelInfo.Tags", err)
@@ -932,11 +1022,11 @@ func loggedModelInfoFromWire(w *loggedModelInfoWire) (*LoggedModelInfo, error) {
 		ModelId:                w.ModelId,
 		ExperimentId:           w.ExperimentId,
 		Name:                   w.Name,
-		CreationTimestampMs:    w.CreationTimestampMs,
-		LastUpdatedTimestampMs: w.LastUpdatedTimestampMs,
+		CreationTimestampMs:    creationTimestampMsPublicValue,
+		LastUpdatedTimestampMs: lastUpdatedTimestampMsPublicValue,
 		ArtifactUri:            w.ArtifactUri,
 		Status:                 w.Status,
-		CreatorId:              w.CreatorId,
+		CreatorId:              creatorIdPublicValue,
 		ModelType:              w.ModelType,
 		SourceRunId:            w.SourceRunId,
 		StatusMessage:          w.StatusMessage,
@@ -995,25 +1085,33 @@ func loggedModelTagFromWire(w *loggedModelTagWire) (*LoggedModelTag, error) {
 }
 
 type metricWire struct {
-	Key           *string  `json:"key,omitempty"`
-	Value         *float64 `json:"value,omitempty"`
-	Timestamp     *int64   `json:"timestamp,omitempty"`
-	Step          *int64   `json:"step,omitempty"`
-	DatasetName   *string  `json:"dataset_name,omitempty"`
-	DatasetDigest *string  `json:"dataset_digest,omitempty"`
-	ModelId       *string  `json:"model_id,omitempty"`
-	RunId         *string  `json:"run_id,omitempty"`
+	Key           *string    `json:"key,omitempty"`
+	Value         *float64   `json:"value,omitempty"`
+	Timestamp     *wireInt64 `json:"timestamp,omitempty"`
+	Step          *wireInt64 `json:"step,omitempty"`
+	DatasetName   *string    `json:"dataset_name,omitempty"`
+	DatasetDigest *string    `json:"dataset_digest,omitempty"`
+	ModelId       *string    `json:"model_id,omitempty"`
+	RunId         *string    `json:"run_id,omitempty"`
 }
 
 func metricToWire(v *Metric) (*metricWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	timestampWireValue, err := int64ToWire(v.Timestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Metric.Timestamp", err)
+	}
+	stepWireValue, err := int64ToWire(v.Step)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Metric.Step", err)
+	}
 	return &metricWire{
 		Key:           v.Key,
 		Value:         v.Value,
-		Timestamp:     v.Timestamp,
-		Step:          v.Step,
+		Timestamp:     timestampWireValue,
+		Step:          stepWireValue,
 		DatasetName:   v.DatasetName,
 		DatasetDigest: v.DatasetDigest,
 		ModelId:       v.ModelId,
@@ -1025,11 +1123,19 @@ func metricFromWire(w *metricWire) (*Metric, error) {
 	if w == nil {
 		return nil, nil
 	}
+	timestampPublicValue, err := int64FromWire(w.Timestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Metric.Timestamp", err)
+	}
+	stepPublicValue, err := int64FromWire(w.Step)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Metric.Step", err)
+	}
 	return &Metric{
 		Key:           w.Key,
 		Value:         w.Value,
-		Timestamp:     w.Timestamp,
-		Step:          w.Step,
+		Timestamp:     timestampPublicValue,
+		Step:          stepPublicValue,
 		DatasetName:   w.DatasetName,
 		DatasetDigest: w.DatasetDigest,
 		ModelId:       w.ModelId,
@@ -1060,17 +1166,21 @@ func modelInputFromWire(w *modelInputWire) (*ModelInput, error) {
 }
 
 type modelOutputWire struct {
-	ModelId *string `json:"model_id,omitempty"`
-	Step    *int64  `json:"step,omitempty"`
+	ModelId *string    `json:"model_id,omitempty"`
+	Step    *wireInt64 `json:"step,omitempty"`
 }
 
 func modelOutputToWire(v *ModelOutput) (*modelOutputWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	stepWireValue, err := int64ToWire(v.Step)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelOutput.Step", err)
+	}
 	return &modelOutputWire{
 		ModelId: v.ModelId,
-		Step:    v.Step,
+		Step:    stepWireValue,
 	}, nil
 }
 
@@ -1126,18 +1236,22 @@ func restoreRunRequestToWire(v *RestoreRunRequest) (*restoreRunRequestWire, erro
 }
 
 type restoreRunsRequestWire struct {
-	ExperimentId       *string `json:"experiment_id,omitempty"`
-	MinTimestampMillis *int64  `json:"min_timestamp_millis,omitempty"`
-	MaxRuns            *int    `json:"max_runs,omitempty"`
+	ExperimentId       *string    `json:"experiment_id,omitempty"`
+	MinTimestampMillis *wireInt64 `json:"min_timestamp_millis,omitempty"`
+	MaxRuns            *int       `json:"max_runs,omitempty"`
 }
 
 func restoreRunsRequestToWire(v *RestoreRunsRequest) (*restoreRunsRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	minTimestampMillisWireValue, err := int64ToWire(v.MinTimestampMillis)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RestoreRunsRequest.MinTimestampMillis", err)
+	}
 	return &restoreRunsRequestWire{
 		ExperimentId:       v.ExperimentId,
-		MinTimestampMillis: v.MinTimestampMillis,
+		MinTimestampMillis: minTimestampMillisWireValue,
 		MaxRuns:            v.MaxRuns,
 	}, nil
 }
@@ -1214,21 +1328,29 @@ func runDataFromWire(w *runDataWire) (*RunData, error) {
 }
 
 type runInfoWire struct {
-	RunId          *string   `json:"run_id,omitempty"`
-	RunUuid        *string   `json:"run_uuid,omitempty"`
-	ExperimentId   *string   `json:"experiment_id,omitempty"`
-	RunName        *string   `json:"run_name,omitempty"`
-	UserId         *string   `json:"user_id,omitempty"`
-	Status         RunStatus `json:"status,omitempty"`
-	StartTime      *int64    `json:"start_time,omitempty"`
-	EndTime        *int64    `json:"end_time,omitempty"`
-	ArtifactUri    *string   `json:"artifact_uri,omitempty"`
-	LifecycleStage *string   `json:"lifecycle_stage,omitempty"`
+	RunId          *string    `json:"run_id,omitempty"`
+	RunUuid        *string    `json:"run_uuid,omitempty"`
+	ExperimentId   *string    `json:"experiment_id,omitempty"`
+	RunName        *string    `json:"run_name,omitempty"`
+	UserId         *string    `json:"user_id,omitempty"`
+	Status         RunStatus  `json:"status,omitempty"`
+	StartTime      *wireInt64 `json:"start_time,omitempty"`
+	EndTime        *wireInt64 `json:"end_time,omitempty"`
+	ArtifactUri    *string    `json:"artifact_uri,omitempty"`
+	LifecycleStage *string    `json:"lifecycle_stage,omitempty"`
 }
 
 func runInfoFromWire(w *runInfoWire) (*RunInfo, error) {
 	if w == nil {
 		return nil, nil
+	}
+	startTimePublicValue, err := int64FromWire(w.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunInfo.StartTime", err)
+	}
+	endTimePublicValue, err := int64FromWire(w.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunInfo.EndTime", err)
 	}
 	return &RunInfo{
 		RunId:          w.RunId,
@@ -1237,8 +1359,8 @@ func runInfoFromWire(w *runInfoWire) (*RunInfo, error) {
 		RunName:        w.RunName,
 		UserId:         w.UserId,
 		Status:         w.Status,
-		StartTime:      w.StartTime,
-		EndTime:        w.EndTime,
+		StartTime:      startTimePublicValue,
+		EndTime:        endTimePublicValue,
 		ArtifactUri:    w.ArtifactUri,
 		LifecycleStage: w.LifecycleStage,
 	}, nil
@@ -1293,19 +1415,23 @@ func runTagFromWire(w *runTagWire) (*RunTag, error) {
 }
 
 type searchExperimentsRequestWire struct {
-	MaxResults *int64   `json:"max_results,omitempty"`
-	PageToken  *string  `json:"page_token,omitempty"`
-	Filter     *string  `json:"filter,omitempty"`
-	OrderBy    []string `json:"order_by,omitempty"`
-	ViewType   ViewType `json:"view_type,omitempty"`
+	MaxResults *wireInt64 `json:"max_results,omitempty"`
+	PageToken  *string    `json:"page_token,omitempty"`
+	Filter     *string    `json:"filter,omitempty"`
+	OrderBy    []string   `json:"order_by,omitempty"`
+	ViewType   ViewType   `json:"view_type,omitempty"`
 }
 
 func searchExperimentsRequestToWire(v *SearchExperimentsRequest) (*searchExperimentsRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	maxResultsWireValue, err := int64ToWire(v.MaxResults)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SearchExperimentsRequest.MaxResults", err)
+	}
 	return &searchExperimentsRequestWire{
-		MaxResults: v.MaxResults,
+		MaxResults: maxResultsWireValue,
 		PageToken:  v.PageToken,
 		Filter:     v.Filter,
 		OrderBy:    v.OrderBy,
@@ -1560,22 +1686,26 @@ func updateExperimentRequestToWire(v *UpdateExperimentRequest) (*updateExperimen
 }
 
 type updateRunRequestWire struct {
-	RunId   *string   `json:"run_id,omitempty"`
-	RunUuid *string   `json:"run_uuid,omitempty"`
-	Status  RunStatus `json:"status,omitempty"`
-	EndTime *int64    `json:"end_time,omitempty"`
-	RunName *string   `json:"run_name,omitempty"`
+	RunId   *string    `json:"run_id,omitempty"`
+	RunUuid *string    `json:"run_uuid,omitempty"`
+	Status  RunStatus  `json:"status,omitempty"`
+	EndTime *wireInt64 `json:"end_time,omitempty"`
+	RunName *string    `json:"run_name,omitempty"`
 }
 
 func updateRunRequestToWire(v *UpdateRunRequest) (*updateRunRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	endTimeWireValue, err := int64ToWire(v.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRunRequest.EndTime", err)
+	}
 	return &updateRunRequestWire{
 		RunId:   v.RunId,
 		RunUuid: v.RunUuid,
 		Status:  v.Status,
-		EndTime: v.EndTime,
+		EndTime: endTimeWireValue,
 		RunName: v.RunName,
 	}, nil
 }

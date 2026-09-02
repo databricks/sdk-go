@@ -3,9 +3,54 @@
 package statementexecution
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type cancelStatementRequestWire struct {
 	StatementId *string `json:"statement_id,omitempty"`
@@ -21,23 +66,35 @@ func cancelStatementRequestToWire(v *CancelStatementRequest) (*cancelStatementRe
 }
 
 type chunkInfoWire struct {
-	ChunkIndex            *int    `json:"chunk_index,omitempty"`
-	RowOffset             *int64  `json:"row_offset,omitempty"`
-	RowCount              *int64  `json:"row_count,omitempty"`
-	ByteCount             *int64  `json:"byte_count,omitempty"`
-	NextChunkIndex        *int    `json:"next_chunk_index,omitempty"`
-	NextChunkInternalLink *string `json:"next_chunk_internal_link,omitempty"`
+	ChunkIndex            *int       `json:"chunk_index,omitempty"`
+	RowOffset             *wireInt64 `json:"row_offset,omitempty"`
+	RowCount              *wireInt64 `json:"row_count,omitempty"`
+	ByteCount             *wireInt64 `json:"byte_count,omitempty"`
+	NextChunkIndex        *int       `json:"next_chunk_index,omitempty"`
+	NextChunkInternalLink *string    `json:"next_chunk_internal_link,omitempty"`
 }
 
 func chunkInfoFromWire(w *chunkInfoWire) (*ChunkInfo, error) {
 	if w == nil {
 		return nil, nil
 	}
+	rowOffsetPublicValue, err := int64FromWire(w.RowOffset)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ChunkInfo.RowOffset", err)
+	}
+	rowCountPublicValue, err := int64FromWire(w.RowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ChunkInfo.RowCount", err)
+	}
+	byteCountPublicValue, err := int64FromWire(w.ByteCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ChunkInfo.ByteCount", err)
+	}
 	return &ChunkInfo{
 		ChunkIndex:            w.ChunkIndex,
-		RowOffset:             w.RowOffset,
-		RowCount:              w.RowCount,
-		ByteCount:             w.ByteCount,
+		RowOffset:             rowOffsetPublicValue,
+		RowCount:              rowCountPublicValue,
+		ByteCount:             byteCountPublicValue,
 		NextChunkIndex:        w.NextChunkIndex,
 		NextChunkInternalLink: w.NextChunkInternalLink,
 	}, nil
@@ -73,8 +130,8 @@ type executeStatementRequestWire struct {
 	WarehouseId   *string                  `json:"warehouse_id,omitempty"`
 	Catalog       *string                  `json:"catalog,omitempty"`
 	Schema        *string                  `json:"schema,omitempty"`
-	RowLimit      *int64                   `json:"row_limit,omitempty"`
-	ByteLimit     *int64                   `json:"byte_limit,omitempty"`
+	RowLimit      *wireInt64               `json:"row_limit,omitempty"`
+	ByteLimit     *wireInt64               `json:"byte_limit,omitempty"`
 	Format        Format                   `json:"format,omitempty"`
 	Disposition   Disposition              `json:"disposition,omitempty"`
 	WaitTimeout   *string                  `json:"wait_timeout,omitempty"`
@@ -86,6 +143,14 @@ type executeStatementRequestWire struct {
 func executeStatementRequestToWire(v *ExecuteStatementRequest) (*executeStatementRequestWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	rowLimitWireValue, err := int64ToWire(v.RowLimit)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExecuteStatementRequest.RowLimit", err)
+	}
+	byteLimitWireValue, err := int64ToWire(v.ByteLimit)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExecuteStatementRequest.ByteLimit", err)
 	}
 	parametersWireValue, err := convertSlice(v.Parameters, statementParameterToWire)
 	if err != nil {
@@ -100,8 +165,8 @@ func executeStatementRequestToWire(v *ExecuteStatementRequest) (*executeStatemen
 		WarehouseId:   v.WarehouseId,
 		Catalog:       v.Catalog,
 		Schema:        v.Schema,
-		RowLimit:      v.RowLimit,
-		ByteLimit:     v.ByteLimit,
+		RowLimit:      rowLimitWireValue,
+		ByteLimit:     byteLimitWireValue,
 		Format:        v.Format,
 		Disposition:   v.Disposition,
 		WaitTimeout:   v.WaitTimeout,
@@ -116,9 +181,9 @@ type externalLinkWire struct {
 	Expiration            *string           `json:"expiration,omitempty"`
 	HttpHeaders           map[string]string `json:"http_headers,omitempty"`
 	ChunkIndex            *int              `json:"chunk_index,omitempty"`
-	RowOffset             *int64            `json:"row_offset,omitempty"`
-	RowCount              *int64            `json:"row_count,omitempty"`
-	ByteCount             *int64            `json:"byte_count,omitempty"`
+	RowOffset             *wireInt64        `json:"row_offset,omitempty"`
+	RowCount              *wireInt64        `json:"row_count,omitempty"`
+	ByteCount             *wireInt64        `json:"byte_count,omitempty"`
 	NextChunkIndex        *int              `json:"next_chunk_index,omitempty"`
 	NextChunkInternalLink *string           `json:"next_chunk_internal_link,omitempty"`
 }
@@ -127,14 +192,26 @@ func externalLinkFromWire(w *externalLinkWire) (*ExternalLink, error) {
 	if w == nil {
 		return nil, nil
 	}
+	rowOffsetPublicValue, err := int64FromWire(w.RowOffset)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLink.RowOffset", err)
+	}
+	rowCountPublicValue, err := int64FromWire(w.RowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLink.RowCount", err)
+	}
+	byteCountPublicValue, err := int64FromWire(w.ByteCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLink.ByteCount", err)
+	}
 	return &ExternalLink{
 		ExternalLink:          w.ExternalLink,
 		Expiration:            w.Expiration,
 		HttpHeaders:           w.HttpHeaders,
 		ChunkIndex:            w.ChunkIndex,
-		RowOffset:             w.RowOffset,
-		RowCount:              w.RowCount,
-		ByteCount:             w.ByteCount,
+		RowOffset:             rowOffsetPublicValue,
+		RowCount:              rowCountPublicValue,
+		ByteCount:             byteCountPublicValue,
 		NextChunkIndex:        w.NextChunkIndex,
 		NextChunkInternalLink: w.NextChunkInternalLink,
 	}, nil
@@ -159,9 +236,9 @@ type resultDataWire struct {
 	ExternalLinks         []externalLinkWire  `json:"external_links,omitempty"`
 	DataArray             [][]json.RawMessage `json:"data_array,omitempty"`
 	ChunkIndex            *int                `json:"chunk_index,omitempty"`
-	RowOffset             *int64              `json:"row_offset,omitempty"`
-	RowCount              *int64              `json:"row_count,omitempty"`
-	ByteCount             *int64              `json:"byte_count,omitempty"`
+	RowOffset             *wireInt64          `json:"row_offset,omitempty"`
+	RowCount              *wireInt64          `json:"row_count,omitempty"`
+	ByteCount             *wireInt64          `json:"byte_count,omitempty"`
 	NextChunkIndex        *int                `json:"next_chunk_index,omitempty"`
 	NextChunkInternalLink *string             `json:"next_chunk_internal_link,omitempty"`
 }
@@ -174,13 +251,25 @@ func resultDataFromWire(w *resultDataWire) (*ResultData, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ResultData.ExternalLinks", err)
 	}
+	rowOffsetPublicValue, err := int64FromWire(w.RowOffset)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ResultData.RowOffset", err)
+	}
+	rowCountPublicValue, err := int64FromWire(w.RowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ResultData.RowCount", err)
+	}
+	byteCountPublicValue, err := int64FromWire(w.ByteCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ResultData.ByteCount", err)
+	}
 	return &ResultData{
 		ExternalLinks:         externalLinksPublicValue,
 		DataArray:             w.DataArray,
 		ChunkIndex:            w.ChunkIndex,
-		RowOffset:             w.RowOffset,
-		RowCount:              w.RowCount,
-		ByteCount:             w.ByteCount,
+		RowOffset:             rowOffsetPublicValue,
+		RowCount:              rowCountPublicValue,
+		ByteCount:             byteCountPublicValue,
 		NextChunkIndex:        w.NextChunkIndex,
 		NextChunkInternalLink: w.NextChunkInternalLink,
 	}, nil
@@ -191,8 +280,8 @@ type resultManifestWire struct {
 	Schema          *schemaWire     `json:"schema,omitempty"`
 	TotalChunkCount *int            `json:"total_chunk_count,omitempty"`
 	Chunks          []chunkInfoWire `json:"chunks,omitempty"`
-	TotalRowCount   *int64          `json:"total_row_count,omitempty"`
-	TotalByteCount  *int64          `json:"total_byte_count,omitempty"`
+	TotalRowCount   *wireInt64      `json:"total_row_count,omitempty"`
+	TotalByteCount  *wireInt64      `json:"total_byte_count,omitempty"`
 	Truncated       *bool           `json:"truncated,omitempty"`
 }
 
@@ -208,13 +297,21 @@ func resultManifestFromWire(w *resultManifestWire) (*ResultManifest, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ResultManifest.Chunks", err)
 	}
+	totalRowCountPublicValue, err := int64FromWire(w.TotalRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ResultManifest.TotalRowCount", err)
+	}
+	totalByteCountPublicValue, err := int64FromWire(w.TotalByteCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ResultManifest.TotalByteCount", err)
+	}
 	return &ResultManifest{
 		Format:          w.Format,
 		Schema:          schemaPublicValue,
 		TotalChunkCount: w.TotalChunkCount,
 		Chunks:          chunksPublicValue,
-		TotalRowCount:   w.TotalRowCount,
-		TotalByteCount:  w.TotalByteCount,
+		TotalRowCount:   totalRowCountPublicValue,
+		TotalByteCount:  totalByteCountPublicValue,
 		Truncated:       w.Truncated,
 	}, nil
 }

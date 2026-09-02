@@ -671,6 +671,7 @@ func listInstancePoolsResponseFromWire(w *listInstancePoolsResponseWire) (*ListI
 
 type nodeTypeFlexibilityWire struct {
 	AlternateNodeTypeIds []string `json:"alternate_node_type_ids,omitempty"`
+	AwsContextId         *string  `json:"aws_context_id,omitempty"`
 }
 
 func nodeTypeFlexibilityToWire(v *NodeTypeFlexibility) (*nodeTypeFlexibilityWire, error) {
@@ -679,6 +680,7 @@ func nodeTypeFlexibilityToWire(v *NodeTypeFlexibility) (*nodeTypeFlexibilityWire
 	}
 	return &nodeTypeFlexibilityWire{
 		AlternateNodeTypeIds: v.AlternateNodeTypeIds,
+		AwsContextId:         v.AwsContextId,
 	}, nil
 }
 
@@ -688,6 +690,7 @@ func nodeTypeFlexibilityFromWire(w *nodeTypeFlexibilityWire) (*NodeTypeFlexibili
 	}
 	return &NodeTypeFlexibility{
 		AlternateNodeTypeIds: w.AlternateNodeTypeIds,
+		AwsContextId:         w.AwsContextId,
 	}, nil
 }
 

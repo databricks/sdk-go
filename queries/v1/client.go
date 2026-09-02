@@ -75,8 +75,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Creates a query.
-func (c *internalClient) CreateQuery(ctx context.Context, req *CreateQueryRequest, opts ...call.Option) (*Query, error) {
-	wireReq, err := createQueryRequestToWire(req)
+func (c *internalClient) CreateQuery(ctx context.Context, req CreateQueryRequest, opts ...call.Option) (*Query, error) {
+	wireReq, err := createQueryRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func (c *internalClient) CreateQuery(ctx context.Context, req *CreateQueryReques
 }
 
 // Gets a query.
-func (c *internalClient) GetQuery(ctx context.Context, req *GetQueryRequest, opts ...call.Option) (*Query, error) {
+func (c *internalClient) GetQuery(ctx context.Context, req GetQueryRequest, opts ...call.Option) (*Query, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -155,7 +155,11 @@ func (c *internalClient) GetQuery(ctx context.Context, req *GetQueryRequest, opt
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/queries/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -203,8 +207,8 @@ func (c *internalClient) GetQuery(ctx context.Context, req *GetQueryRequest, opt
 // Gets a list of queries accessible to the user, ordered by creation time.
 // **Warning:** Calling this API concurrently 10 or more times could result in
 // throttling, service degradation, or a temporary ban.
-func (c *internalClient) ListQueries(ctx context.Context, req *ListQueriesRequest, opts ...call.Option) (*ListQueriesResponse, error) {
-	wireReq, err := listQueriesRequestToWire(req)
+func (c *internalClient) ListQueries(ctx context.Context, req ListQueriesRequest, opts ...call.Option) (*ListQueriesResponse, error) {
+	wireReq, err := listQueriesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -274,7 +278,7 @@ func (c *internalClient) ListQueries(ctx context.Context, req *ListQueriesReques
 //
 // For example:
 //
-//	for item, err := range c.ListQueriesIter(ctx, &ListQueriesRequest{}) {
+//	for item, err := range c.ListQueriesIter(ctx, ListQueriesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -286,16 +290,13 @@ func (c *internalClient) ListQueries(ctx context.Context, req *ListQueriesReques
 //
 // Callers who need custom pagination logic should use
 // ListQueries directly.
-func (c *internalClient) ListQueriesIter(ctx context.Context, req *ListQueriesRequest, opts ...call.Option) iter.Seq2[*ListQueryObjectsResponseQuery, error] {
+func (c *internalClient) ListQueriesIter(ctx context.Context, req ListQueriesRequest, opts ...call.Option) iter.Seq2[*ListQueryObjectsResponseQuery, error] {
 	return func(yield func(*ListQueryObjectsResponseQuery, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListQueriesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListQueries(ctx, &pageReq, opts...)
+			resp, err := c.ListQueries(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -314,8 +315,8 @@ func (c *internalClient) ListQueriesIter(ctx context.Context, req *ListQueriesRe
 }
 
 // Gets a list of visualizations on a query.
-func (c *internalClient) ListVisualizationsForQuery(ctx context.Context, req *ListVisualizationsForQueryRequest, opts ...call.Option) (*ListVisualizationsForQueryResponse, error) {
-	wireReq, err := listVisualizationsForQueryRequestToWire(req)
+func (c *internalClient) ListVisualizationsForQuery(ctx context.Context, req ListVisualizationsForQueryRequest, opts ...call.Option) (*ListVisualizationsForQueryResponse, error) {
+	wireReq, err := listVisualizationsForQueryRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -332,7 +333,11 @@ func (c *internalClient) ListVisualizationsForQuery(ctx context.Context, req *Li
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/queries/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	pb.literal("/visualizations")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -389,7 +394,7 @@ func (c *internalClient) ListVisualizationsForQuery(ctx context.Context, req *Li
 //
 // For example:
 //
-//	for item, err := range c.ListVisualizationsForQueryIter(ctx, &ListVisualizationsForQueryRequest{}) {
+//	for item, err := range c.ListVisualizationsForQueryIter(ctx, ListVisualizationsForQueryRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -401,16 +406,13 @@ func (c *internalClient) ListVisualizationsForQuery(ctx context.Context, req *Li
 //
 // Callers who need custom pagination logic should use
 // ListVisualizationsForQuery directly.
-func (c *internalClient) ListVisualizationsForQueryIter(ctx context.Context, req *ListVisualizationsForQueryRequest, opts ...call.Option) iter.Seq2[*Visualization, error] {
+func (c *internalClient) ListVisualizationsForQueryIter(ctx context.Context, req ListVisualizationsForQueryRequest, opts ...call.Option) iter.Seq2[*Visualization, error] {
 	return func(yield func(*Visualization, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListVisualizationsForQueryRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListVisualizationsForQuery(ctx, &pageReq, opts...)
+			resp, err := c.ListVisualizationsForQuery(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -432,7 +434,7 @@ func (c *internalClient) ListVisualizationsForQueryIter(ctx context.Context, req
 // searches and list views, and cannot be used for alerts. You can restore a
 // trashed query through the UI. A trashed query is permanently deleted after 30
 // days.
-func (c *internalClient) TrashQuery(ctx context.Context, req *TrashQueryRequest, opts ...call.Option) (*Empty, error) {
+func (c *internalClient) TrashQuery(ctx context.Context, req TrashQueryRequest, opts ...call.Option) (*Empty, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -446,7 +448,11 @@ func (c *internalClient) TrashQuery(ctx context.Context, req *TrashQueryRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/queries/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -486,8 +492,8 @@ func (c *internalClient) TrashQuery(ctx context.Context, req *TrashQueryRequest,
 }
 
 // Updates a query.
-func (c *internalClient) UpdateQuery(ctx context.Context, req *UpdateQueryRequest, opts ...call.Option) (*Query, error) {
-	wireReq, err := updateQueryRequestToWire(req)
+func (c *internalClient) UpdateQuery(ctx context.Context, req UpdateQueryRequest, opts ...call.Option) (*Query, error) {
+	wireReq, err := updateQueryRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -508,7 +514,11 @@ func (c *internalClient) UpdateQuery(ctx context.Context, req *UpdateQueryReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/queries/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

@@ -3,8 +3,54 @@
 package tables
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type columnInfoWire struct {
 	Name             *string         `json:"name,omitempty"`
@@ -166,13 +212,13 @@ type createTableRequestWire struct {
 	MetastoreId                         *string                                  `json:"metastore_id,omitempty"`
 	FullName                            *string                                  `json:"full_name,omitempty"`
 	DataAccessConfigurationId           *string                                  `json:"data_access_configuration_id,omitempty"`
-	CreatedAt                           *int64                                   `json:"created_at,omitempty"`
+	CreatedAt                           *wireInt64                               `json:"created_at,omitempty"`
 	CreatedBy                           *string                                  `json:"created_by,omitempty"`
-	UpdatedAt                           *int64                                   `json:"updated_at,omitempty"`
+	UpdatedAt                           *wireInt64                               `json:"updated_at,omitempty"`
 	UpdatedBy                           *string                                  `json:"updated_by,omitempty"`
 	TableId                             *string                                  `json:"table_id,omitempty"`
 	DeltaRuntimePropertiesKvpairs       *deltaRuntimePropertiesKvPairsWire       `json:"delta_runtime_properties_kvpairs,omitempty"`
-	DeletedAt                           *int64                                   `json:"deleted_at,omitempty"`
+	DeletedAt                           *wireInt64                               `json:"deleted_at,omitempty"`
 	EffectivePredictiveOptimizationFlag *effectivePredictiveOptimizationFlagWire `json:"effective_predictive_optimization_flag,omitempty"`
 	AccessPoint                         *string                                  `json:"access_point,omitempty"`
 	BrowseOnly                          *bool                                    `json:"browse_only,omitempty"`
@@ -198,9 +244,21 @@ func createTableRequestToWire(v *CreateTableRequest) (*createTableRequestWire, e
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreateTableRequest.RowFilter", err)
 	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTableRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTableRequest.UpdatedAt", err)
+	}
 	deltaRuntimePropertiesKvpairsWireValue, err := deltaRuntimePropertiesKvPairsToWire(v.DeltaRuntimePropertiesKvpairs)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreateTableRequest.DeltaRuntimePropertiesKvpairs", err)
+	}
+	deletedAtWireValue, err := int64ToWire(v.DeletedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTableRequest.DeletedAt", err)
 	}
 	effectivePredictiveOptimizationFlagWireValue, err := effectivePredictiveOptimizationFlagToWire(v.EffectivePredictiveOptimizationFlag)
 	if err != nil {
@@ -238,13 +296,13 @@ func createTableRequestToWire(v *CreateTableRequest) (*createTableRequestWire, e
 		MetastoreId:                         v.MetastoreId,
 		FullName:                            v.FullName,
 		DataAccessConfigurationId:           v.DataAccessConfigurationId,
-		CreatedAt:                           v.CreatedAt,
+		CreatedAt:                           createdAtWireValue,
 		CreatedBy:                           v.CreatedBy,
-		UpdatedAt:                           v.UpdatedAt,
+		UpdatedAt:                           updatedAtWireValue,
 		UpdatedBy:                           v.UpdatedBy,
 		TableId:                             v.TableId,
 		DeltaRuntimePropertiesKvpairs:       deltaRuntimePropertiesKvpairsWireValue,
-		DeletedAt:                           v.DeletedAt,
+		DeletedAt:                           deletedAtWireValue,
 		EffectivePredictiveOptimizationFlag: effectivePredictiveOptimizationFlagWireValue,
 		AccessPoint:                         v.AccessPoint,
 		BrowseOnly:                          v.BrowseOnly,
@@ -1123,13 +1181,13 @@ type tableInfoWire struct {
 	MetastoreId                         *string                                  `json:"metastore_id,omitempty"`
 	FullName                            *string                                  `json:"full_name,omitempty"`
 	DataAccessConfigurationId           *string                                  `json:"data_access_configuration_id,omitempty"`
-	CreatedAt                           *int64                                   `json:"created_at,omitempty"`
+	CreatedAt                           *wireInt64                               `json:"created_at,omitempty"`
 	CreatedBy                           *string                                  `json:"created_by,omitempty"`
-	UpdatedAt                           *int64                                   `json:"updated_at,omitempty"`
+	UpdatedAt                           *wireInt64                               `json:"updated_at,omitempty"`
 	UpdatedBy                           *string                                  `json:"updated_by,omitempty"`
 	TableId                             *string                                  `json:"table_id,omitempty"`
 	DeltaRuntimePropertiesKvpairs       *deltaRuntimePropertiesKvPairsWire       `json:"delta_runtime_properties_kvpairs,omitempty"`
-	DeletedAt                           *int64                                   `json:"deleted_at,omitempty"`
+	DeletedAt                           *wireInt64                               `json:"deleted_at,omitempty"`
 	EffectivePredictiveOptimizationFlag *effectivePredictiveOptimizationFlagWire `json:"effective_predictive_optimization_flag,omitempty"`
 	AccessPoint                         *string                                  `json:"access_point,omitempty"`
 	BrowseOnly                          *bool                                    `json:"browse_only,omitempty"`
@@ -1155,9 +1213,21 @@ func tableInfoFromWire(w *tableInfoWire) (*TableInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "TableInfo.RowFilter", err)
 	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TableInfo.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TableInfo.UpdatedAt", err)
+	}
 	deltaRuntimePropertiesKvpairsPublicValue, err := deltaRuntimePropertiesKvPairsFromWire(w.DeltaRuntimePropertiesKvpairs)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "TableInfo.DeltaRuntimePropertiesKvpairs", err)
+	}
+	deletedAtPublicValue, err := int64FromWire(w.DeletedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TableInfo.DeletedAt", err)
 	}
 	effectivePredictiveOptimizationFlagPublicValue, err := effectivePredictiveOptimizationFlagFromWire(w.EffectivePredictiveOptimizationFlag)
 	if err != nil {
@@ -1195,13 +1265,13 @@ func tableInfoFromWire(w *tableInfoWire) (*TableInfo, error) {
 		MetastoreId:                         w.MetastoreId,
 		FullName:                            w.FullName,
 		DataAccessConfigurationId:           w.DataAccessConfigurationId,
-		CreatedAt:                           w.CreatedAt,
+		CreatedAt:                           createdAtPublicValue,
 		CreatedBy:                           w.CreatedBy,
-		UpdatedAt:                           w.UpdatedAt,
+		UpdatedAt:                           updatedAtPublicValue,
 		UpdatedBy:                           w.UpdatedBy,
 		TableId:                             w.TableId,
 		DeltaRuntimePropertiesKvpairs:       deltaRuntimePropertiesKvpairsPublicValue,
-		DeletedAt:                           w.DeletedAt,
+		DeletedAt:                           deletedAtPublicValue,
 		EffectivePredictiveOptimizationFlag: effectivePredictiveOptimizationFlagPublicValue,
 		AccessPoint:                         w.AccessPoint,
 		BrowseOnly:                          w.BrowseOnly,
@@ -1254,13 +1324,13 @@ type updateTableRequestWire struct {
 	MetastoreId                         *string                                  `json:"metastore_id,omitempty"`
 	FullName                            *string                                  `json:"full_name,omitempty"`
 	DataAccessConfigurationId           *string                                  `json:"data_access_configuration_id,omitempty"`
-	CreatedAt                           *int64                                   `json:"created_at,omitempty"`
+	CreatedAt                           *wireInt64                               `json:"created_at,omitempty"`
 	CreatedBy                           *string                                  `json:"created_by,omitempty"`
-	UpdatedAt                           *int64                                   `json:"updated_at,omitempty"`
+	UpdatedAt                           *wireInt64                               `json:"updated_at,omitempty"`
 	UpdatedBy                           *string                                  `json:"updated_by,omitempty"`
 	TableId                             *string                                  `json:"table_id,omitempty"`
 	DeltaRuntimePropertiesKvpairs       *deltaRuntimePropertiesKvPairsWire       `json:"delta_runtime_properties_kvpairs,omitempty"`
-	DeletedAt                           *int64                                   `json:"deleted_at,omitempty"`
+	DeletedAt                           *wireInt64                               `json:"deleted_at,omitempty"`
 	EffectivePredictiveOptimizationFlag *effectivePredictiveOptimizationFlagWire `json:"effective_predictive_optimization_flag,omitempty"`
 	AccessPoint                         *string                                  `json:"access_point,omitempty"`
 	BrowseOnly                          *bool                                    `json:"browse_only,omitempty"`
@@ -1286,9 +1356,21 @@ func updateTableRequestToWire(v *UpdateTableRequest) (*updateTableRequestWire, e
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "UpdateTableRequest.RowFilter", err)
 	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateTableRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateTableRequest.UpdatedAt", err)
+	}
 	deltaRuntimePropertiesKvpairsWireValue, err := deltaRuntimePropertiesKvPairsToWire(v.DeltaRuntimePropertiesKvpairs)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "UpdateTableRequest.DeltaRuntimePropertiesKvpairs", err)
+	}
+	deletedAtWireValue, err := int64ToWire(v.DeletedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateTableRequest.DeletedAt", err)
 	}
 	effectivePredictiveOptimizationFlagWireValue, err := effectivePredictiveOptimizationFlagToWire(v.EffectivePredictiveOptimizationFlag)
 	if err != nil {
@@ -1327,13 +1409,13 @@ func updateTableRequestToWire(v *UpdateTableRequest) (*updateTableRequestWire, e
 		MetastoreId:                         v.MetastoreId,
 		FullName:                            v.FullName,
 		DataAccessConfigurationId:           v.DataAccessConfigurationId,
-		CreatedAt:                           v.CreatedAt,
+		CreatedAt:                           createdAtWireValue,
 		CreatedBy:                           v.CreatedBy,
-		UpdatedAt:                           v.UpdatedAt,
+		UpdatedAt:                           updatedAtWireValue,
 		UpdatedBy:                           v.UpdatedBy,
 		TableId:                             v.TableId,
 		DeltaRuntimePropertiesKvpairs:       deltaRuntimePropertiesKvpairsWireValue,
-		DeletedAt:                           v.DeletedAt,
+		DeletedAt:                           deletedAtWireValue,
 		EffectivePredictiveOptimizationFlag: effectivePredictiveOptimizationFlagWireValue,
 		AccessPoint:                         v.AccessPoint,
 		BrowseOnly:                          v.BrowseOnly,

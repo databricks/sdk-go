@@ -76,7 +76,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 
 // Disables the system schema and removes it from the system catalog. The caller
 // must be an account admin or a metastore admin.
-func (c *internalClient) DisableSystemSchema(ctx context.Context, req *DisableSystemSchemaRequest, opts ...call.Option) (*DisableSystemSchemaResponse, error) {
+func (c *internalClient) DisableSystemSchema(ctx context.Context, req DisableSystemSchemaRequest, opts ...call.Option) (*DisableSystemSchemaResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -90,9 +90,17 @@ func (c *internalClient) DisableSystemSchema(ctx context.Context, req *DisableSy
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/metastores/")
-	pb.singleSegment(*req.MetastoreId)
+	if req.MetastoreId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MetastoreId)
+	}
 	pb.literal("/systemschemas/")
-	pb.singleSegment(*req.Schema)
+	if req.Schema == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Schema)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -133,8 +141,8 @@ func (c *internalClient) DisableSystemSchema(ctx context.Context, req *DisableSy
 
 // Enables the system schema and adds it to the system catalog. The caller must
 // be an account admin or a metastore admin.
-func (c *internalClient) EnableSystemSchema(ctx context.Context, req *EnableSystemSchemaRequest, opts ...call.Option) (*EnableSystemSchemaResponse, error) {
-	wireReq, err := enableSystemSchemaRequestToWire(req)
+func (c *internalClient) EnableSystemSchema(ctx context.Context, req EnableSystemSchemaRequest, opts ...call.Option) (*EnableSystemSchemaResponse, error) {
+	wireReq, err := enableSystemSchemaRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -155,9 +163,17 @@ func (c *internalClient) EnableSystemSchema(ctx context.Context, req *EnableSyst
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/metastores/")
-	pb.singleSegment(*req.MetastoreId)
+	if req.MetastoreId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MetastoreId)
+	}
 	pb.literal("/systemschemas/")
-	pb.singleSegment(*req.Schema)
+	if req.Schema == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Schema)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -207,8 +223,8 @@ func (c *internalClient) EnableSystemSchema(ctx context.Context, req *EnableSyst
 // contain zero results while still providing a next_page_token. Clients must
 // continue reading pages until next_page_token is absent, which is the only
 // indication that the end of results has been reached.
-func (c *internalClient) ListSystemSchemas(ctx context.Context, req *ListSystemSchemasRequest, opts ...call.Option) (*ListSystemSchemasResponse, error) {
-	wireReq, err := listSystemSchemasRequestToWire(req)
+func (c *internalClient) ListSystemSchemas(ctx context.Context, req ListSystemSchemasRequest, opts ...call.Option) (*ListSystemSchemasResponse, error) {
+	wireReq, err := listSystemSchemasRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +241,11 @@ func (c *internalClient) ListSystemSchemas(ctx context.Context, req *ListSystemS
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/metastores/")
-	pb.singleSegment(*req.MetastoreId)
+	if req.MetastoreId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MetastoreId)
+	}
 	pb.literal("/systemschemas")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -282,7 +302,7 @@ func (c *internalClient) ListSystemSchemas(ctx context.Context, req *ListSystemS
 //
 // For example:
 //
-//	for item, err := range c.ListSystemSchemasIter(ctx, &ListSystemSchemasRequest{}) {
+//	for item, err := range c.ListSystemSchemasIter(ctx, ListSystemSchemasRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -294,16 +314,13 @@ func (c *internalClient) ListSystemSchemas(ctx context.Context, req *ListSystemS
 //
 // Callers who need custom pagination logic should use
 // ListSystemSchemas directly.
-func (c *internalClient) ListSystemSchemasIter(ctx context.Context, req *ListSystemSchemasRequest, opts ...call.Option) iter.Seq2[*SystemSchemaInfo, error] {
+func (c *internalClient) ListSystemSchemasIter(ctx context.Context, req ListSystemSchemasRequest, opts ...call.Option) iter.Seq2[*SystemSchemaInfo, error] {
 	return func(yield func(*SystemSchemaInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListSystemSchemasRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListSystemSchemas(ctx, &pageReq, opts...)
+			resp, err := c.ListSystemSchemas(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return

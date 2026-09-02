@@ -3,8 +3,54 @@
 package volumes
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type createVolumeRequestWire struct {
 	Name              *string                `json:"name,omitempty"`
@@ -17,9 +63,9 @@ type createVolumeRequestWire struct {
 	FullName          *string                `json:"full_name,omitempty"`
 	VolumeId          *string                `json:"volume_id,omitempty"`
 	MetastoreId       *string                `json:"metastore_id,omitempty"`
-	CreatedAt         *int64                 `json:"created_at,omitempty"`
+	CreatedAt         *wireInt64             `json:"created_at,omitempty"`
 	CreatedBy         *string                `json:"created_by,omitempty"`
-	UpdatedAt         *int64                 `json:"updated_at,omitempty"`
+	UpdatedAt         *wireInt64             `json:"updated_at,omitempty"`
 	UpdatedBy         *string                `json:"updated_by,omitempty"`
 	AccessPoint       *string                `json:"access_point,omitempty"`
 	EncryptionDetails *encryptionDetailsWire `json:"encryption_details,omitempty"`
@@ -29,6 +75,14 @@ type createVolumeRequestWire struct {
 func createVolumeRequestToWire(v *CreateVolumeRequest) (*createVolumeRequestWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateVolumeRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateVolumeRequest.UpdatedAt", err)
 	}
 	encryptionDetailsWireValue, err := encryptionDetailsToWire(v.EncryptionDetails)
 	if err != nil {
@@ -45,9 +99,9 @@ func createVolumeRequestToWire(v *CreateVolumeRequest) (*createVolumeRequestWire
 		FullName:          v.FullName,
 		VolumeId:          v.VolumeId,
 		MetastoreId:       v.MetastoreId,
-		CreatedAt:         v.CreatedAt,
+		CreatedAt:         createdAtWireValue,
 		CreatedBy:         v.CreatedBy,
-		UpdatedAt:         v.UpdatedAt,
+		UpdatedAt:         updatedAtWireValue,
 		UpdatedBy:         v.UpdatedBy,
 		AccessPoint:       v.AccessPoint,
 		EncryptionDetails: encryptionDetailsWireValue,
@@ -200,9 +254,9 @@ type updateVolumeRequestWire struct {
 	FullName          *string                `json:"full_name,omitempty"`
 	VolumeId          *string                `json:"volume_id,omitempty"`
 	MetastoreId       *string                `json:"metastore_id,omitempty"`
-	CreatedAt         *int64                 `json:"created_at,omitempty"`
+	CreatedAt         *wireInt64             `json:"created_at,omitempty"`
 	CreatedBy         *string                `json:"created_by,omitempty"`
-	UpdatedAt         *int64                 `json:"updated_at,omitempty"`
+	UpdatedAt         *wireInt64             `json:"updated_at,omitempty"`
 	UpdatedBy         *string                `json:"updated_by,omitempty"`
 	AccessPoint       *string                `json:"access_point,omitempty"`
 	EncryptionDetails *encryptionDetailsWire `json:"encryption_details,omitempty"`
@@ -212,6 +266,14 @@ type updateVolumeRequestWire struct {
 func updateVolumeRequestToWire(v *UpdateVolumeRequest) (*updateVolumeRequestWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateVolumeRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateVolumeRequest.UpdatedAt", err)
 	}
 	encryptionDetailsWireValue, err := encryptionDetailsToWire(v.EncryptionDetails)
 	if err != nil {
@@ -230,9 +292,9 @@ func updateVolumeRequestToWire(v *UpdateVolumeRequest) (*updateVolumeRequestWire
 		FullName:          v.FullName,
 		VolumeId:          v.VolumeId,
 		MetastoreId:       v.MetastoreId,
-		CreatedAt:         v.CreatedAt,
+		CreatedAt:         createdAtWireValue,
 		CreatedBy:         v.CreatedBy,
-		UpdatedAt:         v.UpdatedAt,
+		UpdatedAt:         updatedAtWireValue,
 		UpdatedBy:         v.UpdatedBy,
 		AccessPoint:       v.AccessPoint,
 		EncryptionDetails: encryptionDetailsWireValue,
@@ -251,9 +313,9 @@ type volumeInfoWire struct {
 	FullName          *string                `json:"full_name,omitempty"`
 	VolumeId          *string                `json:"volume_id,omitempty"`
 	MetastoreId       *string                `json:"metastore_id,omitempty"`
-	CreatedAt         *int64                 `json:"created_at,omitempty"`
+	CreatedAt         *wireInt64             `json:"created_at,omitempty"`
 	CreatedBy         *string                `json:"created_by,omitempty"`
-	UpdatedAt         *int64                 `json:"updated_at,omitempty"`
+	UpdatedAt         *wireInt64             `json:"updated_at,omitempty"`
 	UpdatedBy         *string                `json:"updated_by,omitempty"`
 	AccessPoint       *string                `json:"access_point,omitempty"`
 	EncryptionDetails *encryptionDetailsWire `json:"encryption_details,omitempty"`
@@ -263,6 +325,14 @@ type volumeInfoWire struct {
 func volumeInfoFromWire(w *volumeInfoWire) (*VolumeInfo, error) {
 	if w == nil {
 		return nil, nil
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "VolumeInfo.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "VolumeInfo.UpdatedAt", err)
 	}
 	encryptionDetailsPublicValue, err := encryptionDetailsFromWire(w.EncryptionDetails)
 	if err != nil {
@@ -279,9 +349,9 @@ func volumeInfoFromWire(w *volumeInfoWire) (*VolumeInfo, error) {
 		FullName:          w.FullName,
 		VolumeId:          w.VolumeId,
 		MetastoreId:       w.MetastoreId,
-		CreatedAt:         w.CreatedAt,
+		CreatedAt:         createdAtPublicValue,
 		CreatedBy:         w.CreatedBy,
-		UpdatedAt:         w.UpdatedAt,
+		UpdatedAt:         updatedAtPublicValue,
 		UpdatedBy:         w.UpdatedBy,
 		AccessPoint:       w.AccessPoint,
 		EncryptionDetails: encryptionDetailsPublicValue,

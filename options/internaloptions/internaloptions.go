@@ -23,9 +23,10 @@ import (
 // client.Option values.
 type ClientOptions struct {
 	// Profile resolution.
-	ProfileName              string
-	ProfileFile              string
-	DisableProfileResolution bool
+	ProfileName       string
+	ConfigFile        string
+	DisableConfigFile bool
+	DisableEnv        bool
 
 	Host        string
 	AccountID   string
@@ -43,6 +44,10 @@ type ClientOptions struct {
 // Resolve always populates the HTTPClient and Logger fields with default
 // values if not provided.
 func (c *ClientOptions) Resolve() error {
+	if c.DisableConfigFile && (c.ConfigFile != "" || c.ProfileName != "") {
+		return errors.New("cannot disable config file resolution when a config file or profile is specified")
+	}
+
 	if c.Logger == nil {
 		c.Logger = slog.New(slog.DiscardHandler)
 	}
@@ -64,18 +69,22 @@ func (c *ClientOptions) Resolve() error {
 // resolve fills unset options from the profile. Explicitly set options take
 // precedence and are never overwritten.
 func (c *ClientOptions) resolve() error {
-	if c.DisableProfileResolution {
+	var opts []profiles.ResolveOption
+	if !c.DisableConfigFile {
+		if c.ProfileName != "" {
+			opts = append(opts, profiles.WithProfile(c.ProfileName))
+		} else {
+			opts = append(opts, profiles.WithDefaultProfile())
+		}
+		if c.ConfigFile != "" {
+			opts = append(opts, profiles.WithFile(c.ConfigFile))
+		}
+	}
+	if !c.DisableEnv {
+		opts = append(opts, profiles.WithEnv())
+	}
+	if len(opts) == 0 {
 		return nil
-	}
-
-	opts := []profiles.ResolveOption{profiles.WithEnv()}
-	if c.ProfileName != "" {
-		opts = append(opts, profiles.WithProfile(c.ProfileName))
-	} else {
-		opts = append(opts, profiles.WithDefaultProfile())
-	}
-	if c.ProfileFile != "" {
-		opts = append(opts, profiles.WithFile(c.ProfileFile))
 	}
 
 	p, err := profiles.Resolve(opts...)

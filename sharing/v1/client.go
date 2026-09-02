@@ -100,8 +100,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // Configuration and usage for User-to-Machine (U2M) applications (e.g.,
 // PowerBI):
 // https://docs.databricks.com/aws/en/delta-sharing/sharing-over-oidc-u2m
-func (c *internalClient) CreateFederationPolicy(ctx context.Context, req *CreateFederationPolicyRequest, opts ...call.Option) (*FederationPolicy, error) {
-	wireReq, err := createFederationPolicyRequestToWire(req)
+func (c *internalClient) CreateFederationPolicy(ctx context.Context, req CreateFederationPolicyRequest, opts ...call.Option) (*FederationPolicy, error) {
+	wireReq, err := createFederationPolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,11 @@ func (c *internalClient) CreateFederationPolicy(ctx context.Context, req *Create
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/data-sharing/recipients/")
-	pb.singleSegment(*req.RecipientName)
+	if req.RecipientName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.RecipientName)
+	}
 	pb.literal("/federation-policies")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -171,8 +175,8 @@ func (c *internalClient) CreateFederationPolicy(ctx context.Context, req *Create
 
 // Creates a new authentication provider minimally based on a name and
 // authentication type. The caller must be an admin on the metastore.
-func (c *internalClient) CreateProvider(ctx context.Context, req *CreateProviderRequest, opts ...call.Option) (*ProviderInfo, error) {
-	wireReq, err := createProviderRequestToWire(req)
+func (c *internalClient) CreateProvider(ctx context.Context, req CreateProviderRequest, opts ...call.Option) (*ProviderInfo, error) {
+	wireReq, err := createProviderRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -239,8 +243,8 @@ func (c *internalClient) CreateProvider(ctx context.Context, req *CreateProvider
 // Creates a new recipient with the delta sharing authentication type in the
 // metastore. The caller must be a metastore admin or have the
 // **CREATE_RECIPIENT** privilege on the metastore.
-func (c *internalClient) CreateRecipient(ctx context.Context, req *CreateRecipientRequest, opts ...call.Option) (*RecipientInfo, error) {
-	wireReq, err := createRecipientRequestToWire(req)
+func (c *internalClient) CreateRecipient(ctx context.Context, req CreateRecipientRequest, opts ...call.Option) (*RecipientInfo, error) {
+	wireReq, err := createRecipientRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -307,8 +311,8 @@ func (c *internalClient) CreateRecipient(ctx context.Context, req *CreateRecipie
 // Creates a new share for data objects. Data objects can be added after
 // creation with **update**. The caller must be a metastore admin or have the
 // **CREATE_SHARE** privilege on the metastore.
-func (c *internalClient) CreateShare(ctx context.Context, req *CreateShareRequest, opts ...call.Option) (*ShareInfo, error) {
-	wireReq, err := createShareRequestToWire(req)
+func (c *internalClient) CreateShare(ctx context.Context, req CreateShareRequest, opts ...call.Option) (*ShareInfo, error) {
+	wireReq, err := createShareRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -374,7 +378,7 @@ func (c *internalClient) CreateShare(ctx context.Context, req *CreateShareReques
 
 // Deletes an existing federation policy for an OIDC_FEDERATION recipient. The
 // caller must be the owner of the recipient.
-func (c *internalClient) DeleteFederationPolicy(ctx context.Context, req *DeleteFederationPolicyRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteFederationPolicy(ctx context.Context, req DeleteFederationPolicyRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -388,9 +392,17 @@ func (c *internalClient) DeleteFederationPolicy(ctx context.Context, req *Delete
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/data-sharing/recipients/")
-	pb.singleSegment(*req.RecipientName)
+	if req.RecipientName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.RecipientName)
+	}
 	pb.literal("/federation-policies/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -428,7 +440,7 @@ func (c *internalClient) DeleteFederationPolicy(ctx context.Context, req *Delete
 
 // Deletes an authentication provider, if the caller is a metastore admin or is
 // the owner of the provider.
-func (c *internalClient) DeleteProvider(ctx context.Context, req *DeleteProviderRequest, opts ...call.Option) (*DeleteProviderResponse, error) {
+func (c *internalClient) DeleteProvider(ctx context.Context, req DeleteProviderRequest, opts ...call.Option) (*DeleteProviderResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -442,7 +454,11 @@ func (c *internalClient) DeleteProvider(ctx context.Context, req *DeleteProvider
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/providers/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -483,7 +499,7 @@ func (c *internalClient) DeleteProvider(ctx context.Context, req *DeleteProvider
 
 // Deletes the specified recipient from the metastore. The caller must be the
 // owner of the recipient.
-func (c *internalClient) DeleteRecipient(ctx context.Context, req *DeleteRecipientRequest, opts ...call.Option) (*DeleteRecipientResponse, error) {
+func (c *internalClient) DeleteRecipient(ctx context.Context, req DeleteRecipientRequest, opts ...call.Option) (*DeleteRecipientResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -497,7 +513,11 @@ func (c *internalClient) DeleteRecipient(ctx context.Context, req *DeleteRecipie
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/recipients/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -538,7 +558,7 @@ func (c *internalClient) DeleteRecipient(ctx context.Context, req *DeleteRecipie
 
 // Deletes a data object share from the metastore. The caller must be an owner
 // of the share.
-func (c *internalClient) DeleteShare(ctx context.Context, req *DeleteShareRequest, opts ...call.Option) (*DeleteShareResponse, error) {
+func (c *internalClient) DeleteShare(ctx context.Context, req DeleteShareRequest, opts ...call.Option) (*DeleteShareResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -552,7 +572,11 @@ func (c *internalClient) DeleteShare(ctx context.Context, req *DeleteShareReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/shares/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -592,7 +616,7 @@ func (c *internalClient) DeleteShare(ctx context.Context, req *DeleteShareReques
 }
 
 // Gets an activation URL for a share.
-func (c *internalClient) GetActivationUrlInfo(ctx context.Context, req *GetActivationUrlInfoRequest, opts ...call.Option) (*GetActivationUrlInfoResponse, error) {
+func (c *internalClient) GetActivationUrlInfo(ctx context.Context, req GetActivationUrlInfoRequest, opts ...call.Option) (*GetActivationUrlInfoResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -606,7 +630,11 @@ func (c *internalClient) GetActivationUrlInfo(ctx context.Context, req *GetActiv
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/public/data_sharing_activation_info/")
-	pb.singleSegment(*req.ActivationUrl)
+	if req.ActivationUrl == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ActivationUrl)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -648,7 +676,7 @@ func (c *internalClient) GetActivationUrlInfo(ctx context.Context, req *GetActiv
 // Reads an existing federation policy for an OIDC_FEDERATION recipient for
 // sharing data from <Databricks> to non-<Databricks> recipients. The caller
 // must have read access to the recipient.
-func (c *internalClient) GetFederationPolicy(ctx context.Context, req *GetFederationPolicyRequest, opts ...call.Option) (*FederationPolicy, error) {
+func (c *internalClient) GetFederationPolicy(ctx context.Context, req GetFederationPolicyRequest, opts ...call.Option) (*FederationPolicy, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -662,9 +690,17 @@ func (c *internalClient) GetFederationPolicy(ctx context.Context, req *GetFedera
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/data-sharing/recipients/")
-	pb.singleSegment(*req.RecipientName)
+	if req.RecipientName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.RecipientName)
+	}
 	pb.literal("/federation-policies/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -712,7 +748,7 @@ func (c *internalClient) GetFederationPolicy(ctx context.Context, req *GetFedera
 // Gets a specific authentication provider. The caller must supply the name of
 // the provider, and must either be a metastore admin or the owner of the
 // provider.
-func (c *internalClient) GetProvider(ctx context.Context, req *GetProviderRequest, opts ...call.Option) (*ProviderInfo, error) {
+func (c *internalClient) GetProvider(ctx context.Context, req GetProviderRequest, opts ...call.Option) (*ProviderInfo, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -726,7 +762,11 @@ func (c *internalClient) GetProvider(ctx context.Context, req *GetProviderReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/providers/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -774,7 +814,7 @@ func (c *internalClient) GetProvider(ctx context.Context, req *GetProviderReques
 // Gets a share recipient from the metastore. The caller must be one of: * A
 // user with **USE_RECIPIENT** privilege on the metastore * The owner of the
 // share recipient * A metastore admin
-func (c *internalClient) GetRecipient(ctx context.Context, req *GetRecipientRequest, opts ...call.Option) (*RecipientInfo, error) {
+func (c *internalClient) GetRecipient(ctx context.Context, req GetRecipientRequest, opts ...call.Option) (*RecipientInfo, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -788,7 +828,11 @@ func (c *internalClient) GetRecipient(ctx context.Context, req *GetRecipientRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/recipients/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -835,8 +879,8 @@ func (c *internalClient) GetRecipient(ctx context.Context, req *GetRecipientRequ
 
 // Gets a data object share from the metastore. The caller must have the
 // USE_SHARE privilege on the metastore or be the owner of the share.
-func (c *internalClient) GetShare(ctx context.Context, req *GetShareRequest, opts ...call.Option) (*ShareInfo, error) {
-	wireReq, err := getShareRequestToWire(req)
+func (c *internalClient) GetShare(ctx context.Context, req GetShareRequest, opts ...call.Option) (*ShareInfo, error) {
+	wireReq, err := getShareRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -853,7 +897,11 @@ func (c *internalClient) GetShare(ctx context.Context, req *GetShareRequest, opt
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/shares/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_shared_data", wireReq.IncludeSharedData); err != nil {
@@ -904,8 +952,8 @@ func (c *internalClient) GetShare(ctx context.Context, req *GetShareRequest, opt
 // Lists federation policies for an OIDC_FEDERATION recipient for sharing data
 // from <Databricks> to non-<Databricks> recipients. The caller must have read
 // access to the recipient.
-func (c *internalClient) ListFederationPolicies(ctx context.Context, req *ListFederationPoliciesRequest, opts ...call.Option) (*ListFederationPoliciesResponse, error) {
-	wireReq, err := listFederationPoliciesRequestToWire(req)
+func (c *internalClient) ListFederationPolicies(ctx context.Context, req ListFederationPoliciesRequest, opts ...call.Option) (*ListFederationPoliciesResponse, error) {
+	wireReq, err := listFederationPoliciesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -922,7 +970,11 @@ func (c *internalClient) ListFederationPolicies(ctx context.Context, req *ListFe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/data-sharing/recipients/")
-	pb.singleSegment(*req.RecipientName)
+	if req.RecipientName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.RecipientName)
+	}
 	pb.literal("/federation-policies")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -979,7 +1031,7 @@ func (c *internalClient) ListFederationPolicies(ctx context.Context, req *ListFe
 //
 // For example:
 //
-//	for item, err := range c.ListFederationPoliciesIter(ctx, &ListFederationPoliciesRequest{}) {
+//	for item, err := range c.ListFederationPoliciesIter(ctx, ListFederationPoliciesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -991,16 +1043,13 @@ func (c *internalClient) ListFederationPolicies(ctx context.Context, req *ListFe
 //
 // Callers who need custom pagination logic should use
 // ListFederationPolicies directly.
-func (c *internalClient) ListFederationPoliciesIter(ctx context.Context, req *ListFederationPoliciesRequest, opts ...call.Option) iter.Seq2[*FederationPolicy, error] {
+func (c *internalClient) ListFederationPoliciesIter(ctx context.Context, req ListFederationPoliciesRequest, opts ...call.Option) iter.Seq2[*FederationPolicy, error] {
 	return func(yield func(*FederationPolicy, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListFederationPoliciesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListFederationPolicies(ctx, &pageReq, opts...)
+			resp, err := c.ListFederationPolicies(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1020,8 +1069,8 @@ func (c *internalClient) ListFederationPoliciesIter(ctx context.Context, req *Li
 
 // Get arrays of assets associated with a specified provider's share. The caller
 // is the recipient of the share.
-func (c *internalClient) ListProviderShareAssets(ctx context.Context, req *ListProviderShareAssetsRequest, opts ...call.Option) (*ListProviderShareAssetsResponse, error) {
-	wireReq, err := listProviderShareAssetsRequestToWire(req)
+func (c *internalClient) ListProviderShareAssets(ctx context.Context, req ListProviderShareAssetsRequest, opts ...call.Option) (*ListProviderShareAssetsResponse, error) {
+	wireReq, err := listProviderShareAssetsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1038,9 +1087,17 @@ func (c *internalClient) ListProviderShareAssets(ctx context.Context, req *ListP
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/data-sharing/providers/")
-	pb.singleSegment(*req.ProviderNameArg)
+	if req.ProviderNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ProviderNameArg)
+	}
 	pb.literal("/shares/")
-	pb.singleSegment(*req.ShareNameArg)
+	if req.ShareNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ShareNameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "table_max_results", wireReq.TableMaxResults); err != nil {
@@ -1099,8 +1156,8 @@ func (c *internalClient) ListProviderShareAssets(ctx context.Context, req *ListP
 
 // Gets an array of a specified provider's shares within the metastore where: *
 // the caller is a metastore admin, or * the caller is the owner.
-func (c *internalClient) ListProviderShares(ctx context.Context, req *ListProviderSharesRequest, opts ...call.Option) (*ListProviderSharesResponse, error) {
-	wireReq, err := listProviderSharesRequestToWire(req)
+func (c *internalClient) ListProviderShares(ctx context.Context, req ListProviderSharesRequest, opts ...call.Option) (*ListProviderSharesResponse, error) {
+	wireReq, err := listProviderSharesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1117,7 +1174,11 @@ func (c *internalClient) ListProviderShares(ctx context.Context, req *ListProvid
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/providers/")
-	pb.singleSegment(*req.ProviderNameArg)
+	if req.ProviderNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ProviderNameArg)
+	}
 	pb.literal("/shares")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1174,7 +1235,7 @@ func (c *internalClient) ListProviderShares(ctx context.Context, req *ListProvid
 //
 // For example:
 //
-//	for item, err := range c.ListProviderSharesIter(ctx, &ListProviderSharesRequest{}) {
+//	for item, err := range c.ListProviderSharesIter(ctx, ListProviderSharesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1186,16 +1247,13 @@ func (c *internalClient) ListProviderShares(ctx context.Context, req *ListProvid
 //
 // Callers who need custom pagination logic should use
 // ListProviderShares directly.
-func (c *internalClient) ListProviderSharesIter(ctx context.Context, req *ListProviderSharesRequest, opts ...call.Option) iter.Seq2[*ProviderShare, error] {
+func (c *internalClient) ListProviderSharesIter(ctx context.Context, req ListProviderSharesRequest, opts ...call.Option) iter.Seq2[*ProviderShare, error] {
 	return func(yield func(*ProviderShare, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListProviderSharesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListProviderShares(ctx, &pageReq, opts...)
+			resp, err := c.ListProviderShares(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1219,8 +1277,8 @@ func (c *internalClient) ListProviderSharesIter(ctx context.Context, req *ListPr
 // which the caller does not have the **USE_PROVIDER** privilege are not
 // included in the response. There is no guarantee of a specific ordering of the
 // elements in the array.
-func (c *internalClient) ListProviders(ctx context.Context, req *ListProvidersRequest, opts ...call.Option) (*ListProvidersResponse, error) {
-	wireReq, err := listProvidersRequestToWire(req)
+func (c *internalClient) ListProviders(ctx context.Context, req ListProvidersRequest, opts ...call.Option) (*ListProvidersResponse, error) {
+	wireReq, err := listProvidersRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1293,7 +1351,7 @@ func (c *internalClient) ListProviders(ctx context.Context, req *ListProvidersRe
 //
 // For example:
 //
-//	for item, err := range c.ListProvidersIter(ctx, &ListProvidersRequest{}) {
+//	for item, err := range c.ListProvidersIter(ctx, ListProvidersRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1305,16 +1363,13 @@ func (c *internalClient) ListProviders(ctx context.Context, req *ListProvidersRe
 //
 // Callers who need custom pagination logic should use
 // ListProviders directly.
-func (c *internalClient) ListProvidersIter(ctx context.Context, req *ListProvidersRequest, opts ...call.Option) iter.Seq2[*ProviderInfo, error] {
+func (c *internalClient) ListProvidersIter(ctx context.Context, req ListProvidersRequest, opts ...call.Option) iter.Seq2[*ProviderInfo, error] {
 	return func(yield func(*ProviderInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListProvidersRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListProviders(ctx, &pageReq, opts...)
+			resp, err := c.ListProviders(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1335,8 +1390,8 @@ func (c *internalClient) ListProvidersIter(ctx context.Context, req *ListProvide
 // Gets the share permissions for the specified Recipient. The caller must have
 // the **USE_RECIPIENT** privilege on the metastore or be the owner of the
 // Recipient.
-func (c *internalClient) ListRecipientSharePermissions(ctx context.Context, req *ListRecipientSharePermissionsRequest, opts ...call.Option) (*GetRecipientSharePermissionsResponse, error) {
-	wireReq, err := listRecipientSharePermissionsRequestToWire(req)
+func (c *internalClient) ListRecipientSharePermissions(ctx context.Context, req ListRecipientSharePermissionsRequest, opts ...call.Option) (*GetRecipientSharePermissionsResponse, error) {
+	wireReq, err := listRecipientSharePermissionsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1353,7 +1408,11 @@ func (c *internalClient) ListRecipientSharePermissions(ctx context.Context, req 
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/recipients/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/share-permissions")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1408,8 +1467,8 @@ func (c *internalClient) ListRecipientSharePermissions(ctx context.Context, req 
 // Gets an array of all share recipients within the current metastore where: *
 // the caller is a metastore admin, or * the caller is the owner. There is no
 // guarantee of a specific ordering of the elements in the array.
-func (c *internalClient) ListRecipients(ctx context.Context, req *ListRecipientsRequest, opts ...call.Option) (*ListRecipientsResponse, error) {
-	wireReq, err := listRecipientsRequestToWire(req)
+func (c *internalClient) ListRecipients(ctx context.Context, req ListRecipientsRequest, opts ...call.Option) (*ListRecipientsResponse, error) {
+	wireReq, err := listRecipientsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1482,7 +1541,7 @@ func (c *internalClient) ListRecipients(ctx context.Context, req *ListRecipients
 //
 // For example:
 //
-//	for item, err := range c.ListRecipientsIter(ctx, &ListRecipientsRequest{}) {
+//	for item, err := range c.ListRecipientsIter(ctx, ListRecipientsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1494,16 +1553,13 @@ func (c *internalClient) ListRecipients(ctx context.Context, req *ListRecipients
 //
 // Callers who need custom pagination logic should use
 // ListRecipients directly.
-func (c *internalClient) ListRecipientsIter(ctx context.Context, req *ListRecipientsRequest, opts ...call.Option) iter.Seq2[*RecipientInfo, error] {
+func (c *internalClient) ListRecipientsIter(ctx context.Context, req ListRecipientsRequest, opts ...call.Option) iter.Seq2[*RecipientInfo, error] {
 	return func(yield func(*RecipientInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListRecipientsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListRecipients(ctx, &pageReq, opts...)
+			resp, err := c.ListRecipients(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1523,8 +1579,8 @@ func (c *internalClient) ListRecipientsIter(ctx context.Context, req *ListRecipi
 
 // Gets the permissions for a data share from the metastore. The caller must
 // have the USE_SHARE privilege on the metastore or be the owner of the share.
-func (c *internalClient) ListSharePermissions(ctx context.Context, req *ListSharePermissionsRequest, opts ...call.Option) (*GetSharePermissionsResponse, error) {
-	wireReq, err := listSharePermissionsRequestToWire(req)
+func (c *internalClient) ListSharePermissions(ctx context.Context, req ListSharePermissionsRequest, opts ...call.Option) (*GetSharePermissionsResponse, error) {
+	wireReq, err := listSharePermissionsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1541,7 +1597,11 @@ func (c *internalClient) ListSharePermissions(ctx context.Context, req *ListShar
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/shares/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/permissions")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1597,8 +1657,8 @@ func (c *internalClient) ListSharePermissions(ctx context.Context, req *ListShar
 // USE_SHARE privilege on the metastore, all shares are returned. Otherwise,
 // only shares owned by the caller are returned. There is no guarantee of a
 // specific ordering of the elements in the array.
-func (c *internalClient) ListShares(ctx context.Context, req *ListSharesRequest, opts ...call.Option) (*ListSharesResponse, error) {
-	wireReq, err := listSharesRequestToWire(req)
+func (c *internalClient) ListShares(ctx context.Context, req ListSharesRequest, opts ...call.Option) (*ListSharesResponse, error) {
+	wireReq, err := listSharesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1668,7 +1728,7 @@ func (c *internalClient) ListShares(ctx context.Context, req *ListSharesRequest,
 //
 // For example:
 //
-//	for item, err := range c.ListSharesIter(ctx, &ListSharesRequest{}) {
+//	for item, err := range c.ListSharesIter(ctx, ListSharesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1680,16 +1740,13 @@ func (c *internalClient) ListShares(ctx context.Context, req *ListSharesRequest,
 //
 // Callers who need custom pagination logic should use
 // ListShares directly.
-func (c *internalClient) ListSharesIter(ctx context.Context, req *ListSharesRequest, opts ...call.Option) iter.Seq2[*ShareInfo, error] {
+func (c *internalClient) ListSharesIter(ctx context.Context, req ListSharesRequest, opts ...call.Option) iter.Seq2[*ShareInfo, error] {
 	return func(yield func(*ShareInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListSharesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListShares(ctx, &pageReq, opts...)
+			resp, err := c.ListShares(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1709,7 +1766,7 @@ func (c *internalClient) ListSharesIter(ctx context.Context, req *ListSharesRequ
 
 // Retrieve access token with an activation url. This is a public API without
 // any authentication.
-func (c *internalClient) RetrieveAccessToken(ctx context.Context, req *RetrieveTokenRequest, opts ...call.Option) (*RetrieveTokenResponse, error) {
+func (c *internalClient) RetrieveAccessToken(ctx context.Context, req RetrieveTokenRequest, opts ...call.Option) (*RetrieveTokenResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1723,7 +1780,11 @@ func (c *internalClient) RetrieveAccessToken(ctx context.Context, req *RetrieveT
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/public/data_sharing_activation/")
-	pb.singleSegment(*req.ActivationUrl)
+	if req.ActivationUrl == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ActivationUrl)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1770,8 +1831,8 @@ func (c *internalClient) RetrieveAccessToken(ctx context.Context, req *RetrieveT
 
 // Refreshes the specified recipient's delta sharing authentication token with
 // the provided token info. The caller must be the owner of the recipient.
-func (c *internalClient) RotateRecipientToken(ctx context.Context, req *RotateRecipientTokenRequest, opts ...call.Option) (*RecipientInfo, error) {
-	wireReq, err := rotateRecipientTokenRequestToWire(req)
+func (c *internalClient) RotateRecipientToken(ctx context.Context, req RotateRecipientTokenRequest, opts ...call.Option) (*RecipientInfo, error) {
+	wireReq, err := rotateRecipientTokenRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1792,7 +1853,11 @@ func (c *internalClient) RotateRecipientToken(ctx context.Context, req *RotateRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/recipients/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/rotate-token")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1843,8 +1908,8 @@ func (c *internalClient) RotateRecipientToken(ctx context.Context, req *RotateRe
 // metastore admin or is the owner of the provider. If the update changes the
 // provider name, the caller must be both a metastore admin and the owner of the
 // provider.
-func (c *internalClient) UpdateProvider(ctx context.Context, req *UpdateProviderRequest, opts ...call.Option) (*ProviderInfo, error) {
-	wireReq, err := updateProviderRequestToWire(req)
+func (c *internalClient) UpdateProvider(ctx context.Context, req UpdateProviderRequest, opts ...call.Option) (*ProviderInfo, error) {
+	wireReq, err := updateProviderRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1865,7 +1930,11 @@ func (c *internalClient) UpdateProvider(ctx context.Context, req *UpdateProvider
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/providers/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1915,8 +1984,8 @@ func (c *internalClient) UpdateProvider(ctx context.Context, req *UpdateProvider
 // metastore admin or the owner of the recipient. If the recipient name will be
 // updated, the user must be both a metastore admin and the owner of the
 // recipient.
-func (c *internalClient) UpdateRecipient(ctx context.Context, req *UpdateRecipientRequest, opts ...call.Option) (*RecipientInfo, error) {
-	wireReq, err := updateRecipientRequestToWire(req)
+func (c *internalClient) UpdateRecipient(ctx context.Context, req UpdateRecipientRequest, opts ...call.Option) (*RecipientInfo, error) {
+	wireReq, err := updateRecipientRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1937,7 +2006,11 @@ func (c *internalClient) UpdateRecipient(ctx context.Context, req *UpdateRecipie
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/recipients/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1995,8 +2068,8 @@ func (c *internalClient) UpdateRecipient(ctx context.Context, req *UpdateRecipie
 // maintained indefinitely for recipients to be able to access the table.
 // Typically, you should use a group as the share owner. Table removals through
 // **update** do not require additional privileges.
-func (c *internalClient) UpdateShare(ctx context.Context, req *UpdateShareRequest, opts ...call.Option) (*ShareInfo, error) {
-	wireReq, err := updateShareRequestToWire(req)
+func (c *internalClient) UpdateShare(ctx context.Context, req UpdateShareRequest, opts ...call.Option) (*ShareInfo, error) {
+	wireReq, err := updateShareRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2017,7 +2090,11 @@ func (c *internalClient) UpdateShare(ctx context.Context, req *UpdateShareReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/shares/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2069,8 +2146,8 @@ func (c *internalClient) UpdateShare(ctx context.Context, req *UpdateShareReques
 //
 // For new recipient grants, the user must also be the owner of the recipients.
 // recipient revocations do not require additional privileges.
-func (c *internalClient) UpdateSharePermissions(ctx context.Context, req *UpdateSharePermissionsRequest, opts ...call.Option) (*UpdateSharePermissionsResponse, error) {
-	wireReq, err := updateSharePermissionsRequestToWire(req)
+func (c *internalClient) UpdateSharePermissions(ctx context.Context, req UpdateSharePermissionsRequest, opts ...call.Option) (*UpdateSharePermissionsResponse, error) {
+	wireReq, err := updateSharePermissionsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2091,7 +2168,11 @@ func (c *internalClient) UpdateSharePermissions(ctx context.Context, req *Update
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/shares/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/permissions")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}

@@ -80,8 +80,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 //
 // [Account Access Control Proxy API]: https://docs.databricks.com/api/workspace/accountaccesscontrolproxy
 // [Tag Policy Terraform documentation]: https://registry.terraform.io/providers/databricks/databricks/latest/docs/resources/tag_policy
-func (c *internalClient) CreateTagPolicy(ctx context.Context, req *CreateTagPolicyRequest, opts ...call.Option) (*TagPolicy, error) {
-	wireReq, err := createTagPolicyRequestToWire(req)
+func (c *internalClient) CreateTagPolicy(ctx context.Context, req CreateTagPolicyRequest, opts ...call.Option) (*TagPolicy, error) {
+	wireReq, err := createTagPolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +150,7 @@ func (c *internalClient) CreateTagPolicy(ctx context.Context, req *CreateTagPoli
 // documentation].
 //
 // [Tag Policy Terraform documentation]: https://registry.terraform.io/providers/databricks/databricks/latest/docs/resources/tag_policy
-func (c *internalClient) DeleteTagPolicy(ctx context.Context, req *DeleteTagPolicyRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteTagPolicy(ctx context.Context, req DeleteTagPolicyRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -164,7 +164,11 @@ func (c *internalClient) DeleteTagPolicy(ctx context.Context, req *DeleteTagPoli
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/tag-policies/")
-	pb.singleSegment(*req.TagKey)
+	if req.TagKey == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.TagKey)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -206,7 +210,7 @@ func (c *internalClient) DeleteTagPolicy(ctx context.Context, req *DeleteTagPoli
 //
 // [Account Access Control Proxy API]: https://docs.databricks.com/api/workspace/accountaccesscontrolproxy
 // [Tag Policy Terraform documentation]: https://registry.terraform.io/providers/databricks/databricks/latest/docs/data-sources/tag_policy
-func (c *internalClient) GetTagPolicy(ctx context.Context, req *GetTagPolicyRequest, opts ...call.Option) (*TagPolicy, error) {
+func (c *internalClient) GetTagPolicy(ctx context.Context, req GetTagPolicyRequest, opts ...call.Option) (*TagPolicy, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -220,7 +224,11 @@ func (c *internalClient) GetTagPolicy(ctx context.Context, req *GetTagPolicyRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/tag-policies/")
-	pb.singleSegment(*req.TagKey)
+	if req.TagKey == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.TagKey)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -271,8 +279,8 @@ func (c *internalClient) GetTagPolicy(ctx context.Context, req *GetTagPolicyRequ
 //
 // [Account Access Control Proxy API]: https://docs.databricks.com/api/workspace/accountaccesscontrolproxy
 // [Tag Policy Terraform documentation]: https://registry.terraform.io/providers/databricks/databricks/latest/docs/data-sources/tag_policies
-func (c *internalClient) ListTagPolicies(ctx context.Context, req *ListTagPoliciesRequest, opts ...call.Option) (*ListTagPoliciesResponse, error) {
-	wireReq, err := listTagPoliciesRequestToWire(req)
+func (c *internalClient) ListTagPolicies(ctx context.Context, req ListTagPoliciesRequest, opts ...call.Option) (*ListTagPoliciesResponse, error) {
+	wireReq, err := listTagPoliciesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -342,7 +350,7 @@ func (c *internalClient) ListTagPolicies(ctx context.Context, req *ListTagPolici
 //
 // For example:
 //
-//	for item, err := range c.ListTagPoliciesIter(ctx, &ListTagPoliciesRequest{}) {
+//	for item, err := range c.ListTagPoliciesIter(ctx, ListTagPoliciesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -354,16 +362,13 @@ func (c *internalClient) ListTagPolicies(ctx context.Context, req *ListTagPolici
 //
 // Callers who need custom pagination logic should use
 // ListTagPolicies directly.
-func (c *internalClient) ListTagPoliciesIter(ctx context.Context, req *ListTagPoliciesRequest, opts ...call.Option) iter.Seq2[*TagPolicy, error] {
+func (c *internalClient) ListTagPoliciesIter(ctx context.Context, req ListTagPoliciesRequest, opts ...call.Option) iter.Seq2[*TagPolicy, error] {
 	return func(yield func(*TagPolicy, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListTagPoliciesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListTagPolicies(ctx, &pageReq, opts...)
+			resp, err := c.ListTagPolicies(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -387,8 +392,8 @@ func (c *internalClient) ListTagPoliciesIter(ctx context.Context, req *ListTagPo
 //
 // [Account Access Control Proxy API]: https://docs.databricks.com/api/workspace/accountaccesscontrolproxy
 // [Tag Policy Terraform documentation]: https://registry.terraform.io/providers/databricks/databricks/latest/docs/resources/tag_policy
-func (c *internalClient) UpdateTagPolicy(ctx context.Context, req *UpdateTagPolicyRequest, opts ...call.Option) (*TagPolicy, error) {
-	wireReq, err := updateTagPolicyRequestToWire(req)
+func (c *internalClient) UpdateTagPolicy(ctx context.Context, req UpdateTagPolicyRequest, opts ...call.Option) (*TagPolicy, error) {
+	wireReq, err := updateTagPolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -409,7 +414,11 @@ func (c *internalClient) UpdateTagPolicy(ctx context.Context, req *UpdateTagPoli
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/tag-policies/")
-	pb.singleSegment(*req.TagPolicy.TagKey)
+	if req.TagPolicy == nil || req.TagPolicy.TagKey == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.TagPolicy.TagKey)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

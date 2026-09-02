@@ -77,8 +77,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // users the permission to use this instance profile when launching clusters.
 //
 // This API is only available to admin users.
-func (c *internalClient) AddInstanceProfile(ctx context.Context, req *AddInstanceProfileRequest, opts ...call.Option) (*AddInstanceProfileResponse, error) {
-	wireReq, err := addInstanceProfileRequestToWire(req)
+func (c *internalClient) AddInstanceProfile(ctx context.Context, req AddInstanceProfileRequest, opts ...call.Option) (*AddInstanceProfileResponse, error) {
+	wireReq, err := addInstanceProfileRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -148,8 +148,8 @@ func (c *internalClient) AddInstanceProfile(ctx context.Context, req *AddInstanc
 // serverless SQL warehouses](/sql/admin/serverless.html).
 //
 // This API is only available to admin users.
-func (c *internalClient) EditInstanceProfile(ctx context.Context, req *EditInstanceProfileRequest, opts ...call.Option) (*EditInstanceProfileResponse, error) {
-	wireReq, err := editInstanceProfileRequestToWire(req)
+func (c *internalClient) EditInstanceProfile(ctx context.Context, req EditInstanceProfileRequest, opts ...call.Option) (*EditInstanceProfileResponse, error) {
+	wireReq, err := editInstanceProfileRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +210,7 @@ func (c *internalClient) EditInstanceProfile(ctx context.Context, req *EditInsta
 // List the instance profiles that the calling user can use to launch a cluster.
 //
 // This API is available to all users.
-func (c *internalClient) ListInstanceProfiles(ctx context.Context, req *ListInstanceProfilesRequest, opts ...call.Option) (*ListInstanceProfilesResponse, error) {
+func (c *internalClient) ListInstanceProfiles(ctx context.Context, req ListInstanceProfilesRequest, opts ...call.Option) (*ListInstanceProfilesResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -270,8 +270,8 @@ func (c *internalClient) ListInstanceProfiles(ctx context.Context, req *ListInst
 // this instance profile will continue to function.
 //
 // This API is only accessible to admin users.
-func (c *internalClient) RemoveInstanceProfile(ctx context.Context, req *RemoveInstanceProfileRequest, opts ...call.Option) (*RemoveInstanceProfileResponse, error) {
-	wireReq, err := removeInstanceProfileRequestToWire(req)
+func (c *internalClient) RemoveInstanceProfile(ctx context.Context, req RemoveInstanceProfileRequest, opts ...call.Option) (*RemoveInstanceProfileResponse, error) {
+	wireReq, err := removeInstanceProfileRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}

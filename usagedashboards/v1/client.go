@@ -76,8 +76,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // Create a usage dashboard specified by workspaceId, accountId, and dashboard
 // type.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateBillingUsageDashboard(ctx context.Context, req *CreateBillingUsageDashboardRequest, opts ...call.Option) (*CreateBillingUsageDashboardResponse, error) {
-	wireReq, err := createBillingUsageDashboardRequestToWire(req)
+func (c *internalClient) CreateBillingUsageDashboard(ctx context.Context, req CreateBillingUsageDashboardRequest, opts ...call.Option) (*CreateBillingUsageDashboardResponse, error) {
+	wireReq, err := createBillingUsageDashboardRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -149,8 +149,8 @@ func (c *internalClient) CreateBillingUsageDashboard(ctx context.Context, req *C
 // Get a usage dashboard specified by workspaceId, accountId, and dashboard
 // type.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetBillingUsageDashboard(ctx context.Context, req *GetBillingUsageDashboardRequest, opts ...call.Option) (*GetBillingUsageDashboardResponse, error) {
-	wireReq, err := getBillingUsageDashboardRequestToWire(req)
+func (c *internalClient) GetBillingUsageDashboard(ctx context.Context, req GetBillingUsageDashboardRequest, opts ...call.Option) (*GetBillingUsageDashboardResponse, error) {
+	wireReq, err := getBillingUsageDashboardRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}

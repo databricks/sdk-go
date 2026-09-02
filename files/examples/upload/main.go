@@ -46,7 +46,7 @@ func main() {
 	fmt.Printf("Uploaded %d bytes to %s\n", len(payload), remotePath)
 
 	// Download the payload from the remote path.
-	resp, err := c.DownloadFile(ctx, &files.DownloadFileRequest{FilePath: new(remotePath)})
+	resp, err := c.DownloadFile(ctx, files.DownloadFileRequest{FilePath: new(remotePath)})
 	if err != nil {
 		log.Fatalf("DownloadFile: %v", err)
 	}

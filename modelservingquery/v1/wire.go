@@ -3,9 +3,54 @@
 package modelservingquery
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type chatMessageWire struct {
 	Role    ChatMessageRole `json:"role,omitempty"`
@@ -140,7 +185,7 @@ type queryEndpointResponseWire struct {
 	Model       *string                                    `json:"model,omitempty"`
 	Usage       *externalModelUsageElementWire             `json:"usage,omitempty"`
 	Id          *string                                    `json:"id,omitempty"`
-	Created     *int64                                     `json:"created,omitempty"`
+	Created     *wireInt64                                 `json:"created,omitempty"`
 	Object      QueryEndpointResponseObject                `json:"object,omitempty"`
 	Predictions []json.RawMessage                          `json:"predictions,omitempty"`
 	Outputs     []json.RawMessage                          `json:"outputs,omitempty"`
@@ -162,13 +207,17 @@ func queryEndpointResponseFromWire(w *queryEndpointResponseWire) (*QueryEndpoint
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "QueryEndpointResponse.Usage", err)
 	}
+	createdPublicValue, err := int64FromWire(w.Created)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryEndpointResponse.Created", err)
+	}
 	return &QueryEndpointResponse{
 		Choices:     choicesPublicValue,
 		Data:        dataPublicValue,
 		Model:       w.Model,
 		Usage:       usagePublicValue,
 		Id:          w.Id,
-		Created:     w.Created,
+		Created:     createdPublicValue,
 		Object:      w.Object,
 		Predictions: w.Predictions,
 		Outputs:     w.Outputs,

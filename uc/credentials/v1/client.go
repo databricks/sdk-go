@@ -82,8 +82,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // The caller must be a metastore admin and have the `CREATE_STORAGE_CREDENTIAL`
 // privilege on the metastore.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateAccountsStorageCredential(ctx context.Context, req *AccountsCreateStorageCredentialRequest, opts ...call.Option) (*AccountsCreateStorageCredentialResponse, error) {
-	wireReq, err := accountsCreateStorageCredentialRequestToWire(req)
+func (c *internalClient) CreateAccountsStorageCredential(ctx context.Context, req AccountsCreateStorageCredentialRequest, opts ...call.Option) (*AccountsCreateStorageCredentialResponse, error) {
+	wireReq, err := accountsCreateStorageCredentialRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +107,11 @@ func (c *internalClient) CreateAccountsStorageCredential(ctx context.Context, re
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/metastores/")
-	pb.singleSegment(*req.MetastoreId)
+	if req.MetastoreId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MetastoreId)
+	}
 	pb.literal("/storage-credentials")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -157,8 +161,8 @@ func (c *internalClient) CreateAccountsStorageCredential(ctx context.Context, re
 // Deletes a storage credential from the metastore. The caller must be an owner
 // of the storage credential.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteAccountsStorageCredential(ctx context.Context, req *AccountsDeleteStorageCredentialRequest, opts ...call.Option) (*AccountsDeleteStorageCredentialResponse, error) {
-	wireReq, err := accountsDeleteStorageCredentialRequestToWire(req)
+func (c *internalClient) DeleteAccountsStorageCredential(ctx context.Context, req AccountsDeleteStorageCredentialRequest, opts ...call.Option) (*AccountsDeleteStorageCredentialResponse, error) {
+	wireReq, err := accountsDeleteStorageCredentialRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -178,9 +182,17 @@ func (c *internalClient) DeleteAccountsStorageCredential(ctx context.Context, re
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/metastores/")
-	pb.singleSegment(*req.MetastoreId)
+	if req.MetastoreId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MetastoreId)
+	}
 	pb.literal("/storage-credentials/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -226,7 +238,7 @@ func (c *internalClient) DeleteAccountsStorageCredential(ctx context.Context, re
 // admin, the owner of the storage credential, or have a level of privilege on
 // the storage credential.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetAccountsStorageCredential(ctx context.Context, req *AccountsGetStorageCredentialRequest, opts ...call.Option) (*AccountsGetStorageCredentialResponse, error) {
+func (c *internalClient) GetAccountsStorageCredential(ctx context.Context, req AccountsGetStorageCredentialRequest, opts ...call.Option) (*AccountsGetStorageCredentialResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -243,9 +255,17 @@ func (c *internalClient) GetAccountsStorageCredential(ctx context.Context, req *
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/metastores/")
-	pb.singleSegment(*req.MetastoreId)
+	if req.MetastoreId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MetastoreId)
+	}
 	pb.literal("/storage-credentials/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -293,7 +313,7 @@ func (c *internalClient) GetAccountsStorageCredential(ctx context.Context, req *
 // Gets a list of all storage credentials that have been assigned to given
 // metastore.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListAccountsStorageCredentials(ctx context.Context, req *AccountsListStorageCredentialsRequest, opts ...call.Option) (*AccountsListStorageCredentialsResponse, error) {
+func (c *internalClient) ListAccountsStorageCredentials(ctx context.Context, req AccountsListStorageCredentialsRequest, opts ...call.Option) (*AccountsListStorageCredentialsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -310,7 +330,11 @@ func (c *internalClient) ListAccountsStorageCredentials(ctx context.Context, req
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/metastores/")
-	pb.singleSegment(*req.MetastoreId)
+	if req.MetastoreId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MetastoreId)
+	}
 	pb.literal("/storage-credentials")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -360,8 +384,8 @@ func (c *internalClient) ListAccountsStorageCredentials(ctx context.Context, req
 // of the storage credential. If the caller is a metastore admin, only the
 // **owner** credential can be changed.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) UpdateAccountsStorageCredential(ctx context.Context, req *AccountsUpdateStorageCredentialRequest, opts ...call.Option) (*AccountsUpdateStorageCredentialResponse, error) {
-	wireReq, err := accountsUpdateStorageCredentialRequestToWire(req)
+func (c *internalClient) UpdateAccountsStorageCredential(ctx context.Context, req AccountsUpdateStorageCredentialRequest, opts ...call.Option) (*AccountsUpdateStorageCredentialResponse, error) {
+	wireReq, err := accountsUpdateStorageCredentialRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -385,9 +409,17 @@ func (c *internalClient) UpdateAccountsStorageCredential(ctx context.Context, re
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/metastores/")
-	pb.singleSegment(*req.MetastoreId)
+	if req.MetastoreId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MetastoreId)
+	}
 	pb.literal("/storage-credentials/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -439,8 +471,8 @@ func (c *internalClient) UpdateAccountsStorageCredential(ctx context.Context, re
 // The caller must be a metastore admin or have the metastore privilege
 // **CREATE_STORAGE_CREDENTIAL** for storage credentials, or
 // **CREATE_SERVICE_CREDENTIAL** for service credentials.
-func (c *internalClient) CreateCredential(ctx context.Context, req *CreateCredentialRequest, opts ...call.Option) (*StorageCredentialInfo, error) {
-	wireReq, err := createCredentialRequestToWire(req)
+func (c *internalClient) CreateCredential(ctx context.Context, req CreateCredentialRequest, opts ...call.Option) (*StorageCredentialInfo, error) {
+	wireReq, err := createCredentialRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -508,8 +540,8 @@ func (c *internalClient) CreateCredential(ctx context.Context, req *CreateCreden
 //
 // The caller must be a metastore admin or have the
 // **CREATE_STORAGE_CREDENTIAL** privilege on the metastore.
-func (c *internalClient) CreateStorageCredential(ctx context.Context, req *CreateStorageCredentialRequest, opts ...call.Option) (*StorageCredentialInfo, error) {
-	wireReq, err := createStorageCredentialRequestToWire(req)
+func (c *internalClient) CreateStorageCredential(ctx context.Context, req CreateStorageCredentialRequest, opts ...call.Option) (*StorageCredentialInfo, error) {
+	wireReq, err := createStorageCredentialRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -575,8 +607,8 @@ func (c *internalClient) CreateStorageCredential(ctx context.Context, req *Creat
 
 // Deletes a service or storage credential from the metastore. The caller must
 // be an owner of the credential.
-func (c *internalClient) DeleteCredential(ctx context.Context, req *DeleteCredentialRequest, opts ...call.Option) (*DeleteCredentialResponse, error) {
-	wireReq, err := deleteCredentialRequestToWire(req)
+func (c *internalClient) DeleteCredential(ctx context.Context, req DeleteCredentialRequest, opts ...call.Option) (*DeleteCredentialResponse, error) {
+	wireReq, err := deleteCredentialRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -593,7 +625,11 @@ func (c *internalClient) DeleteCredential(ctx context.Context, req *DeleteCreden
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/credentials/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -637,8 +673,8 @@ func (c *internalClient) DeleteCredential(ctx context.Context, req *DeleteCreden
 
 // Deletes a storage credential from the metastore. The caller must be an owner
 // of the storage credential.
-func (c *internalClient) DeleteStorageCredential(ctx context.Context, req *DeleteStorageCredentialRequest, opts ...call.Option) (*DeleteStorageCredentialResponse, error) {
-	wireReq, err := deleteStorageCredentialRequestToWire(req)
+func (c *internalClient) DeleteStorageCredential(ctx context.Context, req DeleteStorageCredentialRequest, opts ...call.Option) (*DeleteStorageCredentialResponse, error) {
+	wireReq, err := deleteStorageCredentialRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -655,7 +691,11 @@ func (c *internalClient) DeleteStorageCredential(ctx context.Context, req *Delet
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/storage-credentials/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -707,8 +747,8 @@ func (c *internalClient) DeleteStorageCredential(ctx context.Context, req *Delet
 // owners. For requests on existing external tables, the caller must also have
 // the **EXTERNAL_USE_SCHEMA** privilege on the parent schema; this privilege
 // can only be granted by catalog owners.
-func (c *internalClient) GenerateTemporaryPathCredential(ctx context.Context, req *GenerateTemporaryPathCredentialRequest, opts ...call.Option) (*GenerateTemporaryPathCredentialResponse, error) {
-	wireReq, err := generateTemporaryPathCredentialRequestToWire(req)
+func (c *internalClient) GenerateTemporaryPathCredential(ctx context.Context, req GenerateTemporaryPathCredentialRequest, opts ...call.Option) (*GenerateTemporaryPathCredentialResponse, error) {
+	wireReq, err := generateTemporaryPathCredentialRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -775,8 +815,8 @@ func (c *internalClient) GenerateTemporaryPathCredential(ctx context.Context, re
 // Returns a set of temporary credentials generated using the specified service
 // credential. The caller must be a metastore admin or have the metastore
 // privilege **ACCESS** on the service credential.
-func (c *internalClient) GenerateTemporaryServiceCredential(ctx context.Context, req *GenerateTemporaryServiceCredentialRequest, opts ...call.Option) (*TemporaryCredentials, error) {
-	wireReq, err := generateTemporaryServiceCredentialRequestToWire(req)
+func (c *internalClient) GenerateTemporaryServiceCredential(ctx context.Context, req GenerateTemporaryServiceCredentialRequest, opts ...call.Option) (*TemporaryCredentials, error) {
+	wireReq, err := generateTemporaryServiceCredentialRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -845,8 +885,8 @@ func (c *internalClient) GenerateTemporaryServiceCredential(ctx context.Context,
 // (default false). The caller must have the **EXTERNAL_USE_SCHEMA** privilege
 // on the parent schema and this privilege can only be granted by catalog
 // owners.
-func (c *internalClient) GenerateTemporaryTableCredential(ctx context.Context, req *GenerateTemporaryTableCredentialRequest, opts ...call.Option) (*GenerateTemporaryTableCredentialResponse, error) {
-	wireReq, err := generateTemporaryTableCredentialRequestToWire(req)
+func (c *internalClient) GenerateTemporaryTableCredential(ctx context.Context, req GenerateTemporaryTableCredentialRequest, opts ...call.Option) (*GenerateTemporaryTableCredentialResponse, error) {
+	wireReq, err := generateTemporaryTableCredentialRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -915,8 +955,8 @@ func (c *internalClient) GenerateTemporaryTableCredential(ctx context.Context, r
 // (default false). The caller must have the **EXTERNAL_USE_SCHEMA** privilege
 // on the parent schema and this privilege can only be granted by catalog
 // owners.
-func (c *internalClient) GenerateTemporaryVolumeCredential(ctx context.Context, req *GenerateTemporaryVolumeCredentialRequest, opts ...call.Option) (*GenerateTemporaryVolumeCredentialResponse, error) {
-	wireReq, err := generateTemporaryVolumeCredentialRequestToWire(req)
+func (c *internalClient) GenerateTemporaryVolumeCredential(ctx context.Context, req GenerateTemporaryVolumeCredentialRequest, opts ...call.Option) (*GenerateTemporaryVolumeCredentialResponse, error) {
+	wireReq, err := generateTemporaryVolumeCredentialRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -983,7 +1023,7 @@ func (c *internalClient) GenerateTemporaryVolumeCredential(ctx context.Context, 
 // Gets a service or storage credential from the metastore. The caller must be a
 // metastore admin, the owner of the credential, or have any permission on the
 // credential.
-func (c *internalClient) GetCredential(ctx context.Context, req *GetCredentialRequest, opts ...call.Option) (*StorageCredentialInfo, error) {
+func (c *internalClient) GetCredential(ctx context.Context, req GetCredentialRequest, opts ...call.Option) (*StorageCredentialInfo, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -997,7 +1037,11 @@ func (c *internalClient) GetCredential(ctx context.Context, req *GetCredentialRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/credentials/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1045,7 +1089,7 @@ func (c *internalClient) GetCredential(ctx context.Context, req *GetCredentialRe
 // Gets a storage credential from the metastore. The caller must be a metastore
 // admin, the owner of the storage credential, or have some permission on the
 // storage credential.
-func (c *internalClient) GetStorageCredential(ctx context.Context, req *GetStorageCredentialRequest, opts ...call.Option) (*StorageCredentialInfo, error) {
+func (c *internalClient) GetStorageCredential(ctx context.Context, req GetStorageCredentialRequest, opts ...call.Option) (*StorageCredentialInfo, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1059,7 +1103,11 @@ func (c *internalClient) GetStorageCredential(ctx context.Context, req *GetStora
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/storage-credentials/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1115,8 +1163,8 @@ func (c *internalClient) GetStorageCredential(ctx context.Context, req *GetStora
 // results while still providing a next_page_token. Clients must continue
 // reading pages until next_page_token is absent, which is the only indication
 // that the end of results has been reached.
-func (c *internalClient) ListCredentials(ctx context.Context, req *ListCredentialsRequest, opts ...call.Option) (*ListCredentialsRequest_Response, error) {
-	wireReq, err := listCredentialsRequestToWire(req)
+func (c *internalClient) ListCredentials(ctx context.Context, req ListCredentialsRequest, opts ...call.Option) (*ListCredentialsRequest_Response, error) {
+	wireReq, err := listCredentialsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1189,7 +1237,7 @@ func (c *internalClient) ListCredentials(ctx context.Context, req *ListCredentia
 //
 // For example:
 //
-//	for item, err := range c.ListCredentialsIter(ctx, &ListCredentialsRequest{}) {
+//	for item, err := range c.ListCredentialsIter(ctx, ListCredentialsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1201,16 +1249,13 @@ func (c *internalClient) ListCredentials(ctx context.Context, req *ListCredentia
 //
 // Callers who need custom pagination logic should use
 // ListCredentials directly.
-func (c *internalClient) ListCredentialsIter(ctx context.Context, req *ListCredentialsRequest, opts ...call.Option) iter.Seq2[*CredentialInfo, error] {
+func (c *internalClient) ListCredentialsIter(ctx context.Context, req ListCredentialsRequest, opts ...call.Option) iter.Seq2[*CredentialInfo, error] {
 	return func(yield func(*CredentialInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListCredentialsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListCredentials(ctx, &pageReq, opts...)
+			resp, err := c.ListCredentials(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1241,8 +1286,8 @@ func (c *internalClient) ListCredentialsIter(ctx context.Context, req *ListCrede
 // contain zero results while still providing a next_page_token. Clients must
 // continue reading pages until next_page_token is absent, which is the only
 // indication that the end of results has been reached.
-func (c *internalClient) ListStorageCredentials(ctx context.Context, req *ListStorageCredentialsRequest, opts ...call.Option) (*ListStorageCredentialsResponse, error) {
-	wireReq, err := listStorageCredentialsRequestToWire(req)
+func (c *internalClient) ListStorageCredentials(ctx context.Context, req ListStorageCredentialsRequest, opts ...call.Option) (*ListStorageCredentialsResponse, error) {
+	wireReq, err := listStorageCredentialsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1315,7 +1360,7 @@ func (c *internalClient) ListStorageCredentials(ctx context.Context, req *ListSt
 //
 // For example:
 //
-//	for item, err := range c.ListStorageCredentialsIter(ctx, &ListStorageCredentialsRequest{}) {
+//	for item, err := range c.ListStorageCredentialsIter(ctx, ListStorageCredentialsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1327,16 +1372,13 @@ func (c *internalClient) ListStorageCredentials(ctx context.Context, req *ListSt
 //
 // Callers who need custom pagination logic should use
 // ListStorageCredentials directly.
-func (c *internalClient) ListStorageCredentialsIter(ctx context.Context, req *ListStorageCredentialsRequest, opts ...call.Option) iter.Seq2[*StorageCredentialInfo, error] {
+func (c *internalClient) ListStorageCredentialsIter(ctx context.Context, req ListStorageCredentialsRequest, opts ...call.Option) iter.Seq2[*StorageCredentialInfo, error] {
 	return func(yield func(*StorageCredentialInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListStorageCredentialsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListStorageCredentials(ctx, &pageReq, opts...)
+			resp, err := c.ListStorageCredentials(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1359,8 +1401,8 @@ func (c *internalClient) ListStorageCredentialsIter(ctx context.Context, req *Li
 // The caller must be the owner of the credential or a metastore admin or have
 // the `MANAGE` permission. If the caller is a metastore admin, only the
 // __owner__ field can be changed.
-func (c *internalClient) UpdateCredential(ctx context.Context, req *UpdateCredentialRequest, opts ...call.Option) (*StorageCredentialInfo, error) {
-	wireReq, err := updateCredentialRequestToWire(req)
+func (c *internalClient) UpdateCredential(ctx context.Context, req UpdateCredentialRequest, opts ...call.Option) (*StorageCredentialInfo, error) {
+	wireReq, err := updateCredentialRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1381,7 +1423,11 @@ func (c *internalClient) UpdateCredential(ctx context.Context, req *UpdateCreden
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/credentials/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1431,8 +1477,8 @@ func (c *internalClient) UpdateCredential(ctx context.Context, req *UpdateCreden
 //
 // The caller must be the owner of the storage credential or a metastore admin.
 // If the caller is a metastore admin, only the **owner** field can be changed.
-func (c *internalClient) UpdateStorageCredential(ctx context.Context, req *UpdateStorageCredentialRequest, opts ...call.Option) (*StorageCredentialInfo, error) {
-	wireReq, err := updateStorageCredentialRequestToWire(req)
+func (c *internalClient) UpdateStorageCredential(ctx context.Context, req UpdateStorageCredentialRequest, opts ...call.Option) (*StorageCredentialInfo, error) {
+	wireReq, err := updateStorageCredentialRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1453,7 +1499,11 @@ func (c *internalClient) UpdateStorageCredential(ctx context.Context, req *Updat
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/storage-credentials/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1514,8 +1564,8 @@ func (c *internalClient) UpdateStorageCredential(ctx context.Context, req *Updat
 // The caller must be a metastore admin or the credential owner or have the
 // required permission on the metastore and the credential (e.g.,
 // **CREATE_EXTERNAL_LOCATION** when purpose is **STORAGE**).
-func (c *internalClient) ValidateCredential(ctx context.Context, req *ValidateCredentialRequest, opts ...call.Option) (*ValidateCredentialResponse, error) {
-	wireReq, err := validateCredentialRequestToWire(req)
+func (c *internalClient) ValidateCredential(ctx context.Context, req ValidateCredentialRequest, opts ...call.Option) (*ValidateCredentialResponse, error) {
+	wireReq, err := validateCredentialRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1591,8 +1641,8 @@ func (c *internalClient) ValidateCredential(ctx context.Context, req *ValidateCr
 // The caller must be a metastore admin or the storage credential owner or have
 // the **CREATE_EXTERNAL_LOCATION** privilege on the metastore and the storage
 // credential.
-func (c *internalClient) ValidateStorageCredential(ctx context.Context, req *ValidateStorageCredentialRequest, opts ...call.Option) (*ValidateStorageCredentialResponse, error) {
-	wireReq, err := validateStorageCredentialRequestToWire(req)
+func (c *internalClient) ValidateStorageCredential(ctx context.Context, req ValidateStorageCredentialRequest, opts ...call.Option) (*ValidateStorageCredentialResponse, error) {
+	wireReq, err := validateStorageCredentialRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1671,8 +1721,8 @@ func (c *internalClient) ValidateStorageCredential(ctx context.Context, req *Val
 //
 // [Create a new workspace using the Account API]: http://docs.databricks.com/administration-guide/account-api/new-workspace.html
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateCredentialsPublic(ctx context.Context, req *CreateCredentialsRequest, opts ...call.Option) (*Credentials, error) {
-	wireReq, err := createCredentialsRequestToWire(req)
+func (c *internalClient) CreateCredentialsPublic(ctx context.Context, req CreateCredentialsRequest, opts ...call.Option) (*Credentials, error) {
+	wireReq, err := createCredentialsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1745,7 +1795,7 @@ func (c *internalClient) CreateCredentialsPublic(ctx context.Context, req *Creat
 // specified by ID. You cannot delete a credential that is associated with any
 // workspace.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteCredentialsPublic(ctx context.Context, req *DeleteCredentialsRequest, opts ...call.Option) (*Credentials, error) {
+func (c *internalClient) DeleteCredentialsPublic(ctx context.Context, req DeleteCredentialsRequest, opts ...call.Option) (*Credentials, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1762,7 +1812,11 @@ func (c *internalClient) DeleteCredentialsPublic(ctx context.Context, req *Delet
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/credentials/")
-	pb.singleSegment(*req.CredentialsId)
+	if req.CredentialsId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CredentialsId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1810,7 +1864,7 @@ func (c *internalClient) DeleteCredentialsPublic(ctx context.Context, req *Delet
 // Gets a <Databricks> credential configuration object for an account, both
 // specified by ID.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetCredentialsPublic(ctx context.Context, req *GetCredentialsRequest, opts ...call.Option) (*Credentials, error) {
+func (c *internalClient) GetCredentialsPublic(ctx context.Context, req GetCredentialsRequest, opts ...call.Option) (*Credentials, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1827,7 +1881,11 @@ func (c *internalClient) GetCredentialsPublic(ctx context.Context, req *GetCrede
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/credentials/")
-	pb.singleSegment(*req.CredentialsId)
+	if req.CredentialsId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CredentialsId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1875,7 +1933,7 @@ func (c *internalClient) GetCredentialsPublic(ctx context.Context, req *GetCrede
 // List <Databricks> credential configuration objects for an account, specified
 // by ID.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListCredentialsPublic(ctx context.Context, req *ListCredentialsPublicRequest, opts ...call.Option) (*ListCredentialsResponse, error) {
+func (c *internalClient) ListCredentialsPublic(ctx context.Context, req ListCredentialsPublicRequest, opts ...call.Option) (*ListCredentialsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")

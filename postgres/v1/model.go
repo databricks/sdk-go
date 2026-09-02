@@ -28,6 +28,27 @@ const (
 	CdfState_CdfStateSkipped CdfState = "CDF_STATE_SKIPPED"
 )
 
+// The day of the week on which a weekly snapshot is taken.
+type DayOfWeek string
+
+const (
+	DayOfWeek_Unspecified DayOfWeek = ""
+	// Monday.
+	DayOfWeek_Monday DayOfWeek = "MONDAY"
+	// Tuesday.
+	DayOfWeek_Tuesday DayOfWeek = "TUESDAY"
+	// Wednesday.
+	DayOfWeek_Wednesday DayOfWeek = "WEDNESDAY"
+	// Thursday.
+	DayOfWeek_Thursday DayOfWeek = "THURSDAY"
+	// Friday.
+	DayOfWeek_Friday DayOfWeek = "FRIDAY"
+	// Saturday.
+	DayOfWeek_Saturday DayOfWeek = "SATURDAY"
+	// Sunday.
+	DayOfWeek_Sunday DayOfWeek = "SUNDAY"
+)
+
 // The compute endpoint type. Either `read_write` or `read_only`.
 type EndpointType string
 
@@ -706,7 +727,13 @@ type BranchSpec struct {
 	//
 	// When updating this field, use "spec.expiration" in the update_mask.
 	Expiration isBranchSpec_Expiration
-	_          [0]branchSpecExpirationFieldMaskMetadata `fieldmask_oneof:"Expiration"`
+	// The snapshot this branch was created from. When set, the branch's data comes
+	// from the snapshot rather than a source branch, so source_branch,
+	// source_branch_lsn, and source_branch_time must be empty. The snapshot must be
+	// AVAILABLE and belong to this branch's project. Format:
+	// projects/{project_id}/snapshots/{snapshot_id}
+	SourceSnapshot *string                                  `fieldmask:"source_snapshot"`
+	_              [0]branchSpecExpirationFieldMaskMetadata `fieldmask_oneof:"Expiration"`
 }
 
 type isBranchSpec_Expiration interface {
@@ -782,6 +809,10 @@ type BranchStatus struct {
 	// A timestamp indicating when the branch is scheduled to be purged. Empty if
 	// the branch is not deleted, otherwise set to a timestamp in the future.
 	PurgeTime *types.Time `fieldmask:"purge_time"`
+	// The snapshot this branch was restored from. Set only for branches created by
+	// restoring a snapshot; unset for all other branches. Format:
+	// projects/{project_id}/snapshots/{snapshot_id}
+	SourceSnapshot *string `fieldmask:"source_snapshot"`
 }
 
 type Catalog struct {
@@ -1023,6 +1054,16 @@ type CreateRoleRequest struct {
 	ReplaceExisting *bool
 }
 
+type CreateSnapshotRequest struct {
+	// The project in which to create the snapshot. Format: projects/{project_id}
+	Parent *string
+	// The snapshot to create.
+	Snapshot *Snapshot
+	// Client-chosen ID for the snapshot. It becomes the final segment of the
+	// snapshot resource name and cannot be changed after creation.
+	SnapshotId *string
+}
+
 // Establish a synchronisation to the Postgres database for Reverse ETL for the
 // source table selected from the Unity Catalog..
 type CreateSyncedTableRequest struct {
@@ -1040,6 +1081,12 @@ type CreateSyncedTableRequest struct {
 	// in the connected Postgres database
 	SyncedTableId *string
 	SyncedTable   *SyncedTable
+}
+
+// Take a snapshot once per day, at the configured hour..
+type DailySchedule struct {
+	// The hour of the day, in UTC, at which to take the snapshot, in [0, 23].
+	Hour *int
 }
 
 // DataApi represents the Data API (PostgREST) configuration for a Database. At
@@ -1241,6 +1288,12 @@ type DeleteRoleRequest struct {
 	// NOTE: setting this requires spinning up a compute to succeed, since it
 	// involves running SQL queries.
 	ReassignOwnedTo *string
+}
+
+type DeleteSnapshotRequest struct {
+	// The resource name of the snapshot to delete. Format:
+	// projects/{project_id}/snapshots/{snapshot_id}
+	Name *string
 }
 
 type DeleteSyncedTableRequest struct {
@@ -1526,6 +1579,19 @@ type GetRoleRequest struct {
 	Name *string
 }
 
+type GetSnapshotRequest struct {
+	// The resource name of the snapshot to retrieve. Format:
+	// projects/{project_id}/snapshots/{snapshot_id}
+	Name *string
+}
+
+// Request to retrieve the snapshot schedule for a branch..
+type GetSnapshotScheduleRequest struct {
+	// The resource name of the branch's snapshot schedule. Format:
+	// projects/{project_id}/branches/{branch_id}/snapshot-schedule
+	Name *string
+}
+
 type GetSyncedTableRequest struct {
 	// The Full resource name of the synced table. Format:
 	// "synced_tables/{catalog}.{schema}.{table}", where (catalog, schema, table)
@@ -1715,6 +1781,32 @@ type ListRolesResponse struct {
 	Roles []Role
 	// Token to request the next page of Postgres roles.
 	NextPageToken *string
+}
+
+type ListSnapshotsRequest struct {
+	// The project that owns the snapshots. Format: projects/{project_id}
+	Parent *string
+	// Page token from a previous response; omit for the first page.
+	PageToken *string
+	// Maximum number of snapshots to return per page.
+	PageSize *int
+}
+
+type ListSnapshotsResponse struct {
+	// The snapshots in the project.
+	Snapshots []Snapshot
+	// Token to retrieve the next page; empty if there are no more pages.
+	NextPageToken *string
+}
+
+// Take a snapshot once per month, on the configured day at the configured hour..
+type MonthlySchedule struct {
+	// The day of the month on which to take the snapshot, in [1, 31]. In shorter
+	// months the snapshot is taken on the last day instead (day 31 runs on Feb 28
+	// or 29, and on Apr 30), so every month gets exactly one snapshot.
+	Day *int
+	// The hour of the day, in UTC, at which to take the snapshot, in [0, 23].
+	Hour *int
 }
 
 type NewPipelineSpec struct {
@@ -2050,6 +2142,187 @@ type Role_RoleStatus struct {
 type RoleOperationMetadata struct {
 }
 
+// One cadence at which automatic snapshots are taken..
+type ScheduleCadence struct {
+	// The recurrence pattern. Exactly one arm must be set; an unset cadence is
+	// rejected with INVALID_PARAMETER_VALUE.
+	Schedule isScheduleCadence_Schedule
+	// How long snapshots from this cadence are kept before automatic deletion. Must
+	// be at least 1 hour. Applied when a snapshot is taken; not retroactive, so
+	// changing it affects only later snapshots.
+	Retention *types.Duration
+}
+
+type isScheduleCadence_Schedule interface {
+	isScheduleCadence_Schedule()
+}
+
+// ScheduleCadence_Schedule_DailySchedule selects DailySchedule for ScheduleCadence.Schedule.
+// Take a snapshot once per day.
+type ScheduleCadence_Schedule_DailySchedule struct {
+	DailySchedule DailySchedule
+}
+
+func (*ScheduleCadence_Schedule_DailySchedule) isScheduleCadence_Schedule() {}
+
+// ScheduleCadence_Schedule_WeeklySchedule selects WeeklySchedule for ScheduleCadence.Schedule.
+// Take a snapshot once per week.
+type ScheduleCadence_Schedule_WeeklySchedule struct {
+	WeeklySchedule WeeklySchedule
+}
+
+func (*ScheduleCadence_Schedule_WeeklySchedule) isScheduleCadence_Schedule() {}
+
+// ScheduleCadence_Schedule_MonthlySchedule selects MonthlySchedule for ScheduleCadence.Schedule.
+// Take a snapshot once per month.
+type ScheduleCadence_Schedule_MonthlySchedule struct {
+	MonthlySchedule MonthlySchedule
+}
+
+func (*ScheduleCadence_Schedule_MonthlySchedule) isScheduleCadence_Schedule() {}
+
+// An immutable, point-in-time copy of a branch's data within a project. It
+// remains available after the source branch is deleted..
+type Snapshot struct {
+	// The resource name of the snapshot. Format:
+	// projects/{project_id}/snapshots/{snapshot_id}
+	Name *string
+	// Unique system-generated ID for the snapshot.
+	Uid *string
+	// When the snapshot was created.
+	CreateTime *types.Time
+	// Client-provided configuration of the snapshot.
+	Spec *SnapshotSpec
+	// Server-observed state of the snapshot.
+	Status *SnapshotStatus
+	// The user-chosen ID; the final segment of `name`.
+	SnapshotId *string
+}
+
+// Metadata for the long-running snapshot Create and Delete operations..
+type SnapshotOperationMetadata struct {
+}
+
+// The automatic snapshot cadences for a branch. There is exactly one schedule
+// per branch (singleton); it is configured in place, not created or deleted.
+//
+// Name: projects/{project_id}/branches/{branch_id}/snapshot-schedule.
+type SnapshotSchedule struct {
+	// The resource name of the branch's snapshot schedule. Format:
+	// projects/{project_id}/branches/{branch_id}/snapshot-schedule
+	Name *string `fieldmask:"name"`
+	// The cadences at which automatic snapshots are taken. Update replaces the
+	// whole set; an empty set disables automatic snapshots. Order is not
+	// significant. When several cadences fire together, one snapshot is taken,
+	// retained for the longest of their retentions.
+	Schedule []ScheduleCadence `fieldmask:"schedule"`
+}
+
+// Metadata for the long-running snapshot schedule Update operation..
+type SnapshotScheduleOperationMetadata struct {
+}
+
+// Client-provided configuration of the snapshot..
+type SnapshotSpec struct {
+	// The source branch to snapshot. Format:
+	// projects/{project_id}/branches/{branch_id}
+	SourceBranch *string
+	// The point in time to snapshot from. If unset, the current head of the source
+	// branch is used. The chosen LSN or timestamp must fall within the project's
+	// point-in-time-recovery window (its history_retention_duration); otherwise the
+	// request returns INVALID_PARAMETER_VALUE.
+	PointInTime isSnapshotSpec_PointInTime
+	// Expiration policy. If unset, the snapshot is kept until deleted.
+	Expiration isSnapshotSpec_Expiration
+}
+
+type isSnapshotSpec_PointInTime interface {
+	isSnapshotSpec_PointInTime()
+}
+
+// SnapshotSpec_PointInTime_SourceBranchLsn selects SourceBranchLsn for SnapshotSpec.PointInTime.
+// LSN to snapshot from, e.g. `16/B374D848`. Mutually exclusive with
+// `source_branch_time`.
+type SnapshotSpec_PointInTime_SourceBranchLsn struct {
+	SourceBranchLsn string
+}
+
+func (*SnapshotSpec_PointInTime_SourceBranchLsn) isSnapshotSpec_PointInTime() {}
+
+// SnapshotSpec_PointInTime_SourceBranchTime selects SourceBranchTime for SnapshotSpec.PointInTime.
+// Timestamp to snapshot from. Mutually exclusive with `source_branch_lsn`.
+type SnapshotSpec_PointInTime_SourceBranchTime struct {
+	SourceBranchTime types.Time
+}
+
+func (*SnapshotSpec_PointInTime_SourceBranchTime) isSnapshotSpec_PointInTime() {}
+
+type isSnapshotSpec_Expiration interface {
+	isSnapshotSpec_Expiration()
+}
+
+// SnapshotSpec_Expiration_ExpireTime selects ExpireTime for SnapshotSpec.Expiration.
+// Absolute time at which the snapshot is deleted. Mutually exclusive with `ttl`
+// and `no_expiry`.
+type SnapshotSpec_Expiration_ExpireTime struct {
+	ExpireTime types.Time
+}
+
+func (*SnapshotSpec_Expiration_ExpireTime) isSnapshotSpec_Expiration() {}
+
+// SnapshotSpec_Expiration_Ttl selects Ttl for SnapshotSpec.Expiration.
+// Time-to-live. The snapshot expires this long after it is created. Mutually
+// exclusive with `expire_time` and `no_expiry`. Reads report the resolved
+// absolute `expire_time` instead.
+type SnapshotSpec_Expiration_Ttl struct {
+	Ttl types.Duration
+}
+
+func (*SnapshotSpec_Expiration_Ttl) isSnapshotSpec_Expiration() {}
+
+// SnapshotSpec_Expiration_NoExpiry selects NoExpiry for SnapshotSpec.Expiration.
+// If true, the snapshot never expires. Mutually exclusive with `ttl` and
+// `expire_time`.
+type SnapshotSpec_Expiration_NoExpiry struct {
+	NoExpiry bool
+}
+
+func (*SnapshotSpec_Expiration_NoExpiry) isSnapshotSpec_Expiration() {}
+
+// Server-observed state of a snapshot..
+type SnapshotStatus struct {
+	// The source branch the snapshot was taken from. Format:
+	// projects/{project_id}/branches/{branch_id}
+	SourceBranch *string
+	// Observed expiration state of the snapshot.
+	Expiration isSnapshotStatus_Expiration
+	// Full logical size of the snapshot, in bytes.
+	FullSizeBytes *int64
+	// Incremental storage size in bytes since the previous snapshot. Unset when the
+	// snapshot is not billed on incremental usage.
+	DiffSizeBytes *int64
+}
+
+type isSnapshotStatus_Expiration interface {
+	isSnapshotStatus_Expiration()
+}
+
+// SnapshotStatus_Expiration_ExpireTime selects ExpireTime for SnapshotStatus.Expiration.
+// Absolute time at which the snapshot is deleted.
+type SnapshotStatus_Expiration_ExpireTime struct {
+	ExpireTime types.Time
+}
+
+func (*SnapshotStatus_Expiration_ExpireTime) isSnapshotStatus_Expiration() {}
+
+// SnapshotStatus_Expiration_NoExpiry selects NoExpiry for SnapshotStatus.Expiration.
+// True if the snapshot never expires.
+type SnapshotStatus_Expiration_NoExpiry struct {
+	NoExpiry bool
+}
+
+func (*SnapshotStatus_Expiration_NoExpiry) isSnapshotStatus_Expiration() {}
+
 type SyncedTable struct {
 	// Output only. The Full resource name of the synced table in Postgres where
 	// (catalog, schema, table) are the UC entity names.
@@ -2295,6 +2568,25 @@ type UpdateRoleRequest struct {
 	Role *Role
 	// The list of fields to update.
 	UpdateMask *types.FieldMask[Role]
+}
+
+// Request to set the snapshot schedule for a branch. Returns a completed
+// long-running operation whose response is the persisted snapshot schedule..
+type UpdateSnapshotScheduleRequest struct {
+	// The snapshot schedule to set. Its `name` identifies the branch. Format:
+	// projects/{project_id}/branches/{branch_id}/snapshot-schedule
+	SnapshotSchedule *SnapshotSchedule
+	// Fields to update. The only updatable path is `schedule`, which replaces the
+	// entire set of cadences.
+	UpdateMask *types.FieldMask[SnapshotSchedule]
+}
+
+// Take a snapshot once per week, on the configured day at the configured hour..
+type WeeklySchedule struct {
+	// The day of the week on which to take the snapshot.
+	DayOfWeek DayOfWeek
+	// The hour of the day, in UTC, at which to take the snapshot, in [0, 23].
+	Hour *int
 }
 
 // Error returns the LRO error code and message.

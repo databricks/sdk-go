@@ -77,7 +77,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // defined as a child-parent pair. This API also refreshes the quota count if it
 // is out of date. Refreshes are triggered asynchronously. The updated count
 // might not be returned in the first call.
-func (c *internalClient) GetQuota(ctx context.Context, req *GetQuotaRequest, opts ...call.Option) (*GetQuotaResponse, error) {
+func (c *internalClient) GetQuota(ctx context.Context, req GetQuotaRequest, opts ...call.Option) (*GetQuotaResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -91,11 +91,23 @@ func (c *internalClient) GetQuota(ctx context.Context, req *GetQuotaRequest, opt
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/resource-quotas/")
-	pb.singleSegment(*req.ParentSecurableType)
+	if req.ParentSecurableType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ParentSecurableType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.ParentFullName)
+	if req.ParentFullName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ParentFullName)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.QuotaName)
+	if req.QuotaName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.QuotaName)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -148,8 +160,8 @@ func (c *internalClient) GetQuota(ctx context.Context, req *GetQuotaRequest, opt
 // results while still providing a next_page_token. Clients must continue
 // reading pages until next_page_token is absent, which is the only indication
 // that the end of results has been reached.
-func (c *internalClient) ListQuotas(ctx context.Context, req *ListQuotasRequest, opts ...call.Option) (*ListQuotasResponse, error) {
-	wireReq, err := listQuotasRequestToWire(req)
+func (c *internalClient) ListQuotas(ctx context.Context, req ListQuotasRequest, opts ...call.Option) (*ListQuotasResponse, error) {
+	wireReq, err := listQuotasRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +231,7 @@ func (c *internalClient) ListQuotas(ctx context.Context, req *ListQuotasRequest,
 //
 // For example:
 //
-//	for item, err := range c.ListQuotasIter(ctx, &ListQuotasRequest{}) {
+//	for item, err := range c.ListQuotasIter(ctx, ListQuotasRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -231,16 +243,13 @@ func (c *internalClient) ListQuotas(ctx context.Context, req *ListQuotasRequest,
 //
 // Callers who need custom pagination logic should use
 // ListQuotas directly.
-func (c *internalClient) ListQuotasIter(ctx context.Context, req *ListQuotasRequest, opts ...call.Option) iter.Seq2[*QuotaInfo, error] {
+func (c *internalClient) ListQuotasIter(ctx context.Context, req ListQuotasRequest, opts ...call.Option) iter.Seq2[*QuotaInfo, error] {
 	return func(yield func(*QuotaInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListQuotasRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListQuotas(ctx, &pageReq, opts...)
+			resp, err := c.ListQuotas(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return

@@ -75,8 +75,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Create a tag assignment
-func (c *internalClient) CreateTagAssignment(ctx context.Context, req *CreateTagAssignmentRequest, opts ...call.Option) (*TagAssignment, error) {
-	wireReq, err := createTagAssignmentRequestToWire(req)
+func (c *internalClient) CreateTagAssignment(ctx context.Context, req CreateTagAssignmentRequest, opts ...call.Option) (*TagAssignment, error) {
+	wireReq, err := createTagAssignmentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func (c *internalClient) CreateTagAssignment(ctx context.Context, req *CreateTag
 }
 
 // Delete a tag assignment
-func (c *internalClient) DeleteTagAssignment(ctx context.Context, req *DeleteTagAssignmentRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteTagAssignment(ctx context.Context, req DeleteTagAssignmentRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -155,11 +155,23 @@ func (c *internalClient) DeleteTagAssignment(ctx context.Context, req *DeleteTag
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/entity-tag-assignments/")
-	pb.singleSegment(*req.EntityType)
+	if req.EntityType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.EntityType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.EntityId)
+	if req.EntityId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.EntityId)
+	}
 	pb.literal("/tags/")
-	pb.singleSegment(*req.TagKey)
+	if req.TagKey == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.TagKey)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -196,7 +208,7 @@ func (c *internalClient) DeleteTagAssignment(ctx context.Context, req *DeleteTag
 }
 
 // Get a tag assignment
-func (c *internalClient) GetTagAssignment(ctx context.Context, req *GetTagAssignmentRequest, opts ...call.Option) (*TagAssignment, error) {
+func (c *internalClient) GetTagAssignment(ctx context.Context, req GetTagAssignmentRequest, opts ...call.Option) (*TagAssignment, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -210,11 +222,23 @@ func (c *internalClient) GetTagAssignment(ctx context.Context, req *GetTagAssign
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/entity-tag-assignments/")
-	pb.singleSegment(*req.EntityType)
+	if req.EntityType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.EntityType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.EntityId)
+	if req.EntityId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.EntityId)
+	}
 	pb.literal("/tags/")
-	pb.singleSegment(*req.TagKey)
+	if req.TagKey == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.TagKey)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -260,8 +284,8 @@ func (c *internalClient) GetTagAssignment(ctx context.Context, req *GetTagAssign
 }
 
 // List the tag assignments for an entity
-func (c *internalClient) ListTagAssignments(ctx context.Context, req *ListTagAssignmentsRequest, opts ...call.Option) (*ListTagAssignmentsResponse, error) {
-	wireReq, err := listTagAssignmentsRequestToWire(req)
+func (c *internalClient) ListTagAssignments(ctx context.Context, req ListTagAssignmentsRequest, opts ...call.Option) (*ListTagAssignmentsResponse, error) {
+	wireReq, err := listTagAssignmentsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -278,9 +302,17 @@ func (c *internalClient) ListTagAssignments(ctx context.Context, req *ListTagAss
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/entity-tag-assignments/")
-	pb.singleSegment(*req.EntityType)
+	if req.EntityType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.EntityType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.EntityId)
+	if req.EntityId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.EntityId)
+	}
 	pb.literal("/tags")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -337,7 +369,7 @@ func (c *internalClient) ListTagAssignments(ctx context.Context, req *ListTagAss
 //
 // For example:
 //
-//	for item, err := range c.ListTagAssignmentsIter(ctx, &ListTagAssignmentsRequest{}) {
+//	for item, err := range c.ListTagAssignmentsIter(ctx, ListTagAssignmentsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -349,16 +381,13 @@ func (c *internalClient) ListTagAssignments(ctx context.Context, req *ListTagAss
 //
 // Callers who need custom pagination logic should use
 // ListTagAssignments directly.
-func (c *internalClient) ListTagAssignmentsIter(ctx context.Context, req *ListTagAssignmentsRequest, opts ...call.Option) iter.Seq2[*TagAssignment, error] {
+func (c *internalClient) ListTagAssignmentsIter(ctx context.Context, req ListTagAssignmentsRequest, opts ...call.Option) iter.Seq2[*TagAssignment, error] {
 	return func(yield func(*TagAssignment, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListTagAssignmentsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListTagAssignments(ctx, &pageReq, opts...)
+			resp, err := c.ListTagAssignments(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -377,8 +406,8 @@ func (c *internalClient) ListTagAssignmentsIter(ctx context.Context, req *ListTa
 }
 
 // Update a tag assignment
-func (c *internalClient) UpdateTagAssignment(ctx context.Context, req *UpdateTagAssignmentRequest, opts ...call.Option) (*TagAssignment, error) {
-	wireReq, err := updateTagAssignmentRequestToWire(req)
+func (c *internalClient) UpdateTagAssignment(ctx context.Context, req UpdateTagAssignmentRequest, opts ...call.Option) (*TagAssignment, error) {
+	wireReq, err := updateTagAssignmentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -399,11 +428,23 @@ func (c *internalClient) UpdateTagAssignment(ctx context.Context, req *UpdateTag
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/entity-tag-assignments/")
-	pb.singleSegment(*req.TagAssignment.EntityType)
+	if req.TagAssignment == nil || req.TagAssignment.EntityType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.TagAssignment.EntityType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.TagAssignment.EntityId)
+	if req.TagAssignment == nil || req.TagAssignment.EntityId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.TagAssignment.EntityId)
+	}
 	pb.literal("/tags/")
-	pb.singleSegment(*req.TagAssignment.TagKey)
+	if req.TagAssignment == nil || req.TagAssignment.TagKey == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.TagAssignment.TagKey)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

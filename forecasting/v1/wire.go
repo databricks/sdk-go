@@ -2,40 +2,98 @@
 
 package forecasting
 
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"strconv"
+)
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
+
 type createForecastingExperimentRequestWire struct {
-	TrainDataPath               *string  `json:"train_data_path,omitempty"`
-	TargetColumn                *string  `json:"target_column,omitempty"`
-	TimeColumn                  *string  `json:"time_column,omitempty"`
-	ForecastGranularity         *string  `json:"forecast_granularity,omitempty"`
-	ForecastHorizon             *int64   `json:"forecast_horizon,omitempty"`
-	PrimaryMetric               *string  `json:"primary_metric,omitempty"`
-	TrainingFrameworks          []string `json:"training_frameworks,omitempty"`
-	ExperimentPath              *string  `json:"experiment_path,omitempty"`
-	MaxRuntime                  *int64   `json:"max_runtime,omitempty"`
-	SplitColumn                 *string  `json:"split_column,omitempty"`
-	CustomWeightsColumn         *string  `json:"custom_weights_column,omitempty"`
-	RegisterTo                  *string  `json:"register_to,omitempty"`
-	HolidayRegions              []string `json:"holiday_regions,omitempty"`
-	TimeseriesIdentifierColumns []string `json:"timeseries_identifier_columns,omitempty"`
-	PredictionDataPath          *string  `json:"prediction_data_path,omitempty"`
-	IncludeFeatures             []string `json:"include_features,omitempty"`
-	FutureFeatureDataPath       *string  `json:"future_feature_data_path,omitempty"`
+	TrainDataPath               *string    `json:"train_data_path,omitempty"`
+	TargetColumn                *string    `json:"target_column,omitempty"`
+	TimeColumn                  *string    `json:"time_column,omitempty"`
+	ForecastGranularity         *string    `json:"forecast_granularity,omitempty"`
+	ForecastHorizon             *wireInt64 `json:"forecast_horizon,omitempty"`
+	PrimaryMetric               *string    `json:"primary_metric,omitempty"`
+	TrainingFrameworks          []string   `json:"training_frameworks,omitempty"`
+	ExperimentPath              *string    `json:"experiment_path,omitempty"`
+	MaxRuntime                  *wireInt64 `json:"max_runtime,omitempty"`
+	SplitColumn                 *string    `json:"split_column,omitempty"`
+	CustomWeightsColumn         *string    `json:"custom_weights_column,omitempty"`
+	RegisterTo                  *string    `json:"register_to,omitempty"`
+	HolidayRegions              []string   `json:"holiday_regions,omitempty"`
+	TimeseriesIdentifierColumns []string   `json:"timeseries_identifier_columns,omitempty"`
+	PredictionDataPath          *string    `json:"prediction_data_path,omitempty"`
+	IncludeFeatures             []string   `json:"include_features,omitempty"`
+	FutureFeatureDataPath       *string    `json:"future_feature_data_path,omitempty"`
 }
 
 func createForecastingExperimentRequestToWire(v *CreateForecastingExperimentRequest) (*createForecastingExperimentRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	forecastHorizonWireValue, err := int64ToWire(v.ForecastHorizon)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateForecastingExperimentRequest.ForecastHorizon", err)
+	}
+	maxRuntimeWireValue, err := int64ToWire(v.MaxRuntime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateForecastingExperimentRequest.MaxRuntime", err)
+	}
 	return &createForecastingExperimentRequestWire{
 		TrainDataPath:               v.TrainDataPath,
 		TargetColumn:                v.TargetColumn,
 		TimeColumn:                  v.TimeColumn,
 		ForecastGranularity:         v.ForecastGranularity,
-		ForecastHorizon:             v.ForecastHorizon,
+		ForecastHorizon:             forecastHorizonWireValue,
 		PrimaryMetric:               v.PrimaryMetric,
 		TrainingFrameworks:          v.TrainingFrameworks,
 		ExperimentPath:              v.ExperimentPath,
-		MaxRuntime:                  v.MaxRuntime,
+		MaxRuntime:                  maxRuntimeWireValue,
 		SplitColumn:                 v.SplitColumn,
 		CustomWeightsColumn:         v.CustomWeightsColumn,
 		RegisterTo:                  v.RegisterTo,

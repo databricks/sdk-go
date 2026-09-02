@@ -82,8 +82,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // Throws `RESOURCE_ALREADY_EXISTS` if an experiment with the given name exists.
 // Note: In some contexts, this error may be remapped to `ALREADY_EXISTS`. To be
 // safe, clients should check for both error codes.
-func (c *internalClient) CreateExperiment(ctx context.Context, req *CreateExperimentRequest, opts ...call.Option) (*CreateExperimentResponse, error) {
-	wireReq, err := createExperimentRequestToWire(req)
+func (c *internalClient) CreateExperiment(ctx context.Context, req CreateExperimentRequest, opts ...call.Option) (*CreateExperimentResponse, error) {
+	wireReq, err := createExperimentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -148,8 +148,8 @@ func (c *internalClient) CreateExperiment(ctx context.Context, req *CreateExperi
 }
 
 // Create a logged model.
-func (c *internalClient) CreateLoggedModel(ctx context.Context, req *CreateLoggedModelRequest, opts ...call.Option) (*CreateLoggedModelResponse, error) {
-	wireReq, err := createLoggedModelRequestToWire(req)
+func (c *internalClient) CreateLoggedModel(ctx context.Context, req CreateLoggedModelRequest, opts ...call.Option) (*CreateLoggedModelResponse, error) {
+	wireReq, err := createLoggedModelRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -217,8 +217,8 @@ func (c *internalClient) CreateLoggedModel(ctx context.Context, req *CreateLogge
 // of a machine learning or data ETL pipeline. MLflow uses runs to track the
 // `mlflowParam`, `mlflowMetric`, and `mlflowRunTag` associated with a single
 // execution.
-func (c *internalClient) CreateRun(ctx context.Context, req *CreateRunRequest, opts ...call.Option) (*CreateRunResponse, error) {
-	wireReq, err := createRunRequestToWire(req)
+func (c *internalClient) CreateRun(ctx context.Context, req CreateRunRequest, opts ...call.Option) (*CreateRunResponse, error) {
+	wireReq, err := createRunRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -285,8 +285,8 @@ func (c *internalClient) CreateRun(ctx context.Context, req *CreateRunRequest, o
 // Marks an experiment and associated metadata, runs, metrics, params, and tags
 // for deletion. If the experiment uses FileStore, artifacts associated with the
 // experiment are also deleted.
-func (c *internalClient) DeleteExperiment(ctx context.Context, req *DeleteExperimentRequest, opts ...call.Option) (*DeleteExperimentResponse, error) {
-	wireReq, err := deleteExperimentRequestToWire(req)
+func (c *internalClient) DeleteExperiment(ctx context.Context, req DeleteExperimentRequest, opts ...call.Option) (*DeleteExperimentResponse, error) {
+	wireReq, err := deleteExperimentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -345,7 +345,7 @@ func (c *internalClient) DeleteExperiment(ctx context.Context, req *DeleteExperi
 }
 
 // Delete a logged model.
-func (c *internalClient) DeleteLoggedModel(ctx context.Context, req *DeleteLoggedModelRequest, opts ...call.Option) (*DeleteLoggedModelResponse, error) {
+func (c *internalClient) DeleteLoggedModel(ctx context.Context, req DeleteLoggedModelRequest, opts ...call.Option) (*DeleteLoggedModelResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -359,7 +359,11 @@ func (c *internalClient) DeleteLoggedModel(ctx context.Context, req *DeleteLogge
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/mlflow/logged-models/")
-	pb.singleSegment(*req.ModelId)
+	if req.ModelId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ModelId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -399,7 +403,7 @@ func (c *internalClient) DeleteLoggedModel(ctx context.Context, req *DeleteLogge
 }
 
 // Delete a tag on a logged model.
-func (c *internalClient) DeleteLoggedModelTag(ctx context.Context, req *DeleteLoggedModelTagRequest, opts ...call.Option) (*DeleteLoggedModelTagResponse, error) {
+func (c *internalClient) DeleteLoggedModelTag(ctx context.Context, req DeleteLoggedModelTagRequest, opts ...call.Option) (*DeleteLoggedModelTagResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -413,9 +417,17 @@ func (c *internalClient) DeleteLoggedModelTag(ctx context.Context, req *DeleteLo
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/mlflow/logged-models/")
-	pb.singleSegment(*req.ModelId)
+	if req.ModelId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ModelId)
+	}
 	pb.literal("/tags/")
-	pb.singleSegment(*req.TagKey)
+	if req.TagKey == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.TagKey)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -455,8 +467,8 @@ func (c *internalClient) DeleteLoggedModelTag(ctx context.Context, req *DeleteLo
 }
 
 // Marks a run for deletion.
-func (c *internalClient) DeleteRun(ctx context.Context, req *DeleteRunRequest, opts ...call.Option) (*DeleteRunResponse, error) {
-	wireReq, err := deleteRunRequestToWire(req)
+func (c *internalClient) DeleteRun(ctx context.Context, req DeleteRunRequest, opts ...call.Option) (*DeleteRunResponse, error) {
+	wireReq, err := deleteRunRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -517,8 +529,8 @@ func (c *internalClient) DeleteRun(ctx context.Context, req *DeleteRunRequest, o
 // Bulk delete runs in an experiment that were created prior to or at the
 // specified timestamp. Deletes at most max_runs per request. To call this API
 // from a Databricks Notebook in Python, you can use the client code snippet on
-func (c *internalClient) DeleteRuns(ctx context.Context, req *DeleteRunsRequest, opts ...call.Option) (*DeleteRunsResponse, error) {
-	wireReq, err := deleteRunsRequestToWire(req)
+func (c *internalClient) DeleteRuns(ctx context.Context, req DeleteRunsRequest, opts ...call.Option) (*DeleteRunsResponse, error) {
+	wireReq, err := deleteRunsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -584,8 +596,8 @@ func (c *internalClient) DeleteRuns(ctx context.Context, req *DeleteRunsRequest,
 
 // Deletes a tag on a run. Tags are run metadata that can be updated during a
 // run and after a run completes.
-func (c *internalClient) DeleteTag(ctx context.Context, req *DeleteTagRequest, opts ...call.Option) (*DeleteTagResponse, error) {
-	wireReq, err := deleteTagRequestToWire(req)
+func (c *internalClient) DeleteTag(ctx context.Context, req DeleteTagRequest, opts ...call.Option) (*DeleteTagResponse, error) {
+	wireReq, err := deleteTagRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -644,8 +656,8 @@ func (c *internalClient) DeleteTag(ctx context.Context, req *DeleteTagRequest, o
 }
 
 // Finalize a logged model.
-func (c *internalClient) FinalizeLoggedModel(ctx context.Context, req *FinalizeLoggedModelRequest, opts ...call.Option) (*FinalizeLoggedModelResponse, error) {
-	wireReq, err := finalizeLoggedModelRequestToWire(req)
+func (c *internalClient) FinalizeLoggedModel(ctx context.Context, req FinalizeLoggedModelRequest, opts ...call.Option) (*FinalizeLoggedModelResponse, error) {
+	wireReq, err := finalizeLoggedModelRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -666,7 +678,11 @@ func (c *internalClient) FinalizeLoggedModel(ctx context.Context, req *FinalizeL
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/mlflow/logged-models/")
-	pb.singleSegment(*req.ModelId)
+	if req.ModelId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ModelId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -713,8 +729,8 @@ func (c *internalClient) FinalizeLoggedModel(ctx context.Context, req *FinalizeL
 }
 
 // Gets metadata for an experiment. This method works on deleted experiments.
-func (c *internalClient) GetExperiment(ctx context.Context, req *GetExperimentRequest, opts ...call.Option) (*GetExperimentResponse, error) {
-	wireReq, err := getExperimentRequestToWire(req)
+func (c *internalClient) GetExperiment(ctx context.Context, req GetExperimentRequest, opts ...call.Option) (*GetExperimentResponse, error) {
+	wireReq, err := getExperimentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -785,8 +801,8 @@ func (c *internalClient) GetExperiment(ctx context.Context, req *GetExperimentRe
 //
 // Throws `RESOURCE_DOES_NOT_EXIST` if no experiment with the specified name
 // exists.
-func (c *internalClient) GetExperimentByName(ctx context.Context, req *GetExperimentByNameRequest, opts ...call.Option) (*GetExperimentByNameResponse, error) {
-	wireReq, err := getExperimentByNameRequestToWire(req)
+func (c *internalClient) GetExperimentByName(ctx context.Context, req GetExperimentByNameRequest, opts ...call.Option) (*GetExperimentByNameResponse, error) {
+	wireReq, err := getExperimentByNameRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -849,7 +865,7 @@ func (c *internalClient) GetExperimentByName(ctx context.Context, req *GetExperi
 }
 
 // Get a logged model.
-func (c *internalClient) GetLoggedModel(ctx context.Context, req *GetLoggedModelRequest, opts ...call.Option) (*GetLoggedModelResponse, error) {
+func (c *internalClient) GetLoggedModel(ctx context.Context, req GetLoggedModelRequest, opts ...call.Option) (*GetLoggedModelResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -863,7 +879,11 @@ func (c *internalClient) GetLoggedModel(ctx context.Context, req *GetLoggedModel
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/mlflow/logged-models/")
-	pb.singleSegment(*req.ModelId)
+	if req.ModelId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ModelId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -914,8 +934,8 @@ func (c *internalClient) GetLoggedModel(ctx context.Context, req *GetLoggedModel
 //
 // If there are multiple values with the latest timestamp, return the maximum of
 // these values.
-func (c *internalClient) GetRun(ctx context.Context, req *GetRunRequest, opts ...call.Option) (*GetRunResponse, error) {
-	wireReq, err := getRunRequestToWire(req)
+func (c *internalClient) GetRun(ctx context.Context, req GetRunRequest, opts ...call.Option) (*GetRunResponse, error) {
+	wireReq, err := getRunRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -986,8 +1006,8 @@ func (c *internalClient) GetRun(ctx context.Context, req *GetRunRequest, opts ..
 // `/api/2.0/fs/directories{directory_path}` for listing artifacts in UC
 // Volumes, which supports pagination. See [List directory contents | Files
 // API](/api/workspace/files/listdirectorycontents).
-func (c *internalClient) ListArtifacts(ctx context.Context, req *ListArtifactsRequest, opts ...call.Option) (*ListArtifactsResponse, error) {
-	wireReq, err := listArtifactsRequestToWire(req)
+func (c *internalClient) ListArtifacts(ctx context.Context, req ListArtifactsRequest, opts ...call.Option) (*ListArtifactsResponse, error) {
+	wireReq, err := listArtifactsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1063,7 +1083,7 @@ func (c *internalClient) ListArtifacts(ctx context.Context, req *ListArtifactsRe
 //
 // For example:
 //
-//	for item, err := range c.ListArtifactsIter(ctx, &ListArtifactsRequest{}) {
+//	for item, err := range c.ListArtifactsIter(ctx, ListArtifactsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1075,16 +1095,13 @@ func (c *internalClient) ListArtifacts(ctx context.Context, req *ListArtifactsRe
 //
 // Callers who need custom pagination logic should use
 // ListArtifacts directly.
-func (c *internalClient) ListArtifactsIter(ctx context.Context, req *ListArtifactsRequest, opts ...call.Option) iter.Seq2[*FileInfo, error] {
+func (c *internalClient) ListArtifactsIter(ctx context.Context, req ListArtifactsRequest, opts ...call.Option) iter.Seq2[*FileInfo, error] {
 	return func(yield func(*FileInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListArtifactsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListArtifacts(ctx, &pageReq, opts...)
+			resp, err := c.ListArtifacts(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1103,8 +1120,8 @@ func (c *internalClient) ListArtifactsIter(ctx context.Context, req *ListArtifac
 }
 
 // Gets a list of all experiments.
-func (c *internalClient) ListExperiments(ctx context.Context, req *ListExperimentsRequest, opts ...call.Option) (*ListExperimentsResponse, error) {
-	wireReq, err := listExperimentsRequestToWire(req)
+func (c *internalClient) ListExperiments(ctx context.Context, req ListExperimentsRequest, opts ...call.Option) (*ListExperimentsResponse, error) {
+	wireReq, err := listExperimentsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1179,7 +1196,7 @@ func (c *internalClient) ListExperiments(ctx context.Context, req *ListExperimen
 //
 // For example:
 //
-//	for item, err := range c.ListExperimentsIter(ctx, &ListExperimentsRequest{}) {
+//	for item, err := range c.ListExperimentsIter(ctx, ListExperimentsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1191,16 +1208,13 @@ func (c *internalClient) ListExperiments(ctx context.Context, req *ListExperimen
 //
 // Callers who need custom pagination logic should use
 // ListExperiments directly.
-func (c *internalClient) ListExperimentsIter(ctx context.Context, req *ListExperimentsRequest, opts ...call.Option) iter.Seq2[*Experiment, error] {
+func (c *internalClient) ListExperimentsIter(ctx context.Context, req ListExperimentsRequest, opts ...call.Option) iter.Seq2[*Experiment, error] {
 	return func(yield func(*Experiment, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListExperimentsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListExperiments(ctx, &pageReq, opts...)
+			resp, err := c.ListExperiments(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1219,8 +1233,8 @@ func (c *internalClient) ListExperimentsIter(ctx context.Context, req *ListExper
 }
 
 // Gets a list of all values for the specified metric for a given run.
-func (c *internalClient) ListMetricHistory(ctx context.Context, req *ListMetricHistoryRequest, opts ...call.Option) (*GetMetricHistoryResponse, error) {
-	wireReq, err := listMetricHistoryRequestToWire(req)
+func (c *internalClient) ListMetricHistory(ctx context.Context, req ListMetricHistoryRequest, opts ...call.Option) (*GetMetricHistoryResponse, error) {
+	wireReq, err := listMetricHistoryRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1299,7 +1313,7 @@ func (c *internalClient) ListMetricHistory(ctx context.Context, req *ListMetricH
 //
 // For example:
 //
-//	for item, err := range c.ListMetricHistoryIter(ctx, &ListMetricHistoryRequest{}) {
+//	for item, err := range c.ListMetricHistoryIter(ctx, ListMetricHistoryRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1311,16 +1325,13 @@ func (c *internalClient) ListMetricHistory(ctx context.Context, req *ListMetricH
 //
 // Callers who need custom pagination logic should use
 // ListMetricHistory directly.
-func (c *internalClient) ListMetricHistoryIter(ctx context.Context, req *ListMetricHistoryRequest, opts ...call.Option) iter.Seq2[*Metric, error] {
+func (c *internalClient) ListMetricHistoryIter(ctx context.Context, req ListMetricHistoryRequest, opts ...call.Option) iter.Seq2[*Metric, error] {
 	return func(yield func(*Metric, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListMetricHistoryRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListMetricHistory(ctx, &pageReq, opts...)
+			resp, err := c.ListMetricHistory(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1381,8 +1392,8 @@ func (c *internalClient) ListMetricHistoryIter(ctx context.Context, req *ListMet
 // * Metric keys, param keys, and tag keys can be up to 250 characters in length
 //
 // * Parameter and tag values can be up to 250 characters in length
-func (c *internalClient) LogBatch(ctx context.Context, req *LogBatchRequest, opts ...call.Option) (*LogBatchResponse, error) {
-	wireReq, err := logBatchRequestToWire(req)
+func (c *internalClient) LogBatch(ctx context.Context, req LogBatchRequest, opts ...call.Option) (*LogBatchResponse, error) {
+	wireReq, err := logBatchRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1441,8 +1452,8 @@ func (c *internalClient) LogBatch(ctx context.Context, req *LogBatchRequest, opt
 }
 
 // Logs inputs, such as datasets and models, to an MLflow Run.
-func (c *internalClient) LogInputs(ctx context.Context, req *LogInputsRequest, opts ...call.Option) (*LogInputsResponse, error) {
-	wireReq, err := logInputsRequestToWire(req)
+func (c *internalClient) LogInputs(ctx context.Context, req LogInputsRequest, opts ...call.Option) (*LogInputsResponse, error) {
+	wireReq, err := logInputsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1504,8 +1515,8 @@ func (c *internalClient) LogInputs(ctx context.Context, req *LogInputsRequest, o
 // string value). Examples include hyperparameters used for ML model training. A
 // param can be logged only once for a logged model, and attempting to overwrite
 // an existing param with a different value will result in an error
-func (c *internalClient) LogLoggedModelParams(ctx context.Context, req *LogLoggedModelParamsRequest, opts ...call.Option) (*LogLoggedModelParamsResponse, error) {
-	wireReq, err := logLoggedModelParamsRequestToWire(req)
+func (c *internalClient) LogLoggedModelParams(ctx context.Context, req LogLoggedModelParamsRequest, opts ...call.Option) (*LogLoggedModelParamsResponse, error) {
+	wireReq, err := logLoggedModelParamsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1526,7 +1537,11 @@ func (c *internalClient) LogLoggedModelParams(ctx context.Context, req *LogLogge
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/mlflow/logged-models/")
-	pb.singleSegment(*req.ModelId)
+	if req.ModelId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ModelId)
+	}
 	pb.literal("/params")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1570,8 +1585,8 @@ func (c *internalClient) LogLoggedModelParams(ctx context.Context, req *LogLogge
 // Log a metric for a run. A metric is a key-value pair (string key, float
 // value) with an associated timestamp. Examples include the various metrics
 // that represent ML model accuracy. A metric can be logged multiple times.
-func (c *internalClient) LogMetric(ctx context.Context, req *LogMetricRequest, opts ...call.Option) (*LogMetricResponse, error) {
-	wireReq, err := logMetricRequestToWire(req)
+func (c *internalClient) LogMetric(ctx context.Context, req LogMetricRequest, opts ...call.Option) (*LogMetricResponse, error) {
+	wireReq, err := logMetricRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1634,8 +1649,8 @@ func (c *internalClient) LogMetric(ctx context.Context, req *LogMetricRequest, o
 // endpoint.
 //
 // Log a model to an MLflow Run.
-func (c *internalClient) LogModel(ctx context.Context, req *LogModelRequest, opts ...call.Option) (*LogModelResponse, error) {
-	wireReq, err := logModelRequestToWire(req)
+func (c *internalClient) LogModel(ctx context.Context, req LogModelRequest, opts ...call.Option) (*LogModelResponse, error) {
+	wireReq, err := logModelRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1694,8 +1709,8 @@ func (c *internalClient) LogModel(ctx context.Context, req *LogModelRequest, opt
 }
 
 // Logs outputs, such as models, from an MLflow Run.
-func (c *internalClient) LogOutputs(ctx context.Context, req *LogOutputsRequest, opts ...call.Option) (*LogOutputsResponse, error) {
-	wireReq, err := logOutputsRequestToWire(req)
+func (c *internalClient) LogOutputs(ctx context.Context, req LogOutputsRequest, opts ...call.Option) (*LogOutputsResponse, error) {
+	wireReq, err := logOutputsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1757,8 +1772,8 @@ func (c *internalClient) LogOutputs(ctx context.Context, req *LogOutputsRequest,
 // value). Examples include hyperparameters used for ML model training and
 // constant dates and values used in an ETL pipeline. A param can be logged only
 // once for a run.
-func (c *internalClient) LogParam(ctx context.Context, req *LogParamRequest, opts ...call.Option) (*LogParamResponse, error) {
-	wireReq, err := logParamRequestToWire(req)
+func (c *internalClient) LogParam(ctx context.Context, req LogParamRequest, opts ...call.Option) (*LogParamResponse, error) {
+	wireReq, err := logParamRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1822,8 +1837,8 @@ func (c *internalClient) LogParam(ctx context.Context, req *LogParamRequest, opt
 //
 // Throws `RESOURCE_DOES_NOT_EXIST` if experiment was never created or was
 // permanently deleted.
-func (c *internalClient) RestoreExperiment(ctx context.Context, req *RestoreExperimentRequest, opts ...call.Option) (*RestoreExperimentResponse, error) {
-	wireReq, err := restoreExperimentRequestToWire(req)
+func (c *internalClient) RestoreExperiment(ctx context.Context, req RestoreExperimentRequest, opts ...call.Option) (*RestoreExperimentResponse, error) {
+	wireReq, err := restoreExperimentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1886,8 +1901,8 @@ func (c *internalClient) RestoreExperiment(ctx context.Context, req *RestoreExpe
 //
 // Throws `RESOURCE_DOES_NOT_EXIST` if the run was never created or was
 // permanently deleted.
-func (c *internalClient) RestoreRun(ctx context.Context, req *RestoreRunRequest, opts ...call.Option) (*RestoreRunResponse, error) {
-	wireReq, err := restoreRunRequestToWire(req)
+func (c *internalClient) RestoreRun(ctx context.Context, req RestoreRunRequest, opts ...call.Option) (*RestoreRunResponse, error) {
+	wireReq, err := restoreRunRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1948,8 +1963,8 @@ func (c *internalClient) RestoreRun(ctx context.Context, req *RestoreRunRequest,
 // Bulk restore runs in an experiment that were deleted no earlier than the
 // specified timestamp. Restores at most max_runs per request. To call this API
 // from a Databricks Notebook in Python, you can use the client code snippet on
-func (c *internalClient) RestoreRuns(ctx context.Context, req *RestoreRunsRequest, opts ...call.Option) (*RestoreRunsResponse, error) {
-	wireReq, err := restoreRunsRequestToWire(req)
+func (c *internalClient) RestoreRuns(ctx context.Context, req RestoreRunsRequest, opts ...call.Option) (*RestoreRunsResponse, error) {
+	wireReq, err := restoreRunsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2014,8 +2029,8 @@ func (c *internalClient) RestoreRuns(ctx context.Context, req *RestoreRunsReques
 }
 
 // Searches for experiments that satisfy specified search criteria.
-func (c *internalClient) SearchExperiments(ctx context.Context, req *SearchExperimentsRequest, opts ...call.Option) (*SearchExperimentsResponse, error) {
-	wireReq, err := searchExperimentsRequestToWire(req)
+func (c *internalClient) SearchExperiments(ctx context.Context, req SearchExperimentsRequest, opts ...call.Option) (*SearchExperimentsResponse, error) {
+	wireReq, err := searchExperimentsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2084,7 +2099,7 @@ func (c *internalClient) SearchExperiments(ctx context.Context, req *SearchExper
 //
 // For example:
 //
-//	for item, err := range c.SearchExperimentsIter(ctx, &SearchExperimentsRequest{}) {
+//	for item, err := range c.SearchExperimentsIter(ctx, SearchExperimentsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -2096,16 +2111,13 @@ func (c *internalClient) SearchExperiments(ctx context.Context, req *SearchExper
 //
 // Callers who need custom pagination logic should use
 // SearchExperiments directly.
-func (c *internalClient) SearchExperimentsIter(ctx context.Context, req *SearchExperimentsRequest, opts ...call.Option) iter.Seq2[*Experiment, error] {
+func (c *internalClient) SearchExperimentsIter(ctx context.Context, req SearchExperimentsRequest, opts ...call.Option) iter.Seq2[*Experiment, error] {
 	return func(yield func(*Experiment, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := SearchExperimentsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.SearchExperiments(ctx, &pageReq, opts...)
+			resp, err := c.SearchExperiments(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -2124,8 +2136,8 @@ func (c *internalClient) SearchExperimentsIter(ctx context.Context, req *SearchE
 }
 
 // Search for Logged Models that satisfy specified search criteria.
-func (c *internalClient) SearchLoggedModels(ctx context.Context, req *SearchLoggedModelsRequest, opts ...call.Option) (*SearchLoggedModelsResponse, error) {
-	wireReq, err := searchLoggedModelsRequestToWire(req)
+func (c *internalClient) SearchLoggedModels(ctx context.Context, req SearchLoggedModelsRequest, opts ...call.Option) (*SearchLoggedModelsResponse, error) {
+	wireReq, err := searchLoggedModelsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2192,8 +2204,8 @@ func (c *internalClient) SearchLoggedModels(ctx context.Context, req *SearchLogg
 // Searches for runs that satisfy expressions.
 //
 // Search expressions can use `mlflowMetric` and `mlflowParam` keys.
-func (c *internalClient) SearchRuns(ctx context.Context, req *SearchRunsRequest, opts ...call.Option) (*SearchRunsResponse, error) {
-	wireReq, err := searchRunsRequestToWire(req)
+func (c *internalClient) SearchRuns(ctx context.Context, req SearchRunsRequest, opts ...call.Option) (*SearchRunsResponse, error) {
+	wireReq, err := searchRunsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2262,7 +2274,7 @@ func (c *internalClient) SearchRuns(ctx context.Context, req *SearchRunsRequest,
 //
 // For example:
 //
-//	for item, err := range c.SearchRunsIter(ctx, &SearchRunsRequest{}) {
+//	for item, err := range c.SearchRunsIter(ctx, SearchRunsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -2274,16 +2286,13 @@ func (c *internalClient) SearchRuns(ctx context.Context, req *SearchRunsRequest,
 //
 // Callers who need custom pagination logic should use
 // SearchRuns directly.
-func (c *internalClient) SearchRunsIter(ctx context.Context, req *SearchRunsRequest, opts ...call.Option) iter.Seq2[*Run, error] {
+func (c *internalClient) SearchRunsIter(ctx context.Context, req SearchRunsRequest, opts ...call.Option) iter.Seq2[*Run, error] {
 	return func(yield func(*Run, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := SearchRunsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.SearchRuns(ctx, &pageReq, opts...)
+			resp, err := c.SearchRuns(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -2303,8 +2312,8 @@ func (c *internalClient) SearchRunsIter(ctx context.Context, req *SearchRunsRequ
 
 // Sets a tag on an experiment. Experiment tags are metadata that can be
 // updated.
-func (c *internalClient) SetExperimentTag(ctx context.Context, req *SetExperimentTagRequest, opts ...call.Option) (*SetExperimentTagResponse, error) {
-	wireReq, err := setExperimentTagRequestToWire(req)
+func (c *internalClient) SetExperimentTag(ctx context.Context, req SetExperimentTagRequest, opts ...call.Option) (*SetExperimentTagResponse, error) {
+	wireReq, err := setExperimentTagRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2363,8 +2372,8 @@ func (c *internalClient) SetExperimentTag(ctx context.Context, req *SetExperimen
 }
 
 // Set tags for a logged model.
-func (c *internalClient) SetLoggedModelTags(ctx context.Context, req *SetLoggedModelTagsRequest, opts ...call.Option) (*SetLoggedModelTagsResponse, error) {
-	wireReq, err := setLoggedModelTagsRequestToWire(req)
+func (c *internalClient) SetLoggedModelTags(ctx context.Context, req SetLoggedModelTagsRequest, opts ...call.Option) (*SetLoggedModelTagsResponse, error) {
+	wireReq, err := setLoggedModelTagsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2385,7 +2394,11 @@ func (c *internalClient) SetLoggedModelTags(ctx context.Context, req *SetLoggedM
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/mlflow/logged-models/")
-	pb.singleSegment(*req.ModelId)
+	if req.ModelId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ModelId)
+	}
 	pb.literal("/tags")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -2428,8 +2441,8 @@ func (c *internalClient) SetLoggedModelTags(ctx context.Context, req *SetLoggedM
 
 // Sets a tag on a run. Tags are run metadata that can be updated during a run
 // and after a run completes.
-func (c *internalClient) SetTag(ctx context.Context, req *SetTagRequest, opts ...call.Option) (*SetTagResponse, error) {
-	wireReq, err := setTagRequestToWire(req)
+func (c *internalClient) SetTag(ctx context.Context, req SetTagRequest, opts ...call.Option) (*SetTagResponse, error) {
+	wireReq, err := setTagRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2488,8 +2501,8 @@ func (c *internalClient) SetTag(ctx context.Context, req *SetTagRequest, opts ..
 }
 
 // Updates experiment metadata.
-func (c *internalClient) UpdateExperiment(ctx context.Context, req *UpdateExperimentRequest, opts ...call.Option) (*UpdateExperimentResponse, error) {
-	wireReq, err := updateExperimentRequestToWire(req)
+func (c *internalClient) UpdateExperiment(ctx context.Context, req UpdateExperimentRequest, opts ...call.Option) (*UpdateExperimentResponse, error) {
+	wireReq, err := updateExperimentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2548,8 +2561,8 @@ func (c *internalClient) UpdateExperiment(ctx context.Context, req *UpdateExperi
 }
 
 // Updates run metadata.
-func (c *internalClient) UpdateRun(ctx context.Context, req *UpdateRunRequest, opts ...call.Option) (*UpdateRunResponse, error) {
-	wireReq, err := updateRunRequestToWire(req)
+func (c *internalClient) UpdateRun(ctx context.Context, req UpdateRunRequest, opts ...call.Option) (*UpdateRunResponse, error) {
+	wireReq, err := updateRunRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}

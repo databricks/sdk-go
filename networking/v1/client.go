@@ -90,8 +90,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 //
 // It can take a few minutes for the changes to take effect.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateAccountIpAccessList(ctx context.Context, req *CreateAccountIpAccessListRequest, opts ...call.Option) (*CreateAccountIpAccessListResponse, error) {
-	wireReq, err := createAccountIpAccessListRequestToWire(req)
+func (c *internalClient) CreateAccountIpAccessList(ctx context.Context, req CreateAccountIpAccessListRequest, opts ...call.Option) (*CreateAccountIpAccessListResponse, error) {
+	wireReq, err := createAccountIpAccessListRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +162,7 @@ func (c *internalClient) CreateAccountIpAccessList(ctx context.Context, req *Cre
 
 // Deletes an IP access list, specified by its list ID.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteAccountIpAccessList(ctx context.Context, req *DeleteAccountIpAccessListRequest, opts ...call.Option) (*DeleteAccountIpAccessListResponse, error) {
+func (c *internalClient) DeleteAccountIpAccessList(ctx context.Context, req DeleteAccountIpAccessListRequest, opts ...call.Option) (*DeleteAccountIpAccessListResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -179,7 +179,11 @@ func (c *internalClient) DeleteAccountIpAccessList(ctx context.Context, req *Del
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/ip-access-lists/")
-	pb.singleSegment(*req.ListId)
+	if req.ListId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ListId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -220,7 +224,7 @@ func (c *internalClient) DeleteAccountIpAccessList(ctx context.Context, req *Del
 
 // Gets an IP access list, specified by its list ID.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetAccountIpAccessList(ctx context.Context, req *GetAccountIpAccessListRequest, opts ...call.Option) (*GetAccountIpAccessListResponse, error) {
+func (c *internalClient) GetAccountIpAccessList(ctx context.Context, req GetAccountIpAccessListRequest, opts ...call.Option) (*GetAccountIpAccessListResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -237,7 +241,11 @@ func (c *internalClient) GetAccountIpAccessList(ctx context.Context, req *GetAcc
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/ip-access-lists/")
-	pb.singleSegment(*req.ListId)
+	if req.ListId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ListId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -284,7 +292,7 @@ func (c *internalClient) GetAccountIpAccessList(ctx context.Context, req *GetAcc
 
 // Gets all IP access lists for the specified account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListAccountIpAccessLists(ctx context.Context, req *ListAccountIpAccessListsRequest, opts ...call.Option) (*ListAccountIpAccessListsResponse, error) {
+func (c *internalClient) ListAccountIpAccessLists(ctx context.Context, req ListAccountIpAccessListsRequest, opts ...call.Option) (*ListAccountIpAccessListsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -356,8 +364,8 @@ func (c *internalClient) ListAccountIpAccessLists(ctx context.Context, req *List
 // the calling user's current IP, error 400 is returned with `error_code` value
 // `INVALID_STATE`. It can take a few minutes for the changes to take effect.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ReplaceAccountIpAccessList(ctx context.Context, req *ReplaceAccountIpAccessListRequest, opts ...call.Option) (*ReplaceAccountIpAccessListResponse, error) {
-	wireReq, err := replaceAccountIpAccessListRequestToWire(req)
+func (c *internalClient) ReplaceAccountIpAccessList(ctx context.Context, req ReplaceAccountIpAccessListRequest, opts ...call.Option) (*ReplaceAccountIpAccessListResponse, error) {
+	wireReq, err := replaceAccountIpAccessListRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -381,7 +389,11 @@ func (c *internalClient) ReplaceAccountIpAccessList(ctx context.Context, req *Re
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/ip-access-lists/")
-	pb.singleSegment(*req.ListId)
+	if req.ListId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ListId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -443,8 +455,8 @@ func (c *internalClient) ReplaceAccountIpAccessList(ctx context.Context, req *Re
 //
 // It can take a few minutes for the changes to take effect.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) UpdateAccountIpAccessList(ctx context.Context, req *UpdateAccountIpAccessListRequest, opts ...call.Option) (*UpdateAccountIpAccessListResponse, error) {
-	wireReq, err := updateAccountIpAccessListRequestToWire(req)
+func (c *internalClient) UpdateAccountIpAccessList(ctx context.Context, req UpdateAccountIpAccessListRequest, opts ...call.Option) (*UpdateAccountIpAccessListResponse, error) {
+	wireReq, err := updateAccountIpAccessListRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -468,7 +480,11 @@ func (c *internalClient) UpdateAccountIpAccessList(ctx context.Context, req *Upd
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/ip-access-lists/")
-	pb.singleSegment(*req.ListId)
+	if req.ListId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ListId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -523,8 +539,8 @@ func (c *internalClient) UpdateAccountIpAccessList(ctx context.Context, req *Upd
 // state.
 //
 // An endpoint can be used only after it reaches the APPROVED state.
-func (c *internalClient) CreateEndpoint(ctx context.Context, req *CreateEndpointRequest, opts ...call.Option) (*Endpoint, error) {
-	wireReq, err := createEndpointRequestToWire(req)
+func (c *internalClient) CreateEndpoint(ctx context.Context, req CreateEndpointRequest, opts ...call.Option) (*Endpoint, error) {
+	wireReq, err := createEndpointRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -545,7 +561,11 @@ func (c *internalClient) CreateEndpoint(ctx context.Context, req *CreateEndpoint
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/networking/v1/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/endpoints")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -595,7 +615,7 @@ func (c *internalClient) CreateEndpoint(ctx context.Context, req *CreateEndpoint
 // Deletes a network endpoint. This will remove the endpoint configuration from
 // <Databricks>. Depending on the endpoint type and use case, you may also need
 // to delete corresponding network resources in your cloud provider account.
-func (c *internalClient) DeleteEndpoint(ctx context.Context, req *DeleteEndpointRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteEndpoint(ctx context.Context, req DeleteEndpointRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -609,7 +629,11 @@ func (c *internalClient) DeleteEndpoint(ctx context.Context, req *DeleteEndpoint
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/networking/v1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -646,7 +670,7 @@ func (c *internalClient) DeleteEndpoint(ctx context.Context, req *DeleteEndpoint
 }
 
 // Gets details of a specific network endpoint.
-func (c *internalClient) GetEndpoint(ctx context.Context, req *GetEndpointRequest, opts ...call.Option) (*Endpoint, error) {
+func (c *internalClient) GetEndpoint(ctx context.Context, req GetEndpointRequest, opts ...call.Option) (*Endpoint, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -660,7 +684,11 @@ func (c *internalClient) GetEndpoint(ctx context.Context, req *GetEndpointReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/networking/v1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -706,8 +734,8 @@ func (c *internalClient) GetEndpoint(ctx context.Context, req *GetEndpointReques
 }
 
 // Lists all network connectivity endpoints for the account.
-func (c *internalClient) ListEndpoints(ctx context.Context, req *ListEndpointsRequest, opts ...call.Option) (*ListEndpointsResponse, error) {
-	wireReq, err := listEndpointsRequestToWire(req)
+func (c *internalClient) ListEndpoints(ctx context.Context, req ListEndpointsRequest, opts ...call.Option) (*ListEndpointsResponse, error) {
+	wireReq, err := listEndpointsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -724,7 +752,11 @@ func (c *internalClient) ListEndpoints(ctx context.Context, req *ListEndpointsRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/networking/v1/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/endpoints")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -781,7 +813,7 @@ func (c *internalClient) ListEndpoints(ctx context.Context, req *ListEndpointsRe
 //
 // For example:
 //
-//	for item, err := range c.ListEndpointsIter(ctx, &ListEndpointsRequest{}) {
+//	for item, err := range c.ListEndpointsIter(ctx, ListEndpointsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -793,16 +825,13 @@ func (c *internalClient) ListEndpoints(ctx context.Context, req *ListEndpointsRe
 //
 // Callers who need custom pagination logic should use
 // ListEndpoints directly.
-func (c *internalClient) ListEndpointsIter(ctx context.Context, req *ListEndpointsRequest, opts ...call.Option) iter.Seq2[*Endpoint, error] {
+func (c *internalClient) ListEndpointsIter(ctx context.Context, req ListEndpointsRequest, opts ...call.Option) iter.Seq2[*Endpoint, error] {
 	return func(yield func(*Endpoint, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListEndpointsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListEndpoints(ctx, &pageReq, opts...)
+			resp, err := c.ListEndpoints(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -838,8 +867,8 @@ func (c *internalClient) ListEndpointsIter(ctx context.Context, req *ListEndpoin
 // [workspaceconf/setStatus]
 //
 // [workspaceconf/setStatus]: https://docs.databricks.com/api/workspace/workspaceconf/setstatus
-func (c *internalClient) CreateIpAccessList(ctx context.Context, req *CreateIpAccessListRequest, opts ...call.Option) (*CreateIpAccessListResponse, error) {
-	wireReq, err := createIpAccessListRequestToWire(req)
+func (c *internalClient) CreateIpAccessList(ctx context.Context, req CreateIpAccessListRequest, opts ...call.Option) (*CreateIpAccessListResponse, error) {
+	wireReq, err := createIpAccessListRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -904,7 +933,7 @@ func (c *internalClient) CreateIpAccessList(ctx context.Context, req *CreateIpAc
 }
 
 // Deletes an IP access list, specified by its list ID.
-func (c *internalClient) DeleteIpAccessList(ctx context.Context, req *DeleteIpAccessListRequest, opts ...call.Option) (*DeleteIpAccessListResponse, error) {
+func (c *internalClient) DeleteIpAccessList(ctx context.Context, req DeleteIpAccessListRequest, opts ...call.Option) (*DeleteIpAccessListResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -918,7 +947,11 @@ func (c *internalClient) DeleteIpAccessList(ctx context.Context, req *DeleteIpAc
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/ip-access-lists/")
-	pb.singleSegment(*req.ListId)
+	if req.ListId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ListId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -958,7 +991,7 @@ func (c *internalClient) DeleteIpAccessList(ctx context.Context, req *DeleteIpAc
 }
 
 // Gets an IP access list, specified by its list ID.
-func (c *internalClient) GetIpAccessList(ctx context.Context, req *GetIpAccessListRequest, opts ...call.Option) (*GetIpAccessListResponse, error) {
+func (c *internalClient) GetIpAccessList(ctx context.Context, req GetIpAccessListRequest, opts ...call.Option) (*GetIpAccessListResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -972,7 +1005,11 @@ func (c *internalClient) GetIpAccessList(ctx context.Context, req *GetIpAccessLi
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/ip-access-lists/")
-	pb.singleSegment(*req.ListId)
+	if req.ListId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ListId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1018,7 +1055,7 @@ func (c *internalClient) GetIpAccessList(ctx context.Context, req *GetIpAccessLi
 }
 
 // Gets all IP access lists for the specified workspace.
-func (c *internalClient) ListIpAccessLists(ctx context.Context, req *ListIpAccessLists, opts ...call.Option) (*ListIpAccessListsResponse, error) {
+func (c *internalClient) ListIpAccessLists(ctx context.Context, req ListIpAccessLists, opts ...call.Option) (*ListIpAccessListsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1088,8 +1125,8 @@ func (c *internalClient) ListIpAccessLists(ctx context.Context, req *ListIpAcces
 // feature. See [workspaceconf/setStatus].
 //
 // [workspaceconf/setStatus]: https://docs.databricks.com/api/workspace/workspaceconf/setstatus
-func (c *internalClient) ReplaceIpAccessList(ctx context.Context, req *ReplaceIpAccessListRequest, opts ...call.Option) (*ReplaceIpAccessListResponse, error) {
-	wireReq, err := replaceIpAccessListRequestToWire(req)
+func (c *internalClient) ReplaceIpAccessList(ctx context.Context, req ReplaceIpAccessListRequest, opts ...call.Option) (*ReplaceIpAccessListResponse, error) {
+	wireReq, err := replaceIpAccessListRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1110,7 +1147,11 @@ func (c *internalClient) ReplaceIpAccessList(ctx context.Context, req *ReplaceIp
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/ip-access-lists/")
-	pb.singleSegment(*req.ListId)
+	if req.ListId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ListId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1175,8 +1216,8 @@ func (c *internalClient) ReplaceIpAccessList(ctx context.Context, req *ReplaceIp
 // [workspaceconf/setStatus].
 //
 // [workspaceconf/setStatus]: https://docs.databricks.com/api/workspace/workspaceconf/setstatus
-func (c *internalClient) UpdateIpAccessList(ctx context.Context, req *UpdateIpAccessListRequest, opts ...call.Option) (*UpdateIpAccessListResponse, error) {
-	wireReq, err := updateIpAccessListRequestToWire(req)
+func (c *internalClient) UpdateIpAccessList(ctx context.Context, req UpdateIpAccessListRequest, opts ...call.Option) (*UpdateIpAccessListResponse, error) {
+	wireReq, err := updateIpAccessListRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1197,7 +1238,11 @@ func (c *internalClient) UpdateIpAccessList(ctx context.Context, req *UpdateIpAc
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/ip-access-lists/")
-	pb.singleSegment(*req.ListId)
+	if req.ListId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ListId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1257,8 +1302,8 @@ func (c *internalClient) UpdateIpAccessList(ctx context.Context, req *UpdateIpAc
 //
 // [configure serverless secure connectivity]: https://learn.microsoft.com/azure/databricks/security/network/serverless-network-security
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateNetworkConnectivityConfigPublic(ctx context.Context, req *CreateNetworkConnectivityConfigRequest, opts ...call.Option) (*NetworkConnectivityConfig, error) {
-	wireReq, err := createNetworkConnectivityConfigRequestToWire(req)
+func (c *internalClient) CreateNetworkConnectivityConfigPublic(ctx context.Context, req CreateNetworkConnectivityConfigRequest, opts ...call.Option) (*NetworkConnectivityConfig, error) {
+	wireReq, err := createNetworkConnectivityConfigRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1329,7 +1374,7 @@ func (c *internalClient) CreateNetworkConnectivityConfigPublic(ctx context.Conte
 
 // Deletes a network connectivity configuration.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteNetworkConnectivityConfigPublic(ctx context.Context, req *DeleteNetworkConnectivityConfigRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteNetworkConnectivityConfigPublic(ctx context.Context, req DeleteNetworkConnectivityConfigRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1346,7 +1391,11 @@ func (c *internalClient) DeleteNetworkConnectivityConfigPublic(ctx context.Conte
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/network-connectivity-configs/")
-	pb.singleSegment(*req.NetworkConnectivityConfigId)
+	if req.NetworkConnectivityConfigId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NetworkConnectivityConfigId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1384,7 +1433,7 @@ func (c *internalClient) DeleteNetworkConnectivityConfigPublic(ctx context.Conte
 
 // Gets a network connectivity configuration.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetNetworkConnectivityConfigPublic(ctx context.Context, req *GetNetworkConnectivityConfigRequest, opts ...call.Option) (*NetworkConnectivityConfig, error) {
+func (c *internalClient) GetNetworkConnectivityConfigPublic(ctx context.Context, req GetNetworkConnectivityConfigRequest, opts ...call.Option) (*NetworkConnectivityConfig, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1401,7 +1450,11 @@ func (c *internalClient) GetNetworkConnectivityConfigPublic(ctx context.Context,
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/network-connectivity-configs/")
-	pb.singleSegment(*req.NetworkConnectivityConfigId)
+	if req.NetworkConnectivityConfigId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NetworkConnectivityConfigId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1448,8 +1501,8 @@ func (c *internalClient) GetNetworkConnectivityConfigPublic(ctx context.Context,
 
 // Gets an array of network connectivity configurations.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListNetworkConnectivityConfigsPublic(ctx context.Context, req *ListNetworkConnectivityConfigsRequest, opts ...call.Option) (*ListNetworkConnectivityConfigsResponse, error) {
-	wireReq, err := listNetworkConnectivityConfigsRequestToWire(req)
+func (c *internalClient) ListNetworkConnectivityConfigsPublic(ctx context.Context, req ListNetworkConnectivityConfigsRequest, opts ...call.Option) (*ListNetworkConnectivityConfigsResponse, error) {
+	wireReq, err := listNetworkConnectivityConfigsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1521,7 +1574,7 @@ func (c *internalClient) ListNetworkConnectivityConfigsPublic(ctx context.Contex
 //
 // For example:
 //
-//	for item, err := range c.ListNetworkConnectivityConfigsPublicIter(ctx, &ListNetworkConnectivityConfigsRequest{}) {
+//	for item, err := range c.ListNetworkConnectivityConfigsPublicIter(ctx, ListNetworkConnectivityConfigsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1533,16 +1586,13 @@ func (c *internalClient) ListNetworkConnectivityConfigsPublic(ctx context.Contex
 //
 // Callers who need custom pagination logic should use
 // ListNetworkConnectivityConfigsPublic directly.
-func (c *internalClient) ListNetworkConnectivityConfigsPublicIter(ctx context.Context, req *ListNetworkConnectivityConfigsRequest, opts ...call.Option) iter.Seq2[*NetworkConnectivityConfig, error] {
+func (c *internalClient) ListNetworkConnectivityConfigsPublicIter(ctx context.Context, req ListNetworkConnectivityConfigsRequest, opts ...call.Option) iter.Seq2[*NetworkConnectivityConfig, error] {
 	return func(yield func(*NetworkConnectivityConfig, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListNetworkConnectivityConfigsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListNetworkConnectivityConfigsPublic(ctx, &pageReq, opts...)
+			resp, err := c.ListNetworkConnectivityConfigsPublic(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1571,8 +1621,8 @@ func (c *internalClient) ListNetworkConnectivityConfigsPublicIter(ctx context.Co
 //
 // [serverless private link]: https://learn.microsoft.com/azure/databricks/security/network/serverless-network-security/serverless-private-link
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateNccPrivateEndpointRule(ctx context.Context, req *CreateNccPrivateEndpointRuleRequest, opts ...call.Option) (*NccPrivateEndpointRule, error) {
-	wireReq, err := createNccPrivateEndpointRuleRequestToWire(req)
+func (c *internalClient) CreateNccPrivateEndpointRule(ctx context.Context, req CreateNccPrivateEndpointRuleRequest, opts ...call.Option) (*NccPrivateEndpointRule, error) {
+	wireReq, err := createNccPrivateEndpointRuleRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1596,7 +1646,11 @@ func (c *internalClient) CreateNccPrivateEndpointRule(ctx context.Context, req *
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/network-connectivity-configs/")
-	pb.singleSegment(*req.NetworkConnectivityConfigId)
+	if req.NetworkConnectivityConfigId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NetworkConnectivityConfigId)
+	}
 	pb.literal("/private-endpoint-rules")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1650,7 +1704,7 @@ func (c *internalClient) CreateNccPrivateEndpointRule(ctx context.Context, req *
 // is set to `true` and the private endpoint is not available to your serverless
 // compute resources.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteNccPrivateEndpointRule(ctx context.Context, req *DeleteNccPrivateEndpointRuleRequest, opts ...call.Option) (*NccPrivateEndpointRule, error) {
+func (c *internalClient) DeleteNccPrivateEndpointRule(ctx context.Context, req DeleteNccPrivateEndpointRuleRequest, opts ...call.Option) (*NccPrivateEndpointRule, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1667,9 +1721,17 @@ func (c *internalClient) DeleteNccPrivateEndpointRule(ctx context.Context, req *
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/network-connectivity-configs/")
-	pb.singleSegment(*req.NetworkConnectivityConfigId)
+	if req.NetworkConnectivityConfigId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NetworkConnectivityConfigId)
+	}
 	pb.literal("/private-endpoint-rules/")
-	pb.singleSegment(*req.PrivateEndpointRuleId)
+	if req.PrivateEndpointRuleId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PrivateEndpointRuleId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1716,7 +1778,7 @@ func (c *internalClient) DeleteNccPrivateEndpointRule(ctx context.Context, req *
 
 // Gets the private endpoint rule.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetNccPrivateEndpointRule(ctx context.Context, req *GetNccPrivateEndpointRuleRequest, opts ...call.Option) (*NccPrivateEndpointRule, error) {
+func (c *internalClient) GetNccPrivateEndpointRule(ctx context.Context, req GetNccPrivateEndpointRuleRequest, opts ...call.Option) (*NccPrivateEndpointRule, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1733,9 +1795,17 @@ func (c *internalClient) GetNccPrivateEndpointRule(ctx context.Context, req *Get
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/network-connectivity-configs/")
-	pb.singleSegment(*req.NetworkConnectivityConfigId)
+	if req.NetworkConnectivityConfigId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NetworkConnectivityConfigId)
+	}
 	pb.literal("/private-endpoint-rules/")
-	pb.singleSegment(*req.PrivateEndpointRuleId)
+	if req.PrivateEndpointRuleId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PrivateEndpointRuleId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1782,8 +1852,8 @@ func (c *internalClient) GetNccPrivateEndpointRule(ctx context.Context, req *Get
 
 // Gets an array of private endpoint rules.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListNccPrivateEndpointRules(ctx context.Context, req *ListNccPrivateEndpointRulesRequest, opts ...call.Option) (*ListNccPrivateEndpointRulesResponse, error) {
-	wireReq, err := listNccPrivateEndpointRulesRequestToWire(req)
+func (c *internalClient) ListNccPrivateEndpointRules(ctx context.Context, req ListNccPrivateEndpointRulesRequest, opts ...call.Option) (*ListNccPrivateEndpointRulesResponse, error) {
+	wireReq, err := listNccPrivateEndpointRulesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1803,7 +1873,11 @@ func (c *internalClient) ListNccPrivateEndpointRules(ctx context.Context, req *L
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/network-connectivity-configs/")
-	pb.singleSegment(*req.NetworkConnectivityConfigId)
+	if req.NetworkConnectivityConfigId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NetworkConnectivityConfigId)
+	}
 	pb.literal("/private-endpoint-rules")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1857,7 +1931,7 @@ func (c *internalClient) ListNccPrivateEndpointRules(ctx context.Context, req *L
 //
 // For example:
 //
-//	for item, err := range c.ListNccPrivateEndpointRulesIter(ctx, &ListNccPrivateEndpointRulesRequest{}) {
+//	for item, err := range c.ListNccPrivateEndpointRulesIter(ctx, ListNccPrivateEndpointRulesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1869,16 +1943,13 @@ func (c *internalClient) ListNccPrivateEndpointRules(ctx context.Context, req *L
 //
 // Callers who need custom pagination logic should use
 // ListNccPrivateEndpointRules directly.
-func (c *internalClient) ListNccPrivateEndpointRulesIter(ctx context.Context, req *ListNccPrivateEndpointRulesRequest, opts ...call.Option) iter.Seq2[*NccPrivateEndpointRule, error] {
+func (c *internalClient) ListNccPrivateEndpointRulesIter(ctx context.Context, req ListNccPrivateEndpointRulesRequest, opts ...call.Option) iter.Seq2[*NccPrivateEndpointRule, error] {
 	return func(yield func(*NccPrivateEndpointRule, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListNccPrivateEndpointRulesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListNccPrivateEndpointRules(ctx, &pageReq, opts...)
+			resp, err := c.ListNccPrivateEndpointRules(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1899,8 +1970,8 @@ func (c *internalClient) ListNccPrivateEndpointRulesIter(ctx context.Context, re
 // Updates a private endpoint rule. Currently only a private endpoint rule to
 // customer-managed resources is allowed to be updated.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) UpdateNccPrivateEndpointRule(ctx context.Context, req *UpdateNccPrivateEndpointRuleRequest, opts ...call.Option) (*NccPrivateEndpointRule, error) {
-	wireReq, err := updateNccPrivateEndpointRuleRequestToWire(req)
+func (c *internalClient) UpdateNccPrivateEndpointRule(ctx context.Context, req UpdateNccPrivateEndpointRuleRequest, opts ...call.Option) (*NccPrivateEndpointRule, error) {
+	wireReq, err := updateNccPrivateEndpointRuleRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1924,9 +1995,17 @@ func (c *internalClient) UpdateNccPrivateEndpointRule(ctx context.Context, req *
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/network-connectivity-configs/")
-	pb.singleSegment(*req.NetworkConnectivityConfigId)
+	if req.NetworkConnectivityConfigId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NetworkConnectivityConfigId)
+	}
 	pb.literal("/private-endpoint-rules/")
-	pb.singleSegment(*req.PrivateEndpointRuleId)
+	if req.PrivateEndpointRuleId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PrivateEndpointRuleId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -1978,8 +2057,8 @@ func (c *internalClient) UpdateNccPrivateEndpointRule(ctx context.Context, req *
 // Creates a new network policy to manage which network destinations can be
 // accessed from the <Databricks> environment.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateNetworkPolicyRpc(ctx context.Context, req *CreateNetworkPolicyRequest, opts ...call.Option) (*AccountNetworkPolicy, error) {
-	wireReq, err := createNetworkPolicyRequestToWire(req)
+func (c *internalClient) CreateNetworkPolicyRpc(ctx context.Context, req CreateNetworkPolicyRequest, opts ...call.Option) (*AccountNetworkPolicy, error) {
+	wireReq, err := createNetworkPolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2050,7 +2129,7 @@ func (c *internalClient) CreateNetworkPolicyRpc(ctx context.Context, req *Create
 
 // Deletes a network policy. Cannot be called on 'default-policy'.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteNetworkPolicyRpc(ctx context.Context, req *DeleteNetworkPolicyRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteNetworkPolicyRpc(ctx context.Context, req DeleteNetworkPolicyRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2067,7 +2146,11 @@ func (c *internalClient) DeleteNetworkPolicyRpc(ctx context.Context, req *Delete
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/network-policies/")
-	pb.singleSegment(*req.NetworkPolicyId)
+	if req.NetworkPolicyId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NetworkPolicyId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2105,7 +2188,7 @@ func (c *internalClient) DeleteNetworkPolicyRpc(ctx context.Context, req *Delete
 
 // Gets a network policy.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetNetworkPolicyRpc(ctx context.Context, req *GetNetworkPolicyRequest, opts ...call.Option) (*AccountNetworkPolicy, error) {
+func (c *internalClient) GetNetworkPolicyRpc(ctx context.Context, req GetNetworkPolicyRequest, opts ...call.Option) (*AccountNetworkPolicy, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2122,7 +2205,11 @@ func (c *internalClient) GetNetworkPolicyRpc(ctx context.Context, req *GetNetwor
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/network-policies/")
-	pb.singleSegment(*req.NetworkPolicyId)
+	if req.NetworkPolicyId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NetworkPolicyId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2169,8 +2256,8 @@ func (c *internalClient) GetNetworkPolicyRpc(ctx context.Context, req *GetNetwor
 
 // Gets an array of network policies.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListNetworkPoliciesRpc(ctx context.Context, req *ListNetworkPoliciesRequest, opts ...call.Option) (*ListNetworkPoliciesResponse, error) {
-	wireReq, err := listNetworkPoliciesRequestToWire(req)
+func (c *internalClient) ListNetworkPoliciesRpc(ctx context.Context, req ListNetworkPoliciesRequest, opts ...call.Option) (*ListNetworkPoliciesResponse, error) {
+	wireReq, err := listNetworkPoliciesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2242,7 +2329,7 @@ func (c *internalClient) ListNetworkPoliciesRpc(ctx context.Context, req *ListNe
 //
 // For example:
 //
-//	for item, err := range c.ListNetworkPoliciesRpcIter(ctx, &ListNetworkPoliciesRequest{}) {
+//	for item, err := range c.ListNetworkPoliciesRpcIter(ctx, ListNetworkPoliciesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -2254,16 +2341,13 @@ func (c *internalClient) ListNetworkPoliciesRpc(ctx context.Context, req *ListNe
 //
 // Callers who need custom pagination logic should use
 // ListNetworkPoliciesRpc directly.
-func (c *internalClient) ListNetworkPoliciesRpcIter(ctx context.Context, req *ListNetworkPoliciesRequest, opts ...call.Option) iter.Seq2[*AccountNetworkPolicy, error] {
+func (c *internalClient) ListNetworkPoliciesRpcIter(ctx context.Context, req ListNetworkPoliciesRequest, opts ...call.Option) iter.Seq2[*AccountNetworkPolicy, error] {
 	return func(yield func(*AccountNetworkPolicy, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListNetworkPoliciesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListNetworkPoliciesRpc(ctx, &pageReq, opts...)
+			resp, err := c.ListNetworkPoliciesRpc(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -2284,8 +2368,8 @@ func (c *internalClient) ListNetworkPoliciesRpcIter(ctx context.Context, req *Li
 // Updates a network policy. This allows you to modify the configuration of a
 // network policy.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) UpdateNetworkPolicyRpc(ctx context.Context, req *UpdateNetworkPolicyRequest, opts ...call.Option) (*AccountNetworkPolicy, error) {
-	wireReq, err := updateNetworkPolicyRequestToWire(req)
+func (c *internalClient) UpdateNetworkPolicyRpc(ctx context.Context, req UpdateNetworkPolicyRequest, opts ...call.Option) (*AccountNetworkPolicy, error) {
+	wireReq, err := updateNetworkPolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2309,7 +2393,11 @@ func (c *internalClient) UpdateNetworkPolicyRpc(ctx context.Context, req *Update
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/network-policies/")
-	pb.singleSegment(*req.NetworkPolicyId)
+	if req.NetworkPolicyId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NetworkPolicyId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2359,8 +2447,8 @@ func (c *internalClient) UpdateNetworkPolicyRpc(ctx context.Context, req *Update
 // resources. The VPC will be used for new <Databricks> clusters. This requires
 // a pre-existing VPC and subnets.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateNetworkPublic(ctx context.Context, req *CreateNetworkRequest, opts ...call.Option) (*Network, error) {
-	wireReq, err := createNetworkRequestToWire(req)
+func (c *internalClient) CreateNetworkPublic(ctx context.Context, req CreateNetworkRequest, opts ...call.Option) (*Network, error) {
+	wireReq, err := createNetworkRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2434,8 +2522,8 @@ func (c *internalClient) CreateNetworkPublic(ctx context.Context, req *CreateNet
 // configure whether workspaces can be accessed from the public internet or only
 // from private endpoints.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreatePrivateAccessSettingsPublic(ctx context.Context, req *CreatePrivateAccessSettingsRequest, opts ...call.Option) (*PrivateAccessSettings, error) {
-	wireReq, err := createPrivateAccessSettingsRequestToWire(req)
+func (c *internalClient) CreatePrivateAccessSettingsPublic(ctx context.Context, req CreatePrivateAccessSettingsRequest, opts ...call.Option) (*PrivateAccessSettings, error) {
+	wireReq, err := createPrivateAccessSettingsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2519,8 +2607,8 @@ func (c *internalClient) CreatePrivateAccessSettingsPublic(ctx context.Context, 
 // [VPC endpoint]: https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints.html
 // [endpoint service]: https://docs.aws.amazon.com/vpc/latest/privatelink/privatelink-share-your-services.html
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateVpcEndpointPublic(ctx context.Context, req *CreateVpcEndpointRequest, opts ...call.Option) (*VpcEndpoint, error) {
-	wireReq, err := createVpcEndpointRequestToWire(req)
+func (c *internalClient) CreateVpcEndpointPublic(ctx context.Context, req CreateVpcEndpointRequest, opts ...call.Option) (*VpcEndpoint, error) {
+	wireReq, err := createVpcEndpointRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2596,7 +2684,7 @@ func (c *internalClient) CreateVpcEndpointPublic(ctx context.Context, req *Creat
 // This operation is available only if your account is on the E2 version of the
 // platform.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteNetworkPublic(ctx context.Context, req *DeleteNetworkRequest, opts ...call.Option) (*Network, error) {
+func (c *internalClient) DeleteNetworkPublic(ctx context.Context, req DeleteNetworkRequest, opts ...call.Option) (*Network, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2613,7 +2701,11 @@ func (c *internalClient) DeleteNetworkPublic(ctx context.Context, req *DeleteNet
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/networks/")
-	pb.singleSegment(*req.NetworkId)
+	if req.NetworkId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NetworkId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2661,7 +2753,7 @@ func (c *internalClient) DeleteNetworkPublic(ctx context.Context, req *DeleteNet
 // Deletes a <Databricks> private access settings configuration, both specified
 // by ID.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeletePrivateAccessSettingsPublic(ctx context.Context, req *DeletePrivateAccessSettingsRequest, opts ...call.Option) (*PrivateAccessSettings, error) {
+func (c *internalClient) DeletePrivateAccessSettingsPublic(ctx context.Context, req DeletePrivateAccessSettingsRequest, opts ...call.Option) (*PrivateAccessSettings, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2678,7 +2770,11 @@ func (c *internalClient) DeletePrivateAccessSettingsPublic(ctx context.Context, 
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/private-access-settings/")
-	pb.singleSegment(*req.PrivateAccessSettingsId)
+	if req.PrivateAccessSettingsId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PrivateAccessSettingsId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2726,7 +2822,7 @@ func (c *internalClient) DeletePrivateAccessSettingsPublic(ctx context.Context, 
 // Deletes a Databricks VPC endpoint configuration. You cannot delete a VPC
 // endpoint configuration that is associated with any workspace.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteVpcEndpointPublic(ctx context.Context, req *DeleteVpcEndpointRequest, opts ...call.Option) (*VpcEndpoint, error) {
+func (c *internalClient) DeleteVpcEndpointPublic(ctx context.Context, req DeleteVpcEndpointRequest, opts ...call.Option) (*VpcEndpoint, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2743,7 +2839,11 @@ func (c *internalClient) DeleteVpcEndpointPublic(ctx context.Context, req *Delet
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/vpc-endpoints/")
-	pb.singleSegment(*req.VpcEndpointId)
+	if req.VpcEndpointId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.VpcEndpointId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2791,7 +2891,7 @@ func (c *internalClient) DeleteVpcEndpointPublic(ctx context.Context, req *Delet
 // Gets a <Databricks> network configuration, which represents a cloud VPC and
 // its resources.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetNetworkPublic(ctx context.Context, req *GetNetworkRequest, opts ...call.Option) (*Network, error) {
+func (c *internalClient) GetNetworkPublic(ctx context.Context, req GetNetworkRequest, opts ...call.Option) (*Network, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2808,7 +2908,11 @@ func (c *internalClient) GetNetworkPublic(ctx context.Context, req *GetNetworkRe
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/networks/")
-	pb.singleSegment(*req.NetworkId)
+	if req.NetworkId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NetworkId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2856,7 +2960,7 @@ func (c *internalClient) GetNetworkPublic(ctx context.Context, req *GetNetworkRe
 // Gets a <Databricks> private access settings configuration, both specified by
 // ID.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetPrivateAccessSettingsPublic(ctx context.Context, req *GetPrivateAccessSettingsRequest, opts ...call.Option) (*PrivateAccessSettings, error) {
+func (c *internalClient) GetPrivateAccessSettingsPublic(ctx context.Context, req GetPrivateAccessSettingsRequest, opts ...call.Option) (*PrivateAccessSettings, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2873,7 +2977,11 @@ func (c *internalClient) GetPrivateAccessSettingsPublic(ctx context.Context, req
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/private-access-settings/")
-	pb.singleSegment(*req.PrivateAccessSettingsId)
+	if req.PrivateAccessSettingsId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PrivateAccessSettingsId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2925,7 +3033,7 @@ func (c *internalClient) GetPrivateAccessSettingsPublic(ctx context.Context, req
 // [AWS PrivateLink]: https://aws.amazon.com/privatelink
 // [VPC endpoint]: https://docs.aws.amazon.com/vpc/latest/privatelink/concepts.html
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetVpcEndpointPublic(ctx context.Context, req *GetVpcEndpointRequest, opts ...call.Option) (*VpcEndpoint, error) {
+func (c *internalClient) GetVpcEndpointPublic(ctx context.Context, req GetVpcEndpointRequest, opts ...call.Option) (*VpcEndpoint, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2942,7 +3050,11 @@ func (c *internalClient) GetVpcEndpointPublic(ctx context.Context, req *GetVpcEn
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/vpc-endpoints/")
-	pb.singleSegment(*req.VpcEndpointId)
+	if req.VpcEndpointId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.VpcEndpointId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2989,7 +3101,7 @@ func (c *internalClient) GetVpcEndpointPublic(ctx context.Context, req *GetVpcEn
 
 // Lists <Databricks> network configurations for an account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListNetworkPublic(ctx context.Context, req *ListNetworkRequest, opts ...call.Option) (*ListNetworkResponse, error) {
+func (c *internalClient) ListNetworkPublic(ctx context.Context, req ListNetworkRequest, opts ...call.Option) (*ListNetworkResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -3055,7 +3167,7 @@ func (c *internalClient) ListNetworkPublic(ctx context.Context, req *ListNetwork
 
 // Lists <Databricks> private access settings for an account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListPrivateAccessSettingsPublic(ctx context.Context, req *ListPrivateAccessSettingsRequest, opts ...call.Option) (*ListPrivateAccessSettingsResponse, error) {
+func (c *internalClient) ListPrivateAccessSettingsPublic(ctx context.Context, req ListPrivateAccessSettingsRequest, opts ...call.Option) (*ListPrivateAccessSettingsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -3121,7 +3233,7 @@ func (c *internalClient) ListPrivateAccessSettingsPublic(ctx context.Context, re
 
 // Lists Databricks VPC endpoint configurations for an account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListVpcEndpointPublic(ctx context.Context, req *ListVpcEndpointRequest, opts ...call.Option) (*ListVpcEndpointResponse, error) {
+func (c *internalClient) ListVpcEndpointPublic(ctx context.Context, req ListVpcEndpointRequest, opts ...call.Option) (*ListVpcEndpointResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -3199,8 +3311,8 @@ func (c *internalClient) ListVpcEndpointPublic(ctx context.Context, req *ListVpc
 // the same AWS region can use a given private access settings object. Before
 // configuring PrivateLink, read the <Databricks> article about PrivateLink.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) UpdatePrivateAccessSettingsPublic(ctx context.Context, req *UpdatePrivateAccessSettingsRequest, opts ...call.Option) (*PrivateAccessSettings, error) {
-	wireReq, err := updatePrivateAccessSettingsRequestToWire(req)
+func (c *internalClient) UpdatePrivateAccessSettingsPublic(ctx context.Context, req UpdatePrivateAccessSettingsRequest, opts ...call.Option) (*PrivateAccessSettings, error) {
+	wireReq, err := updatePrivateAccessSettingsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -3221,7 +3333,11 @@ func (c *internalClient) UpdatePrivateAccessSettingsPublic(ctx context.Context, 
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/private-access-settings/")
-	pb.singleSegment(*req.CustomerFacingPrivateAccessSettings.PrivateAccessSettingsId)
+	if req.CustomerFacingPrivateAccessSettings == nil || req.CustomerFacingPrivateAccessSettings.PrivateAccessSettingsId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CustomerFacingPrivateAccessSettings.PrivateAccessSettingsId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3271,7 +3387,7 @@ func (c *internalClient) UpdatePrivateAccessSettingsPublic(ctx context.Context, 
 // network policy binding, with 'default-policy' used if no explicit assignment
 // exists.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetWorkspaceNetworkOptionRpc(ctx context.Context, req *GetWorkspaceNetworkOptionRequest, opts ...call.Option) (*WorkspaceNetworkOption, error) {
+func (c *internalClient) GetWorkspaceNetworkOptionRpc(ctx context.Context, req GetWorkspaceNetworkOptionRequest, opts ...call.Option) (*WorkspaceNetworkOption, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -3288,7 +3404,11 @@ func (c *internalClient) GetWorkspaceNetworkOptionRpc(ctx context.Context, req *
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/workspaces/")
-	pb.singleSegment(*req.WorkspaceId)
+	if req.WorkspaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.WorkspaceId)
+	}
 	pb.literal("/network")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -3338,8 +3458,8 @@ func (c *internalClient) GetWorkspaceNetworkOptionRpc(ctx context.Context, req *
 // workspace with the specified network policy. To revert to the default policy,
 // specify 'default-policy' as the network_policy_id.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) UpdateWorkspaceNetworkOptionRpc(ctx context.Context, req *UpdateWorkspaceNetworkOptionRequest, opts ...call.Option) (*WorkspaceNetworkOption, error) {
-	wireReq, err := updateWorkspaceNetworkOptionRequestToWire(req)
+func (c *internalClient) UpdateWorkspaceNetworkOptionRpc(ctx context.Context, req UpdateWorkspaceNetworkOptionRequest, opts ...call.Option) (*WorkspaceNetworkOption, error) {
+	wireReq, err := updateWorkspaceNetworkOptionRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -3363,7 +3483,11 @@ func (c *internalClient) UpdateWorkspaceNetworkOptionRpc(ctx context.Context, re
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/workspaces/")
-	pb.singleSegment(*req.WorkspaceId)
+	if req.WorkspaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.WorkspaceId)
+	}
 	pb.literal("/network")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}

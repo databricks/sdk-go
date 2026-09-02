@@ -22,6 +22,9 @@ func TestOptionsApply_AllFields(t *testing.T) {
 		WithCredentials(creds),
 		WithTimeout(7 * time.Second),
 		WithLogger(logger),
+		WithConfigFile("databrickscfg"),
+		WithProfile("workspace"),
+		WithoutEnv(),
 	}
 
 	cfg := internaloptions.ClientOptions{}
@@ -45,6 +48,23 @@ func TestOptionsApply_AllFields(t *testing.T) {
 	}
 	if cfg.Logger != logger {
 		t.Error("Logger mismatch")
+	}
+	if cfg.ConfigFile != "databrickscfg" {
+		t.Errorf("ConfigFile = %q", cfg.ConfigFile)
+	}
+	if cfg.ProfileName != "workspace" {
+		t.Errorf("ProfileName = %q", cfg.ProfileName)
+	}
+	if !cfg.DisableEnv {
+		t.Error("DisableEnv = false, want true")
+	}
+
+	withoutConfigFileCfg := internaloptions.ClientOptions{}
+	if err := WithoutConfigFile()(&withoutConfigFileCfg); err != nil {
+		t.Fatalf("WithoutConfigFile: %v", err)
+	}
+	if !withoutConfigFileCfg.DisableConfigFile {
+		t.Error("DisableConfigFile = false, want true")
 	}
 }
 

@@ -3,9 +3,54 @@
 package scim
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type accountComplexValueWire struct {
 	Display *string `json:"display,omitempty"`
@@ -623,8 +668,8 @@ type listAccountGroupsRequestWire struct {
 	Filter             *string               `json:"filter,omitempty"`
 	Attributes         *string               `json:"attributes,omitempty"`
 	ExcludedAttributes *string               `json:"excludedAttributes,omitempty"`
-	StartIndex         *int64                `json:"startIndex,omitempty"`
-	Count              *int64                `json:"count,omitempty"`
+	StartIndex         *wireInt64            `json:"startIndex,omitempty"`
+	Count              *wireInt64            `json:"count,omitempty"`
 	SortBy             *string               `json:"sortBy,omitempty"`
 	SortOrder          AccountListSort_Order `json:"sortOrder,omitempty"`
 }
@@ -633,13 +678,21 @@ func listAccountGroupsRequestToWire(v *ListAccountGroupsRequest) (*listAccountGr
 	if v == nil {
 		return nil, nil
 	}
+	startIndexWireValue, err := int64ToWire(v.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountGroupsRequest.StartIndex", err)
+	}
+	countWireValue, err := int64ToWire(v.Count)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountGroupsRequest.Count", err)
+	}
 	return &listAccountGroupsRequestWire{
 		AccountId:          v.AccountId,
 		Filter:             v.Filter,
 		Attributes:         v.Attributes,
 		ExcludedAttributes: v.ExcludedAttributes,
-		StartIndex:         v.StartIndex,
-		Count:              v.Count,
+		StartIndex:         startIndexWireValue,
+		Count:              countWireValue,
 		SortBy:             v.SortBy,
 		SortOrder:          v.SortOrder,
 	}, nil
@@ -648,7 +701,7 @@ func listAccountGroupsRequestToWire(v *ListAccountGroupsRequest) (*listAccountGr
 type listAccountGroupsResponseWire struct {
 	ItemsPerPage *int               `json:"itemsPerPage,omitempty"`
 	Resources    []accountGroupWire `json:"Resources,omitempty"`
-	StartIndex   *int64             `json:"startIndex,omitempty"`
+	StartIndex   *wireInt64         `json:"startIndex,omitempty"`
 	TotalResults *int               `json:"totalResults,omitempty"`
 }
 
@@ -660,22 +713,26 @@ func listAccountGroupsResponseFromWire(w *listAccountGroupsResponseWire) (*ListA
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ListAccountGroupsResponse.Resources", err)
 	}
+	startIndexPublicValue, err := int64FromWire(w.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountGroupsResponse.StartIndex", err)
+	}
 	return &ListAccountGroupsResponse{
 		ItemsPerPage: w.ItemsPerPage,
 		Resources:    resourcesPublicValue,
-		StartIndex:   w.StartIndex,
+		StartIndex:   startIndexPublicValue,
 		TotalResults: w.TotalResults,
 	}, nil
 }
 
 type listAccountServicePrincipalsRequestWire struct {
 	Attributes         *string               `json:"attributes,omitempty"`
-	Count              *int64                `json:"count,omitempty"`
+	Count              *wireInt64            `json:"count,omitempty"`
 	ExcludedAttributes *string               `json:"excludedAttributes,omitempty"`
 	Filter             *string               `json:"filter,omitempty"`
 	SortBy             *string               `json:"sortBy,omitempty"`
 	SortOrder          AccountListSort_Order `json:"sortOrder,omitempty"`
-	StartIndex         *int64                `json:"startIndex,omitempty"`
+	StartIndex         *wireInt64            `json:"startIndex,omitempty"`
 	AccountId          *string               `json:"account_id,omitempty"`
 }
 
@@ -683,14 +740,22 @@ func listAccountServicePrincipalsRequestToWire(v *ListAccountServicePrincipalsRe
 	if v == nil {
 		return nil, nil
 	}
+	countWireValue, err := int64ToWire(v.Count)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountServicePrincipalsRequest.Count", err)
+	}
+	startIndexWireValue, err := int64ToWire(v.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountServicePrincipalsRequest.StartIndex", err)
+	}
 	return &listAccountServicePrincipalsRequestWire{
 		Attributes:         v.Attributes,
-		Count:              v.Count,
+		Count:              countWireValue,
 		ExcludedAttributes: v.ExcludedAttributes,
 		Filter:             v.Filter,
 		SortBy:             v.SortBy,
 		SortOrder:          v.SortOrder,
-		StartIndex:         v.StartIndex,
+		StartIndex:         startIndexWireValue,
 		AccountId:          v.AccountId,
 	}, nil
 }
@@ -698,7 +763,7 @@ func listAccountServicePrincipalsRequestToWire(v *ListAccountServicePrincipalsRe
 type listAccountServicePrincipalsResponseWire struct {
 	ItemsPerPage *int                          `json:"itemsPerPage,omitempty"`
 	Resources    []accountServicePrincipalWire `json:"Resources,omitempty"`
-	StartIndex   *int64                        `json:"startIndex,omitempty"`
+	StartIndex   *wireInt64                    `json:"startIndex,omitempty"`
 	TotalResults *int                          `json:"totalResults,omitempty"`
 }
 
@@ -710,22 +775,26 @@ func listAccountServicePrincipalsResponseFromWire(w *listAccountServicePrincipal
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ListAccountServicePrincipalsResponse.Resources", err)
 	}
+	startIndexPublicValue, err := int64FromWire(w.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountServicePrincipalsResponse.StartIndex", err)
+	}
 	return &ListAccountServicePrincipalsResponse{
 		ItemsPerPage: w.ItemsPerPage,
 		Resources:    resourcesPublicValue,
-		StartIndex:   w.StartIndex,
+		StartIndex:   startIndexPublicValue,
 		TotalResults: w.TotalResults,
 	}, nil
 }
 
 type listAccountUsersRequestWire struct {
 	Attributes         *string               `json:"attributes,omitempty"`
-	Count              *int64                `json:"count,omitempty"`
+	Count              *wireInt64            `json:"count,omitempty"`
 	ExcludedAttributes *string               `json:"excludedAttributes,omitempty"`
 	Filter             *string               `json:"filter,omitempty"`
 	SortBy             *string               `json:"sortBy,omitempty"`
 	SortOrder          AccountListSort_Order `json:"sortOrder,omitempty"`
-	StartIndex         *int64                `json:"startIndex,omitempty"`
+	StartIndex         *wireInt64            `json:"startIndex,omitempty"`
 	AccountId          *string               `json:"account_id,omitempty"`
 }
 
@@ -733,14 +802,22 @@ func listAccountUsersRequestToWire(v *ListAccountUsersRequest) (*listAccountUser
 	if v == nil {
 		return nil, nil
 	}
+	countWireValue, err := int64ToWire(v.Count)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountUsersRequest.Count", err)
+	}
+	startIndexWireValue, err := int64ToWire(v.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountUsersRequest.StartIndex", err)
+	}
 	return &listAccountUsersRequestWire{
 		Attributes:         v.Attributes,
-		Count:              v.Count,
+		Count:              countWireValue,
 		ExcludedAttributes: v.ExcludedAttributes,
 		Filter:             v.Filter,
 		SortBy:             v.SortBy,
 		SortOrder:          v.SortOrder,
-		StartIndex:         v.StartIndex,
+		StartIndex:         startIndexWireValue,
 		AccountId:          v.AccountId,
 	}, nil
 }
@@ -748,7 +825,7 @@ func listAccountUsersRequestToWire(v *ListAccountUsersRequest) (*listAccountUser
 type listAccountUsersResponseWire struct {
 	ItemsPerPage *int              `json:"itemsPerPage,omitempty"`
 	Resources    []accountUserWire `json:"Resources,omitempty"`
-	StartIndex   *int64            `json:"startIndex,omitempty"`
+	StartIndex   *wireInt64        `json:"startIndex,omitempty"`
 	TotalResults *int              `json:"totalResults,omitempty"`
 }
 
@@ -760,10 +837,14 @@ func listAccountUsersResponseFromWire(w *listAccountUsersResponseWire) (*ListAcc
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ListAccountUsersResponse.Resources", err)
 	}
+	startIndexPublicValue, err := int64FromWire(w.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountUsersResponse.StartIndex", err)
+	}
 	return &ListAccountUsersResponse{
 		ItemsPerPage: w.ItemsPerPage,
 		Resources:    resourcesPublicValue,
-		StartIndex:   w.StartIndex,
+		StartIndex:   startIndexPublicValue,
 		TotalResults: w.TotalResults,
 	}, nil
 }
@@ -772,8 +853,8 @@ type listGroupsRequestWire struct {
 	Filter             *string        `json:"filter,omitempty"`
 	Attributes         *string        `json:"attributes,omitempty"`
 	ExcludedAttributes *string        `json:"excludedAttributes,omitempty"`
-	StartIndex         *int64         `json:"startIndex,omitempty"`
-	Count              *int64         `json:"count,omitempty"`
+	StartIndex         *wireInt64     `json:"startIndex,omitempty"`
+	Count              *wireInt64     `json:"count,omitempty"`
 	SortBy             *string        `json:"sortBy,omitempty"`
 	SortOrder          ListSort_Order `json:"sortOrder,omitempty"`
 }
@@ -782,12 +863,20 @@ func listGroupsRequestToWire(v *ListGroupsRequest) (*listGroupsRequestWire, erro
 	if v == nil {
 		return nil, nil
 	}
+	startIndexWireValue, err := int64ToWire(v.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListGroupsRequest.StartIndex", err)
+	}
+	countWireValue, err := int64ToWire(v.Count)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListGroupsRequest.Count", err)
+	}
 	return &listGroupsRequestWire{
 		Filter:             v.Filter,
 		Attributes:         v.Attributes,
 		ExcludedAttributes: v.ExcludedAttributes,
-		StartIndex:         v.StartIndex,
-		Count:              v.Count,
+		StartIndex:         startIndexWireValue,
+		Count:              countWireValue,
 		SortBy:             v.SortBy,
 		SortOrder:          v.SortOrder,
 	}, nil
@@ -797,7 +886,7 @@ type listGroupsResponseWire struct {
 	ItemsPerPage *int                 `json:"itemsPerPage,omitempty"`
 	Resources    []groupWire          `json:"Resources,omitempty"`
 	Schemas      []ListResponseSchema `json:"schemas,omitempty"`
-	StartIndex   *int64               `json:"startIndex,omitempty"`
+	StartIndex   *wireInt64           `json:"startIndex,omitempty"`
 	TotalResults *int                 `json:"totalResults,omitempty"`
 }
 
@@ -809,11 +898,15 @@ func listGroupsResponseFromWire(w *listGroupsResponseWire) (*ListGroupsResponse,
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ListGroupsResponse.Resources", err)
 	}
+	startIndexPublicValue, err := int64FromWire(w.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListGroupsResponse.StartIndex", err)
+	}
 	return &ListGroupsResponse{
 		ItemsPerPage: w.ItemsPerPage,
 		Resources:    resourcesPublicValue,
 		Schemas:      w.Schemas,
-		StartIndex:   w.StartIndex,
+		StartIndex:   startIndexPublicValue,
 		TotalResults: w.TotalResults,
 	}, nil
 }
@@ -822,7 +915,7 @@ type listServicePrincipalResponseWire struct {
 	ItemsPerPage *int                   `json:"itemsPerPage,omitempty"`
 	Resources    []servicePrincipalWire `json:"Resources,omitempty"`
 	Schemas      []ListResponseSchema   `json:"schemas,omitempty"`
-	StartIndex   *int64                 `json:"startIndex,omitempty"`
+	StartIndex   *wireInt64             `json:"startIndex,omitempty"`
 	TotalResults *int                   `json:"totalResults,omitempty"`
 }
 
@@ -834,62 +927,82 @@ func listServicePrincipalResponseFromWire(w *listServicePrincipalResponseWire) (
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ListServicePrincipalResponse.Resources", err)
 	}
+	startIndexPublicValue, err := int64FromWire(w.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListServicePrincipalResponse.StartIndex", err)
+	}
 	return &ListServicePrincipalResponse{
 		ItemsPerPage: w.ItemsPerPage,
 		Resources:    resourcesPublicValue,
 		Schemas:      w.Schemas,
-		StartIndex:   w.StartIndex,
+		StartIndex:   startIndexPublicValue,
 		TotalResults: w.TotalResults,
 	}, nil
 }
 
 type listServicePrincipalsRequestWire struct {
 	Attributes         *string        `json:"attributes,omitempty"`
-	Count              *int64         `json:"count,omitempty"`
+	Count              *wireInt64     `json:"count,omitempty"`
 	ExcludedAttributes *string        `json:"excludedAttributes,omitempty"`
 	Filter             *string        `json:"filter,omitempty"`
 	SortBy             *string        `json:"sortBy,omitempty"`
 	SortOrder          ListSort_Order `json:"sortOrder,omitempty"`
-	StartIndex         *int64         `json:"startIndex,omitempty"`
+	StartIndex         *wireInt64     `json:"startIndex,omitempty"`
 }
 
 func listServicePrincipalsRequestToWire(v *ListServicePrincipalsRequest) (*listServicePrincipalsRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	countWireValue, err := int64ToWire(v.Count)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListServicePrincipalsRequest.Count", err)
+	}
+	startIndexWireValue, err := int64ToWire(v.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListServicePrincipalsRequest.StartIndex", err)
+	}
 	return &listServicePrincipalsRequestWire{
 		Attributes:         v.Attributes,
-		Count:              v.Count,
+		Count:              countWireValue,
 		ExcludedAttributes: v.ExcludedAttributes,
 		Filter:             v.Filter,
 		SortBy:             v.SortBy,
 		SortOrder:          v.SortOrder,
-		StartIndex:         v.StartIndex,
+		StartIndex:         startIndexWireValue,
 	}, nil
 }
 
 type listUsersRequestWire struct {
 	Attributes         *string        `json:"attributes,omitempty"`
-	Count              *int64         `json:"count,omitempty"`
+	Count              *wireInt64     `json:"count,omitempty"`
 	ExcludedAttributes *string        `json:"excludedAttributes,omitempty"`
 	Filter             *string        `json:"filter,omitempty"`
 	SortBy             *string        `json:"sortBy,omitempty"`
 	SortOrder          ListSort_Order `json:"sortOrder,omitempty"`
-	StartIndex         *int64         `json:"startIndex,omitempty"`
+	StartIndex         *wireInt64     `json:"startIndex,omitempty"`
 }
 
 func listUsersRequestToWire(v *ListUsersRequest) (*listUsersRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	countWireValue, err := int64ToWire(v.Count)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListUsersRequest.Count", err)
+	}
+	startIndexWireValue, err := int64ToWire(v.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListUsersRequest.StartIndex", err)
+	}
 	return &listUsersRequestWire{
 		Attributes:         v.Attributes,
-		Count:              v.Count,
+		Count:              countWireValue,
 		ExcludedAttributes: v.ExcludedAttributes,
 		Filter:             v.Filter,
 		SortBy:             v.SortBy,
 		SortOrder:          v.SortOrder,
-		StartIndex:         v.StartIndex,
+		StartIndex:         startIndexWireValue,
 	}, nil
 }
 
@@ -897,7 +1010,7 @@ type listUsersResponseWire struct {
 	ItemsPerPage *int                 `json:"itemsPerPage,omitempty"`
 	Resources    []userWire           `json:"Resources,omitempty"`
 	Schemas      []ListResponseSchema `json:"schemas,omitempty"`
-	StartIndex   *int64               `json:"startIndex,omitempty"`
+	StartIndex   *wireInt64           `json:"startIndex,omitempty"`
 	TotalResults *int                 `json:"totalResults,omitempty"`
 }
 
@@ -909,11 +1022,15 @@ func listUsersResponseFromWire(w *listUsersResponseWire) (*ListUsersResponse, er
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ListUsersResponse.Resources", err)
 	}
+	startIndexPublicValue, err := int64FromWire(w.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListUsersResponse.StartIndex", err)
+	}
 	return &ListUsersResponse{
 		ItemsPerPage: w.ItemsPerPage,
 		Resources:    resourcesPublicValue,
 		Schemas:      w.Schemas,
-		StartIndex:   w.StartIndex,
+		StartIndex:   startIndexPublicValue,
 		TotalResults: w.TotalResults,
 	}, nil
 }

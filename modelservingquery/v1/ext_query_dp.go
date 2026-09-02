@@ -92,7 +92,7 @@ var ErrRouteOptimizationUnavailable = errors.New("modelservingquery: route optim
 // Unlike Query, it never falls back to the control plane once the data-plane
 // call is made: an error from that call is returned as is, so a billed inference
 // is not silently retried elsewhere. It otherwise behaves like Query.
-func (c *Client) QueryOptimized(ctx context.Context, req *QueryEndpointRequest, opts ...ops.Option) (*QueryEndpointResponse, error) {
+func (c *Client) QueryOptimized(ctx context.Context, req QueryEndpointRequest, opts ...ops.Option) (*QueryEndpointResponse, error) {
 	dp := c.dpState()
 	if dp.cpTokens == nil || req.Name == nil {
 		return nil, ErrRouteOptimizationUnavailable
@@ -232,10 +232,10 @@ func dataPlaneInfoFromWire(w *servingEndpointDetailedWire) *dataPlaneInfo {
 // Query (body/response wire conversion, served-model-name header) but targets
 // the absolute data-plane URL and signs with the data-plane token instead of
 // the control-plane credentials.
-func (dp *dpState) query(ctx context.Context, req *QueryEndpointRequest, ep *endpointState, opts ...ops.Option) (*QueryEndpointResponse, error) {
+func (dp *dpState) query(ctx context.Context, req QueryEndpointRequest, ep *endpointState, opts ...ops.Option) (*QueryEndpointResponse, error) {
 	c := dp.client
 	info := ep.info
-	wireReq, err := queryEndpointRequestToWire(req)
+	wireReq, err := queryEndpointRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}

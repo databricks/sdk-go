@@ -74,8 +74,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Cancel a Custom LLM Optimization Run.
-func (c *internalClient) CancelCustomLlmOptimizationRun(ctx context.Context, req *CancelCustomLlmOptimizationRunRequest, opts ...call.Option) error {
-	wireReq, err := cancelCustomLlmOptimizationRunRequestToWire(req)
+func (c *internalClient) CancelCustomLlmOptimizationRun(ctx context.Context, req CancelCustomLlmOptimizationRunRequest, opts ...call.Option) error {
+	wireReq, err := cancelCustomLlmOptimizationRunRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -96,7 +96,11 @@ func (c *internalClient) CancelCustomLlmOptimizationRun(ctx context.Context, req
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/custom-llms/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	pb.literal("/optimize/cancel")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -135,8 +139,8 @@ func (c *internalClient) CancelCustomLlmOptimizationRun(ctx context.Context, req
 }
 
 // Create a Custom LLM.
-func (c *internalClient) CreateCustomLlm(ctx context.Context, req *CreateCustomLlmRequest, opts ...call.Option) (*CustomLlm, error) {
-	wireReq, err := createCustomLlmRequestToWire(req)
+func (c *internalClient) CreateCustomLlm(ctx context.Context, req CreateCustomLlmRequest, opts ...call.Option) (*CustomLlm, error) {
+	wireReq, err := createCustomLlmRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +205,7 @@ func (c *internalClient) CreateCustomLlm(ctx context.Context, req *CreateCustomL
 }
 
 // Delete a Custom LLM.
-func (c *internalClient) DeleteCustomLlm(ctx context.Context, req *DeleteCustomLlmRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteCustomLlm(ctx context.Context, req DeleteCustomLlmRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -215,7 +219,11 @@ func (c *internalClient) DeleteCustomLlm(ctx context.Context, req *DeleteCustomL
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/custom-llms/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -252,7 +260,7 @@ func (c *internalClient) DeleteCustomLlm(ctx context.Context, req *DeleteCustomL
 }
 
 // Get a Custom LLM.
-func (c *internalClient) GetCustomLlm(ctx context.Context, req *GetCustomLlmRequest, opts ...call.Option) (*CustomLlm, error) {
+func (c *internalClient) GetCustomLlm(ctx context.Context, req GetCustomLlmRequest, opts ...call.Option) (*CustomLlm, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -266,7 +274,11 @@ func (c *internalClient) GetCustomLlm(ctx context.Context, req *GetCustomLlmRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/custom-llms/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -312,8 +324,8 @@ func (c *internalClient) GetCustomLlm(ctx context.Context, req *GetCustomLlmRequ
 }
 
 // Start a Custom LLM Optimization Run.
-func (c *internalClient) StartCustomLlmOptimizationRun(ctx context.Context, req *StartCustomLlmOptimizationRunRequest, opts ...call.Option) (*CustomLlm, error) {
-	wireReq, err := startCustomLlmOptimizationRunRequestToWire(req)
+func (c *internalClient) StartCustomLlmOptimizationRun(ctx context.Context, req StartCustomLlmOptimizationRunRequest, opts ...call.Option) (*CustomLlm, error) {
+	wireReq, err := startCustomLlmOptimizationRunRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -334,7 +346,11 @@ func (c *internalClient) StartCustomLlmOptimizationRun(ctx context.Context, req 
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/custom-llms/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	pb.literal("/optimize")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -382,8 +398,8 @@ func (c *internalClient) StartCustomLlmOptimizationRun(ctx context.Context, req 
 }
 
 // Update a Custom LLM.
-func (c *internalClient) UpdateCustomLlm(ctx context.Context, req *UpdateCustomLlmRequest, opts ...call.Option) (*CustomLlm, error) {
-	wireReq, err := updateCustomLlmRequestToWire(req)
+func (c *internalClient) UpdateCustomLlm(ctx context.Context, req UpdateCustomLlmRequest, opts ...call.Option) (*CustomLlm, error) {
+	wireReq, err := updateCustomLlmRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -404,7 +420,11 @@ func (c *internalClient) UpdateCustomLlm(ctx context.Context, req *UpdateCustomL
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/custom-llms/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

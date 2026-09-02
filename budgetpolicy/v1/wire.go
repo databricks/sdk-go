@@ -3,14 +3,60 @@
 package budgetpolicy
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type budgetPolicyWire struct {
 	PolicyId            *string               `json:"policy_id,omitempty"`
 	PolicyName          *string               `json:"policy_name,omitempty"`
 	CustomTags          []customPolicyTagWire `json:"custom_tags,omitempty"`
-	BindingWorkspaceIds []int64               `json:"binding_workspace_ids,omitempty"`
+	BindingWorkspaceIds []wireInt64           `json:"binding_workspace_ids,omitempty"`
 }
 
 func budgetPolicyToWire(v *BudgetPolicy) (*budgetPolicyWire, error) {
@@ -21,11 +67,15 @@ func budgetPolicyToWire(v *BudgetPolicy) (*budgetPolicyWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "BudgetPolicy.CustomTags", err)
 	}
+	bindingWorkspaceIdsWireValue, err := convertSlice(v.BindingWorkspaceIds, int64ToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BudgetPolicy.BindingWorkspaceIds", err)
+	}
 	return &budgetPolicyWire{
 		PolicyId:            v.PolicyId,
 		PolicyName:          v.PolicyName,
 		CustomTags:          customTagsWireValue,
-		BindingWorkspaceIds: v.BindingWorkspaceIds,
+		BindingWorkspaceIds: bindingWorkspaceIdsWireValue,
 	}, nil
 }
 
@@ -37,11 +87,15 @@ func budgetPolicyFromWire(w *budgetPolicyWire) (*BudgetPolicy, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "BudgetPolicy.CustomTags", err)
 	}
+	bindingWorkspaceIdsPublicValue, err := convertSlice(w.BindingWorkspaceIds, int64FromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BudgetPolicy.BindingWorkspaceIds", err)
+	}
 	return &BudgetPolicy{
 		PolicyId:            w.PolicyId,
 		PolicyName:          w.PolicyName,
 		CustomTags:          customTagsPublicValue,
-		BindingWorkspaceIds: w.BindingWorkspaceIds,
+		BindingWorkspaceIds: bindingWorkspaceIdsPublicValue,
 	}, nil
 }
 
@@ -92,18 +146,22 @@ func customPolicyTagFromWire(w *customPolicyTagWire) (*CustomPolicyTag, error) {
 }
 
 type filterWire struct {
-	PolicyName      *string `json:"policy_name,omitempty"`
-	CreatorUserId   *int64  `json:"creator_user_id,omitempty"`
-	CreatorUserName *string `json:"creator_user_name,omitempty"`
+	PolicyName      *string    `json:"policy_name,omitempty"`
+	CreatorUserId   *wireInt64 `json:"creator_user_id,omitempty"`
+	CreatorUserName *string    `json:"creator_user_name,omitempty"`
 }
 
 func filterToWire(v *Filter) (*filterWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	creatorUserIdWireValue, err := int64ToWire(v.CreatorUserId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Filter.CreatorUserId", err)
+	}
 	return &filterWire{
 		PolicyName:      v.PolicyName,
-		CreatorUserId:   v.CreatorUserId,
+		CreatorUserId:   creatorUserIdWireValue,
 		CreatorUserName: v.CreatorUserName,
 	}, nil
 }

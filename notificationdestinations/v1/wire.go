@@ -3,8 +3,54 @@
 package notificationdestinations
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type configWire struct {
 	Slack          *slackConfigWire          `json:"slack,omitempty"`
@@ -217,17 +263,21 @@ func genericWebhookConfigFromWire(w *genericWebhookConfigWire) (*GenericWebhookC
 }
 
 type listNotificationDestinationsRequestWire struct {
-	PageToken *string `json:"page_token,omitempty"`
-	PageSize  *int64  `json:"page_size,omitempty"`
+	PageToken *string    `json:"page_token,omitempty"`
+	PageSize  *wireInt64 `json:"page_size,omitempty"`
 }
 
 func listNotificationDestinationsRequestToWire(v *ListNotificationDestinationsRequest) (*listNotificationDestinationsRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	pageSizeWireValue, err := int64ToWire(v.PageSize)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListNotificationDestinationsRequest.PageSize", err)
+	}
 	return &listNotificationDestinationsRequestWire{
 		PageToken: v.PageToken,
-		PageSize:  v.PageSize,
+		PageSize:  pageSizeWireValue,
 	}, nil
 }
 

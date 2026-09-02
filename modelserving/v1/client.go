@@ -76,8 +76,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Create a new serving endpoint.
-func (c *internalClient) createInferenceEndpointBase(ctx context.Context, req *CreateInferenceEndpointRequest, opts ...call.Option) (*InferenceEndpointDetailed, error) {
-	wireReq, err := createInferenceEndpointRequestToWire(req)
+func (c *internalClient) createInferenceEndpointBase(ctx context.Context, req CreateInferenceEndpointRequest, opts ...call.Option) (*InferenceEndpointDetailed, error) {
+	wireReq, err := createInferenceEndpointRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func (c *internalClient) createInferenceEndpointBase(ctx context.Context, req *C
 }
 
 // Create a new serving endpoint.
-func (c *internalClient) CreateInferenceEndpoint(ctx context.Context, req *CreateInferenceEndpointRequest, opts ...call.Option) (*CreateInferenceEndpointWaiter, error) {
+func (c *internalClient) CreateInferenceEndpoint(ctx context.Context, req CreateInferenceEndpointRequest, opts ...call.Option) (*CreateInferenceEndpointWaiter, error) {
 	if req.Name == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "Name")
 	}
@@ -159,13 +159,18 @@ func (c *internalClient) CreateInferenceEndpoint(ctx context.Context, req *Creat
 
 // CreateInferenceEndpointWaiter tracks the state of the operation started by CreateInferenceEndpoint.
 type CreateInferenceEndpointWaiter struct {
-	poll func(context.Context, *GetInferenceEndpointRequest, ...call.Option) (*InferenceEndpointDetailed, error)
+	poll func(context.Context, GetInferenceEndpointRequest, ...call.Option) (*InferenceEndpointDetailed, error)
 	name string
+}
+
+// GetName returns the Name value used to identify the operation.
+func (w *CreateInferenceEndpointWaiter) GetName() string {
+	return w.name
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *CreateInferenceEndpointWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetInferenceEndpointRequest{
+	pollResp, err := w.poll(ctx, GetInferenceEndpointRequest{
 		Name: &w.name,
 	}, opts...)
 	if err != nil {
@@ -193,7 +198,7 @@ func (w *CreateInferenceEndpointWaiter) Done(ctx context.Context, opts ...call.O
 func (w *CreateInferenceEndpointWaiter) Wait(ctx context.Context, opts ...lro.Option) (*InferenceEndpointDetailed, error) {
 	var result *InferenceEndpointDetailed
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetInferenceEndpointRequest{
+		pollResp, err := w.poll(ctx, GetInferenceEndpointRequest{
 			Name: &w.name,
 		})
 		if err != nil {
@@ -227,8 +232,8 @@ func (w *CreateInferenceEndpointWaiter) Wait(ctx context.Context, opts ...lro.Op
 }
 
 // Create a new PT serving endpoint.
-func (c *internalClient) createProvisionedThroughputInferenceEndpointBase(ctx context.Context, req *CreatePtEndpointRequest, opts ...call.Option) (*InferenceEndpointDetailed, error) {
-	wireReq, err := createPtEndpointRequestToWire(req)
+func (c *internalClient) createProvisionedThroughputInferenceEndpointBase(ctx context.Context, req CreatePtEndpointRequest, opts ...call.Option) (*InferenceEndpointDetailed, error) {
+	wireReq, err := createPtEndpointRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +298,7 @@ func (c *internalClient) createProvisionedThroughputInferenceEndpointBase(ctx co
 }
 
 // Create a new PT serving endpoint.
-func (c *internalClient) CreateProvisionedThroughputInferenceEndpoint(ctx context.Context, req *CreatePtEndpointRequest, opts ...call.Option) (*CreateProvisionedThroughputInferenceEndpointWaiter, error) {
+func (c *internalClient) CreateProvisionedThroughputInferenceEndpoint(ctx context.Context, req CreatePtEndpointRequest, opts ...call.Option) (*CreateProvisionedThroughputInferenceEndpointWaiter, error) {
 	if req.Name == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "Name")
 	}
@@ -310,13 +315,18 @@ func (c *internalClient) CreateProvisionedThroughputInferenceEndpoint(ctx contex
 
 // CreateProvisionedThroughputInferenceEndpointWaiter tracks the state of the operation started by CreateProvisionedThroughputInferenceEndpoint.
 type CreateProvisionedThroughputInferenceEndpointWaiter struct {
-	poll func(context.Context, *GetInferenceEndpointRequest, ...call.Option) (*InferenceEndpointDetailed, error)
+	poll func(context.Context, GetInferenceEndpointRequest, ...call.Option) (*InferenceEndpointDetailed, error)
 	name string
+}
+
+// GetName returns the Name value used to identify the operation.
+func (w *CreateProvisionedThroughputInferenceEndpointWaiter) GetName() string {
+	return w.name
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *CreateProvisionedThroughputInferenceEndpointWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetInferenceEndpointRequest{
+	pollResp, err := w.poll(ctx, GetInferenceEndpointRequest{
 		Name: &w.name,
 	}, opts...)
 	if err != nil {
@@ -344,7 +354,7 @@ func (w *CreateProvisionedThroughputInferenceEndpointWaiter) Done(ctx context.Co
 func (w *CreateProvisionedThroughputInferenceEndpointWaiter) Wait(ctx context.Context, opts ...lro.Option) (*InferenceEndpointDetailed, error) {
 	var result *InferenceEndpointDetailed
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetInferenceEndpointRequest{
+		pollResp, err := w.poll(ctx, GetInferenceEndpointRequest{
 			Name: &w.name,
 		})
 		if err != nil {
@@ -378,7 +388,7 @@ func (w *CreateProvisionedThroughputInferenceEndpointWaiter) Wait(ctx context.Co
 }
 
 // Delete a serving endpoint.
-func (c *internalClient) DeleteInferenceEndpoint(ctx context.Context, req *DeleteInferenceEndpointRequest, opts ...call.Option) (*DeleteInferenceEndpointResponse, error) {
+func (c *internalClient) DeleteInferenceEndpoint(ctx context.Context, req DeleteInferenceEndpointRequest, opts ...call.Option) (*DeleteInferenceEndpointResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -392,7 +402,11 @@ func (c *internalClient) DeleteInferenceEndpoint(ctx context.Context, req *Delet
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -433,7 +447,7 @@ func (c *internalClient) DeleteInferenceEndpoint(ctx context.Context, req *Delet
 
 // Retrieves the metrics associated with the provided serving endpoint in either
 // Prometheus or OpenMetrics exposition format.
-func (c *internalClient) GetExportEndpointMetrics(ctx context.Context, req *GetExportEndpointMetricsRequest, opts ...call.Option) (*ExportMetricsResponse, error) {
+func (c *internalClient) GetExportEndpointMetrics(ctx context.Context, req GetExportEndpointMetricsRequest, opts ...call.Option) (*ExportMetricsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -448,7 +462,11 @@ func (c *internalClient) GetExportEndpointMetrics(ctx context.Context, req *GetE
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/metrics")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -489,7 +507,7 @@ func (c *internalClient) GetExportEndpointMetrics(ctx context.Context, req *GetE
 }
 
 // Retrieves the details for a single serving endpoint.
-func (c *internalClient) GetInferenceEndpoint(ctx context.Context, req *GetInferenceEndpointRequest, opts ...call.Option) (*InferenceEndpointDetailed, error) {
+func (c *internalClient) GetInferenceEndpoint(ctx context.Context, req GetInferenceEndpointRequest, opts ...call.Option) (*InferenceEndpointDetailed, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -503,7 +521,11 @@ func (c *internalClient) GetInferenceEndpoint(ctx context.Context, req *GetInfer
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -551,7 +573,7 @@ func (c *internalClient) GetInferenceEndpoint(ctx context.Context, req *GetInfer
 // Get the query schema of the serving endpoint in OpenAPI format. The schema
 // contains information for the supported paths, input and output format and
 // datatypes.
-func (c *internalClient) GetInferenceEndpointSchema(ctx context.Context, req *GetInferenceEndpointSchemaRequest, opts ...call.Option) (*GetOpenApiResponse, error) {
+func (c *internalClient) GetInferenceEndpointSchema(ctx context.Context, req GetInferenceEndpointSchemaRequest, opts ...call.Option) (*GetOpenApiResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -566,7 +588,11 @@ func (c *internalClient) GetInferenceEndpointSchema(ctx context.Context, req *Ge
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/openapi")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -607,7 +633,7 @@ func (c *internalClient) GetInferenceEndpointSchema(ctx context.Context, req *Ge
 }
 
 // Retrieves the build logs associated with the provided served model.
-func (c *internalClient) GetServedModelBuildLogs(ctx context.Context, req *GetServedModelBuildLogsRequest, opts ...call.Option) (*GetServedModelBuildLogsResponse, error) {
+func (c *internalClient) GetServedModelBuildLogs(ctx context.Context, req GetServedModelBuildLogsRequest, opts ...call.Option) (*GetServedModelBuildLogsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -621,9 +647,17 @@ func (c *internalClient) GetServedModelBuildLogs(ctx context.Context, req *GetSe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/served-models/")
-	pb.singleSegment(*req.ServedModelName)
+	if req.ServedModelName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ServedModelName)
+	}
 	pb.literal("/build-logs")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -670,7 +704,7 @@ func (c *internalClient) GetServedModelBuildLogs(ctx context.Context, req *GetSe
 }
 
 // Retrieves the service logs associated with the provided served model.
-func (c *internalClient) GetServedModelLogs(ctx context.Context, req *GetServedModelLogsRequest, opts ...call.Option) (*GetServedModelLogsResponse, error) {
+func (c *internalClient) GetServedModelLogs(ctx context.Context, req GetServedModelLogsRequest, opts ...call.Option) (*GetServedModelLogsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -684,9 +718,17 @@ func (c *internalClient) GetServedModelLogs(ctx context.Context, req *GetServedM
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/served-models/")
-	pb.singleSegment(*req.ServedModelName)
+	if req.ServedModelName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ServedModelName)
+	}
 	pb.literal("/logs")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -733,7 +775,7 @@ func (c *internalClient) GetServedModelLogs(ctx context.Context, req *GetServedM
 }
 
 // Get all serving endpoints.
-func (c *internalClient) ListInferenceEndpoints(ctx context.Context, req *ListInferenceEndpointsRequest, opts ...call.Option) (*ListInferenceEndpointsResponse, error) {
+func (c *internalClient) ListInferenceEndpoints(ctx context.Context, req ListInferenceEndpointsRequest, opts ...call.Option) (*ListInferenceEndpointsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -791,8 +833,8 @@ func (c *internalClient) ListInferenceEndpoints(ctx context.Context, req *ListIn
 
 // Used to batch add and delete tags from a serving endpoint with a single API
 // call.
-func (c *internalClient) PatchInferenceEndpointTags(ctx context.Context, req *PatchInferenceEndpointTagsRequest, opts ...call.Option) (*PatchInferenceEndpointTagsResponse, error) {
-	wireReq, err := patchInferenceEndpointTagsRequestToWire(req)
+func (c *internalClient) PatchInferenceEndpointTags(ctx context.Context, req PatchInferenceEndpointTagsRequest, opts ...call.Option) (*PatchInferenceEndpointTagsResponse, error) {
+	wireReq, err := patchInferenceEndpointTagsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -813,7 +855,11 @@ func (c *internalClient) PatchInferenceEndpointTags(ctx context.Context, req *Pa
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/tags")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -861,8 +907,8 @@ func (c *internalClient) PatchInferenceEndpointTags(ctx context.Context, req *Pa
 }
 
 // Updates the telemetry configuration of a serving endpoint.
-func (c *internalClient) PatchInferenceEndpointTelemetryConfig(ctx context.Context, req *PatchInferenceEndpointTelemetryConfigRequest, opts ...call.Option) (*InferenceEndpointDetailed, error) {
-	wireReq, err := patchInferenceEndpointTelemetryConfigRequestToWire(req)
+func (c *internalClient) PatchInferenceEndpointTelemetryConfig(ctx context.Context, req PatchInferenceEndpointTelemetryConfigRequest, opts ...call.Option) (*InferenceEndpointDetailed, error) {
+	wireReq, err := patchInferenceEndpointTelemetryConfigRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -883,7 +929,11 @@ func (c *internalClient) PatchInferenceEndpointTelemetryConfig(ctx context.Conte
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/telemetry-config")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -933,8 +983,8 @@ func (c *internalClient) PatchInferenceEndpointTelemetryConfig(ctx context.Conte
 // Used to update the AI Gateway of a serving endpoint. NOTE: External model,
 // provisioned throughput, and pay-per-token endpoints are fully supported;
 // agent endpoints currently only support inference tables.
-func (c *internalClient) PutInferenceEndpointAiGateway(ctx context.Context, req *PutInferenceEndpointAiGatewayRequest, opts ...call.Option) (*PutInferenceEndpointAiGatewayResponse, error) {
-	wireReq, err := putInferenceEndpointAiGatewayRequestToWire(req)
+func (c *internalClient) PutInferenceEndpointAiGateway(ctx context.Context, req PutInferenceEndpointAiGatewayRequest, opts ...call.Option) (*PutInferenceEndpointAiGatewayResponse, error) {
+	wireReq, err := putInferenceEndpointAiGatewayRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -955,7 +1005,11 @@ func (c *internalClient) PutInferenceEndpointAiGateway(ctx context.Context, req 
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/ai-gateway")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1006,8 +1060,8 @@ func (c *internalClient) PutInferenceEndpointAiGateway(ctx context.Context, req 
 // compute configuration of those served entities, and the endpoint's traffic
 // config. An endpoint that already has an update in progress can not be updated
 // until the current update completes or fails.
-func (c *internalClient) putInferenceEndpointConfigBase(ctx context.Context, req *PutInferenceEndpointConfigRequest, opts ...call.Option) (*InferenceEndpointDetailed, error) {
-	wireReq, err := putInferenceEndpointConfigRequestToWire(req)
+func (c *internalClient) putInferenceEndpointConfigBase(ctx context.Context, req PutInferenceEndpointConfigRequest, opts ...call.Option) (*InferenceEndpointDetailed, error) {
+	wireReq, err := putInferenceEndpointConfigRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1028,7 +1082,11 @@ func (c *internalClient) putInferenceEndpointConfigBase(ctx context.Context, req
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/config")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1079,7 +1137,7 @@ func (c *internalClient) putInferenceEndpointConfigBase(ctx context.Context, req
 // compute configuration of those served entities, and the endpoint's traffic
 // config. An endpoint that already has an update in progress can not be updated
 // until the current update completes or fails.
-func (c *internalClient) PutInferenceEndpointConfig(ctx context.Context, req *PutInferenceEndpointConfigRequest, opts ...call.Option) (*PutInferenceEndpointConfigWaiter, error) {
+func (c *internalClient) PutInferenceEndpointConfig(ctx context.Context, req PutInferenceEndpointConfigRequest, opts ...call.Option) (*PutInferenceEndpointConfigWaiter, error) {
 	if req.Name == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "Name")
 	}
@@ -1096,13 +1154,18 @@ func (c *internalClient) PutInferenceEndpointConfig(ctx context.Context, req *Pu
 
 // PutInferenceEndpointConfigWaiter tracks the state of the operation started by PutInferenceEndpointConfig.
 type PutInferenceEndpointConfigWaiter struct {
-	poll func(context.Context, *GetInferenceEndpointRequest, ...call.Option) (*InferenceEndpointDetailed, error)
+	poll func(context.Context, GetInferenceEndpointRequest, ...call.Option) (*InferenceEndpointDetailed, error)
 	name string
+}
+
+// GetName returns the Name value used to identify the operation.
+func (w *PutInferenceEndpointConfigWaiter) GetName() string {
+	return w.name
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *PutInferenceEndpointConfigWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetInferenceEndpointRequest{
+	pollResp, err := w.poll(ctx, GetInferenceEndpointRequest{
 		Name: &w.name,
 	}, opts...)
 	if err != nil {
@@ -1130,7 +1193,7 @@ func (w *PutInferenceEndpointConfigWaiter) Done(ctx context.Context, opts ...cal
 func (w *PutInferenceEndpointConfigWaiter) Wait(ctx context.Context, opts ...lro.Option) (*InferenceEndpointDetailed, error) {
 	var result *InferenceEndpointDetailed
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetInferenceEndpointRequest{
+		pollResp, err := w.poll(ctx, GetInferenceEndpointRequest{
 			Name: &w.name,
 		})
 		if err != nil {
@@ -1164,8 +1227,8 @@ func (w *PutInferenceEndpointConfigWaiter) Wait(ctx context.Context, opts ...lro
 }
 
 // Deprecated: Please use AI Gateway to manage rate limits instead.
-func (c *internalClient) PutInferenceEndpointRateLimits(ctx context.Context, req *PutInferenceEndpointRateLimitsRequest, opts ...call.Option) (*PutInferenceEndpointRateLimitsResponse, error) {
-	wireReq, err := putInferenceEndpointRateLimitsRequestToWire(req)
+func (c *internalClient) PutInferenceEndpointRateLimits(ctx context.Context, req PutInferenceEndpointRateLimitsRequest, opts ...call.Option) (*PutInferenceEndpointRateLimitsResponse, error) {
+	wireReq, err := putInferenceEndpointRateLimitsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1186,7 +1249,11 @@ func (c *internalClient) PutInferenceEndpointRateLimits(ctx context.Context, req
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/rate-limits")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1236,8 +1303,8 @@ func (c *internalClient) PutInferenceEndpointRateLimits(ctx context.Context, req
 // Updates any combination of the pt endpoint's served entities, the compute
 // configuration of those served entities, and the endpoint's traffic config.
 // Updates are instantaneous and endpoint should be updated instantly
-func (c *internalClient) putProvisionedThroughputInferenceEndpointConfigBase(ctx context.Context, req *PutPtEndpointConfigRequest, opts ...call.Option) (*InferenceEndpointDetailed, error) {
-	wireReq, err := putPtEndpointConfigRequestToWire(req)
+func (c *internalClient) putProvisionedThroughputInferenceEndpointConfigBase(ctx context.Context, req PutPtEndpointConfigRequest, opts ...call.Option) (*InferenceEndpointDetailed, error) {
+	wireReq, err := putPtEndpointConfigRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1258,7 +1325,11 @@ func (c *internalClient) putProvisionedThroughputInferenceEndpointConfigBase(ctx
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/pt/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/config")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1308,7 +1379,7 @@ func (c *internalClient) putProvisionedThroughputInferenceEndpointConfigBase(ctx
 // Updates any combination of the pt endpoint's served entities, the compute
 // configuration of those served entities, and the endpoint's traffic config.
 // Updates are instantaneous and endpoint should be updated instantly
-func (c *internalClient) PutProvisionedThroughputInferenceEndpointConfig(ctx context.Context, req *PutPtEndpointConfigRequest, opts ...call.Option) (*PutProvisionedThroughputInferenceEndpointConfigWaiter, error) {
+func (c *internalClient) PutProvisionedThroughputInferenceEndpointConfig(ctx context.Context, req PutPtEndpointConfigRequest, opts ...call.Option) (*PutProvisionedThroughputInferenceEndpointConfigWaiter, error) {
 	if req.Name == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "Name")
 	}
@@ -1325,13 +1396,18 @@ func (c *internalClient) PutProvisionedThroughputInferenceEndpointConfig(ctx con
 
 // PutProvisionedThroughputInferenceEndpointConfigWaiter tracks the state of the operation started by PutProvisionedThroughputInferenceEndpointConfig.
 type PutProvisionedThroughputInferenceEndpointConfigWaiter struct {
-	poll func(context.Context, *GetInferenceEndpointRequest, ...call.Option) (*InferenceEndpointDetailed, error)
+	poll func(context.Context, GetInferenceEndpointRequest, ...call.Option) (*InferenceEndpointDetailed, error)
 	name string
+}
+
+// GetName returns the Name value used to identify the operation.
+func (w *PutProvisionedThroughputInferenceEndpointConfigWaiter) GetName() string {
+	return w.name
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *PutProvisionedThroughputInferenceEndpointConfigWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetInferenceEndpointRequest{
+	pollResp, err := w.poll(ctx, GetInferenceEndpointRequest{
 		Name: &w.name,
 	}, opts...)
 	if err != nil {
@@ -1359,7 +1435,7 @@ func (w *PutProvisionedThroughputInferenceEndpointConfigWaiter) Done(ctx context
 func (w *PutProvisionedThroughputInferenceEndpointConfigWaiter) Wait(ctx context.Context, opts ...lro.Option) (*InferenceEndpointDetailed, error) {
 	var result *InferenceEndpointDetailed
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetInferenceEndpointRequest{
+		pollResp, err := w.poll(ctx, GetInferenceEndpointRequest{
 			Name: &w.name,
 		})
 		if err != nil {
@@ -1393,8 +1469,8 @@ func (w *PutProvisionedThroughputInferenceEndpointConfigWaiter) Wait(ctx context
 }
 
 // Updates the email and webhook notification settings for an endpoint.
-func (c *internalClient) UpdateInferenceEndpointNotifications(ctx context.Context, req *UpdateInferenceEndpointNotificationsRequest, opts ...call.Option) (*UpdateInferenceEndpointNotificationsResponse, error) {
-	wireReq, err := updateInferenceEndpointNotificationsRequestToWire(req)
+func (c *internalClient) UpdateInferenceEndpointNotifications(ctx context.Context, req UpdateInferenceEndpointNotificationsRequest, opts ...call.Option) (*UpdateInferenceEndpointNotificationsResponse, error) {
+	wireReq, err := updateInferenceEndpointNotificationsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1415,7 +1491,11 @@ func (c *internalClient) UpdateInferenceEndpointNotifications(ctx context.Contex
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/notifications")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1463,8 +1543,8 @@ func (c *internalClient) UpdateInferenceEndpointNotifications(ctx context.Contex
 }
 
 // Make external services call using the credentials stored in UC Connection.
-func (c *internalClient) HttpRequest(ctx context.Context, req *ExternalFunctionRequest, opts ...call.Option) (*ExternalFunctionResponse, error) {
-	wireReq, err := externalFunctionRequestToWire(req)
+func (c *internalClient) HttpRequest(ctx context.Context, req ExternalFunctionRequest, opts ...call.Option) (*ExternalFunctionResponse, error) {
+	wireReq, err := externalFunctionRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}

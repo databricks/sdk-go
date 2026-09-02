@@ -85,8 +85,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // permissions].
 //
 // [Manage tag policy permissions]: https://docs.databricks.com/aws/en/admin/tag-policies/manage-permissions
-func (c *internalClient) CreateEntityTagAssignment(ctx context.Context, req *CreateEntityTagAssignmentRequest, opts ...call.Option) (*EntityTagAssignment, error) {
-	wireReq, err := createEntityTagAssignmentRequestToWire(req)
+func (c *internalClient) CreateEntityTagAssignment(ctx context.Context, req CreateEntityTagAssignmentRequest, opts ...call.Option) (*EntityTagAssignment, error) {
+	wireReq, err := createEntityTagAssignmentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func (c *internalClient) CreateEntityTagAssignment(ctx context.Context, req *Cre
 // permissions].
 //
 // [Manage tag policy permissions]: https://docs.databricks.com/aws/en/admin/tag-policies/manage-permissions
-func (c *internalClient) DeleteEntityTagAssignment(ctx context.Context, req *DeleteEntityTagAssignmentRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteEntityTagAssignment(ctx context.Context, req DeleteEntityTagAssignmentRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -175,11 +175,23 @@ func (c *internalClient) DeleteEntityTagAssignment(ctx context.Context, req *Del
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/entity-tag-assignments/")
-	pb.singleSegment(*req.EntityType)
+	if req.EntityType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.EntityType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.EntityName)
+	if req.EntityName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.EntityName)
+	}
 	pb.literal("/tags/")
-	pb.singleSegment(*req.TagKey)
+	if req.TagKey == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.TagKey)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -216,7 +228,7 @@ func (c *internalClient) DeleteEntityTagAssignment(ctx context.Context, req *Del
 }
 
 // Gets a tag assignment for an Unity Catalog entity by tag key.
-func (c *internalClient) GetEntityTagAssignment(ctx context.Context, req *GetEntityTagAssignmentRequest, opts ...call.Option) (*EntityTagAssignment, error) {
+func (c *internalClient) GetEntityTagAssignment(ctx context.Context, req GetEntityTagAssignmentRequest, opts ...call.Option) (*EntityTagAssignment, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -230,11 +242,23 @@ func (c *internalClient) GetEntityTagAssignment(ctx context.Context, req *GetEnt
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/entity-tag-assignments/")
-	pb.singleSegment(*req.EntityType)
+	if req.EntityType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.EntityType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.EntityName)
+	if req.EntityName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.EntityName)
+	}
 	pb.literal("/tags/")
-	pb.singleSegment(*req.TagKey)
+	if req.TagKey == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.TagKey)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -285,8 +309,8 @@ func (c *internalClient) GetEntityTagAssignment(ctx context.Context, req *GetEnt
 // results while still providing a next_page_token. Clients must continue
 // reading pages until next_page_token is absent, which is the only indication
 // that the end of results has been reached.
-func (c *internalClient) ListEntityTagAssignments(ctx context.Context, req *ListEntityTagAssignmentsRequest, opts ...call.Option) (*ListEntityTagAssignmentsResponse, error) {
-	wireReq, err := listEntityTagAssignmentsRequestToWire(req)
+func (c *internalClient) ListEntityTagAssignments(ctx context.Context, req ListEntityTagAssignmentsRequest, opts ...call.Option) (*ListEntityTagAssignmentsResponse, error) {
+	wireReq, err := listEntityTagAssignmentsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -303,9 +327,17 @@ func (c *internalClient) ListEntityTagAssignments(ctx context.Context, req *List
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/entity-tag-assignments/")
-	pb.singleSegment(*req.EntityType)
+	if req.EntityType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.EntityType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.EntityName)
+	if req.EntityName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.EntityName)
+	}
 	pb.literal("/tags")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -362,7 +394,7 @@ func (c *internalClient) ListEntityTagAssignments(ctx context.Context, req *List
 //
 // For example:
 //
-//	for item, err := range c.ListEntityTagAssignmentsIter(ctx, &ListEntityTagAssignmentsRequest{}) {
+//	for item, err := range c.ListEntityTagAssignmentsIter(ctx, ListEntityTagAssignmentsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -374,16 +406,13 @@ func (c *internalClient) ListEntityTagAssignments(ctx context.Context, req *List
 //
 // Callers who need custom pagination logic should use
 // ListEntityTagAssignments directly.
-func (c *internalClient) ListEntityTagAssignmentsIter(ctx context.Context, req *ListEntityTagAssignmentsRequest, opts ...call.Option) iter.Seq2[*EntityTagAssignment, error] {
+func (c *internalClient) ListEntityTagAssignmentsIter(ctx context.Context, req ListEntityTagAssignmentsRequest, opts ...call.Option) iter.Seq2[*EntityTagAssignment, error] {
 	return func(yield func(*EntityTagAssignment, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListEntityTagAssignmentsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListEntityTagAssignments(ctx, &pageReq, opts...)
+			resp, err := c.ListEntityTagAssignments(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -412,8 +441,8 @@ func (c *internalClient) ListEntityTagAssignmentsIter(ctx context.Context, req *
 // permissions].
 //
 // [Manage tag policy permissions]: https://docs.databricks.com/aws/en/admin/tag-policies/manage-permissions
-func (c *internalClient) UpdateEntityTagAssignment(ctx context.Context, req *UpdateEntityTagAssignmentRequest, opts ...call.Option) (*EntityTagAssignment, error) {
-	wireReq, err := updateEntityTagAssignmentRequestToWire(req)
+func (c *internalClient) UpdateEntityTagAssignment(ctx context.Context, req UpdateEntityTagAssignmentRequest, opts ...call.Option) (*EntityTagAssignment, error) {
+	wireReq, err := updateEntityTagAssignmentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -434,11 +463,23 @@ func (c *internalClient) UpdateEntityTagAssignment(ctx context.Context, req *Upd
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/entity-tag-assignments/")
-	pb.singleSegment(*req.TagAssignment.EntityType)
+	if req.TagAssignment == nil || req.TagAssignment.EntityType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.TagAssignment.EntityType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.TagAssignment.EntityName)
+	if req.TagAssignment == nil || req.TagAssignment.EntityName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.TagAssignment.EntityName)
+	}
 	pb.literal("/tags/")
-	pb.singleSegment(*req.TagAssignment.TagKey)
+	if req.TagAssignment == nil || req.TagAssignment.TagKey == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.TagAssignment.TagKey)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

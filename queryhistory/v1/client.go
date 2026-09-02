@@ -78,8 +78,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // recently started queries are returned first (up to max_results in request).
 // The pagination token returned in response can be used to list subsequent
 // query statuses.
-func (c *internalClient) ListQueries(ctx context.Context, req *ListQueriesRequest, opts ...call.Option) (*ListQueriesResponse, error) {
-	wireReq, err := listQueriesRequestToWire(req)
+func (c *internalClient) ListQueries(ctx context.Context, req ListQueriesRequest, opts ...call.Option) (*ListQueriesResponse, error) {
+	wireReq, err := listQueriesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}

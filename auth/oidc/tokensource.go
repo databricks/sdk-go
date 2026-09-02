@@ -28,6 +28,10 @@ type DatabricksOIDCTokenProviderConfig struct {
 	// Host is the host of the Databricks account or workspace.
 	Host string
 
+	// GroupID is the ID of the group whose role is assumed by the exchanged
+	// token. When empty, no group role is assumed.
+	GroupID string
+
 	// TokenEndpointProvider returns the token endpoint for the Databricks OIDC
 	// application.
 	TokenEndpointProvider func(ctx context.Context) (*u2m.OAuthAuthorizationServer, error)
@@ -85,6 +89,9 @@ func (w *databricksOIDCTokenProvider) Token(ctx context.Context) (*auth.Token, e
 			"subject_token":      {idToken.Value},
 			"grant_type":         {"urn:ietf:params:oauth:grant-type:token-exchange"},
 		},
+	}
+	if w.cfg.GroupID != "" {
+		c.EndpointParams.Set("assume_group", w.cfg.GroupID)
 	}
 	token, err := c.Token(ctx)
 	if err != nil {

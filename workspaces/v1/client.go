@@ -112,8 +112,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 //
 // [Create a new workspace using the Account API]: http://docs.databricks.com/administration-guide/account-api/new-workspace.html
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) createWorkspacePublicBase(ctx context.Context, req *CreateWorkspaceRequest, opts ...call.Option) (*Workspace, error) {
-	wireReq, err := createWorkspaceRequestToWire(req)
+func (c *internalClient) createWorkspacePublicBase(ctx context.Context, req CreateWorkspaceRequest, opts ...call.Option) (*Workspace, error) {
+	wireReq, err := createWorkspaceRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +218,7 @@ func (c *internalClient) createWorkspacePublicBase(ctx context.Context, req *Cre
 // account.
 //
 // [Create a new workspace using the Account API]: http://docs.databricks.com/administration-guide/account-api/new-workspace.html
-func (c *internalClient) CreateWorkspacePublic(ctx context.Context, req *CreateWorkspaceRequest, opts ...call.Option) (*CreateWorkspacePublicWaiter, error) {
+func (c *internalClient) CreateWorkspacePublic(ctx context.Context, req CreateWorkspaceRequest, opts ...call.Option) (*CreateWorkspacePublicWaiter, error) {
 	accountID := c.accountID
 	if req.AccountId != nil && *req.AccountId != "" {
 		accountID = *req.AccountId
@@ -239,14 +239,19 @@ func (c *internalClient) CreateWorkspacePublic(ctx context.Context, req *CreateW
 
 // CreateWorkspacePublicWaiter tracks the state of the operation started by CreateWorkspacePublic.
 type CreateWorkspacePublicWaiter struct {
-	poll        func(context.Context, *GetWorkspaceRequest, ...call.Option) (*Workspace, error)
+	poll        func(context.Context, GetWorkspaceRequest, ...call.Option) (*Workspace, error)
 	accountID   string
 	workspaceId int64
 }
 
+// GetWorkspaceId returns the WorkspaceId value used to identify the operation.
+func (w *CreateWorkspacePublicWaiter) GetWorkspaceId() int64 {
+	return w.workspaceId
+}
+
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *CreateWorkspacePublicWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetWorkspaceRequest{
+	pollResp, err := w.poll(ctx, GetWorkspaceRequest{
 		AccountId:   &w.accountID,
 		WorkspaceId: &w.workspaceId,
 	}, opts...)
@@ -272,7 +277,7 @@ func (w *CreateWorkspacePublicWaiter) Done(ctx context.Context, opts ...call.Opt
 func (w *CreateWorkspacePublicWaiter) Wait(ctx context.Context, opts ...lro.Option) (*Workspace, error) {
 	var result *Workspace
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetWorkspaceRequest{
+		pollResp, err := w.poll(ctx, GetWorkspaceRequest{
 			AccountId:   &w.accountID,
 			WorkspaceId: &w.workspaceId,
 		})
@@ -308,7 +313,7 @@ func (w *CreateWorkspacePublicWaiter) Wait(ctx context.Context, opts ...lro.Opti
 
 // Deletes a <Databricks> workspace, both specified by ID.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteWorkspacePublic(ctx context.Context, req *DeleteWorkspaceRequest, opts ...call.Option) (*Workspace, error) {
+func (c *internalClient) DeleteWorkspacePublic(ctx context.Context, req DeleteWorkspaceRequest, opts ...call.Option) (*Workspace, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -325,7 +330,11 @@ func (c *internalClient) DeleteWorkspacePublic(ctx context.Context, req *DeleteW
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/workspaces/")
-	pb.singleSegment(*req.WorkspaceId)
+	if req.WorkspaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.WorkspaceId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -380,7 +389,7 @@ func (c *internalClient) DeleteWorkspacePublic(ctx context.Context, req *DeleteW
 //
 // [Create a new workspace using the Account API]: http://docs.databricks.com/administration-guide/account-api/new-workspace.html
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetWorkspacePublic(ctx context.Context, req *GetWorkspaceRequest, opts ...call.Option) (*Workspace, error) {
+func (c *internalClient) GetWorkspacePublic(ctx context.Context, req GetWorkspaceRequest, opts ...call.Option) (*Workspace, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -397,7 +406,11 @@ func (c *internalClient) GetWorkspacePublic(ctx context.Context, req *GetWorkspa
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/workspaces/")
-	pb.singleSegment(*req.WorkspaceId)
+	if req.WorkspaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.WorkspaceId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -444,7 +457,7 @@ func (c *internalClient) GetWorkspacePublic(ctx context.Context, req *GetWorkspa
 
 // Lists <Databricks> workspaces for an account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListWorkspacesPublic(ctx context.Context, req *ListWorkspacesRequest, opts ...call.Option) (*ListWorkspacesResponse, error) {
+func (c *internalClient) ListWorkspacesPublic(ctx context.Context, req ListWorkspacesRequest, opts ...call.Option) (*ListWorkspacesResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -510,8 +523,8 @@ func (c *internalClient) ListWorkspacesPublic(ctx context.Context, req *ListWork
 
 // Updates a workspace.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) updateWorkspacePublicBase(ctx context.Context, req *UpdateWorkspaceRequest, opts ...call.Option) (*Workspace, error) {
-	wireReq, err := updateWorkspaceRequestToWire(req)
+func (c *internalClient) updateWorkspacePublicBase(ctx context.Context, req UpdateWorkspaceRequest, opts ...call.Option) (*Workspace, error) {
+	wireReq, err := updateWorkspaceRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -532,7 +545,11 @@ func (c *internalClient) updateWorkspacePublicBase(ctx context.Context, req *Upd
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/workspaces/")
-	pb.singleSegment(*req.CustomerFacingWorkspace.WorkspaceId)
+	if req.CustomerFacingWorkspace == nil || req.CustomerFacingWorkspace.WorkspaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CustomerFacingWorkspace.WorkspaceId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -582,7 +599,7 @@ func (c *internalClient) updateWorkspacePublicBase(ctx context.Context, req *Upd
 }
 
 // Updates a workspace.
-func (c *internalClient) UpdateWorkspacePublic(ctx context.Context, req *UpdateWorkspaceRequest, opts ...call.Option) (*UpdateWorkspacePublicWaiter, error) {
+func (c *internalClient) UpdateWorkspacePublic(ctx context.Context, req UpdateWorkspaceRequest, opts ...call.Option) (*UpdateWorkspacePublicWaiter, error) {
 	accountID := c.accountID
 	resp, err := c.updateWorkspacePublicBase(ctx, req, opts...)
 	if err != nil {
@@ -600,14 +617,19 @@ func (c *internalClient) UpdateWorkspacePublic(ctx context.Context, req *UpdateW
 
 // UpdateWorkspacePublicWaiter tracks the state of the operation started by UpdateWorkspacePublic.
 type UpdateWorkspacePublicWaiter struct {
-	poll        func(context.Context, *GetWorkspaceRequest, ...call.Option) (*Workspace, error)
+	poll        func(context.Context, GetWorkspaceRequest, ...call.Option) (*Workspace, error)
 	accountID   string
 	workspaceId int64
 }
 
+// GetWorkspaceId returns the WorkspaceId value used to identify the operation.
+func (w *UpdateWorkspacePublicWaiter) GetWorkspaceId() int64 {
+	return w.workspaceId
+}
+
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *UpdateWorkspacePublicWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetWorkspaceRequest{
+	pollResp, err := w.poll(ctx, GetWorkspaceRequest{
 		AccountId:   &w.accountID,
 		WorkspaceId: &w.workspaceId,
 	}, opts...)
@@ -633,7 +655,7 @@ func (w *UpdateWorkspacePublicWaiter) Done(ctx context.Context, opts ...call.Opt
 func (w *UpdateWorkspacePublicWaiter) Wait(ctx context.Context, opts ...lro.Option) (*Workspace, error) {
 	var result *Workspace
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetWorkspaceRequest{
+		pollResp, err := w.poll(ctx, GetWorkspaceRequest{
 			AccountId:   &w.accountID,
 			WorkspaceId: &w.workspaceId,
 		})

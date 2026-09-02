@@ -77,8 +77,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // Creates a new schema for catalog in the Metastore. The caller must be a
 // metastore admin, or have the **CREATE_SCHEMA** privilege in the parent
 // catalog.
-func (c *internalClient) CreateSchema(ctx context.Context, req *CreateSchemaRequest, opts ...call.Option) (*SchemaInfo, error) {
-	wireReq, err := createSchemaRequestToWire(req)
+func (c *internalClient) CreateSchema(ctx context.Context, req CreateSchemaRequest, opts ...call.Option) (*SchemaInfo, error) {
+	wireReq, err := createSchemaRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -144,8 +144,8 @@ func (c *internalClient) CreateSchema(ctx context.Context, req *CreateSchemaRequ
 
 // Deletes the specified schema from the parent catalog. The caller must be the
 // owner of the schema or an owner of the parent catalog.
-func (c *internalClient) DeleteSchema(ctx context.Context, req *DeleteSchemaRequest, opts ...call.Option) (*DeleteSchemaResponse, error) {
-	wireReq, err := deleteSchemaRequestToWire(req)
+func (c *internalClient) DeleteSchema(ctx context.Context, req DeleteSchemaRequest, opts ...call.Option) (*DeleteSchemaResponse, error) {
+	wireReq, err := deleteSchemaRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +162,11 @@ func (c *internalClient) DeleteSchema(ctx context.Context, req *DeleteSchemaRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/schemas/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -207,8 +211,8 @@ func (c *internalClient) DeleteSchema(ctx context.Context, req *DeleteSchemaRequ
 // Gets the specified schema within the metastore. The caller must be a
 // metastore admin, the owner of the schema, or a user that has the
 // **USE_SCHEMA** privilege on the schema.
-func (c *internalClient) GetSchema(ctx context.Context, req *GetSchemaRequest, opts ...call.Option) (*SchemaInfo, error) {
-	wireReq, err := getSchemaRequestToWire(req)
+func (c *internalClient) GetSchema(ctx context.Context, req GetSchemaRequest, opts ...call.Option) (*SchemaInfo, error) {
+	wireReq, err := getSchemaRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +229,11 @@ func (c *internalClient) GetSchema(ctx context.Context, req *GetSchemaRequest, o
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/schemas/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_browse", wireReq.IncludeBrowse); err != nil {
@@ -286,8 +294,8 @@ func (c *internalClient) GetSchema(ctx context.Context, req *GetSchemaRequest, o
 // contain zero results while still providing a next_page_token. Clients must
 // continue reading pages until next_page_token is absent, which is the only
 // indication that the end of results has been reached.
-func (c *internalClient) ListSchemas(ctx context.Context, req *ListSchemasRequest, opts ...call.Option) (*ListSchemasResponse, error) {
-	wireReq, err := listSchemasRequestToWire(req)
+func (c *internalClient) ListSchemas(ctx context.Context, req ListSchemasRequest, opts ...call.Option) (*ListSchemasResponse, error) {
+	wireReq, err := listSchemasRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -363,7 +371,7 @@ func (c *internalClient) ListSchemas(ctx context.Context, req *ListSchemasReques
 //
 // For example:
 //
-//	for item, err := range c.ListSchemasIter(ctx, &ListSchemasRequest{}) {
+//	for item, err := range c.ListSchemasIter(ctx, ListSchemasRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -375,16 +383,13 @@ func (c *internalClient) ListSchemas(ctx context.Context, req *ListSchemasReques
 //
 // Callers who need custom pagination logic should use
 // ListSchemas directly.
-func (c *internalClient) ListSchemasIter(ctx context.Context, req *ListSchemasRequest, opts ...call.Option) iter.Seq2[*SchemaInfo, error] {
+func (c *internalClient) ListSchemasIter(ctx context.Context, req ListSchemasRequest, opts ...call.Option) iter.Seq2[*SchemaInfo, error] {
 	return func(yield func(*SchemaInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListSchemasRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListSchemas(ctx, &pageReq, opts...)
+			resp, err := c.ListSchemas(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -407,8 +412,8 @@ func (c *internalClient) ListSchemasIter(ctx context.Context, req *ListSchemasRe
 // field can be changed in the update. If the __name__ field must be updated,
 // the caller must be a metastore admin or have the **CREATE_SCHEMA** privilege
 // on the parent catalog.
-func (c *internalClient) UpdateSchema(ctx context.Context, req *UpdateSchemaRequest, opts ...call.Option) (*SchemaInfo, error) {
-	wireReq, err := updateSchemaRequestToWire(req)
+func (c *internalClient) UpdateSchema(ctx context.Context, req UpdateSchemaRequest, opts ...call.Option) (*SchemaInfo, error) {
+	wireReq, err := updateSchemaRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -429,7 +434,11 @@ func (c *internalClient) UpdateSchema(ctx context.Context, req *UpdateSchemaRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/schemas/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

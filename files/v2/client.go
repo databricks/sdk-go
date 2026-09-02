@@ -83,8 +83,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 //
 // If the block of data exceeds 1 MB, this call will throw an exception with
 // “MAX_BLOCK_SIZE_EXCEEDED“.
-func (c *internalClient) AddBlock(ctx context.Context, req *AddBlockRequest, opts ...call.Option) (*AddBlockResponse, error) {
-	wireReq, err := addBlockRequestToWire(req)
+func (c *internalClient) AddBlock(ctx context.Context, req AddBlockRequest, opts ...call.Option) (*AddBlockResponse, error) {
+	wireReq, err := addBlockRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -144,8 +144,8 @@ func (c *internalClient) AddBlock(ctx context.Context, req *AddBlockRequest, opt
 
 // Closes the stream specified by the input handle. If the handle does not
 // exist, this call throws an exception with “RESOURCE_DOES_NOT_EXIST“.
-func (c *internalClient) Close(ctx context.Context, req *CloseRequest, opts ...call.Option) (*CloseResponse, error) {
-	wireReq, err := closeRequestToWire(req)
+func (c *internalClient) Close(ctx context.Context, req CloseRequest, opts ...call.Option) (*CloseResponse, error) {
+	wireReq, err := closeRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -213,8 +213,8 @@ func (c *internalClient) Close(ctx context.Context, req *CloseRequest, opts ...c
 // 1. Issue a “create“ call and get a handle. 2. Issue one or more
 // “add-block“ calls with the handle you have. 3. Issue a “close“ call with
 // the handle you have.
-func (c *internalClient) Create(ctx context.Context, req *CreateRequest, opts ...call.Option) (*CreateResponse, error) {
-	wireReq, err := createRequestToWire(req)
+func (c *internalClient) Create(ctx context.Context, req CreateRequest, opts ...call.Option) (*CreateResponse, error) {
+	wireReq, err := createRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -296,8 +296,8 @@ func (c *internalClient) Create(ctx context.Context, req *CreateRequest, opts ..
 // such operations using notebooks provides better control and manageability,
 // such as selective deletes, and the possibility to automate periodic delete
 // jobs.
-func (c *internalClient) Delete(ctx context.Context, req *DeleteRequest, opts ...call.Option) (*DeleteResponse, error) {
-	wireReq, err := deleteRequestToWire(req)
+func (c *internalClient) Delete(ctx context.Context, req DeleteRequest, opts ...call.Option) (*DeleteResponse, error) {
+	wireReq, err := deleteRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -357,8 +357,8 @@ func (c *internalClient) Delete(ctx context.Context, req *DeleteRequest, opts ..
 
 // Gets the file information for a file or directory. If the file or directory
 // does not exist, this call throws an exception with `RESOURCE_DOES_NOT_EXIST`.
-func (c *internalClient) GetStatus(ctx context.Context, req *GetStatusRequest, opts ...call.Option) (*GetStatusResponse, error) {
-	wireReq, err := getStatusRequestToWire(req)
+func (c *internalClient) GetStatus(ctx context.Context, req GetStatusRequest, opts ...call.Option) (*GetStatusResponse, error) {
+	wireReq, err := getStatusRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -431,8 +431,8 @@ func (c *internalClient) GetStatus(ctx context.Context, req *GetStatusRequest, o
 // you perform such operations in the context of a cluster, using the [File
 // system utility (dbutils.fs)](/dev-tools/databricks-utils.html#dbutils-fs),
 // which provides the same functionality without timing out.
-func (c *internalClient) List(ctx context.Context, req *ListStatusRequest, opts ...call.Option) (*ListStatusResponse, error) {
-	wireReq, err := listStatusRequestToWire(req)
+func (c *internalClient) List(ctx context.Context, req ListStatusRequest, opts ...call.Option) (*ListStatusResponse, error) {
+	wireReq, err := listStatusRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -499,8 +499,8 @@ func (c *internalClient) List(ctx context.Context, req *ListStatusRequest, opts 
 // this call throws an exception with `RESOURCE_ALREADY_EXISTS`. **Note**: If
 // this operation fails, it might have succeeded in creating some of the
 // necessary parent directories.
-func (c *internalClient) Mkdirs(ctx context.Context, req *MkDirsRequest, opts ...call.Option) (*MkDirsResponse, error) {
-	wireReq, err := mkDirsRequestToWire(req)
+func (c *internalClient) Mkdirs(ctx context.Context, req MkDirsRequest, opts ...call.Option) (*MkDirsResponse, error) {
+	wireReq, err := mkDirsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -563,8 +563,8 @@ func (c *internalClient) Mkdirs(ctx context.Context, req *MkDirsRequest, opts ..
 // `RESOURCE_DOES_NOT_EXIST`. If a file already exists in the destination path,
 // this call throws an exception with `RESOURCE_ALREADY_EXISTS`. If the given
 // source path is a directory, this call always recursively moves all files.
-func (c *internalClient) Move(ctx context.Context, req *MoveRequest, opts ...call.Option) (*MoveResponse, error) {
-	wireReq, err := moveRequestToWire(req)
+func (c *internalClient) Move(ctx context.Context, req MoveRequest, opts ...call.Option) (*MoveResponse, error) {
+	wireReq, err := moveRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -634,8 +634,8 @@ func (c *internalClient) Move(ctx context.Context, req *MoveRequest, opts ...cal
 //
 // If you want to upload large files, use the streaming upload. For details, see
 // :method:dbfs/create, :method:dbfs/addBlock, :method:dbfs/close.
-func (c *internalClient) Put(ctx context.Context, req *PutRequest, opts ...call.Option) (*PutResponse, error) {
-	wireReq, err := putRequestToWire(req)
+func (c *internalClient) Put(ctx context.Context, req PutRequest, opts ...call.Option) (*PutResponse, error) {
+	wireReq, err := putRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -701,8 +701,8 @@ func (c *internalClient) Put(ctx context.Context, req *PutRequest, opts ...call.
 //
 // If `offset + length` exceeds the number of bytes in a file, it reads the
 // contents until the end of file.
-func (c *internalClient) Read(ctx context.Context, req *ReadRequest, opts ...call.Option) (*ReadResponse, error) {
-	wireReq, err := readRequestToWire(req)
+func (c *internalClient) Read(ctx context.Context, req ReadRequest, opts ...call.Option) (*ReadResponse, error) {
+	wireReq, err := readRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -774,7 +774,7 @@ func (c *internalClient) Read(ctx context.Context, req *ReadRequest, opts ...cal
 // of the new, empty directory (like the shell command `mkdir -p`). If called on
 // an existing directory, returns a success response; this method is idempotent
 // (it will succeed if the directory already exists).
-func (c *internalClient) CreateDirectory(ctx context.Context, req *CreateDirectoryRequest, opts ...call.Option) (*CreateDirectoryResponse, error) {
+func (c *internalClient) CreateDirectory(ctx context.Context, req CreateDirectoryRequest, opts ...call.Option) (*CreateDirectoryResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -788,7 +788,11 @@ func (c *internalClient) CreateDirectory(ctx context.Context, req *CreateDirecto
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/fs/directories")
-	pb.multiSegments(*req.DirectoryPath)
+	if req.DirectoryPath == nil {
+		pb.multiSegments("")
+	} else {
+		pb.multiSegments(*req.DirectoryPath)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -832,7 +836,7 @@ func (c *internalClient) CreateDirectory(ctx context.Context, req *CreateDirecto
 // To delete a non-empty directory, first delete all of its contents. This can
 // be done by listing the directory contents and deleting each file and
 // subdirectory recursively.
-func (c *internalClient) DeleteDirectory(ctx context.Context, req *DeleteDirectoryRequest, opts ...call.Option) (*DeleteDirectoryResponse, error) {
+func (c *internalClient) DeleteDirectory(ctx context.Context, req DeleteDirectoryRequest, opts ...call.Option) (*DeleteDirectoryResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -846,7 +850,11 @@ func (c *internalClient) DeleteDirectory(ctx context.Context, req *DeleteDirecto
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/fs/directories")
-	pb.multiSegments(*req.DirectoryPath)
+	if req.DirectoryPath == nil {
+		pb.multiSegments("")
+	} else {
+		pb.multiSegments(*req.DirectoryPath)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -886,7 +894,7 @@ func (c *internalClient) DeleteDirectory(ctx context.Context, req *DeleteDirecto
 }
 
 // Deletes a file. If the request is successful, there is no response body.
-func (c *internalClient) DeleteFile(ctx context.Context, req *DeleteFileRequest, opts ...call.Option) (*DeleteFileResponse, error) {
+func (c *internalClient) DeleteFile(ctx context.Context, req DeleteFileRequest, opts ...call.Option) (*DeleteFileResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -900,7 +908,11 @@ func (c *internalClient) DeleteFile(ctx context.Context, req *DeleteFileRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/fs/files")
-	pb.multiSegments(*req.FilePath)
+	if req.FilePath == nil {
+		pb.multiSegments("")
+	} else {
+		pb.multiSegments(*req.FilePath)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -942,7 +954,7 @@ func (c *internalClient) DeleteFile(ctx context.Context, req *DeleteFileRequest,
 // Downloads a file. The file contents are the response body. This is a standard
 // HTTP file download, not a JSON RPC. It supports the Range and
 // If-Unmodified-Since HTTP headers.
-func (c *internalClient) DownloadFile(ctx context.Context, req *DownloadFileRequest, opts ...call.Option) (*DownloadFileResponse, error) {
+func (c *internalClient) DownloadFile(ctx context.Context, req DownloadFileRequest, opts ...call.Option) (*DownloadFileResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -963,7 +975,11 @@ func (c *internalClient) DownloadFile(ctx context.Context, req *DownloadFileRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/fs/files")
-	pb.multiSegments(*req.FilePath)
+	if req.FilePath == nil {
+		pb.multiSegments("")
+	} else {
+		pb.multiSegments(*req.FilePath)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1027,7 +1043,7 @@ func (c *internalClient) DownloadFile(ctx context.Context, req *DownloadFileRequ
 // If you wish to ensure the directory exists, you can instead use `PUT`, which
 // will create the directory if it does not exist, and is idempotent (it will
 // succeed if the directory already exists).
-func (c *internalClient) GetDirectoryMetadata(ctx context.Context, req *GetDirectoryMetadataRequest, opts ...call.Option) (*GetDirectoryMetadataResponse, error) {
+func (c *internalClient) GetDirectoryMetadata(ctx context.Context, req GetDirectoryMetadataRequest, opts ...call.Option) (*GetDirectoryMetadataResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1041,7 +1057,11 @@ func (c *internalClient) GetDirectoryMetadata(ctx context.Context, req *GetDirec
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/fs/directories")
-	pb.multiSegments(*req.DirectoryPath)
+	if req.DirectoryPath == nil {
+		pb.multiSegments("")
+	} else {
+		pb.multiSegments(*req.DirectoryPath)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1082,7 +1102,7 @@ func (c *internalClient) GetDirectoryMetadata(ctx context.Context, req *GetDirec
 
 // Get the metadata of a file. The response HTTP headers contain the metadata.
 // There is no response body.
-func (c *internalClient) GetFileMetadata(ctx context.Context, req *GetFileMetadataRequest, opts ...call.Option) (*GetFileMetadataResponse, error) {
+func (c *internalClient) GetFileMetadata(ctx context.Context, req GetFileMetadataRequest, opts ...call.Option) (*GetFileMetadataResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1102,7 +1122,11 @@ func (c *internalClient) GetFileMetadata(ctx context.Context, req *GetFileMetada
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/fs/files")
-	pb.multiSegments(*req.FilePath)
+	if req.FilePath == nil {
+		pb.multiSegments("")
+	} else {
+		pb.multiSegments(*req.FilePath)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1158,8 +1182,8 @@ func (c *internalClient) GetFileMetadata(ctx context.Context, req *GetFileMetada
 
 // Returns the contents of a directory. If there is no directory at the
 // specified path, the API returns an HTTP 404 error.
-func (c *internalClient) ListDirectoryContents(ctx context.Context, req *ListDirectoryContentsRequest, opts ...call.Option) (*ListDirectoryResponse, error) {
-	wireReq, err := listDirectoryContentsRequestToWire(req)
+func (c *internalClient) ListDirectoryContents(ctx context.Context, req ListDirectoryContentsRequest, opts ...call.Option) (*ListDirectoryResponse, error) {
+	wireReq, err := listDirectoryContentsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1176,7 +1200,11 @@ func (c *internalClient) ListDirectoryContents(ctx context.Context, req *ListDir
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/fs/directories")
-	pb.multiSegments(*req.DirectoryPath)
+	if req.DirectoryPath == nil {
+		pb.multiSegments("")
+	} else {
+		pb.multiSegments(*req.DirectoryPath)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "page_size", wireReq.PageSize); err != nil {
@@ -1232,7 +1260,7 @@ func (c *internalClient) ListDirectoryContents(ctx context.Context, req *ListDir
 //
 // For example:
 //
-//	for item, err := range c.ListDirectoryContentsIter(ctx, &ListDirectoryContentsRequest{}) {
+//	for item, err := range c.ListDirectoryContentsIter(ctx, ListDirectoryContentsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1244,16 +1272,13 @@ func (c *internalClient) ListDirectoryContents(ctx context.Context, req *ListDir
 //
 // Callers who need custom pagination logic should use
 // ListDirectoryContents directly.
-func (c *internalClient) ListDirectoryContentsIter(ctx context.Context, req *ListDirectoryContentsRequest, opts ...call.Option) iter.Seq2[*DirectoryEntry, error] {
+func (c *internalClient) ListDirectoryContentsIter(ctx context.Context, req ListDirectoryContentsRequest, opts ...call.Option) iter.Seq2[*DirectoryEntry, error] {
 	return func(yield func(*DirectoryEntry, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListDirectoryContentsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListDirectoryContents(ctx, &pageReq, opts...)
+			resp, err := c.ListDirectoryContents(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1276,8 +1301,8 @@ func (c *internalClient) ListDirectoryContentsIter(ctx context.Context, req *Lis
 // modify the bytes before sending. The contents of the resulting file will be
 // exactly the bytes sent in the request body. If the request is successful,
 // there is no response body.
-func (c *internalClient) UploadFile(ctx context.Context, req *UploadFileRequest, opts ...call.Option) (*UploadFileResponse, error) {
-	wireReq, err := uploadFileRequestToWire(req)
+func (c *internalClient) UploadFile(ctx context.Context, req UploadFileRequest, opts ...call.Option) (*UploadFileResponse, error) {
+	wireReq, err := uploadFileRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1294,7 +1319,11 @@ func (c *internalClient) UploadFile(ctx context.Context, req *UploadFileRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/fs/files")
-	pb.multiSegments(*req.FilePath)
+	if req.FilePath == nil {
+		pb.multiSegments("")
+	} else {
+		pb.multiSegments(*req.FilePath)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "overwrite", wireReq.Overwrite); err != nil {

@@ -140,6 +140,27 @@ const (
 	DataSecurityMode_DataSecurityModeAuto DataSecurityMode = "DATA_SECURITY_MODE_AUTO"
 )
 
+// Days of week that can be referenced by Jobs scheduling settings.
+type DayOfWeek string
+
+const (
+	DayOfWeek_Unspecified DayOfWeek = ""
+	// The day of week is Monday.
+	DayOfWeek_Monday DayOfWeek = "MONDAY"
+	// The day of week is Tuesday.
+	DayOfWeek_Tuesday DayOfWeek = "TUESDAY"
+	// The day of week is Wednesday.
+	DayOfWeek_Wednesday DayOfWeek = "WEDNESDAY"
+	// The day of week is Thursday.
+	DayOfWeek_Thursday DayOfWeek = "THURSDAY"
+	// The day of week is Friday.
+	DayOfWeek_Friday DayOfWeek = "FRIDAY"
+	// The day of week is Saturday.
+	DayOfWeek_Saturday DayOfWeek = "SATURDAY"
+	// The day of week is Sunday.
+	DayOfWeek_Sunday DayOfWeek = "SUNDAY"
+)
+
 // Response enumeration from calling the dbt platform API, for inclusion in
 // output
 type DbtPlatformRunStatus string
@@ -215,6 +236,10 @@ const (
 	HardwareAcceleratorType_Gpu1xA10 HardwareAcceleratorType = "GPU_1xA10"
 	// GPU_8xH100: 8x H100 GPU configuration.
 	HardwareAcceleratorType_Gpu8xH100 HardwareAcceleratorType = "GPU_8xH100"
+	// GPU_1xH100: Single H100 GPU configuration.
+	HardwareAcceleratorType_Gpu1xH100 HardwareAcceleratorType = "GPU_1xH100"
+	// GPU_8xB300: 8x B300 GPU configuration.
+	HardwareAcceleratorType_Gpu8xB300 HardwareAcceleratorType = "GPU_8xB300"
 )
 
 // Edit mode of the job.
@@ -948,6 +973,14 @@ type AlertTask struct {
 	// The subscribers receive alert evaluation result notifications after the alert
 	// task is completed. The number of subscriptions is limited to 100.
 	Subscribers []AlertTaskSubscriber
+	// Per-run parameter overrides, keyed by parameter name, applied onto the
+	// alert's stored query parameters before the query is executed. Only scalar
+	// values are supported. Values may reference job parameters with
+	// `{{job.parameters.*}}`, which are resolved before the task runs. An override
+	// whose key does not match a stored parameter fails the task run. Limited to
+	// 10000 characters when serialized as JSON; keys must be 1-100 characters and
+	// contain only letters, digits, underscores, dashes, and periods.
+	Parameters map[string]string
 }
 
 type AlertTaskOutput struct {
@@ -1578,7 +1611,7 @@ type ClusterSpec_NewCluster struct {
 	// Currently only supported for GCP HYPERDISK_BALANCED disks.
 	RemoteDiskThroughput *int
 	// If set, what the total initial volume size (in GB) of the remote disks should
-	// be. Currently only supported for GCP HYPERDISK_BALANCED disks.
+	// be. Supported for GCP.
 	TotalInitialRemoteDiskSize *int
 	// Controls dependency configuration for the cluster.
 	DependencyMode DependencyMode
@@ -1641,6 +1674,11 @@ type ComputeSpec struct {
 	// `GPU_8xH100` with `accelerator_count: 16` allocates 2 nodes (8 GPUs per
 	// node).
 	AcceleratorCount *int
+	// Optional ID of a pre-provisioned accelerator capacity reservation to run this
+	// AI Runtime workload on. When set, the workload is scheduled onto the
+	// referenced reserved capacity instead of the on-demand capacity shared among
+	// all <Databricks> customers.
+	ProvisionedCapacityId *string
 }
 
 type ConditionTask struct {
@@ -1673,6 +1711,9 @@ type ContinuousSettings struct {
 	// Indicate whether the continuous job is applying task level retries or not.
 	// Defaults to NEVER.
 	TaskRetryMode TaskRetryMode
+	// Defines when platform-initiated maintenance may run for this job. If
+	// unspecified, maintenance may run at any time.
+	MaintenanceWindow *MaintenanceWindow
 }
 
 // Continuous trigger. Stripped-down counterpart to `ContinuousSettings`:
@@ -1681,6 +1722,9 @@ type ContinuousSettings struct {
 type ContinuousTriggerConfiguration struct {
 	// Whether the continuous job applies task-level retries. Defaults to NEVER.
 	TaskRetryMode TaskRetryMode
+	// Defines when platform-initiated maintenance may run for this trigger. If
+	// unspecified, maintenance may run at any time.
+	MaintenanceWindow *MaintenanceWindow
 }
 
 type ContinuousTriggerState struct {
@@ -3343,6 +3387,23 @@ type LogAnalyticsInfo struct {
 	LogAnalyticsPrimaryKey  *string
 }
 
+// A recurring weekly time window during which platform-initiated maintenance is
+// allowed to run for a continuous job..
+type MaintenanceWindow struct {
+	// An integer between 0 and 23 denoting the start hour for the maintenance
+	// window in the 24-hour day. Platform-initiated maintenance is triggered only
+	// within a one-hour window starting at this hour. This field is required.
+	StartHour *int
+	// The day of week on which maintenance is allowed to happen. This field is
+	// required.
+	DayOfWeek DayOfWeek
+	// A Java timezone ID. The maintenance window is resolved with respect to this
+	// timezone. See [Java TimeZone] for details. This field is required.
+	//
+	// [Java TimeZone]: https://docs.oracle.com/javase/7/docs/api/java/util/TimeZone.html
+	TimezoneId *string
+}
+
 type MavenLibrary struct {
 	// Gradle-style maven coordinates. For example: "org.jsoup:jsoup:1.7.2".
 	Coordinates *string
@@ -3388,6 +3449,9 @@ type NodeTypeFlexibility struct {
 	// A list of node type IDs to use as fallbacks when the primary node type is
 	// unavailable.
 	AlternateNodeTypeIds []string
+	// The AWS Context ID for EC2 Fleet. When set (non-empty), the value is passed
+	// to AWS CreateFleet API to create the EC2 Fleet.
+	AwsContextId *string
 }
 
 type NotebookTask struct {
@@ -3466,7 +3530,7 @@ type OutputSchemaInfo struct {
 // one variant matching the corresponding trigger's type. Variants with no
 // runtime state today (`schedule`, `model`) are emitted as empty messages..
 type PerTriggerState struct {
-	// (-- Next ID: 9. --) Runtime-state variant for the corresponding trigger;
+	// (-- Next ID: 10. --) Runtime-state variant for the corresponding trigger;
 	// exactly one field is set, matching the trigger's type in
 	// `TriggerConfiguration`.
 	TriggerType isPerTriggerState_TriggerType
@@ -5934,10 +5998,10 @@ type TerminationType struct {
 
 // A single trigger attached to a job via `JobSettings.triggers`. Exactly one of
 // the trigger-type fields (`periodic`, `schedule`, `continuous`,
-// `file_arrival`, `table_update`, `model`) must be set; mutual exclusivity is
-// enforced in the API handler rather than via `oneof` so that codegen,
-// validation, and JSON serialization across SDKs and Terraform behave
-// consistently..
+// `file_arrival`, `table_update`, `model`, `job_completion`) must be set;
+// mutual exclusivity is enforced in the API handler rather than via `oneof` so
+// that codegen, validation, and JSON serialization across SDKs and Terraform
+// behave consistently..
 type TriggerConfiguration struct {
 	// Whether this trigger is paused. Defaults to UNPAUSED when unset; the server
 	// always returns an explicit value on read.
@@ -6036,7 +6100,7 @@ type TriggerSettings_Configuration_Model struct {
 func (*TriggerSettings_Configuration_Model) isTriggerSettings_Configuration() {}
 
 type TriggerState struct {
-	// (-- Next ID: 7. --)
+	// (-- Next ID: 8. --)
 	TriggerType isTriggerState_TriggerType
 	// State for SQL condition evaluation, can coexist with other trigger states.
 	SqlCondition *SqlConditionState

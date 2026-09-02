@@ -4,14 +4,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"sync"
 	"sync/atomic"
 
+	"github.com/databricks/databricks-sdk-go/credentials/u2m"
 	"github.com/databricks/sdk-go/auth"
+	"github.com/databricks/sdk-go/auth/oidc"
 	"github.com/databricks/sdk-go/core/profiles"
 )
 
 const authDocURL = "https://docs.databricks.com/aws/en/dev-tools/auth/index"
+
+const defaultOIDCTokenEnv = "DATABRICKS_OIDC_TOKEN"
 
 var (
 	// ErrNoAuthConfigured is returned when no strategy in the default chain
@@ -28,19 +33,40 @@ var (
 // when the strategy does not apply to the given profile, so the chain can move
 // on to the next strategy.
 type strategy struct {
-	name      string
-	configure func(profiles.Profile) (auth.Credentials, error)
+	name                    string
+	supportsGroupAssumption bool
+	configure               func(profiles.Profile) (auth.Credentials, error)
 }
 
 // defaultStrategies returns the strategies tried by [NewDefaultCredentials], in
-// priority order: PAT, then OAuth M2M, then the Databricks CLI (U2M). The order
-// mirrors the other Databricks SDKs and must not change without consideration
-// for environments compatible with more than one strategy.
+// priority order. The order mirrors the other Databricks SDKs and must not
+// change without considering environments compatible with more than one
+// strategy.
 func defaultStrategies() []strategy {
 	return []strategy{
-		{name: "pat", configure: configurePAT},
-		{name: "oauth-m2m", configure: configureM2M},
-		{name: "databricks-cli", configure: configureU2M},
+		{
+			name:      "pat",
+			configure: configurePAT,
+		},
+		{
+			name:                    "oauth-m2m",
+			supportsGroupAssumption: true,
+			configure:               configureM2M,
+		},
+		{
+			name:      "databricks-cli",
+			configure: configureU2M,
+		},
+		{
+			name:                    "env-oidc",
+			supportsGroupAssumption: true,
+			configure:               configureEnvOIDC,
+		},
+		{
+			name:                    "file-oidc",
+			supportsGroupAssumption: true,
+			configure:               configureFileOIDC,
+		},
 	}
 }
 
@@ -59,6 +85,8 @@ type DefaultCredentialsOptions struct {
 //  1. PAT (pat).
 //  2. OAuth M2M (oauth-m2m).
 //  3. Databricks CLI (databricks-cli).
+//  4. Environment OIDC (env-oidc).
+//  5. File OIDC (file-oidc).
 //
 // If the profile sets auth_type, only the strategy with that name is tried.
 // Resolution is deferred until the first [auth.Credentials.AuthHeaders] call
@@ -131,6 +159,9 @@ func (c *defaultCredentials) resolveChain() (auth.Credentials, error) {
 	}
 
 	for _, s := range c.strategies {
+		if profile.GroupID != "" && !s.supportsGroupAssumption {
+			continue
+		}
 		creds, err := s.configure(profile)
 		if err != nil {
 			return nil, err
@@ -146,6 +177,9 @@ func (c *defaultCredentials) resolveByAuthType(profile profiles.Profile, authTyp
 	for _, s := range c.strategies {
 		if s.name != authType {
 			continue
+		}
+		if profile.GroupID != "" && !s.supportsGroupAssumption {
+			return nil, fmt.Errorf("auth type %q does not support group role assumption. Use OAuth M2M or Workload Identity Federation", authType)
 		}
 		creds, err := s.configure(profile)
 		if err != nil {
@@ -179,6 +213,7 @@ func configureM2M(p profiles.Profile) (auth.Credentials, error) {
 		Host:         p.Host,
 		ClientID:     p.ClientID,
 		ClientSecret: string(p.ClientSecret),
+		GroupID:      p.GroupID,
 	})
 	if err != nil {
 		return nil, err
@@ -203,4 +238,48 @@ func configureU2M(p profiles.Profile) (auth.Credentials, error) {
 		return nil, err
 	}
 	return auth.NewTokenCredentials("databricks-cli", auth.NewCachedTokenProvider(provider)), nil
+}
+
+func configureEnvOIDC(profile profiles.Profile) (auth.Credentials, error) {
+	name := profile.OIDCTokenEnv
+	if name == "" {
+		name = defaultOIDCTokenEnv
+	}
+	if profile.Host == "" || os.Getenv(name) == "" {
+		return nil, nil
+	}
+	return newOIDCCredentials(profile, "env-oidc", oidc.NewEnvIDTokenProvider(name)), nil
+}
+
+func configureFileOIDC(profile profiles.Profile) (auth.Credentials, error) {
+	if profile.Host == "" || profile.OIDCTokenFilePath == "" {
+		return nil, nil
+	}
+	return newOIDCCredentials(profile, "file-oidc", oidc.NewFileTokenProvider(profile.OIDCTokenFilePath)), nil
+}
+
+func newOIDCCredentials(profile profiles.Profile, name string, idTokenProvider oidc.IDTokenProvider) auth.Credentials {
+	tokenProvider := oidc.NewDatabricksOIDCTokenProvider(oidc.DatabricksOIDCTokenProviderConfig{
+		ClientID:              profile.ClientID,
+		AccountID:             profile.AccountID,
+		Host:                  profile.Host,
+		GroupID:               profile.GroupID,
+		TokenEndpointProvider: oidcTokenEndpointProvider(profile),
+		Audience:              profile.TokenAudience,
+		IDTokenProvider:       idTokenProvider,
+	})
+	return auth.NewTokenCredentials(name, auth.NewCachedTokenProvider(tokenProvider))
+}
+
+func oidcTokenEndpointProvider(profile profiles.Profile) func(context.Context) (*u2m.OAuthAuthorizationServer, error) {
+	return func(ctx context.Context) (*u2m.OAuthAuthorizationServer, error) {
+		server, err := discoverAuthorizationServer(ctx, nil, profile.Host)
+		if err != nil {
+			return nil, err
+		}
+		return &u2m.OAuthAuthorizationServer{
+			AuthorizationEndpoint: server.AuthorizationEndpoint,
+			TokenEndpoint:         server.TokenEndpoint,
+		}, nil
+	}
 }

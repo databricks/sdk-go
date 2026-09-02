@@ -3,8 +3,54 @@
 package budgets
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type actionConfigurationWire struct {
 	ActionConfigurationId *string                 `json:"action_configuration_id,omitempty"`
@@ -96,8 +142,8 @@ func alertConfigurationFromWire(w *alertConfigurationWire) (*AlertConfiguration,
 type budgetConfigurationWire struct {
 	BudgetConfigurationId *string                        `json:"budget_configuration_id,omitempty"`
 	AccountId             *string                        `json:"account_id,omitempty"`
-	CreateTime            *int64                         `json:"create_time,omitempty"`
-	UpdateTime            *int64                         `json:"update_time,omitempty"`
+	CreateTime            *wireInt64                     `json:"create_time,omitempty"`
+	UpdateTime            *wireInt64                     `json:"update_time,omitempty"`
 	AlertConfigurations   []alertConfigurationWire       `json:"alert_configurations,omitempty"`
 	Filter                *budgetConfigurationFilterWire `json:"filter,omitempty"`
 	DisplayName           *string                        `json:"display_name,omitempty"`
@@ -107,6 +153,14 @@ type budgetConfigurationWire struct {
 func budgetConfigurationFromWire(w *budgetConfigurationWire) (*BudgetConfiguration, error) {
 	if w == nil {
 		return nil, nil
+	}
+	createTimePublicValue, err := int64FromWire(w.CreateTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BudgetConfiguration.CreateTime", err)
+	}
+	updateTimePublicValue, err := int64FromWire(w.UpdateTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BudgetConfiguration.UpdateTime", err)
 	}
 	alertConfigurationsPublicValue, err := convertSlice(w.AlertConfigurations, alertConfigurationFromWire)
 	if err != nil {
@@ -119,8 +173,8 @@ func budgetConfigurationFromWire(w *budgetConfigurationWire) (*BudgetConfigurati
 	return &BudgetConfiguration{
 		BudgetConfigurationId: w.BudgetConfigurationId,
 		AccountId:             w.AccountId,
-		CreateTime:            w.CreateTime,
-		UpdateTime:            w.UpdateTime,
+		CreateTime:            createTimePublicValue,
+		UpdateTime:            updateTimePublicValue,
 		AlertConfigurations:   alertConfigurationsPublicValue,
 		Filter:                filterPublicValue,
 		DisplayName:           w.DisplayName,
@@ -229,16 +283,20 @@ func budgetConfigurationFilter_TagClauseFromWire(w *budgetConfigurationFilter_Ta
 
 type budgetConfigurationFilter_WorkspaceIdClauseWire struct {
 	Operator BudgetConfigurationFilter_Operator `json:"operator,omitempty"`
-	Values   []int64                            `json:"values,omitempty"`
+	Values   []wireInt64                        `json:"values,omitempty"`
 }
 
 func budgetConfigurationFilter_WorkspaceIdClauseToWire(v *BudgetConfigurationFilter_WorkspaceIdClause) (*budgetConfigurationFilter_WorkspaceIdClauseWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	valuesWireValue, err := convertSlice(v.Values, int64ToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BudgetConfigurationFilter_WorkspaceIdClause.Values", err)
+	}
 	return &budgetConfigurationFilter_WorkspaceIdClauseWire{
 		Operator: v.Operator,
-		Values:   v.Values,
+		Values:   valuesWireValue,
 	}, nil
 }
 
@@ -246,17 +304,21 @@ func budgetConfigurationFilter_WorkspaceIdClauseFromWire(w *budgetConfigurationF
 	if w == nil {
 		return nil, nil
 	}
+	valuesPublicValue, err := convertSlice(w.Values, int64FromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BudgetConfigurationFilter_WorkspaceIdClause.Values", err)
+	}
 	return &BudgetConfigurationFilter_WorkspaceIdClause{
 		Operator: w.Operator,
-		Values:   w.Values,
+		Values:   valuesPublicValue,
 	}, nil
 }
 
 type createBudgetConfigurationBudgetWire struct {
 	BudgetConfigurationId *string                        `json:"budget_configuration_id,omitempty"`
 	AccountId             *string                        `json:"account_id,omitempty"`
-	CreateTime            *int64                         `json:"create_time,omitempty"`
-	UpdateTime            *int64                         `json:"update_time,omitempty"`
+	CreateTime            *wireInt64                     `json:"create_time,omitempty"`
+	UpdateTime            *wireInt64                     `json:"update_time,omitempty"`
 	AlertConfigurations   []alertConfigurationWire       `json:"alert_configurations,omitempty"`
 	Filter                *budgetConfigurationFilterWire `json:"filter,omitempty"`
 	DisplayName           *string                        `json:"display_name,omitempty"`
@@ -266,6 +328,14 @@ type createBudgetConfigurationBudgetWire struct {
 func createBudgetConfigurationBudgetToWire(v *CreateBudgetConfigurationBudget) (*createBudgetConfigurationBudgetWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	createTimeWireValue, err := int64ToWire(v.CreateTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationBudget.CreateTime", err)
+	}
+	updateTimeWireValue, err := int64ToWire(v.UpdateTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationBudget.UpdateTime", err)
 	}
 	alertConfigurationsWireValue, err := convertSlice(v.AlertConfigurations, alertConfigurationToWire)
 	if err != nil {
@@ -278,8 +348,8 @@ func createBudgetConfigurationBudgetToWire(v *CreateBudgetConfigurationBudget) (
 	return &createBudgetConfigurationBudgetWire{
 		BudgetConfigurationId: v.BudgetConfigurationId,
 		AccountId:             v.AccountId,
-		CreateTime:            v.CreateTime,
-		UpdateTime:            v.UpdateTime,
+		CreateTime:            createTimeWireValue,
+		UpdateTime:            updateTimeWireValue,
 		AlertConfigurations:   alertConfigurationsWireValue,
 		Filter:                filterWireValue,
 		DisplayName:           v.DisplayName,
@@ -394,16 +464,20 @@ func listBudgetConfigurationsResponseFromWire(w *listBudgetConfigurationsRespons
 }
 
 type principalOverrideWire struct {
-	PrincipalId       *int64  `json:"principal_id,omitempty"`
-	OverrideThreshold *string `json:"override_threshold,omitempty"`
+	PrincipalId       *wireInt64 `json:"principal_id,omitempty"`
+	OverrideThreshold *string    `json:"override_threshold,omitempty"`
 }
 
 func principalOverrideToWire(v *PrincipalOverride) (*principalOverrideWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	principalIdWireValue, err := int64ToWire(v.PrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PrincipalOverride.PrincipalId", err)
+	}
 	return &principalOverrideWire{
-		PrincipalId:       v.PrincipalId,
+		PrincipalId:       principalIdWireValue,
 		OverrideThreshold: v.OverrideThreshold,
 	}, nil
 }
@@ -412,8 +486,12 @@ func principalOverrideFromWire(w *principalOverrideWire) (*PrincipalOverride, er
 	if w == nil {
 		return nil, nil
 	}
+	principalIdPublicValue, err := int64FromWire(w.PrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PrincipalOverride.PrincipalId", err)
+	}
 	return &PrincipalOverride{
-		PrincipalId:       w.PrincipalId,
+		PrincipalId:       principalIdPublicValue,
 		OverrideThreshold: w.OverrideThreshold,
 	}, nil
 }
@@ -421,8 +499,8 @@ func principalOverrideFromWire(w *principalOverrideWire) (*PrincipalOverride, er
 type updateBudgetConfigurationBudgetWire struct {
 	BudgetConfigurationId *string                        `json:"budget_configuration_id,omitempty"`
 	AccountId             *string                        `json:"account_id,omitempty"`
-	CreateTime            *int64                         `json:"create_time,omitempty"`
-	UpdateTime            *int64                         `json:"update_time,omitempty"`
+	CreateTime            *wireInt64                     `json:"create_time,omitempty"`
+	UpdateTime            *wireInt64                     `json:"update_time,omitempty"`
 	AlertConfigurations   []alertConfigurationWire       `json:"alert_configurations,omitempty"`
 	Filter                *budgetConfigurationFilterWire `json:"filter,omitempty"`
 	DisplayName           *string                        `json:"display_name,omitempty"`
@@ -432,6 +510,14 @@ type updateBudgetConfigurationBudgetWire struct {
 func updateBudgetConfigurationBudgetToWire(v *UpdateBudgetConfigurationBudget) (*updateBudgetConfigurationBudgetWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	createTimeWireValue, err := int64ToWire(v.CreateTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateBudgetConfigurationBudget.CreateTime", err)
+	}
+	updateTimeWireValue, err := int64ToWire(v.UpdateTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateBudgetConfigurationBudget.UpdateTime", err)
 	}
 	alertConfigurationsWireValue, err := convertSlice(v.AlertConfigurations, alertConfigurationToWire)
 	if err != nil {
@@ -444,8 +530,8 @@ func updateBudgetConfigurationBudgetToWire(v *UpdateBudgetConfigurationBudget) (
 	return &updateBudgetConfigurationBudgetWire{
 		BudgetConfigurationId: v.BudgetConfigurationId,
 		AccountId:             v.AccountId,
-		CreateTime:            v.CreateTime,
-		UpdateTime:            v.UpdateTime,
+		CreateTime:            createTimeWireValue,
+		UpdateTime:            updateTimeWireValue,
 		AlertConfigurations:   alertConfigurationsWireValue,
 		Filter:                filterWireValue,
 		DisplayName:           v.DisplayName,
