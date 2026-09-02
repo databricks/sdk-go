@@ -134,7 +134,8 @@ type CreateFunction struct {
 	Comment *string
 	// JSON-serialized key-value pair map, encoded (escaped) as a string.
 	Properties *string
-	// function dependencies.
+	// Function dependencies. For external UDFs, dependencies may contain only
+	// credential, secret, or volume objects.
 	RoutineDependencies *DependencyList
 	// Unique identifier of parent metastore.
 	MetastoreId *string
@@ -277,7 +278,8 @@ type FunctionInfo struct {
 	Comment *string
 	// JSON-serialized key-value pair map, encoded (escaped) as a string.
 	Properties *string
-	// function dependencies.
+	// Function dependencies. For external UDFs, dependencies may contain only
+	// credential, secret, or volume objects.
 	RoutineDependencies *DependencyList
 	// Unique identifier of parent metastore.
 	MetastoreId *string
@@ -423,7 +425,8 @@ type UpdateFunctionRequest struct {
 	Comment *string
 	// JSON-serialized key-value pair map, encoded (escaped) as a string.
 	Properties *string
-	// function dependencies.
+	// Function dependencies. For external UDFs, dependencies may contain only
+	// credential, secret, or volume objects.
 	RoutineDependencies *DependencyList
 	// Unique identifier of parent metastore.
 	MetastoreId *string

@@ -78,7 +78,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // :method:settingsv2/listaccountsettingsmetadata for list of setting available
 // via public APIs at account level.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetPublicAccountSetting(ctx context.Context, req *GetPublicAccountSettingRequest, opts ...call.Option) (*Setting, error) {
+func (c *internalClient) GetPublicAccountSetting(ctx context.Context, req GetPublicAccountSettingRequest, opts ...call.Option) (*Setting, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -95,7 +95,11 @@ func (c *internalClient) GetPublicAccountSetting(ctx context.Context, req *GetPu
 	pb.literal("/api/2.1/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/settings/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -145,7 +149,7 @@ func (c *internalClient) GetPublicAccountSetting(ctx context.Context, req *GetPu
 // See :method:settingsv2/listaccountuserpreferencesmetadata for list of user
 // preferences available via public APIs.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetPublicAccountUserPreference(ctx context.Context, req *GetPublicAccountUserPreferenceRequest, opts ...call.Option) (*UserPreference, error) {
+func (c *internalClient) GetPublicAccountUserPreference(ctx context.Context, req GetPublicAccountUserPreferenceRequest, opts ...call.Option) (*UserPreference, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -162,9 +166,17 @@ func (c *internalClient) GetPublicAccountUserPreference(ctx context.Context, req
 	pb.literal("/api/2.1/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/users/")
-	pb.singleSegment(*req.UserId)
+	if req.UserId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.UserId)
+	}
 	pb.literal("/settings/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -212,7 +224,7 @@ func (c *internalClient) GetPublicAccountUserPreference(ctx context.Context, req
 // Get a setting value at workspace level. See
 // :method:settingsv2/listworkspacesettingsmetadata for list of setting
 // available via public APIs.
-func (c *internalClient) GetPublicWorkspaceSetting(ctx context.Context, req *GetPublicWorkspaceSettingRequest, opts ...call.Option) (*Setting, error) {
+func (c *internalClient) GetPublicWorkspaceSetting(ctx context.Context, req GetPublicWorkspaceSettingRequest, opts ...call.Option) (*Setting, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -226,7 +238,11 @@ func (c *internalClient) GetPublicWorkspaceSetting(ctx context.Context, req *Get
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/settings/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -275,8 +291,8 @@ func (c *internalClient) GetPublicWorkspaceSetting(ctx context.Context, req *Get
 // referenced via GET :method:settingsv2/getpublicaccountsetting and PATCH
 // :method:settingsv2/patchpublicaccountsetting APIs
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListAccountSettingsMetadata(ctx context.Context, req *ListAccountSettingsMetadataRequest, opts ...call.Option) (*ListAccountSettingsMetadataResponse, error) {
-	wireReq, err := listAccountSettingsMetadataRequestToWire(req)
+func (c *internalClient) ListAccountSettingsMetadata(ctx context.Context, req ListAccountSettingsMetadataRequest, opts ...call.Option) (*ListAccountSettingsMetadataResponse, error) {
+	wireReq, err := listAccountSettingsMetadataRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -351,7 +367,7 @@ func (c *internalClient) ListAccountSettingsMetadata(ctx context.Context, req *L
 //
 // For example:
 //
-//	for item, err := range c.ListAccountSettingsMetadataIter(ctx, &ListAccountSettingsMetadataRequest{}) {
+//	for item, err := range c.ListAccountSettingsMetadataIter(ctx, ListAccountSettingsMetadataRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -363,16 +379,13 @@ func (c *internalClient) ListAccountSettingsMetadata(ctx context.Context, req *L
 //
 // Callers who need custom pagination logic should use
 // ListAccountSettingsMetadata directly.
-func (c *internalClient) ListAccountSettingsMetadataIter(ctx context.Context, req *ListAccountSettingsMetadataRequest, opts ...call.Option) iter.Seq2[*SettingsMetadata, error] {
+func (c *internalClient) ListAccountSettingsMetadataIter(ctx context.Context, req ListAccountSettingsMetadataRequest, opts ...call.Option) iter.Seq2[*SettingsMetadata, error] {
 	return func(yield func(*SettingsMetadata, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListAccountSettingsMetadataRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListAccountSettingsMetadata(ctx, &pageReq, opts...)
+			resp, err := c.ListAccountSettingsMetadata(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -396,8 +409,8 @@ func (c *internalClient) ListAccountSettingsMetadataIter(ctx context.Context, re
 // :method:settingsv2/getpublicaccountuserpreference and PATCH
 // :method:settingsv2/patchpublicaccountuserpreference APIs
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListAccountUserPreferencesMetadata(ctx context.Context, req *ListAccountUserPreferencesMetadataRequest, opts ...call.Option) (*ListAccountUserPreferencesMetadataResponse, error) {
-	wireReq, err := listAccountUserPreferencesMetadataRequestToWire(req)
+func (c *internalClient) ListAccountUserPreferencesMetadata(ctx context.Context, req ListAccountUserPreferencesMetadataRequest, opts ...call.Option) (*ListAccountUserPreferencesMetadataResponse, error) {
+	wireReq, err := listAccountUserPreferencesMetadataRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -417,7 +430,11 @@ func (c *internalClient) ListAccountUserPreferencesMetadata(ctx context.Context,
 	pb.literal("/api/2.1/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/users/")
-	pb.singleSegment(*req.UserId)
+	if req.UserId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.UserId)
+	}
 	pb.literal("/settings-metadata")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -474,7 +491,7 @@ func (c *internalClient) ListAccountUserPreferencesMetadata(ctx context.Context,
 //
 // For example:
 //
-//	for item, err := range c.ListAccountUserPreferencesMetadataIter(ctx, &ListAccountUserPreferencesMetadataRequest{}) {
+//	for item, err := range c.ListAccountUserPreferencesMetadataIter(ctx, ListAccountUserPreferencesMetadataRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -486,16 +503,13 @@ func (c *internalClient) ListAccountUserPreferencesMetadata(ctx context.Context,
 //
 // Callers who need custom pagination logic should use
 // ListAccountUserPreferencesMetadata directly.
-func (c *internalClient) ListAccountUserPreferencesMetadataIter(ctx context.Context, req *ListAccountUserPreferencesMetadataRequest, opts ...call.Option) iter.Seq2[*SettingsMetadata, error] {
+func (c *internalClient) ListAccountUserPreferencesMetadataIter(ctx context.Context, req ListAccountUserPreferencesMetadataRequest, opts ...call.Option) iter.Seq2[*SettingsMetadata, error] {
 	return func(yield func(*SettingsMetadata, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListAccountUserPreferencesMetadataRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListAccountUserPreferencesMetadata(ctx, &pageReq, opts...)
+			resp, err := c.ListAccountUserPreferencesMetadata(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -516,8 +530,8 @@ func (c *internalClient) ListAccountUserPreferencesMetadataIter(ctx context.Cont
 // List valid setting keys and metadata. These settings are available to be
 // referenced via GET :method:settingsv2/getpublicworkspacesetting and PATCH
 // :method:settingsv2/patchpublicworkspacesetting APIs
-func (c *internalClient) ListWorkspaceSettingsMetadata(ctx context.Context, req *ListWorkspaceSettingsMetadataRequest, opts ...call.Option) (*ListWorkspaceSettingsMetadataResponse, error) {
-	wireReq, err := listWorkspaceSettingsMetadataRequestToWire(req)
+func (c *internalClient) ListWorkspaceSettingsMetadata(ctx context.Context, req ListWorkspaceSettingsMetadataRequest, opts ...call.Option) (*ListWorkspaceSettingsMetadataResponse, error) {
+	wireReq, err := listWorkspaceSettingsMetadataRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -587,7 +601,7 @@ func (c *internalClient) ListWorkspaceSettingsMetadata(ctx context.Context, req 
 //
 // For example:
 //
-//	for item, err := range c.ListWorkspaceSettingsMetadataIter(ctx, &ListWorkspaceSettingsMetadataRequest{}) {
+//	for item, err := range c.ListWorkspaceSettingsMetadataIter(ctx, ListWorkspaceSettingsMetadataRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -599,16 +613,13 @@ func (c *internalClient) ListWorkspaceSettingsMetadata(ctx context.Context, req 
 //
 // Callers who need custom pagination logic should use
 // ListWorkspaceSettingsMetadata directly.
-func (c *internalClient) ListWorkspaceSettingsMetadataIter(ctx context.Context, req *ListWorkspaceSettingsMetadataRequest, opts ...call.Option) iter.Seq2[*SettingsMetadata, error] {
+func (c *internalClient) ListWorkspaceSettingsMetadataIter(ctx context.Context, req ListWorkspaceSettingsMetadataRequest, opts ...call.Option) iter.Seq2[*SettingsMetadata, error] {
 	return func(yield func(*SettingsMetadata, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListWorkspaceSettingsMetadataRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListWorkspaceSettingsMetadata(ctx, &pageReq, opts...)
+			resp, err := c.ListWorkspaceSettingsMetadata(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -634,8 +645,8 @@ func (c *internalClient) ListWorkspaceSettingsMetadataIter(ctx context.Context, 
 //
 // Note: Page refresh is required for changes to take effect in UI.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) PatchPublicAccountSetting(ctx context.Context, req *PatchPublicAccountSettingRequest, opts ...call.Option) (*Setting, error) {
-	wireReq, err := patchPublicAccountSettingRequestToWire(req)
+func (c *internalClient) PatchPublicAccountSetting(ctx context.Context, req PatchPublicAccountSettingRequest, opts ...call.Option) (*Setting, error) {
+	wireReq, err := patchPublicAccountSettingRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -659,7 +670,11 @@ func (c *internalClient) PatchPublicAccountSetting(ctx context.Context, req *Pat
 	pb.literal("/api/2.1/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/settings/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -712,8 +727,8 @@ func (c *internalClient) PatchPublicAccountSetting(ctx context.Context, req *Pat
 //
 // Note: Page refresh is required for changes to take effect in UI.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) PatchPublicAccountUserPreference(ctx context.Context, req *PatchPublicAccountUserPreferenceRequest, opts ...call.Option) (*UserPreference, error) {
-	wireReq, err := patchPublicAccountUserPreferenceRequestToWire(req)
+func (c *internalClient) PatchPublicAccountUserPreference(ctx context.Context, req PatchPublicAccountUserPreferenceRequest, opts ...call.Option) (*UserPreference, error) {
+	wireReq, err := patchPublicAccountUserPreferenceRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -737,9 +752,17 @@ func (c *internalClient) PatchPublicAccountUserPreference(ctx context.Context, r
 	pb.literal("/api/2.1/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/users/")
-	pb.singleSegment(*req.UserId)
+	if req.UserId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.UserId)
+	}
 	pb.literal("/settings/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -792,8 +815,8 @@ func (c *internalClient) PatchPublicAccountUserPreference(ctx context.Context, r
 // returned in the :method:settingsv2/listworkspacesettingsmetadata response.
 //
 // Note: Page refresh is required for changes to take effect in UI.
-func (c *internalClient) PatchPublicWorkspaceSetting(ctx context.Context, req *PatchPublicWorkspaceSettingRequest, opts ...call.Option) (*Setting, error) {
-	wireReq, err := patchPublicWorkspaceSettingRequestToWire(req)
+func (c *internalClient) PatchPublicWorkspaceSetting(ctx context.Context, req PatchPublicWorkspaceSettingRequest, opts ...call.Option) (*Setting, error) {
+	wireReq, err := patchPublicWorkspaceSettingRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -814,7 +837,11 @@ func (c *internalClient) PatchPublicWorkspaceSetting(ctx context.Context, req *P
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/settings/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

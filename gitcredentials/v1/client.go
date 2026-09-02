@@ -75,8 +75,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 
 // Creates a Git credential entry for the user. Use the PATCH endpoint to update
 // existing credentials, or the DELETE endpoint to delete existing credentials.
-func (c *internalClient) CreateCredentials(ctx context.Context, req *CreateCredentialsRequest, opts ...call.Option) (*CreateCredentialsResponse, error) {
-	wireReq, err := createCredentialsRequestToWire(req)
+func (c *internalClient) CreateCredentials(ctx context.Context, req CreateCredentialsRequest, opts ...call.Option) (*CreateCredentialsResponse, error) {
+	wireReq, err := createCredentialsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -141,8 +141,8 @@ func (c *internalClient) CreateCredentials(ctx context.Context, req *CreateCrede
 }
 
 // Deletes the specified Git credential.
-func (c *internalClient) DeleteCredentials(ctx context.Context, req *DeleteCredentialsRequest, opts ...call.Option) (*DeleteCredentialsResponse, error) {
-	wireReq, err := deleteCredentialsRequestToWire(req)
+func (c *internalClient) DeleteCredentials(ctx context.Context, req DeleteCredentialsRequest, opts ...call.Option) (*DeleteCredentialsResponse, error) {
+	wireReq, err := deleteCredentialsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +159,11 @@ func (c *internalClient) DeleteCredentials(ctx context.Context, req *DeleteCrede
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/git-credentials/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "principal_id", wireReq.PrincipalId); err != nil {
@@ -202,8 +206,8 @@ func (c *internalClient) DeleteCredentials(ctx context.Context, req *DeleteCrede
 }
 
 // Gets the Git credential with the specified credential ID.
-func (c *internalClient) GetCredentials(ctx context.Context, req *GetCredentialsRequest, opts ...call.Option) (*GetCredentialsResponse, error) {
-	wireReq, err := getCredentialsRequestToWire(req)
+func (c *internalClient) GetCredentials(ctx context.Context, req GetCredentialsRequest, opts ...call.Option) (*GetCredentialsResponse, error) {
+	wireReq, err := getCredentialsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +224,11 @@ func (c *internalClient) GetCredentials(ctx context.Context, req *GetCredentials
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/git-credentials/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "principal_id", wireReq.PrincipalId); err != nil {
@@ -269,8 +277,8 @@ func (c *internalClient) GetCredentials(ctx context.Context, req *GetCredentials
 }
 
 // Lists the calling user's Git credentials.
-func (c *internalClient) ListCredentials(ctx context.Context, req *ListCredentialsRequest, opts ...call.Option) (*ListCredentialsResponse, error) {
-	wireReq, err := listCredentialsRequestToWire(req)
+func (c *internalClient) ListCredentials(ctx context.Context, req ListCredentialsRequest, opts ...call.Option) (*ListCredentialsResponse, error) {
+	wireReq, err := listCredentialsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -333,8 +341,8 @@ func (c *internalClient) ListCredentials(ctx context.Context, req *ListCredentia
 }
 
 // Updates the specified Git credential.
-func (c *internalClient) UpdateCredentials(ctx context.Context, req *UpdateCredentialsRequest, opts ...call.Option) (*UpdateCredentialsResponse, error) {
-	wireReq, err := updateCredentialsRequestToWire(req)
+func (c *internalClient) UpdateCredentials(ctx context.Context, req UpdateCredentialsRequest, opts ...call.Option) (*UpdateCredentialsResponse, error) {
+	wireReq, err := updateCredentialsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -355,7 +363,11 @@ func (c *internalClient) UpdateCredentials(ctx context.Context, req *UpdateCrede
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/git-credentials/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

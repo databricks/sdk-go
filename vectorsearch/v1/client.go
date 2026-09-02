@@ -77,8 +77,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Create a new endpoint.
-func (c *internalClient) createEndpointBase(ctx context.Context, req *CreateEndpointRequest, opts ...call.Option) (*Endpoint, error) {
-	wireReq, err := createEndpointRequestToWire(req)
+func (c *internalClient) createEndpointBase(ctx context.Context, req CreateEndpointRequest, opts ...call.Option) (*Endpoint, error) {
+	wireReq, err := createEndpointRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (c *internalClient) createEndpointBase(ctx context.Context, req *CreateEndp
 }
 
 // Create a new endpoint.
-func (c *internalClient) CreateEndpoint(ctx context.Context, req *CreateEndpointRequest, opts ...call.Option) (*CreateEndpointWaiter, error) {
+func (c *internalClient) CreateEndpoint(ctx context.Context, req CreateEndpointRequest, opts ...call.Option) (*CreateEndpointWaiter, error) {
 	resp, err := c.createEndpointBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -159,13 +159,18 @@ func (c *internalClient) CreateEndpoint(ctx context.Context, req *CreateEndpoint
 
 // CreateEndpointWaiter tracks the state of the operation started by CreateEndpoint.
 type CreateEndpointWaiter struct {
-	poll func(context.Context, *GetEndpointRequest, ...call.Option) (*Endpoint, error)
+	poll func(context.Context, GetEndpointRequest, ...call.Option) (*Endpoint, error)
 	name string
+}
+
+// GetName returns the Name value used to identify the operation.
+func (w *CreateEndpointWaiter) GetName() string {
+	return w.name
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *CreateEndpointWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetEndpointRequest{
+	pollResp, err := w.poll(ctx, GetEndpointRequest{
 		Name: &w.name,
 	}, opts...)
 	if err != nil {
@@ -193,7 +198,7 @@ func (w *CreateEndpointWaiter) Done(ctx context.Context, opts ...call.Option) (b
 func (w *CreateEndpointWaiter) Wait(ctx context.Context, opts ...lro.Option) (*Endpoint, error) {
 	var result *Endpoint
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetEndpointRequest{
+		pollResp, err := w.poll(ctx, GetEndpointRequest{
 			Name: &w.name,
 		})
 		if err != nil {
@@ -230,8 +235,8 @@ func (w *CreateEndpointWaiter) Wait(ctx context.Context, opts ...lro.Option) (*E
 }
 
 // Create a new index.
-func (c *internalClient) CreateVectorIndex(ctx context.Context, req *CreateVectorIndexRequest, opts ...call.Option) (*VectorIndex, error) {
-	wireReq, err := createVectorIndexRequestToWire(req)
+func (c *internalClient) CreateVectorIndex(ctx context.Context, req CreateVectorIndexRequest, opts ...call.Option) (*VectorIndex, error) {
+	wireReq, err := createVectorIndexRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -296,8 +301,8 @@ func (c *internalClient) CreateVectorIndex(ctx context.Context, req *CreateVecto
 }
 
 // Handles the deletion of data from a specified vector index.
-func (c *internalClient) DeleteDataVectorIndex(ctx context.Context, req *DeleteDataVectorIndexRequest, opts ...call.Option) (*DeleteDataVectorIndexResponse, error) {
-	wireReq, err := deleteDataVectorIndexRequestToWire(req)
+func (c *internalClient) DeleteDataVectorIndex(ctx context.Context, req DeleteDataVectorIndexRequest, opts ...call.Option) (*DeleteDataVectorIndexResponse, error) {
+	wireReq, err := deleteDataVectorIndexRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -314,7 +319,11 @@ func (c *internalClient) DeleteDataVectorIndex(ctx context.Context, req *DeleteD
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/indexes/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/delete-data")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -364,7 +373,7 @@ func (c *internalClient) DeleteDataVectorIndex(ctx context.Context, req *DeleteD
 }
 
 // Delete an AI Search endpoint.
-func (c *internalClient) DeleteEndpoint(ctx context.Context, req *DeleteEndpointRequest, opts ...call.Option) (*DeleteEndpointResponse, error) {
+func (c *internalClient) DeleteEndpoint(ctx context.Context, req DeleteEndpointRequest, opts ...call.Option) (*DeleteEndpointResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -378,7 +387,11 @@ func (c *internalClient) DeleteEndpoint(ctx context.Context, req *DeleteEndpoint
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/endpoints/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -418,7 +431,7 @@ func (c *internalClient) DeleteEndpoint(ctx context.Context, req *DeleteEndpoint
 }
 
 // Delete an index.
-func (c *internalClient) DeleteVectorIndex(ctx context.Context, req *DeleteVectorIndexRequest, opts ...call.Option) (*DeleteVectorIndexResponse, error) {
+func (c *internalClient) DeleteVectorIndex(ctx context.Context, req DeleteVectorIndexRequest, opts ...call.Option) (*DeleteVectorIndexResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -432,7 +445,11 @@ func (c *internalClient) DeleteVectorIndex(ctx context.Context, req *DeleteVecto
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/indexes/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -472,7 +489,7 @@ func (c *internalClient) DeleteVectorIndex(ctx context.Context, req *DeleteVecto
 }
 
 // Get details for a single AI Search endpoint.
-func (c *internalClient) GetEndpoint(ctx context.Context, req *GetEndpointRequest, opts ...call.Option) (*Endpoint, error) {
+func (c *internalClient) GetEndpoint(ctx context.Context, req GetEndpointRequest, opts ...call.Option) (*Endpoint, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -486,7 +503,11 @@ func (c *internalClient) GetEndpoint(ctx context.Context, req *GetEndpointReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/endpoints/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -532,8 +553,8 @@ func (c *internalClient) GetEndpoint(ctx context.Context, req *GetEndpointReques
 }
 
 // Get an index.
-func (c *internalClient) GetVectorIndex(ctx context.Context, req *GetVectorIndexRequest, opts ...call.Option) (*VectorIndex, error) {
-	wireReq, err := getVectorIndexRequestToWire(req)
+func (c *internalClient) GetVectorIndex(ctx context.Context, req GetVectorIndexRequest, opts ...call.Option) (*VectorIndex, error) {
+	wireReq, err := getVectorIndexRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -550,7 +571,11 @@ func (c *internalClient) GetVectorIndex(ctx context.Context, req *GetVectorIndex
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/indexes/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "ensure_reranker_compatible", wireReq.EnsureRerankerCompatible); err != nil {
@@ -599,8 +624,8 @@ func (c *internalClient) GetVectorIndex(ctx context.Context, req *GetVectorIndex
 }
 
 // List all AI Search endpoints in the workspace.
-func (c *internalClient) ListEndpoints(ctx context.Context, req *ListEndpointsRequest, opts ...call.Option) (*ListEndpointResponse, error) {
-	wireReq, err := listEndpointsRequestToWire(req)
+func (c *internalClient) ListEndpoints(ctx context.Context, req ListEndpointsRequest, opts ...call.Option) (*ListEndpointResponse, error) {
+	wireReq, err := listEndpointsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -667,7 +692,7 @@ func (c *internalClient) ListEndpoints(ctx context.Context, req *ListEndpointsRe
 //
 // For example:
 //
-//	for item, err := range c.ListEndpointsIter(ctx, &ListEndpointsRequest{}) {
+//	for item, err := range c.ListEndpointsIter(ctx, ListEndpointsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -679,16 +704,13 @@ func (c *internalClient) ListEndpoints(ctx context.Context, req *ListEndpointsRe
 //
 // Callers who need custom pagination logic should use
 // ListEndpoints directly.
-func (c *internalClient) ListEndpointsIter(ctx context.Context, req *ListEndpointsRequest, opts ...call.Option) iter.Seq2[*Endpoint, error] {
+func (c *internalClient) ListEndpointsIter(ctx context.Context, req ListEndpointsRequest, opts ...call.Option) iter.Seq2[*Endpoint, error] {
 	return func(yield func(*Endpoint, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListEndpointsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListEndpoints(ctx, &pageReq, opts...)
+			resp, err := c.ListEndpoints(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -707,8 +729,8 @@ func (c *internalClient) ListEndpointsIter(ctx context.Context, req *ListEndpoin
 }
 
 // List all indexes in the given endpoint.
-func (c *internalClient) ListVectorIndex(ctx context.Context, req *ListVectorIndexRequest, opts ...call.Option) (*ListVectorIndexResponse, error) {
-	wireReq, err := listVectorIndexRequestToWire(req)
+func (c *internalClient) ListVectorIndex(ctx context.Context, req ListVectorIndexRequest, opts ...call.Option) (*ListVectorIndexResponse, error) {
+	wireReq, err := listVectorIndexRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -778,7 +800,7 @@ func (c *internalClient) ListVectorIndex(ctx context.Context, req *ListVectorInd
 //
 // For example:
 //
-//	for item, err := range c.ListVectorIndexIter(ctx, &ListVectorIndexRequest{}) {
+//	for item, err := range c.ListVectorIndexIter(ctx, ListVectorIndexRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -790,16 +812,13 @@ func (c *internalClient) ListVectorIndex(ctx context.Context, req *ListVectorInd
 //
 // Callers who need custom pagination logic should use
 // ListVectorIndex directly.
-func (c *internalClient) ListVectorIndexIter(ctx context.Context, req *ListVectorIndexRequest, opts ...call.Option) iter.Seq2[*MiniVectorIndex, error] {
+func (c *internalClient) ListVectorIndexIter(ctx context.Context, req ListVectorIndexRequest, opts ...call.Option) iter.Seq2[*MiniVectorIndex, error] {
 	return func(yield func(*MiniVectorIndex, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListVectorIndexRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListVectorIndex(ctx, &pageReq, opts...)
+			resp, err := c.ListVectorIndex(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -818,8 +837,8 @@ func (c *internalClient) ListVectorIndexIter(ctx context.Context, req *ListVecto
 }
 
 // Update an endpoint
-func (c *internalClient) PatchEndpoint(ctx context.Context, req *PatchEndpointRequest, opts ...call.Option) (*Endpoint, error) {
-	wireReq, err := patchEndpointRequestToWire(req)
+func (c *internalClient) PatchEndpoint(ctx context.Context, req PatchEndpointRequest, opts ...call.Option) (*Endpoint, error) {
+	wireReq, err := patchEndpointRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -840,7 +859,11 @@ func (c *internalClient) PatchEndpoint(ctx context.Context, req *PatchEndpointRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/endpoints/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -887,8 +910,8 @@ func (c *internalClient) PatchEndpoint(ctx context.Context, req *PatchEndpointRe
 }
 
 // Update the budget policy of an endpoint
-func (c *internalClient) PatchEndpointBudgetPolicy(ctx context.Context, req *PatchEndpointBudgetPolicyRequest, opts ...call.Option) (*PatchEndpointBudgetPolicyResponse, error) {
-	wireReq, err := patchEndpointBudgetPolicyRequestToWire(req)
+func (c *internalClient) PatchEndpointBudgetPolicy(ctx context.Context, req PatchEndpointBudgetPolicyRequest, opts ...call.Option) (*PatchEndpointBudgetPolicyResponse, error) {
+	wireReq, err := patchEndpointBudgetPolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -909,7 +932,11 @@ func (c *internalClient) PatchEndpointBudgetPolicy(ctx context.Context, req *Pat
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/endpoints/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/budget-policy")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -957,8 +984,8 @@ func (c *internalClient) PatchEndpointBudgetPolicy(ctx context.Context, req *Pat
 }
 
 // Query the specified vector index.
-func (c *internalClient) QueryVectorIndex(ctx context.Context, req *QueryVectorIndexRequest, opts ...call.Option) (*QueryVectorIndexResponse, error) {
-	wireReq, err := queryVectorIndexRequestToWire(req)
+func (c *internalClient) QueryVectorIndex(ctx context.Context, req QueryVectorIndexRequest, opts ...call.Option) (*QueryVectorIndexResponse, error) {
+	wireReq, err := queryVectorIndexRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -979,7 +1006,11 @@ func (c *internalClient) QueryVectorIndex(ctx context.Context, req *QueryVectorI
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/indexes/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/query")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1028,8 +1059,8 @@ func (c *internalClient) QueryVectorIndex(ctx context.Context, req *QueryVectorI
 
 // Use `next_page_token` returned from previous `QueryVectorIndex` or
 // `QueryVectorIndexNextPage` request to fetch next page of results.
-func (c *internalClient) QueryVectorIndexNextPage(ctx context.Context, req *QueryVectorIndexNextPageRequest, opts ...call.Option) (*QueryVectorIndexResponse, error) {
-	wireReq, err := queryVectorIndexNextPageRequestToWire(req)
+func (c *internalClient) QueryVectorIndexNextPage(ctx context.Context, req QueryVectorIndexNextPageRequest, opts ...call.Option) (*QueryVectorIndexResponse, error) {
+	wireReq, err := queryVectorIndexNextPageRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1050,7 +1081,11 @@ func (c *internalClient) QueryVectorIndexNextPage(ctx context.Context, req *Quer
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/indexes/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/query-next-page")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1098,8 +1133,8 @@ func (c *internalClient) QueryVectorIndexNextPage(ctx context.Context, req *Quer
 }
 
 // Retrieve user-visible metrics for an endpoint
-func (c *internalClient) RetrieveUserVisibleMetrics(ctx context.Context, req *RetrieveUserVisibleMetricsRequest, opts ...call.Option) (*RetrieveUserVisibleMetricsResponse, error) {
-	wireReq, err := retrieveUserVisibleMetricsRequestToWire(req)
+func (c *internalClient) RetrieveUserVisibleMetrics(ctx context.Context, req RetrieveUserVisibleMetricsRequest, opts ...call.Option) (*RetrieveUserVisibleMetricsResponse, error) {
+	wireReq, err := retrieveUserVisibleMetricsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1120,7 +1155,11 @@ func (c *internalClient) RetrieveUserVisibleMetrics(ctx context.Context, req *Re
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/endpoints/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/metrics")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1169,8 +1208,8 @@ func (c *internalClient) RetrieveUserVisibleMetrics(ctx context.Context, req *Re
 
 // Scan the specified vector index and return the first `num_results` entries
 // after the exclusive `primary_key`.
-func (c *internalClient) ScanVectorIndex(ctx context.Context, req *ScanVectorIndexRequest, opts ...call.Option) (*ScanVectorIndexResponse, error) {
-	wireReq, err := scanVectorIndexRequestToWire(req)
+func (c *internalClient) ScanVectorIndex(ctx context.Context, req ScanVectorIndexRequest, opts ...call.Option) (*ScanVectorIndexResponse, error) {
+	wireReq, err := scanVectorIndexRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1191,7 +1230,11 @@ func (c *internalClient) ScanVectorIndex(ctx context.Context, req *ScanVectorInd
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/indexes/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/scan")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1239,8 +1282,8 @@ func (c *internalClient) ScanVectorIndex(ctx context.Context, req *ScanVectorInd
 }
 
 // Triggers a synchronization process for a specified vector index.
-func (c *internalClient) SyncVectorIndex(ctx context.Context, req *SyncVectorIndexRequest, opts ...call.Option) (*SyncVectorIndexResponse, error) {
-	wireReq, err := syncVectorIndexRequestToWire(req)
+func (c *internalClient) SyncVectorIndex(ctx context.Context, req SyncVectorIndexRequest, opts ...call.Option) (*SyncVectorIndexResponse, error) {
+	wireReq, err := syncVectorIndexRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1261,7 +1304,11 @@ func (c *internalClient) SyncVectorIndex(ctx context.Context, req *SyncVectorInd
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/indexes/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/sync")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1303,8 +1350,8 @@ func (c *internalClient) SyncVectorIndex(ctx context.Context, req *SyncVectorInd
 }
 
 // Update the custom tags of an endpoint.
-func (c *internalClient) UpdateEndpointCustomTags(ctx context.Context, req *UpdateEndpointCustomTagsRequest, opts ...call.Option) (*UpdateEndpointCustomTagsResponse, error) {
-	wireReq, err := updateEndpointCustomTagsRequestToWire(req)
+func (c *internalClient) UpdateEndpointCustomTags(ctx context.Context, req UpdateEndpointCustomTagsRequest, opts ...call.Option) (*UpdateEndpointCustomTagsResponse, error) {
+	wireReq, err := updateEndpointCustomTagsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1325,7 +1372,11 @@ func (c *internalClient) UpdateEndpointCustomTags(ctx context.Context, req *Upda
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/endpoints/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/tags")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1373,8 +1424,8 @@ func (c *internalClient) UpdateEndpointCustomTags(ctx context.Context, req *Upda
 }
 
 // Handles the upserting of data into a specified vector index.
-func (c *internalClient) UpsertDataVectorIndex(ctx context.Context, req *UpsertDataVectorIndexRequest, opts ...call.Option) (*UpsertDataVectorIndexResponse, error) {
-	wireReq, err := upsertDataVectorIndexRequestToWire(req)
+func (c *internalClient) UpsertDataVectorIndex(ctx context.Context, req UpsertDataVectorIndexRequest, opts ...call.Option) (*UpsertDataVectorIndexResponse, error) {
+	wireReq, err := upsertDataVectorIndexRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1395,7 +1446,11 @@ func (c *internalClient) UpsertDataVectorIndex(ctx context.Context, req *UpsertD
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/indexes/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/upsert-data")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}

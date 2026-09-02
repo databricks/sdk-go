@@ -3,11 +3,56 @@
 package vectorsearch
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/databricks/sdk-go/core/types"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type columnInfoWire struct {
 	Name     *string `json:"name,omitempty"`
@@ -29,19 +74,23 @@ type createEndpointRequestWire struct {
 	EndpointType   EndpointType `json:"endpoint_type,omitempty"`
 	BudgetPolicyId *string      `json:"budget_policy_id,omitempty"`
 	UsagePolicyId  *string      `json:"usage_policy_id,omitempty"`
-	TargetQps      *int64       `json:"target_qps,omitempty"`
+	TargetQps      *wireInt64   `json:"target_qps,omitempty"`
 }
 
 func createEndpointRequestToWire(v *CreateEndpointRequest) (*createEndpointRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	targetQpsWireValue, err := int64ToWire(v.TargetQps)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateEndpointRequest.TargetQps", err)
+	}
 	return &createEndpointRequestWire{
 		Name:           v.Name,
 		EndpointType:   v.EndpointType,
 		BudgetPolicyId: v.BudgetPolicyId,
 		UsagePolicyId:  v.UsagePolicyId,
-		TargetQps:      v.TargetQps,
+		TargetQps:      targetQpsWireValue,
 	}, nil
 }
 
@@ -344,8 +393,8 @@ func embeddingVectorColumnFromWire(w *embeddingVectorColumnWire) (*EmbeddingVect
 type endpointWire struct {
 	Name                    *string                  `json:"name,omitempty"`
 	Creator                 *string                  `json:"creator,omitempty"`
-	CreationTimestamp       *int64                   `json:"creation_timestamp,omitempty"`
-	LastUpdatedTimestamp    *int64                   `json:"last_updated_timestamp,omitempty"`
+	CreationTimestamp       *wireInt64               `json:"creation_timestamp,omitempty"`
+	LastUpdatedTimestamp    *wireInt64               `json:"last_updated_timestamp,omitempty"`
 	EndpointType            EndpointType             `json:"endpoint_type,omitempty"`
 	LastUpdatedUser         *string                  `json:"last_updated_user,omitempty"`
 	Id                      *string                  `json:"id,omitempty"`
@@ -360,6 +409,14 @@ type endpointWire struct {
 func endpointFromWire(w *endpointWire) (*Endpoint, error) {
 	if w == nil {
 		return nil, nil
+	}
+	creationTimestampPublicValue, err := int64FromWire(w.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Endpoint.CreationTimestamp", err)
+	}
+	lastUpdatedTimestampPublicValue, err := int64FromWire(w.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Endpoint.LastUpdatedTimestamp", err)
 	}
 	endpointStatusPublicValue, err := endpointStatusFromWire(w.EndpointStatus)
 	if err != nil {
@@ -376,8 +433,8 @@ func endpointFromWire(w *endpointWire) (*Endpoint, error) {
 	return &Endpoint{
 		Name:                    w.Name,
 		Creator:                 w.Creator,
-		CreationTimestamp:       w.CreationTimestamp,
-		LastUpdatedTimestamp:    w.LastUpdatedTimestamp,
+		CreationTimestamp:       creationTimestampPublicValue,
+		LastUpdatedTimestamp:    lastUpdatedTimestampPublicValue,
 		EndpointType:            w.EndpointType,
 		LastUpdatedUser:         w.LastUpdatedUser,
 		Id:                      w.Id,
@@ -392,16 +449,20 @@ func endpointFromWire(w *endpointWire) (*Endpoint, error) {
 
 type endpointScalingInfoWire struct {
 	State              ScalingChangeState `json:"state,omitempty"`
-	RequestedTargetQps *int64             `json:"requested_target_qps,omitempty"`
+	RequestedTargetQps *wireInt64         `json:"requested_target_qps,omitempty"`
 }
 
 func endpointScalingInfoFromWire(w *endpointScalingInfoWire) (*EndpointScalingInfo, error) {
 	if w == nil {
 		return nil, nil
 	}
+	requestedTargetQpsPublicValue, err := int64FromWire(w.RequestedTargetQps)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EndpointScalingInfo.RequestedTargetQps", err)
+	}
 	return &EndpointScalingInfo{
 		State:              w.State,
-		RequestedTargetQps: w.RequestedTargetQps,
+		RequestedTargetQps: requestedTargetQpsPublicValue,
 	}, nil
 }
 
@@ -614,16 +675,20 @@ func metricLabelFromWire(w *metricLabelWire) (*MetricLabel, error) {
 }
 
 type metricValueWire struct {
-	Timestamp *int64   `json:"timestamp,omitempty"`
-	Value     *float64 `json:"value,omitempty"`
+	Timestamp *wireInt64 `json:"timestamp,omitempty"`
+	Value     *float64   `json:"value,omitempty"`
 }
 
 func metricValueFromWire(w *metricValueWire) (*MetricValue, error) {
 	if w == nil {
 		return nil, nil
 	}
+	timestampPublicValue, err := int64FromWire(w.Timestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MetricValue.Timestamp", err)
+	}
 	return &MetricValue{
-		Timestamp: w.Timestamp,
+		Timestamp: timestampPublicValue,
 		Value:     w.Value,
 	}, nil
 }
@@ -741,17 +806,21 @@ func patchEndpointBudgetPolicyResponseFromWire(w *patchEndpointBudgetPolicyRespo
 }
 
 type patchEndpointRequestWire struct {
-	Name      *string `json:"name,omitempty"`
-	TargetQps *int64  `json:"target_qps,omitempty"`
+	Name      *string    `json:"name,omitempty"`
+	TargetQps *wireInt64 `json:"target_qps,omitempty"`
 }
 
 func patchEndpointRequestToWire(v *PatchEndpointRequest) (*patchEndpointRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	targetQpsWireValue, err := int64ToWire(v.TargetQps)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PatchEndpointRequest.TargetQps", err)
+	}
 	return &patchEndpointRequestWire{
 		Name:      v.Name,
-		TargetQps: v.TargetQps,
+		TargetQps: targetQpsWireValue,
 	}, nil
 }
 
@@ -1103,16 +1172,20 @@ func upsertDataVectorIndexResponseFromWire(w *upsertDataVectorIndexResponseWire)
 }
 
 type upsertDeleteDataResultWire struct {
-	SuccessRowCount   *int64   `json:"success_row_count,omitempty"`
-	FailedPrimaryKeys []string `json:"failed_primary_keys,omitempty"`
+	SuccessRowCount   *wireInt64 `json:"success_row_count,omitempty"`
+	FailedPrimaryKeys []string   `json:"failed_primary_keys,omitempty"`
 }
 
 func upsertDeleteDataResultFromWire(w *upsertDeleteDataResultWire) (*UpsertDeleteDataResult, error) {
 	if w == nil {
 		return nil, nil
 	}
+	successRowCountPublicValue, err := int64FromWire(w.SuccessRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpsertDeleteDataResult.SuccessRowCount", err)
+	}
 	return &UpsertDeleteDataResult{
-		SuccessRowCount:   w.SuccessRowCount,
+		SuccessRowCount:   successRowCountPublicValue,
 		FailedPrimaryKeys: w.FailedPrimaryKeys,
 	}, nil
 }
@@ -1234,19 +1307,23 @@ func vectorIndexFromWire(w *vectorIndexWire) (*VectorIndex, error) {
 }
 
 type vectorIndexStatusWire struct {
-	Message         *string `json:"message,omitempty"`
-	IndexedRowCount *int64  `json:"indexed_row_count,omitempty"`
-	Ready           *bool   `json:"ready,omitempty"`
-	IndexUrl        *string `json:"index_url,omitempty"`
+	Message         *string    `json:"message,omitempty"`
+	IndexedRowCount *wireInt64 `json:"indexed_row_count,omitempty"`
+	Ready           *bool      `json:"ready,omitempty"`
+	IndexUrl        *string    `json:"index_url,omitempty"`
 }
 
 func vectorIndexStatusFromWire(w *vectorIndexStatusWire) (*VectorIndexStatus, error) {
 	if w == nil {
 		return nil, nil
 	}
+	indexedRowCountPublicValue, err := int64FromWire(w.IndexedRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "VectorIndexStatus.IndexedRowCount", err)
+	}
 	return &VectorIndexStatus{
 		Message:         w.Message,
-		IndexedRowCount: w.IndexedRowCount,
+		IndexedRowCount: indexedRowCountPublicValue,
 		Ready:           w.Ready,
 		IndexUrl:        w.IndexUrl,
 	}, nil

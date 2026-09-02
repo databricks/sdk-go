@@ -3,10 +3,56 @@
 package tokens
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/databricks/sdk-go/core/types"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	if mask == nil {
@@ -17,18 +63,22 @@ func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 }
 
 type createTokenRequestWire struct {
-	LifetimeSeconds  *int64   `json:"lifetime_seconds,omitempty"`
-	Comment          *string  `json:"comment,omitempty"`
-	Scopes           []string `json:"scopes,omitempty"`
-	AutoscopeEnabled *bool    `json:"autoscope_enabled,omitempty"`
+	LifetimeSeconds  *wireInt64 `json:"lifetime_seconds,omitempty"`
+	Comment          *string    `json:"comment,omitempty"`
+	Scopes           []string   `json:"scopes,omitempty"`
+	AutoscopeEnabled *bool      `json:"autoscope_enabled,omitempty"`
 }
 
 func createTokenRequestToWire(v *CreateTokenRequest) (*createTokenRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	lifetimeSecondsWireValue, err := int64ToWire(v.LifetimeSeconds)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTokenRequest.LifetimeSeconds", err)
+	}
 	return &createTokenRequestWire{
-		LifetimeSeconds:  v.LifetimeSeconds,
+		LifetimeSeconds:  lifetimeSecondsWireValue,
 		Comment:          v.Comment,
 		Scopes:           v.Scopes,
 		AutoscopeEnabled: v.AutoscopeEnabled,
@@ -73,8 +123,8 @@ func listTokensResponseFromWire(w *listTokensResponseWire) (*ListTokensResponse,
 
 type publicTokenInfoWire struct {
 	TokenId        *string        `json:"token_id,omitempty"`
-	CreationTime   *int64         `json:"creation_time,omitempty"`
-	ExpiryTime     *int64         `json:"expiry_time,omitempty"`
+	CreationTime   *wireInt64     `json:"creation_time,omitempty"`
+	ExpiryTime     *wireInt64     `json:"expiry_time,omitempty"`
 	Comment        *string        `json:"comment,omitempty"`
 	Scopes         []string       `json:"scopes,omitempty"`
 	AutoscopeState AutoscopeState `json:"autoscope_state,omitempty"`
@@ -86,10 +136,18 @@ func publicTokenInfoToWire(v *PublicTokenInfo) (*publicTokenInfoWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	creationTimeWireValue, err := int64ToWire(v.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PublicTokenInfo.CreationTime", err)
+	}
+	expiryTimeWireValue, err := int64ToWire(v.ExpiryTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PublicTokenInfo.ExpiryTime", err)
+	}
 	return &publicTokenInfoWire{
 		TokenId:        v.TokenId,
-		CreationTime:   v.CreationTime,
-		ExpiryTime:     v.ExpiryTime,
+		CreationTime:   creationTimeWireValue,
+		ExpiryTime:     expiryTimeWireValue,
 		Comment:        v.Comment,
 		Scopes:         v.Scopes,
 		AutoscopeState: v.AutoscopeState,
@@ -102,10 +160,18 @@ func publicTokenInfoFromWire(w *publicTokenInfoWire) (*PublicTokenInfo, error) {
 	if w == nil {
 		return nil, nil
 	}
+	creationTimePublicValue, err := int64FromWire(w.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PublicTokenInfo.CreationTime", err)
+	}
+	expiryTimePublicValue, err := int64FromWire(w.ExpiryTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PublicTokenInfo.ExpiryTime", err)
+	}
 	return &PublicTokenInfo{
 		TokenId:        w.TokenId,
-		CreationTime:   w.CreationTime,
-		ExpiryTime:     w.ExpiryTime,
+		CreationTime:   creationTimePublicValue,
+		ExpiryTime:     expiryTimePublicValue,
 		Comment:        w.Comment,
 		Scopes:         w.Scopes,
 		AutoscopeState: w.AutoscopeState,

@@ -37,7 +37,11 @@ const (
 	SecurableType_Credential        SecurableType = "CREDENTIAL"
 	SecurableType_ExternalMetadata  SecurableType = "EXTERNAL_METADATA"
 	// TODO: [UC-2980] Staging tables aren't full-fleged securables yet.
-	SecurableType_StagingTable SecurableType = "STAGING_TABLE"
+	SecurableType_StagingTable         SecurableType = "STAGING_TABLE"
+	SecurableType_Model                SecurableType = "MODEL"
+	SecurableType_ModelService         SecurableType = "MODEL_SERVICE"
+	SecurableType_McpService           SecurableType = "MCP_SERVICE"
+	SecurableType_ModelProviderService SecurableType = "MODEL_PROVIDER_SERVICE"
 )
 
 type ColumnMaskOptions struct {
@@ -54,6 +58,15 @@ type ColumnMaskOptions struct {
 	// additional arguments to the column mask function. The type of each column
 	// should match the positional argument of the column mask function.
 	Using []FunctionArgument `fieldmask:"using"`
+}
+
+// Extracts the value of a column-level tag: get_column_tag_value(col,
+// "tagKey")..
+type ColumnTagValueExtraction struct {
+	// The alias from MATCH COLUMNS that identifies the column.
+	ColumnAlias *string
+	// 1024 matches the max_length on FunctionArgument.constant above.
+	TagKey *string
 }
 
 type CreatePolicyRequest struct {
@@ -73,6 +86,24 @@ type DeletePolicyRequest struct {
 
 type DeletePolicyResponse struct {
 }
+
+// An expression that is evaluated at query time against per-request context.
+// New variants (e.g., identity attributes) are added as additional oneof cases..
+type FunctionArgExpression struct {
+	Expr isFunctionArgExpression_Expr
+}
+
+type isFunctionArgExpression_Expr interface {
+	isFunctionArgExpression_Expr()
+}
+
+// FunctionArgExpression_Expr_TagIntrospection selects TagIntrospection for FunctionArgExpression.Expr.
+// An expression that introspects tags at query time.
+type FunctionArgExpression_Expr_TagIntrospection struct {
+	TagIntrospection TagIntrospectionExpression
+}
+
+func (*FunctionArgExpression_Expr_TagIntrospection) isFunctionArgExpression_Expr() {}
 
 type FunctionArgument struct {
 	// A positional argument pass to a row filter or column mask function.
@@ -98,6 +129,16 @@ type FunctionArgument_Arg_Constant struct {
 }
 
 func (*FunctionArgument_Arg_Constant) isFunctionArgument_Arg() {}
+
+// FunctionArgument_Arg_FunctionArgExpression selects FunctionArgExpression for FunctionArgument.Arg.
+// An expression evaluated at query time. Wraps per-request expression variants
+// (e.g., tag introspection) so new variants can be added without extending the
+// FunctionArgument oneof.
+type FunctionArgument_Arg_FunctionArgExpression struct {
+	FunctionArgExpression FunctionArgExpression
+}
+
+func (*FunctionArgument_Arg_FunctionArgExpression) isFunctionArgument_Arg() {}
 
 type GetPolicyRequest struct {
 	// Required. The type of the securable to retrieve the policy for.
@@ -245,6 +286,38 @@ type RowFilterOptions struct {
 	// arguments to the row filter function. The type of each column should match
 	// the positional argument of the row filter function.
 	Using []FunctionArgument `fieldmask:"using"`
+}
+
+// An expression that introspects tags at query time..
+type TagIntrospectionExpression struct {
+	// The tag introspection variant to evaluate at query time.
+	Expr isTagIntrospectionExpression_Expr
+}
+
+type isTagIntrospectionExpression_Expr interface {
+	isTagIntrospectionExpression_Expr()
+}
+
+// TagIntrospectionExpression_Expr_TagValue selects TagValue for TagIntrospectionExpression.Expr.
+// Extracts the value of a securable-level tag.
+type TagIntrospectionExpression_Expr_TagValue struct {
+	TagValue TagValueExtraction
+}
+
+func (*TagIntrospectionExpression_Expr_TagValue) isTagIntrospectionExpression_Expr() {}
+
+// TagIntrospectionExpression_Expr_ColumnTagValue selects ColumnTagValue for TagIntrospectionExpression.Expr.
+// Extracts the value of a column-level tag.
+type TagIntrospectionExpression_Expr_ColumnTagValue struct {
+	ColumnTagValue ColumnTagValueExtraction
+}
+
+func (*TagIntrospectionExpression_Expr_ColumnTagValue) isTagIntrospectionExpression_Expr() {}
+
+// Extracts the value of a securable-level tag: get_tag_value("tagKey")..
+type TagValueExtraction struct {
+	// 1024 matches the max_length on FunctionArgument.constant above.
+	TagKey *string
 }
 
 type UpdatePolicyRequest struct {

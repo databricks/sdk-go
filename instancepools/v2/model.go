@@ -628,6 +628,9 @@ type NodeTypeFlexibility struct {
 	// A list of node type IDs to use as fallbacks when the primary node type is
 	// unavailable.
 	AlternateNodeTypeIds []string
+	// The AWS Context ID for EC2 Fleet. When set (non-empty), the value is passed
+	// to AWS CreateFleet API to create the EC2 Fleet.
+	AwsContextId *string
 }
 
 // Error message of a failed pending instances.

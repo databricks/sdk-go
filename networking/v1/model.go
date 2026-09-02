@@ -190,11 +190,21 @@ const (
 	IngressNetworkPolicy_AuthenticationIdentity_PrincipalType_PrincipalTypeServicePrincipal IngressNetworkPolicy_AuthenticationIdentity_PrincipalType = "PRINCIPAL_TYPE_SERVICE_PRINCIPAL"
 )
 
+// The restriction mode for cross-workspace access. In FULL_ACCESS mode,
+// requests from any source workspace (in any account) are allowed, and deny
+// rules and allow rules cannot be set. In RESTRICTED_ACCESS mode, access is
+// restricted based on deny rules and allow rules; requests that do not match
+// any allow rule are denied. In LEGACY_MODE, cross-workspace ingress is not
+// governed by this policy.
 type IngressNetworkPolicy_CrossWorkspaceAccess_RestrictionMode string
 
 const (
-	IngressNetworkPolicy_CrossWorkspaceAccess_RestrictionMode_Unspecified      IngressNetworkPolicy_CrossWorkspaceAccess_RestrictionMode = ""
-	IngressNetworkPolicy_CrossWorkspaceAccess_RestrictionMode_FullAccess       IngressNetworkPolicy_CrossWorkspaceAccess_RestrictionMode = "FULL_ACCESS"
+	IngressNetworkPolicy_CrossWorkspaceAccess_RestrictionMode_Unspecified IngressNetworkPolicy_CrossWorkspaceAccess_RestrictionMode = ""
+	// Allows requests from any source workspace, regardless of account. Deny rules
+	// and allow rules cannot be set in this mode.
+	IngressNetworkPolicy_CrossWorkspaceAccess_RestrictionMode_FullAccess IngressNetworkPolicy_CrossWorkspaceAccess_RestrictionMode = "FULL_ACCESS"
+	// Restricts access based on deny rules and allow rules. Requests that do not
+	// match any allow rule are denied.
 	IngressNetworkPolicy_CrossWorkspaceAccess_RestrictionMode_RestrictedAccess IngressNetworkPolicy_CrossWorkspaceAccess_RestrictionMode = "RESTRICTED_ACCESS"
 	// Cross-workspace ingress is not governed by this policy. Traffic from other
 	// workspaces is subject only to the workspace's pre-existing network controls,
@@ -1038,14 +1048,30 @@ type IngressNetworkPolicy_AuthenticationIdentity struct {
 }
 
 type IngressNetworkPolicy_CrossWorkspaceAccess struct {
+	// The restriction mode for cross-workspace access.
 	RestrictionMode IngressNetworkPolicy_CrossWorkspaceAccess_RestrictionMode
-	DenyRules       []IngressNetworkPolicy_CrossWorkspaceIngressRule
-	AllowRules      []IngressNetworkPolicy_CrossWorkspaceIngressRule
+	// Deny rules are evaluated first. A request matching any deny rule is denied,
+	// regardless of allow rules. Only applies when restriction_mode is
+	// RESTRICTED_ACCESS.
+	DenyRules []IngressNetworkPolicy_CrossWorkspaceIngressRule
+	// Allow rules are evaluated after deny rules. A request matching any allow rule
+	// is allowed; a request matching no rule is denied by default. Only applies
+	// when restriction_mode is RESTRICTED_ACCESS.
+	AllowRules []IngressNetworkPolicy_CrossWorkspaceIngressRule
 }
 
+// An ingress rule is enforced when a request satisfies all specified attributes
+// — including request origin, destination, and authentication..
 type IngressNetworkPolicy_CrossWorkspaceIngressRule struct {
-	Origin         *IngressNetworkPolicy_CrossWorkspaceRequestOrigin
-	Destination    *IngressNetworkPolicy_RequestDestination
+	// The origin the request must match — the source workspace the request comes
+	// from, either specific source workspaces or any source workspace in any
+	// account. See CrossWorkspaceRequestOrigin.
+	Origin *IngressNetworkPolicy_CrossWorkspaceRequestOrigin
+	// The destination the request must match — the resource being accessed, for
+	// example the workspace UI or workspace APIs. See RequestDestination.
+	Destination *IngressNetworkPolicy_RequestDestination
+	// The authenticated identity the request must match. When unset, the rule
+	// matches all users and service principals.
 	Authentication *IngressNetworkPolicy_Authentication
 	// The label for this ingress rule.
 	Label *string

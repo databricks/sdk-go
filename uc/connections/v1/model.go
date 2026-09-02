@@ -80,7 +80,11 @@ const (
 	SecurableType_Credential        SecurableType = "CREDENTIAL"
 	SecurableType_ExternalMetadata  SecurableType = "EXTERNAL_METADATA"
 	// TODO: [UC-2980] Staging tables aren't full-fleged securables yet.
-	SecurableType_StagingTable SecurableType = "STAGING_TABLE"
+	SecurableType_StagingTable         SecurableType = "STAGING_TABLE"
+	SecurableType_Model                SecurableType = "MODEL"
+	SecurableType_ModelService         SecurableType = "MODEL_SERVICE"
+	SecurableType_McpService           SecurableType = "MCP_SERVICE"
+	SecurableType_ModelProviderService SecurableType = "MODEL_PROVIDER_SERVICE"
 )
 
 type ProvisioningInfo_State string

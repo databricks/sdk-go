@@ -75,8 +75,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Create an Online Feature Store.
-func (c *internalClient) CreateOnlineStore(ctx context.Context, req *CreateOnlineStoreRequest, opts ...call.Option) (*OnlineStore, error) {
-	wireReq, err := createOnlineStoreRequestToWire(req)
+func (c *internalClient) CreateOnlineStore(ctx context.Context, req CreateOnlineStoreRequest, opts ...call.Option) (*OnlineStore, error) {
+	wireReq, err := createOnlineStoreRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func (c *internalClient) CreateOnlineStore(ctx context.Context, req *CreateOnlin
 }
 
 // Delete an Online Feature Store.
-func (c *internalClient) DeleteOnlineStore(ctx context.Context, req *DeleteOnlineStoreRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteOnlineStore(ctx context.Context, req DeleteOnlineStoreRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -155,7 +155,11 @@ func (c *internalClient) DeleteOnlineStore(ctx context.Context, req *DeleteOnlin
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-store/online-stores/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -192,7 +196,7 @@ func (c *internalClient) DeleteOnlineStore(ctx context.Context, req *DeleteOnlin
 }
 
 // Delete online table.
-func (c *internalClient) DeleteOnlineTable(ctx context.Context, req *DeleteOnlineTableRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteOnlineTable(ctx context.Context, req DeleteOnlineTableRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -206,7 +210,11 @@ func (c *internalClient) DeleteOnlineTable(ctx context.Context, req *DeleteOnlin
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-store/online-tables/")
-	pb.singleSegment(*req.OnlineTableName)
+	if req.OnlineTableName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.OnlineTableName)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -243,7 +251,7 @@ func (c *internalClient) DeleteOnlineTable(ctx context.Context, req *DeleteOnlin
 }
 
 // Get an Online Feature Store.
-func (c *internalClient) GetOnlineStore(ctx context.Context, req *GetOnlineStoreRequest, opts ...call.Option) (*OnlineStore, error) {
+func (c *internalClient) GetOnlineStore(ctx context.Context, req GetOnlineStoreRequest, opts ...call.Option) (*OnlineStore, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -257,7 +265,11 @@ func (c *internalClient) GetOnlineStore(ctx context.Context, req *GetOnlineStore
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-store/online-stores/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -303,8 +315,8 @@ func (c *internalClient) GetOnlineStore(ctx context.Context, req *GetOnlineStore
 }
 
 // List Online Feature Stores.
-func (c *internalClient) ListOnlineStores(ctx context.Context, req *ListOnlineStoresRequest, opts ...call.Option) (*ListOnlineStoresResponse, error) {
-	wireReq, err := listOnlineStoresRequestToWire(req)
+func (c *internalClient) ListOnlineStores(ctx context.Context, req ListOnlineStoresRequest, opts ...call.Option) (*ListOnlineStoresResponse, error) {
+	wireReq, err := listOnlineStoresRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -374,7 +386,7 @@ func (c *internalClient) ListOnlineStores(ctx context.Context, req *ListOnlineSt
 //
 // For example:
 //
-//	for item, err := range c.ListOnlineStoresIter(ctx, &ListOnlineStoresRequest{}) {
+//	for item, err := range c.ListOnlineStoresIter(ctx, ListOnlineStoresRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -386,16 +398,13 @@ func (c *internalClient) ListOnlineStores(ctx context.Context, req *ListOnlineSt
 //
 // Callers who need custom pagination logic should use
 // ListOnlineStores directly.
-func (c *internalClient) ListOnlineStoresIter(ctx context.Context, req *ListOnlineStoresRequest, opts ...call.Option) iter.Seq2[*OnlineStore, error] {
+func (c *internalClient) ListOnlineStoresIter(ctx context.Context, req ListOnlineStoresRequest, opts ...call.Option) iter.Seq2[*OnlineStore, error] {
 	return func(yield func(*OnlineStore, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListOnlineStoresRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListOnlineStores(ctx, &pageReq, opts...)
+			resp, err := c.ListOnlineStores(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -414,8 +423,8 @@ func (c *internalClient) ListOnlineStoresIter(ctx context.Context, req *ListOnli
 }
 
 // Publish features.
-func (c *internalClient) PublishTable(ctx context.Context, req *PublishTableRequest, opts ...call.Option) (*PublishTableResponse, error) {
-	wireReq, err := publishTableRequestToWire(req)
+func (c *internalClient) PublishTable(ctx context.Context, req PublishTableRequest, opts ...call.Option) (*PublishTableResponse, error) {
+	wireReq, err := publishTableRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -436,7 +445,11 @@ func (c *internalClient) PublishTable(ctx context.Context, req *PublishTableRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-store/tables/")
-	pb.singleSegment(*req.SourceTableName)
+	if req.SourceTableName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SourceTableName)
+	}
 	pb.literal("/publish")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -484,8 +497,8 @@ func (c *internalClient) PublishTable(ctx context.Context, req *PublishTableRequ
 }
 
 // Update an Online Feature Store.
-func (c *internalClient) UpdateOnlineStore(ctx context.Context, req *UpdateOnlineStoreRequest, opts ...call.Option) (*OnlineStore, error) {
-	wireReq, err := updateOnlineStoreRequestToWire(req)
+func (c *internalClient) UpdateOnlineStore(ctx context.Context, req UpdateOnlineStoreRequest, opts ...call.Option) (*OnlineStore, error) {
+	wireReq, err := updateOnlineStoreRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -506,7 +519,11 @@ func (c *internalClient) UpdateOnlineStore(ctx context.Context, req *UpdateOnlin
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-store/online-stores/")
-	pb.singleSegment(*req.OnlineStore.Name)
+	if req.OnlineStore == nil || req.OnlineStore.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.OnlineStore.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

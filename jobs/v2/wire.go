@@ -3,8 +3,54 @@
 package jobs
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type accessControlRequestWire struct {
 	UserName             *string                            `json:"user_name,omitempty"`
@@ -137,6 +183,7 @@ type alertTaskWire struct {
 	WarehouseId   *string                   `json:"warehouse_id,omitempty"`
 	WorkspacePath *string                   `json:"workspace_path,omitempty"`
 	Subscribers   []alertTaskSubscriberWire `json:"subscribers,omitempty"`
+	Parameters    map[string]string         `json:"parameters,omitempty"`
 }
 
 func alertTaskToWire(v *AlertTask) (*alertTaskWire, error) {
@@ -152,6 +199,7 @@ func alertTaskToWire(v *AlertTask) (*alertTaskWire, error) {
 		WarehouseId:   v.WarehouseId,
 		WorkspacePath: v.WorkspacePath,
 		Subscribers:   subscribersWireValue,
+		Parameters:    v.Parameters,
 	}, nil
 }
 
@@ -168,6 +216,7 @@ func alertTaskFromWire(w *alertTaskWire) (*AlertTask, error) {
 		WarehouseId:   w.WarehouseId,
 		WorkspacePath: w.WorkspacePath,
 		Subscribers:   subscribersPublicValue,
+		Parameters:    w.Parameters,
 	}, nil
 }
 
@@ -357,11 +406,11 @@ func azureAttributesFromWire(w *azureAttributesWire) (*AzureAttributes, error) {
 }
 
 type baseJobWire struct {
-	JobId                   *int64               `json:"job_id,omitempty"`
+	JobId                   *wireInt64           `json:"job_id,omitempty"`
 	CreatorUserName         *string              `json:"creator_user_name,omitempty"`
 	RunAsUserName           *string              `json:"run_as_user_name,omitempty"`
 	Settings                *jobSettingsWire     `json:"settings,omitempty"`
-	CreatedTime             *int64               `json:"created_time,omitempty"`
+	CreatedTime             *wireInt64           `json:"created_time,omitempty"`
 	TriggerState            *triggerStateWire    `json:"trigger_state,omitempty"`
 	HasMore                 *bool                `json:"has_more,omitempty"`
 	EffectiveBudgetPolicyId *string              `json:"effective_budget_policy_id,omitempty"`
@@ -373,9 +422,17 @@ func baseJobFromWire(w *baseJobWire) (*BaseJob, error) {
 	if w == nil {
 		return nil, nil
 	}
+	jobIdPublicValue, err := int64FromWire(w.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseJob.JobId", err)
+	}
 	settingsPublicValue, err := jobSettingsFromWire(w.Settings)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "BaseJob.Settings", err)
+	}
+	createdTimePublicValue, err := int64FromWire(w.CreatedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseJob.CreatedTime", err)
 	}
 	triggerStatePublicValue, err := triggerStateFromWire(w.TriggerState)
 	if err != nil {
@@ -386,11 +443,11 @@ func baseJobFromWire(w *baseJobWire) (*BaseJob, error) {
 		return nil, fmt.Errorf("%s: %w", "BaseJob.TriggerDetails", err)
 	}
 	return &BaseJob{
-		JobId:                   w.JobId,
+		JobId:                   jobIdPublicValue,
 		CreatorUserName:         w.CreatorUserName,
 		RunAsUserName:           w.RunAsUserName,
 		Settings:                settingsPublicValue,
-		CreatedTime:             w.CreatedTime,
+		CreatedTime:             createdTimePublicValue,
 		TriggerState:            triggerStatePublicValue,
 		HasMore:                 w.HasMore,
 		EffectiveBudgetPolicyId: w.EffectiveBudgetPolicyId,
@@ -400,11 +457,11 @@ func baseJobFromWire(w *baseJobWire) (*BaseJob, error) {
 }
 
 type baseRunWire struct {
-	JobId                      *int64                              `json:"job_id,omitempty"`
-	RunId                      *int64                              `json:"run_id,omitempty"`
+	JobId                      *wireInt64                          `json:"job_id,omitempty"`
+	RunId                      *wireInt64                          `json:"run_id,omitempty"`
 	CreatorUserName            *string                             `json:"creator_user_name,omitempty"`
-	NumberInJob                *int64                              `json:"number_in_job,omitempty"`
-	OriginalAttemptRunId       *int64                              `json:"original_attempt_run_id,omitempty"`
+	NumberInJob                *wireInt64                          `json:"number_in_job,omitempty"`
+	OriginalAttemptRunId       *wireInt64                          `json:"original_attempt_run_id,omitempty"`
 	State                      *runStateWire                       `json:"state,omitempty"`
 	Schedule                   *cronScheduleWire                   `json:"schedule,omitempty"`
 	ClusterSpec                *clusterSpecWire                    `json:"cluster_spec,omitempty"`
@@ -423,24 +480,40 @@ type baseRunWire struct {
 	GitSource                  *gitSourceWire                      `json:"git_source,omitempty"`
 	RepairHistory              []repairWire                        `json:"repair_history,omitempty"`
 	Status                     *runStatusWire                      `json:"status,omitempty"`
-	JobRunId                   *int64                              `json:"job_run_id,omitempty"`
+	JobRunId                   *wireInt64                          `json:"job_run_id,omitempty"`
 	HasMore                    *bool                               `json:"has_more,omitempty"`
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget `json:"effective_performance_target,omitempty"`
 	EffectiveUsagePolicyId     *string                             `json:"effective_usage_policy_id,omitempty"`
 	DeploymentId               *string                             `json:"deployment_id,omitempty"`
 	VersionId                  *string                             `json:"version_id,omitempty"`
-	StartTime                  *int64                              `json:"start_time,omitempty"`
-	SetupDuration              *int64                              `json:"setup_duration,omitempty"`
-	ExecutionDuration          *int64                              `json:"execution_duration,omitempty"`
-	CleanupDuration            *int64                              `json:"cleanup_duration,omitempty"`
-	EndTime                    *int64                              `json:"end_time,omitempty"`
-	RunDuration                *int64                              `json:"run_duration,omitempty"`
-	QueueDuration              *int64                              `json:"queue_duration,omitempty"`
+	StartTime                  *wireInt64                          `json:"start_time,omitempty"`
+	SetupDuration              *wireInt64                          `json:"setup_duration,omitempty"`
+	ExecutionDuration          *wireInt64                          `json:"execution_duration,omitempty"`
+	CleanupDuration            *wireInt64                          `json:"cleanup_duration,omitempty"`
+	EndTime                    *wireInt64                          `json:"end_time,omitempty"`
+	RunDuration                *wireInt64                          `json:"run_duration,omitempty"`
+	QueueDuration              *wireInt64                          `json:"queue_duration,omitempty"`
 }
 
 func baseRunFromWire(w *baseRunWire) (*BaseRun, error) {
 	if w == nil {
 		return nil, nil
+	}
+	jobIdPublicValue, err := int64FromWire(w.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.JobId", err)
+	}
+	runIdPublicValue, err := int64FromWire(w.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.RunId", err)
+	}
+	numberInJobPublicValue, err := int64FromWire(w.NumberInJob)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.NumberInJob", err)
+	}
+	originalAttemptRunIdPublicValue, err := int64FromWire(w.OriginalAttemptRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.OriginalAttemptRunId", err)
 	}
 	statePublicValue, err := runStateFromWire(w.State)
 	if err != nil {
@@ -490,12 +563,44 @@ func baseRunFromWire(w *baseRunWire) (*BaseRun, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "BaseRun.Status", err)
 	}
+	jobRunIdPublicValue, err := int64FromWire(w.JobRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.JobRunId", err)
+	}
+	startTimePublicValue, err := int64FromWire(w.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.StartTime", err)
+	}
+	setupDurationPublicValue, err := int64FromWire(w.SetupDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.SetupDuration", err)
+	}
+	executionDurationPublicValue, err := int64FromWire(w.ExecutionDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.ExecutionDuration", err)
+	}
+	cleanupDurationPublicValue, err := int64FromWire(w.CleanupDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.CleanupDuration", err)
+	}
+	endTimePublicValue, err := int64FromWire(w.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.EndTime", err)
+	}
+	runDurationPublicValue, err := int64FromWire(w.RunDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.RunDuration", err)
+	}
+	queueDurationPublicValue, err := int64FromWire(w.QueueDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.QueueDuration", err)
+	}
 	return &BaseRun{
-		JobId:                      w.JobId,
-		RunId:                      w.RunId,
+		JobId:                      jobIdPublicValue,
+		RunId:                      runIdPublicValue,
 		CreatorUserName:            w.CreatorUserName,
-		NumberInJob:                w.NumberInJob,
-		OriginalAttemptRunId:       w.OriginalAttemptRunId,
+		NumberInJob:                numberInJobPublicValue,
+		OriginalAttemptRunId:       originalAttemptRunIdPublicValue,
 		State:                      statePublicValue,
 		Schedule:                   schedulePublicValue,
 		ClusterSpec:                clusterSpecPublicValue,
@@ -514,47 +619,55 @@ func baseRunFromWire(w *baseRunWire) (*BaseRun, error) {
 		GitSource:                  gitSourcePublicValue,
 		RepairHistory:              repairHistoryPublicValue,
 		Status:                     statusPublicValue,
-		JobRunId:                   w.JobRunId,
+		JobRunId:                   jobRunIdPublicValue,
 		HasMore:                    w.HasMore,
 		EffectivePerformanceTarget: w.EffectivePerformanceTarget,
 		EffectiveUsagePolicyId:     w.EffectiveUsagePolicyId,
 		DeploymentId:               w.DeploymentId,
 		VersionId:                  w.VersionId,
-		StartTime:                  w.StartTime,
-		SetupDuration:              w.SetupDuration,
-		ExecutionDuration:          w.ExecutionDuration,
-		CleanupDuration:            w.CleanupDuration,
-		EndTime:                    w.EndTime,
-		RunDuration:                w.RunDuration,
-		QueueDuration:              w.QueueDuration,
+		StartTime:                  startTimePublicValue,
+		SetupDuration:              setupDurationPublicValue,
+		ExecutionDuration:          executionDurationPublicValue,
+		CleanupDuration:            cleanupDurationPublicValue,
+		EndTime:                    endTimePublicValue,
+		RunDuration:                runDurationPublicValue,
+		QueueDuration:              queueDurationPublicValue,
 	}, nil
 }
 
 type cancelAllRunsRequestWire struct {
-	JobId         *int64 `json:"job_id,omitempty"`
-	AllQueuedRuns *bool  `json:"all_queued_runs,omitempty"`
+	JobId         *wireInt64 `json:"job_id,omitempty"`
+	AllQueuedRuns *bool      `json:"all_queued_runs,omitempty"`
 }
 
 func cancelAllRunsRequestToWire(v *CancelAllRunsRequest) (*cancelAllRunsRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	jobIdWireValue, err := int64ToWire(v.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CancelAllRunsRequest.JobId", err)
+	}
 	return &cancelAllRunsRequestWire{
-		JobId:         v.JobId,
+		JobId:         jobIdWireValue,
 		AllQueuedRuns: v.AllQueuedRuns,
 	}, nil
 }
 
 type cancelRunRequestWire struct {
-	RunId *int64 `json:"run_id,omitempty"`
+	RunId *wireInt64 `json:"run_id,omitempty"`
 }
 
 func cancelRunRequestToWire(v *CancelRunRequest) (*cancelRunRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	runIdWireValue, err := int64ToWire(v.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CancelRunRequest.RunId", err)
+	}
 	return &cancelRunRequestWire{
-		RunId: v.RunId,
+		RunId: runIdWireValue,
 	}, nil
 }
 
@@ -1073,8 +1186,9 @@ func computeConfigFromWire(w *computeConfigWire) (*ComputeConfig, error) {
 }
 
 type computeSpecWire struct {
-	AcceleratorType  ComputeSpec_AcceleratorType `json:"accelerator_type,omitempty"`
-	AcceleratorCount *int                        `json:"accelerator_count,omitempty"`
+	AcceleratorType       ComputeSpec_AcceleratorType `json:"accelerator_type,omitempty"`
+	AcceleratorCount      *int                        `json:"accelerator_count,omitempty"`
+	ProvisionedCapacityId *string                     `json:"provisioned_capacity_id,omitempty"`
 }
 
 func computeSpecToWire(v *ComputeSpec) (*computeSpecWire, error) {
@@ -1082,8 +1196,9 @@ func computeSpecToWire(v *ComputeSpec) (*computeSpecWire, error) {
 		return nil, nil
 	}
 	return &computeSpecWire{
-		AcceleratorType:  v.AcceleratorType,
-		AcceleratorCount: v.AcceleratorCount,
+		AcceleratorType:       v.AcceleratorType,
+		AcceleratorCount:      v.AcceleratorCount,
+		ProvisionedCapacityId: v.ProvisionedCapacityId,
 	}, nil
 }
 
@@ -1092,8 +1207,9 @@ func computeSpecFromWire(w *computeSpecWire) (*ComputeSpec, error) {
 		return nil, nil
 	}
 	return &ComputeSpec{
-		AcceleratorType:  w.AcceleratorType,
-		AcceleratorCount: w.AcceleratorCount,
+		AcceleratorType:       w.AcceleratorType,
+		AcceleratorCount:      w.AcceleratorCount,
+		ProvisionedCapacityId: w.ProvisionedCapacityId,
 	}, nil
 }
 
@@ -1129,17 +1245,23 @@ func conditionTaskFromWire(w *conditionTaskWire) (*ConditionTask, error) {
 }
 
 type continuousSettingsWire struct {
-	PauseStatus   SchedulePauseStatus `json:"pause_status,omitempty"`
-	TaskRetryMode TaskRetryMode       `json:"task_retry_mode,omitempty"`
+	PauseStatus       SchedulePauseStatus    `json:"pause_status,omitempty"`
+	TaskRetryMode     TaskRetryMode          `json:"task_retry_mode,omitempty"`
+	MaintenanceWindow *maintenanceWindowWire `json:"maintenance_window,omitempty"`
 }
 
 func continuousSettingsToWire(v *ContinuousSettings) (*continuousSettingsWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	maintenanceWindowWireValue, err := maintenanceWindowToWire(v.MaintenanceWindow)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ContinuousSettings.MaintenanceWindow", err)
+	}
 	return &continuousSettingsWire{
-		PauseStatus:   v.PauseStatus,
-		TaskRetryMode: v.TaskRetryMode,
+		PauseStatus:       v.PauseStatus,
+		TaskRetryMode:     v.TaskRetryMode,
+		MaintenanceWindow: maintenanceWindowWireValue,
 	}, nil
 }
 
@@ -1147,22 +1269,33 @@ func continuousSettingsFromWire(w *continuousSettingsWire) (*ContinuousSettings,
 	if w == nil {
 		return nil, nil
 	}
+	maintenanceWindowPublicValue, err := maintenanceWindowFromWire(w.MaintenanceWindow)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ContinuousSettings.MaintenanceWindow", err)
+	}
 	return &ContinuousSettings{
-		PauseStatus:   w.PauseStatus,
-		TaskRetryMode: w.TaskRetryMode,
+		PauseStatus:       w.PauseStatus,
+		TaskRetryMode:     w.TaskRetryMode,
+		MaintenanceWindow: maintenanceWindowPublicValue,
 	}, nil
 }
 
 type continuousTriggerConfigurationWire struct {
-	TaskRetryMode TaskRetryMode `json:"task_retry_mode,omitempty"`
+	TaskRetryMode     TaskRetryMode          `json:"task_retry_mode,omitempty"`
+	MaintenanceWindow *maintenanceWindowWire `json:"maintenance_window,omitempty"`
 }
 
 func continuousTriggerConfigurationToWire(v *ContinuousTriggerConfiguration) (*continuousTriggerConfigurationWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	maintenanceWindowWireValue, err := maintenanceWindowToWire(v.MaintenanceWindow)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ContinuousTriggerConfiguration.MaintenanceWindow", err)
+	}
 	return &continuousTriggerConfigurationWire{
-		TaskRetryMode: v.TaskRetryMode,
+		TaskRetryMode:     v.TaskRetryMode,
+		MaintenanceWindow: maintenanceWindowWireValue,
 	}, nil
 }
 
@@ -1170,24 +1303,33 @@ func continuousTriggerConfigurationFromWire(w *continuousTriggerConfigurationWir
 	if w == nil {
 		return nil, nil
 	}
+	maintenanceWindowPublicValue, err := maintenanceWindowFromWire(w.MaintenanceWindow)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ContinuousTriggerConfiguration.MaintenanceWindow", err)
+	}
 	return &ContinuousTriggerConfiguration{
-		TaskRetryMode: w.TaskRetryMode,
+		TaskRetryMode:     w.TaskRetryMode,
+		MaintenanceWindow: maintenanceWindowPublicValue,
 	}, nil
 }
 
 type continuousTriggerStateWire struct {
-	ConsecutiveFailures *int   `json:"consecutive_failures,omitempty"`
-	NextAttemptMs       *int64 `json:"next_attempt_ms,omitempty"`
-	IsBackingOff        *bool  `json:"is_backing_off,omitempty"`
+	ConsecutiveFailures *int       `json:"consecutive_failures,omitempty"`
+	NextAttemptMs       *wireInt64 `json:"next_attempt_ms,omitempty"`
+	IsBackingOff        *bool      `json:"is_backing_off,omitempty"`
 }
 
 func continuousTriggerStateFromWire(w *continuousTriggerStateWire) (*ContinuousTriggerState, error) {
 	if w == nil {
 		return nil, nil
 	}
+	nextAttemptMsPublicValue, err := int64FromWire(w.NextAttemptMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ContinuousTriggerState.NextAttemptMs", err)
+	}
 	return &ContinuousTriggerState{
 		ConsecutiveFailures: w.ConsecutiveFailures,
-		NextAttemptMs:       w.NextAttemptMs,
+		NextAttemptMs:       nextAttemptMsPublicValue,
 		IsBackingOff:        w.IsBackingOff,
 	}, nil
 }
@@ -1336,15 +1478,19 @@ func createJobRequestToWire(v *CreateJobRequest) (*createJobRequestWire, error) 
 }
 
 type createJobResponseWire struct {
-	JobId *int64 `json:"job_id,omitempty"`
+	JobId *wireInt64 `json:"job_id,omitempty"`
 }
 
 func createJobResponseFromWire(w *createJobResponseWire) (*CreateJobResponse, error) {
 	if w == nil {
 		return nil, nil
 	}
+	jobIdPublicValue, err := int64FromWire(w.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobResponse.JobId", err)
+	}
 	return &CreateJobResponse{
-		JobId: w.JobId,
+		JobId: jobIdPublicValue,
 	}, nil
 }
 
@@ -1529,16 +1675,20 @@ func dbtCloudJobRunStepFromWire(w *dbtCloudJobRunStepWire) (*DbtCloudJobRunStep,
 }
 
 type dbtCloudTaskWire struct {
-	DbtCloudJobId          *int64  `json:"dbt_cloud_job_id,omitempty"`
-	ConnectionResourceName *string `json:"connection_resource_name,omitempty"`
+	DbtCloudJobId          *wireInt64 `json:"dbt_cloud_job_id,omitempty"`
+	ConnectionResourceName *string    `json:"connection_resource_name,omitempty"`
 }
 
 func dbtCloudTaskToWire(v *DbtCloudTask) (*dbtCloudTaskWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	dbtCloudJobIdWireValue, err := int64ToWire(v.DbtCloudJobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DbtCloudTask.DbtCloudJobId", err)
+	}
 	return &dbtCloudTaskWire{
-		DbtCloudJobId:          v.DbtCloudJobId,
+		DbtCloudJobId:          dbtCloudJobIdWireValue,
 		ConnectionResourceName: v.ConnectionResourceName,
 	}, nil
 }
@@ -1547,14 +1697,18 @@ func dbtCloudTaskFromWire(w *dbtCloudTaskWire) (*DbtCloudTask, error) {
 	if w == nil {
 		return nil, nil
 	}
+	dbtCloudJobIdPublicValue, err := int64FromWire(w.DbtCloudJobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DbtCloudTask.DbtCloudJobId", err)
+	}
 	return &DbtCloudTask{
-		DbtCloudJobId:          w.DbtCloudJobId,
+		DbtCloudJobId:          dbtCloudJobIdPublicValue,
 		ConnectionResourceName: w.ConnectionResourceName,
 	}, nil
 }
 
 type dbtCloudTaskOutputWire struct {
-	DbtCloudJobRunId     *int64                   `json:"dbt_cloud_job_run_id,omitempty"`
+	DbtCloudJobRunId     *wireInt64               `json:"dbt_cloud_job_run_id,omitempty"`
 	DbtCloudJobRunUrl    *string                  `json:"dbt_cloud_job_run_url,omitempty"`
 	DbtCloudJobRunOutput []dbtCloudJobRunStepWire `json:"dbt_cloud_job_run_output,omitempty"`
 }
@@ -1563,12 +1717,16 @@ func dbtCloudTaskOutputFromWire(w *dbtCloudTaskOutputWire) (*DbtCloudTaskOutput,
 	if w == nil {
 		return nil, nil
 	}
+	dbtCloudJobRunIdPublicValue, err := int64FromWire(w.DbtCloudJobRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DbtCloudTaskOutput.DbtCloudJobRunId", err)
+	}
 	dbtCloudJobRunOutputPublicValue, err := convertSlice(w.DbtCloudJobRunOutput, dbtCloudJobRunStepFromWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "DbtCloudTaskOutput.DbtCloudJobRunOutput", err)
 	}
 	return &DbtCloudTaskOutput{
-		DbtCloudJobRunId:     w.DbtCloudJobRunId,
+		DbtCloudJobRunId:     dbtCloudJobRunIdPublicValue,
 		DbtCloudJobRunUrl:    w.DbtCloudJobRunUrl,
 		DbtCloudJobRunOutput: dbtCloudJobRunOutputPublicValue,
 	}, nil
@@ -1701,28 +1859,36 @@ func dbtTask_DbtTaskOutputFromWire(w *dbtTask_DbtTaskOutputWire) (*DbtTask_DbtTa
 }
 
 type deleteJobRequestWire struct {
-	JobId *int64 `json:"job_id,omitempty"`
+	JobId *wireInt64 `json:"job_id,omitempty"`
 }
 
 func deleteJobRequestToWire(v *DeleteJobRequest) (*deleteJobRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	jobIdWireValue, err := int64ToWire(v.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteJobRequest.JobId", err)
+	}
 	return &deleteJobRequestWire{
-		JobId: v.JobId,
+		JobId: jobIdWireValue,
 	}, nil
 }
 
 type deleteRunRequestWire struct {
-	RunId *int64 `json:"run_id,omitempty"`
+	RunId *wireInt64 `json:"run_id,omitempty"`
 }
 
 func deleteRunRequestToWire(v *DeleteRunRequest) (*deleteRunRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	runIdWireValue, err := int64ToWire(v.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteRunRequest.RunId", err)
+	}
 	return &deleteRunRequestWire{
-		RunId: v.RunId,
+		RunId: runIdWireValue,
 	}, nil
 }
 
@@ -1843,16 +2009,20 @@ func dockerImageFromWire(w *dockerImageWire) (*DockerImage, error) {
 }
 
 type enforcePolicyComplianceForJobWire struct {
-	JobId        *int64 `json:"job_id,omitempty"`
-	ValidateOnly *bool  `json:"validate_only,omitempty"`
+	JobId        *wireInt64 `json:"job_id,omitempty"`
+	ValidateOnly *bool      `json:"validate_only,omitempty"`
 }
 
 func enforcePolicyComplianceForJobToWire(v *EnforcePolicyComplianceForJob) (*enforcePolicyComplianceForJobWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	jobIdWireValue, err := int64ToWire(v.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EnforcePolicyComplianceForJob.JobId", err)
+	}
 	return &enforcePolicyComplianceForJobWire{
-		JobId:        v.JobId,
+		JobId:        jobIdWireValue,
 		ValidateOnly: v.ValidateOnly,
 	}, nil
 }
@@ -1934,7 +2104,7 @@ func environmentFromWire(w *environmentWire) (*Environment, error) {
 }
 
 type exportRunRequestWire struct {
-	RunId         *int64        `json:"run_id,omitempty"`
+	RunId         *wireInt64    `json:"run_id,omitempty"`
 	ViewsToExport ViewsToExport `json:"views_to_export,omitempty"`
 }
 
@@ -1942,8 +2112,12 @@ func exportRunRequestToWire(v *ExportRunRequest) (*exportRunRequestWire, error) 
 	if v == nil {
 		return nil, nil
 	}
+	runIdWireValue, err := int64ToWire(v.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExportRunRequest.RunId", err)
+	}
 	return &exportRunRequestWire{
-		RunId:         v.RunId,
+		RunId:         runIdWireValue,
 		ViewsToExport: v.ViewsToExport,
 	}, nil
 }
@@ -2159,17 +2333,21 @@ func genAiComputeTaskFromWire(w *genAiComputeTaskWire) (*GenAiComputeTask, error
 }
 
 type getJobRequestWire struct {
-	JobId               *int64  `json:"job_id,omitempty"`
-	IncludeTriggerState *bool   `json:"include_trigger_state,omitempty"`
-	PageToken           *string `json:"page_token,omitempty"`
+	JobId               *wireInt64 `json:"job_id,omitempty"`
+	IncludeTriggerState *bool      `json:"include_trigger_state,omitempty"`
+	PageToken           *string    `json:"page_token,omitempty"`
 }
 
 func getJobRequestToWire(v *GetJobRequest) (*getJobRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	jobIdWireValue, err := int64ToWire(v.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetJobRequest.JobId", err)
+	}
 	return &getJobRequestWire{
-		JobId:               v.JobId,
+		JobId:               jobIdWireValue,
 		IncludeTriggerState: v.IncludeTriggerState,
 		PageToken:           v.PageToken,
 	}, nil
@@ -2177,11 +2355,11 @@ func getJobRequestToWire(v *GetJobRequest) (*getJobRequestWire, error) {
 
 type getJobResponseWire struct {
 	NextPageToken           *string              `json:"next_page_token,omitempty"`
-	JobId                   *int64               `json:"job_id,omitempty"`
+	JobId                   *wireInt64           `json:"job_id,omitempty"`
 	CreatorUserName         *string              `json:"creator_user_name,omitempty"`
 	RunAsUserName           *string              `json:"run_as_user_name,omitempty"`
 	Settings                *jobSettingsWire     `json:"settings,omitempty"`
-	CreatedTime             *int64               `json:"created_time,omitempty"`
+	CreatedTime             *wireInt64           `json:"created_time,omitempty"`
 	TriggerState            *triggerStateWire    `json:"trigger_state,omitempty"`
 	HasMore                 *bool                `json:"has_more,omitempty"`
 	EffectiveBudgetPolicyId *string              `json:"effective_budget_policy_id,omitempty"`
@@ -2193,9 +2371,17 @@ func getJobResponseFromWire(w *getJobResponseWire) (*GetJobResponse, error) {
 	if w == nil {
 		return nil, nil
 	}
+	jobIdPublicValue, err := int64FromWire(w.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetJobResponse.JobId", err)
+	}
 	settingsPublicValue, err := jobSettingsFromWire(w.Settings)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "GetJobResponse.Settings", err)
+	}
+	createdTimePublicValue, err := int64FromWire(w.CreatedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetJobResponse.CreatedTime", err)
 	}
 	triggerStatePublicValue, err := triggerStateFromWire(w.TriggerState)
 	if err != nil {
@@ -2207,11 +2393,11 @@ func getJobResponseFromWire(w *getJobResponseWire) (*GetJobResponse, error) {
 	}
 	return &GetJobResponse{
 		NextPageToken:           w.NextPageToken,
-		JobId:                   w.JobId,
+		JobId:                   jobIdPublicValue,
 		CreatorUserName:         w.CreatorUserName,
 		RunAsUserName:           w.RunAsUserName,
 		Settings:                settingsPublicValue,
-		CreatedTime:             w.CreatedTime,
+		CreatedTime:             createdTimePublicValue,
 		TriggerState:            triggerStatePublicValue,
 		HasMore:                 w.HasMore,
 		EffectiveBudgetPolicyId: w.EffectiveBudgetPolicyId,
@@ -2221,15 +2407,19 @@ func getJobResponseFromWire(w *getJobResponseWire) (*GetJobResponse, error) {
 }
 
 type getPolicyComplianceForJobRequestWire struct {
-	JobId *int64 `json:"job_id,omitempty"`
+	JobId *wireInt64 `json:"job_id,omitempty"`
 }
 
 func getPolicyComplianceForJobRequestToWire(v *GetPolicyComplianceForJobRequest) (*getPolicyComplianceForJobRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	jobIdWireValue, err := int64ToWire(v.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetPolicyComplianceForJobRequest.JobId", err)
+	}
 	return &getPolicyComplianceForJobRequestWire{
-		JobId: v.JobId,
+		JobId: jobIdWireValue,
 	}, nil
 }
 
@@ -2249,15 +2439,19 @@ func getPolicyComplianceForJobResponseFromWire(w *getPolicyComplianceForJobRespo
 }
 
 type getRunOutputRequestWire struct {
-	RunId *int64 `json:"run_id,omitempty"`
+	RunId *wireInt64 `json:"run_id,omitempty"`
 }
 
 func getRunOutputRequestToWire(v *GetRunOutputRequest) (*getRunOutputRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	runIdWireValue, err := int64ToWire(v.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunOutputRequest.RunId", err)
+	}
 	return &getRunOutputRequestWire{
-		RunId: v.RunId,
+		RunId: runIdWireValue,
 	}, nil
 }
 
@@ -2397,18 +2591,22 @@ func getRunOutputResponseFromWire(w *getRunOutputResponseWire) (*GetRunOutputRes
 }
 
 type getRunRequestWire struct {
-	RunId                 *int64  `json:"run_id,omitempty"`
-	IncludeHistory        *bool   `json:"include_history,omitempty"`
-	IncludeResolvedValues *bool   `json:"include_resolved_values,omitempty"`
-	PageToken             *string `json:"page_token,omitempty"`
+	RunId                 *wireInt64 `json:"run_id,omitempty"`
+	IncludeHistory        *bool      `json:"include_history,omitempty"`
+	IncludeResolvedValues *bool      `json:"include_resolved_values,omitempty"`
+	PageToken             *string    `json:"page_token,omitempty"`
 }
 
 func getRunRequestToWire(v *GetRunRequest) (*getRunRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	runIdWireValue, err := int64ToWire(v.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunRequest.RunId", err)
+	}
 	return &getRunRequestWire{
-		RunId:                 v.RunId,
+		RunId:                 runIdWireValue,
 		IncludeHistory:        v.IncludeHistory,
 		IncludeResolvedValues: v.IncludeResolvedValues,
 		PageToken:             v.PageToken,
@@ -2417,11 +2615,11 @@ func getRunRequestToWire(v *GetRunRequest) (*getRunRequestWire, error) {
 
 type getRunResponseWire struct {
 	NextPageToken              *string                             `json:"next_page_token,omitempty"`
-	JobId                      *int64                              `json:"job_id,omitempty"`
-	RunId                      *int64                              `json:"run_id,omitempty"`
+	JobId                      *wireInt64                          `json:"job_id,omitempty"`
+	RunId                      *wireInt64                          `json:"run_id,omitempty"`
 	CreatorUserName            *string                             `json:"creator_user_name,omitempty"`
-	NumberInJob                *int64                              `json:"number_in_job,omitempty"`
-	OriginalAttemptRunId       *int64                              `json:"original_attempt_run_id,omitempty"`
+	NumberInJob                *wireInt64                          `json:"number_in_job,omitempty"`
+	OriginalAttemptRunId       *wireInt64                          `json:"original_attempt_run_id,omitempty"`
 	State                      *runStateWire                       `json:"state,omitempty"`
 	Schedule                   *cronScheduleWire                   `json:"schedule,omitempty"`
 	ClusterSpec                *clusterSpecWire                    `json:"cluster_spec,omitempty"`
@@ -2440,24 +2638,40 @@ type getRunResponseWire struct {
 	GitSource                  *gitSourceWire                      `json:"git_source,omitempty"`
 	RepairHistory              []repairWire                        `json:"repair_history,omitempty"`
 	Status                     *runStatusWire                      `json:"status,omitempty"`
-	JobRunId                   *int64                              `json:"job_run_id,omitempty"`
+	JobRunId                   *wireInt64                          `json:"job_run_id,omitempty"`
 	HasMore                    *bool                               `json:"has_more,omitempty"`
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget `json:"effective_performance_target,omitempty"`
 	EffectiveUsagePolicyId     *string                             `json:"effective_usage_policy_id,omitempty"`
 	DeploymentId               *string                             `json:"deployment_id,omitempty"`
 	VersionId                  *string                             `json:"version_id,omitempty"`
-	StartTime                  *int64                              `json:"start_time,omitempty"`
-	SetupDuration              *int64                              `json:"setup_duration,omitempty"`
-	ExecutionDuration          *int64                              `json:"execution_duration,omitempty"`
-	CleanupDuration            *int64                              `json:"cleanup_duration,omitempty"`
-	EndTime                    *int64                              `json:"end_time,omitempty"`
-	RunDuration                *int64                              `json:"run_duration,omitempty"`
-	QueueDuration              *int64                              `json:"queue_duration,omitempty"`
+	StartTime                  *wireInt64                          `json:"start_time,omitempty"`
+	SetupDuration              *wireInt64                          `json:"setup_duration,omitempty"`
+	ExecutionDuration          *wireInt64                          `json:"execution_duration,omitempty"`
+	CleanupDuration            *wireInt64                          `json:"cleanup_duration,omitempty"`
+	EndTime                    *wireInt64                          `json:"end_time,omitempty"`
+	RunDuration                *wireInt64                          `json:"run_duration,omitempty"`
+	QueueDuration              *wireInt64                          `json:"queue_duration,omitempty"`
 }
 
 func getRunResponseFromWire(w *getRunResponseWire) (*GetRunResponse, error) {
 	if w == nil {
 		return nil, nil
+	}
+	jobIdPublicValue, err := int64FromWire(w.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.JobId", err)
+	}
+	runIdPublicValue, err := int64FromWire(w.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.RunId", err)
+	}
+	numberInJobPublicValue, err := int64FromWire(w.NumberInJob)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.NumberInJob", err)
+	}
+	originalAttemptRunIdPublicValue, err := int64FromWire(w.OriginalAttemptRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.OriginalAttemptRunId", err)
 	}
 	statePublicValue, err := runStateFromWire(w.State)
 	if err != nil {
@@ -2507,13 +2721,45 @@ func getRunResponseFromWire(w *getRunResponseWire) (*GetRunResponse, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "GetRunResponse.Status", err)
 	}
+	jobRunIdPublicValue, err := int64FromWire(w.JobRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.JobRunId", err)
+	}
+	startTimePublicValue, err := int64FromWire(w.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.StartTime", err)
+	}
+	setupDurationPublicValue, err := int64FromWire(w.SetupDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.SetupDuration", err)
+	}
+	executionDurationPublicValue, err := int64FromWire(w.ExecutionDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.ExecutionDuration", err)
+	}
+	cleanupDurationPublicValue, err := int64FromWire(w.CleanupDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.CleanupDuration", err)
+	}
+	endTimePublicValue, err := int64FromWire(w.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.EndTime", err)
+	}
+	runDurationPublicValue, err := int64FromWire(w.RunDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.RunDuration", err)
+	}
+	queueDurationPublicValue, err := int64FromWire(w.QueueDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.QueueDuration", err)
+	}
 	return &GetRunResponse{
 		NextPageToken:              w.NextPageToken,
-		JobId:                      w.JobId,
-		RunId:                      w.RunId,
+		JobId:                      jobIdPublicValue,
+		RunId:                      runIdPublicValue,
 		CreatorUserName:            w.CreatorUserName,
-		NumberInJob:                w.NumberInJob,
-		OriginalAttemptRunId:       w.OriginalAttemptRunId,
+		NumberInJob:                numberInJobPublicValue,
+		OriginalAttemptRunId:       originalAttemptRunIdPublicValue,
 		State:                      statePublicValue,
 		Schedule:                   schedulePublicValue,
 		ClusterSpec:                clusterSpecPublicValue,
@@ -2532,19 +2778,19 @@ func getRunResponseFromWire(w *getRunResponseWire) (*GetRunResponse, error) {
 		GitSource:                  gitSourcePublicValue,
 		RepairHistory:              repairHistoryPublicValue,
 		Status:                     statusPublicValue,
-		JobRunId:                   w.JobRunId,
+		JobRunId:                   jobRunIdPublicValue,
 		HasMore:                    w.HasMore,
 		EffectivePerformanceTarget: w.EffectivePerformanceTarget,
 		EffectiveUsagePolicyId:     w.EffectiveUsagePolicyId,
 		DeploymentId:               w.DeploymentId,
 		VersionId:                  w.VersionId,
-		StartTime:                  w.StartTime,
-		SetupDuration:              w.SetupDuration,
-		ExecutionDuration:          w.ExecutionDuration,
-		CleanupDuration:            w.CleanupDuration,
-		EndTime:                    w.EndTime,
-		RunDuration:                w.RunDuration,
-		QueueDuration:              w.QueueDuration,
+		StartTime:                  startTimePublicValue,
+		SetupDuration:              setupDurationPublicValue,
+		ExecutionDuration:          executionDurationPublicValue,
+		CleanupDuration:            cleanupDurationPublicValue,
+		EndTime:                    endTimePublicValue,
+		RunDuration:                runDurationPublicValue,
+		QueueDuration:              queueDurationPublicValue,
 	}, nil
 }
 
@@ -3372,17 +3618,21 @@ func jobSourceFromWire(w *jobSourceWire) (*JobSource, error) {
 type jobsHealthRuleWire struct {
 	Metric JobsHealthMetric   `json:"metric,omitempty"`
 	Op     JobsHealthOperator `json:"op,omitempty"`
-	Value  *int64             `json:"value,omitempty"`
+	Value  *wireInt64         `json:"value,omitempty"`
 }
 
 func jobsHealthRuleToWire(v *JobsHealthRule) (*jobsHealthRuleWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	valueWireValue, err := int64ToWire(v.Value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "JobsHealthRule.Value", err)
+	}
 	return &jobsHealthRuleWire{
 		Metric: v.Metric,
 		Op:     v.Op,
-		Value:  v.Value,
+		Value:  valueWireValue,
 	}, nil
 }
 
@@ -3390,10 +3640,14 @@ func jobsHealthRuleFromWire(w *jobsHealthRuleWire) (*JobsHealthRule, error) {
 	if w == nil {
 		return nil, nil
 	}
+	valuePublicValue, err := int64FromWire(w.Value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "JobsHealthRule.Value", err)
+	}
 	return &JobsHealthRule{
 		Metric: w.Metric,
 		Op:     w.Op,
-		Value:  w.Value,
+		Value:  valuePublicValue,
 	}, nil
 }
 
@@ -3585,7 +3839,7 @@ func listJobComplianceForPolicyToWire(v *ListJobComplianceForPolicy) (*listJobCo
 }
 
 type listJobComplianceForPolicy_JobComplianceWire struct {
-	JobId       *int64            `json:"job_id,omitempty"`
+	JobId       *wireInt64        `json:"job_id,omitempty"`
 	IsCompliant *bool             `json:"is_compliant,omitempty"`
 	Violations  map[string]string `json:"violations,omitempty"`
 }
@@ -3594,8 +3848,12 @@ func listJobComplianceForPolicy_JobComplianceFromWire(w *listJobComplianceForPol
 	if w == nil {
 		return nil, nil
 	}
+	jobIdPublicValue, err := int64FromWire(w.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListJobComplianceForPolicy_JobCompliance.JobId", err)
+	}
 	return &ListJobComplianceForPolicy_JobCompliance{
-		JobId:       w.JobId,
+		JobId:       jobIdPublicValue,
 		IsCompliant: w.IsCompliant,
 		Violations:  w.Violations,
 	}, nil
@@ -3667,21 +3925,33 @@ func listJobsResponseFromWire(w *listJobsResponseWire) (*ListJobsResponse, error
 }
 
 type listRunsRequestWire struct {
-	JobId         *int64  `json:"job_id,omitempty"`
-	ActiveOnly    *bool   `json:"active_only,omitempty"`
-	CompletedOnly *bool   `json:"completed_only,omitempty"`
-	Offset        *int    `json:"offset,omitempty"`
-	Limit         *int    `json:"limit,omitempty"`
-	RunType       RunType `json:"run_type,omitempty"`
-	ExpandTasks   *bool   `json:"expand_tasks,omitempty"`
-	StartTimeFrom *int64  `json:"start_time_from,omitempty"`
-	StartTimeTo   *int64  `json:"start_time_to,omitempty"`
-	PageToken     *string `json:"page_token,omitempty"`
+	JobId         *wireInt64 `json:"job_id,omitempty"`
+	ActiveOnly    *bool      `json:"active_only,omitempty"`
+	CompletedOnly *bool      `json:"completed_only,omitempty"`
+	Offset        *int       `json:"offset,omitempty"`
+	Limit         *int       `json:"limit,omitempty"`
+	RunType       RunType    `json:"run_type,omitempty"`
+	ExpandTasks   *bool      `json:"expand_tasks,omitempty"`
+	StartTimeFrom *wireInt64 `json:"start_time_from,omitempty"`
+	StartTimeTo   *wireInt64 `json:"start_time_to,omitempty"`
+	PageToken     *string    `json:"page_token,omitempty"`
 }
 
 func listRunsRequestToWire(v *ListRunsRequest) (*listRunsRequestWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	jobIdWireValue, err := int64ToWire(v.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRunsRequest.JobId", err)
+	}
+	startTimeFromWireValue, err := int64ToWire(v.StartTimeFrom)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRunsRequest.StartTimeFrom", err)
+	}
+	startTimeToWireValue, err := int64ToWire(v.StartTimeTo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRunsRequest.StartTimeTo", err)
 	}
 	var stateConstraintActiveOnlyWire *bool
 	var stateConstraintCompletedOnlyWire *bool
@@ -3699,15 +3969,15 @@ func listRunsRequestToWire(v *ListRunsRequest) (*listRunsRequestWire, error) {
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "ListRunsRequest.StateConstraint", value)
 	}
 	return &listRunsRequestWire{
-		JobId:         v.JobId,
+		JobId:         jobIdWireValue,
 		ActiveOnly:    stateConstraintActiveOnlyWire,
 		CompletedOnly: stateConstraintCompletedOnlyWire,
 		Offset:        v.Offset,
 		Limit:         v.Limit,
 		RunType:       v.RunType,
 		ExpandTasks:   v.ExpandTasks,
-		StartTimeFrom: v.StartTimeFrom,
-		StartTimeTo:   v.StartTimeTo,
+		StartTimeFrom: startTimeFromWireValue,
+		StartTimeTo:   startTimeToWireValue,
 		PageToken:     v.PageToken,
 	}, nil
 }
@@ -3779,6 +4049,34 @@ func logAnalyticsInfoFromWire(w *logAnalyticsInfoWire) (*LogAnalyticsInfo, error
 	return &LogAnalyticsInfo{
 		LogAnalyticsWorkspaceId: w.LogAnalyticsWorkspaceId,
 		LogAnalyticsPrimaryKey:  w.LogAnalyticsPrimaryKey,
+	}, nil
+}
+
+type maintenanceWindowWire struct {
+	StartHour  *int      `json:"start_hour,omitempty"`
+	DayOfWeek  DayOfWeek `json:"day_of_week,omitempty"`
+	TimezoneId *string   `json:"timezone_id,omitempty"`
+}
+
+func maintenanceWindowToWire(v *MaintenanceWindow) (*maintenanceWindowWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &maintenanceWindowWire{
+		StartHour:  v.StartHour,
+		DayOfWeek:  v.DayOfWeek,
+		TimezoneId: v.TimezoneId,
+	}, nil
+}
+
+func maintenanceWindowFromWire(w *maintenanceWindowWire) (*MaintenanceWindow, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &MaintenanceWindow{
+		StartHour:  w.StartHour,
+		DayOfWeek:  w.DayOfWeek,
+		TimezoneId: w.TimezoneId,
 	}, nil
 }
 
@@ -3856,6 +4154,7 @@ func modelTriggerStateFromWire(w *modelTriggerStateWire) (*ModelTriggerState, er
 
 type nodeTypeFlexibilityWire struct {
 	AlternateNodeTypeIds []string `json:"alternate_node_type_ids,omitempty"`
+	AwsContextId         *string  `json:"aws_context_id,omitempty"`
 }
 
 func nodeTypeFlexibilityToWire(v *NodeTypeFlexibility) (*nodeTypeFlexibilityWire, error) {
@@ -3864,6 +4163,7 @@ func nodeTypeFlexibilityToWire(v *NodeTypeFlexibility) (*nodeTypeFlexibilityWire
 	}
 	return &nodeTypeFlexibilityWire{
 		AlternateNodeTypeIds: v.AlternateNodeTypeIds,
+		AwsContextId:         v.AwsContextId,
 	}, nil
 }
 
@@ -3873,6 +4173,7 @@ func nodeTypeFlexibilityFromWire(w *nodeTypeFlexibilityWire) (*NodeTypeFlexibili
 	}
 	return &NodeTypeFlexibility{
 		AlternateNodeTypeIds: w.AlternateNodeTypeIds,
+		AwsContextId:         w.AwsContextId,
 	}, nil
 }
 
@@ -3951,19 +4252,23 @@ func notificationSettingsFromWire(w *notificationSettingsWire) (*NotificationSet
 }
 
 type outputSchemaInfoWire struct {
-	CatalogName    *string `json:"catalog_name,omitempty"`
-	SchemaName     *string `json:"schema_name,omitempty"`
-	ExpirationTime *int64  `json:"expiration_time,omitempty"`
+	CatalogName    *string    `json:"catalog_name,omitempty"`
+	SchemaName     *string    `json:"schema_name,omitempty"`
+	ExpirationTime *wireInt64 `json:"expiration_time,omitempty"`
 }
 
 func outputSchemaInfoFromWire(w *outputSchemaInfoWire) (*OutputSchemaInfo, error) {
 	if w == nil {
 		return nil, nil
 	}
+	expirationTimePublicValue, err := int64FromWire(w.ExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "OutputSchemaInfo.ExpirationTime", err)
+	}
 	return &OutputSchemaInfo{
 		CatalogName:    w.CatalogName,
 		SchemaName:     w.SchemaName,
-		ExpirationTime: w.ExpirationTime,
+		ExpirationTime: expirationTimePublicValue,
 	}, nil
 }
 
@@ -4080,15 +4385,19 @@ func periodicTriggerConfigurationFromWire(w *periodicTriggerConfigurationWire) (
 }
 
 type periodicTriggerStateWire struct {
-	NextRunTime *int64 `json:"next_run_time,omitempty"`
+	NextRunTime *wireInt64 `json:"next_run_time,omitempty"`
 }
 
 func periodicTriggerStateFromWire(w *periodicTriggerStateWire) (*PeriodicTriggerState, error) {
 	if w == nil {
 		return nil, nil
 	}
+	nextRunTimePublicValue, err := int64FromWire(w.NextRunTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PeriodicTriggerState.NextRunTime", err)
+	}
 	return &PeriodicTriggerState{
-		NextRunTime: w.NextRunTime,
+		NextRunTime: nextRunTimePublicValue,
 	}, nil
 }
 
@@ -4459,11 +4768,11 @@ func rCranLibraryFromWire(w *rCranLibraryWire) (*RCranLibrary, error) {
 
 type repairWire struct {
 	Type                       RepairType                          `json:"type,omitempty"`
-	StartTime                  *int64                              `json:"start_time,omitempty"`
-	EndTime                    *int64                              `json:"end_time,omitempty"`
+	StartTime                  *wireInt64                          `json:"start_time,omitempty"`
+	EndTime                    *wireInt64                          `json:"end_time,omitempty"`
 	State                      *runStateWire                       `json:"state,omitempty"`
-	Id                         *int64                              `json:"id,omitempty"`
-	TaskRunIds                 []int64                             `json:"task_run_ids,omitempty"`
+	Id                         *wireInt64                          `json:"id,omitempty"`
+	TaskRunIds                 []wireInt64                         `json:"task_run_ids,omitempty"`
 	Status                     *runStatusWire                      `json:"status,omitempty"`
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget `json:"effective_performance_target,omitempty"`
 }
@@ -4472,9 +4781,25 @@ func repairFromWire(w *repairWire) (*Repair, error) {
 	if w == nil {
 		return nil, nil
 	}
+	startTimePublicValue, err := int64FromWire(w.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Repair.StartTime", err)
+	}
+	endTimePublicValue, err := int64FromWire(w.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Repair.EndTime", err)
+	}
 	statePublicValue, err := runStateFromWire(w.State)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Repair.State", err)
+	}
+	idPublicValue, err := int64FromWire(w.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Repair.Id", err)
+	}
+	taskRunIdsPublicValue, err := convertSlice(w.TaskRunIds, int64FromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Repair.TaskRunIds", err)
 	}
 	statusPublicValue, err := runStatusFromWire(w.Status)
 	if err != nil {
@@ -4482,19 +4807,19 @@ func repairFromWire(w *repairWire) (*Repair, error) {
 	}
 	return &Repair{
 		Type:                       w.Type,
-		StartTime:                  w.StartTime,
-		EndTime:                    w.EndTime,
+		StartTime:                  startTimePublicValue,
+		EndTime:                    endTimePublicValue,
 		State:                      statePublicValue,
-		Id:                         w.Id,
-		TaskRunIds:                 w.TaskRunIds,
+		Id:                         idPublicValue,
+		TaskRunIds:                 taskRunIdsPublicValue,
 		Status:                     statusPublicValue,
 		EffectivePerformanceTarget: w.EffectivePerformanceTarget,
 	}, nil
 }
 
 type repairRunRequestWire struct {
-	RunId               *int64                              `json:"run_id,omitempty"`
-	LatestRepairId      *int64                              `json:"latest_repair_id,omitempty"`
+	RunId               *wireInt64                          `json:"run_id,omitempty"`
+	LatestRepairId      *wireInt64                          `json:"latest_repair_id,omitempty"`
 	RerunTasks          []string                            `json:"rerun_tasks,omitempty"`
 	JobParameters       map[string]string                   `json:"job_parameters,omitempty"`
 	RerunAllFailedTasks *bool                               `json:"rerun_all_failed_tasks,omitempty"`
@@ -4514,13 +4839,21 @@ func repairRunRequestToWire(v *RepairRunRequest) (*repairRunRequestWire, error) 
 	if v == nil {
 		return nil, nil
 	}
+	runIdWireValue, err := int64ToWire(v.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RepairRunRequest.RunId", err)
+	}
+	latestRepairIdWireValue, err := int64ToWire(v.LatestRepairId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RepairRunRequest.LatestRepairId", err)
+	}
 	pipelineParamsWireValue, err := pipelineParametersToWire(v.PipelineParams)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "RepairRunRequest.PipelineParams", err)
 	}
 	return &repairRunRequestWire{
-		RunId:               v.RunId,
-		LatestRepairId:      v.LatestRepairId,
+		RunId:               runIdWireValue,
+		LatestRepairId:      latestRepairIdWireValue,
 		RerunTasks:          v.RerunTasks,
 		JobParameters:       v.JobParameters,
 		RerunAllFailedTasks: v.RerunAllFailedTasks,
@@ -4538,20 +4871,24 @@ func repairRunRequestToWire(v *RepairRunRequest) (*repairRunRequestWire, error) 
 }
 
 type repairRunResponseWire struct {
-	RepairId *int64 `json:"repair_id,omitempty"`
+	RepairId *wireInt64 `json:"repair_id,omitempty"`
 }
 
 func repairRunResponseFromWire(w *repairRunResponseWire) (*RepairRunResponse, error) {
 	if w == nil {
 		return nil, nil
 	}
+	repairIdPublicValue, err := int64FromWire(w.RepairId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RepairRunResponse.RepairId", err)
+	}
 	return &RepairRunResponse{
-		RepairId: w.RepairId,
+		RepairId: repairIdPublicValue,
 	}, nil
 }
 
 type resetJobRequestWire struct {
-	JobId       *int64           `json:"job_id,omitempty"`
+	JobId       *wireInt64       `json:"job_id,omitempty"`
 	NewSettings *jobSettingsWire `json:"new_settings,omitempty"`
 }
 
@@ -4559,12 +4896,16 @@ func resetJobRequestToWire(v *ResetJobRequest) (*resetJobRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	jobIdWireValue, err := int64ToWire(v.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ResetJobRequest.JobId", err)
+	}
 	newSettingsWireValue, err := jobSettingsToWire(v.NewSettings)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ResetJobRequest.NewSettings", err)
 	}
 	return &resetJobRequestWire{
-		JobId:       v.JobId,
+		JobId:       jobIdWireValue,
 		NewSettings: newSettingsWireValue,
 	}, nil
 }
@@ -4862,11 +5203,11 @@ func resolvedValues_SqlTaskResolvedValuesFromWire(w *resolvedValues_SqlTaskResol
 }
 
 type runWire struct {
-	JobId                      *int64                              `json:"job_id,omitempty"`
-	RunId                      *int64                              `json:"run_id,omitempty"`
+	JobId                      *wireInt64                          `json:"job_id,omitempty"`
+	RunId                      *wireInt64                          `json:"run_id,omitempty"`
 	CreatorUserName            *string                             `json:"creator_user_name,omitempty"`
-	NumberInJob                *int64                              `json:"number_in_job,omitempty"`
-	OriginalAttemptRunId       *int64                              `json:"original_attempt_run_id,omitempty"`
+	NumberInJob                *wireInt64                          `json:"number_in_job,omitempty"`
+	OriginalAttemptRunId       *wireInt64                          `json:"original_attempt_run_id,omitempty"`
 	State                      *runStateWire                       `json:"state,omitempty"`
 	Schedule                   *cronScheduleWire                   `json:"schedule,omitempty"`
 	ClusterSpec                *clusterSpecWire                    `json:"cluster_spec,omitempty"`
@@ -4885,24 +5226,40 @@ type runWire struct {
 	GitSource                  *gitSourceWire                      `json:"git_source,omitempty"`
 	RepairHistory              []repairWire                        `json:"repair_history,omitempty"`
 	Status                     *runStatusWire                      `json:"status,omitempty"`
-	JobRunId                   *int64                              `json:"job_run_id,omitempty"`
+	JobRunId                   *wireInt64                          `json:"job_run_id,omitempty"`
 	HasMore                    *bool                               `json:"has_more,omitempty"`
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget `json:"effective_performance_target,omitempty"`
 	EffectiveUsagePolicyId     *string                             `json:"effective_usage_policy_id,omitempty"`
 	DeploymentId               *string                             `json:"deployment_id,omitempty"`
 	VersionId                  *string                             `json:"version_id,omitempty"`
-	StartTime                  *int64                              `json:"start_time,omitempty"`
-	SetupDuration              *int64                              `json:"setup_duration,omitempty"`
-	ExecutionDuration          *int64                              `json:"execution_duration,omitempty"`
-	CleanupDuration            *int64                              `json:"cleanup_duration,omitempty"`
-	EndTime                    *int64                              `json:"end_time,omitempty"`
-	RunDuration                *int64                              `json:"run_duration,omitempty"`
-	QueueDuration              *int64                              `json:"queue_duration,omitempty"`
+	StartTime                  *wireInt64                          `json:"start_time,omitempty"`
+	SetupDuration              *wireInt64                          `json:"setup_duration,omitempty"`
+	ExecutionDuration          *wireInt64                          `json:"execution_duration,omitempty"`
+	CleanupDuration            *wireInt64                          `json:"cleanup_duration,omitempty"`
+	EndTime                    *wireInt64                          `json:"end_time,omitempty"`
+	RunDuration                *wireInt64                          `json:"run_duration,omitempty"`
+	QueueDuration              *wireInt64                          `json:"queue_duration,omitempty"`
 }
 
 func runFromWire(w *runWire) (*Run, error) {
 	if w == nil {
 		return nil, nil
+	}
+	jobIdPublicValue, err := int64FromWire(w.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.JobId", err)
+	}
+	runIdPublicValue, err := int64FromWire(w.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.RunId", err)
+	}
+	numberInJobPublicValue, err := int64FromWire(w.NumberInJob)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.NumberInJob", err)
+	}
+	originalAttemptRunIdPublicValue, err := int64FromWire(w.OriginalAttemptRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.OriginalAttemptRunId", err)
 	}
 	statePublicValue, err := runStateFromWire(w.State)
 	if err != nil {
@@ -4952,12 +5309,44 @@ func runFromWire(w *runWire) (*Run, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Run.Status", err)
 	}
+	jobRunIdPublicValue, err := int64FromWire(w.JobRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.JobRunId", err)
+	}
+	startTimePublicValue, err := int64FromWire(w.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.StartTime", err)
+	}
+	setupDurationPublicValue, err := int64FromWire(w.SetupDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.SetupDuration", err)
+	}
+	executionDurationPublicValue, err := int64FromWire(w.ExecutionDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.ExecutionDuration", err)
+	}
+	cleanupDurationPublicValue, err := int64FromWire(w.CleanupDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.CleanupDuration", err)
+	}
+	endTimePublicValue, err := int64FromWire(w.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.EndTime", err)
+	}
+	runDurationPublicValue, err := int64FromWire(w.RunDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.RunDuration", err)
+	}
+	queueDurationPublicValue, err := int64FromWire(w.QueueDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.QueueDuration", err)
+	}
 	return &Run{
-		JobId:                      w.JobId,
-		RunId:                      w.RunId,
+		JobId:                      jobIdPublicValue,
+		RunId:                      runIdPublicValue,
 		CreatorUserName:            w.CreatorUserName,
-		NumberInJob:                w.NumberInJob,
-		OriginalAttemptRunId:       w.OriginalAttemptRunId,
+		NumberInJob:                numberInJobPublicValue,
+		OriginalAttemptRunId:       originalAttemptRunIdPublicValue,
 		State:                      statePublicValue,
 		Schedule:                   schedulePublicValue,
 		ClusterSpec:                clusterSpecPublicValue,
@@ -4976,19 +5365,19 @@ func runFromWire(w *runWire) (*Run, error) {
 		GitSource:                  gitSourcePublicValue,
 		RepairHistory:              repairHistoryPublicValue,
 		Status:                     statusPublicValue,
-		JobRunId:                   w.JobRunId,
+		JobRunId:                   jobRunIdPublicValue,
 		HasMore:                    w.HasMore,
 		EffectivePerformanceTarget: w.EffectivePerformanceTarget,
 		EffectiveUsagePolicyId:     w.EffectiveUsagePolicyId,
 		DeploymentId:               w.DeploymentId,
 		VersionId:                  w.VersionId,
-		StartTime:                  w.StartTime,
-		SetupDuration:              w.SetupDuration,
-		ExecutionDuration:          w.ExecutionDuration,
-		CleanupDuration:            w.CleanupDuration,
-		EndTime:                    w.EndTime,
-		RunDuration:                w.RunDuration,
-		QueueDuration:              w.QueueDuration,
+		StartTime:                  startTimePublicValue,
+		SetupDuration:              setupDurationPublicValue,
+		ExecutionDuration:          executionDurationPublicValue,
+		CleanupDuration:            cleanupDurationPublicValue,
+		EndTime:                    endTimePublicValue,
+		RunDuration:                runDurationPublicValue,
+		QueueDuration:              queueDurationPublicValue,
 	}, nil
 }
 
@@ -5010,7 +5399,7 @@ func run_JobLevelParametersFromWire(w *run_JobLevelParametersWire) (*Run_JobLeve
 }
 
 type runJobTaskWire struct {
-	JobId             *int64                  `json:"job_id,omitempty"`
+	JobId             *wireInt64              `json:"job_id,omitempty"`
 	JobParameters     map[string]string       `json:"job_parameters,omitempty"`
 	PipelineParams    *pipelineParametersWire `json:"pipeline_params,omitempty"`
 	JarParams         []string                `json:"jar_params,omitempty"`
@@ -5026,12 +5415,16 @@ func runJobTaskToWire(v *RunJobTask) (*runJobTaskWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	jobIdWireValue, err := int64ToWire(v.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunJobTask.JobId", err)
+	}
 	pipelineParamsWireValue, err := pipelineParametersToWire(v.PipelineParams)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "RunJobTask.PipelineParams", err)
 	}
 	return &runJobTaskWire{
-		JobId:             v.JobId,
+		JobId:             jobIdWireValue,
 		JobParameters:     v.JobParameters,
 		PipelineParams:    pipelineParamsWireValue,
 		JarParams:         v.JarParams,
@@ -5048,12 +5441,16 @@ func runJobTaskFromWire(w *runJobTaskWire) (*RunJobTask, error) {
 	if w == nil {
 		return nil, nil
 	}
+	jobIdPublicValue, err := int64FromWire(w.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunJobTask.JobId", err)
+	}
 	pipelineParamsPublicValue, err := pipelineParametersFromWire(w.PipelineParams)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "RunJobTask.PipelineParams", err)
 	}
 	return &RunJobTask{
-		JobId:             w.JobId,
+		JobId:             jobIdPublicValue,
 		JobParameters:     w.JobParameters,
 		PipelineParams:    pipelineParamsPublicValue,
 		JarParams:         w.JarParams,
@@ -5067,20 +5464,24 @@ func runJobTaskFromWire(w *runJobTaskWire) (*RunJobTask, error) {
 }
 
 type runJobTask_RunJobTaskOutputWire struct {
-	RunId *int64 `json:"run_id,omitempty"`
+	RunId *wireInt64 `json:"run_id,omitempty"`
 }
 
 func runJobTask_RunJobTaskOutputFromWire(w *runJobTask_RunJobTaskOutputWire) (*RunJobTask_RunJobTaskOutput, error) {
 	if w == nil {
 		return nil, nil
 	}
+	runIdPublicValue, err := int64FromWire(w.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunJobTask_RunJobTaskOutput.RunId", err)
+	}
 	return &RunJobTask_RunJobTaskOutput{
-		RunId: w.RunId,
+		RunId: runIdPublicValue,
 	}, nil
 }
 
 type runNowRequestWire struct {
-	JobId             *int64                              `json:"job_id,omitempty"`
+	JobId             *wireInt64                          `json:"job_id,omitempty"`
 	JobParameters     map[string]string                   `json:"job_parameters,omitempty"`
 	IdempotencyToken  *string                             `json:"idempotency_token,omitempty"`
 	Queue             *queueSettingsWire                  `json:"queue,omitempty"`
@@ -5100,6 +5501,10 @@ func runNowRequestToWire(v *RunNowRequest) (*runNowRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	jobIdWireValue, err := int64ToWire(v.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunNowRequest.JobId", err)
+	}
 	queueWireValue, err := queueSettingsToWire(v.Queue)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "RunNowRequest.Queue", err)
@@ -5109,7 +5514,7 @@ func runNowRequestToWire(v *RunNowRequest) (*runNowRequestWire, error) {
 		return nil, fmt.Errorf("%s: %w", "RunNowRequest.PipelineParams", err)
 	}
 	return &runNowRequestWire{
-		JobId:             v.JobId,
+		JobId:             jobIdWireValue,
 		JobParameters:     v.JobParameters,
 		IdempotencyToken:  v.IdempotencyToken,
 		Queue:             queueWireValue,
@@ -5127,17 +5532,25 @@ func runNowRequestToWire(v *RunNowRequest) (*runNowRequestWire, error) {
 }
 
 type runNowResponseWire struct {
-	RunId       *int64 `json:"run_id,omitempty"`
-	NumberInJob *int64 `json:"number_in_job,omitempty"`
+	RunId       *wireInt64 `json:"run_id,omitempty"`
+	NumberInJob *wireInt64 `json:"number_in_job,omitempty"`
 }
 
 func runNowResponseFromWire(w *runNowResponseWire) (*RunNowResponse, error) {
 	if w == nil {
 		return nil, nil
 	}
+	runIdPublicValue, err := int64FromWire(w.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunNowResponse.RunId", err)
+	}
+	numberInJobPublicValue, err := int64FromWire(w.NumberInJob)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunNowResponse.NumberInJob", err)
+	}
 	return &RunNowResponse{
-		RunId:       w.RunId,
-		NumberInJob: w.NumberInJob,
+		RunId:       runIdPublicValue,
+		NumberInJob: numberInJobPublicValue,
 	}, nil
 }
 
@@ -5219,7 +5632,7 @@ func runStatusFromWire(w *runStatusWire) (*RunStatus, error) {
 }
 
 type runTaskWire struct {
-	RunId                        *int64                              `json:"run_id,omitempty"`
+	RunId                        *wireInt64                          `json:"run_id,omitempty"`
 	State                        *runStateWire                       `json:"state,omitempty"`
 	RunPageUrl                   *string                             `json:"run_page_url,omitempty"`
 	ClusterInstance              *clusterInstanceWire                `json:"cluster_instance,omitempty"`
@@ -5269,13 +5682,13 @@ type runTaskWire struct {
 	MinRetryIntervalMillis       *int                                `json:"min_retry_interval_millis,omitempty"`
 	RetryOnTimeout               *bool                               `json:"retry_on_timeout,omitempty"`
 	DisableAutoOptimization      *bool                               `json:"disable_auto_optimization,omitempty"`
-	StartTime                    *int64                              `json:"start_time,omitempty"`
-	SetupDuration                *int64                              `json:"setup_duration,omitempty"`
-	ExecutionDuration            *int64                              `json:"execution_duration,omitempty"`
-	CleanupDuration              *int64                              `json:"cleanup_duration,omitempty"`
-	EndTime                      *int64                              `json:"end_time,omitempty"`
-	RunDuration                  *int64                              `json:"run_duration,omitempty"`
-	QueueDuration                *int64                              `json:"queue_duration,omitempty"`
+	StartTime                    *wireInt64                          `json:"start_time,omitempty"`
+	SetupDuration                *wireInt64                          `json:"setup_duration,omitempty"`
+	ExecutionDuration            *wireInt64                          `json:"execution_duration,omitempty"`
+	CleanupDuration              *wireInt64                          `json:"cleanup_duration,omitempty"`
+	EndTime                      *wireInt64                          `json:"end_time,omitempty"`
+	RunDuration                  *wireInt64                          `json:"run_duration,omitempty"`
+	QueueDuration                *wireInt64                          `json:"queue_duration,omitempty"`
 }
 
 func runTaskFromWire(w *runTaskWire) (*RunTask, error) {
@@ -5366,6 +5779,10 @@ func runTaskFromWire(w *runTaskWire) (*RunTask, error) {
 	if specMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "RunTask.Spec")
 	}
+	runIdPublicValue, err := int64FromWire(w.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.RunId", err)
+	}
 	statePublicValue, err := runStateFromWire(w.State)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "RunTask.State", err)
@@ -5413,6 +5830,34 @@ func runTaskFromWire(w *runTaskWire) (*RunTask, error) {
 	librariesPublicValue, err := convertSlice(w.Libraries, libraryFromWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "RunTask.Libraries", err)
+	}
+	startTimePublicValue, err := int64FromWire(w.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.StartTime", err)
+	}
+	setupDurationPublicValue, err := int64FromWire(w.SetupDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.SetupDuration", err)
+	}
+	executionDurationPublicValue, err := int64FromWire(w.ExecutionDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.ExecutionDuration", err)
+	}
+	cleanupDurationPublicValue, err := int64FromWire(w.CleanupDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.CleanupDuration", err)
+	}
+	endTimePublicValue, err := int64FromWire(w.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.EndTime", err)
+	}
+	runDurationPublicValue, err := int64FromWire(w.RunDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.RunDuration", err)
+	}
+	queueDurationPublicValue, err := int64FromWire(w.QueueDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.QueueDuration", err)
 	}
 	var environmentRefSelection isRunTask_EnvironmentRef
 	switch {
@@ -5556,7 +6001,7 @@ func runTaskFromWire(w *runTaskWire) (*RunTask, error) {
 		specSelection = &RunTask_Spec_JobClusterKey{JobClusterKey: *w.JobClusterKey}
 	}
 	return &RunTask{
-		RunId:                        w.RunId,
+		RunId:                        runIdPublicValue,
 		State:                        statePublicValue,
 		RunPageUrl:                   w.RunPageUrl,
 		ClusterInstance:              clusterInstancePublicValue,
@@ -5582,13 +6027,13 @@ func runTaskFromWire(w *runTaskWire) (*RunTask, error) {
 		MinRetryIntervalMillis:       w.MinRetryIntervalMillis,
 		RetryOnTimeout:               w.RetryOnTimeout,
 		DisableAutoOptimization:      w.DisableAutoOptimization,
-		StartTime:                    w.StartTime,
-		SetupDuration:                w.SetupDuration,
-		ExecutionDuration:            w.ExecutionDuration,
-		CleanupDuration:              w.CleanupDuration,
-		EndTime:                      w.EndTime,
-		RunDuration:                  w.RunDuration,
-		QueueDuration:                w.QueueDuration,
+		StartTime:                    startTimePublicValue,
+		SetupDuration:                setupDurationPublicValue,
+		ExecutionDuration:            executionDurationPublicValue,
+		CleanupDuration:              cleanupDurationPublicValue,
+		EndTime:                      endTimePublicValue,
+		RunDuration:                  runDurationPublicValue,
+		QueueDuration:                queueDurationPublicValue,
 		EnvironmentRef:               environmentRefSelection,
 		Task:                         taskSelection,
 		Spec:                         specSelection,
@@ -5935,7 +6380,7 @@ func runTaskSettingsToWire(v *RunTaskSettings) (*runTaskSettingsWire, error) {
 
 type runTriggerInfoWire struct {
 	SqlCondition *sqlConditionRunInfoDetailsWire `json:"sql_condition,omitempty"`
-	RunId        *int64                          `json:"run_id,omitempty"`
+	RunId        *wireInt64                      `json:"run_id,omitempty"`
 }
 
 func runTriggerInfoFromWire(w *runTriggerInfoWire) (*RunTriggerInfo, error) {
@@ -5946,9 +6391,13 @@ func runTriggerInfoFromWire(w *runTriggerInfoWire) (*RunTriggerInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "RunTriggerInfo.SqlCondition", err)
 	}
+	runIdPublicValue, err := int64FromWire(w.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTriggerInfo.RunId", err)
+	}
 	return &RunTriggerInfo{
 		SqlCondition: sqlConditionPublicValue,
-		RunId:        w.RunId,
+		RunId:        runIdPublicValue,
 	}, nil
 }
 
@@ -6335,8 +6784,8 @@ type sqlTask_SqlDashboardWidgetOutputWire struct {
 	OutputLink  *string                     `json:"output_link,omitempty"`
 	Status      SqlTask_SqlTaskQueryStatus  `json:"status,omitempty"`
 	Error       *sqlTask_SqlOutputErrorWire `json:"error,omitempty"`
-	StartTime   *int64                      `json:"start_time,omitempty"`
-	EndTime     *int64                      `json:"end_time,omitempty"`
+	StartTime   *wireInt64                  `json:"start_time,omitempty"`
+	EndTime     *wireInt64                  `json:"end_time,omitempty"`
 }
 
 func sqlTask_SqlDashboardWidgetOutputFromWire(w *sqlTask_SqlDashboardWidgetOutputWire) (*SqlTask_SqlDashboardWidgetOutput, error) {
@@ -6347,14 +6796,22 @@ func sqlTask_SqlDashboardWidgetOutputFromWire(w *sqlTask_SqlDashboardWidgetOutpu
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "SqlTask_SqlDashboardWidgetOutput.Error", err)
 	}
+	startTimePublicValue, err := int64FromWire(w.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SqlTask_SqlDashboardWidgetOutput.StartTime", err)
+	}
+	endTimePublicValue, err := int64FromWire(w.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SqlTask_SqlDashboardWidgetOutput.EndTime", err)
+	}
 	return &SqlTask_SqlDashboardWidgetOutput{
 		WidgetId:    w.WidgetId,
 		WidgetTitle: w.WidgetTitle,
 		OutputLink:  w.OutputLink,
 		Status:      w.Status,
 		Error:       errorPublicValue,
-		StartTime:   w.StartTime,
-		EndTime:     w.EndTime,
+		StartTime:   startTimePublicValue,
+		EndTime:     endTimePublicValue,
 	}, nil
 }
 
@@ -6742,15 +7199,19 @@ func submitRunRequestToWire(v *SubmitRunRequest) (*submitRunRequestWire, error) 
 }
 
 type submitRunResponseWire struct {
-	RunId *int64 `json:"run_id,omitempty"`
+	RunId *wireInt64 `json:"run_id,omitempty"`
 }
 
 func submitRunResponseFromWire(w *submitRunResponseWire) (*SubmitRunResponse, error) {
 	if w == nil {
 		return nil, nil
 	}
+	runIdPublicValue, err := int64FromWire(w.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SubmitRunResponse.RunId", err)
+	}
 	return &SubmitRunResponse{
-		RunId: w.RunId,
+		RunId: runIdPublicValue,
 	}, nil
 }
 
@@ -7694,19 +8155,27 @@ func triggerDetailsFromWire(w *triggerDetailsWire) (*TriggerDetails, error) {
 }
 
 type triggerEvaluationWire struct {
-	Timestamp   *int64  `json:"timestamp,omitempty"`
-	Description *string `json:"description,omitempty"`
-	RunId       *int64  `json:"run_id,omitempty"`
+	Timestamp   *wireInt64 `json:"timestamp,omitempty"`
+	Description *string    `json:"description,omitempty"`
+	RunId       *wireInt64 `json:"run_id,omitempty"`
 }
 
 func triggerEvaluationFromWire(w *triggerEvaluationWire) (*TriggerEvaluation, error) {
 	if w == nil {
 		return nil, nil
 	}
+	timestampPublicValue, err := int64FromWire(w.Timestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TriggerEvaluation.Timestamp", err)
+	}
+	runIdPublicValue, err := int64FromWire(w.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TriggerEvaluation.RunId", err)
+	}
 	return &TriggerEvaluation{
-		Timestamp:   w.Timestamp,
+		Timestamp:   timestampPublicValue,
 		Description: w.Description,
-		RunId:       w.RunId,
+		RunId:       runIdPublicValue,
 	}, nil
 }
 
@@ -7913,7 +8382,7 @@ func triggerStateFromWire(w *triggerStateWire) (*TriggerState, error) {
 }
 
 type updateJobRequestWire struct {
-	JobId          *int64           `json:"job_id,omitempty"`
+	JobId          *wireInt64       `json:"job_id,omitempty"`
 	NewSettings    *jobSettingsWire `json:"new_settings,omitempty"`
 	FieldsToRemove []string         `json:"fields_to_remove,omitempty"`
 }
@@ -7922,12 +8391,16 @@ func updateJobRequestToWire(v *UpdateJobRequest) (*updateJobRequestWire, error) 
 	if v == nil {
 		return nil, nil
 	}
+	jobIdWireValue, err := int64ToWire(v.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateJobRequest.JobId", err)
+	}
 	newSettingsWireValue, err := jobSettingsToWire(v.NewSettings)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "UpdateJobRequest.NewSettings", err)
 	}
 	return &updateJobRequestWire{
-		JobId:          v.JobId,
+		JobId:          jobIdWireValue,
 		NewSettings:    newSettingsWireValue,
 		FieldsToRemove: v.FieldsToRemove,
 	}, nil

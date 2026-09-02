@@ -88,29 +88,39 @@ func WithWorkspaceID(id string) Option {
 	}
 }
 
-// WithoutProfileResolution returns an Option that entirely disables profile
-// resolution. This is useful when you want your client to only be explicitly
-// configured in code.
-func WithoutProfileResolution() Option {
+// WithoutConfigFile returns an Option that disables loading client
+// configuration from a config file. It cannot be combined with
+// [WithConfigFile] or [WithProfile].
+func WithoutConfigFile() Option {
 	return func(c *internaloptions.ClientOptions) error {
-		c.DisableProfileResolution = true
+		c.DisableConfigFile = true
 		return nil
 	}
 }
 
-// WithProfileFile returns an Option that sets the profile file to use for
-// profile resolution. By default, the profile file is resolved from the
-// environment variable $DATABRICKS_CONFIG_FILE.
-func WithProfileFile(file string) Option {
+// WithoutEnv returns an Option that disables overlaying client configuration
+// from environment variables. It does not affect DATABRICKS_CONFIG_FILE or
+// DATABRICKS_CONFIG_PROFILE, which select the profile file and name.
+func WithoutEnv() Option {
 	return func(c *internaloptions.ClientOptions) error {
-		c.ProfileFile = file
+		c.DisableEnv = true
+		return nil
+	}
+}
+
+// WithConfigFile returns an Option that sets the config file to use for
+// profile resolution. By default, the config file is resolved from the
+// environment variable $DATABRICKS_CONFIG_FILE.
+func WithConfigFile(file string) Option {
+	return func(c *internaloptions.ClientOptions) error {
+		c.ConfigFile = file
 		return nil
 	}
 }
 
 // WithProfile returns an Option that sets the profile name to use for
 // profile resolution. By default, the profile name is resolved from the
-// environment variable $DATABRICKS_CONFIG_NAME.
+// environment variable $DATABRICKS_CONFIG_PROFILE.
 func WithProfile(name string) Option {
 	return func(c *internaloptions.ClientOptions) error {
 		c.ProfileName = name

@@ -76,8 +76,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 
 // Creates an external lineage relationship between a <Databricks> or external
 // metadata object and another external metadata object.
-func (c *internalClient) CreateExternalLineageRelationship(ctx context.Context, req *CreateExternalLineageRelationshipRequest, opts ...call.Option) (*ExternalLineageRelationship, error) {
-	wireReq, err := createExternalLineageRelationshipRequestToWire(req)
+func (c *internalClient) CreateExternalLineageRelationship(ctx context.Context, req CreateExternalLineageRelationshipRequest, opts ...call.Option) (*ExternalLineageRelationship, error) {
+	wireReq, err := createExternalLineageRelationshipRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -143,8 +143,8 @@ func (c *internalClient) CreateExternalLineageRelationship(ctx context.Context, 
 
 // Deletes an external lineage relationship between a <Databricks> or external
 // metadata object and another external metadata object.
-func (c *internalClient) DeleteExternalLineageRelationship(ctx context.Context, req *DeleteExternalLineageRelationshipRequest, opts ...call.Option) error {
-	wireReq, err := deleteExternalLineageRelationshipRequestToWire(req)
+func (c *internalClient) DeleteExternalLineageRelationship(ctx context.Context, req DeleteExternalLineageRelationshipRequest, opts ...call.Option) error {
+	wireReq, err := deleteExternalLineageRelationshipRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -199,8 +199,8 @@ func (c *internalClient) DeleteExternalLineageRelationship(ctx context.Context, 
 
 // Lists external lineage relationships of a <Databricks> object or external
 // metadata given a supplied direction.
-func (c *internalClient) ListExternalLineageRelationships(ctx context.Context, req *ListExternalLineageRelationshipsRequest, opts ...call.Option) (*ListExternalLineageRelationshipsResponse, error) {
-	wireReq, err := listExternalLineageRelationshipsRequestToWire(req)
+func (c *internalClient) ListExternalLineageRelationships(ctx context.Context, req ListExternalLineageRelationshipsRequest, opts ...call.Option) (*ListExternalLineageRelationshipsResponse, error) {
+	wireReq, err := listExternalLineageRelationshipsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -278,7 +278,7 @@ func (c *internalClient) ListExternalLineageRelationships(ctx context.Context, r
 //
 // For example:
 //
-//	for item, err := range c.ListExternalLineageRelationshipsIter(ctx, &ListExternalLineageRelationshipsRequest{}) {
+//	for item, err := range c.ListExternalLineageRelationshipsIter(ctx, ListExternalLineageRelationshipsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -290,16 +290,13 @@ func (c *internalClient) ListExternalLineageRelationships(ctx context.Context, r
 //
 // Callers who need custom pagination logic should use
 // ListExternalLineageRelationships directly.
-func (c *internalClient) ListExternalLineageRelationshipsIter(ctx context.Context, req *ListExternalLineageRelationshipsRequest, opts ...call.Option) iter.Seq2[*ExternalLineageInfo, error] {
+func (c *internalClient) ListExternalLineageRelationshipsIter(ctx context.Context, req ListExternalLineageRelationshipsRequest, opts ...call.Option) iter.Seq2[*ExternalLineageInfo, error] {
 	return func(yield func(*ExternalLineageInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListExternalLineageRelationshipsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListExternalLineageRelationships(ctx, &pageReq, opts...)
+			resp, err := c.ListExternalLineageRelationships(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -319,8 +316,8 @@ func (c *internalClient) ListExternalLineageRelationshipsIter(ctx context.Contex
 
 // Updates an external lineage relationship between a <Databricks> or external
 // metadata object and another external metadata object.
-func (c *internalClient) UpdateExternalLineageRelationship(ctx context.Context, req *UpdateExternalLineageRelationshipRequest, opts ...call.Option) (*ExternalLineageRelationship, error) {
-	wireReq, err := updateExternalLineageRelationshipRequestToWire(req)
+func (c *internalClient) UpdateExternalLineageRelationship(ctx context.Context, req UpdateExternalLineageRelationshipRequest, opts ...call.Option) (*ExternalLineageRelationship, error) {
+	wireReq, err := updateExternalLineageRelationshipRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}

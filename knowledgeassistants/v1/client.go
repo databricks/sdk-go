@@ -75,8 +75,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Creates an example for a Knowledge Assistant.
-func (c *internalClient) CreateExample(ctx context.Context, req *CreateExampleRequest, opts ...call.Option) (*Example, error) {
-	wireReq, err := createExampleRequestToWire(req)
+func (c *internalClient) CreateExample(ctx context.Context, req CreateExampleRequest, opts ...call.Option) (*Example, error) {
+	wireReq, err := createExampleRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,11 @@ func (c *internalClient) CreateExample(ctx context.Context, req *CreateExampleRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/examples")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -145,8 +149,8 @@ func (c *internalClient) CreateExample(ctx context.Context, req *CreateExampleRe
 }
 
 // Creates a Knowledge Assistant.
-func (c *internalClient) CreateKnowledgeAssistant(ctx context.Context, req *CreateKnowledgeAssistantRequest, opts ...call.Option) (*KnowledgeAssistant, error) {
-	wireReq, err := createKnowledgeAssistantRequestToWire(req)
+func (c *internalClient) CreateKnowledgeAssistant(ctx context.Context, req CreateKnowledgeAssistantRequest, opts ...call.Option) (*KnowledgeAssistant, error) {
+	wireReq, err := createKnowledgeAssistantRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -211,8 +215,8 @@ func (c *internalClient) CreateKnowledgeAssistant(ctx context.Context, req *Crea
 }
 
 // Creates a Knowledge Source under a Knowledge Assistant.
-func (c *internalClient) CreateKnowledgeSource(ctx context.Context, req *CreateKnowledgeSourceRequest, opts ...call.Option) (*KnowledgeSource, error) {
-	wireReq, err := createKnowledgeSourceRequestToWire(req)
+func (c *internalClient) CreateKnowledgeSource(ctx context.Context, req CreateKnowledgeSourceRequest, opts ...call.Option) (*KnowledgeSource, error) {
+	wireReq, err := createKnowledgeSourceRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -233,7 +237,11 @@ func (c *internalClient) CreateKnowledgeSource(ctx context.Context, req *CreateK
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/knowledge-sources")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -281,7 +289,7 @@ func (c *internalClient) CreateKnowledgeSource(ctx context.Context, req *CreateK
 }
 
 // Deletes an example from a Knowledge Assistant.
-func (c *internalClient) DeleteExample(ctx context.Context, req *DeleteExampleRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteExample(ctx context.Context, req DeleteExampleRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -295,7 +303,11 @@ func (c *internalClient) DeleteExample(ctx context.Context, req *DeleteExampleRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -332,7 +344,7 @@ func (c *internalClient) DeleteExample(ctx context.Context, req *DeleteExampleRe
 }
 
 // Deletes a Knowledge Assistant.
-func (c *internalClient) DeleteKnowledgeAssistant(ctx context.Context, req *DeleteKnowledgeAssistantRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteKnowledgeAssistant(ctx context.Context, req DeleteKnowledgeAssistantRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -346,7 +358,11 @@ func (c *internalClient) DeleteKnowledgeAssistant(ctx context.Context, req *Dele
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -383,7 +399,7 @@ func (c *internalClient) DeleteKnowledgeAssistant(ctx context.Context, req *Dele
 }
 
 // Deletes a Knowledge Source.
-func (c *internalClient) DeleteKnowledgeSource(ctx context.Context, req *DeleteKnowledgeSourceRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteKnowledgeSource(ctx context.Context, req DeleteKnowledgeSourceRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -397,7 +413,11 @@ func (c *internalClient) DeleteKnowledgeSource(ctx context.Context, req *DeleteK
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -434,7 +454,7 @@ func (c *internalClient) DeleteKnowledgeSource(ctx context.Context, req *DeleteK
 }
 
 // Gets an example from a Knowledge Assistant.
-func (c *internalClient) GetExample(ctx context.Context, req *GetExampleRequest, opts ...call.Option) (*Example, error) {
+func (c *internalClient) GetExample(ctx context.Context, req GetExampleRequest, opts ...call.Option) (*Example, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -448,7 +468,11 @@ func (c *internalClient) GetExample(ctx context.Context, req *GetExampleRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -494,7 +518,7 @@ func (c *internalClient) GetExample(ctx context.Context, req *GetExampleRequest,
 }
 
 // Gets a Knowledge Assistant.
-func (c *internalClient) GetKnowledgeAssistant(ctx context.Context, req *GetKnowledgeAssistantRequest, opts ...call.Option) (*KnowledgeAssistant, error) {
+func (c *internalClient) GetKnowledgeAssistant(ctx context.Context, req GetKnowledgeAssistantRequest, opts ...call.Option) (*KnowledgeAssistant, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -508,7 +532,11 @@ func (c *internalClient) GetKnowledgeAssistant(ctx context.Context, req *GetKnow
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -554,7 +582,7 @@ func (c *internalClient) GetKnowledgeAssistant(ctx context.Context, req *GetKnow
 }
 
 // Gets a Knowledge Source.
-func (c *internalClient) GetKnowledgeSource(ctx context.Context, req *GetKnowledgeSourceRequest, opts ...call.Option) (*KnowledgeSource, error) {
+func (c *internalClient) GetKnowledgeSource(ctx context.Context, req GetKnowledgeSourceRequest, opts ...call.Option) (*KnowledgeSource, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -568,7 +596,11 @@ func (c *internalClient) GetKnowledgeSource(ctx context.Context, req *GetKnowled
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -614,8 +646,8 @@ func (c *internalClient) GetKnowledgeSource(ctx context.Context, req *GetKnowled
 }
 
 // Lists examples under a Knowledge Assistant.
-func (c *internalClient) ListExamples(ctx context.Context, req *ListExamplesRequest, opts ...call.Option) (*ListExamplesResponse, error) {
-	wireReq, err := listExamplesRequestToWire(req)
+func (c *internalClient) ListExamples(ctx context.Context, req ListExamplesRequest, opts ...call.Option) (*ListExamplesResponse, error) {
+	wireReq, err := listExamplesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -632,7 +664,11 @@ func (c *internalClient) ListExamples(ctx context.Context, req *ListExamplesRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/examples")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -689,7 +725,7 @@ func (c *internalClient) ListExamples(ctx context.Context, req *ListExamplesRequ
 //
 // For example:
 //
-//	for item, err := range c.ListExamplesIter(ctx, &ListExamplesRequest{}) {
+//	for item, err := range c.ListExamplesIter(ctx, ListExamplesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -701,16 +737,13 @@ func (c *internalClient) ListExamples(ctx context.Context, req *ListExamplesRequ
 //
 // Callers who need custom pagination logic should use
 // ListExamples directly.
-func (c *internalClient) ListExamplesIter(ctx context.Context, req *ListExamplesRequest, opts ...call.Option) iter.Seq2[*Example, error] {
+func (c *internalClient) ListExamplesIter(ctx context.Context, req ListExamplesRequest, opts ...call.Option) iter.Seq2[*Example, error] {
 	return func(yield func(*Example, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListExamplesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListExamples(ctx, &pageReq, opts...)
+			resp, err := c.ListExamples(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -729,8 +762,8 @@ func (c *internalClient) ListExamplesIter(ctx context.Context, req *ListExamples
 }
 
 // List Knowledge Assistants
-func (c *internalClient) ListKnowledgeAssistants(ctx context.Context, req *ListKnowledgeAssistantsRequest, opts ...call.Option) (*ListKnowledgeAssistantsResponse, error) {
-	wireReq, err := listKnowledgeAssistantsRequestToWire(req)
+func (c *internalClient) ListKnowledgeAssistants(ctx context.Context, req ListKnowledgeAssistantsRequest, opts ...call.Option) (*ListKnowledgeAssistantsResponse, error) {
+	wireReq, err := listKnowledgeAssistantsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -800,7 +833,7 @@ func (c *internalClient) ListKnowledgeAssistants(ctx context.Context, req *ListK
 //
 // For example:
 //
-//	for item, err := range c.ListKnowledgeAssistantsIter(ctx, &ListKnowledgeAssistantsRequest{}) {
+//	for item, err := range c.ListKnowledgeAssistantsIter(ctx, ListKnowledgeAssistantsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -812,16 +845,13 @@ func (c *internalClient) ListKnowledgeAssistants(ctx context.Context, req *ListK
 //
 // Callers who need custom pagination logic should use
 // ListKnowledgeAssistants directly.
-func (c *internalClient) ListKnowledgeAssistantsIter(ctx context.Context, req *ListKnowledgeAssistantsRequest, opts ...call.Option) iter.Seq2[*KnowledgeAssistant, error] {
+func (c *internalClient) ListKnowledgeAssistantsIter(ctx context.Context, req ListKnowledgeAssistantsRequest, opts ...call.Option) iter.Seq2[*KnowledgeAssistant, error] {
 	return func(yield func(*KnowledgeAssistant, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListKnowledgeAssistantsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListKnowledgeAssistants(ctx, &pageReq, opts...)
+			resp, err := c.ListKnowledgeAssistants(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -840,8 +870,8 @@ func (c *internalClient) ListKnowledgeAssistantsIter(ctx context.Context, req *L
 }
 
 // Lists Knowledge Sources under a Knowledge Assistant.
-func (c *internalClient) ListKnowledgeSources(ctx context.Context, req *ListKnowledgeSourcesRequest, opts ...call.Option) (*ListKnowledgeSourcesResponse, error) {
-	wireReq, err := listKnowledgeSourcesRequestToWire(req)
+func (c *internalClient) ListKnowledgeSources(ctx context.Context, req ListKnowledgeSourcesRequest, opts ...call.Option) (*ListKnowledgeSourcesResponse, error) {
+	wireReq, err := listKnowledgeSourcesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -858,7 +888,11 @@ func (c *internalClient) ListKnowledgeSources(ctx context.Context, req *ListKnow
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/knowledge-sources")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -915,7 +949,7 @@ func (c *internalClient) ListKnowledgeSources(ctx context.Context, req *ListKnow
 //
 // For example:
 //
-//	for item, err := range c.ListKnowledgeSourcesIter(ctx, &ListKnowledgeSourcesRequest{}) {
+//	for item, err := range c.ListKnowledgeSourcesIter(ctx, ListKnowledgeSourcesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -927,16 +961,13 @@ func (c *internalClient) ListKnowledgeSources(ctx context.Context, req *ListKnow
 //
 // Callers who need custom pagination logic should use
 // ListKnowledgeSources directly.
-func (c *internalClient) ListKnowledgeSourcesIter(ctx context.Context, req *ListKnowledgeSourcesRequest, opts ...call.Option) iter.Seq2[*KnowledgeSource, error] {
+func (c *internalClient) ListKnowledgeSourcesIter(ctx context.Context, req ListKnowledgeSourcesRequest, opts ...call.Option) iter.Seq2[*KnowledgeSource, error] {
 	return func(yield func(*KnowledgeSource, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListKnowledgeSourcesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListKnowledgeSources(ctx, &pageReq, opts...)
+			resp, err := c.ListKnowledgeSources(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -956,8 +987,8 @@ func (c *internalClient) ListKnowledgeSourcesIter(ctx context.Context, req *List
 
 // Sync all non-index Knowledge Sources for a Knowledge Assistant (index sources
 // do not require sync)
-func (c *internalClient) SyncKnowledgeSources(ctx context.Context, req *SyncKnowledgeSourcesRequest, opts ...call.Option) error {
-	wireReq, err := syncKnowledgeSourcesRequestToWire(req)
+func (c *internalClient) SyncKnowledgeSources(ctx context.Context, req SyncKnowledgeSourcesRequest, opts ...call.Option) error {
+	wireReq, err := syncKnowledgeSourcesRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -978,7 +1009,11 @@ func (c *internalClient) SyncKnowledgeSources(ctx context.Context, req *SyncKnow
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/knowledge-sources:sync")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1017,8 +1052,8 @@ func (c *internalClient) SyncKnowledgeSources(ctx context.Context, req *SyncKnow
 }
 
 // Updates an example in a Knowledge Assistant.
-func (c *internalClient) UpdateExample(ctx context.Context, req *UpdateExampleRequest, opts ...call.Option) (*Example, error) {
-	wireReq, err := updateExampleRequestToWire(req)
+func (c *internalClient) UpdateExample(ctx context.Context, req UpdateExampleRequest, opts ...call.Option) (*Example, error) {
+	wireReq, err := updateExampleRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1039,7 +1074,11 @@ func (c *internalClient) UpdateExample(ctx context.Context, req *UpdateExampleRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -1089,8 +1128,8 @@ func (c *internalClient) UpdateExample(ctx context.Context, req *UpdateExampleRe
 }
 
 // Updates a Knowledge Assistant.
-func (c *internalClient) UpdateKnowledgeAssistant(ctx context.Context, req *UpdateKnowledgeAssistantRequest, opts ...call.Option) (*KnowledgeAssistant, error) {
-	wireReq, err := updateKnowledgeAssistantRequestToWire(req)
+func (c *internalClient) UpdateKnowledgeAssistant(ctx context.Context, req UpdateKnowledgeAssistantRequest, opts ...call.Option) (*KnowledgeAssistant, error) {
+	wireReq, err := updateKnowledgeAssistantRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1111,7 +1150,11 @@ func (c *internalClient) UpdateKnowledgeAssistant(ctx context.Context, req *Upda
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.KnowledgeAssistant.Name)
+	if req.KnowledgeAssistant == nil || req.KnowledgeAssistant.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.KnowledgeAssistant.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -1161,8 +1204,8 @@ func (c *internalClient) UpdateKnowledgeAssistant(ctx context.Context, req *Upda
 }
 
 // Updates a Knowledge Source.
-func (c *internalClient) UpdateKnowledgeSource(ctx context.Context, req *UpdateKnowledgeSourceRequest, opts ...call.Option) (*KnowledgeSource, error) {
-	wireReq, err := updateKnowledgeSourceRequestToWire(req)
+func (c *internalClient) UpdateKnowledgeSource(ctx context.Context, req UpdateKnowledgeSourceRequest, opts ...call.Option) (*KnowledgeSource, error) {
+	wireReq, err := updateKnowledgeSourceRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1183,7 +1226,11 @@ func (c *internalClient) UpdateKnowledgeSource(ctx context.Context, req *UpdateK
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

@@ -3,15 +3,61 @@
 package modelregistry
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
 
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
+
 type activityWire struct {
-	CreationTimestamp    *int64           `json:"creation_timestamp,omitempty"`
+	CreationTimestamp    *wireInt64       `json:"creation_timestamp,omitempty"`
 	UserId               *string          `json:"user_id,omitempty"`
 	ActivityType         ActivityType     `json:"activity_type,omitempty"`
 	Comment              *string          `json:"comment,omitempty"`
-	LastUpdatedTimestamp *int64           `json:"last_updated_timestamp,omitempty"`
+	LastUpdatedTimestamp *wireInt64       `json:"last_updated_timestamp,omitempty"`
 	FromStage            *string          `json:"from_stage,omitempty"`
 	ToStage              *string          `json:"to_stage,omitempty"`
 	SystemComment        *string          `json:"system_comment,omitempty"`
@@ -23,12 +69,20 @@ func activityFromWire(w *activityWire) (*Activity, error) {
 	if w == nil {
 		return nil, nil
 	}
+	creationTimestampPublicValue, err := int64FromWire(w.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Activity.CreationTimestamp", err)
+	}
+	lastUpdatedTimestampPublicValue, err := int64FromWire(w.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Activity.LastUpdatedTimestamp", err)
+	}
 	return &Activity{
-		CreationTimestamp:    w.CreationTimestamp,
+		CreationTimestamp:    creationTimestampPublicValue,
 		UserId:               w.UserId,
 		ActivityType:         w.ActivityType,
 		Comment:              w.Comment,
-		LastUpdatedTimestamp: w.LastUpdatedTimestamp,
+		LastUpdatedTimestamp: lastUpdatedTimestampPublicValue,
 		FromStage:            w.FromStage,
 		ToStage:              w.ToStage,
 		SystemComment:        w.SystemComment,
@@ -76,11 +130,11 @@ func approveTransitionResponseFromWire(w *approveTransitionResponseWire) (*Appro
 }
 
 type commentObjectWire struct {
-	CreationTimestamp    *int64           `json:"creation_timestamp,omitempty"`
+	CreationTimestamp    *wireInt64       `json:"creation_timestamp,omitempty"`
 	UserId               *string          `json:"user_id,omitempty"`
 	ActivityType         ActivityType     `json:"activity_type,omitempty"`
 	Comment              *string          `json:"comment,omitempty"`
-	LastUpdatedTimestamp *int64           `json:"last_updated_timestamp,omitempty"`
+	LastUpdatedTimestamp *wireInt64       `json:"last_updated_timestamp,omitempty"`
 	FromStage            *string          `json:"from_stage,omitempty"`
 	ToStage              *string          `json:"to_stage,omitempty"`
 	SystemComment        *string          `json:"system_comment,omitempty"`
@@ -92,12 +146,20 @@ func commentObjectFromWire(w *commentObjectWire) (*CommentObject, error) {
 	if w == nil {
 		return nil, nil
 	}
+	creationTimestampPublicValue, err := int64FromWire(w.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CommentObject.CreationTimestamp", err)
+	}
+	lastUpdatedTimestampPublicValue, err := int64FromWire(w.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CommentObject.LastUpdatedTimestamp", err)
+	}
 	return &CommentObject{
-		CreationTimestamp:    w.CreationTimestamp,
+		CreationTimestamp:    creationTimestampPublicValue,
 		UserId:               w.UserId,
 		ActivityType:         w.ActivityType,
 		Comment:              w.Comment,
-		LastUpdatedTimestamp: w.LastUpdatedTimestamp,
+		LastUpdatedTimestamp: lastUpdatedTimestampPublicValue,
 		FromStage:            w.FromStage,
 		ToStage:              w.ToStage,
 		SystemComment:        w.SystemComment,
@@ -646,16 +708,20 @@ func listLatestVersionsRequestToWire(v *ListLatestVersionsRequest) (*listLatestV
 }
 
 type listRegisteredModelsRequestWire struct {
-	MaxResults *int64  `json:"max_results,omitempty"`
-	PageToken  *string `json:"page_token,omitempty"`
+	MaxResults *wireInt64 `json:"max_results,omitempty"`
+	PageToken  *string    `json:"page_token,omitempty"`
 }
 
 func listRegisteredModelsRequestToWire(v *ListRegisteredModelsRequest) (*listRegisteredModelsRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	maxResultsWireValue, err := int64ToWire(v.MaxResults)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRegisteredModelsRequest.MaxResults", err)
+	}
 	return &listRegisteredModelsRequestWire{
-		MaxResults: v.MaxResults,
+		MaxResults: maxResultsWireValue,
 		PageToken:  v.PageToken,
 	}, nil
 }
@@ -683,18 +749,22 @@ type listRegistryWebhooksRequestWire struct {
 	ModelName  *string                `json:"model_name,omitempty"`
 	Events     []RegistryWebhookEvent `json:"events,omitempty"`
 	PageToken  *string                `json:"page_token,omitempty"`
-	MaxResults *int64                 `json:"max_results,omitempty"`
+	MaxResults *wireInt64             `json:"max_results,omitempty"`
 }
 
 func listRegistryWebhooksRequestToWire(v *ListRegistryWebhooksRequest) (*listRegistryWebhooksRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	maxResultsWireValue, err := int64ToWire(v.MaxResults)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRegistryWebhooksRequest.MaxResults", err)
+	}
 	return &listRegistryWebhooksRequestWire{
 		ModelName:  v.ModelName,
 		Events:     v.Events,
 		PageToken:  v.PageToken,
-		MaxResults: v.MaxResults,
+		MaxResults: maxResultsWireValue,
 	}, nil
 }
 
@@ -752,8 +822,8 @@ func listTransitionResponseFromWire(w *listTransitionResponseWire) (*ListTransit
 type modelVersionWire struct {
 	Name                 *string               `json:"name,omitempty"`
 	Version              *string               `json:"version,omitempty"`
-	CreationTimestamp    *int64                `json:"creation_timestamp,omitempty"`
-	LastUpdatedTimestamp *int64                `json:"last_updated_timestamp,omitempty"`
+	CreationTimestamp    *wireInt64            `json:"creation_timestamp,omitempty"`
+	LastUpdatedTimestamp *wireInt64            `json:"last_updated_timestamp,omitempty"`
 	UserId               *string               `json:"user_id,omitempty"`
 	CurrentStage         *string               `json:"current_stage,omitempty"`
 	Description          *string               `json:"description,omitempty"`
@@ -769,6 +839,14 @@ func modelVersionFromWire(w *modelVersionWire) (*ModelVersion, error) {
 	if w == nil {
 		return nil, nil
 	}
+	creationTimestampPublicValue, err := int64FromWire(w.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelVersion.CreationTimestamp", err)
+	}
+	lastUpdatedTimestampPublicValue, err := int64FromWire(w.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelVersion.LastUpdatedTimestamp", err)
+	}
 	tagsPublicValue, err := convertSlice(w.Tags, modelVersionTagFromWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ModelVersion.Tags", err)
@@ -776,8 +854,8 @@ func modelVersionFromWire(w *modelVersionWire) (*ModelVersion, error) {
 	return &ModelVersion{
 		Name:                 w.Name,
 		Version:              w.Version,
-		CreationTimestamp:    w.CreationTimestamp,
-		LastUpdatedTimestamp: w.LastUpdatedTimestamp,
+		CreationTimestamp:    creationTimestampPublicValue,
+		LastUpdatedTimestamp: lastUpdatedTimestampPublicValue,
 		UserId:               w.UserId,
 		CurrentStage:         w.CurrentStage,
 		Description:          w.Description,
@@ -793,8 +871,8 @@ func modelVersionFromWire(w *modelVersionWire) (*ModelVersion, error) {
 type modelVersionDatabricksWire struct {
 	Name                    *string                       `json:"name,omitempty"`
 	Version                 *string                       `json:"version,omitempty"`
-	CreationTimestamp       *int64                        `json:"creation_timestamp,omitempty"`
-	LastUpdatedTimestamp    *int64                        `json:"last_updated_timestamp,omitempty"`
+	CreationTimestamp       *wireInt64                    `json:"creation_timestamp,omitempty"`
+	LastUpdatedTimestamp    *wireInt64                    `json:"last_updated_timestamp,omitempty"`
 	UserId                  *string                       `json:"user_id,omitempty"`
 	CurrentStage            *string                       `json:"current_stage,omitempty"`
 	Description             *string                       `json:"description,omitempty"`
@@ -814,6 +892,14 @@ func modelVersionDatabricksFromWire(w *modelVersionDatabricksWire) (*ModelVersio
 	if w == nil {
 		return nil, nil
 	}
+	creationTimestampPublicValue, err := int64FromWire(w.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelVersionDatabricks.CreationTimestamp", err)
+	}
+	lastUpdatedTimestampPublicValue, err := int64FromWire(w.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelVersionDatabricks.LastUpdatedTimestamp", err)
+	}
 	openRequestsPublicValue, err := convertSlice(w.OpenRequests, activityFromWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ModelVersionDatabricks.OpenRequests", err)
@@ -829,8 +915,8 @@ func modelVersionDatabricksFromWire(w *modelVersionDatabricksWire) (*ModelVersio
 	return &ModelVersionDatabricks{
 		Name:                    w.Name,
 		Version:                 w.Version,
-		CreationTimestamp:       w.CreationTimestamp,
-		LastUpdatedTimestamp:    w.LastUpdatedTimestamp,
+		CreationTimestamp:       creationTimestampPublicValue,
+		LastUpdatedTimestamp:    lastUpdatedTimestampPublicValue,
 		UserId:                  w.UserId,
 		CurrentStage:            w.CurrentStage,
 		Description:             w.Description,
@@ -874,8 +960,8 @@ func modelVersionTagFromWire(w *modelVersionTagWire) (*ModelVersionTag, error) {
 
 type registeredModelWire struct {
 	Name                 *string                  `json:"name,omitempty"`
-	CreationTimestamp    *int64                   `json:"creation_timestamp,omitempty"`
-	LastUpdatedTimestamp *int64                   `json:"last_updated_timestamp,omitempty"`
+	CreationTimestamp    *wireInt64               `json:"creation_timestamp,omitempty"`
+	LastUpdatedTimestamp *wireInt64               `json:"last_updated_timestamp,omitempty"`
 	UserId               *string                  `json:"user_id,omitempty"`
 	Description          *string                  `json:"description,omitempty"`
 	LatestVersions       []modelVersionWire       `json:"latest_versions,omitempty"`
@@ -885,6 +971,14 @@ type registeredModelWire struct {
 func registeredModelFromWire(w *registeredModelWire) (*RegisteredModel, error) {
 	if w == nil {
 		return nil, nil
+	}
+	creationTimestampPublicValue, err := int64FromWire(w.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegisteredModel.CreationTimestamp", err)
+	}
+	lastUpdatedTimestampPublicValue, err := int64FromWire(w.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegisteredModel.LastUpdatedTimestamp", err)
 	}
 	latestVersionsPublicValue, err := convertSlice(w.LatestVersions, modelVersionFromWire)
 	if err != nil {
@@ -896,8 +990,8 @@ func registeredModelFromWire(w *registeredModelWire) (*RegisteredModel, error) {
 	}
 	return &RegisteredModel{
 		Name:                 w.Name,
-		CreationTimestamp:    w.CreationTimestamp,
-		LastUpdatedTimestamp: w.LastUpdatedTimestamp,
+		CreationTimestamp:    creationTimestampPublicValue,
+		LastUpdatedTimestamp: lastUpdatedTimestampPublicValue,
 		UserId:               w.UserId,
 		Description:          w.Description,
 		LatestVersions:       latestVersionsPublicValue,
@@ -907,8 +1001,8 @@ func registeredModelFromWire(w *registeredModelWire) (*RegisteredModel, error) {
 
 type registeredModelDatabricksWire struct {
 	Name                 *string                  `json:"name,omitempty"`
-	CreationTimestamp    *int64                   `json:"creation_timestamp,omitempty"`
-	LastUpdatedTimestamp *int64                   `json:"last_updated_timestamp,omitempty"`
+	CreationTimestamp    *wireInt64               `json:"creation_timestamp,omitempty"`
+	LastUpdatedTimestamp *wireInt64               `json:"last_updated_timestamp,omitempty"`
 	UserId               *string                  `json:"user_id,omitempty"`
 	Description          *string                  `json:"description,omitempty"`
 	LatestVersions       []modelVersionWire       `json:"latest_versions,omitempty"`
@@ -921,6 +1015,14 @@ func registeredModelDatabricksFromWire(w *registeredModelDatabricksWire) (*Regis
 	if w == nil {
 		return nil, nil
 	}
+	creationTimestampPublicValue, err := int64FromWire(w.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegisteredModelDatabricks.CreationTimestamp", err)
+	}
+	lastUpdatedTimestampPublicValue, err := int64FromWire(w.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegisteredModelDatabricks.LastUpdatedTimestamp", err)
+	}
 	latestVersionsPublicValue, err := convertSlice(w.LatestVersions, modelVersionFromWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "RegisteredModelDatabricks.LatestVersions", err)
@@ -931,8 +1033,8 @@ func registeredModelDatabricksFromWire(w *registeredModelDatabricksWire) (*Regis
 	}
 	return &RegisteredModelDatabricks{
 		Name:                 w.Name,
-		CreationTimestamp:    w.CreationTimestamp,
-		LastUpdatedTimestamp: w.LastUpdatedTimestamp,
+		CreationTimestamp:    creationTimestampPublicValue,
+		LastUpdatedTimestamp: lastUpdatedTimestampPublicValue,
 		UserId:               w.UserId,
 		Description:          w.Description,
 		LatestVersions:       latestVersionsPublicValue,
@@ -970,8 +1072,8 @@ func registeredModelTagFromWire(w *registeredModelTagWire) (*RegisteredModelTag,
 type registryWebhookWire struct {
 	Id                   *string                `json:"id,omitempty"`
 	Events               []RegistryWebhookEvent `json:"events,omitempty"`
-	CreationTimestamp    *int64                 `json:"creation_timestamp,omitempty"`
-	LastUpdatedTimestamp *int64                 `json:"last_updated_timestamp,omitempty"`
+	CreationTimestamp    *wireInt64             `json:"creation_timestamp,omitempty"`
+	LastUpdatedTimestamp *wireInt64             `json:"last_updated_timestamp,omitempty"`
 	Description          *string                `json:"description,omitempty"`
 	Status               RegistryWebhookStatus  `json:"status,omitempty"`
 	HttpUrlSpec          *httpUrlSpecWire       `json:"http_url_spec,omitempty"`
@@ -982,6 +1084,14 @@ type registryWebhookWire struct {
 func registryWebhookFromWire(w *registryWebhookWire) (*RegistryWebhook, error) {
 	if w == nil {
 		return nil, nil
+	}
+	creationTimestampPublicValue, err := int64FromWire(w.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegistryWebhook.CreationTimestamp", err)
+	}
+	lastUpdatedTimestampPublicValue, err := int64FromWire(w.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegistryWebhook.LastUpdatedTimestamp", err)
 	}
 	httpUrlSpecPublicValue, err := httpUrlSpecFromWire(w.HttpUrlSpec)
 	if err != nil {
@@ -994,8 +1104,8 @@ func registryWebhookFromWire(w *registryWebhookWire) (*RegistryWebhook, error) {
 	return &RegistryWebhook{
 		Id:                   w.Id,
 		Events:               w.Events,
-		CreationTimestamp:    w.CreationTimestamp,
-		LastUpdatedTimestamp: w.LastUpdatedTimestamp,
+		CreationTimestamp:    creationTimestampPublicValue,
+		LastUpdatedTimestamp: lastUpdatedTimestampPublicValue,
 		Description:          w.Description,
 		Status:               w.Status,
 		HttpUrlSpec:          httpUrlSpecPublicValue,
@@ -1073,19 +1183,23 @@ func renameRegisteredModelResponseFromWire(w *renameRegisteredModelResponseWire)
 }
 
 type searchModelVersionsRequestWire struct {
-	Filter     *string  `json:"filter,omitempty"`
-	MaxResults *int64   `json:"max_results,omitempty"`
-	OrderBy    []string `json:"order_by,omitempty"`
-	PageToken  *string  `json:"page_token,omitempty"`
+	Filter     *string    `json:"filter,omitempty"`
+	MaxResults *wireInt64 `json:"max_results,omitempty"`
+	OrderBy    []string   `json:"order_by,omitempty"`
+	PageToken  *string    `json:"page_token,omitempty"`
 }
 
 func searchModelVersionsRequestToWire(v *SearchModelVersionsRequest) (*searchModelVersionsRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	maxResultsWireValue, err := int64ToWire(v.MaxResults)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SearchModelVersionsRequest.MaxResults", err)
+	}
 	return &searchModelVersionsRequestWire{
 		Filter:     v.Filter,
-		MaxResults: v.MaxResults,
+		MaxResults: maxResultsWireValue,
 		OrderBy:    v.OrderBy,
 		PageToken:  v.PageToken,
 	}, nil
@@ -1111,19 +1225,23 @@ func searchModelVersionsResponseFromWire(w *searchModelVersionsResponseWire) (*S
 }
 
 type searchRegisteredModelsRequestWire struct {
-	Filter     *string  `json:"filter,omitempty"`
-	MaxResults *int64   `json:"max_results,omitempty"`
-	OrderBy    []string `json:"order_by,omitempty"`
-	PageToken  *string  `json:"page_token,omitempty"`
+	Filter     *string    `json:"filter,omitempty"`
+	MaxResults *wireInt64 `json:"max_results,omitempty"`
+	OrderBy    []string   `json:"order_by,omitempty"`
+	PageToken  *string    `json:"page_token,omitempty"`
 }
 
 func searchRegisteredModelsRequestToWire(v *SearchRegisteredModelsRequest) (*searchRegisteredModelsRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	maxResultsWireValue, err := int64ToWire(v.MaxResults)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SearchRegisteredModelsRequest.MaxResults", err)
+	}
 	return &searchRegisteredModelsRequestWire{
 		Filter:     v.Filter,
-		MaxResults: v.MaxResults,
+		MaxResults: maxResultsWireValue,
 		OrderBy:    v.OrderBy,
 		PageToken:  v.PageToken,
 	}, nil
@@ -1253,11 +1371,11 @@ func transitionModelVersionStageDatabricksResponseFromWire(w *transitionModelVer
 }
 
 type transitionRequestWire struct {
-	CreationTimestamp    *int64           `json:"creation_timestamp,omitempty"`
+	CreationTimestamp    *wireInt64       `json:"creation_timestamp,omitempty"`
 	UserId               *string          `json:"user_id,omitempty"`
 	ActivityType         ActivityType     `json:"activity_type,omitempty"`
 	Comment              *string          `json:"comment,omitempty"`
-	LastUpdatedTimestamp *int64           `json:"last_updated_timestamp,omitempty"`
+	LastUpdatedTimestamp *wireInt64       `json:"last_updated_timestamp,omitempty"`
 	FromStage            *string          `json:"from_stage,omitempty"`
 	ToStage              *string          `json:"to_stage,omitempty"`
 	SystemComment        *string          `json:"system_comment,omitempty"`
@@ -1269,12 +1387,20 @@ func transitionRequestFromWire(w *transitionRequestWire) (*TransitionRequest, er
 	if w == nil {
 		return nil, nil
 	}
+	creationTimestampPublicValue, err := int64FromWire(w.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TransitionRequest.CreationTimestamp", err)
+	}
+	lastUpdatedTimestampPublicValue, err := int64FromWire(w.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TransitionRequest.LastUpdatedTimestamp", err)
+	}
 	return &TransitionRequest{
-		CreationTimestamp:    w.CreationTimestamp,
+		CreationTimestamp:    creationTimestampPublicValue,
 		UserId:               w.UserId,
 		ActivityType:         w.ActivityType,
 		Comment:              w.Comment,
-		LastUpdatedTimestamp: w.LastUpdatedTimestamp,
+		LastUpdatedTimestamp: lastUpdatedTimestampPublicValue,
 		FromStage:            w.FromStage,
 		ToStage:              w.ToStage,
 		SystemComment:        w.SystemComment,

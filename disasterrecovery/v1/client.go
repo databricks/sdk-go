@@ -75,8 +75,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Create a new failover group.
-func (c *internalClient) CreateFailoverGroup(ctx context.Context, req *CreateFailoverGroupRequest, opts ...call.Option) (*FailoverGroup, error) {
-	wireReq, err := createFailoverGroupRequestToWire(req)
+func (c *internalClient) CreateFailoverGroup(ctx context.Context, req CreateFailoverGroupRequest, opts ...call.Option) (*FailoverGroup, error) {
+	wireReq, err := createFailoverGroupRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,11 @@ func (c *internalClient) CreateFailoverGroup(ctx context.Context, req *CreateFai
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/disaster-recovery/v1/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/failover-groups")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -151,8 +155,8 @@ func (c *internalClient) CreateFailoverGroup(ctx context.Context, req *CreateFai
 }
 
 // Create a new stable URL.
-func (c *internalClient) CreateStableUrl(ctx context.Context, req *CreateStableUrlRequest, opts ...call.Option) (*StableUrl, error) {
-	wireReq, err := createStableUrlRequestToWire(req)
+func (c *internalClient) CreateStableUrl(ctx context.Context, req CreateStableUrlRequest, opts ...call.Option) (*StableUrl, error) {
+	wireReq, err := createStableUrlRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +177,11 @@ func (c *internalClient) CreateStableUrl(ctx context.Context, req *CreateStableU
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/disaster-recovery/v1/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/stable-urls")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -227,8 +235,8 @@ func (c *internalClient) CreateStableUrl(ctx context.Context, req *CreateStableU
 }
 
 // Delete a failover group.
-func (c *internalClient) DeleteFailoverGroup(ctx context.Context, req *DeleteFailoverGroupRequest, opts ...call.Option) error {
-	wireReq, err := deleteFailoverGroupRequestToWire(req)
+func (c *internalClient) DeleteFailoverGroup(ctx context.Context, req DeleteFailoverGroupRequest, opts ...call.Option) error {
+	wireReq, err := deleteFailoverGroupRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -245,7 +253,11 @@ func (c *internalClient) DeleteFailoverGroup(ctx context.Context, req *DeleteFai
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/disaster-recovery/v1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "etag", wireReq.Etag); err != nil {
@@ -285,7 +297,7 @@ func (c *internalClient) DeleteFailoverGroup(ctx context.Context, req *DeleteFai
 }
 
 // Delete a stable URL.
-func (c *internalClient) DeleteStableUrl(ctx context.Context, req *DeleteStableUrlRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteStableUrl(ctx context.Context, req DeleteStableUrlRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -299,7 +311,11 @@ func (c *internalClient) DeleteStableUrl(ctx context.Context, req *DeleteStableU
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/disaster-recovery/v1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -336,8 +352,8 @@ func (c *internalClient) DeleteStableUrl(ctx context.Context, req *DeleteStableU
 }
 
 // Initiate a failover to a new primary region.
-func (c *internalClient) FailoverFailoverGroup(ctx context.Context, req *FailoverFailoverGroupRequest, opts ...call.Option) (*FailoverGroup, error) {
-	wireReq, err := failoverFailoverGroupRequestToWire(req)
+func (c *internalClient) FailoverFailoverGroup(ctx context.Context, req FailoverFailoverGroupRequest, opts ...call.Option) (*FailoverGroup, error) {
+	wireReq, err := failoverFailoverGroupRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -358,7 +374,11 @@ func (c *internalClient) FailoverFailoverGroup(ctx context.Context, req *Failove
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/disaster-recovery/v1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/failover")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -406,7 +426,7 @@ func (c *internalClient) FailoverFailoverGroup(ctx context.Context, req *Failove
 }
 
 // Get a failover group.
-func (c *internalClient) GetFailoverGroup(ctx context.Context, req *GetFailoverGroupRequest, opts ...call.Option) (*FailoverGroup, error) {
+func (c *internalClient) GetFailoverGroup(ctx context.Context, req GetFailoverGroupRequest, opts ...call.Option) (*FailoverGroup, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -420,7 +440,11 @@ func (c *internalClient) GetFailoverGroup(ctx context.Context, req *GetFailoverG
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/disaster-recovery/v1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -466,7 +490,7 @@ func (c *internalClient) GetFailoverGroup(ctx context.Context, req *GetFailoverG
 }
 
 // Get a stable URL.
-func (c *internalClient) GetStableUrl(ctx context.Context, req *GetStableUrlRequest, opts ...call.Option) (*StableUrl, error) {
+func (c *internalClient) GetStableUrl(ctx context.Context, req GetStableUrlRequest, opts ...call.Option) (*StableUrl, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -480,7 +504,11 @@ func (c *internalClient) GetStableUrl(ctx context.Context, req *GetStableUrlRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/disaster-recovery/v1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -529,8 +557,8 @@ func (c *internalClient) GetStableUrl(ctx context.Context, req *GetStableUrlRequ
 //
 // List entries are abbreviated: `state` and `replication_point` are not
 // populated. Call GetFailoverGroup to retrieve the full resource.
-func (c *internalClient) ListFailoverGroups(ctx context.Context, req *ListFailoverGroupsRequest, opts ...call.Option) (*ListFailoverGroupsResponse, error) {
-	wireReq, err := listFailoverGroupsRequestToWire(req)
+func (c *internalClient) ListFailoverGroups(ctx context.Context, req ListFailoverGroupsRequest, opts ...call.Option) (*ListFailoverGroupsResponse, error) {
+	wireReq, err := listFailoverGroupsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -547,7 +575,11 @@ func (c *internalClient) ListFailoverGroups(ctx context.Context, req *ListFailov
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/disaster-recovery/v1/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/failover-groups")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -604,7 +636,7 @@ func (c *internalClient) ListFailoverGroups(ctx context.Context, req *ListFailov
 //
 // For example:
 //
-//	for item, err := range c.ListFailoverGroupsIter(ctx, &ListFailoverGroupsRequest{}) {
+//	for item, err := range c.ListFailoverGroupsIter(ctx, ListFailoverGroupsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -616,16 +648,13 @@ func (c *internalClient) ListFailoverGroups(ctx context.Context, req *ListFailov
 //
 // Callers who need custom pagination logic should use
 // ListFailoverGroups directly.
-func (c *internalClient) ListFailoverGroupsIter(ctx context.Context, req *ListFailoverGroupsRequest, opts ...call.Option) iter.Seq2[*FailoverGroup, error] {
+func (c *internalClient) ListFailoverGroupsIter(ctx context.Context, req ListFailoverGroupsRequest, opts ...call.Option) iter.Seq2[*FailoverGroup, error] {
 	return func(yield func(*FailoverGroup, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListFailoverGroupsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListFailoverGroups(ctx, &pageReq, opts...)
+			resp, err := c.ListFailoverGroups(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -644,8 +673,8 @@ func (c *internalClient) ListFailoverGroupsIter(ctx context.Context, req *ListFa
 }
 
 // List stable URLs for an account.
-func (c *internalClient) ListStableUrls(ctx context.Context, req *ListStableUrlsRequest, opts ...call.Option) (*ListStableUrlsResponse, error) {
-	wireReq, err := listStableUrlsRequestToWire(req)
+func (c *internalClient) ListStableUrls(ctx context.Context, req ListStableUrlsRequest, opts ...call.Option) (*ListStableUrlsResponse, error) {
+	wireReq, err := listStableUrlsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -662,7 +691,11 @@ func (c *internalClient) ListStableUrls(ctx context.Context, req *ListStableUrls
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/disaster-recovery/v1/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/stable-urls")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -719,7 +752,7 @@ func (c *internalClient) ListStableUrls(ctx context.Context, req *ListStableUrls
 //
 // For example:
 //
-//	for item, err := range c.ListStableUrlsIter(ctx, &ListStableUrlsRequest{}) {
+//	for item, err := range c.ListStableUrlsIter(ctx, ListStableUrlsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -731,16 +764,13 @@ func (c *internalClient) ListStableUrls(ctx context.Context, req *ListStableUrls
 //
 // Callers who need custom pagination logic should use
 // ListStableUrls directly.
-func (c *internalClient) ListStableUrlsIter(ctx context.Context, req *ListStableUrlsRequest, opts ...call.Option) iter.Seq2[*StableUrl, error] {
+func (c *internalClient) ListStableUrlsIter(ctx context.Context, req ListStableUrlsRequest, opts ...call.Option) iter.Seq2[*StableUrl, error] {
 	return func(yield func(*StableUrl, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListStableUrlsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListStableUrls(ctx, &pageReq, opts...)
+			resp, err := c.ListStableUrls(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -759,8 +789,8 @@ func (c *internalClient) ListStableUrlsIter(ctx context.Context, req *ListStable
 }
 
 // Update a failover group.
-func (c *internalClient) UpdateFailoverGroup(ctx context.Context, req *UpdateFailoverGroupRequest, opts ...call.Option) (*FailoverGroup, error) {
-	wireReq, err := updateFailoverGroupRequestToWire(req)
+func (c *internalClient) UpdateFailoverGroup(ctx context.Context, req UpdateFailoverGroupRequest, opts ...call.Option) (*FailoverGroup, error) {
+	wireReq, err := updateFailoverGroupRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -781,7 +811,11 @@ func (c *internalClient) UpdateFailoverGroup(ctx context.Context, req *UpdateFai
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/disaster-recovery/v1/")
-	pb.singleSegment(*req.FailoverGroup.Name)
+	if req.FailoverGroup == nil || req.FailoverGroup.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FailoverGroup.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

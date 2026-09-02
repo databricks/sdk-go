@@ -77,8 +77,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // Creates a group in the <Databricks> account with a unique name, using the
 // supplied group details.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateAccountGroup(ctx context.Context, req *CreateAccountGroupRequest, opts ...call.Option) (*AccountGroup, error) {
-	wireReq, err := createAccountGroupRequestToWire(req)
+func (c *internalClient) CreateAccountGroup(ctx context.Context, req CreateAccountGroupRequest, opts ...call.Option) (*AccountGroup, error) {
+	wireReq, err := createAccountGroupRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func (c *internalClient) CreateAccountGroup(ctx context.Context, req *CreateAcco
 
 // Deletes a group from the <Databricks> account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteAccountGroup(ctx context.Context, req *DeleteAccountGroupRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteAccountGroup(ctx context.Context, req DeleteAccountGroupRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -166,7 +166,11 @@ func (c *internalClient) DeleteAccountGroup(ctx context.Context, req *DeleteAcco
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/Groups/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -204,7 +208,7 @@ func (c *internalClient) DeleteAccountGroup(ctx context.Context, req *DeleteAcco
 
 // Gets the information for a specific group in the <Databricks> account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetAccountGroup(ctx context.Context, req *GetAccountGroupRequest, opts ...call.Option) (*AccountGroup, error) {
+func (c *internalClient) GetAccountGroup(ctx context.Context, req GetAccountGroupRequest, opts ...call.Option) (*AccountGroup, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -221,7 +225,11 @@ func (c *internalClient) GetAccountGroup(ctx context.Context, req *GetAccountGro
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/Groups/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -272,8 +280,8 @@ func (c *internalClient) GetAccountGroup(ctx context.Context, req *GetAccountGro
 // accounts that rely on this attribute will not be impacted and will continue
 // receiving member data as before.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListAccountGroups(ctx context.Context, req *ListAccountGroupsRequest, opts ...call.Option) (*ListAccountGroupsResponse, error) {
-	wireReq, err := listAccountGroupsRequestToWire(req)
+func (c *internalClient) ListAccountGroups(ctx context.Context, req ListAccountGroupsRequest, opts ...call.Option) (*ListAccountGroupsResponse, error) {
+	wireReq, err := listAccountGroupsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -365,7 +373,7 @@ func (c *internalClient) ListAccountGroups(ctx context.Context, req *ListAccount
 //
 // For example:
 //
-//	for item, err := range c.ListAccountGroupsIter(ctx, &ListAccountGroupsRequest{}) {
+//	for item, err := range c.ListAccountGroupsIter(ctx, ListAccountGroupsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -377,16 +385,13 @@ func (c *internalClient) ListAccountGroups(ctx context.Context, req *ListAccount
 //
 // Callers who need custom pagination logic should use
 // ListAccountGroups directly.
-func (c *internalClient) ListAccountGroupsIter(ctx context.Context, req *ListAccountGroupsRequest, opts ...call.Option) iter.Seq2[*AccountGroup, error] {
+func (c *internalClient) ListAccountGroupsIter(ctx context.Context, req ListAccountGroupsRequest, opts ...call.Option) iter.Seq2[*AccountGroup, error] {
 	return func(yield func(*AccountGroup, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListAccountGroupsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListAccountGroups(ctx, &pageReq, opts...)
+			resp, err := c.ListAccountGroups(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -411,8 +416,8 @@ func (c *internalClient) ListAccountGroupsIter(ctx context.Context, req *ListAcc
 
 // Partially updates the details of a group.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) PatchAccountGroup(ctx context.Context, req *PatchAccountGroupRequest, opts ...call.Option) error {
-	wireReq, err := patchAccountGroupRequestToWire(req)
+func (c *internalClient) PatchAccountGroup(ctx context.Context, req PatchAccountGroupRequest, opts ...call.Option) error {
+	wireReq, err := patchAccountGroupRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -436,7 +441,11 @@ func (c *internalClient) PatchAccountGroup(ctx context.Context, req *PatchAccoun
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/Groups/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -475,8 +484,8 @@ func (c *internalClient) PatchAccountGroup(ctx context.Context, req *PatchAccoun
 
 // Updates the details of a group by replacing the entire group entity.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) UpdateAccountGroup(ctx context.Context, req *UpdateAccountGroupRequest, opts ...call.Option) error {
-	wireReq, err := updateAccountGroupRequestToWire(req)
+func (c *internalClient) UpdateAccountGroup(ctx context.Context, req UpdateAccountGroupRequest, opts ...call.Option) error {
+	wireReq, err := updateAccountGroupRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -500,7 +509,11 @@ func (c *internalClient) UpdateAccountGroup(ctx context.Context, req *UpdateAcco
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/Groups/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -539,8 +552,8 @@ func (c *internalClient) UpdateAccountGroup(ctx context.Context, req *UpdateAcco
 
 // Creates a new service principal in the <Databricks> account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateAccountServicePrincipal(ctx context.Context, req *CreateAccountServicePrincipalRequest, opts ...call.Option) (*AccountServicePrincipal, error) {
-	wireReq, err := createAccountServicePrincipalRequestToWire(req)
+func (c *internalClient) CreateAccountServicePrincipal(ctx context.Context, req CreateAccountServicePrincipalRequest, opts ...call.Option) (*AccountServicePrincipal, error) {
+	wireReq, err := createAccountServicePrincipalRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -611,7 +624,7 @@ func (c *internalClient) CreateAccountServicePrincipal(ctx context.Context, req 
 
 // Delete a single service principal in the <Databricks> account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteAccountServicePrincipal(ctx context.Context, req *DeleteAccountServicePrincipalRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteAccountServicePrincipal(ctx context.Context, req DeleteAccountServicePrincipalRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -628,7 +641,11 @@ func (c *internalClient) DeleteAccountServicePrincipal(ctx context.Context, req 
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/ServicePrincipals/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -667,7 +684,7 @@ func (c *internalClient) DeleteAccountServicePrincipal(ctx context.Context, req 
 // Gets the details for a single service principal define in the <Databricks>
 // account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetAccountServicePrincipal(ctx context.Context, req *GetAccountServicePrincipalRequest, opts ...call.Option) (*AccountServicePrincipal, error) {
+func (c *internalClient) GetAccountServicePrincipal(ctx context.Context, req GetAccountServicePrincipalRequest, opts ...call.Option) (*AccountServicePrincipal, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -684,7 +701,11 @@ func (c *internalClient) GetAccountServicePrincipal(ctx context.Context, req *Ge
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/ServicePrincipals/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -731,8 +752,8 @@ func (c *internalClient) GetAccountServicePrincipal(ctx context.Context, req *Ge
 
 // Gets the set of service principals associated with a <Databricks> account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListAccountServicePrincipals(ctx context.Context, req *ListAccountServicePrincipalsRequest, opts ...call.Option) (*ListAccountServicePrincipalsResponse, error) {
-	wireReq, err := listAccountServicePrincipalsRequestToWire(req)
+func (c *internalClient) ListAccountServicePrincipals(ctx context.Context, req ListAccountServicePrincipalsRequest, opts ...call.Option) (*ListAccountServicePrincipalsResponse, error) {
+	wireReq, err := listAccountServicePrincipalsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -824,7 +845,7 @@ func (c *internalClient) ListAccountServicePrincipals(ctx context.Context, req *
 //
 // For example:
 //
-//	for item, err := range c.ListAccountServicePrincipalsIter(ctx, &ListAccountServicePrincipalsRequest{}) {
+//	for item, err := range c.ListAccountServicePrincipalsIter(ctx, ListAccountServicePrincipalsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -836,16 +857,13 @@ func (c *internalClient) ListAccountServicePrincipals(ctx context.Context, req *
 //
 // Callers who need custom pagination logic should use
 // ListAccountServicePrincipals directly.
-func (c *internalClient) ListAccountServicePrincipalsIter(ctx context.Context, req *ListAccountServicePrincipalsRequest, opts ...call.Option) iter.Seq2[*AccountServicePrincipal, error] {
+func (c *internalClient) ListAccountServicePrincipalsIter(ctx context.Context, req ListAccountServicePrincipalsRequest, opts ...call.Option) iter.Seq2[*AccountServicePrincipal, error] {
 	return func(yield func(*AccountServicePrincipal, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListAccountServicePrincipalsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListAccountServicePrincipals(ctx, &pageReq, opts...)
+			resp, err := c.ListAccountServicePrincipals(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -871,8 +889,8 @@ func (c *internalClient) ListAccountServicePrincipalsIter(ctx context.Context, r
 // Partially updates the details of a single service principal in the
 // <Databricks> account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) PatchAccountServicePrincipal(ctx context.Context, req *PatchAccountServicePrincipalRequest, opts ...call.Option) error {
-	wireReq, err := patchAccountServicePrincipalRequestToWire(req)
+func (c *internalClient) PatchAccountServicePrincipal(ctx context.Context, req PatchAccountServicePrincipalRequest, opts ...call.Option) error {
+	wireReq, err := patchAccountServicePrincipalRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -896,7 +914,11 @@ func (c *internalClient) PatchAccountServicePrincipal(ctx context.Context, req *
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/ServicePrincipals/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -937,8 +959,8 @@ func (c *internalClient) PatchAccountServicePrincipal(ctx context.Context, req *
 //
 // This action replaces the existing service principal with the same name.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) UpdateAccountServicePrincipal(ctx context.Context, req *UpdateAccountServicePrincipalRequest, opts ...call.Option) error {
-	wireReq, err := updateAccountServicePrincipalRequestToWire(req)
+func (c *internalClient) UpdateAccountServicePrincipal(ctx context.Context, req UpdateAccountServicePrincipalRequest, opts ...call.Option) error {
+	wireReq, err := updateAccountServicePrincipalRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -962,7 +984,11 @@ func (c *internalClient) UpdateAccountServicePrincipal(ctx context.Context, req 
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/ServicePrincipals/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1002,8 +1028,8 @@ func (c *internalClient) UpdateAccountServicePrincipal(ctx context.Context, req 
 // Creates a new user in the <Databricks> account. This new user will also be
 // added to the <Databricks> account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateAccountUser(ctx context.Context, req *CreateAccountUserRequest, opts ...call.Option) (*AccountUser, error) {
-	wireReq, err := createAccountUserRequestToWire(req)
+func (c *internalClient) CreateAccountUser(ctx context.Context, req CreateAccountUserRequest, opts ...call.Option) (*AccountUser, error) {
+	wireReq, err := createAccountUserRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1075,7 +1101,7 @@ func (c *internalClient) CreateAccountUser(ctx context.Context, req *CreateAccou
 // Deletes a user. Deleting a user from a <Databricks> account also removes
 // objects associated with the user.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteAccountUser(ctx context.Context, req *DeleteAccountUserRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteAccountUser(ctx context.Context, req DeleteAccountUserRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1092,7 +1118,11 @@ func (c *internalClient) DeleteAccountUser(ctx context.Context, req *DeleteAccou
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/Users/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1130,8 +1160,8 @@ func (c *internalClient) DeleteAccountUser(ctx context.Context, req *DeleteAccou
 
 // Gets information for a specific user in <Databricks> account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetAccountUser(ctx context.Context, req *GetAccountUserRequest, opts ...call.Option) (*AccountUser, error) {
-	wireReq, err := getAccountUserRequestToWire(req)
+func (c *internalClient) GetAccountUser(ctx context.Context, req GetAccountUserRequest, opts ...call.Option) (*AccountUser, error) {
+	wireReq, err := getAccountUserRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1151,7 +1181,11 @@ func (c *internalClient) GetAccountUser(ctx context.Context, req *GetAccountUser
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/Users/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "attributes", wireReq.Attributes); err != nil {
@@ -1221,8 +1255,8 @@ func (c *internalClient) GetAccountUser(ctx context.Context, req *GetAccountUser
 
 // Gets details for all the users associated with a <Databricks> account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListAccountUsers(ctx context.Context, req *ListAccountUsersRequest, opts ...call.Option) (*ListAccountUsersResponse, error) {
-	wireReq, err := listAccountUsersRequestToWire(req)
+func (c *internalClient) ListAccountUsers(ctx context.Context, req ListAccountUsersRequest, opts ...call.Option) (*ListAccountUsersResponse, error) {
+	wireReq, err := listAccountUsersRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1314,7 +1348,7 @@ func (c *internalClient) ListAccountUsers(ctx context.Context, req *ListAccountU
 //
 // For example:
 //
-//	for item, err := range c.ListAccountUsersIter(ctx, &ListAccountUsersRequest{}) {
+//	for item, err := range c.ListAccountUsersIter(ctx, ListAccountUsersRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1326,16 +1360,13 @@ func (c *internalClient) ListAccountUsers(ctx context.Context, req *ListAccountU
 //
 // Callers who need custom pagination logic should use
 // ListAccountUsers directly.
-func (c *internalClient) ListAccountUsersIter(ctx context.Context, req *ListAccountUsersRequest, opts ...call.Option) iter.Seq2[*AccountUser, error] {
+func (c *internalClient) ListAccountUsersIter(ctx context.Context, req ListAccountUsersRequest, opts ...call.Option) iter.Seq2[*AccountUser, error] {
 	return func(yield func(*AccountUser, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListAccountUsersRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListAccountUsers(ctx, &pageReq, opts...)
+			resp, err := c.ListAccountUsers(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1362,8 +1393,8 @@ func (c *internalClient) ListAccountUsersIter(ctx context.Context, req *ListAcco
 // specific user attributes. The `userName` and `emails` attributes cannot be
 // updated through this API; any supplied changes to them are ignored (no-op).
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) PatchAccountUser(ctx context.Context, req *PatchAccountUserRequest, opts ...call.Option) error {
-	wireReq, err := patchAccountUserRequestToWire(req)
+func (c *internalClient) PatchAccountUser(ctx context.Context, req PatchAccountUserRequest, opts ...call.Option) error {
+	wireReq, err := patchAccountUserRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -1387,7 +1418,11 @@ func (c *internalClient) PatchAccountUser(ctx context.Context, req *PatchAccount
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/Users/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1428,8 +1463,8 @@ func (c *internalClient) PatchAccountUser(ctx context.Context, req *PatchAccount
 // `userName` and `emails` attributes cannot be updated through this API; any
 // supplied changes to them are ignored (no-op).
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) UpdateAccountUser(ctx context.Context, req *UpdateAccountUserRequest, opts ...call.Option) error {
-	wireReq, err := updateAccountUserRequestToWire(req)
+func (c *internalClient) UpdateAccountUser(ctx context.Context, req UpdateAccountUserRequest, opts ...call.Option) error {
+	wireReq, err := updateAccountUserRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -1453,7 +1488,11 @@ func (c *internalClient) UpdateAccountUser(ctx context.Context, req *UpdateAccou
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/Users/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1491,8 +1530,8 @@ func (c *internalClient) UpdateAccountUser(ctx context.Context, req *UpdateAccou
 }
 
 // Get details about the current method caller's identity.
-func (c *internalClient) Me(ctx context.Context, req *MeRequest, opts ...call.Option) (*User, error) {
-	wireReq, err := meRequestToWire(req)
+func (c *internalClient) Me(ctx context.Context, req MeRequest, opts ...call.Option) (*User, error) {
+	wireReq, err := meRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1559,8 +1598,8 @@ func (c *internalClient) Me(ctx context.Context, req *MeRequest, opts ...call.Op
 
 // Creates a group in the <Databricks> workspace with a unique name, using the
 // supplied group details.
-func (c *internalClient) CreateGroup(ctx context.Context, req *CreateGroupRequest, opts ...call.Option) (*Group, error) {
-	wireReq, err := createGroupRequestToWire(req)
+func (c *internalClient) CreateGroup(ctx context.Context, req CreateGroupRequest, opts ...call.Option) (*Group, error) {
+	wireReq, err := createGroupRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1625,7 +1664,7 @@ func (c *internalClient) CreateGroup(ctx context.Context, req *CreateGroupReques
 }
 
 // Deletes a group from the <Databricks> workspace.
-func (c *internalClient) DeleteGroup(ctx context.Context, req *DeleteGroupRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteGroup(ctx context.Context, req DeleteGroupRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1639,7 +1678,11 @@ func (c *internalClient) DeleteGroup(ctx context.Context, req *DeleteGroupReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/Groups/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1676,7 +1719,7 @@ func (c *internalClient) DeleteGroup(ctx context.Context, req *DeleteGroupReques
 }
 
 // Gets the information for a specific group in the <Databricks> workspace.
-func (c *internalClient) GetGroup(ctx context.Context, req *GetGroupRequest, opts ...call.Option) (*Group, error) {
+func (c *internalClient) GetGroup(ctx context.Context, req GetGroupRequest, opts ...call.Option) (*Group, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1690,7 +1733,11 @@ func (c *internalClient) GetGroup(ctx context.Context, req *GetGroupRequest, opt
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/Groups/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1736,8 +1783,8 @@ func (c *internalClient) GetGroup(ctx context.Context, req *GetGroupRequest, opt
 }
 
 // Gets all details of the groups associated with the <Databricks> workspace.
-func (c *internalClient) ListGroups(ctx context.Context, req *ListGroupsRequest, opts ...call.Option) (*ListGroupsResponse, error) {
-	wireReq, err := listGroupsRequestToWire(req)
+func (c *internalClient) ListGroups(ctx context.Context, req ListGroupsRequest, opts ...call.Option) (*ListGroupsResponse, error) {
+	wireReq, err := listGroupsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1824,7 +1871,7 @@ func (c *internalClient) ListGroups(ctx context.Context, req *ListGroupsRequest,
 //
 // For example:
 //
-//	for item, err := range c.ListGroupsIter(ctx, &ListGroupsRequest{}) {
+//	for item, err := range c.ListGroupsIter(ctx, ListGroupsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1836,16 +1883,13 @@ func (c *internalClient) ListGroups(ctx context.Context, req *ListGroupsRequest,
 //
 // Callers who need custom pagination logic should use
 // ListGroups directly.
-func (c *internalClient) ListGroupsIter(ctx context.Context, req *ListGroupsRequest, opts ...call.Option) iter.Seq2[*Group, error] {
+func (c *internalClient) ListGroupsIter(ctx context.Context, req ListGroupsRequest, opts ...call.Option) iter.Seq2[*Group, error] {
 	return func(yield func(*Group, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListGroupsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListGroups(ctx, &pageReq, opts...)
+			resp, err := c.ListGroups(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1869,8 +1913,8 @@ func (c *internalClient) ListGroupsIter(ctx context.Context, req *ListGroupsRequ
 }
 
 // Partially updates the details of a group.
-func (c *internalClient) PatchGroup(ctx context.Context, req *PatchGroupRequest, opts ...call.Option) error {
-	wireReq, err := patchGroupRequestToWire(req)
+func (c *internalClient) PatchGroup(ctx context.Context, req PatchGroupRequest, opts ...call.Option) error {
+	wireReq, err := patchGroupRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -1891,7 +1935,11 @@ func (c *internalClient) PatchGroup(ctx context.Context, req *PatchGroupRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/Groups/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1929,8 +1977,8 @@ func (c *internalClient) PatchGroup(ctx context.Context, req *PatchGroupRequest,
 }
 
 // Updates the details of a group by replacing the entire group entity.
-func (c *internalClient) UpdateGroup(ctx context.Context, req *UpdateGroupRequest, opts ...call.Option) error {
-	wireReq, err := updateGroupRequestToWire(req)
+func (c *internalClient) UpdateGroup(ctx context.Context, req UpdateGroupRequest, opts ...call.Option) error {
+	wireReq, err := updateGroupRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -1951,7 +1999,11 @@ func (c *internalClient) UpdateGroup(ctx context.Context, req *UpdateGroupReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/Groups/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1989,8 +2041,8 @@ func (c *internalClient) UpdateGroup(ctx context.Context, req *UpdateGroupReques
 }
 
 // Creates a new service principal in the <Databricks> workspace.
-func (c *internalClient) CreateServicePrincipal(ctx context.Context, req *CreateServicePrincipalRequest, opts ...call.Option) (*ServicePrincipal, error) {
-	wireReq, err := createServicePrincipalRequestToWire(req)
+func (c *internalClient) CreateServicePrincipal(ctx context.Context, req CreateServicePrincipalRequest, opts ...call.Option) (*ServicePrincipal, error) {
+	wireReq, err := createServicePrincipalRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2055,7 +2107,7 @@ func (c *internalClient) CreateServicePrincipal(ctx context.Context, req *Create
 }
 
 // Delete a single service principal in the <Databricks> workspace.
-func (c *internalClient) DeleteServicePrincipal(ctx context.Context, req *DeleteServicePrincipalRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteServicePrincipal(ctx context.Context, req DeleteServicePrincipalRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2069,7 +2121,11 @@ func (c *internalClient) DeleteServicePrincipal(ctx context.Context, req *Delete
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/ServicePrincipals/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2107,7 +2163,7 @@ func (c *internalClient) DeleteServicePrincipal(ctx context.Context, req *Delete
 
 // Gets the details for a single service principal define in the <Databricks>
 // workspace.
-func (c *internalClient) GetServicePrincipal(ctx context.Context, req *GetServicePrincipalRequest, opts ...call.Option) (*ServicePrincipal, error) {
+func (c *internalClient) GetServicePrincipal(ctx context.Context, req GetServicePrincipalRequest, opts ...call.Option) (*ServicePrincipal, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2121,7 +2177,11 @@ func (c *internalClient) GetServicePrincipal(ctx context.Context, req *GetServic
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/ServicePrincipals/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2167,8 +2227,8 @@ func (c *internalClient) GetServicePrincipal(ctx context.Context, req *GetServic
 }
 
 // Gets the set of service principals associated with a <Databricks> workspace.
-func (c *internalClient) ListServicePrincipals(ctx context.Context, req *ListServicePrincipalsRequest, opts ...call.Option) (*ListServicePrincipalResponse, error) {
-	wireReq, err := listServicePrincipalsRequestToWire(req)
+func (c *internalClient) ListServicePrincipals(ctx context.Context, req ListServicePrincipalsRequest, opts ...call.Option) (*ListServicePrincipalResponse, error) {
+	wireReq, err := listServicePrincipalsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2255,7 +2315,7 @@ func (c *internalClient) ListServicePrincipals(ctx context.Context, req *ListSer
 //
 // For example:
 //
-//	for item, err := range c.ListServicePrincipalsIter(ctx, &ListServicePrincipalsRequest{}) {
+//	for item, err := range c.ListServicePrincipalsIter(ctx, ListServicePrincipalsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -2267,16 +2327,13 @@ func (c *internalClient) ListServicePrincipals(ctx context.Context, req *ListSer
 //
 // Callers who need custom pagination logic should use
 // ListServicePrincipals directly.
-func (c *internalClient) ListServicePrincipalsIter(ctx context.Context, req *ListServicePrincipalsRequest, opts ...call.Option) iter.Seq2[*ServicePrincipal, error] {
+func (c *internalClient) ListServicePrincipalsIter(ctx context.Context, req ListServicePrincipalsRequest, opts ...call.Option) iter.Seq2[*ServicePrincipal, error] {
 	return func(yield func(*ServicePrincipal, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListServicePrincipalsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListServicePrincipals(ctx, &pageReq, opts...)
+			resp, err := c.ListServicePrincipals(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -2301,8 +2358,8 @@ func (c *internalClient) ListServicePrincipalsIter(ctx context.Context, req *Lis
 
 // Partially updates the details of a single service principal in the
 // <Databricks> workspace.
-func (c *internalClient) PatchServicePrincipal(ctx context.Context, req *PatchServicePrincipalRequest, opts ...call.Option) error {
-	wireReq, err := patchServicePrincipalRequestToWire(req)
+func (c *internalClient) PatchServicePrincipal(ctx context.Context, req PatchServicePrincipalRequest, opts ...call.Option) error {
+	wireReq, err := patchServicePrincipalRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -2323,7 +2380,11 @@ func (c *internalClient) PatchServicePrincipal(ctx context.Context, req *PatchSe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/ServicePrincipals/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2363,8 +2424,8 @@ func (c *internalClient) PatchServicePrincipal(ctx context.Context, req *PatchSe
 // Updates the details of a single service principal.
 //
 // This action replaces the existing service principal with the same name.
-func (c *internalClient) UpdateServicePrincipal(ctx context.Context, req *UpdateServicePrincipalRequest, opts ...call.Option) error {
-	wireReq, err := updateServicePrincipalRequestToWire(req)
+func (c *internalClient) UpdateServicePrincipal(ctx context.Context, req UpdateServicePrincipalRequest, opts ...call.Option) error {
+	wireReq, err := updateServicePrincipalRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -2385,7 +2446,11 @@ func (c *internalClient) UpdateServicePrincipal(ctx context.Context, req *Update
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/ServicePrincipals/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2424,8 +2489,8 @@ func (c *internalClient) UpdateServicePrincipal(ctx context.Context, req *Update
 
 // Creates a new user in the <Databricks> workspace. This new user will also be
 // added to the <Databricks> account.
-func (c *internalClient) CreateUser(ctx context.Context, req *CreateUserRequest, opts ...call.Option) (*User, error) {
-	wireReq, err := createUserRequestToWire(req)
+func (c *internalClient) CreateUser(ctx context.Context, req CreateUserRequest, opts ...call.Option) (*User, error) {
+	wireReq, err := createUserRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2491,7 +2556,7 @@ func (c *internalClient) CreateUser(ctx context.Context, req *CreateUserRequest,
 
 // Deletes a user. Deleting a user from a <Databricks> workspace also removes
 // objects associated with the user.
-func (c *internalClient) DeleteUser(ctx context.Context, req *DeleteUserRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteUser(ctx context.Context, req DeleteUserRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2505,7 +2570,11 @@ func (c *internalClient) DeleteUser(ctx context.Context, req *DeleteUserRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/Users/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2542,7 +2611,7 @@ func (c *internalClient) DeleteUser(ctx context.Context, req *DeleteUserRequest,
 }
 
 // Gets the permission levels that a user can have on an object.
-func (c *internalClient) GetPermissionLevels(ctx context.Context, req *GetPasswordPermissionLevelsRequest, opts ...call.Option) (*GetPasswordPermissionLevelsResponse, error) {
+func (c *internalClient) GetPermissionLevels(ctx context.Context, req GetPasswordPermissionLevelsRequest, opts ...call.Option) (*GetPasswordPermissionLevelsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2600,7 +2669,7 @@ func (c *internalClient) GetPermissionLevels(ctx context.Context, req *GetPasswo
 
 // Gets the permissions of all passwords. Passwords can inherit permissions from
 // their root object.
-func (c *internalClient) GetPermissions(ctx context.Context, req *GetPasswordPermissionsRequest, opts ...call.Option) (*PasswordPermissions, error) {
+func (c *internalClient) GetPermissions(ctx context.Context, req GetPasswordPermissionsRequest, opts ...call.Option) (*PasswordPermissions, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2657,8 +2726,8 @@ func (c *internalClient) GetPermissions(ctx context.Context, req *GetPasswordPer
 }
 
 // Gets information for a specific user in <Databricks> workspace.
-func (c *internalClient) GetUser(ctx context.Context, req *GetUserRequest, opts ...call.Option) (*User, error) {
-	wireReq, err := getUserRequestToWire(req)
+func (c *internalClient) GetUser(ctx context.Context, req GetUserRequest, opts ...call.Option) (*User, error) {
+	wireReq, err := getUserRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2675,7 +2744,11 @@ func (c *internalClient) GetUser(ctx context.Context, req *GetUserRequest, opts 
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/Users/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "attributes", wireReq.Attributes); err != nil {
@@ -2744,8 +2817,8 @@ func (c *internalClient) GetUser(ctx context.Context, req *GetUserRequest, opts 
 }
 
 // Gets details for all the users associated with a <Databricks> workspace.
-func (c *internalClient) ListUsers(ctx context.Context, req *ListUsersRequest, opts ...call.Option) (*ListUsersResponse, error) {
-	wireReq, err := listUsersRequestToWire(req)
+func (c *internalClient) ListUsers(ctx context.Context, req ListUsersRequest, opts ...call.Option) (*ListUsersResponse, error) {
+	wireReq, err := listUsersRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2832,7 +2905,7 @@ func (c *internalClient) ListUsers(ctx context.Context, req *ListUsersRequest, o
 //
 // For example:
 //
-//	for item, err := range c.ListUsersIter(ctx, &ListUsersRequest{}) {
+//	for item, err := range c.ListUsersIter(ctx, ListUsersRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -2844,16 +2917,13 @@ func (c *internalClient) ListUsers(ctx context.Context, req *ListUsersRequest, o
 //
 // Callers who need custom pagination logic should use
 // ListUsers directly.
-func (c *internalClient) ListUsersIter(ctx context.Context, req *ListUsersRequest, opts ...call.Option) iter.Seq2[*User, error] {
+func (c *internalClient) ListUsersIter(ctx context.Context, req ListUsersRequest, opts ...call.Option) iter.Seq2[*User, error] {
 	return func(yield func(*User, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListUsersRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListUsers(ctx, &pageReq, opts...)
+			resp, err := c.ListUsers(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -2879,8 +2949,8 @@ func (c *internalClient) ListUsersIter(ctx context.Context, req *ListUsersReques
 // Partially updates a user resource by applying the supplied operations on
 // specific user attributes. The `userName` and `emails` attributes cannot be
 // updated through this API; any supplied changes to them are ignored (no-op).
-func (c *internalClient) PatchUser(ctx context.Context, req *PatchUserRequest, opts ...call.Option) error {
-	wireReq, err := patchUserRequestToWire(req)
+func (c *internalClient) PatchUser(ctx context.Context, req PatchUserRequest, opts ...call.Option) error {
+	wireReq, err := patchUserRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -2901,7 +2971,11 @@ func (c *internalClient) PatchUser(ctx context.Context, req *PatchUserRequest, o
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/Users/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2941,8 +3015,8 @@ func (c *internalClient) PatchUser(ctx context.Context, req *PatchUserRequest, o
 // Sets permissions on an object, replacing existing permissions if they exist.
 // Deletes all direct permissions if none are specified. Objects can inherit
 // permissions from their root object.
-func (c *internalClient) SetPermissions(ctx context.Context, req *PasswordPermissionsRequest, opts ...call.Option) (*PasswordPermissions, error) {
-	wireReq, err := passwordPermissionsRequestToWire(req)
+func (c *internalClient) SetPermissions(ctx context.Context, req PasswordPermissionsRequest, opts ...call.Option) (*PasswordPermissions, error) {
+	wireReq, err := passwordPermissionsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -3008,8 +3082,8 @@ func (c *internalClient) SetPermissions(ctx context.Context, req *PasswordPermis
 
 // Updates the permissions on all passwords. Passwords can inherit permissions
 // from their root object.
-func (c *internalClient) UpdatePermissions(ctx context.Context, req *PasswordPermissionsRequest, opts ...call.Option) (*PasswordPermissions, error) {
-	wireReq, err := passwordPermissionsRequestToWire(req)
+func (c *internalClient) UpdatePermissions(ctx context.Context, req PasswordPermissionsRequest, opts ...call.Option) (*PasswordPermissions, error) {
+	wireReq, err := passwordPermissionsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -3076,8 +3150,8 @@ func (c *internalClient) UpdatePermissions(ctx context.Context, req *PasswordPer
 // Replaces a user's information with the data supplied in request. The
 // `userName` and `emails` attributes cannot be updated through this API; any
 // supplied changes to them are ignored (no-op).
-func (c *internalClient) UpdateUser(ctx context.Context, req *UpdateUserRequest, opts ...call.Option) error {
-	wireReq, err := updateUserRequestToWire(req)
+func (c *internalClient) UpdateUser(ctx context.Context, req UpdateUserRequest, opts ...call.Option) error {
+	wireReq, err := updateUserRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -3098,7 +3172,11 @@ func (c *internalClient) UpdateUser(ctx context.Context, req *UpdateUserRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/Users/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

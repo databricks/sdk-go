@@ -80,8 +80,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // (specified in `new_cluster`) are compliant with the current versions of their
 // respective cluster policies. All-purpose clusters used in the job will not be
 // updated.
-func (c *internalClient) EnforcePolicyComplianceForJob(ctx context.Context, req *EnforcePolicyComplianceForJob, opts ...call.Option) (*EnforcePolicyComplianceResponse, error) {
-	wireReq, err := enforcePolicyComplianceForJobToWire(req)
+func (c *internalClient) EnforcePolicyComplianceForJob(ctx context.Context, req EnforcePolicyComplianceForJob, opts ...call.Option) (*EnforcePolicyComplianceResponse, error) {
+	wireReq, err := enforcePolicyComplianceForJobToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -149,8 +149,8 @@ func (c *internalClient) EnforcePolicyComplianceForJob(ctx context.Context, req 
 // compliance if a cluster policy they use was updated after the job was last
 // edited and some of its job clusters no longer comply with their updated
 // policies.
-func (c *internalClient) GetPolicyComplianceForJob(ctx context.Context, req *GetPolicyComplianceForJobRequest, opts ...call.Option) (*GetPolicyComplianceForJobResponse, error) {
-	wireReq, err := getPolicyComplianceForJobRequestToWire(req)
+func (c *internalClient) GetPolicyComplianceForJob(ctx context.Context, req GetPolicyComplianceForJobRequest, opts ...call.Option) (*GetPolicyComplianceForJobResponse, error) {
+	wireReq, err := getPolicyComplianceForJobRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -216,8 +216,8 @@ func (c *internalClient) GetPolicyComplianceForJob(ctx context.Context, req *Get
 // Jobs could be out of compliance if a cluster policy they use was updated
 // after the job was last edited and its job clusters no longer comply with the
 // updated policy.
-func (c *internalClient) ListJobComplianceForPolicy(ctx context.Context, req *ListJobComplianceForPolicy, opts ...call.Option) (*ListJobComplianceResponse, error) {
-	wireReq, err := listJobComplianceForPolicyToWire(req)
+func (c *internalClient) ListJobComplianceForPolicy(ctx context.Context, req ListJobComplianceForPolicy, opts ...call.Option) (*ListJobComplianceResponse, error) {
+	wireReq, err := listJobComplianceForPolicyToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -290,7 +290,7 @@ func (c *internalClient) ListJobComplianceForPolicy(ctx context.Context, req *Li
 //
 // For example:
 //
-//	for item, err := range c.ListJobComplianceForPolicyIter(ctx, &ListJobComplianceForPolicy{}) {
+//	for item, err := range c.ListJobComplianceForPolicyIter(ctx, ListJobComplianceForPolicy{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -302,16 +302,13 @@ func (c *internalClient) ListJobComplianceForPolicy(ctx context.Context, req *Li
 //
 // Callers who need custom pagination logic should use
 // ListJobComplianceForPolicy directly.
-func (c *internalClient) ListJobComplianceForPolicyIter(ctx context.Context, req *ListJobComplianceForPolicy, opts ...call.Option) iter.Seq2[*ListJobComplianceForPolicy_JobCompliance, error] {
+func (c *internalClient) ListJobComplianceForPolicyIter(ctx context.Context, req ListJobComplianceForPolicy, opts ...call.Option) iter.Seq2[*ListJobComplianceForPolicy_JobCompliance, error] {
 	return func(yield func(*ListJobComplianceForPolicy_JobCompliance, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListJobComplianceForPolicy{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListJobComplianceForPolicy(ctx, &pageReq, opts...)
+			resp, err := c.ListJobComplianceForPolicy(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -331,8 +328,8 @@ func (c *internalClient) ListJobComplianceForPolicyIter(ctx context.Context, req
 
 // Cancels all active runs of a job. The runs are canceled asynchronously, so it
 // doesn't prevent new runs from being started.
-func (c *internalClient) CancelAllRuns(ctx context.Context, req *CancelAllRunsRequest, opts ...call.Option) (*CancelAllRunsResponse, error) {
-	wireReq, err := cancelAllRunsRequestToWire(req)
+func (c *internalClient) CancelAllRuns(ctx context.Context, req CancelAllRunsRequest, opts ...call.Option) (*CancelAllRunsResponse, error) {
+	wireReq, err := cancelAllRunsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -392,8 +389,8 @@ func (c *internalClient) CancelAllRuns(ctx context.Context, req *CancelAllRunsRe
 
 // Cancels a job run or a task run. The run is canceled asynchronously, so it
 // may still be running when this request completes.
-func (c *internalClient) cancelRunBase(ctx context.Context, req *CancelRunRequest, opts ...call.Option) (*CancelRunResponse, error) {
-	wireReq, err := cancelRunRequestToWire(req)
+func (c *internalClient) cancelRunBase(ctx context.Context, req CancelRunRequest, opts ...call.Option) (*CancelRunResponse, error) {
+	wireReq, err := cancelRunRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -453,7 +450,7 @@ func (c *internalClient) cancelRunBase(ctx context.Context, req *CancelRunReques
 
 // Cancels a job run or a task run. The run is canceled asynchronously, so it
 // may still be running when this request completes.
-func (c *internalClient) CancelRun(ctx context.Context, req *CancelRunRequest, opts ...call.Option) (*CancelRunWaiter, error) {
+func (c *internalClient) CancelRun(ctx context.Context, req CancelRunRequest, opts ...call.Option) (*CancelRunWaiter, error) {
 	if req.RunId == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "RunId")
 	}
@@ -470,13 +467,18 @@ func (c *internalClient) CancelRun(ctx context.Context, req *CancelRunRequest, o
 
 // CancelRunWaiter tracks the state of the operation started by CancelRun.
 type CancelRunWaiter struct {
-	poll  func(context.Context, *GetRunRequest, ...call.Option) (*GetRunResponse, error)
+	poll  func(context.Context, GetRunRequest, ...call.Option) (*GetRunResponse, error)
 	runId int64
+}
+
+// GetRunId returns the RunId value used to identify the operation.
+func (w *CancelRunWaiter) GetRunId() int64 {
+	return w.runId
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *CancelRunWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetRunRequest{
+	pollResp, err := w.poll(ctx, GetRunRequest{
 		RunId: &w.runId,
 	}, opts...)
 	if err != nil {
@@ -504,7 +506,7 @@ func (w *CancelRunWaiter) Done(ctx context.Context, opts ...call.Option) (bool, 
 func (w *CancelRunWaiter) Wait(ctx context.Context, opts ...lro.Option) (*GetRunResponse, error) {
 	var result *GetRunResponse
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetRunRequest{
+		pollResp, err := w.poll(ctx, GetRunRequest{
 			RunId: &w.runId,
 		})
 		if err != nil {
@@ -541,8 +543,8 @@ func (w *CancelRunWaiter) Wait(ctx context.Context, opts ...lro.Option) (*GetRun
 }
 
 // Create a new job.
-func (c *internalClient) CreateJob(ctx context.Context, req *CreateJobRequest, opts ...call.Option) (*CreateJobResponse, error) {
-	wireReq, err := createJobRequestToWire(req)
+func (c *internalClient) CreateJob(ctx context.Context, req CreateJobRequest, opts ...call.Option) (*CreateJobResponse, error) {
+	wireReq, err := createJobRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -607,8 +609,8 @@ func (c *internalClient) CreateJob(ctx context.Context, req *CreateJobRequest, o
 }
 
 // Deletes a job.
-func (c *internalClient) DeleteJob(ctx context.Context, req *DeleteJobRequest, opts ...call.Option) (*DeleteJobResponse, error) {
-	wireReq, err := deleteJobRequestToWire(req)
+func (c *internalClient) DeleteJob(ctx context.Context, req DeleteJobRequest, opts ...call.Option) (*DeleteJobResponse, error) {
+	wireReq, err := deleteJobRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -667,8 +669,8 @@ func (c *internalClient) DeleteJob(ctx context.Context, req *DeleteJobRequest, o
 }
 
 // Deletes a non-active run. Returns an error if the run is active.
-func (c *internalClient) DeleteRun(ctx context.Context, req *DeleteRunRequest, opts ...call.Option) (*DeleteRunResponse, error) {
-	wireReq, err := deleteRunRequestToWire(req)
+func (c *internalClient) DeleteRun(ctx context.Context, req DeleteRunRequest, opts ...call.Option) (*DeleteRunResponse, error) {
+	wireReq, err := deleteRunRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -727,8 +729,8 @@ func (c *internalClient) DeleteRun(ctx context.Context, req *DeleteRunRequest, o
 }
 
 // Export and retrieve the job run task.
-func (c *internalClient) ExportRun(ctx context.Context, req *ExportRunRequest, opts ...call.Option) (*ExportRunResponse, error) {
-	wireReq, err := exportRunRequestToWire(req)
+func (c *internalClient) ExportRun(ctx context.Context, req ExportRunRequest, opts ...call.Option) (*ExportRunResponse, error) {
+	wireReq, err := exportRunRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -805,8 +807,8 @@ func (c *internalClient) ExportRun(ctx context.Context, req *ExportRunRequest, o
 // requests. If any array properties have more than 100 elements, additional
 // results will be returned on subsequent requests. Arrays without additional
 // results will be empty on later pages.
-func (c *internalClient) GetJob(ctx context.Context, req *GetJobRequest, opts ...call.Option) (*GetJobResponse, error) {
-	wireReq, err := getJobRequestToWire(req)
+func (c *internalClient) GetJob(ctx context.Context, req GetJobRequest, opts ...call.Option) (*GetJobResponse, error) {
+	wireReq, err := getJobRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -884,8 +886,8 @@ func (c *internalClient) GetJob(ctx context.Context, req *GetJobRequest, opts ..
 // requests. If any array properties have more than 100 elements, additional
 // results will be returned on subsequent requests. Arrays without additional
 // results will be empty on later pages.
-func (c *internalClient) GetRun(ctx context.Context, req *GetRunRequest, opts ...call.Option) (*GetRunResponse, error) {
-	wireReq, err := getRunRequestToWire(req)
+func (c *internalClient) GetRun(ctx context.Context, req GetRunRequest, opts ...call.Option) (*GetRunResponse, error) {
+	wireReq, err := getRunRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -966,8 +968,8 @@ func (c *internalClient) GetRun(ctx context.Context, req *GetRunRequest, opts ..
 // HTTP status code 400 if the __run_id__ parameter is invalid. Runs are
 // automatically removed after 60 days. If you to want to reference them beyond
 // 60 days, you must save old run results before they expire.
-func (c *internalClient) GetRunOutput(ctx context.Context, req *GetRunOutputRequest, opts ...call.Option) (*GetRunOutputResponse, error) {
-	wireReq, err := getRunOutputRequestToWire(req)
+func (c *internalClient) GetRunOutput(ctx context.Context, req GetRunOutputRequest, opts ...call.Option) (*GetRunOutputResponse, error) {
+	wireReq, err := getRunOutputRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1030,8 +1032,8 @@ func (c *internalClient) GetRunOutput(ctx context.Context, req *GetRunOutputRequ
 }
 
 // Retrieves a list of jobs.
-func (c *internalClient) ListJobs(ctx context.Context, req *ListJobsRequest, opts ...call.Option) (*ListJobsResponse, error) {
-	wireReq, err := listJobsRequestToWire(req)
+func (c *internalClient) ListJobs(ctx context.Context, req ListJobsRequest, opts ...call.Option) (*ListJobsResponse, error) {
+	wireReq, err := listJobsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1110,7 +1112,7 @@ func (c *internalClient) ListJobs(ctx context.Context, req *ListJobsRequest, opt
 //
 // For example:
 //
-//	for item, err := range c.ListJobsIter(ctx, &ListJobsRequest{}) {
+//	for item, err := range c.ListJobsIter(ctx, ListJobsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1122,16 +1124,13 @@ func (c *internalClient) ListJobs(ctx context.Context, req *ListJobsRequest, opt
 //
 // Callers who need custom pagination logic should use
 // ListJobs directly.
-func (c *internalClient) ListJobsIter(ctx context.Context, req *ListJobsRequest, opts ...call.Option) iter.Seq2[*BaseJob, error] {
+func (c *internalClient) ListJobsIter(ctx context.Context, req ListJobsRequest, opts ...call.Option) iter.Seq2[*BaseJob, error] {
 	return func(yield func(*BaseJob, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListJobsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListJobs(ctx, &pageReq, opts...)
+			resp, err := c.ListJobs(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1151,8 +1150,8 @@ func (c *internalClient) ListJobsIter(ctx context.Context, req *ListJobsRequest,
 
 // List runs in descending order by end time. If a run has not finished, it
 // falls back to start time.
-func (c *internalClient) ListRuns(ctx context.Context, req *ListRunsRequest, opts ...call.Option) (*ListRunsResponse, error) {
-	wireReq, err := listRunsRequestToWire(req)
+func (c *internalClient) ListRuns(ctx context.Context, req ListRunsRequest, opts ...call.Option) (*ListRunsResponse, error) {
+	wireReq, err := listRunsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1248,7 +1247,7 @@ func (c *internalClient) ListRuns(ctx context.Context, req *ListRunsRequest, opt
 //
 // For example:
 //
-//	for item, err := range c.ListRunsIter(ctx, &ListRunsRequest{}) {
+//	for item, err := range c.ListRunsIter(ctx, ListRunsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1260,16 +1259,13 @@ func (c *internalClient) ListRuns(ctx context.Context, req *ListRunsRequest, opt
 //
 // Callers who need custom pagination logic should use
 // ListRuns directly.
-func (c *internalClient) ListRunsIter(ctx context.Context, req *ListRunsRequest, opts ...call.Option) iter.Seq2[*BaseRun, error] {
+func (c *internalClient) ListRunsIter(ctx context.Context, req ListRunsRequest, opts ...call.Option) iter.Seq2[*BaseRun, error] {
 	return func(yield func(*BaseRun, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListRunsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListRuns(ctx, &pageReq, opts...)
+			resp, err := c.ListRuns(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1290,8 +1286,8 @@ func (c *internalClient) ListRunsIter(ctx context.Context, req *ListRunsRequest,
 // Re-run one or more tasks. Tasks are re-run as part of the original job run.
 // They use the current job and task settings, and can be viewed in the history
 // for the original job run.
-func (c *internalClient) repairBase(ctx context.Context, req *RepairRunRequest, opts ...call.Option) (*RepairRunResponse, error) {
-	wireReq, err := repairRunRequestToWire(req)
+func (c *internalClient) repairBase(ctx context.Context, req RepairRunRequest, opts ...call.Option) (*RepairRunResponse, error) {
+	wireReq, err := repairRunRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1358,7 +1354,7 @@ func (c *internalClient) repairBase(ctx context.Context, req *RepairRunRequest, 
 // Re-run one or more tasks. Tasks are re-run as part of the original job run.
 // They use the current job and task settings, and can be viewed in the history
 // for the original job run.
-func (c *internalClient) Repair(ctx context.Context, req *RepairRunRequest, opts ...call.Option) (*RepairWaiter, error) {
+func (c *internalClient) Repair(ctx context.Context, req RepairRunRequest, opts ...call.Option) (*RepairWaiter, error) {
 	if req.RunId == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "RunId")
 	}
@@ -1375,13 +1371,18 @@ func (c *internalClient) Repair(ctx context.Context, req *RepairRunRequest, opts
 
 // RepairWaiter tracks the state of the operation started by Repair.
 type RepairWaiter struct {
-	poll  func(context.Context, *GetRunRequest, ...call.Option) (*GetRunResponse, error)
+	poll  func(context.Context, GetRunRequest, ...call.Option) (*GetRunResponse, error)
 	runId int64
+}
+
+// GetRunId returns the RunId value used to identify the operation.
+func (w *RepairWaiter) GetRunId() int64 {
+	return w.runId
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *RepairWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetRunRequest{
+	pollResp, err := w.poll(ctx, GetRunRequest{
 		RunId: &w.runId,
 	}, opts...)
 	if err != nil {
@@ -1409,7 +1410,7 @@ func (w *RepairWaiter) Done(ctx context.Context, opts ...call.Option) (bool, err
 func (w *RepairWaiter) Wait(ctx context.Context, opts ...lro.Option) (*GetRunResponse, error) {
 	var result *GetRunResponse
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetRunRequest{
+		pollResp, err := w.poll(ctx, GetRunRequest{
 			RunId: &w.runId,
 		})
 		if err != nil {
@@ -1447,8 +1448,8 @@ func (w *RepairWaiter) Wait(ctx context.Context, opts ...lro.Option) (*GetRunRes
 
 // Overwrite all settings for the given job. Use the [_Update_
 // endpoint](:method:jobs/update) to update job settings partially.
-func (c *internalClient) ResetJob(ctx context.Context, req *ResetJobRequest, opts ...call.Option) (*ResetJobResponse, error) {
-	wireReq, err := resetJobRequestToWire(req)
+func (c *internalClient) ResetJob(ctx context.Context, req ResetJobRequest, opts ...call.Option) (*ResetJobResponse, error) {
+	wireReq, err := resetJobRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1507,8 +1508,8 @@ func (c *internalClient) ResetJob(ctx context.Context, req *ResetJobRequest, opt
 }
 
 // Run a job and return the `run_id` of the triggered run.
-func (c *internalClient) runNowBase(ctx context.Context, req *RunNowRequest, opts ...call.Option) (*RunNowResponse, error) {
-	wireReq, err := runNowRequestToWire(req)
+func (c *internalClient) runNowBase(ctx context.Context, req RunNowRequest, opts ...call.Option) (*RunNowResponse, error) {
+	wireReq, err := runNowRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1573,7 +1574,7 @@ func (c *internalClient) runNowBase(ctx context.Context, req *RunNowRequest, opt
 }
 
 // Run a job and return the `run_id` of the triggered run.
-func (c *internalClient) RunNow(ctx context.Context, req *RunNowRequest, opts ...call.Option) (*RunNowWaiter, error) {
+func (c *internalClient) RunNow(ctx context.Context, req RunNowRequest, opts ...call.Option) (*RunNowWaiter, error) {
 	resp, err := c.runNowBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -1589,13 +1590,18 @@ func (c *internalClient) RunNow(ctx context.Context, req *RunNowRequest, opts ..
 
 // RunNowWaiter tracks the state of the operation started by RunNow.
 type RunNowWaiter struct {
-	poll  func(context.Context, *GetRunRequest, ...call.Option) (*GetRunResponse, error)
+	poll  func(context.Context, GetRunRequest, ...call.Option) (*GetRunResponse, error)
 	runId int64
+}
+
+// GetRunId returns the RunId value used to identify the operation.
+func (w *RunNowWaiter) GetRunId() int64 {
+	return w.runId
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *RunNowWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetRunRequest{
+	pollResp, err := w.poll(ctx, GetRunRequest{
 		RunId: &w.runId,
 	}, opts...)
 	if err != nil {
@@ -1623,7 +1629,7 @@ func (w *RunNowWaiter) Done(ctx context.Context, opts ...call.Option) (bool, err
 func (w *RunNowWaiter) Wait(ctx context.Context, opts ...lro.Option) (*GetRunResponse, error) {
 	var result *GetRunResponse
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetRunRequest{
+		pollResp, err := w.poll(ctx, GetRunRequest{
 			RunId: &w.runId,
 		})
 		if err != nil {
@@ -1671,8 +1677,8 @@ func (w *RunNowWaiter) Wait(ctx context.Context, opts ...lro.Option) (*GetRunRes
 // specify the compute needs for the job. Alternatively, use the `POST
 // /jobs/create` and `POST /jobs/run-now` endpoints to create and run a saved
 // job.
-func (c *internalClient) submitRunBase(ctx context.Context, req *SubmitRunRequest, opts ...call.Option) (*SubmitRunResponse, error) {
-	wireReq, err := submitRunRequestToWire(req)
+func (c *internalClient) submitRunBase(ctx context.Context, req SubmitRunRequest, opts ...call.Option) (*SubmitRunResponse, error) {
+	wireReq, err := submitRunRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1748,7 +1754,7 @@ func (c *internalClient) submitRunBase(ctx context.Context, req *SubmitRunReques
 // specify the compute needs for the job. Alternatively, use the `POST
 // /jobs/create` and `POST /jobs/run-now` endpoints to create and run a saved
 // job.
-func (c *internalClient) SubmitRun(ctx context.Context, req *SubmitRunRequest, opts ...call.Option) (*SubmitRunWaiter, error) {
+func (c *internalClient) SubmitRun(ctx context.Context, req SubmitRunRequest, opts ...call.Option) (*SubmitRunWaiter, error) {
 	resp, err := c.submitRunBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -1764,13 +1770,18 @@ func (c *internalClient) SubmitRun(ctx context.Context, req *SubmitRunRequest, o
 
 // SubmitRunWaiter tracks the state of the operation started by SubmitRun.
 type SubmitRunWaiter struct {
-	poll  func(context.Context, *GetRunRequest, ...call.Option) (*GetRunResponse, error)
+	poll  func(context.Context, GetRunRequest, ...call.Option) (*GetRunResponse, error)
 	runId int64
+}
+
+// GetRunId returns the RunId value used to identify the operation.
+func (w *SubmitRunWaiter) GetRunId() int64 {
+	return w.runId
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *SubmitRunWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetRunRequest{
+	pollResp, err := w.poll(ctx, GetRunRequest{
 		RunId: &w.runId,
 	}, opts...)
 	if err != nil {
@@ -1798,7 +1809,7 @@ func (w *SubmitRunWaiter) Done(ctx context.Context, opts ...call.Option) (bool, 
 func (w *SubmitRunWaiter) Wait(ctx context.Context, opts ...lro.Option) (*GetRunResponse, error) {
 	var result *GetRunResponse
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetRunRequest{
+		pollResp, err := w.poll(ctx, GetRunRequest{
 			RunId: &w.runId,
 		})
 		if err != nil {
@@ -1836,8 +1847,8 @@ func (w *SubmitRunWaiter) Wait(ctx context.Context, opts ...lro.Option) (*GetRun
 
 // Add, update, or remove specific settings of an existing job. Use the [_Reset_
 // endpoint](:method:jobs/reset) to overwrite all job settings.
-func (c *internalClient) UpdateJob(ctx context.Context, req *UpdateJobRequest, opts ...call.Option) (*UpdateJobResponse, error) {
-	wireReq, err := updateJobRequestToWire(req)
+func (c *internalClient) UpdateJob(ctx context.Context, req UpdateJobRequest, opts ...call.Option) (*UpdateJobResponse, error) {
+	wireReq, err := updateJobRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}

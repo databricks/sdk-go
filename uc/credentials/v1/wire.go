@@ -3,8 +3,54 @@
 package credentials
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type accountsCreateStorageCredentialRequestWire struct {
 	AccountId      *string                              `json:"account_id,omitempty"`
@@ -343,9 +389,9 @@ type createAccountsStorageCredentialWire struct {
 	Owner                       *string                          `json:"owner,omitempty"`
 	Id                          *string                          `json:"id,omitempty"`
 	MetastoreId                 *string                          `json:"metastore_id,omitempty"`
-	CreatedAt                   *int64                           `json:"created_at,omitempty"`
+	CreatedAt                   *wireInt64                       `json:"created_at,omitempty"`
 	CreatedBy                   *string                          `json:"created_by,omitempty"`
-	UpdatedAt                   *int64                           `json:"updated_at,omitempty"`
+	UpdatedAt                   *wireInt64                       `json:"updated_at,omitempty"`
 	UpdatedBy                   *string                          `json:"updated_by,omitempty"`
 	UsedForManagedStorage       *bool                            `json:"used_for_managed_storage,omitempty"`
 	FullName                    *string                          `json:"full_name,omitempty"`
@@ -355,6 +401,14 @@ type createAccountsStorageCredentialWire struct {
 func createAccountsStorageCredentialToWire(v *CreateAccountsStorageCredential) (*createAccountsStorageCredentialWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccountsStorageCredential.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccountsStorageCredential.UpdatedAt", err)
 	}
 	var credentialAwsIamRoleWire *awsIamRoleWire
 	var credentialAzureServicePrincipalWire *azureServicePrincipalWire
@@ -428,9 +482,9 @@ func createAccountsStorageCredentialToWire(v *CreateAccountsStorageCredential) (
 		Owner:                       v.Owner,
 		Id:                          v.Id,
 		MetastoreId:                 v.MetastoreId,
-		CreatedAt:                   v.CreatedAt,
+		CreatedAt:                   createdAtWireValue,
 		CreatedBy:                   v.CreatedBy,
-		UpdatedAt:                   v.UpdatedAt,
+		UpdatedAt:                   updatedAtWireValue,
 		UpdatedBy:                   v.UpdatedBy,
 		UsedForManagedStorage:       v.UsedForManagedStorage,
 		FullName:                    v.FullName,
@@ -479,9 +533,9 @@ type createCredentialRequestWire struct {
 	Owner                       *string                          `json:"owner,omitempty"`
 	Id                          *string                          `json:"id,omitempty"`
 	MetastoreId                 *string                          `json:"metastore_id,omitempty"`
-	CreatedAt                   *int64                           `json:"created_at,omitempty"`
+	CreatedAt                   *wireInt64                       `json:"created_at,omitempty"`
 	CreatedBy                   *string                          `json:"created_by,omitempty"`
-	UpdatedAt                   *int64                           `json:"updated_at,omitempty"`
+	UpdatedAt                   *wireInt64                       `json:"updated_at,omitempty"`
 	UpdatedBy                   *string                          `json:"updated_by,omitempty"`
 	UsedForManagedStorage       *bool                            `json:"used_for_managed_storage,omitempty"`
 	FullName                    *string                          `json:"full_name,omitempty"`
@@ -491,6 +545,14 @@ type createCredentialRequestWire struct {
 func createCredentialRequestToWire(v *CreateCredentialRequest) (*createCredentialRequestWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCredentialRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCredentialRequest.UpdatedAt", err)
 	}
 	var credentialAwsIamRoleWire *awsIamRoleWire
 	var credentialAzureServicePrincipalWire *azureServicePrincipalWire
@@ -565,9 +627,9 @@ func createCredentialRequestToWire(v *CreateCredentialRequest) (*createCredentia
 		Owner:                       v.Owner,
 		Id:                          v.Id,
 		MetastoreId:                 v.MetastoreId,
-		CreatedAt:                   v.CreatedAt,
+		CreatedAt:                   createdAtWireValue,
 		CreatedBy:                   v.CreatedBy,
-		UpdatedAt:                   v.UpdatedAt,
+		UpdatedAt:                   updatedAtWireValue,
 		UpdatedBy:                   v.UpdatedBy,
 		UsedForManagedStorage:       v.UsedForManagedStorage,
 		FullName:                    v.FullName,
@@ -620,9 +682,9 @@ type createStorageCredentialRequestWire struct {
 	Owner                       *string                          `json:"owner,omitempty"`
 	Id                          *string                          `json:"id,omitempty"`
 	MetastoreId                 *string                          `json:"metastore_id,omitempty"`
-	CreatedAt                   *int64                           `json:"created_at,omitempty"`
+	CreatedAt                   *wireInt64                       `json:"created_at,omitempty"`
 	CreatedBy                   *string                          `json:"created_by,omitempty"`
-	UpdatedAt                   *int64                           `json:"updated_at,omitempty"`
+	UpdatedAt                   *wireInt64                       `json:"updated_at,omitempty"`
 	UpdatedBy                   *string                          `json:"updated_by,omitempty"`
 	UsedForManagedStorage       *bool                            `json:"used_for_managed_storage,omitempty"`
 	FullName                    *string                          `json:"full_name,omitempty"`
@@ -632,6 +694,14 @@ type createStorageCredentialRequestWire struct {
 func createStorageCredentialRequestToWire(v *CreateStorageCredentialRequest) (*createStorageCredentialRequestWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateStorageCredentialRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateStorageCredentialRequest.UpdatedAt", err)
 	}
 	var credentialAwsIamRoleWire *awsIamRoleWire
 	var credentialAzureServicePrincipalWire *azureServicePrincipalWire
@@ -706,9 +776,9 @@ func createStorageCredentialRequestToWire(v *CreateStorageCredentialRequest) (*c
 		Owner:                       v.Owner,
 		Id:                          v.Id,
 		MetastoreId:                 v.MetastoreId,
-		CreatedAt:                   v.CreatedAt,
+		CreatedAt:                   createdAtWireValue,
 		CreatedBy:                   v.CreatedBy,
-		UpdatedAt:                   v.UpdatedAt,
+		UpdatedAt:                   updatedAtWireValue,
 		UpdatedBy:                   v.UpdatedBy,
 		UsedForManagedStorage:       v.UsedForManagedStorage,
 		FullName:                    v.FullName,
@@ -729,9 +799,9 @@ type credentialInfoWire struct {
 	Owner                       *string                          `json:"owner,omitempty"`
 	Id                          *string                          `json:"id,omitempty"`
 	MetastoreId                 *string                          `json:"metastore_id,omitempty"`
-	CreatedAt                   *int64                           `json:"created_at,omitempty"`
+	CreatedAt                   *wireInt64                       `json:"created_at,omitempty"`
 	CreatedBy                   *string                          `json:"created_by,omitempty"`
-	UpdatedAt                   *int64                           `json:"updated_at,omitempty"`
+	UpdatedAt                   *wireInt64                       `json:"updated_at,omitempty"`
 	UpdatedBy                   *string                          `json:"updated_by,omitempty"`
 	UsedForManagedStorage       *bool                            `json:"used_for_managed_storage,omitempty"`
 	FullName                    *string                          `json:"full_name,omitempty"`
@@ -763,6 +833,14 @@ func credentialInfoFromWire(w *credentialInfoWire) (*CredentialInfo, error) {
 	}
 	if credentialMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "CredentialInfo.Credential")
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CredentialInfo.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CredentialInfo.UpdatedAt", err)
 	}
 	var credentialSelection isCredentialInfo_Credential
 	switch {
@@ -810,9 +888,9 @@ func credentialInfoFromWire(w *credentialInfoWire) (*CredentialInfo, error) {
 		Owner:                 w.Owner,
 		Id:                    w.Id,
 		MetastoreId:           w.MetastoreId,
-		CreatedAt:             w.CreatedAt,
+		CreatedAt:             createdAtPublicValue,
 		CreatedBy:             w.CreatedBy,
-		UpdatedAt:             w.UpdatedAt,
+		UpdatedAt:             updatedAtPublicValue,
 		UpdatedBy:             w.UpdatedBy,
 		UsedForManagedStorage: w.UsedForManagedStorage,
 		FullName:              w.FullName,
@@ -826,7 +904,7 @@ type credentialsWire struct {
 	AccountId       *string             `json:"account_id,omitempty"`
 	AwsCredentials  *awsCredentialsWire `json:"aws_credentials,omitempty"`
 	CredentialsName *string             `json:"credentials_name,omitempty"`
-	CreationTime    *int64              `json:"creation_time,omitempty"`
+	CreationTime    *wireInt64          `json:"creation_time,omitempty"`
 }
 
 func credentialsFromWire(w *credentialsWire) (*Credentials, error) {
@@ -839,6 +917,10 @@ func credentialsFromWire(w *credentialsWire) (*Credentials, error) {
 	}
 	if cloudCredentialsMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "Credentials.CloudCredentials")
+	}
+	creationTimePublicValue, err := int64FromWire(w.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Credentials.CreationTime", err)
 	}
 	var cloudCredentialsSelection isCredentials_CloudCredentials
 	switch {
@@ -853,7 +935,7 @@ func credentialsFromWire(w *credentialsWire) (*Credentials, error) {
 		CredentialsId:    w.CredentialsId,
 		AccountId:        w.AccountId,
 		CredentialsName:  w.CredentialsName,
-		CreationTime:     w.CreationTime,
+		CreationTime:     creationTimePublicValue,
 		CloudCredentials: cloudCredentialsSelection,
 	}, nil
 }
@@ -980,7 +1062,7 @@ type generateTemporaryPathCredentialResponseWire struct {
 	GcpOauthToken          *gcpOauthTokenWire             `json:"gcp_oauth_token,omitempty"`
 	AzureAad               *azureActiveDirectoryTokenWire `json:"azure_aad,omitempty"`
 	R2TempCredentials      *r2CredentialsWire             `json:"r2_temp_credentials,omitempty"`
-	ExpirationTime         *int64                         `json:"expiration_time,omitempty"`
+	ExpirationTime         *wireInt64                     `json:"expiration_time,omitempty"`
 	Url                    *string                        `json:"url,omitempty"`
 }
 
@@ -1006,6 +1088,10 @@ func generateTemporaryPathCredentialResponseFromWire(w *generateTemporaryPathCre
 	}
 	if credentialsMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "GenerateTemporaryPathCredentialResponse.Credentials")
+	}
+	expirationTimePublicValue, err := int64FromWire(w.ExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenerateTemporaryPathCredentialResponse.ExpirationTime", err)
 	}
 	var credentialsSelection isGenerateTemporaryPathCredentialResponse_Credentials
 	switch {
@@ -1041,7 +1127,7 @@ func generateTemporaryPathCredentialResponseFromWire(w *generateTemporaryPathCre
 		credentialsSelection = &GenerateTemporaryPathCredentialResponse_Credentials_R2TempCredentials{R2TempCredentials: *credentialsR2TempCredentialsConverted}
 	}
 	return &GenerateTemporaryPathCredentialResponse{
-		ExpirationTime: w.ExpirationTime,
+		ExpirationTime: expirationTimePublicValue,
 		Url:            w.Url,
 		Credentials:    credentialsSelection,
 	}, nil
@@ -1134,7 +1220,7 @@ type generateTemporaryTableCredentialResponseWire struct {
 	GcpOauthToken          *gcpOauthTokenWire             `json:"gcp_oauth_token,omitempty"`
 	AzureAad               *azureActiveDirectoryTokenWire `json:"azure_aad,omitempty"`
 	R2TempCredentials      *r2CredentialsWire             `json:"r2_temp_credentials,omitempty"`
-	ExpirationTime         *int64                         `json:"expiration_time,omitempty"`
+	ExpirationTime         *wireInt64                     `json:"expiration_time,omitempty"`
 	Url                    *string                        `json:"url,omitempty"`
 }
 
@@ -1160,6 +1246,10 @@ func generateTemporaryTableCredentialResponseFromWire(w *generateTemporaryTableC
 	}
 	if credentialsMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "GenerateTemporaryTableCredentialResponse.Credentials")
+	}
+	expirationTimePublicValue, err := int64FromWire(w.ExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenerateTemporaryTableCredentialResponse.ExpirationTime", err)
 	}
 	var credentialsSelection isGenerateTemporaryTableCredentialResponse_Credentials
 	switch {
@@ -1195,7 +1285,7 @@ func generateTemporaryTableCredentialResponseFromWire(w *generateTemporaryTableC
 		credentialsSelection = &GenerateTemporaryTableCredentialResponse_Credentials_R2TempCredentials{R2TempCredentials: *credentialsR2TempCredentialsConverted}
 	}
 	return &GenerateTemporaryTableCredentialResponse{
-		ExpirationTime: w.ExpirationTime,
+		ExpirationTime: expirationTimePublicValue,
 		Url:            w.Url,
 		Credentials:    credentialsSelection,
 	}, nil
@@ -1222,7 +1312,7 @@ type generateTemporaryVolumeCredentialResponseWire struct {
 	GcpOauthToken          *gcpOauthTokenWire             `json:"gcp_oauth_token,omitempty"`
 	AzureAad               *azureActiveDirectoryTokenWire `json:"azure_aad,omitempty"`
 	R2TempCredentials      *r2CredentialsWire             `json:"r2_temp_credentials,omitempty"`
-	ExpirationTime         *int64                         `json:"expiration_time,omitempty"`
+	ExpirationTime         *wireInt64                     `json:"expiration_time,omitempty"`
 	Url                    *string                        `json:"url,omitempty"`
 }
 
@@ -1248,6 +1338,10 @@ func generateTemporaryVolumeCredentialResponseFromWire(w *generateTemporaryVolum
 	}
 	if credentialsMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "GenerateTemporaryVolumeCredentialResponse.Credentials")
+	}
+	expirationTimePublicValue, err := int64FromWire(w.ExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenerateTemporaryVolumeCredentialResponse.ExpirationTime", err)
 	}
 	var credentialsSelection isGenerateTemporaryVolumeCredentialResponse_Credentials
 	switch {
@@ -1283,7 +1377,7 @@ func generateTemporaryVolumeCredentialResponseFromWire(w *generateTemporaryVolum
 		credentialsSelection = &GenerateTemporaryVolumeCredentialResponse_Credentials_R2TempCredentials{R2TempCredentials: *credentialsR2TempCredentialsConverted}
 	}
 	return &GenerateTemporaryVolumeCredentialResponse{
-		ExpirationTime: w.ExpirationTime,
+		ExpirationTime: expirationTimePublicValue,
 		Url:            w.Url,
 		Credentials:    credentialsSelection,
 	}, nil
@@ -1391,9 +1485,9 @@ type storageCredentialInfoWire struct {
 	Owner                       *string                          `json:"owner,omitempty"`
 	Id                          *string                          `json:"id,omitempty"`
 	MetastoreId                 *string                          `json:"metastore_id,omitempty"`
-	CreatedAt                   *int64                           `json:"created_at,omitempty"`
+	CreatedAt                   *wireInt64                       `json:"created_at,omitempty"`
 	CreatedBy                   *string                          `json:"created_by,omitempty"`
-	UpdatedAt                   *int64                           `json:"updated_at,omitempty"`
+	UpdatedAt                   *wireInt64                       `json:"updated_at,omitempty"`
 	UpdatedBy                   *string                          `json:"updated_by,omitempty"`
 	UsedForManagedStorage       *bool                            `json:"used_for_managed_storage,omitempty"`
 	FullName                    *string                          `json:"full_name,omitempty"`
@@ -1425,6 +1519,14 @@ func storageCredentialInfoFromWire(w *storageCredentialInfoWire) (*StorageCreden
 	}
 	if credentialMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "StorageCredentialInfo.Credential")
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "StorageCredentialInfo.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "StorageCredentialInfo.UpdatedAt", err)
 	}
 	var credentialSelection isStorageCredentialInfo_Credential
 	switch {
@@ -1472,9 +1574,9 @@ func storageCredentialInfoFromWire(w *storageCredentialInfoWire) (*StorageCreden
 		Owner:                 w.Owner,
 		Id:                    w.Id,
 		MetastoreId:           w.MetastoreId,
-		CreatedAt:             w.CreatedAt,
+		CreatedAt:             createdAtPublicValue,
 		CreatedBy:             w.CreatedBy,
-		UpdatedAt:             w.UpdatedAt,
+		UpdatedAt:             updatedAtPublicValue,
 		UpdatedBy:             w.UpdatedBy,
 		UsedForManagedStorage: w.UsedForManagedStorage,
 		FullName:              w.FullName,
@@ -1508,7 +1610,7 @@ type temporaryCredentialsWire struct {
 	GcpOauthToken          *gcpOauthTokenWire             `json:"gcp_oauth_token,omitempty"`
 	AzureAad               *azureActiveDirectoryTokenWire `json:"azure_aad,omitempty"`
 	R2TempCredentials      *r2CredentialsWire             `json:"r2_temp_credentials,omitempty"`
-	ExpirationTime         *int64                         `json:"expiration_time,omitempty"`
+	ExpirationTime         *wireInt64                     `json:"expiration_time,omitempty"`
 	Url                    *string                        `json:"url,omitempty"`
 }
 
@@ -1534,6 +1636,10 @@ func temporaryCredentialsFromWire(w *temporaryCredentialsWire) (*TemporaryCreden
 	}
 	if credentialsMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "TemporaryCredentials.Credentials")
+	}
+	expirationTimePublicValue, err := int64FromWire(w.ExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TemporaryCredentials.ExpirationTime", err)
 	}
 	var credentialsSelection isTemporaryCredentials_Credentials
 	switch {
@@ -1569,7 +1675,7 @@ func temporaryCredentialsFromWire(w *temporaryCredentialsWire) (*TemporaryCreden
 		credentialsSelection = &TemporaryCredentials_Credentials_R2TempCredentials{R2TempCredentials: *credentialsR2TempCredentialsConverted}
 	}
 	return &TemporaryCredentials{
-		ExpirationTime: w.ExpirationTime,
+		ExpirationTime: expirationTimePublicValue,
 		Url:            w.Url,
 		Credentials:    credentialsSelection,
 	}, nil
@@ -1588,9 +1694,9 @@ type updateAccountsStorageCredentialWire struct {
 	Owner                       *string                          `json:"owner,omitempty"`
 	Id                          *string                          `json:"id,omitempty"`
 	MetastoreId                 *string                          `json:"metastore_id,omitempty"`
-	CreatedAt                   *int64                           `json:"created_at,omitempty"`
+	CreatedAt                   *wireInt64                       `json:"created_at,omitempty"`
 	CreatedBy                   *string                          `json:"created_by,omitempty"`
-	UpdatedAt                   *int64                           `json:"updated_at,omitempty"`
+	UpdatedAt                   *wireInt64                       `json:"updated_at,omitempty"`
 	UpdatedBy                   *string                          `json:"updated_by,omitempty"`
 	UsedForManagedStorage       *bool                            `json:"used_for_managed_storage,omitempty"`
 	FullName                    *string                          `json:"full_name,omitempty"`
@@ -1600,6 +1706,14 @@ type updateAccountsStorageCredentialWire struct {
 func updateAccountsStorageCredentialToWire(v *UpdateAccountsStorageCredential) (*updateAccountsStorageCredentialWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccountsStorageCredential.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccountsStorageCredential.UpdatedAt", err)
 	}
 	var credentialAwsIamRoleWire *awsIamRoleWire
 	var credentialAzureServicePrincipalWire *azureServicePrincipalWire
@@ -1673,9 +1787,9 @@ func updateAccountsStorageCredentialToWire(v *UpdateAccountsStorageCredential) (
 		Owner:                       v.Owner,
 		Id:                          v.Id,
 		MetastoreId:                 v.MetastoreId,
-		CreatedAt:                   v.CreatedAt,
+		CreatedAt:                   createdAtWireValue,
 		CreatedBy:                   v.CreatedBy,
-		UpdatedAt:                   v.UpdatedAt,
+		UpdatedAt:                   updatedAtWireValue,
 		UpdatedBy:                   v.UpdatedBy,
 		UsedForManagedStorage:       v.UsedForManagedStorage,
 		FullName:                    v.FullName,
@@ -1700,9 +1814,9 @@ type updateCredentialRequestWire struct {
 	Owner                       *string                          `json:"owner,omitempty"`
 	Id                          *string                          `json:"id,omitempty"`
 	MetastoreId                 *string                          `json:"metastore_id,omitempty"`
-	CreatedAt                   *int64                           `json:"created_at,omitempty"`
+	CreatedAt                   *wireInt64                       `json:"created_at,omitempty"`
 	CreatedBy                   *string                          `json:"created_by,omitempty"`
-	UpdatedAt                   *int64                           `json:"updated_at,omitempty"`
+	UpdatedAt                   *wireInt64                       `json:"updated_at,omitempty"`
 	UpdatedBy                   *string                          `json:"updated_by,omitempty"`
 	UsedForManagedStorage       *bool                            `json:"used_for_managed_storage,omitempty"`
 	FullName                    *string                          `json:"full_name,omitempty"`
@@ -1712,6 +1826,14 @@ type updateCredentialRequestWire struct {
 func updateCredentialRequestToWire(v *UpdateCredentialRequest) (*updateCredentialRequestWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCredentialRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCredentialRequest.UpdatedAt", err)
 	}
 	var credentialAwsIamRoleWire *awsIamRoleWire
 	var credentialAzureServicePrincipalWire *azureServicePrincipalWire
@@ -1789,9 +1911,9 @@ func updateCredentialRequestToWire(v *UpdateCredentialRequest) (*updateCredentia
 		Owner:                       v.Owner,
 		Id:                          v.Id,
 		MetastoreId:                 v.MetastoreId,
-		CreatedAt:                   v.CreatedAt,
+		CreatedAt:                   createdAtWireValue,
 		CreatedBy:                   v.CreatedBy,
-		UpdatedAt:                   v.UpdatedAt,
+		UpdatedAt:                   updatedAtWireValue,
 		UpdatedBy:                   v.UpdatedBy,
 		UsedForManagedStorage:       v.UsedForManagedStorage,
 		FullName:                    v.FullName,
@@ -1816,9 +1938,9 @@ type updateStorageCredentialRequestWire struct {
 	Owner                       *string                          `json:"owner,omitempty"`
 	Id                          *string                          `json:"id,omitempty"`
 	MetastoreId                 *string                          `json:"metastore_id,omitempty"`
-	CreatedAt                   *int64                           `json:"created_at,omitempty"`
+	CreatedAt                   *wireInt64                       `json:"created_at,omitempty"`
 	CreatedBy                   *string                          `json:"created_by,omitempty"`
-	UpdatedAt                   *int64                           `json:"updated_at,omitempty"`
+	UpdatedAt                   *wireInt64                       `json:"updated_at,omitempty"`
 	UpdatedBy                   *string                          `json:"updated_by,omitempty"`
 	UsedForManagedStorage       *bool                            `json:"used_for_managed_storage,omitempty"`
 	FullName                    *string                          `json:"full_name,omitempty"`
@@ -1828,6 +1950,14 @@ type updateStorageCredentialRequestWire struct {
 func updateStorageCredentialRequestToWire(v *UpdateStorageCredentialRequest) (*updateStorageCredentialRequestWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateStorageCredentialRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateStorageCredentialRequest.UpdatedAt", err)
 	}
 	var credentialAwsIamRoleWire *awsIamRoleWire
 	var credentialAzureServicePrincipalWire *azureServicePrincipalWire
@@ -1905,9 +2035,9 @@ func updateStorageCredentialRequestToWire(v *UpdateStorageCredentialRequest) (*u
 		Owner:                       v.Owner,
 		Id:                          v.Id,
 		MetastoreId:                 v.MetastoreId,
-		CreatedAt:                   v.CreatedAt,
+		CreatedAt:                   createdAtWireValue,
 		CreatedBy:                   v.CreatedBy,
-		UpdatedAt:                   v.UpdatedAt,
+		UpdatedAt:                   updatedAtWireValue,
 		UpdatedBy:                   v.UpdatedBy,
 		UsedForManagedStorage:       v.UsedForManagedStorage,
 		FullName:                    v.FullName,

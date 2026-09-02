@@ -3,7 +3,406 @@
 package features
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/databricks/sdk-go/core/types"
+)
+
+// Error codes returned by Databricks APIs to indicate specific failure
+// conditions.
+type ErrorCode string
+
+const (
+	ErrorCode_Unspecified ErrorCode = ""
+	// Internal error. This means that some invariants expected by the underlying
+	// system have been broken. This error code is reserved for serious errors,
+	// which generally cannot be resolved by the user.
+	//
+	// Prefer this over all kinds of detailed error messages (e.g IO_ERROR), unless
+	// there's some automation that relies on the custom error code.
+	//
+	// Maps to: - google.rpc.Code: INTERNAL = 13; - HTTP code: 500 Internal Server
+	// Error
+	ErrorCode_InternalError ErrorCode = "INTERNAL_ERROR"
+	// The service is currently unavailable. This is most likely a transient
+	// condition, which can be corrected by retrying with a backoff. Note that it is
+	// not always safe to retry non-idempotent operations.
+	//
+	// Prefer this over SERVICE_UNDER_MAINTENANCE,
+	// WORKSPACE_TEMPORARILY_UNAVAILABLE.
+	//
+	// See
+	// https://docs.google.com/document/d/1FL8p2sbYWqBPL-UvhzI7uXAw4EoLG7Rj6PAOQWZRSOk/edit#
+	// for guideline on how to pick this vs RESOURCE_EXHAUSTED.
+	//
+	// Maps to: - google.rpc.Code: UNAVAILABLE = 14; - HTTP code: 503 Service
+	// Unavailable
+	ErrorCode_TemporarilyUnavailable ErrorCode = "TEMPORARILY_UNAVAILABLE"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes. Indicates that an IOException has been internally
+	// thrown.
+	ErrorCode_IoError ErrorCode = "IO_ERROR"
+	// The request is invalid. Prefer more specific error code whenever possible.
+	// Also see similar recommendation for the google.rpc.Code.FAILED_PRECONDITION.
+	//
+	// Prefer this error code over MALFORMED_REQUEST, INVALID_STATE,
+	// UNPARSEABLE_HTTP_ERROR.
+	//
+	// Maps to: - google.rpc.Code: FAILED_PRECONDITION = 9; - HTTP code: 400 Bad
+	// Request
+	ErrorCode_BadRequest ErrorCode = "BAD_REQUEST"
+	// An external service is unavailable temporarily as it is being
+	// updated/re-deployed. Indicates gateway proxy to safely retry the request.
+	ErrorCode_ServiceUnderMaintenance ErrorCode = "SERVICE_UNDER_MAINTENANCE"
+	// A workspace is temporarily unavailable as the workspace is being re-assigned.
+	ErrorCode_WorkspaceTemporarilyUnavailable ErrorCode = "WORKSPACE_TEMPORARILY_UNAVAILABLE"
+	// The deadline expired before the operation could complete. For operations that
+	// change the state of the system, this error may be returned even if the
+	// operation has completed successfully. For example, a successful response from
+	// a server could have been delayed long enough for the deadline to expire. When
+	// possible - implementations should make sure further processing of the request
+	// is aborted, e.g. by throwing an exception instead of making the RPC request,
+	// making the database query, etc.
+	//
+	// Maps to: - google.rpc.Code: DEADLINE_EXCEEDED = 4; - HTTP code: 504 Gateway
+	// Timeout
+	ErrorCode_DeadlineExceeded ErrorCode = "DEADLINE_EXCEEDED"
+	// The operation was canceled by the caller. An example - client closed the
+	// connection without waiting for a response.
+	//
+	// Maps to: - google.rpc.Code: CANCELLED = 1; - HTTP code: 499 Client Closed
+	// Request
+	ErrorCode_Cancelled ErrorCode = "CANCELLED"
+	// The operation is rejected because of either rate limiting or resource quota,
+	// such as the client has sent too many requests recently or the client has
+	// allocated too many resources.
+	//
+	// See
+	// https://docs.google.com/document/d/1FL8p2sbYWqBPL-UvhzI7uXAw4EoLG7Rj6PAOQWZRSOk/edit#
+	// for guideline on how to pick this vs TEMPORARILY_UNAVAILABLE.
+	//
+	// Maps to: - google.rpc.Code: RESOURCE_EXHAUSTED = 8; - HTTP code: 429 Too Many
+	// Requests
+	ErrorCode_ResourceExhausted ErrorCode = "RESOURCE_EXHAUSTED"
+	// The operation was aborted, typically due to a concurrency issue such as a
+	// sequencer check failure, transaction abort, or transaction conflict.
+	//
+	// Maps to: - google.rpc.Code: ABORTED = 10; - HTTP code: 409 Conflict
+	ErrorCode_Aborted ErrorCode = "ABORTED"
+	// Operation was performed on a resource that does not exist, e.g. file or
+	// directory was not found.
+	//
+	// Maps to: - google.rpc.Code: NOT_FOUND = 5; - HTTP code: 404 Not Found
+	ErrorCode_NotFound ErrorCode = "NOT_FOUND"
+	// Operation was rejected due a conflict with an existing resource, e.g.
+	// attempted to create file or directory that already exists.
+	//
+	// Prefer this over RESOURCE_CONFLICT.
+	//
+	// Maps to: - google.rpc.Code: ALREADY_EXISTS = 6; - HTTP code: 409 Conflict
+	ErrorCode_AlreadyExists ErrorCode = "ALREADY_EXISTS"
+	// The request does not have valid authentication (AuthN) credentials for the
+	// operation.
+	//
+	// Prefer this over CUSTOMER_UNAUTHORIZED, unless you need to keep consistent
+	// behavior with legacy code. For authorization (AuthZ) errors use
+	// PERMISSION_DENIED. Maps to: - google.rpc.Code: UNAUTHENTICATED = 16; - HTTP
+	// code: 401 Unauthorized
+	ErrorCode_Unauthenticated ErrorCode = "UNAUTHENTICATED"
+	// The service is currently unavailable. Please note that the unavailability may
+	// or may not be transient. That means if this is a non-transient condition,
+	// retrying it does not work. If the unavailability is certainly a transient
+	// condition, pleases use `TEMPORARILY_UNAVAILABLE` which signals its transient
+	// nature explicitly. An example of this error code’s use case is that when
+	// DNS resolution fails, the DNS resolver does not know whether it is because
+	// the domain name is completely wrong (non-transient situation) or the domain
+	// name is valid but the DNS server does not have an entry for this domain name
+	// yet (transient situation). Hence, `UNAVAILABLE` is suitable for this case.
+	//
+	// Maps to: - google.rpc.Code: UNAVAILABLE = 14; - HTTP code: 503 Service
+	// Unavailable
+	ErrorCode_Unavailable ErrorCode = "UNAVAILABLE"
+	// Supplied value for a parameter was invalid (e.g., giving a number for a
+	// string parameter).
+	//
+	// Maps to: - google.rpc.Code: INVALID_ARGUMENT = 3; - HTTP code: 400 Bad
+	// Request
+	ErrorCode_InvalidParameterValue ErrorCode = "INVALID_PARAMETER_VALUE"
+	// Indicates that the given API endpoint does not exist. Legacy, when possible -
+	// NOT_IMPLEMENTED should be used instead to indicate that API doesn't exist.
+	//
+	// Maps to: - google.rpc.Code: NOT_FOUND = 5; - HTTP code: 404 Not Found
+	ErrorCode_EndpointNotFound ErrorCode = "ENDPOINT_NOT_FOUND"
+	// Indicates that the given API request was malformed.
+	ErrorCode_MalformedRequest ErrorCode = "MALFORMED_REQUEST"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes. If one or more of the inputs to a given RPC are not in
+	// a valid state for the action.
+	ErrorCode_InvalidState ErrorCode = "INVALID_STATE"
+	// The caller does not have permission to execute the specified operation.
+	// PERMISSION_DENIED must not be used for rejections caused by exhausting some
+	// resource, use RESOURCE_EXHAUSTED instead for those errors. PERMISSION_DENIED
+	// must not be used if the caller can not be identified, use
+	// CUSTOMER_UNAUTHORIZED instead for those errors. This error code does not
+	// imply the request is valid or the requested entity exists or satisfies other
+	// pre-conditions.
+	//
+	// Maps to: - google.rpc.Code: PERMISSION_DENIED = 7; - HTTP code: 403 Forbidden
+	ErrorCode_PermissionDenied ErrorCode = "PERMISSION_DENIED"
+	// NOTE: Deprecated due to inconsistent mapping in legacy code, see
+	// https://docs.google.com/document/d/17TZIKX_Y39cJMBr333lc-d5dTvvBLSu3DPUyGU5eMJg/edit?disco=AAAAzVGt6FA.
+	// Prefer using NOT_FOUND or PERMISSION_DENIED.
+	//
+	// If a given user/entity is trying to use a feature which has been disabled.
+	//
+	// Maps to: - google.rpc.Code: NOT_FOUND = 5; - HTTP code: 404 Not Found
+	ErrorCode_FeatureDisabled ErrorCode = "FEATURE_DISABLED"
+	// The request does not have valid authentication (AuthN) credentials for the
+	// operation.
+	//
+	// For authentication (AuthN) errors prefer using UNAUTHENTICATED, unless you
+	// need to keep consistent behavior with legacy code. For authorization (AuthZ)
+	// errors use PERMISSION_DENIED.
+	//
+	// Important: name is confusing, this error code is for authentication (AuthN)
+	// errors, not authorization (AuthZ) errors. It maps to 401 Unauthorized and
+	// suffers from the same confusing naming. See
+	// https://datatracker.ietf.org/doc/html/rfc7235#section-3.1 - "[...] status
+	// code indicates that the request has not been applied because it lacks valid
+	// authentication credentials for the target resource. [...] If the request
+	// included authentication credentials, then the 401 response indicates that
+	// authorization has been refused for those credentials."
+	//
+	// Also, see https://stackoverflow.com/a/6937030/16352922, it covers it pretty
+	// well.
+	//
+	// Maps to: - google.rpc.Code: UNAUTHENTICATED = 16; - HTTP code: 401
+	// Unauthorized
+	ErrorCode_CustomerUnauthorized ErrorCode = "CUSTOMER_UNAUTHORIZED"
+	// The operation is rejected because of request rate limit, for example rate
+	// limiting applied to users, workspaces, IP addresses, etc.
+	//
+	// Prefer a more generic RESOURCE_EXHAUSTED for the new use cases.
+	//
+	// See
+	// https://docs.google.com/document/d/1FL8p2sbYWqBPL-UvhzI7uXAw4EoLG7Rj6PAOQWZRSOk/edit#
+	// for guideline on the rate limiting vs throttling.
+	//
+	// Maps to: - google.rpc.Code: RESOURCE_EXHAUSTED = 8; - HTTP code: 429 Too Many
+	// Requests
+	ErrorCode_RequestLimitExceeded ErrorCode = "REQUEST_LIMIT_EXCEEDED"
+	// Indicates API request was rejected due a conflict with an existing resource.
+	ErrorCode_ResourceConflict ErrorCode = "RESOURCE_CONFLICT"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes. Indicates that the HTTP response cannot be correctly
+	// deserialized. This currently is only used in DUST test clients, and not by
+	// any real service code.
+	ErrorCode_UnparseableHttpError ErrorCode = "UNPARSEABLE_HTTP_ERROR"
+	// The operation is not implemented or is not supported/enabled in this service.
+	//
+	// Maps to: - google.rpc.Code: UNIMPLEMENTED = 12; - HTTP code: 501 Not
+	// Implemented
+	ErrorCode_NotImplemented ErrorCode = "NOT_IMPLEMENTED"
+	// Unrecoverable data loss or corruption.
+	//
+	// One of the major use cases is to indicate that server failed to validate the
+	// integrity of the request. This error can occur when the checksum specified in
+	// the `X-Databricks-Checksum` request header (or trailer) doesn't match the
+	// actual request content checksum.
+	//
+	// Note, in case of the severe corruption that results in a malformed request,
+	// the server may send a generic `400 Bad Request` response rather than sending
+	// this error code.
+	//
+	// Maps to: - google.rpc.Code: DATA_LOSS = 15; - HTTP code: 500 Internal Server
+	// Error
+	ErrorCode_DataLoss ErrorCode = "DATA_LOSS"
+	// If the user attempts to perform an invalid state transition on a shard.
+	ErrorCode_InvalidStateTransition ErrorCode = "INVALID_STATE_TRANSITION"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes. Unable to perform the operation because the shard was
+	// locked by some other operation.
+	ErrorCode_CouldNotAcquireLock ErrorCode = "COULD_NOT_ACQUIRE_LOCK"
+	// NOTE: Deprecated, prefer using ALREADY_EXISTS. Unlike ALREADY_EXISTS - this
+	// maps to HTTP code 400 Bad Request due to legacy reasons, remapping will be a
+	// backwards incompatible change.
+	//
+	// Operation was performed on a resource that already exists.
+	ErrorCode_ResourceAlreadyExists ErrorCode = "RESOURCE_ALREADY_EXISTS"
+	// NOTE: Deprecated, prefer using NOT_FOUND - see the note for the
+	// RESOURCE_ALREADY_EXISTS, because this pair of codes is related and
+	// RESOURCE_ALREADY_EXISTS has bad mapping to the HTTP codes we added new error
+	// codes NOT_FOUND and ALREADY_EXISTS, and recommend to use them instead.
+	//
+	// Operation was performed on a resource that does not exist.
+	ErrorCode_ResourceDoesNotExist ErrorCode = "RESOURCE_DOES_NOT_EXIST"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_QuotaExceeded ErrorCode = "QUOTA_EXCEEDED"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_MaxBlockSizeExceeded ErrorCode = "MAX_BLOCK_SIZE_EXCEEDED"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_MaxReadSizeExceeded ErrorCode = "MAX_READ_SIZE_EXCEEDED"
+	ErrorCode_PartialDelete       ErrorCode = "PARTIAL_DELETE"
+	ErrorCode_MaxListSizeExceeded ErrorCode = "MAX_LIST_SIZE_EXCEEDED"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_DryRunFailed ErrorCode = "DRY_RUN_FAILED"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes. Cluster request was rejected because it would exceed a
+	// resource limit.
+	ErrorCode_ResourceLimitExceeded ErrorCode = "RESOURCE_LIMIT_EXCEEDED"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_DirectoryNotEmpty ErrorCode = "DIRECTORY_NOT_EMPTY"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_DirectoryProtected ErrorCode = "DIRECTORY_PROTECTED"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_MaxNotebookSizeExceeded  ErrorCode = "MAX_NOTEBOOK_SIZE_EXCEEDED"
+	ErrorCode_MaxChildNodeSizeExceeded ErrorCode = "MAX_CHILD_NODE_SIZE_EXCEEDED"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_SearchQueryTooLong ErrorCode = "SEARCH_QUERY_TOO_LONG"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_SearchQueryTooShort ErrorCode = "SEARCH_QUERY_TOO_SHORT"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_ManagedResourceGroupDoesNotExist ErrorCode = "MANAGED_RESOURCE_GROUP_DOES_NOT_EXIST"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_PermissionNotPropagated ErrorCode = "PERMISSION_NOT_PROPAGATED"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_DeploymentTimeout ErrorCode = "DEPLOYMENT_TIMEOUT"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_GitConflict ErrorCode = "GIT_CONFLICT"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_GitUnknownRef ErrorCode = "GIT_UNKNOWN_REF"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_GitSensitiveTokenDetected ErrorCode = "GIT_SENSITIVE_TOKEN_DETECTED"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_GitUrlNotOnAllowList ErrorCode = "GIT_URL_NOT_ON_ALLOW_LIST"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_GitRemoteError ErrorCode = "GIT_REMOTE_ERROR"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_ProjectsOperationTimeout ErrorCode = "PROJECTS_OPERATION_TIMEOUT"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_IpynbFileInRepo ErrorCode = "IPYNB_FILE_IN_REPO"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_InsecurePartnerResponse ErrorCode = "INSECURE_PARTNER_RESPONSE"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_MalformedPartnerResponse ErrorCode = "MALFORMED_PARTNER_RESPONSE"
+	ErrorCode_MetastoreDoesNotExist    ErrorCode = "METASTORE_DOES_NOT_EXIST"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_DacDoesNotExist               ErrorCode = "DAC_DOES_NOT_EXIST"
+	ErrorCode_CatalogDoesNotExist           ErrorCode = "CATALOG_DOES_NOT_EXIST"
+	ErrorCode_SchemaDoesNotExist            ErrorCode = "SCHEMA_DOES_NOT_EXIST"
+	ErrorCode_TableDoesNotExist             ErrorCode = "TABLE_DOES_NOT_EXIST"
+	ErrorCode_ShareDoesNotExist             ErrorCode = "SHARE_DOES_NOT_EXIST"
+	ErrorCode_RecipientDoesNotExist         ErrorCode = "RECIPIENT_DOES_NOT_EXIST"
+	ErrorCode_StorageCredentialDoesNotExist ErrorCode = "STORAGE_CREDENTIAL_DOES_NOT_EXIST"
+	ErrorCode_ExternalLocationDoesNotExist  ErrorCode = "EXTERNAL_LOCATION_DOES_NOT_EXIST"
+	ErrorCode_PrincipalDoesNotExist         ErrorCode = "PRINCIPAL_DOES_NOT_EXIST"
+	ErrorCode_ProviderDoesNotExist          ErrorCode = "PROVIDER_DOES_NOT_EXIST"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_MetastoreAlreadyExists ErrorCode = "METASTORE_ALREADY_EXISTS"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_DacAlreadyExists ErrorCode = "DAC_ALREADY_EXISTS"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_CatalogAlreadyExists ErrorCode = "CATALOG_ALREADY_EXISTS"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_SchemaAlreadyExists ErrorCode = "SCHEMA_ALREADY_EXISTS"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_TableAlreadyExists ErrorCode = "TABLE_ALREADY_EXISTS"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_ShareAlreadyExists ErrorCode = "SHARE_ALREADY_EXISTS"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_RecipientAlreadyExists ErrorCode = "RECIPIENT_ALREADY_EXISTS"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_StorageCredentialAlreadyExists ErrorCode = "STORAGE_CREDENTIAL_ALREADY_EXISTS"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_ExternalLocationAlreadyExists ErrorCode = "EXTERNAL_LOCATION_ALREADY_EXISTS"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_ProviderAlreadyExists ErrorCode = "PROVIDER_ALREADY_EXISTS"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_CatalogNotEmpty ErrorCode = "CATALOG_NOT_EMPTY"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_SchemaNotEmpty ErrorCode = "SCHEMA_NOT_EMPTY"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_MetastoreNotEmpty ErrorCode = "METASTORE_NOT_EMPTY"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_ProviderShareNotAccessible ErrorCode = "PROVIDER_SHARE_NOT_ACCESSIBLE"
 )
 
 // Scalar data types for request-time field definitions. Only flat (non-nested)
@@ -23,6 +422,23 @@ const (
 	ScalarDataType_Short       ScalarDataType = "SHORT"
 	ScalarDataType_Binary      ScalarDataType = "BINARY"
 	ScalarDataType_Decimal     ScalarDataType = "DECIMAL"
+)
+
+// Lifecycle state of a backfill.
+type BackfillOperationMetadata_State string
+
+const (
+	BackfillOperationMetadata_State_Unspecified BackfillOperationMetadata_State = ""
+	// The backfill is pending.
+	BackfillOperationMetadata_State_Pending BackfillOperationMetadata_State = "PENDING"
+	// The backfill is running.
+	BackfillOperationMetadata_State_Running BackfillOperationMetadata_State = "RUNNING"
+	// The backfill succeeded.
+	BackfillOperationMetadata_State_Succeeded BackfillOperationMetadata_State = "SUCCEEDED"
+	// The backfill failed.
+	BackfillOperationMetadata_State_Failed BackfillOperationMetadata_State = "FAILED"
+	// The backfill was cancelled.
+	BackfillOperationMetadata_State_Cancelled BackfillOperationMetadata_State = "CANCELLED"
 )
 
 type MaterializedFeature_PipelineScheduleState string
@@ -215,6 +631,14 @@ type aggregationFunctionOperationFieldMaskMetadata struct {
 	*AggregationFunction_Operation_LastDistinct
 }
 
+// Databricks Error that is returned by all Databricks APIs..
+type ApiError struct {
+	ErrorCode  ErrorCode
+	Message    *string
+	StackTrace *string
+	Details    []json.RawMessage
+}
+
 // Computes the approximate count of distinct values..
 type ApproxCountDistinctFunction struct {
 	// The input column from which the approximate count of distinct values is
@@ -275,6 +699,38 @@ type AvgFunction struct {
 	Input *string `fieldmask:"input"`
 }
 
+type BackfillFeaturesRequest struct {
+	// Full names of the features to backfill.
+	FeatureFullNames []string
+	// Output ranges to backfill.
+	BackfillRanges []BackfillRange
+	// Idempotency token for the request.
+	RequestId *string
+}
+
+// Result of a completed backfill..
+type BackfillFeaturesResponse struct {
+}
+
+// Progress and configuration for a backfill..
+type BackfillOperationMetadata struct {
+	// Full names of the features targeted by the backfill.
+	FeatureFullNames []string
+	// Output ranges targeted by the backfill.
+	BackfillRanges []BackfillRange
+	// Current state of the backfill.
+	State BackfillOperationMetadata_State
+}
+
+// A time range for a backfill..
+type BackfillRange struct {
+	// Start of the backfill range, inclusive. If unset, defaults to the earliest
+	// source timestamp of the feature.
+	StartTime *types.Time
+	// End of the backfill range, exclusive. If unset, defaults to the current time.
+	EndTime *types.Time
+}
+
 type BackfillSource struct {
 	BackfillSource isBackfillSource_BackfillSource
 	_              [0]backfillSourceBackfillSourceFieldMaskMetadata `fieldmask_oneof:"BackfillSource"`
@@ -316,6 +772,12 @@ type BatchCreateMaterializedFeaturesRequest struct {
 type BatchCreateMaterializedFeaturesResponse struct {
 	// The created materialized features with assigned IDs.
 	MaterializedFeatures []MaterializedFeature
+}
+
+// The request message for `CancelOperation` method..
+type CancelOperationRequest struct {
+	// The name of the operation resource to be cancelled.
+	Name *string
 }
 
 // A ColumnSelection function, equivalent to the LAST() record of an entity over
@@ -633,6 +1095,12 @@ type GetMaterializedFeatureRequest struct {
 	MaterializedFeatureId *string
 }
 
+// The request message for `GetOperation` method..
+type GetOperationRequest struct {
+	// The name of the operation resource.
+	Name *string
+}
+
 // Get a Stream by its full three-part name (catalog.schema.stream)..
 type GetStreamRequest struct {
 	// Full three-part name (catalog.schema.stream) of the Stream to get.
@@ -652,7 +1120,8 @@ type IngestionConfig struct {
 	// creating a training set from streaming features linked to this Stream. The
 	// backfill data stored in this location will be copied into the ingestion table
 	// for offline querying and training. The schema for this source must match
-	// exactly that of the key and payload schemas specified for this Stream.
+	// exactly that of the key and payload schemas specified for this Stream, except
+	// that it may omit any columns listed in excluded_columns.
 	BackfillSource *BackfillSource `fieldmask:"backfill_source"`
 	// Column paths used to identify duplicate rows during ingestion; only one row
 	// per distinct combination of these values is kept. Use dot notation for nested
@@ -820,8 +1289,13 @@ type KinesisStreamConfig struct {
 	// both). A single Stream may read from one or more Kinesis streams.
 	StreamIdentifier isKinesisStreamConfig_StreamIdentifier
 	// Optional Kinesis source options, validated against a server-side allowlist at
-	// request time. Auth and connection details belong on the parent Stream's
-	// `connection_config`, not here.
+	// request time. Allowed keys: - `consumerMode` - `consumerNamePrefix` -
+	// `maxFetchRate` - `minFetchPeriod` - `maxFetchDuration` - `maxRecordsPerFetch`
+	// - `shardsPerTask` - `fetchBufferSize` - `shardFetchInterval` `consumerMode`
+	// must be `efo` or `polling` (case-insensitive). `maxRecordsPerFetch` applies
+	// only during ingestion and does not affect the materialization pipeline. Auth
+	// and connection details belong on the parent Stream's `connection_config`, not
+	// here.
 	ExtraOptions map[string]string                                       `fieldmask:"extra_options"`
 	_            [0]kinesisStreamConfigStreamIdentifierFieldMaskMetadata `fieldmask_oneof:"StreamIdentifier"`
 }
@@ -1139,6 +1613,48 @@ type OnlineStoreConfig struct {
 	OnlineStoreName *string `fieldmask:"online_store_name"`
 }
 
+// This resource represents a long-running operation that is the result of a
+// network API call..
+type Operation struct {
+	// The server-assigned name, which is only unique within the same service that
+	// originally returns it. If you use the default HTTP mapping, the `name` should
+	// be a resource name ending with `operations/{unique_id}`.
+	Name *string
+	// Service-specific metadata associated with the operation. It typically
+	// contains progress information and common metadata such as create time. Some
+	// services might not provide such metadata.
+	Metadata json.RawMessage
+	// If the value is `false`, it means the operation is still in progress. If
+	// `true`, the operation is completed, and either `error` or `response` is
+	// available.
+	Done *bool
+	// The operation result, which can be either an `error` or a valid `response`.
+	// If `done` == `false`, neither `error` nor `response` is set. If `done` ==
+	// `true`, exactly one of `error` or `response` can be set. Some services might
+	// not provide the result.
+	Result isOperation_Result
+}
+
+type isOperation_Result interface {
+	isOperation_Result()
+}
+
+// Operation_Result_Error selects Error for Operation.Result.
+// The error result of the operation in case of failure or cancellation.
+type Operation_Result_Error struct {
+	Error ApiError
+}
+
+func (*Operation_Result_Error) isOperation_Result() {}
+
+// Operation_Result_Response selects Response for Operation.Result.
+// The normal, successful response of the operation.
+type Operation_Result_Response struct {
+	Response json.RawMessage
+}
+
+func (*Operation_Result_Response) isOperation_Result() {}
+
 // A Protocol Buffer schema paired with the name of the message within it that
 // describes the Kafka payload. A .proto file may declare multiple messages;
 // message_name disambiguates..
@@ -1379,6 +1895,20 @@ type Stream struct {
 	// Configuration for streaming data ingestion: the managed table storing an
 	// offline copy of forward fill data and optional historical backfill.
 	IngestionConfig *IngestionConfig `fieldmask:"ingestion_config"`
+	// Optional SQL predicate to filter which record types from a streaming channel
+	// (e.g. a topic for Kafka) belong to this Stream. Events that do not match are
+	// not written to the ingestion table and are not used in materialization.
+	// Example: "value.event_type = 'transaction'".
+	RecordTypeFilter *string `fieldmask:"record_type_filter"`
+	// Column paths (dot notation, e.g. "value.email" for Kafka) to drop. A path may
+	// reference a struct, in which case all of its nested fields are dropped (e.g.
+	// "value.address" drops "value.address.city" and "value.address.zip"). These
+	// columns are not written to the ingestion table and cannot be referenced by
+	// any feature. They are dropped from ingestion, backfill, and materialization.
+	// For direct schemas, each column must exist in the relevant key or payload
+	// schema. With a schema registry, a column can be excluded before it exists. A
+	// column cannot also be a deduplication column in the ingestion_config.
+	ExcludedColumns []string `fieldmask:"excluded_columns"`
 	// Time at which this Stream was created.
 	CreateTime *types.Time `fieldmask:"create_time"`
 	// Username of the Stream creator.
@@ -1711,4 +2241,16 @@ type VarPopFunction struct {
 type VarSampFunction struct {
 	// The input column from which the sample variance is computed.
 	Input *string `fieldmask:"input"`
+}
+
+// Error returns the LRO error code and message.
+func (e *ApiError) Error() string {
+	message := "unknown error"
+	if e.Message != nil && *e.Message != "" {
+		message = *e.Message
+	}
+	if e.ErrorCode != "" {
+		return fmt.Sprintf("[%v] %s", e.ErrorCode, message)
+	}
+	return message
 }

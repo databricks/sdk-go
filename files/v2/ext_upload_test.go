@@ -47,9 +47,10 @@ func buildUploadClient(t *testing.T, host string, hc *http.Client, workspaceID s
 		client.WithHTTPClient(hc),
 		client.WithCredentials(testCredentials{}),
 		client.WithLogger(slog.New(slog.NewTextHandler(io.Discard, nil))),
-		// Keep tests hermetic: without this, an unset workspace ID would be
-		// filled from the developer's local profile.
-		client.WithoutProfileResolution(),
+		// Keep tests hermetic: without these, an unset workspace ID could be
+		// filled from the developer's local configuration.
+		client.WithoutConfigFile(),
+		client.WithoutEnv(),
 	}
 	if workspaceID != "" {
 		opts = append(opts, client.WithWorkspaceID(workspaceID))

@@ -75,8 +75,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Creates a notification destination. Requires workspace admin permissions.
-func (c *internalClient) CreateNotificationDestination(ctx context.Context, req *CreateNotificationDestinationRequest, opts ...call.Option) (*NotificationDestination, error) {
-	wireReq, err := createNotificationDestinationRequestToWire(req)
+func (c *internalClient) CreateNotificationDestination(ctx context.Context, req CreateNotificationDestinationRequest, opts ...call.Option) (*NotificationDestination, error) {
+	wireReq, err := createNotificationDestinationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func (c *internalClient) CreateNotificationDestination(ctx context.Context, req 
 }
 
 // Deletes a notification destination. Requires workspace admin permissions.
-func (c *internalClient) DeleteNotificationDestination(ctx context.Context, req *DeleteNotificationDestinationRequest, opts ...call.Option) (*Empty, error) {
+func (c *internalClient) DeleteNotificationDestination(ctx context.Context, req DeleteNotificationDestinationRequest, opts ...call.Option) (*Empty, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -155,7 +155,11 @@ func (c *internalClient) DeleteNotificationDestination(ctx context.Context, req 
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/notification-destinations/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -195,7 +199,7 @@ func (c *internalClient) DeleteNotificationDestination(ctx context.Context, req 
 }
 
 // Gets a notification destination.
-func (c *internalClient) GetNotificationDestination(ctx context.Context, req *GetNotificationDestinationRequest, opts ...call.Option) (*NotificationDestination, error) {
+func (c *internalClient) GetNotificationDestination(ctx context.Context, req GetNotificationDestinationRequest, opts ...call.Option) (*NotificationDestination, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -209,7 +213,11 @@ func (c *internalClient) GetNotificationDestination(ctx context.Context, req *Ge
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/notification-destinations/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -255,8 +263,8 @@ func (c *internalClient) GetNotificationDestination(ctx context.Context, req *Ge
 }
 
 // Lists notification destinations.
-func (c *internalClient) ListNotificationDestinations(ctx context.Context, req *ListNotificationDestinationsRequest, opts ...call.Option) (*ListNotificationDestinationsResponse, error) {
-	wireReq, err := listNotificationDestinationsRequestToWire(req)
+func (c *internalClient) ListNotificationDestinations(ctx context.Context, req ListNotificationDestinationsRequest, opts ...call.Option) (*ListNotificationDestinationsResponse, error) {
+	wireReq, err := listNotificationDestinationsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -326,7 +334,7 @@ func (c *internalClient) ListNotificationDestinations(ctx context.Context, req *
 //
 // For example:
 //
-//	for item, err := range c.ListNotificationDestinationsIter(ctx, &ListNotificationDestinationsRequest{}) {
+//	for item, err := range c.ListNotificationDestinationsIter(ctx, ListNotificationDestinationsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -338,16 +346,13 @@ func (c *internalClient) ListNotificationDestinations(ctx context.Context, req *
 //
 // Callers who need custom pagination logic should use
 // ListNotificationDestinations directly.
-func (c *internalClient) ListNotificationDestinationsIter(ctx context.Context, req *ListNotificationDestinationsRequest, opts ...call.Option) iter.Seq2[*ListNotificationDestinationsResult, error] {
+func (c *internalClient) ListNotificationDestinationsIter(ctx context.Context, req ListNotificationDestinationsRequest, opts ...call.Option) iter.Seq2[*ListNotificationDestinationsResult, error] {
 	return func(yield func(*ListNotificationDestinationsResult, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListNotificationDestinationsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListNotificationDestinations(ctx, &pageReq, opts...)
+			resp, err := c.ListNotificationDestinations(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -367,8 +372,8 @@ func (c *internalClient) ListNotificationDestinationsIter(ctx context.Context, r
 
 // Updates a notification destination. Requires workspace admin permissions. At
 // least one field is required in the request body.
-func (c *internalClient) UpdateNotificationDestination(ctx context.Context, req *UpdateNotificationDestinationRequest, opts ...call.Option) (*NotificationDestination, error) {
-	wireReq, err := updateNotificationDestinationRequestToWire(req)
+func (c *internalClient) UpdateNotificationDestination(ctx context.Context, req UpdateNotificationDestinationRequest, opts ...call.Option) (*NotificationDestination, error) {
+	wireReq, err := updateNotificationDestinationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -389,7 +394,11 @@ func (c *internalClient) UpdateNotificationDestination(ctx context.Context, req 
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/notification-destinations/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

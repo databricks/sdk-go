@@ -77,8 +77,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Creates a new database branch in the project.
-func (c *internalClient) createBranchBase(ctx context.Context, req *CreateBranchRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := createBranchRequestToWire(req)
+func (c *internalClient) createBranchBase(ctx context.Context, req CreateBranchRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := createBranchRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,11 @@ func (c *internalClient) createBranchBase(ctx context.Context, req *CreateBranch
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/branches")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -153,7 +157,7 @@ func (c *internalClient) createBranchBase(ctx context.Context, req *CreateBranch
 }
 
 // Creates a new database branch in the project.
-func (c *internalClient) CreateBranch(ctx context.Context, req *CreateBranchRequest, opts ...call.Option) (*CreateBranchOperation, error) {
+func (c *internalClient) CreateBranch(ctx context.Context, req CreateBranchRequest, opts ...call.Option) (*CreateBranchOperation, error) {
 	operation, err := c.createBranchBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -170,7 +174,7 @@ func (c *internalClient) CreateBranch(ctx context.Context, req *CreateBranchRequ
 // CreateBranchOperation tracks the state of the long-running operation started by CreateBranch.
 type CreateBranchOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -196,7 +200,7 @@ func (o *CreateBranchOperation) Metadata() (*BranchOperationMetadata, error) {
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *CreateBranchOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -214,7 +218,7 @@ func (o *CreateBranchOperation) Done(ctx context.Context, opts ...call.Option) (
 func (o *CreateBranchOperation) Wait(ctx context.Context, opts ...lro.Option) (*Branch, error) {
 	var result *Branch
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -252,8 +256,8 @@ func (o *CreateBranchOperation) Wait(ctx context.Context, opts ...lro.Option) (*
 }
 
 // Register a Postgres database in the Unity Catalog.
-func (c *internalClient) createCatalogBase(ctx context.Context, req *CreateCatalogRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := createCatalogRequestToWire(req)
+func (c *internalClient) createCatalogBase(ctx context.Context, req CreateCatalogRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := createCatalogRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -321,7 +325,7 @@ func (c *internalClient) createCatalogBase(ctx context.Context, req *CreateCatal
 }
 
 // Register a Postgres database in the Unity Catalog.
-func (c *internalClient) CreateCatalog(ctx context.Context, req *CreateCatalogRequest, opts ...call.Option) (*CreateCatalogOperation, error) {
+func (c *internalClient) CreateCatalog(ctx context.Context, req CreateCatalogRequest, opts ...call.Option) (*CreateCatalogOperation, error) {
 	operation, err := c.createCatalogBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -338,7 +342,7 @@ func (c *internalClient) CreateCatalog(ctx context.Context, req *CreateCatalogRe
 // CreateCatalogOperation tracks the state of the long-running operation started by CreateCatalog.
 type CreateCatalogOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -364,7 +368,7 @@ func (o *CreateCatalogOperation) Metadata() (*CatalogOperationMetadata, error) {
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *CreateCatalogOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -382,7 +386,7 @@ func (o *CreateCatalogOperation) Done(ctx context.Context, opts ...call.Option) 
 func (o *CreateCatalogOperation) Wait(ctx context.Context, opts ...lro.Option) (*Catalog, error) {
 	var result *Catalog
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -423,8 +427,8 @@ func (o *CreateCatalogOperation) Wait(ctx context.Context, opts ...lro.Option) (
 // tables in a Postgres schema as open-format Delta tables in Unity Catalog.
 // Once created, each table's change history is continuously written to its
 // corresponding Lakehouse table.
-func (c *internalClient) createCdfConfigBase(ctx context.Context, req *CreateCdfConfigRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := createCdfConfigRequestToWire(req)
+func (c *internalClient) createCdfConfigBase(ctx context.Context, req CreateCdfConfigRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := createCdfConfigRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -445,7 +449,11 @@ func (c *internalClient) createCdfConfigBase(ctx context.Context, req *CreateCdf
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/cdf-configs")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -499,7 +507,7 @@ func (c *internalClient) createCdfConfigBase(ctx context.Context, req *CreateCdf
 // tables in a Postgres schema as open-format Delta tables in Unity Catalog.
 // Once created, each table's change history is continuously written to its
 // corresponding Lakehouse table.
-func (c *internalClient) CreateCdfConfig(ctx context.Context, req *CreateCdfConfigRequest, opts ...call.Option) (*CreateCdfConfigOperation, error) {
+func (c *internalClient) CreateCdfConfig(ctx context.Context, req CreateCdfConfigRequest, opts ...call.Option) (*CreateCdfConfigOperation, error) {
 	operation, err := c.createCdfConfigBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -516,7 +524,7 @@ func (c *internalClient) CreateCdfConfig(ctx context.Context, req *CreateCdfConf
 // CreateCdfConfigOperation tracks the state of the long-running operation started by CreateCdfConfig.
 type CreateCdfConfigOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -542,7 +550,7 @@ func (o *CreateCdfConfigOperation) Metadata() (*CdfConfigOperationMetadata, erro
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *CreateCdfConfigOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -560,7 +568,7 @@ func (o *CreateCdfConfigOperation) Done(ctx context.Context, opts ...call.Option
 func (o *CreateCdfConfigOperation) Wait(ctx context.Context, opts ...lro.Option) (*CdfConfig, error) {
 	var result *CdfConfig
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -598,8 +606,8 @@ func (o *CreateCdfConfigOperation) Wait(ctx context.Context, opts ...lro.Option)
 }
 
 // Enable Data API for a database.
-func (c *internalClient) createDataApiBase(ctx context.Context, req *CreateDataApiRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := createDataApiRequestToWire(req)
+func (c *internalClient) createDataApiBase(ctx context.Context, req CreateDataApiRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := createDataApiRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -620,7 +628,11 @@ func (c *internalClient) createDataApiBase(ctx context.Context, req *CreateDataA
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/data-api")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -668,7 +680,7 @@ func (c *internalClient) createDataApiBase(ctx context.Context, req *CreateDataA
 }
 
 // Enable Data API for a database.
-func (c *internalClient) CreateDataApi(ctx context.Context, req *CreateDataApiRequest, opts ...call.Option) (*CreateDataApiOperation, error) {
+func (c *internalClient) CreateDataApi(ctx context.Context, req CreateDataApiRequest, opts ...call.Option) (*CreateDataApiOperation, error) {
 	operation, err := c.createDataApiBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -685,7 +697,7 @@ func (c *internalClient) CreateDataApi(ctx context.Context, req *CreateDataApiRe
 // CreateDataApiOperation tracks the state of the long-running operation started by CreateDataApi.
 type CreateDataApiOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -711,7 +723,7 @@ func (o *CreateDataApiOperation) Metadata() (*DataApiOperationMetadata, error) {
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *CreateDataApiOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -729,7 +741,7 @@ func (o *CreateDataApiOperation) Done(ctx context.Context, opts ...call.Option) 
 func (o *CreateDataApiOperation) Wait(ctx context.Context, opts ...lro.Option) (*DataApi, error) {
 	var result *DataApi
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -770,8 +782,8 @@ func (o *CreateDataApiOperation) Wait(ctx context.Context, opts ...lro.Option) (
 //
 // Creates a database in the specified branch. A branch can have multiple
 // databases.
-func (c *internalClient) createDatabaseBase(ctx context.Context, req *CreateDatabaseRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := createDatabaseRequestToWire(req)
+func (c *internalClient) createDatabaseBase(ctx context.Context, req CreateDatabaseRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := createDatabaseRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -792,7 +804,11 @@ func (c *internalClient) createDatabaseBase(ctx context.Context, req *CreateData
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/databases")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -849,7 +865,7 @@ func (c *internalClient) createDatabaseBase(ctx context.Context, req *CreateData
 //
 // Creates a database in the specified branch. A branch can have multiple
 // databases.
-func (c *internalClient) CreateDatabase(ctx context.Context, req *CreateDatabaseRequest, opts ...call.Option) (*CreateDatabaseOperation, error) {
+func (c *internalClient) CreateDatabase(ctx context.Context, req CreateDatabaseRequest, opts ...call.Option) (*CreateDatabaseOperation, error) {
 	operation, err := c.createDatabaseBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -866,7 +882,7 @@ func (c *internalClient) CreateDatabase(ctx context.Context, req *CreateDatabase
 // CreateDatabaseOperation tracks the state of the long-running operation started by CreateDatabase.
 type CreateDatabaseOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -892,7 +908,7 @@ func (o *CreateDatabaseOperation) Metadata() (*DatabaseOperationMetadata, error)
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *CreateDatabaseOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -910,7 +926,7 @@ func (o *CreateDatabaseOperation) Done(ctx context.Context, opts ...call.Option)
 func (o *CreateDatabaseOperation) Wait(ctx context.Context, opts ...lro.Option) (*Database, error) {
 	var result *Database
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -948,8 +964,8 @@ func (o *CreateDatabaseOperation) Wait(ctx context.Context, opts ...lro.Option) 
 }
 
 // Creates a new compute endpoint in the branch.
-func (c *internalClient) createEndpointBase(ctx context.Context, req *CreateEndpointRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := createEndpointRequestToWire(req)
+func (c *internalClient) createEndpointBase(ctx context.Context, req CreateEndpointRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := createEndpointRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -970,7 +986,11 @@ func (c *internalClient) createEndpointBase(ctx context.Context, req *CreateEndp
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/endpoints")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1024,7 +1044,7 @@ func (c *internalClient) createEndpointBase(ctx context.Context, req *CreateEndp
 }
 
 // Creates a new compute endpoint in the branch.
-func (c *internalClient) CreateEndpoint(ctx context.Context, req *CreateEndpointRequest, opts ...call.Option) (*CreateEndpointOperation, error) {
+func (c *internalClient) CreateEndpoint(ctx context.Context, req CreateEndpointRequest, opts ...call.Option) (*CreateEndpointOperation, error) {
 	operation, err := c.createEndpointBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -1041,7 +1061,7 @@ func (c *internalClient) CreateEndpoint(ctx context.Context, req *CreateEndpoint
 // CreateEndpointOperation tracks the state of the long-running operation started by CreateEndpoint.
 type CreateEndpointOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -1067,7 +1087,7 @@ func (o *CreateEndpointOperation) Metadata() (*EndpointOperationMetadata, error)
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *CreateEndpointOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -1085,7 +1105,7 @@ func (o *CreateEndpointOperation) Done(ctx context.Context, opts ...call.Option)
 func (o *CreateEndpointOperation) Wait(ctx context.Context, opts ...lro.Option) (*Endpoint, error) {
 	var result *Endpoint
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -1124,8 +1144,8 @@ func (o *CreateEndpointOperation) Wait(ctx context.Context, opts ...lro.Option) 
 
 // Creates a new Lakebase Autoscaling Postgres database project, which contains
 // branches and compute endpoints.
-func (c *internalClient) createProjectBase(ctx context.Context, req *CreateProjectRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := createProjectRequestToWire(req)
+func (c *internalClient) createProjectBase(ctx context.Context, req CreateProjectRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := createProjectRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1194,7 +1214,7 @@ func (c *internalClient) createProjectBase(ctx context.Context, req *CreateProje
 
 // Creates a new Lakebase Autoscaling Postgres database project, which contains
 // branches and compute endpoints.
-func (c *internalClient) CreateProject(ctx context.Context, req *CreateProjectRequest, opts ...call.Option) (*CreateProjectOperation, error) {
+func (c *internalClient) CreateProject(ctx context.Context, req CreateProjectRequest, opts ...call.Option) (*CreateProjectOperation, error) {
 	operation, err := c.createProjectBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -1211,7 +1231,7 @@ func (c *internalClient) CreateProject(ctx context.Context, req *CreateProjectRe
 // CreateProjectOperation tracks the state of the long-running operation started by CreateProject.
 type CreateProjectOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -1237,7 +1257,7 @@ func (o *CreateProjectOperation) Metadata() (*ProjectOperationMetadata, error) {
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *CreateProjectOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -1255,7 +1275,7 @@ func (o *CreateProjectOperation) Done(ctx context.Context, opts ...call.Option) 
 func (o *CreateProjectOperation) Wait(ctx context.Context, opts ...lro.Option) (*Project, error) {
 	var result *Project
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -1293,8 +1313,8 @@ func (o *CreateProjectOperation) Wait(ctx context.Context, opts ...lro.Option) (
 }
 
 // Creates a new Postgres role in the branch.
-func (c *internalClient) createRoleBase(ctx context.Context, req *CreateRoleRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := createRoleRequestToWire(req)
+func (c *internalClient) createRoleBase(ctx context.Context, req CreateRoleRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := createRoleRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1315,7 +1335,11 @@ func (c *internalClient) createRoleBase(ctx context.Context, req *CreateRoleRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/roles")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1369,7 +1393,7 @@ func (c *internalClient) createRoleBase(ctx context.Context, req *CreateRoleRequ
 }
 
 // Creates a new Postgres role in the branch.
-func (c *internalClient) CreateRole(ctx context.Context, req *CreateRoleRequest, opts ...call.Option) (*CreateRoleOperation, error) {
+func (c *internalClient) CreateRole(ctx context.Context, req CreateRoleRequest, opts ...call.Option) (*CreateRoleOperation, error) {
 	operation, err := c.createRoleBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -1386,7 +1410,7 @@ func (c *internalClient) CreateRole(ctx context.Context, req *CreateRoleRequest,
 // CreateRoleOperation tracks the state of the long-running operation started by CreateRole.
 type CreateRoleOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -1412,7 +1436,7 @@ func (o *CreateRoleOperation) Metadata() (*RoleOperationMetadata, error) {
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *CreateRoleOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -1430,7 +1454,7 @@ func (o *CreateRoleOperation) Done(ctx context.Context, opts ...call.Option) (bo
 func (o *CreateRoleOperation) Wait(ctx context.Context, opts ...lro.Option) (*Role, error) {
 	var result *Role
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -1467,9 +1491,187 @@ func (o *CreateRoleOperation) Wait(ctx context.Context, opts ...lro.Option) (*Ro
 	return result, nil
 }
 
+// Creates a snapshot, an immutable point-in-time copy of a branch's data,
+// within the project.
+func (c *internalClient) createSnapshotBase(ctx context.Context, req CreateSnapshotRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := createSnapshotRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq.Snapshot)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/postgres/")
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
+	pb.literal("/snapshots")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "snapshot_id", wireReq.SnapshotId); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Operation
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp operationWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = operationFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Creates a snapshot, an immutable point-in-time copy of a branch's data,
+// within the project.
+func (c *internalClient) CreateSnapshot(ctx context.Context, req CreateSnapshotRequest, opts ...call.Option) (*CreateSnapshotOperation, error) {
+	operation, err := c.createSnapshotBase(ctx, req, opts...)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateOperationName(operation.Name); err != nil {
+		return nil, err
+	}
+	return &CreateSnapshotOperation{
+		operation:    operation,
+		getOperation: c.getOperation,
+	}, nil
+}
+
+// CreateSnapshotOperation tracks the state of the long-running operation started by CreateSnapshot.
+type CreateSnapshotOperation struct {
+	operation    *Operation
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
+}
+
+// Name returns the server-assigned operation name.
+func (o *CreateSnapshotOperation) Name() *string {
+	return o.operation.Name
+}
+
+// Metadata returns metadata associated with the operation.
+func (o *CreateSnapshotOperation) Metadata() (*SnapshotOperationMetadata, error) {
+	if len(o.operation.Metadata) == 0 || bytes.Equal(bytes.TrimSpace(o.operation.Metadata), []byte("null")) {
+		return nil, nil
+	}
+	var metadata snapshotOperationMetadataWire
+	if err := json.Unmarshal(o.operation.Metadata, &metadata); err != nil {
+		return nil, fmt.Errorf("decode operation metadata: %w", err)
+	}
+	converted, err := snapshotOperationMetadataFromWire(&metadata)
+	if err != nil {
+		return nil, err
+	}
+	return converted, nil
+}
+
+// Done refreshes the operation and reports whether it has completed.
+func (o *CreateSnapshotOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
+	if err != nil {
+		return false, err
+	}
+	if err := validateOperationName(operation.Name); err != nil {
+		return false, err
+	}
+	o.operation = operation
+	if operation.Done == nil {
+		return false, fmt.Errorf("invalid operation response: missing done field")
+	}
+	return *operation.Done, nil
+}
+
+// Wait polls the operation until it completes.
+func (o *CreateSnapshotOperation) Wait(ctx context.Context, opts ...lro.Option) (*Snapshot, error) {
+	var result *Snapshot
+	poll := func(ctx context.Context) error {
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
+		if err != nil {
+			return err
+		}
+		if err := validateOperationName(operation.Name); err != nil {
+			return err
+		}
+		o.operation = operation
+		if operation.Done == nil {
+			return fmt.Errorf("invalid operation response: missing done field")
+		}
+		if !*operation.Done {
+			return errOperationStillRunning
+		}
+		if operationError, ok := operation.Result.(*Operation_Result_Error); ok && operationError != nil {
+			return fmt.Errorf("operation failed: %w", &operationError.Error)
+		}
+		operationResponse, ok := operation.Result.(*Operation_Result_Response)
+		if !ok || operationResponse == nil || len(operationResponse.Response) == 0 || bytes.Equal(bytes.TrimSpace(operationResponse.Response), []byte("null")) {
+			return fmt.Errorf("operation completed without a response")
+		}
+		var response snapshotWire
+		if err := json.Unmarshal(operationResponse.Response, &response); err != nil {
+			return fmt.Errorf("decode operation response: %w", err)
+		}
+		result, err = snapshotFromWire(&response)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	if err := executeWait(ctx, poll, opts...); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 // Create a Synced Table.
-func (c *internalClient) createSyncedTableBase(ctx context.Context, req *CreateSyncedTableRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := createSyncedTableRequestToWire(req)
+func (c *internalClient) createSyncedTableBase(ctx context.Context, req CreateSyncedTableRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := createSyncedTableRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1537,7 +1739,7 @@ func (c *internalClient) createSyncedTableBase(ctx context.Context, req *CreateS
 }
 
 // Create a Synced Table.
-func (c *internalClient) CreateSyncedTable(ctx context.Context, req *CreateSyncedTableRequest, opts ...call.Option) (*CreateSyncedTableOperation, error) {
+func (c *internalClient) CreateSyncedTable(ctx context.Context, req CreateSyncedTableRequest, opts ...call.Option) (*CreateSyncedTableOperation, error) {
 	operation, err := c.createSyncedTableBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -1554,7 +1756,7 @@ func (c *internalClient) CreateSyncedTable(ctx context.Context, req *CreateSynce
 // CreateSyncedTableOperation tracks the state of the long-running operation started by CreateSyncedTable.
 type CreateSyncedTableOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -1580,7 +1782,7 @@ func (o *CreateSyncedTableOperation) Metadata() (*SyncedTableOperationMetadata, 
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *CreateSyncedTableOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -1598,7 +1800,7 @@ func (o *CreateSyncedTableOperation) Done(ctx context.Context, opts ...call.Opti
 func (o *CreateSyncedTableOperation) Wait(ctx context.Context, opts ...lro.Option) (*SyncedTable, error) {
 	var result *SyncedTable
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -1636,8 +1838,8 @@ func (o *CreateSyncedTableOperation) Wait(ctx context.Context, opts ...lro.Optio
 }
 
 // Deletes the specified database branch.
-func (c *internalClient) deleteBranchBase(ctx context.Context, req *DeleteBranchRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := deleteBranchRequestToWire(req)
+func (c *internalClient) deleteBranchBase(ctx context.Context, req DeleteBranchRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := deleteBranchRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1654,7 +1856,11 @@ func (c *internalClient) deleteBranchBase(ctx context.Context, req *DeleteBranch
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "purge", wireReq.Purge); err != nil {
@@ -1703,7 +1909,7 @@ func (c *internalClient) deleteBranchBase(ctx context.Context, req *DeleteBranch
 }
 
 // Deletes the specified database branch.
-func (c *internalClient) DeleteBranch(ctx context.Context, req *DeleteBranchRequest, opts ...call.Option) (*DeleteBranchOperation, error) {
+func (c *internalClient) DeleteBranch(ctx context.Context, req DeleteBranchRequest, opts ...call.Option) (*DeleteBranchOperation, error) {
 	operation, err := c.deleteBranchBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -1720,7 +1926,7 @@ func (c *internalClient) DeleteBranch(ctx context.Context, req *DeleteBranchRequ
 // DeleteBranchOperation tracks the state of the long-running operation started by DeleteBranch.
 type DeleteBranchOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -1746,7 +1952,7 @@ func (o *DeleteBranchOperation) Metadata() (*BranchOperationMetadata, error) {
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *DeleteBranchOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -1763,7 +1969,7 @@ func (o *DeleteBranchOperation) Done(ctx context.Context, opts ...call.Option) (
 // Wait polls the operation until it completes.
 func (o *DeleteBranchOperation) Wait(ctx context.Context, opts ...lro.Option) error {
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -1793,7 +1999,7 @@ func (o *DeleteBranchOperation) Wait(ctx context.Context, opts ...lro.Option) er
 }
 
 // Delete a Database Catalog.
-func (c *internalClient) deleteCatalogBase(ctx context.Context, req *DeleteCatalogRequest, opts ...call.Option) (*Operation, error) {
+func (c *internalClient) deleteCatalogBase(ctx context.Context, req DeleteCatalogRequest, opts ...call.Option) (*Operation, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1807,7 +2013,11 @@ func (c *internalClient) deleteCatalogBase(ctx context.Context, req *DeleteCatal
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1853,7 +2063,7 @@ func (c *internalClient) deleteCatalogBase(ctx context.Context, req *DeleteCatal
 }
 
 // Delete a Database Catalog.
-func (c *internalClient) DeleteCatalog(ctx context.Context, req *DeleteCatalogRequest, opts ...call.Option) (*DeleteCatalogOperation, error) {
+func (c *internalClient) DeleteCatalog(ctx context.Context, req DeleteCatalogRequest, opts ...call.Option) (*DeleteCatalogOperation, error) {
 	operation, err := c.deleteCatalogBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -1870,7 +2080,7 @@ func (c *internalClient) DeleteCatalog(ctx context.Context, req *DeleteCatalogRe
 // DeleteCatalogOperation tracks the state of the long-running operation started by DeleteCatalog.
 type DeleteCatalogOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -1896,7 +2106,7 @@ func (o *DeleteCatalogOperation) Metadata() (*CatalogOperationMetadata, error) {
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *DeleteCatalogOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -1913,7 +2123,7 @@ func (o *DeleteCatalogOperation) Done(ctx context.Context, opts ...call.Option) 
 // Wait polls the operation until it completes.
 func (o *DeleteCatalogOperation) Wait(ctx context.Context, opts ...lro.Option) error {
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -1945,8 +2155,8 @@ func (o *DeleteCatalogOperation) Wait(ctx context.Context, opts ...lro.Option) e
 // Delete a CDF configuration and stop materializing the change data feed. When
 // force=true, also drops the Delta tables in Unity Catalog. When force=false
 // (default), the existing tables are preserved at their last state.
-func (c *internalClient) deleteCdfConfigBase(ctx context.Context, req *DeleteCdfConfigRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := deleteCdfConfigRequestToWire(req)
+func (c *internalClient) deleteCdfConfigBase(ctx context.Context, req DeleteCdfConfigRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := deleteCdfConfigRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1963,7 +2173,11 @@ func (c *internalClient) deleteCdfConfigBase(ctx context.Context, req *DeleteCdf
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -2014,7 +2228,7 @@ func (c *internalClient) deleteCdfConfigBase(ctx context.Context, req *DeleteCdf
 // Delete a CDF configuration and stop materializing the change data feed. When
 // force=true, also drops the Delta tables in Unity Catalog. When force=false
 // (default), the existing tables are preserved at their last state.
-func (c *internalClient) DeleteCdfConfig(ctx context.Context, req *DeleteCdfConfigRequest, opts ...call.Option) (*DeleteCdfConfigOperation, error) {
+func (c *internalClient) DeleteCdfConfig(ctx context.Context, req DeleteCdfConfigRequest, opts ...call.Option) (*DeleteCdfConfigOperation, error) {
 	operation, err := c.deleteCdfConfigBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -2031,7 +2245,7 @@ func (c *internalClient) DeleteCdfConfig(ctx context.Context, req *DeleteCdfConf
 // DeleteCdfConfigOperation tracks the state of the long-running operation started by DeleteCdfConfig.
 type DeleteCdfConfigOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -2057,7 +2271,7 @@ func (o *DeleteCdfConfigOperation) Metadata() (*CdfConfigOperationMetadata, erro
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *DeleteCdfConfigOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -2074,7 +2288,7 @@ func (o *DeleteCdfConfigOperation) Done(ctx context.Context, opts ...call.Option
 // Wait polls the operation until it completes.
 func (o *DeleteCdfConfigOperation) Wait(ctx context.Context, opts ...lro.Option) error {
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -2104,7 +2318,7 @@ func (o *DeleteCdfConfigOperation) Wait(ctx context.Context, opts ...lro.Option)
 }
 
 // Disable Data API for a database.
-func (c *internalClient) deleteDataApiBase(ctx context.Context, req *DeleteDataApiRequest, opts ...call.Option) (*Operation, error) {
+func (c *internalClient) deleteDataApiBase(ctx context.Context, req DeleteDataApiRequest, opts ...call.Option) (*Operation, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2118,7 +2332,11 @@ func (c *internalClient) deleteDataApiBase(ctx context.Context, req *DeleteDataA
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2164,7 +2382,7 @@ func (c *internalClient) deleteDataApiBase(ctx context.Context, req *DeleteDataA
 }
 
 // Disable Data API for a database.
-func (c *internalClient) DeleteDataApi(ctx context.Context, req *DeleteDataApiRequest, opts ...call.Option) (*DeleteDataApiOperation, error) {
+func (c *internalClient) DeleteDataApi(ctx context.Context, req DeleteDataApiRequest, opts ...call.Option) (*DeleteDataApiOperation, error) {
 	operation, err := c.deleteDataApiBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -2181,7 +2399,7 @@ func (c *internalClient) DeleteDataApi(ctx context.Context, req *DeleteDataApiRe
 // DeleteDataApiOperation tracks the state of the long-running operation started by DeleteDataApi.
 type DeleteDataApiOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -2207,7 +2425,7 @@ func (o *DeleteDataApiOperation) Metadata() (*DataApiOperationMetadata, error) {
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *DeleteDataApiOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -2224,7 +2442,7 @@ func (o *DeleteDataApiOperation) Done(ctx context.Context, opts ...call.Option) 
 // Wait polls the operation until it completes.
 func (o *DeleteDataApiOperation) Wait(ctx context.Context, opts ...lro.Option) error {
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -2254,7 +2472,7 @@ func (o *DeleteDataApiOperation) Wait(ctx context.Context, opts ...lro.Option) e
 }
 
 // Delete a Database.
-func (c *internalClient) deleteDatabaseBase(ctx context.Context, req *DeleteDatabaseRequest, opts ...call.Option) (*Operation, error) {
+func (c *internalClient) deleteDatabaseBase(ctx context.Context, req DeleteDatabaseRequest, opts ...call.Option) (*Operation, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2268,7 +2486,11 @@ func (c *internalClient) deleteDatabaseBase(ctx context.Context, req *DeleteData
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2314,7 +2536,7 @@ func (c *internalClient) deleteDatabaseBase(ctx context.Context, req *DeleteData
 }
 
 // Delete a Database.
-func (c *internalClient) DeleteDatabase(ctx context.Context, req *DeleteDatabaseRequest, opts ...call.Option) (*DeleteDatabaseOperation, error) {
+func (c *internalClient) DeleteDatabase(ctx context.Context, req DeleteDatabaseRequest, opts ...call.Option) (*DeleteDatabaseOperation, error) {
 	operation, err := c.deleteDatabaseBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -2331,7 +2553,7 @@ func (c *internalClient) DeleteDatabase(ctx context.Context, req *DeleteDatabase
 // DeleteDatabaseOperation tracks the state of the long-running operation started by DeleteDatabase.
 type DeleteDatabaseOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -2357,7 +2579,7 @@ func (o *DeleteDatabaseOperation) Metadata() (*DatabaseOperationMetadata, error)
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *DeleteDatabaseOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -2374,7 +2596,7 @@ func (o *DeleteDatabaseOperation) Done(ctx context.Context, opts ...call.Option)
 // Wait polls the operation until it completes.
 func (o *DeleteDatabaseOperation) Wait(ctx context.Context, opts ...lro.Option) error {
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -2404,7 +2626,7 @@ func (o *DeleteDatabaseOperation) Wait(ctx context.Context, opts ...lro.Option) 
 }
 
 // Deletes the specified compute endpoint.
-func (c *internalClient) deleteEndpointBase(ctx context.Context, req *DeleteEndpointRequest, opts ...call.Option) (*Operation, error) {
+func (c *internalClient) deleteEndpointBase(ctx context.Context, req DeleteEndpointRequest, opts ...call.Option) (*Operation, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2418,7 +2640,11 @@ func (c *internalClient) deleteEndpointBase(ctx context.Context, req *DeleteEndp
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2464,7 +2690,7 @@ func (c *internalClient) deleteEndpointBase(ctx context.Context, req *DeleteEndp
 }
 
 // Deletes the specified compute endpoint.
-func (c *internalClient) DeleteEndpoint(ctx context.Context, req *DeleteEndpointRequest, opts ...call.Option) (*DeleteEndpointOperation, error) {
+func (c *internalClient) DeleteEndpoint(ctx context.Context, req DeleteEndpointRequest, opts ...call.Option) (*DeleteEndpointOperation, error) {
 	operation, err := c.deleteEndpointBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -2481,7 +2707,7 @@ func (c *internalClient) DeleteEndpoint(ctx context.Context, req *DeleteEndpoint
 // DeleteEndpointOperation tracks the state of the long-running operation started by DeleteEndpoint.
 type DeleteEndpointOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -2507,7 +2733,7 @@ func (o *DeleteEndpointOperation) Metadata() (*EndpointOperationMetadata, error)
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *DeleteEndpointOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -2524,7 +2750,7 @@ func (o *DeleteEndpointOperation) Done(ctx context.Context, opts ...call.Option)
 // Wait polls the operation until it completes.
 func (o *DeleteEndpointOperation) Wait(ctx context.Context, opts ...lro.Option) error {
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -2554,8 +2780,8 @@ func (o *DeleteEndpointOperation) Wait(ctx context.Context, opts ...lro.Option) 
 }
 
 // Deletes the specified database project.
-func (c *internalClient) deleteProjectBase(ctx context.Context, req *DeleteProjectRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := deleteProjectRequestToWire(req)
+func (c *internalClient) deleteProjectBase(ctx context.Context, req DeleteProjectRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := deleteProjectRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2572,7 +2798,11 @@ func (c *internalClient) deleteProjectBase(ctx context.Context, req *DeleteProje
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "purge", wireReq.Purge); err != nil {
@@ -2621,7 +2851,7 @@ func (c *internalClient) deleteProjectBase(ctx context.Context, req *DeleteProje
 }
 
 // Deletes the specified database project.
-func (c *internalClient) DeleteProject(ctx context.Context, req *DeleteProjectRequest, opts ...call.Option) (*DeleteProjectOperation, error) {
+func (c *internalClient) DeleteProject(ctx context.Context, req DeleteProjectRequest, opts ...call.Option) (*DeleteProjectOperation, error) {
 	operation, err := c.deleteProjectBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -2638,7 +2868,7 @@ func (c *internalClient) DeleteProject(ctx context.Context, req *DeleteProjectRe
 // DeleteProjectOperation tracks the state of the long-running operation started by DeleteProject.
 type DeleteProjectOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -2664,7 +2894,7 @@ func (o *DeleteProjectOperation) Metadata() (*ProjectOperationMetadata, error) {
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *DeleteProjectOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -2681,7 +2911,7 @@ func (o *DeleteProjectOperation) Done(ctx context.Context, opts ...call.Option) 
 // Wait polls the operation until it completes.
 func (o *DeleteProjectOperation) Wait(ctx context.Context, opts ...lro.Option) error {
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -2711,8 +2941,8 @@ func (o *DeleteProjectOperation) Wait(ctx context.Context, opts ...lro.Option) e
 }
 
 // Deletes the specified Postgres role.
-func (c *internalClient) deleteRoleBase(ctx context.Context, req *DeleteRoleRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := deleteRoleRequestToWire(req)
+func (c *internalClient) deleteRoleBase(ctx context.Context, req DeleteRoleRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := deleteRoleRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2729,7 +2959,11 @@ func (c *internalClient) deleteRoleBase(ctx context.Context, req *DeleteRoleRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "reassign_owned_to", wireReq.ReassignOwnedTo); err != nil {
@@ -2778,7 +3012,7 @@ func (c *internalClient) deleteRoleBase(ctx context.Context, req *DeleteRoleRequ
 }
 
 // Deletes the specified Postgres role.
-func (c *internalClient) DeleteRole(ctx context.Context, req *DeleteRoleRequest, opts ...call.Option) (*DeleteRoleOperation, error) {
+func (c *internalClient) DeleteRole(ctx context.Context, req DeleteRoleRequest, opts ...call.Option) (*DeleteRoleOperation, error) {
 	operation, err := c.deleteRoleBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -2795,7 +3029,7 @@ func (c *internalClient) DeleteRole(ctx context.Context, req *DeleteRoleRequest,
 // DeleteRoleOperation tracks the state of the long-running operation started by DeleteRole.
 type DeleteRoleOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -2821,7 +3055,7 @@ func (o *DeleteRoleOperation) Metadata() (*RoleOperationMetadata, error) {
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *DeleteRoleOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -2838,7 +3072,161 @@ func (o *DeleteRoleOperation) Done(ctx context.Context, opts ...call.Option) (bo
 // Wait polls the operation until it completes.
 func (o *DeleteRoleOperation) Wait(ctx context.Context, opts ...lro.Option) error {
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
+		if err != nil {
+			return err
+		}
+		if err := validateOperationName(operation.Name); err != nil {
+			return err
+		}
+		o.operation = operation
+		if operation.Done == nil {
+			return fmt.Errorf("invalid operation response: missing done field")
+		}
+		if !*operation.Done {
+			return errOperationStillRunning
+		}
+		if operationError, ok := operation.Result.(*Operation_Result_Error); ok && operationError != nil {
+			return fmt.Errorf("operation failed: %w", &operationError.Error)
+		}
+		operationResponse, ok := operation.Result.(*Operation_Result_Response)
+		if !ok || operationResponse == nil || len(operationResponse.Response) == 0 || bytes.Equal(bytes.TrimSpace(operationResponse.Response), []byte("null")) {
+			return fmt.Errorf("operation completed without a response")
+		}
+		return nil
+	}
+	if err := executeWait(ctx, poll, opts...); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Deletes the specified snapshot.
+func (c *internalClient) deleteSnapshotBase(ctx context.Context, req DeleteSnapshotRequest, opts ...call.Option) (*Operation, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/postgres/")
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Operation
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "DELETE",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp operationWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = operationFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Deletes the specified snapshot.
+func (c *internalClient) DeleteSnapshot(ctx context.Context, req DeleteSnapshotRequest, opts ...call.Option) (*DeleteSnapshotOperation, error) {
+	operation, err := c.deleteSnapshotBase(ctx, req, opts...)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateOperationName(operation.Name); err != nil {
+		return nil, err
+	}
+	return &DeleteSnapshotOperation{
+		operation:    operation,
+		getOperation: c.getOperation,
+	}, nil
+}
+
+// DeleteSnapshotOperation tracks the state of the long-running operation started by DeleteSnapshot.
+type DeleteSnapshotOperation struct {
+	operation    *Operation
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
+}
+
+// Name returns the server-assigned operation name.
+func (o *DeleteSnapshotOperation) Name() *string {
+	return o.operation.Name
+}
+
+// Metadata returns metadata associated with the operation.
+func (o *DeleteSnapshotOperation) Metadata() (*SnapshotOperationMetadata, error) {
+	if len(o.operation.Metadata) == 0 || bytes.Equal(bytes.TrimSpace(o.operation.Metadata), []byte("null")) {
+		return nil, nil
+	}
+	var metadata snapshotOperationMetadataWire
+	if err := json.Unmarshal(o.operation.Metadata, &metadata); err != nil {
+		return nil, fmt.Errorf("decode operation metadata: %w", err)
+	}
+	converted, err := snapshotOperationMetadataFromWire(&metadata)
+	if err != nil {
+		return nil, err
+	}
+	return converted, nil
+}
+
+// Done refreshes the operation and reports whether it has completed.
+func (o *DeleteSnapshotOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
+	if err != nil {
+		return false, err
+	}
+	if err := validateOperationName(operation.Name); err != nil {
+		return false, err
+	}
+	o.operation = operation
+	if operation.Done == nil {
+		return false, fmt.Errorf("invalid operation response: missing done field")
+	}
+	return *operation.Done, nil
+}
+
+// Wait polls the operation until it completes.
+func (o *DeleteSnapshotOperation) Wait(ctx context.Context, opts ...lro.Option) error {
+	poll := func(ctx context.Context) error {
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -2868,7 +3256,7 @@ func (o *DeleteRoleOperation) Wait(ctx context.Context, opts ...lro.Option) erro
 }
 
 // Delete a Synced Table.
-func (c *internalClient) deleteSyncedTableBase(ctx context.Context, req *DeleteSyncedTableRequest, opts ...call.Option) (*Operation, error) {
+func (c *internalClient) deleteSyncedTableBase(ctx context.Context, req DeleteSyncedTableRequest, opts ...call.Option) (*Operation, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2882,7 +3270,11 @@ func (c *internalClient) deleteSyncedTableBase(ctx context.Context, req *DeleteS
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2928,7 +3320,7 @@ func (c *internalClient) deleteSyncedTableBase(ctx context.Context, req *DeleteS
 }
 
 // Delete a Synced Table.
-func (c *internalClient) DeleteSyncedTable(ctx context.Context, req *DeleteSyncedTableRequest, opts ...call.Option) (*DeleteSyncedTableOperation, error) {
+func (c *internalClient) DeleteSyncedTable(ctx context.Context, req DeleteSyncedTableRequest, opts ...call.Option) (*DeleteSyncedTableOperation, error) {
 	operation, err := c.deleteSyncedTableBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -2945,7 +3337,7 @@ func (c *internalClient) DeleteSyncedTable(ctx context.Context, req *DeleteSynce
 // DeleteSyncedTableOperation tracks the state of the long-running operation started by DeleteSyncedTable.
 type DeleteSyncedTableOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -2971,7 +3363,7 @@ func (o *DeleteSyncedTableOperation) Metadata() (*SyncedTableOperationMetadata, 
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *DeleteSyncedTableOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -2988,7 +3380,7 @@ func (o *DeleteSyncedTableOperation) Done(ctx context.Context, opts ...call.Opti
 // Wait polls the operation until it completes.
 func (o *DeleteSyncedTableOperation) Wait(ctx context.Context, opts ...lro.Option) error {
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -3018,8 +3410,8 @@ func (o *DeleteSyncedTableOperation) Wait(ctx context.Context, opts ...lro.Optio
 }
 
 // Generate OAuth credentials for a Postgres database.
-func (c *internalClient) GenerateDatabaseCredential(ctx context.Context, req *GenerateDatabaseCredentialRequest, opts ...call.Option) (*DatabaseCredential, error) {
-	wireReq, err := generateDatabaseCredentialRequestToWire(req)
+func (c *internalClient) GenerateDatabaseCredential(ctx context.Context, req GenerateDatabaseCredentialRequest, opts ...call.Option) (*DatabaseCredential, error) {
+	wireReq, err := generateDatabaseCredentialRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -3084,7 +3476,7 @@ func (c *internalClient) GenerateDatabaseCredential(ctx context.Context, req *Ge
 }
 
 // Retrieves information about the specified database branch.
-func (c *internalClient) GetBranch(ctx context.Context, req *GetBranchRequest, opts ...call.Option) (*Branch, error) {
+func (c *internalClient) GetBranch(ctx context.Context, req GetBranchRequest, opts ...call.Option) (*Branch, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -3098,7 +3490,11 @@ func (c *internalClient) GetBranch(ctx context.Context, req *GetBranchRequest, o
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3144,7 +3540,7 @@ func (c *internalClient) GetBranch(ctx context.Context, req *GetBranchRequest, o
 }
 
 // Get a Database Catalog.
-func (c *internalClient) GetCatalog(ctx context.Context, req *GetCatalogRequest, opts ...call.Option) (*Catalog, error) {
+func (c *internalClient) GetCatalog(ctx context.Context, req GetCatalogRequest, opts ...call.Option) (*Catalog, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -3158,7 +3554,11 @@ func (c *internalClient) GetCatalog(ctx context.Context, req *GetCatalogRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3206,7 +3606,7 @@ func (c *internalClient) GetCatalog(ctx context.Context, req *GetCatalogRequest,
 // Get a single Lakebase CDF configuration, including the source Postgres
 // schema, target Unity Catalog schema, and the identity under which writes are
 // authorized.
-func (c *internalClient) GetCdfConfig(ctx context.Context, req *GetCdfConfigRequest, opts ...call.Option) (*CdfConfig, error) {
+func (c *internalClient) GetCdfConfig(ctx context.Context, req GetCdfConfigRequest, opts ...call.Option) (*CdfConfig, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -3220,7 +3620,11 @@ func (c *internalClient) GetCdfConfig(ctx context.Context, req *GetCdfConfigRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3267,7 +3671,7 @@ func (c *internalClient) GetCdfConfig(ctx context.Context, req *GetCdfConfigRequ
 
 // Get the CDF status of a single table within a Lakebase CDF configuration,
 // including its current state and the last committed position in the feed.
-func (c *internalClient) GetCdfStatus(ctx context.Context, req *GetCdfStatusRequest, opts ...call.Option) (*CdfStatus, error) {
+func (c *internalClient) GetCdfStatus(ctx context.Context, req GetCdfStatusRequest, opts ...call.Option) (*CdfStatus, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -3281,7 +3685,11 @@ func (c *internalClient) GetCdfStatus(ctx context.Context, req *GetCdfStatusRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3327,7 +3735,7 @@ func (c *internalClient) GetCdfStatus(ctx context.Context, req *GetCdfStatusRequ
 }
 
 // Get Data API configuration for a database.
-func (c *internalClient) GetDataApi(ctx context.Context, req *GetDataApiRequest, opts ...call.Option) (*DataApi, error) {
+func (c *internalClient) GetDataApi(ctx context.Context, req GetDataApiRequest, opts ...call.Option) (*DataApi, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -3341,7 +3749,11 @@ func (c *internalClient) GetDataApi(ctx context.Context, req *GetDataApiRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3387,7 +3799,7 @@ func (c *internalClient) GetDataApi(ctx context.Context, req *GetDataApiRequest,
 }
 
 // Get a Database.
-func (c *internalClient) GetDatabase(ctx context.Context, req *GetDatabaseRequest, opts ...call.Option) (*Database, error) {
+func (c *internalClient) GetDatabase(ctx context.Context, req GetDatabaseRequest, opts ...call.Option) (*Database, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -3401,7 +3813,11 @@ func (c *internalClient) GetDatabase(ctx context.Context, req *GetDatabaseReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3448,7 +3864,7 @@ func (c *internalClient) GetDatabase(ctx context.Context, req *GetDatabaseReques
 
 // Retrieves information about the specified compute endpoint, including its
 // connection details and operational state.
-func (c *internalClient) GetEndpoint(ctx context.Context, req *GetEndpointRequest, opts ...call.Option) (*Endpoint, error) {
+func (c *internalClient) GetEndpoint(ctx context.Context, req GetEndpointRequest, opts ...call.Option) (*Endpoint, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -3462,7 +3878,11 @@ func (c *internalClient) GetEndpoint(ctx context.Context, req *GetEndpointReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3508,7 +3928,7 @@ func (c *internalClient) GetEndpoint(ctx context.Context, req *GetEndpointReques
 }
 
 // Retrieves the status of a long-running operation.
-func (c *internalClient) getOperation(ctx context.Context, req *GetOperationRequest, opts ...call.Option) (*Operation, error) {
+func (c *internalClient) getOperation(ctx context.Context, req GetOperationRequest, opts ...call.Option) (*Operation, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -3522,7 +3942,11 @@ func (c *internalClient) getOperation(ctx context.Context, req *GetOperationRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3568,7 +3992,7 @@ func (c *internalClient) getOperation(ctx context.Context, req *GetOperationRequ
 }
 
 // Retrieves information about the specified database project.
-func (c *internalClient) GetProject(ctx context.Context, req *GetProjectRequest, opts ...call.Option) (*Project, error) {
+func (c *internalClient) GetProject(ctx context.Context, req GetProjectRequest, opts ...call.Option) (*Project, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -3582,7 +4006,11 @@ func (c *internalClient) GetProject(ctx context.Context, req *GetProjectRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3629,7 +4057,7 @@ func (c *internalClient) GetProject(ctx context.Context, req *GetProjectRequest,
 
 // Retrieves information about the specified Postgres role, including its
 // authentication method and permissions.
-func (c *internalClient) GetRole(ctx context.Context, req *GetRoleRequest, opts ...call.Option) (*Role, error) {
+func (c *internalClient) GetRole(ctx context.Context, req GetRoleRequest, opts ...call.Option) (*Role, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -3643,7 +4071,11 @@ func (c *internalClient) GetRole(ctx context.Context, req *GetRoleRequest, opts 
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3688,8 +4120,8 @@ func (c *internalClient) GetRole(ctx context.Context, req *GetRoleRequest, opts 
 	return resp, nil
 }
 
-// Get a Synced Table.
-func (c *internalClient) GetSyncedTable(ctx context.Context, req *GetSyncedTableRequest, opts ...call.Option) (*SyncedTable, error) {
+// Retrieves information about the specified snapshot.
+func (c *internalClient) GetSnapshot(ctx context.Context, req GetSnapshotRequest, opts ...call.Option) (*Snapshot, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -3703,7 +4135,140 @@ func (c *internalClient) GetSyncedTable(ctx context.Context, req *GetSyncedTable
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Snapshot
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp snapshotWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = snapshotFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Retrieves the snapshot schedule for a branch. A branch with no configured
+// schedule returns an empty schedule (not NOT_FOUND).
+func (c *internalClient) GetSnapshotSchedule(ctx context.Context, req GetSnapshotScheduleRequest, opts ...call.Option) (*SnapshotSchedule, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/postgres/")
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *SnapshotSchedule
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp snapshotScheduleWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = snapshotScheduleFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Get a Synced Table.
+func (c *internalClient) GetSyncedTable(ctx context.Context, req GetSyncedTableRequest, opts ...call.Option) (*SyncedTable, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/postgres/")
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3749,8 +4314,8 @@ func (c *internalClient) GetSyncedTable(ctx context.Context, req *GetSyncedTable
 }
 
 // Returns a paginated list of database branches in the project.
-func (c *internalClient) ListBranches(ctx context.Context, req *ListBranchesRequest, opts ...call.Option) (*ListBranchesResponse, error) {
-	wireReq, err := listBranchesRequestToWire(req)
+func (c *internalClient) ListBranches(ctx context.Context, req ListBranchesRequest, opts ...call.Option) (*ListBranchesResponse, error) {
+	wireReq, err := listBranchesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -3767,7 +4332,11 @@ func (c *internalClient) ListBranches(ctx context.Context, req *ListBranchesRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/branches")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -3827,7 +4396,7 @@ func (c *internalClient) ListBranches(ctx context.Context, req *ListBranchesRequ
 //
 // For example:
 //
-//	for item, err := range c.ListBranchesIter(ctx, &ListBranchesRequest{}) {
+//	for item, err := range c.ListBranchesIter(ctx, ListBranchesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -3839,16 +4408,13 @@ func (c *internalClient) ListBranches(ctx context.Context, req *ListBranchesRequ
 //
 // Callers who need custom pagination logic should use
 // ListBranches directly.
-func (c *internalClient) ListBranchesIter(ctx context.Context, req *ListBranchesRequest, opts ...call.Option) iter.Seq2[*Branch, error] {
+func (c *internalClient) ListBranchesIter(ctx context.Context, req ListBranchesRequest, opts ...call.Option) iter.Seq2[*Branch, error] {
 	return func(yield func(*Branch, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListBranchesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListBranches(ctx, &pageReq, opts...)
+			resp, err := c.ListBranches(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -3869,8 +4435,8 @@ func (c *internalClient) ListBranchesIter(ctx context.Context, req *ListBranches
 // List all CDF configurations for a Lakebase database. Each configuration maps
 // a Postgres schema to a Unity Catalog schema where the change data feed is
 // materialized.
-func (c *internalClient) ListCdfConfigs(ctx context.Context, req *ListCdfConfigsRequest, opts ...call.Option) (*ListCdfConfigsResponse, error) {
-	wireReq, err := listCdfConfigsRequestToWire(req)
+func (c *internalClient) ListCdfConfigs(ctx context.Context, req ListCdfConfigsRequest, opts ...call.Option) (*ListCdfConfigsResponse, error) {
+	wireReq, err := listCdfConfigsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -3887,7 +4453,11 @@ func (c *internalClient) ListCdfConfigs(ctx context.Context, req *ListCdfConfigs
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/cdf-configs")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -3944,7 +4514,7 @@ func (c *internalClient) ListCdfConfigs(ctx context.Context, req *ListCdfConfigs
 //
 // For example:
 //
-//	for item, err := range c.ListCdfConfigsIter(ctx, &ListCdfConfigsRequest{}) {
+//	for item, err := range c.ListCdfConfigsIter(ctx, ListCdfConfigsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -3956,16 +4526,13 @@ func (c *internalClient) ListCdfConfigs(ctx context.Context, req *ListCdfConfigs
 //
 // Callers who need custom pagination logic should use
 // ListCdfConfigs directly.
-func (c *internalClient) ListCdfConfigsIter(ctx context.Context, req *ListCdfConfigsRequest, opts ...call.Option) iter.Seq2[*CdfConfig, error] {
+func (c *internalClient) ListCdfConfigsIter(ctx context.Context, req ListCdfConfigsRequest, opts ...call.Option) iter.Seq2[*CdfConfig, error] {
 	return func(yield func(*CdfConfig, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListCdfConfigsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListCdfConfigs(ctx, &pageReq, opts...)
+			resp, err := c.ListCdfConfigs(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -3986,8 +4553,8 @@ func (c *internalClient) ListCdfConfigsIter(ctx context.Context, req *ListCdfCon
 // List the per-table CDF statuses within a Lakebase CDF configuration. Each
 // status shows whether a table's change data feed is snapshotting, streaming,
 // or skipped.
-func (c *internalClient) ListCdfStatuses(ctx context.Context, req *ListCdfStatusesRequest, opts ...call.Option) (*ListCdfStatusesResponse, error) {
-	wireReq, err := listCdfStatusesRequestToWire(req)
+func (c *internalClient) ListCdfStatuses(ctx context.Context, req ListCdfStatusesRequest, opts ...call.Option) (*ListCdfStatusesResponse, error) {
+	wireReq, err := listCdfStatusesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -4004,7 +4571,11 @@ func (c *internalClient) ListCdfStatuses(ctx context.Context, req *ListCdfStatus
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/cdf-statuses")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -4061,7 +4632,7 @@ func (c *internalClient) ListCdfStatuses(ctx context.Context, req *ListCdfStatus
 //
 // For example:
 //
-//	for item, err := range c.ListCdfStatusesIter(ctx, &ListCdfStatusesRequest{}) {
+//	for item, err := range c.ListCdfStatusesIter(ctx, ListCdfStatusesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -4073,16 +4644,13 @@ func (c *internalClient) ListCdfStatuses(ctx context.Context, req *ListCdfStatus
 //
 // Callers who need custom pagination logic should use
 // ListCdfStatuses directly.
-func (c *internalClient) ListCdfStatusesIter(ctx context.Context, req *ListCdfStatusesRequest, opts ...call.Option) iter.Seq2[*CdfStatus, error] {
+func (c *internalClient) ListCdfStatusesIter(ctx context.Context, req ListCdfStatusesRequest, opts ...call.Option) iter.Seq2[*CdfStatus, error] {
 	return func(yield func(*CdfStatus, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListCdfStatusesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListCdfStatuses(ctx, &pageReq, opts...)
+			resp, err := c.ListCdfStatuses(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -4101,8 +4669,8 @@ func (c *internalClient) ListCdfStatusesIter(ctx context.Context, req *ListCdfSt
 }
 
 // List Databases.
-func (c *internalClient) ListDatabases(ctx context.Context, req *ListDatabasesRequest, opts ...call.Option) (*ListDatabasesResponse, error) {
-	wireReq, err := listDatabasesRequestToWire(req)
+func (c *internalClient) ListDatabases(ctx context.Context, req ListDatabasesRequest, opts ...call.Option) (*ListDatabasesResponse, error) {
+	wireReq, err := listDatabasesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -4119,7 +4687,11 @@ func (c *internalClient) ListDatabases(ctx context.Context, req *ListDatabasesRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/databases")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -4176,7 +4748,7 @@ func (c *internalClient) ListDatabases(ctx context.Context, req *ListDatabasesRe
 //
 // For example:
 //
-//	for item, err := range c.ListDatabasesIter(ctx, &ListDatabasesRequest{}) {
+//	for item, err := range c.ListDatabasesIter(ctx, ListDatabasesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -4188,16 +4760,13 @@ func (c *internalClient) ListDatabases(ctx context.Context, req *ListDatabasesRe
 //
 // Callers who need custom pagination logic should use
 // ListDatabases directly.
-func (c *internalClient) ListDatabasesIter(ctx context.Context, req *ListDatabasesRequest, opts ...call.Option) iter.Seq2[*Database, error] {
+func (c *internalClient) ListDatabasesIter(ctx context.Context, req ListDatabasesRequest, opts ...call.Option) iter.Seq2[*Database, error] {
 	return func(yield func(*Database, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListDatabasesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListDatabases(ctx, &pageReq, opts...)
+			resp, err := c.ListDatabases(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -4216,8 +4785,8 @@ func (c *internalClient) ListDatabasesIter(ctx context.Context, req *ListDatabas
 }
 
 // Returns a paginated list of compute endpoints in the branch.
-func (c *internalClient) ListEndpoints(ctx context.Context, req *ListEndpointsRequest, opts ...call.Option) (*ListEndpointsResponse, error) {
-	wireReq, err := listEndpointsRequestToWire(req)
+func (c *internalClient) ListEndpoints(ctx context.Context, req ListEndpointsRequest, opts ...call.Option) (*ListEndpointsResponse, error) {
+	wireReq, err := listEndpointsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -4234,7 +4803,11 @@ func (c *internalClient) ListEndpoints(ctx context.Context, req *ListEndpointsRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/endpoints")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -4291,7 +4864,7 @@ func (c *internalClient) ListEndpoints(ctx context.Context, req *ListEndpointsRe
 //
 // For example:
 //
-//	for item, err := range c.ListEndpointsIter(ctx, &ListEndpointsRequest{}) {
+//	for item, err := range c.ListEndpointsIter(ctx, ListEndpointsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -4303,16 +4876,13 @@ func (c *internalClient) ListEndpoints(ctx context.Context, req *ListEndpointsRe
 //
 // Callers who need custom pagination logic should use
 // ListEndpoints directly.
-func (c *internalClient) ListEndpointsIter(ctx context.Context, req *ListEndpointsRequest, opts ...call.Option) iter.Seq2[*Endpoint, error] {
+func (c *internalClient) ListEndpointsIter(ctx context.Context, req ListEndpointsRequest, opts ...call.Option) iter.Seq2[*Endpoint, error] {
 	return func(yield func(*Endpoint, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListEndpointsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListEndpoints(ctx, &pageReq, opts...)
+			resp, err := c.ListEndpoints(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -4332,8 +4902,8 @@ func (c *internalClient) ListEndpointsIter(ctx context.Context, req *ListEndpoin
 
 // Returns a paginated list of database projects in the workspace that the user
 // has permission to access.
-func (c *internalClient) ListProjects(ctx context.Context, req *ListProjectsRequest, opts ...call.Option) (*ListProjectsResponse, error) {
-	wireReq, err := listProjectsRequestToWire(req)
+func (c *internalClient) ListProjects(ctx context.Context, req ListProjectsRequest, opts ...call.Option) (*ListProjectsResponse, error) {
+	wireReq, err := listProjectsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -4406,7 +4976,7 @@ func (c *internalClient) ListProjects(ctx context.Context, req *ListProjectsRequ
 //
 // For example:
 //
-//	for item, err := range c.ListProjectsIter(ctx, &ListProjectsRequest{}) {
+//	for item, err := range c.ListProjectsIter(ctx, ListProjectsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -4418,16 +4988,13 @@ func (c *internalClient) ListProjects(ctx context.Context, req *ListProjectsRequ
 //
 // Callers who need custom pagination logic should use
 // ListProjects directly.
-func (c *internalClient) ListProjectsIter(ctx context.Context, req *ListProjectsRequest, opts ...call.Option) iter.Seq2[*Project, error] {
+func (c *internalClient) ListProjectsIter(ctx context.Context, req ListProjectsRequest, opts ...call.Option) iter.Seq2[*Project, error] {
 	return func(yield func(*Project, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListProjectsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListProjects(ctx, &pageReq, opts...)
+			resp, err := c.ListProjects(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -4446,8 +5013,8 @@ func (c *internalClient) ListProjectsIter(ctx context.Context, req *ListProjects
 }
 
 // Returns a paginated list of Postgres roles in the branch.
-func (c *internalClient) ListRoles(ctx context.Context, req *ListRolesRequest, opts ...call.Option) (*ListRolesResponse, error) {
-	wireReq, err := listRolesRequestToWire(req)
+func (c *internalClient) ListRoles(ctx context.Context, req ListRolesRequest, opts ...call.Option) (*ListRolesResponse, error) {
+	wireReq, err := listRolesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -4464,7 +5031,11 @@ func (c *internalClient) ListRoles(ctx context.Context, req *ListRolesRequest, o
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/roles")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -4521,7 +5092,7 @@ func (c *internalClient) ListRoles(ctx context.Context, req *ListRolesRequest, o
 //
 // For example:
 //
-//	for item, err := range c.ListRolesIter(ctx, &ListRolesRequest{}) {
+//	for item, err := range c.ListRolesIter(ctx, ListRolesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -4533,16 +5104,13 @@ func (c *internalClient) ListRoles(ctx context.Context, req *ListRolesRequest, o
 //
 // Callers who need custom pagination logic should use
 // ListRoles directly.
-func (c *internalClient) ListRolesIter(ctx context.Context, req *ListRolesRequest, opts ...call.Option) iter.Seq2[*Role, error] {
+func (c *internalClient) ListRolesIter(ctx context.Context, req ListRolesRequest, opts ...call.Option) iter.Seq2[*Role, error] {
 	return func(yield func(*Role, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListRolesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListRoles(ctx, &pageReq, opts...)
+			resp, err := c.ListRoles(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -4560,9 +5128,125 @@ func (c *internalClient) ListRolesIter(ctx context.Context, req *ListRolesReques
 	}
 }
 
+// Returns a paginated list of snapshots in the project.
+func (c *internalClient) ListSnapshots(ctx context.Context, req ListSnapshotsRequest, opts ...call.Option) (*ListSnapshotsResponse, error) {
+	wireReq, err := listSnapshotsRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/postgres/")
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
+	pb.literal("/snapshots")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "page_token", wireReq.PageToken); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "page_size", wireReq.PageSize); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *ListSnapshotsResponse
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp listSnapshotsResponseWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = listSnapshotsResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// ListSnapshotsIter returns an iterator that iterates
+// over the results of ListSnapshots.
+//
+// For example:
+//
+//	for item, err := range c.ListSnapshotsIter(ctx, ListSnapshotsRequest{}) {
+//	  if err != nil {
+//	    return err
+//	  }
+//	  fmt.Println(item)
+//	}
+//
+// Options opts are passed to each ListSnapshots call
+// made by the iterator under the hood.
+//
+// Callers who need custom pagination logic should use
+// ListSnapshots directly.
+func (c *internalClient) ListSnapshotsIter(ctx context.Context, req ListSnapshotsRequest, opts ...call.Option) iter.Seq2[*Snapshot, error] {
+	return func(yield func(*Snapshot, error) bool) {
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
+		for {
+			resp, err := c.ListSnapshots(ctx, pageReq, opts...)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			for i := range resp.Snapshots {
+				if !yield(&resp.Snapshots[i], nil) {
+					return
+				}
+			}
+			if resp.NextPageToken == nil || *resp.NextPageToken == "" {
+				return
+			}
+			pageReq.PageToken = resp.NextPageToken
+		}
+	}
+}
+
 // Undeletes the specified database branch.
-func (c *internalClient) undeleteBranchBase(ctx context.Context, req *UndeleteBranchRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := undeleteBranchRequestToWire(req)
+func (c *internalClient) undeleteBranchBase(ctx context.Context, req UndeleteBranchRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := undeleteBranchRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -4583,7 +5267,11 @@ func (c *internalClient) undeleteBranchBase(ctx context.Context, req *UndeleteBr
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/undelete")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -4631,7 +5319,7 @@ func (c *internalClient) undeleteBranchBase(ctx context.Context, req *UndeleteBr
 }
 
 // Undeletes the specified database branch.
-func (c *internalClient) UndeleteBranch(ctx context.Context, req *UndeleteBranchRequest, opts ...call.Option) (*UndeleteBranchOperation, error) {
+func (c *internalClient) UndeleteBranch(ctx context.Context, req UndeleteBranchRequest, opts ...call.Option) (*UndeleteBranchOperation, error) {
 	operation, err := c.undeleteBranchBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -4648,7 +5336,7 @@ func (c *internalClient) UndeleteBranch(ctx context.Context, req *UndeleteBranch
 // UndeleteBranchOperation tracks the state of the long-running operation started by UndeleteBranch.
 type UndeleteBranchOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -4674,7 +5362,7 @@ func (o *UndeleteBranchOperation) Metadata() (*BranchOperationMetadata, error) {
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *UndeleteBranchOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -4691,7 +5379,7 @@ func (o *UndeleteBranchOperation) Done(ctx context.Context, opts ...call.Option)
 // Wait polls the operation until it completes.
 func (o *UndeleteBranchOperation) Wait(ctx context.Context, opts ...lro.Option) error {
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -4721,8 +5409,8 @@ func (o *UndeleteBranchOperation) Wait(ctx context.Context, opts ...lro.Option) 
 }
 
 // Undeletes a soft-deleted project.
-func (c *internalClient) undeleteProjectBase(ctx context.Context, req *UndeleteProjectRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := undeleteProjectRequestToWire(req)
+func (c *internalClient) undeleteProjectBase(ctx context.Context, req UndeleteProjectRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := undeleteProjectRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -4743,7 +5431,11 @@ func (c *internalClient) undeleteProjectBase(ctx context.Context, req *UndeleteP
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/undelete")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -4791,7 +5483,7 @@ func (c *internalClient) undeleteProjectBase(ctx context.Context, req *UndeleteP
 }
 
 // Undeletes a soft-deleted project.
-func (c *internalClient) UndeleteProject(ctx context.Context, req *UndeleteProjectRequest, opts ...call.Option) (*UndeleteProjectOperation, error) {
+func (c *internalClient) UndeleteProject(ctx context.Context, req UndeleteProjectRequest, opts ...call.Option) (*UndeleteProjectOperation, error) {
 	operation, err := c.undeleteProjectBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -4808,7 +5500,7 @@ func (c *internalClient) UndeleteProject(ctx context.Context, req *UndeleteProje
 // UndeleteProjectOperation tracks the state of the long-running operation started by UndeleteProject.
 type UndeleteProjectOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -4834,7 +5526,7 @@ func (o *UndeleteProjectOperation) Metadata() (*ProjectOperationMetadata, error)
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *UndeleteProjectOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -4851,7 +5543,7 @@ func (o *UndeleteProjectOperation) Done(ctx context.Context, opts ...call.Option
 // Wait polls the operation until it completes.
 func (o *UndeleteProjectOperation) Wait(ctx context.Context, opts ...lro.Option) error {
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -4882,8 +5574,8 @@ func (o *UndeleteProjectOperation) Wait(ctx context.Context, opts ...lro.Option)
 
 // Updates the specified database branch. You can set this branch as the
 // project's default branch, or protect/unprotect it.
-func (c *internalClient) updateBranchBase(ctx context.Context, req *UpdateBranchRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := updateBranchRequestToWire(req)
+func (c *internalClient) updateBranchBase(ctx context.Context, req UpdateBranchRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := updateBranchRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -4904,7 +5596,11 @@ func (c *internalClient) updateBranchBase(ctx context.Context, req *UpdateBranch
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Branch.Name)
+	if req.Branch == nil || req.Branch.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Branch.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -4955,7 +5651,7 @@ func (c *internalClient) updateBranchBase(ctx context.Context, req *UpdateBranch
 
 // Updates the specified database branch. You can set this branch as the
 // project's default branch, or protect/unprotect it.
-func (c *internalClient) UpdateBranch(ctx context.Context, req *UpdateBranchRequest, opts ...call.Option) (*UpdateBranchOperation, error) {
+func (c *internalClient) UpdateBranch(ctx context.Context, req UpdateBranchRequest, opts ...call.Option) (*UpdateBranchOperation, error) {
 	operation, err := c.updateBranchBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -4972,7 +5668,7 @@ func (c *internalClient) UpdateBranch(ctx context.Context, req *UpdateBranchRequ
 // UpdateBranchOperation tracks the state of the long-running operation started by UpdateBranch.
 type UpdateBranchOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -4998,7 +5694,7 @@ func (o *UpdateBranchOperation) Metadata() (*BranchOperationMetadata, error) {
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *UpdateBranchOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -5016,7 +5712,7 @@ func (o *UpdateBranchOperation) Done(ctx context.Context, opts ...call.Option) (
 func (o *UpdateBranchOperation) Wait(ctx context.Context, opts ...lro.Option) (*Branch, error) {
 	var result *Branch
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -5054,8 +5750,8 @@ func (o *UpdateBranchOperation) Wait(ctx context.Context, opts ...lro.Option) (*
 }
 
 // Update Data API configuration for a database.
-func (c *internalClient) updateDataApiBase(ctx context.Context, req *UpdateDataApiRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := updateDataApiRequestToWire(req)
+func (c *internalClient) updateDataApiBase(ctx context.Context, req UpdateDataApiRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := updateDataApiRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -5076,7 +5772,11 @@ func (c *internalClient) updateDataApiBase(ctx context.Context, req *UpdateDataA
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.DataApi.Name)
+	if req.DataApi == nil || req.DataApi.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.DataApi.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -5126,7 +5826,7 @@ func (c *internalClient) updateDataApiBase(ctx context.Context, req *UpdateDataA
 }
 
 // Update Data API configuration for a database.
-func (c *internalClient) UpdateDataApi(ctx context.Context, req *UpdateDataApiRequest, opts ...call.Option) (*UpdateDataApiOperation, error) {
+func (c *internalClient) UpdateDataApi(ctx context.Context, req UpdateDataApiRequest, opts ...call.Option) (*UpdateDataApiOperation, error) {
 	operation, err := c.updateDataApiBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -5143,7 +5843,7 @@ func (c *internalClient) UpdateDataApi(ctx context.Context, req *UpdateDataApiRe
 // UpdateDataApiOperation tracks the state of the long-running operation started by UpdateDataApi.
 type UpdateDataApiOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -5169,7 +5869,7 @@ func (o *UpdateDataApiOperation) Metadata() (*DataApiOperationMetadata, error) {
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *UpdateDataApiOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -5187,7 +5887,7 @@ func (o *UpdateDataApiOperation) Done(ctx context.Context, opts ...call.Option) 
 func (o *UpdateDataApiOperation) Wait(ctx context.Context, opts ...lro.Option) (*DataApi, error) {
 	var result *DataApi
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -5225,8 +5925,8 @@ func (o *UpdateDataApiOperation) Wait(ctx context.Context, opts ...lro.Option) (
 }
 
 // Update a Database.
-func (c *internalClient) updateDatabaseBase(ctx context.Context, req *UpdateDatabaseRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := updateDatabaseRequestToWire(req)
+func (c *internalClient) updateDatabaseBase(ctx context.Context, req UpdateDatabaseRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := updateDatabaseRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -5247,7 +5947,11 @@ func (c *internalClient) updateDatabaseBase(ctx context.Context, req *UpdateData
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Database.Name)
+	if req.Database == nil || req.Database.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Database.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -5297,7 +6001,7 @@ func (c *internalClient) updateDatabaseBase(ctx context.Context, req *UpdateData
 }
 
 // Update a Database.
-func (c *internalClient) UpdateDatabase(ctx context.Context, req *UpdateDatabaseRequest, opts ...call.Option) (*UpdateDatabaseOperation, error) {
+func (c *internalClient) UpdateDatabase(ctx context.Context, req UpdateDatabaseRequest, opts ...call.Option) (*UpdateDatabaseOperation, error) {
 	operation, err := c.updateDatabaseBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -5314,7 +6018,7 @@ func (c *internalClient) UpdateDatabase(ctx context.Context, req *UpdateDatabase
 // UpdateDatabaseOperation tracks the state of the long-running operation started by UpdateDatabase.
 type UpdateDatabaseOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -5340,7 +6044,7 @@ func (o *UpdateDatabaseOperation) Metadata() (*DatabaseOperationMetadata, error)
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *UpdateDatabaseOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -5358,7 +6062,7 @@ func (o *UpdateDatabaseOperation) Done(ctx context.Context, opts ...call.Option)
 func (o *UpdateDatabaseOperation) Wait(ctx context.Context, opts ...lro.Option) (*Database, error) {
 	var result *Database
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -5397,8 +6101,8 @@ func (o *UpdateDatabaseOperation) Wait(ctx context.Context, opts ...lro.Option) 
 
 // Updates the specified compute endpoint. You can update autoscaling limits,
 // suspend timeout, or enable/disable the compute endpoint.
-func (c *internalClient) updateEndpointBase(ctx context.Context, req *UpdateEndpointRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := updateEndpointRequestToWire(req)
+func (c *internalClient) updateEndpointBase(ctx context.Context, req UpdateEndpointRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := updateEndpointRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -5419,7 +6123,11 @@ func (c *internalClient) updateEndpointBase(ctx context.Context, req *UpdateEndp
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Endpoint.Name)
+	if req.Endpoint == nil || req.Endpoint.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Endpoint.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -5470,7 +6178,7 @@ func (c *internalClient) updateEndpointBase(ctx context.Context, req *UpdateEndp
 
 // Updates the specified compute endpoint. You can update autoscaling limits,
 // suspend timeout, or enable/disable the compute endpoint.
-func (c *internalClient) UpdateEndpoint(ctx context.Context, req *UpdateEndpointRequest, opts ...call.Option) (*UpdateEndpointOperation, error) {
+func (c *internalClient) UpdateEndpoint(ctx context.Context, req UpdateEndpointRequest, opts ...call.Option) (*UpdateEndpointOperation, error) {
 	operation, err := c.updateEndpointBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -5487,7 +6195,7 @@ func (c *internalClient) UpdateEndpoint(ctx context.Context, req *UpdateEndpoint
 // UpdateEndpointOperation tracks the state of the long-running operation started by UpdateEndpoint.
 type UpdateEndpointOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -5513,7 +6221,7 @@ func (o *UpdateEndpointOperation) Metadata() (*EndpointOperationMetadata, error)
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *UpdateEndpointOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -5531,7 +6239,7 @@ func (o *UpdateEndpointOperation) Done(ctx context.Context, opts ...call.Option)
 func (o *UpdateEndpointOperation) Wait(ctx context.Context, opts ...lro.Option) (*Endpoint, error) {
 	var result *Endpoint
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -5569,8 +6277,8 @@ func (o *UpdateEndpointOperation) Wait(ctx context.Context, opts ...lro.Option) 
 }
 
 // Updates the specified database project.
-func (c *internalClient) updateProjectBase(ctx context.Context, req *UpdateProjectRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := updateProjectRequestToWire(req)
+func (c *internalClient) updateProjectBase(ctx context.Context, req UpdateProjectRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := updateProjectRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -5591,7 +6299,11 @@ func (c *internalClient) updateProjectBase(ctx context.Context, req *UpdateProje
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Project.Name)
+	if req.Project == nil || req.Project.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Project.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -5641,7 +6353,7 @@ func (c *internalClient) updateProjectBase(ctx context.Context, req *UpdateProje
 }
 
 // Updates the specified database project.
-func (c *internalClient) UpdateProject(ctx context.Context, req *UpdateProjectRequest, opts ...call.Option) (*UpdateProjectOperation, error) {
+func (c *internalClient) UpdateProject(ctx context.Context, req UpdateProjectRequest, opts ...call.Option) (*UpdateProjectOperation, error) {
 	operation, err := c.updateProjectBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -5658,7 +6370,7 @@ func (c *internalClient) UpdateProject(ctx context.Context, req *UpdateProjectRe
 // UpdateProjectOperation tracks the state of the long-running operation started by UpdateProject.
 type UpdateProjectOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -5684,7 +6396,7 @@ func (o *UpdateProjectOperation) Metadata() (*ProjectOperationMetadata, error) {
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *UpdateProjectOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -5702,7 +6414,7 @@ func (o *UpdateProjectOperation) Done(ctx context.Context, opts ...call.Option) 
 func (o *UpdateProjectOperation) Wait(ctx context.Context, opts ...lro.Option) (*Project, error) {
 	var result *Project
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -5740,8 +6452,8 @@ func (o *UpdateProjectOperation) Wait(ctx context.Context, opts ...lro.Option) (
 }
 
 // Update a role for a branch.
-func (c *internalClient) updateRoleBase(ctx context.Context, req *UpdateRoleRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := updateRoleRequestToWire(req)
+func (c *internalClient) updateRoleBase(ctx context.Context, req UpdateRoleRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := updateRoleRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -5762,7 +6474,11 @@ func (c *internalClient) updateRoleBase(ctx context.Context, req *UpdateRoleRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
-	pb.singleSegment(*req.Role.Name)
+	if req.Role == nil || req.Role.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Role.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -5812,7 +6528,7 @@ func (c *internalClient) updateRoleBase(ctx context.Context, req *UpdateRoleRequ
 }
 
 // Update a role for a branch.
-func (c *internalClient) UpdateRole(ctx context.Context, req *UpdateRoleRequest, opts ...call.Option) (*UpdateRoleOperation, error) {
+func (c *internalClient) UpdateRole(ctx context.Context, req UpdateRoleRequest, opts ...call.Option) (*UpdateRoleOperation, error) {
 	operation, err := c.updateRoleBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -5829,7 +6545,7 @@ func (c *internalClient) UpdateRole(ctx context.Context, req *UpdateRoleRequest,
 // UpdateRoleOperation tracks the state of the long-running operation started by UpdateRole.
 type UpdateRoleOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -5855,7 +6571,7 @@ func (o *UpdateRoleOperation) Metadata() (*RoleOperationMetadata, error) {
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *UpdateRoleOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -5873,7 +6589,7 @@ func (o *UpdateRoleOperation) Done(ctx context.Context, opts ...call.Option) (bo
 func (o *UpdateRoleOperation) Wait(ctx context.Context, opts ...lro.Option) (*Role, error) {
 	var result *Role
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -5899,6 +6615,183 @@ func (o *UpdateRoleOperation) Wait(ctx context.Context, opts ...lro.Option) (*Ro
 			return fmt.Errorf("decode operation response: %w", err)
 		}
 		result, err = roleFromWire(&response)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	if err := executeWait(ctx, poll, opts...); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Sets the snapshot schedule for a branch. The `schedule` field is replaced
+// wholesale; an empty schedule disables automatic snapshots.
+func (c *internalClient) updateSnapshotScheduleBase(ctx context.Context, req UpdateSnapshotScheduleRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := updateSnapshotScheduleRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq.SnapshotSchedule)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/postgres/")
+	if req.SnapshotSchedule == nil || req.SnapshotSchedule.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SnapshotSchedule.Name)
+	}
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Operation
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "PATCH",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp operationWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = operationFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Sets the snapshot schedule for a branch. The `schedule` field is replaced
+// wholesale; an empty schedule disables automatic snapshots.
+func (c *internalClient) UpdateSnapshotSchedule(ctx context.Context, req UpdateSnapshotScheduleRequest, opts ...call.Option) (*UpdateSnapshotScheduleOperation, error) {
+	operation, err := c.updateSnapshotScheduleBase(ctx, req, opts...)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateOperationName(operation.Name); err != nil {
+		return nil, err
+	}
+	return &UpdateSnapshotScheduleOperation{
+		operation:    operation,
+		getOperation: c.getOperation,
+	}, nil
+}
+
+// UpdateSnapshotScheduleOperation tracks the state of the long-running operation started by UpdateSnapshotSchedule.
+type UpdateSnapshotScheduleOperation struct {
+	operation    *Operation
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
+}
+
+// Name returns the server-assigned operation name.
+func (o *UpdateSnapshotScheduleOperation) Name() *string {
+	return o.operation.Name
+}
+
+// Metadata returns metadata associated with the operation.
+func (o *UpdateSnapshotScheduleOperation) Metadata() (*SnapshotScheduleOperationMetadata, error) {
+	if len(o.operation.Metadata) == 0 || bytes.Equal(bytes.TrimSpace(o.operation.Metadata), []byte("null")) {
+		return nil, nil
+	}
+	var metadata snapshotScheduleOperationMetadataWire
+	if err := json.Unmarshal(o.operation.Metadata, &metadata); err != nil {
+		return nil, fmt.Errorf("decode operation metadata: %w", err)
+	}
+	converted, err := snapshotScheduleOperationMetadataFromWire(&metadata)
+	if err != nil {
+		return nil, err
+	}
+	return converted, nil
+}
+
+// Done refreshes the operation and reports whether it has completed.
+func (o *UpdateSnapshotScheduleOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
+	if err != nil {
+		return false, err
+	}
+	if err := validateOperationName(operation.Name); err != nil {
+		return false, err
+	}
+	o.operation = operation
+	if operation.Done == nil {
+		return false, fmt.Errorf("invalid operation response: missing done field")
+	}
+	return *operation.Done, nil
+}
+
+// Wait polls the operation until it completes.
+func (o *UpdateSnapshotScheduleOperation) Wait(ctx context.Context, opts ...lro.Option) (*SnapshotSchedule, error) {
+	var result *SnapshotSchedule
+	poll := func(ctx context.Context) error {
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
+		if err != nil {
+			return err
+		}
+		if err := validateOperationName(operation.Name); err != nil {
+			return err
+		}
+		o.operation = operation
+		if operation.Done == nil {
+			return fmt.Errorf("invalid operation response: missing done field")
+		}
+		if !*operation.Done {
+			return errOperationStillRunning
+		}
+		if operationError, ok := operation.Result.(*Operation_Result_Error); ok && operationError != nil {
+			return fmt.Errorf("operation failed: %w", &operationError.Error)
+		}
+		operationResponse, ok := operation.Result.(*Operation_Result_Response)
+		if !ok || operationResponse == nil || len(operationResponse.Response) == 0 || bytes.Equal(bytes.TrimSpace(operationResponse.Response), []byte("null")) {
+			return fmt.Errorf("operation completed without a response")
+		}
+		var response snapshotScheduleWire
+		if err := json.Unmarshal(operationResponse.Response, &response); err != nil {
+			return fmt.Errorf("decode operation response: %w", err)
+		}
+		result, err = snapshotScheduleFromWire(&response)
 		if err != nil {
 			return err
 		}

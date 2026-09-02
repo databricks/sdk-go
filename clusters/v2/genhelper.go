@@ -12,7 +12,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/databricks/sdk-go/auth"
 	"github.com/databricks/sdk-go/core/apierr"
@@ -197,47 +196,4 @@ func flattenQueryValue(params url.Values, key string, value any) {
 	default:
 		params.Add(key, fmt.Sprintf("%v", value))
 	}
-}
-
-// pathBuilder assembles a request path from static literals and parameter
-// values. It tracks the decoded path and its percent-escaped wire form in
-// lockstep so build() can assign both url.URL.Path and url.URL.RawPath; because
-// RawPath is a valid escaping of Path, url.URL.String() emits it verbatim
-// instead of re-escaping (which would double-encode "%").
-type pathBuilder struct {
-	path strings.Builder
-	raw  strings.Builder
-}
-
-// literal appends a static path segment, identical on the decoded and escaped
-// paths.
-func (b *pathBuilder) literal(s string) {
-	b.path.WriteString(s)
-	b.raw.WriteString(s)
-}
-
-// singleSegment appends a single-segment path parameter: the value occupies one
-// path segment, so everything is escaped, including "/". The value is formatted
-// with %v so strings, enums, and numbers all work.
-func (b *pathBuilder) singleSegment(v any) {
-	s := fmt.Sprintf("%v", v)
-	b.path.WriteString(s)
-	b.raw.WriteString(url.PathEscape(s))
-}
-
-// multiSegments appends a multi-segment path parameter: the value spans several
-// path segments, so each segment is escaped but the "/" separators are kept.
-// The value is formatted with %v so strings, enums, and numbers all work.
-func (b *pathBuilder) multiSegments(v any) {
-	s := fmt.Sprintf("%v", v)
-	b.path.WriteString(s)
-	segments := strings.Split(s, "/")
-	for i, seg := range segments {
-		segments[i] = url.PathEscape(seg)
-	}
-	b.raw.WriteString(strings.Join(segments, "/"))
-}
-
-func (b *pathBuilder) build() (path, rawPath string) {
-	return b.path.String(), b.raw.String()
 }

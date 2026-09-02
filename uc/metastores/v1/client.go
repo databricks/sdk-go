@@ -76,8 +76,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 
 // Creates a Unity Catalog metastore.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateAccountsMetastore(ctx context.Context, req *AccountsCreateMetastoreRequest, opts ...call.Option) (*AccountsCreateMetastoreResponse, error) {
-	wireReq, err := accountsCreateMetastoreRequestToWire(req)
+func (c *internalClient) CreateAccountsMetastore(ctx context.Context, req AccountsCreateMetastoreRequest, opts ...call.Option) (*AccountsCreateMetastoreResponse, error) {
+	wireReq, err := accountsCreateMetastoreRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -148,8 +148,8 @@ func (c *internalClient) CreateAccountsMetastore(ctx context.Context, req *Accou
 
 // Creates an assignment to a metastore for a workspace
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateAccountsMetastoreAssignment(ctx context.Context, req *AccountsCreateMetastoreAssignmentRequest, opts ...call.Option) (*AccountsCreateMetastoreAssignmentResponse, error) {
-	wireReq, err := accountsCreateMetastoreAssignmentRequestToWire(req)
+func (c *internalClient) CreateAccountsMetastoreAssignment(ctx context.Context, req AccountsCreateMetastoreAssignmentRequest, opts ...call.Option) (*AccountsCreateMetastoreAssignmentResponse, error) {
+	wireReq, err := accountsCreateMetastoreAssignmentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -173,9 +173,17 @@ func (c *internalClient) CreateAccountsMetastoreAssignment(ctx context.Context, 
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/workspaces/")
-	pb.singleSegment(*req.WorkspaceId)
+	if req.WorkspaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.WorkspaceId)
+	}
 	pb.literal("/metastores/")
-	pb.singleSegment(*req.MetastoreId)
+	if req.MetastoreId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MetastoreId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -217,8 +225,8 @@ func (c *internalClient) CreateAccountsMetastoreAssignment(ctx context.Context, 
 
 // Deletes a Unity Catalog metastore for an account, both specified by ID.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteAccountsMetastore(ctx context.Context, req *AccountsDeleteMetastoreRequest, opts ...call.Option) (*AccountsDeleteMetastoreResponse, error) {
-	wireReq, err := accountsDeleteMetastoreRequestToWire(req)
+func (c *internalClient) DeleteAccountsMetastore(ctx context.Context, req AccountsDeleteMetastoreRequest, opts ...call.Option) (*AccountsDeleteMetastoreResponse, error) {
+	wireReq, err := accountsDeleteMetastoreRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +246,11 @@ func (c *internalClient) DeleteAccountsMetastore(ctx context.Context, req *Accou
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/metastores/")
-	pb.singleSegment(*req.MetastoreId)
+	if req.MetastoreId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MetastoreId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -283,7 +295,7 @@ func (c *internalClient) DeleteAccountsMetastore(ctx context.Context, req *Accou
 // Deletes a metastore assignment to a workspace, leaving the workspace with no
 // metastore.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteAccountsMetastoreAssignment(ctx context.Context, req *AccountsDeleteMetastoreAssignmentRequest, opts ...call.Option) (*AccountsDeleteMetastoreAssignmentResponse, error) {
+func (c *internalClient) DeleteAccountsMetastoreAssignment(ctx context.Context, req AccountsDeleteMetastoreAssignmentRequest, opts ...call.Option) (*AccountsDeleteMetastoreAssignmentResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -300,9 +312,17 @@ func (c *internalClient) DeleteAccountsMetastoreAssignment(ctx context.Context, 
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/workspaces/")
-	pb.singleSegment(*req.WorkspaceId)
+	if req.WorkspaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.WorkspaceId)
+	}
 	pb.literal("/metastores/")
-	pb.singleSegment(*req.MetastoreId)
+	if req.MetastoreId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MetastoreId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -343,7 +363,7 @@ func (c *internalClient) DeleteAccountsMetastoreAssignment(ctx context.Context, 
 
 // Gets a Unity Catalog metastore from an account, both specified by ID.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetAccountsMetastore(ctx context.Context, req *AccountsGetMetastoreRequest, opts ...call.Option) (*AccountsGetMetastoreResponse, error) {
+func (c *internalClient) GetAccountsMetastore(ctx context.Context, req AccountsGetMetastoreRequest, opts ...call.Option) (*AccountsGetMetastoreResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -360,7 +380,11 @@ func (c *internalClient) GetAccountsMetastore(ctx context.Context, req *Accounts
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/metastores/")
-	pb.singleSegment(*req.MetastoreId)
+	if req.MetastoreId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MetastoreId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -410,7 +434,7 @@ func (c *internalClient) GetAccountsMetastore(ctx context.Context, req *Accounts
 // metastore is assigned to the workspace, the assignment will not be found and
 // a 404 returned.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetMetastoreAssignment(ctx context.Context, req *AccountsGetMetastoreAssignmentRequest, opts ...call.Option) (*AccountsGetMetastoreAssignmentResponse, error) {
+func (c *internalClient) GetMetastoreAssignment(ctx context.Context, req AccountsGetMetastoreAssignmentRequest, opts ...call.Option) (*AccountsGetMetastoreAssignmentResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -427,7 +451,11 @@ func (c *internalClient) GetMetastoreAssignment(ctx context.Context, req *Accoun
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/workspaces/")
-	pb.singleSegment(*req.WorkspaceId)
+	if req.WorkspaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.WorkspaceId)
+	}
 	pb.literal("/metastore")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -475,7 +503,7 @@ func (c *internalClient) GetMetastoreAssignment(ctx context.Context, req *Accoun
 
 // Gets all Unity Catalog metastores associated with an account specified by ID.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListAccountsMetastores(ctx context.Context, req *AccountsListMetastoresRequest, opts ...call.Option) (*AccountsListMetastoresResponse, error) {
+func (c *internalClient) ListAccountsMetastores(ctx context.Context, req AccountsListMetastoresRequest, opts ...call.Option) (*AccountsListMetastoresResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -539,7 +567,7 @@ func (c *internalClient) ListAccountsMetastores(ctx context.Context, req *Accoun
 // Gets a list of all <Databricks> workspace IDs that have been assigned to
 // given metastore.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListMetastoreAssignments(ctx context.Context, req *AccountsListWorkspaceIdsForMetastoreRequest, opts ...call.Option) (*AccountsListWorkspaceIdsForMetastoreResponse, error) {
+func (c *internalClient) ListMetastoreAssignments(ctx context.Context, req AccountsListWorkspaceIdsForMetastoreRequest, opts ...call.Option) (*AccountsListWorkspaceIdsForMetastoreResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -556,7 +584,11 @@ func (c *internalClient) ListMetastoreAssignments(ctx context.Context, req *Acco
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/metastores/")
-	pb.singleSegment(*req.MetastoreId)
+	if req.MetastoreId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MetastoreId)
+	}
 	pb.literal("/workspaces")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -604,8 +636,8 @@ func (c *internalClient) ListMetastoreAssignments(ctx context.Context, req *Acco
 
 // Updates an existing Unity Catalog metastore.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) UpdateAccountsMetastore(ctx context.Context, req *AccountsUpdateMetastoreRequest, opts ...call.Option) (*AccountsUpdateMetastoreResponse, error) {
-	wireReq, err := accountsUpdateMetastoreRequestToWire(req)
+func (c *internalClient) UpdateAccountsMetastore(ctx context.Context, req AccountsUpdateMetastoreRequest, opts ...call.Option) (*AccountsUpdateMetastoreResponse, error) {
+	wireReq, err := accountsUpdateMetastoreRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -629,7 +661,11 @@ func (c *internalClient) UpdateAccountsMetastore(ctx context.Context, req *Accou
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/metastores/")
-	pb.singleSegment(*req.MetastoreId)
+	if req.MetastoreId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MetastoreId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -678,8 +714,8 @@ func (c *internalClient) UpdateAccountsMetastore(ctx context.Context, req *Accou
 // Updates an assignment to a metastore for a workspace. Currently, only the
 // default catalog may be updated.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) UpdateAccountsMetastoreAssignment(ctx context.Context, req *AccountsUpdateMetastoreAssignmentRequest, opts ...call.Option) (*AccountsUpdateMetastoreAssignmentResponse, error) {
-	wireReq, err := accountsUpdateMetastoreAssignmentRequestToWire(req)
+func (c *internalClient) UpdateAccountsMetastoreAssignment(ctx context.Context, req AccountsUpdateMetastoreAssignmentRequest, opts ...call.Option) (*AccountsUpdateMetastoreAssignmentResponse, error) {
+	wireReq, err := accountsUpdateMetastoreAssignmentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -703,9 +739,17 @@ func (c *internalClient) UpdateAccountsMetastoreAssignment(ctx context.Context, 
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/workspaces/")
-	pb.singleSegment(*req.WorkspaceId)
+	if req.WorkspaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.WorkspaceId)
+	}
 	pb.literal("/metastores/")
-	pb.singleSegment(*req.MetastoreId)
+	if req.MetastoreId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MetastoreId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -750,8 +794,8 @@ func (c *internalClient) UpdateAccountsMetastoreAssignment(ctx context.Context, 
 // metastore is the user calling the __createMetastore__ API. If the __owner__
 // field is set to the empty string (**""**), the ownership is assigned to the
 // System User instead.
-func (c *internalClient) CreateMetastore(ctx context.Context, req *CreateMetastoreRequest, opts ...call.Option) (*MetastoreInfo, error) {
-	wireReq, err := createMetastoreRequestToWire(req)
+func (c *internalClient) CreateMetastore(ctx context.Context, req CreateMetastoreRequest, opts ...call.Option) (*MetastoreInfo, error) {
+	wireReq, err := createMetastoreRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -818,8 +862,8 @@ func (c *internalClient) CreateMetastore(ctx context.Context, req *CreateMetasto
 // Creates a new metastore assignment. If an assignment for the same
 // __workspace_id__ exists, it will be overwritten by the new __metastore_id__
 // and __default_catalog_name__. The caller must be an account admin.
-func (c *internalClient) CreateMetastoreAssignment(ctx context.Context, req *CreateMetastoreAssignmentRequest, opts ...call.Option) (*CreateMetastoreAssignmentResponse, error) {
-	wireReq, err := createMetastoreAssignmentRequestToWire(req)
+func (c *internalClient) CreateMetastoreAssignment(ctx context.Context, req CreateMetastoreAssignmentRequest, opts ...call.Option) (*CreateMetastoreAssignmentResponse, error) {
+	wireReq, err := createMetastoreAssignmentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -840,7 +884,11 @@ func (c *internalClient) CreateMetastoreAssignment(ctx context.Context, req *Cre
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/workspaces/")
-	pb.singleSegment(*req.WorkspaceId)
+	if req.WorkspaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.WorkspaceId)
+	}
 	pb.literal("/metastore")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -882,8 +930,8 @@ func (c *internalClient) CreateMetastoreAssignment(ctx context.Context, req *Cre
 }
 
 // Deletes a metastore. The caller must be a metastore admin.
-func (c *internalClient) DeleteMetastore(ctx context.Context, req *DeleteMetastoreRequest, opts ...call.Option) (*DeleteMetastoreResponse, error) {
-	wireReq, err := deleteMetastoreRequestToWire(req)
+func (c *internalClient) DeleteMetastore(ctx context.Context, req DeleteMetastoreRequest, opts ...call.Option) (*DeleteMetastoreResponse, error) {
+	wireReq, err := deleteMetastoreRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -900,7 +948,11 @@ func (c *internalClient) DeleteMetastore(ctx context.Context, req *DeleteMetasto
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/metastores/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -943,8 +995,8 @@ func (c *internalClient) DeleteMetastore(ctx context.Context, req *DeleteMetasto
 }
 
 // Deletes a metastore assignment. The caller must be an account administrator.
-func (c *internalClient) DeleteMetastoreAssignment(ctx context.Context, req *DeleteMetastoreAssignmentRequest, opts ...call.Option) (*DeleteMetastoreAssignmentResponse, error) {
-	wireReq, err := deleteMetastoreAssignmentRequestToWire(req)
+func (c *internalClient) DeleteMetastoreAssignment(ctx context.Context, req DeleteMetastoreAssignmentRequest, opts ...call.Option) (*DeleteMetastoreAssignmentResponse, error) {
+	wireReq, err := deleteMetastoreAssignmentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -961,7 +1013,11 @@ func (c *internalClient) DeleteMetastoreAssignment(ctx context.Context, req *Del
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/workspaces/")
-	pb.singleSegment(*req.WorkspaceId)
+	if req.WorkspaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.WorkspaceId)
+	}
 	pb.literal("/metastore")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1005,7 +1061,7 @@ func (c *internalClient) DeleteMetastoreAssignment(ctx context.Context, req *Del
 }
 
 // Gets the metastore assignment for the workspace being accessed.
-func (c *internalClient) GetCurrentMetastoreAssignment(ctx context.Context, req *GetCurrentMetastoreAssignmentRequest, opts ...call.Option) (*MetastoreAssignment, error) {
+func (c *internalClient) GetCurrentMetastoreAssignment(ctx context.Context, req GetCurrentMetastoreAssignmentRequest, opts ...call.Option) (*MetastoreAssignment, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1063,7 +1119,7 @@ func (c *internalClient) GetCurrentMetastoreAssignment(ctx context.Context, req 
 
 // Gets a metastore that matches the supplied ID. The caller must be a metastore
 // admin to retrieve this info.
-func (c *internalClient) GetMetastore(ctx context.Context, req *GetMetastoreRequest, opts ...call.Option) (*MetastoreInfo, error) {
+func (c *internalClient) GetMetastore(ctx context.Context, req GetMetastoreRequest, opts ...call.Option) (*MetastoreInfo, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1077,7 +1133,11 @@ func (c *internalClient) GetMetastore(ctx context.Context, req *GetMetastoreRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/metastores/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1124,7 +1184,7 @@ func (c *internalClient) GetMetastore(ctx context.Context, req *GetMetastoreRequ
 
 // Gets information about a metastore. This summary includes the storage
 // credential, the cloud vendor, the cloud region, and the global metastore ID.
-func (c *internalClient) GetMetastoreSummary(ctx context.Context, req *GetMetastoreSummaryRequest, opts ...call.Option) (*GetMetastoreSummaryResponse, error) {
+func (c *internalClient) GetMetastoreSummary(ctx context.Context, req GetMetastoreSummaryRequest, opts ...call.Option) (*GetMetastoreSummaryResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1191,8 +1251,8 @@ func (c *internalClient) GetMetastoreSummary(ctx context.Context, req *GetMetast
 // contain zero results while still providing a next_page_token. Clients must
 // continue reading pages until next_page_token is absent, which is the only
 // indication that the end of results has been reached.
-func (c *internalClient) ListMetastores(ctx context.Context, req *ListMetastoresRequest, opts ...call.Option) (*ListMetastoresResponse, error) {
-	wireReq, err := listMetastoresRequestToWire(req)
+func (c *internalClient) ListMetastores(ctx context.Context, req ListMetastoresRequest, opts ...call.Option) (*ListMetastoresResponse, error) {
+	wireReq, err := listMetastoresRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1262,7 +1322,7 @@ func (c *internalClient) ListMetastores(ctx context.Context, req *ListMetastores
 //
 // For example:
 //
-//	for item, err := range c.ListMetastoresIter(ctx, &ListMetastoresRequest{}) {
+//	for item, err := range c.ListMetastoresIter(ctx, ListMetastoresRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1274,16 +1334,13 @@ func (c *internalClient) ListMetastores(ctx context.Context, req *ListMetastores
 //
 // Callers who need custom pagination logic should use
 // ListMetastores directly.
-func (c *internalClient) ListMetastoresIter(ctx context.Context, req *ListMetastoresRequest, opts ...call.Option) iter.Seq2[*MetastoreInfo, error] {
+func (c *internalClient) ListMetastoresIter(ctx context.Context, req ListMetastoresRequest, opts ...call.Option) iter.Seq2[*MetastoreInfo, error] {
 	return func(yield func(*MetastoreInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListMetastoresRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListMetastores(ctx, &pageReq, opts...)
+			resp, err := c.ListMetastores(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1304,8 +1361,8 @@ func (c *internalClient) ListMetastoresIter(ctx context.Context, req *ListMetast
 // Updates information for a specific metastore. The caller must be a metastore
 // admin. If the __owner__ field is set to the empty string (**""**), the
 // ownership is updated to the System User.
-func (c *internalClient) UpdateMetastore(ctx context.Context, req *UpdateMetastoreRequest, opts ...call.Option) (*MetastoreInfo, error) {
-	wireReq, err := updateMetastoreRequestToWire(req)
+func (c *internalClient) UpdateMetastore(ctx context.Context, req UpdateMetastoreRequest, opts ...call.Option) (*MetastoreInfo, error) {
+	wireReq, err := updateMetastoreRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1326,7 +1383,11 @@ func (c *internalClient) UpdateMetastore(ctx context.Context, req *UpdateMetasto
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/metastores/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1377,8 +1438,8 @@ func (c *internalClient) UpdateMetastore(ctx context.Context, req *UpdateMetasto
 // the Workspace is already assigned a metastore. The caller must be an account
 // admin to update __metastore_id__; otherwise, the caller can be a Workspace
 // admin.
-func (c *internalClient) UpdateMetastoreAssignment(ctx context.Context, req *UpdateMetastoreAssignmentRequest, opts ...call.Option) (*UpdateMetastoreAssignmentResponse, error) {
-	wireReq, err := updateMetastoreAssignmentRequestToWire(req)
+func (c *internalClient) UpdateMetastoreAssignment(ctx context.Context, req UpdateMetastoreAssignmentRequest, opts ...call.Option) (*UpdateMetastoreAssignmentResponse, error) {
+	wireReq, err := updateMetastoreAssignmentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1399,7 +1460,11 @@ func (c *internalClient) UpdateMetastoreAssignment(ctx context.Context, req *Upd
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/workspaces/")
-	pb.singleSegment(*req.WorkspaceId)
+	if req.WorkspaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.WorkspaceId)
+	}
 	pb.literal("/metastore")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}

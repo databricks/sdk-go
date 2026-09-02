@@ -3,19 +3,69 @@
 package workspacebindings
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
 
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
+
 type getCatalogWorkspaceBindingsResponseWire struct {
-	Workspaces []int64 `json:"workspaces,omitempty"`
+	Workspaces []wireInt64 `json:"workspaces,omitempty"`
 }
 
 func getCatalogWorkspaceBindingsResponseFromWire(w *getCatalogWorkspaceBindingsResponseWire) (*GetCatalogWorkspaceBindingsResponse, error) {
 	if w == nil {
 		return nil, nil
 	}
+	workspacesPublicValue, err := convertSlice(w.Workspaces, int64FromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetCatalogWorkspaceBindingsResponse.Workspaces", err)
+	}
 	return &GetCatalogWorkspaceBindingsResponse{
-		Workspaces: w.Workspaces,
+		Workspaces: workspacesPublicValue,
 	}, nil
 }
 
@@ -58,32 +108,44 @@ func getWorkspaceBindingsResponseFromWire(w *getWorkspaceBindingsResponseWire) (
 }
 
 type updateCatalogWorkspaceBindingsRequestWire struct {
-	CatalogName        *string `json:"catalog_name,omitempty"`
-	AssignWorkspaces   []int64 `json:"assign_workspaces,omitempty"`
-	UnassignWorkspaces []int64 `json:"unassign_workspaces,omitempty"`
+	CatalogName        *string     `json:"catalog_name,omitempty"`
+	AssignWorkspaces   []wireInt64 `json:"assign_workspaces,omitempty"`
+	UnassignWorkspaces []wireInt64 `json:"unassign_workspaces,omitempty"`
 }
 
 func updateCatalogWorkspaceBindingsRequestToWire(v *UpdateCatalogWorkspaceBindingsRequest) (*updateCatalogWorkspaceBindingsRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	assignWorkspacesWireValue, err := convertSlice(v.AssignWorkspaces, int64ToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogWorkspaceBindingsRequest.AssignWorkspaces", err)
+	}
+	unassignWorkspacesWireValue, err := convertSlice(v.UnassignWorkspaces, int64ToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogWorkspaceBindingsRequest.UnassignWorkspaces", err)
+	}
 	return &updateCatalogWorkspaceBindingsRequestWire{
 		CatalogName:        v.CatalogName,
-		AssignWorkspaces:   v.AssignWorkspaces,
-		UnassignWorkspaces: v.UnassignWorkspaces,
+		AssignWorkspaces:   assignWorkspacesWireValue,
+		UnassignWorkspaces: unassignWorkspacesWireValue,
 	}, nil
 }
 
 type updateCatalogWorkspaceBindingsResponseWire struct {
-	Workspaces []int64 `json:"workspaces,omitempty"`
+	Workspaces []wireInt64 `json:"workspaces,omitempty"`
 }
 
 func updateCatalogWorkspaceBindingsResponseFromWire(w *updateCatalogWorkspaceBindingsResponseWire) (*UpdateCatalogWorkspaceBindingsResponse, error) {
 	if w == nil {
 		return nil, nil
 	}
+	workspacesPublicValue, err := convertSlice(w.Workspaces, int64FromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogWorkspaceBindingsResponse.Workspaces", err)
+	}
 	return &UpdateCatalogWorkspaceBindingsResponse{
-		Workspaces: w.Workspaces,
+		Workspaces: workspacesPublicValue,
 	}, nil
 }
 
@@ -132,7 +194,7 @@ func updateWorkspaceBindingsResponseFromWire(w *updateWorkspaceBindingsResponseW
 }
 
 type workspaceBindingInfoWire struct {
-	WorkspaceId *int64      `json:"workspace_id,omitempty"`
+	WorkspaceId *wireInt64  `json:"workspace_id,omitempty"`
 	BindingType BindingType `json:"binding_type,omitempty"`
 }
 
@@ -140,8 +202,12 @@ func workspaceBindingInfoToWire(v *WorkspaceBindingInfo) (*workspaceBindingInfoW
 	if v == nil {
 		return nil, nil
 	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "WorkspaceBindingInfo.WorkspaceId", err)
+	}
 	return &workspaceBindingInfoWire{
-		WorkspaceId: v.WorkspaceId,
+		WorkspaceId: workspaceIdWireValue,
 		BindingType: v.BindingType,
 	}, nil
 }
@@ -150,8 +216,12 @@ func workspaceBindingInfoFromWire(w *workspaceBindingInfoWire) (*WorkspaceBindin
 	if w == nil {
 		return nil, nil
 	}
+	workspaceIdPublicValue, err := int64FromWire(w.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "WorkspaceBindingInfo.WorkspaceId", err)
+	}
 	return &WorkspaceBindingInfo{
-		WorkspaceId: w.WorkspaceId,
+		WorkspaceId: workspaceIdPublicValue,
 		BindingType: w.BindingType,
 	}, nil
 }

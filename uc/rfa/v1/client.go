@@ -82,8 +82,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // The supported securable types are: "metastore", "catalog", "schema", "table",
 // "external_location", "connection", "credential", "function",
 // "registered_model", and "volume".
-func (c *internalClient) BatchCreateAccessRequests(ctx context.Context, req *BatchCreateAccessRequestsRequest, opts ...call.Option) (*BatchCreateAccessRequestsResponse, error) {
-	wireReq, err := batchCreateAccessRequestsRequestToWire(req)
+func (c *internalClient) BatchCreateAccessRequests(ctx context.Context, req BatchCreateAccessRequestsRequest, opts ...call.Option) (*BatchCreateAccessRequestsResponse, error) {
+	wireReq, err := batchCreateAccessRequestsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +155,7 @@ func (c *internalClient) BatchCreateAccessRequests(ctx context.Context, req *Bat
 // The supported securable types are: "metastore", "catalog", "schema", "table",
 // "external_location", "connection", "credential", "function",
 // "registered_model", and "volume".
-func (c *internalClient) GetAccessRequestDestinations(ctx context.Context, req *GetAccessRequestDestinationsRequest, opts ...call.Option) (*AccessRequestDestinations, error) {
+func (c *internalClient) GetAccessRequestDestinations(ctx context.Context, req GetAccessRequestDestinationsRequest, opts ...call.Option) (*AccessRequestDestinations, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -169,9 +169,17 @@ func (c *internalClient) GetAccessRequestDestinations(ctx context.Context, req *
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/3.0/rfa/destinations/")
-	pb.singleSegment(*req.SecurableType)
+	if req.SecurableType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SecurableType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.FullName)
+	if req.FullName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullName)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -220,15 +228,15 @@ func (c *internalClient) GetAccessRequestDestinations(ctx context.Context, req *
 // must be a metastore admin, the owner of the securable, or a user that has the
 // **MANAGE** privilege on the securable in order to assign destinations. A
 // maximum of 5 emails and 5 external notification destinations (Slack,
-// Microsoft Teams, and Generic Webhook destinations) can be assigned to a
-// securable. If a URL destination is assigned, no other destinations can be
-// set.
+// Microsoft Teams, Generic Webhook, and Databricks App Slack/Teams
+// destinations) can be assigned to a securable. If a URL destination is
+// assigned, no other destinations can be set.
 //
 // The supported securable types are: "metastore", "catalog", "schema", "table",
 // "external_location", "connection", "credential", "function",
 // "registered_model", and "volume".
-func (c *internalClient) UpdateAccessRequestDestinations(ctx context.Context, req *UpdateAccessRequestDestinationsRequest, opts ...call.Option) (*AccessRequestDestinations, error) {
-	wireReq, err := updateAccessRequestDestinationsRequestToWire(req)
+func (c *internalClient) UpdateAccessRequestDestinations(ctx context.Context, req UpdateAccessRequestDestinationsRequest, opts ...call.Option) (*AccessRequestDestinations, error) {
+	wireReq, err := updateAccessRequestDestinationsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}

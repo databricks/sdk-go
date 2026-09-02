@@ -81,8 +81,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 //
 // [CustomAppIntegration/get]: https://docs.databricks.com/api/account/customappintegration/get
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateCustomOAuthAppIntegration(ctx context.Context, req *CreateCustomOAuthAppIntegrationRequest, opts ...call.Option) (*CustomOAuthAppIntegrationSecret, error) {
-	wireReq, err := createCustomOAuthAppIntegrationRequestToWire(req)
+func (c *internalClient) CreateCustomOAuthAppIntegration(ctx context.Context, req CreateCustomOAuthAppIntegrationRequest, opts ...call.Option) (*CustomOAuthAppIntegrationSecret, error) {
+	wireReq, err := createCustomOAuthAppIntegrationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -158,8 +158,8 @@ func (c *internalClient) CreateCustomOAuthAppIntegration(ctx context.Context, re
 //
 // [PublishedAppIntegration/get]: https://docs.databricks.com/api/account/publishedappintegration/get
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreatePublishedOAuthAppIntegration(ctx context.Context, req *CreatePublishedOAuthAppIntegrationRequest, opts ...call.Option) (*CreatePublishedOAuthAppIntegrationResponse, error) {
-	wireReq, err := createPublishedOAuthAppIntegrationRequestToWire(req)
+func (c *internalClient) CreatePublishedOAuthAppIntegration(ctx context.Context, req CreatePublishedOAuthAppIntegrationRequest, opts ...call.Option) (*CreatePublishedOAuthAppIntegrationResponse, error) {
+	wireReq, err := createPublishedOAuthAppIntegrationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -233,7 +233,7 @@ func (c *internalClient) CreatePublishedOAuthAppIntegration(ctx context.Context,
 //
 // [CustomAppIntegration/get]: https://docs.databricks.com/api/account/customappintegration/get
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteCustomOAuthAppIntegration(ctx context.Context, req *DeleteCustomOAuthAppIntegrationRequest, opts ...call.Option) (*DeleteCustomOAuthAppIntegrationResponse, error) {
+func (c *internalClient) DeleteCustomOAuthAppIntegration(ctx context.Context, req DeleteCustomOAuthAppIntegrationRequest, opts ...call.Option) (*DeleteCustomOAuthAppIntegrationResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -250,7 +250,11 @@ func (c *internalClient) DeleteCustomOAuthAppIntegration(ctx context.Context, re
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/oauth2/custom-app-integrations/")
-	pb.singleSegment(*req.IntegrationId)
+	if req.IntegrationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.IntegrationId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -294,7 +298,7 @@ func (c *internalClient) DeleteCustomOAuthAppIntegration(ctx context.Context, re
 //
 // [PublishedAppIntegration/get]: https://docs.databricks.com/api/account/publishedappintegration/get
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeletePublishedOAuthAppIntegration(ctx context.Context, req *DeletePublishedOAuthAppIntegrationRequest, opts ...call.Option) (*DeletePublishedOAuthAppIntegrationResponse, error) {
+func (c *internalClient) DeletePublishedOAuthAppIntegration(ctx context.Context, req DeletePublishedOAuthAppIntegrationRequest, opts ...call.Option) (*DeletePublishedOAuthAppIntegrationResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -311,7 +315,11 @@ func (c *internalClient) DeletePublishedOAuthAppIntegration(ctx context.Context,
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/oauth2/published-app-integrations/")
-	pb.singleSegment(*req.IntegrationId)
+	if req.IntegrationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.IntegrationId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -352,7 +360,7 @@ func (c *internalClient) DeletePublishedOAuthAppIntegration(ctx context.Context,
 
 // Gets the Custom OAuth App Integration for the given integration id.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetCustomOAuthAppIntegration(ctx context.Context, req *GetCustomOAuthAppIntegrationRequest, opts ...call.Option) (*CustomOAuthAppIntegration, error) {
+func (c *internalClient) GetCustomOAuthAppIntegration(ctx context.Context, req GetCustomOAuthAppIntegrationRequest, opts ...call.Option) (*CustomOAuthAppIntegration, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -369,7 +377,11 @@ func (c *internalClient) GetCustomOAuthAppIntegration(ctx context.Context, req *
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/oauth2/custom-app-integrations/")
-	pb.singleSegment(*req.IntegrationId)
+	if req.IntegrationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.IntegrationId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -416,7 +428,7 @@ func (c *internalClient) GetCustomOAuthAppIntegration(ctx context.Context, req *
 
 // Gets the Published OAuth App Integration for the given integration id.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetPublishedOAuthAppIntegration(ctx context.Context, req *GetPublishedOAuthAppIntegrationRequest, opts ...call.Option) (*PublishedOAuthAppIntegration, error) {
+func (c *internalClient) GetPublishedOAuthAppIntegration(ctx context.Context, req GetPublishedOAuthAppIntegrationRequest, opts ...call.Option) (*PublishedOAuthAppIntegration, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -433,7 +445,11 @@ func (c *internalClient) GetPublishedOAuthAppIntegration(ctx context.Context, re
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/oauth2/published-app-integrations/")
-	pb.singleSegment(*req.IntegrationId)
+	if req.IntegrationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.IntegrationId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -480,8 +496,8 @@ func (c *internalClient) GetPublishedOAuthAppIntegration(ctx context.Context, re
 
 // Get the list of custom OAuth app integrations for the specified <Account>
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListCustomOAuthAppIntegrations(ctx context.Context, req *ListCustomOAuthAppIntegrationsRequest, opts ...call.Option) (*ListCustomOAuthAppIntegrationsResponse, error) {
-	wireReq, err := listCustomOAuthAppIntegrationsRequestToWire(req)
+func (c *internalClient) ListCustomOAuthAppIntegrations(ctx context.Context, req ListCustomOAuthAppIntegrationsRequest, opts ...call.Option) (*ListCustomOAuthAppIntegrationsResponse, error) {
+	wireReq, err := listCustomOAuthAppIntegrationsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -559,7 +575,7 @@ func (c *internalClient) ListCustomOAuthAppIntegrations(ctx context.Context, req
 //
 // For example:
 //
-//	for item, err := range c.ListCustomOAuthAppIntegrationsIter(ctx, &ListCustomOAuthAppIntegrationsRequest{}) {
+//	for item, err := range c.ListCustomOAuthAppIntegrationsIter(ctx, ListCustomOAuthAppIntegrationsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -571,16 +587,13 @@ func (c *internalClient) ListCustomOAuthAppIntegrations(ctx context.Context, req
 //
 // Callers who need custom pagination logic should use
 // ListCustomOAuthAppIntegrations directly.
-func (c *internalClient) ListCustomOAuthAppIntegrationsIter(ctx context.Context, req *ListCustomOAuthAppIntegrationsRequest, opts ...call.Option) iter.Seq2[*CustomOAuthAppIntegration, error] {
+func (c *internalClient) ListCustomOAuthAppIntegrationsIter(ctx context.Context, req ListCustomOAuthAppIntegrationsRequest, opts ...call.Option) iter.Seq2[*CustomOAuthAppIntegration, error] {
 	return func(yield func(*CustomOAuthAppIntegration, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListCustomOAuthAppIntegrationsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListCustomOAuthAppIntegrations(ctx, &pageReq, opts...)
+			resp, err := c.ListCustomOAuthAppIntegrations(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -600,8 +613,8 @@ func (c *internalClient) ListCustomOAuthAppIntegrationsIter(ctx context.Context,
 
 // Get the list of published OAuth app integrations for the specified <Account>
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListPublishedOAuthAppIntegrations(ctx context.Context, req *ListPublishedOAuthAppIntegrationsRequest, opts ...call.Option) (*ListPublishedOAuthAppIntegrationsResponse, error) {
-	wireReq, err := listPublishedOAuthAppIntegrationsRequestToWire(req)
+func (c *internalClient) ListPublishedOAuthAppIntegrations(ctx context.Context, req ListPublishedOAuthAppIntegrationsRequest, opts ...call.Option) (*ListPublishedOAuthAppIntegrationsResponse, error) {
+	wireReq, err := listPublishedOAuthAppIntegrationsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -676,7 +689,7 @@ func (c *internalClient) ListPublishedOAuthAppIntegrations(ctx context.Context, 
 //
 // For example:
 //
-//	for item, err := range c.ListPublishedOAuthAppIntegrationsIter(ctx, &ListPublishedOAuthAppIntegrationsRequest{}) {
+//	for item, err := range c.ListPublishedOAuthAppIntegrationsIter(ctx, ListPublishedOAuthAppIntegrationsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -688,16 +701,13 @@ func (c *internalClient) ListPublishedOAuthAppIntegrations(ctx context.Context, 
 //
 // Callers who need custom pagination logic should use
 // ListPublishedOAuthAppIntegrations directly.
-func (c *internalClient) ListPublishedOAuthAppIntegrationsIter(ctx context.Context, req *ListPublishedOAuthAppIntegrationsRequest, opts ...call.Option) iter.Seq2[*PublishedOAuthAppIntegration, error] {
+func (c *internalClient) ListPublishedOAuthAppIntegrationsIter(ctx context.Context, req ListPublishedOAuthAppIntegrationsRequest, opts ...call.Option) iter.Seq2[*PublishedOAuthAppIntegration, error] {
 	return func(yield func(*PublishedOAuthAppIntegration, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListPublishedOAuthAppIntegrationsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListPublishedOAuthAppIntegrations(ctx, &pageReq, opts...)
+			resp, err := c.ListPublishedOAuthAppIntegrations(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -717,8 +727,8 @@ func (c *internalClient) ListPublishedOAuthAppIntegrationsIter(ctx context.Conte
 
 // Get all the available published OAuth apps in <Databricks>.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListPublishedOAuthApps(ctx context.Context, req *ListPublishedOAuthAppsRequest, opts ...call.Option) (*ListPublishedOAuthAppsResponse, error) {
-	wireReq, err := listPublishedOAuthAppsRequestToWire(req)
+func (c *internalClient) ListPublishedOAuthApps(ctx context.Context, req ListPublishedOAuthAppsRequest, opts ...call.Option) (*ListPublishedOAuthAppsResponse, error) {
+	wireReq, err := listPublishedOAuthAppsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -793,7 +803,7 @@ func (c *internalClient) ListPublishedOAuthApps(ctx context.Context, req *ListPu
 //
 // For example:
 //
-//	for item, err := range c.ListPublishedOAuthAppsIter(ctx, &ListPublishedOAuthAppsRequest{}) {
+//	for item, err := range c.ListPublishedOAuthAppsIter(ctx, ListPublishedOAuthAppsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -805,16 +815,13 @@ func (c *internalClient) ListPublishedOAuthApps(ctx context.Context, req *ListPu
 //
 // Callers who need custom pagination logic should use
 // ListPublishedOAuthApps directly.
-func (c *internalClient) ListPublishedOAuthAppsIter(ctx context.Context, req *ListPublishedOAuthAppsRequest, opts ...call.Option) iter.Seq2[*PublishedOAuthApp, error] {
+func (c *internalClient) ListPublishedOAuthAppsIter(ctx context.Context, req ListPublishedOAuthAppsRequest, opts ...call.Option) iter.Seq2[*PublishedOAuthApp, error] {
 	return func(yield func(*PublishedOAuthApp, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListPublishedOAuthAppsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListPublishedOAuthApps(ctx, &pageReq, opts...)
+			resp, err := c.ListPublishedOAuthApps(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -837,8 +844,8 @@ func (c *internalClient) ListPublishedOAuthAppsIter(ctx context.Context, req *Li
 //
 // [CustomAppIntegration/get]: https://docs.databricks.com/api/account/customappintegration/get
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) UpdateCustomOAuthAppIntegration(ctx context.Context, req *UpdateCustomOAuthAppIntegrationRequest, opts ...call.Option) (*UpdateCustomOAuthAppIntegrationResponse, error) {
-	wireReq, err := updateCustomOAuthAppIntegrationRequestToWire(req)
+func (c *internalClient) UpdateCustomOAuthAppIntegration(ctx context.Context, req UpdateCustomOAuthAppIntegrationRequest, opts ...call.Option) (*UpdateCustomOAuthAppIntegrationResponse, error) {
+	wireReq, err := updateCustomOAuthAppIntegrationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -862,7 +869,11 @@ func (c *internalClient) UpdateCustomOAuthAppIntegration(ctx context.Context, re
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/oauth2/custom-app-integrations/")
-	pb.singleSegment(*req.IntegrationId)
+	if req.IntegrationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.IntegrationId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -907,8 +918,8 @@ func (c *internalClient) UpdateCustomOAuthAppIntegration(ctx context.Context, re
 //
 // [PublishedAppIntegration/get]: https://docs.databricks.com/api/account/publishedappintegration/get
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) UpdatePublishedOAuthAppIntegration(ctx context.Context, req *UpdatePublishedOAuthAppIntegrationRequest, opts ...call.Option) (*UpdatePublishedOAuthAppIntegrationResponse, error) {
-	wireReq, err := updatePublishedOAuthAppIntegrationRequestToWire(req)
+func (c *internalClient) UpdatePublishedOAuthAppIntegration(ctx context.Context, req UpdatePublishedOAuthAppIntegrationRequest, opts ...call.Option) (*UpdatePublishedOAuthAppIntegrationResponse, error) {
+	wireReq, err := updatePublishedOAuthAppIntegrationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -932,7 +943,11 @@ func (c *internalClient) UpdatePublishedOAuthAppIntegration(ctx context.Context,
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/oauth2/published-app-integrations/")
-	pb.singleSegment(*req.IntegrationId)
+	if req.IntegrationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.IntegrationId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

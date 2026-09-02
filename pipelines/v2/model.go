@@ -86,6 +86,7 @@ const (
 	IngestionSourceType_Confluence        IngestionSourceType = "CONFLUENCE"
 	IngestionSourceType_MetaMarketing     IngestionSourceType = "META_MARKETING"
 	IngestionSourceType_Zendesk           IngestionSourceType = "ZENDESK"
+	IngestionSourceType_Rabbitmq          IngestionSourceType = "RABBITMQ"
 	IngestionSourceType_ForeignCatalog    IngestionSourceType = "FOREIGN_CATALOG"
 )
 
@@ -632,6 +633,13 @@ type ConnectorOptions_ConnectorOptions_KafkaOptions struct {
 }
 
 func (*ConnectorOptions_ConnectorOptions_KafkaOptions) isConnectorOptions_ConnectorOptions() {}
+
+// ConnectorOptions_ConnectorOptions_RabbitmqOptions selects RabbitmqOptions for ConnectorOptions.ConnectorOptions.
+type ConnectorOptions_ConnectorOptions_RabbitmqOptions struct {
+	RabbitmqOptions RabbitmqOptions
+}
+
+func (*ConnectorOptions_ConnectorOptions_RabbitmqOptions) isConnectorOptions_ConnectorOptions() {}
 
 // ConnectorOptions_ConnectorOptions_MarketoOptions selects MarketoOptions for ConnectorOptions.ConnectorOptions.
 type ConnectorOptions_ConnectorOptions_MarketoOptions struct {
@@ -1267,12 +1275,10 @@ type IngestionPipelineDefinition_ReportSpec struct {
 type IngestionPipelineDefinition_SchemaSpec struct {
 	// The source catalog name. Might be optional depending on the type of source.
 	SourceCatalog *string
-	// Schema name in the source database. Currently required; this field will
-	// become optional in an upcoming release, since some source types (for example
-	// streaming / message-bus connectors) do not use it. When that change ships,
-	// this field's type in the generated SDKs and CLI will change from required to
-	// optional (nullable); clients that assume it is always present should handle
-	// its absence.
+	// Schema name in the source database. Optional: some source types (for example
+	// streaming or message-bus connectors) do not use it, so it may be absent from
+	// a pipeline's definition. Clients that assume it is always present should
+	// handle its absence.
 	SourceSchema *string
 	// Required. Destination catalog to store tables.
 	DestinationCatalog *string
@@ -1299,12 +1305,10 @@ type IngestionPipelineDefinition_TableSpec struct {
 	// Schema name in the source database. Might be optional depending on the type
 	// of source.
 	SourceSchema *string
-	// Table name in the source database. Currently required; this field will become
-	// optional in an upcoming release, since some source types (for example
-	// streaming / message-bus connectors) do not use it. When that change ships,
-	// this field's type in the generated SDKs and CLI will change from required to
-	// optional (nullable); clients that assume it is always present should handle
-	// its absence.
+	// Table name in the source database. Optional: some source types (for example
+	// streaming or message-bus connectors) do not use it, so it may be absent from
+	// a pipeline's definition. Clients that assume it is always present should
+	// handle its absence.
 	SourceTable *string
 	// Required. Destination catalog to store table.
 	DestinationCatalog *string
@@ -1819,8 +1823,9 @@ type PathPattern struct {
 
 type PipelineCluster struct {
 	// A label for the cluster specification, either `default` to configure the
-	// default cluster, or `maintenance` to configure the maintenance cluster. This
-	// field is optional. The default value is `default`.
+	// default cluster settings applied to both the update and maintenance clusters,
+	// `updates` to configure the update cluster, or `maintenance` to configure the
+	// maintenance cluster. This field is optional. The default value is `default`.
 	Label *string
 	// Note: This field won't be persisted. Only API users will check this field.
 	ApplyPolicyDefaultValues *bool
@@ -2473,6 +2478,15 @@ type PostgresSlotConfig struct {
 	SlotName *string
 	// The name of the publication to use for the Postgres source
 	PublicationName *string
+}
+
+// RabbitMQ specific options for ingestion. Performance tuning options
+// (consumers_per_task, max_messages_per_fetch, etc.) are intentionally not
+// exposed in the public API. The managed connector uses sensible defaults
+// internally. These can be added later if user demand arises..
+type RabbitmqOptions struct {
+	// (Required) RabbitMQ queue name to consume from.
+	Queue *string
 }
 
 // Reddit Ads specific options for ingestion.

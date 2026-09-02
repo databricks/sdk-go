@@ -3,8 +3,54 @@
 package marketplaces
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type addExchangeForListingRequestWire struct {
 	ListingId  *string `json:"listing_id,omitempty"`
@@ -410,7 +456,7 @@ func createProviderResponseFromWire(w *createProviderResponseWire) (*CreateProvi
 }
 
 type dataRefreshInfoWire struct {
-	Interval *int64      `json:"interval,omitempty"`
+	Interval *wireInt64  `json:"interval,omitempty"`
 	Unit     DataRefresh `json:"unit,omitempty"`
 }
 
@@ -418,8 +464,12 @@ func dataRefreshInfoToWire(v *DataRefreshInfo) (*dataRefreshInfoWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	intervalWireValue, err := int64ToWire(v.Interval)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DataRefreshInfo.Interval", err)
+	}
 	return &dataRefreshInfoWire{
-		Interval: v.Interval,
+		Interval: intervalWireValue,
 		Unit:     v.Unit,
 	}, nil
 }
@@ -428,8 +478,12 @@ func dataRefreshInfoFromWire(w *dataRefreshInfoWire) (*DataRefreshInfo, error) {
 	if w == nil {
 		return nil, nil
 	}
+	intervalPublicValue, err := int64FromWire(w.Interval)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DataRefreshInfo.Interval", err)
+	}
 	return &DataRefreshInfo{
-		Interval: w.Interval,
+		Interval: intervalPublicValue,
 		Unit:     w.Unit,
 	}, nil
 }
@@ -439,9 +493,9 @@ type exchangeWire struct {
 	Name           *string               `json:"name,omitempty"`
 	Comment        *string               `json:"comment,omitempty"`
 	Filters        []exchangeFilterWire  `json:"filters,omitempty"`
-	CreatedAt      *int64                `json:"created_at,omitempty"`
+	CreatedAt      *wireInt64            `json:"created_at,omitempty"`
 	CreatedBy      *string               `json:"created_by,omitempty"`
-	UpdatedAt      *int64                `json:"updated_at,omitempty"`
+	UpdatedAt      *wireInt64            `json:"updated_at,omitempty"`
 	UpdatedBy      *string               `json:"updated_by,omitempty"`
 	LinkedListings []exchangeListingWire `json:"linked_listings,omitempty"`
 }
@@ -454,6 +508,14 @@ func exchangeToWire(v *Exchange) (*exchangeWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Exchange.Filters", err)
 	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Exchange.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Exchange.UpdatedAt", err)
+	}
 	linkedListingsWireValue, err := convertSlice(v.LinkedListings, exchangeListingToWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Exchange.LinkedListings", err)
@@ -463,9 +525,9 @@ func exchangeToWire(v *Exchange) (*exchangeWire, error) {
 		Name:           v.Name,
 		Comment:        v.Comment,
 		Filters:        filtersWireValue,
-		CreatedAt:      v.CreatedAt,
+		CreatedAt:      createdAtWireValue,
 		CreatedBy:      v.CreatedBy,
-		UpdatedAt:      v.UpdatedAt,
+		UpdatedAt:      updatedAtWireValue,
 		UpdatedBy:      v.UpdatedBy,
 		LinkedListings: linkedListingsWireValue,
 	}, nil
@@ -479,6 +541,14 @@ func exchangeFromWire(w *exchangeWire) (*Exchange, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Exchange.Filters", err)
 	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Exchange.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Exchange.UpdatedAt", err)
+	}
 	linkedListingsPublicValue, err := convertSlice(w.LinkedListings, exchangeListingFromWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Exchange.LinkedListings", err)
@@ -488,9 +558,9 @@ func exchangeFromWire(w *exchangeWire) (*Exchange, error) {
 		Name:           w.Name,
 		Comment:        w.Comment,
 		Filters:        filtersPublicValue,
-		CreatedAt:      w.CreatedAt,
+		CreatedAt:      createdAtPublicValue,
 		CreatedBy:      w.CreatedBy,
-		UpdatedAt:      w.UpdatedAt,
+		UpdatedAt:      updatedAtPublicValue,
 		UpdatedBy:      w.UpdatedBy,
 		LinkedListings: linkedListingsPublicValue,
 	}, nil
@@ -501,9 +571,9 @@ type exchangeFilterWire struct {
 	ExchangeId  *string            `json:"exchange_id,omitempty"`
 	FilterValue *string            `json:"filter_value,omitempty"`
 	Name        *string            `json:"name,omitempty"`
-	CreatedAt   *int64             `json:"created_at,omitempty"`
+	CreatedAt   *wireInt64         `json:"created_at,omitempty"`
 	CreatedBy   *string            `json:"created_by,omitempty"`
-	UpdatedAt   *int64             `json:"updated_at,omitempty"`
+	UpdatedAt   *wireInt64         `json:"updated_at,omitempty"`
 	UpdatedBy   *string            `json:"updated_by,omitempty"`
 	FilterType  ExchangeFilterType `json:"filter_type,omitempty"`
 }
@@ -512,14 +582,22 @@ func exchangeFilterToWire(v *ExchangeFilter) (*exchangeFilterWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExchangeFilter.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExchangeFilter.UpdatedAt", err)
+	}
 	return &exchangeFilterWire{
 		Id:          v.Id,
 		ExchangeId:  v.ExchangeId,
 		FilterValue: v.FilterValue,
 		Name:        v.Name,
-		CreatedAt:   v.CreatedAt,
+		CreatedAt:   createdAtWireValue,
 		CreatedBy:   v.CreatedBy,
-		UpdatedAt:   v.UpdatedAt,
+		UpdatedAt:   updatedAtWireValue,
 		UpdatedBy:   v.UpdatedBy,
 		FilterType:  v.FilterType,
 	}, nil
@@ -529,32 +607,44 @@ func exchangeFilterFromWire(w *exchangeFilterWire) (*ExchangeFilter, error) {
 	if w == nil {
 		return nil, nil
 	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExchangeFilter.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExchangeFilter.UpdatedAt", err)
+	}
 	return &ExchangeFilter{
 		Id:          w.Id,
 		ExchangeId:  w.ExchangeId,
 		FilterValue: w.FilterValue,
 		Name:        w.Name,
-		CreatedAt:   w.CreatedAt,
+		CreatedAt:   createdAtPublicValue,
 		CreatedBy:   w.CreatedBy,
-		UpdatedAt:   w.UpdatedAt,
+		UpdatedAt:   updatedAtPublicValue,
 		UpdatedBy:   w.UpdatedBy,
 		FilterType:  w.FilterType,
 	}, nil
 }
 
 type exchangeListingWire struct {
-	Id           *string `json:"id,omitempty"`
-	ExchangeId   *string `json:"exchange_id,omitempty"`
-	ExchangeName *string `json:"exchange_name,omitempty"`
-	ListingId    *string `json:"listing_id,omitempty"`
-	ListingName  *string `json:"listing_name,omitempty"`
-	CreatedAt    *int64  `json:"created_at,omitempty"`
-	CreatedBy    *string `json:"created_by,omitempty"`
+	Id           *string    `json:"id,omitempty"`
+	ExchangeId   *string    `json:"exchange_id,omitempty"`
+	ExchangeName *string    `json:"exchange_name,omitempty"`
+	ListingId    *string    `json:"listing_id,omitempty"`
+	ListingName  *string    `json:"listing_name,omitempty"`
+	CreatedAt    *wireInt64 `json:"created_at,omitempty"`
+	CreatedBy    *string    `json:"created_by,omitempty"`
 }
 
 func exchangeListingToWire(v *ExchangeListing) (*exchangeListingWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExchangeListing.CreatedAt", err)
 	}
 	return &exchangeListingWire{
 		Id:           v.Id,
@@ -562,7 +652,7 @@ func exchangeListingToWire(v *ExchangeListing) (*exchangeListingWire, error) {
 		ExchangeName: v.ExchangeName,
 		ListingId:    v.ListingId,
 		ListingName:  v.ListingName,
-		CreatedAt:    v.CreatedAt,
+		CreatedAt:    createdAtWireValue,
 		CreatedBy:    v.CreatedBy,
 	}, nil
 }
@@ -571,13 +661,17 @@ func exchangeListingFromWire(w *exchangeListingWire) (*ExchangeListing, error) {
 	if w == nil {
 		return nil, nil
 	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExchangeListing.CreatedAt", err)
+	}
 	return &ExchangeListing{
 		Id:           w.Id,
 		ExchangeId:   w.ExchangeId,
 		ExchangeName: w.ExchangeName,
 		ListingId:    w.ListingId,
 		ListingName:  w.ListingName,
-		CreatedAt:    w.CreatedAt,
+		CreatedAt:    createdAtPublicValue,
 		CreatedBy:    w.CreatedBy,
 	}, nil
 }
@@ -588,8 +682,8 @@ type fileInfoWire struct {
 	FileParent          *fileParentWire     `json:"file_parent,omitempty"`
 	MimeType            *string             `json:"mime_type,omitempty"`
 	DownloadLink        *string             `json:"download_link,omitempty"`
-	CreatedAt           *int64              `json:"created_at,omitempty"`
-	UpdatedAt           *int64              `json:"updated_at,omitempty"`
+	CreatedAt           *wireInt64          `json:"created_at,omitempty"`
+	UpdatedAt           *wireInt64          `json:"updated_at,omitempty"`
 	DisplayName         *string             `json:"display_name,omitempty"`
 	Status              FileStatus          `json:"status,omitempty"`
 	StatusMessage       *string             `json:"status_message,omitempty"`
@@ -603,14 +697,22 @@ func fileInfoToWire(v *FileInfo) (*fileInfoWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "FileInfo.FileParent", err)
 	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FileInfo.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FileInfo.UpdatedAt", err)
+	}
 	return &fileInfoWire{
 		Id:                  v.Id,
 		MarketplaceFileType: v.MarketplaceFileType,
 		FileParent:          fileParentWireValue,
 		MimeType:            v.MimeType,
 		DownloadLink:        v.DownloadLink,
-		CreatedAt:           v.CreatedAt,
-		UpdatedAt:           v.UpdatedAt,
+		CreatedAt:           createdAtWireValue,
+		UpdatedAt:           updatedAtWireValue,
 		DisplayName:         v.DisplayName,
 		Status:              v.Status,
 		StatusMessage:       v.StatusMessage,
@@ -625,14 +727,22 @@ func fileInfoFromWire(w *fileInfoWire) (*FileInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "FileInfo.FileParent", err)
 	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FileInfo.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FileInfo.UpdatedAt", err)
+	}
 	return &FileInfo{
 		Id:                  w.Id,
 		MarketplaceFileType: w.MarketplaceFileType,
 		FileParent:          fileParentPublicValue,
 		MimeType:            w.MimeType,
 		DownloadLink:        w.DownloadLink,
-		CreatedAt:           w.CreatedAt,
-		UpdatedAt:           w.UpdatedAt,
+		CreatedAt:           createdAtPublicValue,
+		UpdatedAt:           updatedAtPublicValue,
 		DisplayName:         w.DisplayName,
 		Status:              w.Status,
 		StatusMessage:       w.StatusMessage,
@@ -735,15 +845,19 @@ func getInstallationDetailsRequestToWire(v *GetInstallationDetailsRequest) (*get
 }
 
 type getLatestVersionProviderAnalyticsDashboardResponseWire struct {
-	Version *int64 `json:"version,omitempty"`
+	Version *wireInt64 `json:"version,omitempty"`
 }
 
 func getLatestVersionProviderAnalyticsDashboardResponseFromWire(w *getLatestVersionProviderAnalyticsDashboardResponseWire) (*GetLatestVersionProviderAnalyticsDashboardResponse, error) {
 	if w == nil {
 		return nil, nil
 	}
+	versionPublicValue, err := int64FromWire(w.Version)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetLatestVersionProviderAnalyticsDashboardResponse.Version", err)
+	}
 	return &GetLatestVersionProviderAnalyticsDashboardResponse{
-		Version: w.Version,
+		Version: versionPublicValue,
 	}, nil
 }
 
@@ -945,7 +1059,7 @@ type installationDetailWire struct {
 	ListingId     *string                   `json:"listing_id,omitempty"`
 	ShareName     *string                   `json:"share_name,omitempty"`
 	CatalogName   *string                   `json:"catalog_name,omitempty"`
-	InstalledOn   *int64                    `json:"installed_on,omitempty"`
+	InstalledOn   *wireInt64                `json:"installed_on,omitempty"`
 	Status        InstallationStatus        `json:"status,omitempty"`
 	ErrorMessage  *string                   `json:"error_message,omitempty"`
 	ListingName   *string                   `json:"listing_name,omitempty"`
@@ -960,6 +1074,10 @@ func installationDetailToWire(v *InstallationDetail) (*installationDetailWire, e
 	if v == nil {
 		return nil, nil
 	}
+	installedOnWireValue, err := int64ToWire(v.InstalledOn)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstallationDetail.InstalledOn", err)
+	}
 	tokensWireValue, err := convertSlice(v.Tokens, tokenInfoToWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "InstallationDetail.Tokens", err)
@@ -973,7 +1091,7 @@ func installationDetailToWire(v *InstallationDetail) (*installationDetailWire, e
 		ListingId:     v.ListingId,
 		ShareName:     v.ShareName,
 		CatalogName:   v.CatalogName,
-		InstalledOn:   v.InstalledOn,
+		InstalledOn:   installedOnWireValue,
 		Status:        v.Status,
 		ErrorMessage:  v.ErrorMessage,
 		ListingName:   v.ListingName,
@@ -989,6 +1107,10 @@ func installationDetailFromWire(w *installationDetailWire) (*InstallationDetail,
 	if w == nil {
 		return nil, nil
 	}
+	installedOnPublicValue, err := int64FromWire(w.InstalledOn)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstallationDetail.InstalledOn", err)
+	}
 	tokensPublicValue, err := convertSlice(w.Tokens, tokenInfoFromWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "InstallationDetail.Tokens", err)
@@ -1002,7 +1124,7 @@ func installationDetailFromWire(w *installationDetailWire) (*InstallationDetail,
 		ListingId:     w.ListingId,
 		ShareName:     w.ShareName,
 		CatalogName:   w.CatalogName,
-		InstalledOn:   w.InstalledOn,
+		InstalledOn:   installedOnPublicValue,
 		Status:        w.Status,
 		ErrorMessage:  w.ErrorMessage,
 		ListingName:   w.ListingName,
@@ -1316,18 +1438,22 @@ func listPersonalizationRequestsForConsumerRequestToWire(v *ListPersonalizationR
 }
 
 type listProviderAnalyticsDashboardResponseWire struct {
-	Id          *string `json:"id,omitempty"`
-	Version     *int64  `json:"version,omitempty"`
-	DashboardId *string `json:"dashboard_id,omitempty"`
+	Id          *string    `json:"id,omitempty"`
+	Version     *wireInt64 `json:"version,omitempty"`
+	DashboardId *string    `json:"dashboard_id,omitempty"`
 }
 
 func listProviderAnalyticsDashboardResponseFromWire(w *listProviderAnalyticsDashboardResponseWire) (*ListProviderAnalyticsDashboardResponse, error) {
 	if w == nil {
 		return nil, nil
 	}
+	versionPublicValue, err := int64FromWire(w.Version)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListProviderAnalyticsDashboardResponse.Version", err)
+	}
 	return &ListProviderAnalyticsDashboardResponse{
 		Id:          w.Id,
-		Version:     w.Version,
+		Version:     versionPublicValue,
 		DashboardId: w.DashboardId,
 	}, nil
 }
@@ -1492,8 +1618,8 @@ type listingDetailWire struct {
 	PricingModel              *string              `json:"pricing_model,omitempty"`
 	UpdateFrequency           *dataRefreshInfoWire `json:"update_frequency,omitempty"`
 	CollectionGranularity     *dataRefreshInfoWire `json:"collection_granularity,omitempty"`
-	CollectionDateStart       *int64               `json:"collection_date_start,omitempty"`
-	CollectionDateEnd         *int64               `json:"collection_date_end,omitempty"`
+	CollectionDateStart       *wireInt64           `json:"collection_date_start,omitempty"`
+	CollectionDateEnd         *wireInt64           `json:"collection_date_end,omitempty"`
 	DataSource                *string              `json:"data_source,omitempty"`
 	Size                      *float64             `json:"size,omitempty"`
 	Assets                    []AssetType          `json:"assets,omitempty"`
@@ -1517,6 +1643,14 @@ func listingDetailToWire(v *ListingDetail) (*listingDetailWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ListingDetail.CollectionGranularity", err)
 	}
+	collectionDateStartWireValue, err := int64ToWire(v.CollectionDateStart)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListingDetail.CollectionDateStart", err)
+	}
+	collectionDateEndWireValue, err := int64ToWire(v.CollectionDateEnd)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListingDetail.CollectionDateEnd", err)
+	}
 	tagsWireValue, err := convertSlice(v.Tags, listingTagToWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ListingDetail.Tags", err)
@@ -1534,8 +1668,8 @@ func listingDetailToWire(v *ListingDetail) (*listingDetailWire, error) {
 		PricingModel:              v.PricingModel,
 		UpdateFrequency:           updateFrequencyWireValue,
 		CollectionGranularity:     collectionGranularityWireValue,
-		CollectionDateStart:       v.CollectionDateStart,
-		CollectionDateEnd:         v.CollectionDateEnd,
+		CollectionDateStart:       collectionDateStartWireValue,
+		CollectionDateEnd:         collectionDateEndWireValue,
 		DataSource:                v.DataSource,
 		Size:                      v.Size,
 		Assets:                    v.Assets,
@@ -1560,6 +1694,14 @@ func listingDetailFromWire(w *listingDetailWire) (*ListingDetail, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ListingDetail.CollectionGranularity", err)
 	}
+	collectionDateStartPublicValue, err := int64FromWire(w.CollectionDateStart)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListingDetail.CollectionDateStart", err)
+	}
+	collectionDateEndPublicValue, err := int64FromWire(w.CollectionDateEnd)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListingDetail.CollectionDateEnd", err)
+	}
 	tagsPublicValue, err := convertSlice(w.Tags, listingTagFromWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ListingDetail.Tags", err)
@@ -1577,8 +1719,8 @@ func listingDetailFromWire(w *listingDetailWire) (*ListingDetail, error) {
 		PricingModel:              w.PricingModel,
 		UpdateFrequency:           updateFrequencyPublicValue,
 		CollectionGranularity:     collectionGranularityPublicValue,
-		CollectionDateStart:       w.CollectionDateStart,
-		CollectionDateEnd:         w.CollectionDateEnd,
+		CollectionDateStart:       collectionDateStartPublicValue,
+		CollectionDateEnd:         collectionDateEndPublicValue,
 		DataSource:                w.DataSource,
 		Size:                      w.Size,
 		Assets:                    w.Assets,
@@ -1645,16 +1787,16 @@ type listingSummaryWire struct {
 	Share          *shareInfoWire      `json:"share,omitempty"`
 	ProviderRegion *regionInfoWire     `json:"provider_region,omitempty"`
 	Setting        *listingSettingWire `json:"setting,omitempty"`
-	CreatedAt      *int64              `json:"created_at,omitempty"`
+	CreatedAt      *wireInt64          `json:"created_at,omitempty"`
 	CreatedBy      *string             `json:"created_by,omitempty"`
-	UpdatedAt      *int64              `json:"updated_at,omitempty"`
+	UpdatedAt      *wireInt64          `json:"updated_at,omitempty"`
 	UpdatedBy      *string             `json:"updated_by,omitempty"`
-	PublishedAt    *int64              `json:"published_at,omitempty"`
+	PublishedAt    *wireInt64          `json:"published_at,omitempty"`
 	PublishedBy    *string             `json:"published_by,omitempty"`
 	Categories     []Category          `json:"categories,omitempty"`
 	ListingType    ListingType         `json:"listingType,omitempty"`
-	CreatedById    *int64              `json:"created_by_id,omitempty"`
-	UpdatedById    *int64              `json:"updated_by_id,omitempty"`
+	CreatedById    *wireInt64          `json:"created_by_id,omitempty"`
+	UpdatedById    *wireInt64          `json:"updated_by_id,omitempty"`
 	ProviderId     *string             `json:"provider_id,omitempty"`
 	ExchangeIds    []string            `json:"exchange_ids,omitempty"`
 	GitRepo        *repoInfoWire       `json:"git_repo,omitempty"`
@@ -1676,6 +1818,26 @@ func listingSummaryToWire(v *ListingSummary) (*listingSummaryWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ListingSummary.Setting", err)
 	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListingSummary.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListingSummary.UpdatedAt", err)
+	}
+	publishedAtWireValue, err := int64ToWire(v.PublishedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListingSummary.PublishedAt", err)
+	}
+	createdByIdWireValue, err := int64ToWire(v.CreatedById)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListingSummary.CreatedById", err)
+	}
+	updatedByIdWireValue, err := int64ToWire(v.UpdatedById)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListingSummary.UpdatedById", err)
+	}
 	gitRepoWireValue, err := repoInfoToWire(v.GitRepo)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ListingSummary.GitRepo", err)
@@ -1687,16 +1849,16 @@ func listingSummaryToWire(v *ListingSummary) (*listingSummaryWire, error) {
 		Share:          shareWireValue,
 		ProviderRegion: providerRegionWireValue,
 		Setting:        settingWireValue,
-		CreatedAt:      v.CreatedAt,
+		CreatedAt:      createdAtWireValue,
 		CreatedBy:      v.CreatedBy,
-		UpdatedAt:      v.UpdatedAt,
+		UpdatedAt:      updatedAtWireValue,
 		UpdatedBy:      v.UpdatedBy,
-		PublishedAt:    v.PublishedAt,
+		PublishedAt:    publishedAtWireValue,
 		PublishedBy:    v.PublishedBy,
 		Categories:     v.Categories,
 		ListingType:    v.ListingType,
-		CreatedById:    v.CreatedById,
-		UpdatedById:    v.UpdatedById,
+		CreatedById:    createdByIdWireValue,
+		UpdatedById:    updatedByIdWireValue,
 		ProviderId:     v.ProviderId,
 		ExchangeIds:    v.ExchangeIds,
 		GitRepo:        gitRepoWireValue,
@@ -1719,6 +1881,26 @@ func listingSummaryFromWire(w *listingSummaryWire) (*ListingSummary, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ListingSummary.Setting", err)
 	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListingSummary.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListingSummary.UpdatedAt", err)
+	}
+	publishedAtPublicValue, err := int64FromWire(w.PublishedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListingSummary.PublishedAt", err)
+	}
+	createdByIdPublicValue, err := int64FromWire(w.CreatedById)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListingSummary.CreatedById", err)
+	}
+	updatedByIdPublicValue, err := int64FromWire(w.UpdatedById)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListingSummary.UpdatedById", err)
+	}
 	gitRepoPublicValue, err := repoInfoFromWire(w.GitRepo)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ListingSummary.GitRepo", err)
@@ -1730,16 +1912,16 @@ func listingSummaryFromWire(w *listingSummaryWire) (*ListingSummary, error) {
 		Share:          sharePublicValue,
 		ProviderRegion: providerRegionPublicValue,
 		Setting:        settingPublicValue,
-		CreatedAt:      w.CreatedAt,
+		CreatedAt:      createdAtPublicValue,
 		CreatedBy:      w.CreatedBy,
-		UpdatedAt:      w.UpdatedAt,
+		UpdatedAt:      updatedAtPublicValue,
 		UpdatedBy:      w.UpdatedBy,
-		PublishedAt:    w.PublishedAt,
+		PublishedAt:    publishedAtPublicValue,
 		PublishedBy:    w.PublishedBy,
 		Categories:     w.Categories,
 		ListingType:    w.ListingType,
-		CreatedById:    w.CreatedById,
-		UpdatedById:    w.UpdatedById,
+		CreatedById:    createdByIdPublicValue,
+		UpdatedById:    updatedByIdPublicValue,
 		ProviderId:     w.ProviderId,
 		ExchangeIds:    w.ExchangeIds,
 		GitRepo:        gitRepoPublicValue,
@@ -1780,9 +1962,9 @@ type personalizationRequestWire struct {
 	Status           PersonalizationRequestStatus `json:"status,omitempty"`
 	StatusMessage    *string                      `json:"status_message,omitempty"`
 	Share            *shareInfoWire               `json:"share,omitempty"`
-	CreatedAt        *int64                       `json:"created_at,omitempty"`
+	CreatedAt        *wireInt64                   `json:"created_at,omitempty"`
 	ListingId        *string                      `json:"listing_id,omitempty"`
-	UpdatedAt        *int64                       `json:"updated_at,omitempty"`
+	UpdatedAt        *wireInt64                   `json:"updated_at,omitempty"`
 	MetastoreId      *string                      `json:"metastore_id,omitempty"`
 	ListingName      *string                      `json:"listing_name,omitempty"`
 	IsFromLighthouse *bool                        `json:"is_from_lighthouse,omitempty"`
@@ -1806,6 +1988,14 @@ func personalizationRequestFromWire(w *personalizationRequestWire) (*Personaliza
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "PersonalizationRequest.Share", err)
 	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PersonalizationRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PersonalizationRequest.UpdatedAt", err)
+	}
 	return &PersonalizationRequest{
 		Id:               w.Id,
 		ConsumerRegion:   consumerRegionPublicValue,
@@ -1815,9 +2005,9 @@ func personalizationRequestFromWire(w *personalizationRequestWire) (*Personaliza
 		Status:           w.Status,
 		StatusMessage:    w.StatusMessage,
 		Share:            sharePublicValue,
-		CreatedAt:        w.CreatedAt,
+		CreatedAt:        createdAtPublicValue,
 		ListingId:        w.ListingId,
-		UpdatedAt:        w.UpdatedAt,
+		UpdatedAt:        updatedAtPublicValue,
 		MetastoreId:      w.MetastoreId,
 		ListingName:      w.ListingName,
 		IsFromLighthouse: w.IsFromLighthouse,
@@ -2067,26 +2257,38 @@ func tokenDetailFromWire(w *tokenDetailWire) (*TokenDetail, error) {
 }
 
 type tokenInfoWire struct {
-	Id             *string `json:"id,omitempty"`
-	CreatedAt      *int64  `json:"created_at,omitempty"`
-	CreatedBy      *string `json:"created_by,omitempty"`
-	ActivationUrl  *string `json:"activation_url,omitempty"`
-	ExpirationTime *int64  `json:"expiration_time,omitempty"`
-	UpdatedAt      *int64  `json:"updated_at,omitempty"`
-	UpdatedBy      *string `json:"updated_by,omitempty"`
+	Id             *string    `json:"id,omitempty"`
+	CreatedAt      *wireInt64 `json:"created_at,omitempty"`
+	CreatedBy      *string    `json:"created_by,omitempty"`
+	ActivationUrl  *string    `json:"activation_url,omitempty"`
+	ExpirationTime *wireInt64 `json:"expiration_time,omitempty"`
+	UpdatedAt      *wireInt64 `json:"updated_at,omitempty"`
+	UpdatedBy      *string    `json:"updated_by,omitempty"`
 }
 
 func tokenInfoToWire(v *TokenInfo) (*tokenInfoWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TokenInfo.CreatedAt", err)
+	}
+	expirationTimeWireValue, err := int64ToWire(v.ExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TokenInfo.ExpirationTime", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TokenInfo.UpdatedAt", err)
+	}
 	return &tokenInfoWire{
 		Id:             v.Id,
-		CreatedAt:      v.CreatedAt,
+		CreatedAt:      createdAtWireValue,
 		CreatedBy:      v.CreatedBy,
 		ActivationUrl:  v.ActivationUrl,
-		ExpirationTime: v.ExpirationTime,
-		UpdatedAt:      v.UpdatedAt,
+		ExpirationTime: expirationTimeWireValue,
+		UpdatedAt:      updatedAtWireValue,
 		UpdatedBy:      v.UpdatedBy,
 	}, nil
 }
@@ -2095,13 +2297,25 @@ func tokenInfoFromWire(w *tokenInfoWire) (*TokenInfo, error) {
 	if w == nil {
 		return nil, nil
 	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TokenInfo.CreatedAt", err)
+	}
+	expirationTimePublicValue, err := int64FromWire(w.ExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TokenInfo.ExpirationTime", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TokenInfo.UpdatedAt", err)
+	}
 	return &TokenInfo{
 		Id:             w.Id,
-		CreatedAt:      w.CreatedAt,
+		CreatedAt:      createdAtPublicValue,
 		CreatedBy:      w.CreatedBy,
 		ActivationUrl:  w.ActivationUrl,
-		ExpirationTime: w.ExpirationTime,
-		UpdatedAt:      w.UpdatedAt,
+		ExpirationTime: expirationTimePublicValue,
+		UpdatedAt:      updatedAtPublicValue,
 		UpdatedBy:      w.UpdatedBy,
 	}, nil
 }
@@ -2297,33 +2511,41 @@ func updatePersonalizationRequestStatusResponseFromWire(w *updatePersonalization
 }
 
 type updateProviderAnalyticsDashboardRequestWire struct {
-	Id      *string `json:"id,omitempty"`
-	Version *int64  `json:"version,omitempty"`
+	Id      *string    `json:"id,omitempty"`
+	Version *wireInt64 `json:"version,omitempty"`
 }
 
 func updateProviderAnalyticsDashboardRequestToWire(v *UpdateProviderAnalyticsDashboardRequest) (*updateProviderAnalyticsDashboardRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	versionWireValue, err := int64ToWire(v.Version)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateProviderAnalyticsDashboardRequest.Version", err)
+	}
 	return &updateProviderAnalyticsDashboardRequestWire{
 		Id:      v.Id,
-		Version: v.Version,
+		Version: versionWireValue,
 	}, nil
 }
 
 type updateProviderAnalyticsDashboardResponseWire struct {
-	Id          *string `json:"id,omitempty"`
-	Version     *int64  `json:"version,omitempty"`
-	DashboardId *string `json:"dashboard_id,omitempty"`
+	Id          *string    `json:"id,omitempty"`
+	Version     *wireInt64 `json:"version,omitempty"`
+	DashboardId *string    `json:"dashboard_id,omitempty"`
 }
 
 func updateProviderAnalyticsDashboardResponseFromWire(w *updateProviderAnalyticsDashboardResponseWire) (*UpdateProviderAnalyticsDashboardResponse, error) {
 	if w == nil {
 		return nil, nil
 	}
+	versionPublicValue, err := int64FromWire(w.Version)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateProviderAnalyticsDashboardResponse.Version", err)
+	}
 	return &UpdateProviderAnalyticsDashboardResponse{
 		Id:          w.Id,
-		Version:     w.Version,
+		Version:     versionPublicValue,
 		DashboardId: w.DashboardId,
 	}, nil
 }

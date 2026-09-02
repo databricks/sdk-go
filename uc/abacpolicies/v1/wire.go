@@ -3,10 +3,56 @@
 package abacpolicies
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/databricks/sdk-go/core/types"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	if mask == nil {
@@ -52,6 +98,31 @@ func columnMaskOptionsFromWire(w *columnMaskOptionsWire) (*ColumnMaskOptions, er
 	}, nil
 }
 
+type columnTagValueExtractionWire struct {
+	ColumnAlias *string `json:"column_alias,omitempty"`
+	TagKey      *string `json:"tag_key,omitempty"`
+}
+
+func columnTagValueExtractionToWire(v *ColumnTagValueExtraction) (*columnTagValueExtractionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &columnTagValueExtractionWire{
+		ColumnAlias: v.ColumnAlias,
+		TagKey:      v.TagKey,
+	}, nil
+}
+
+func columnTagValueExtractionFromWire(w *columnTagValueExtractionWire) (*ColumnTagValueExtraction, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ColumnTagValueExtraction{
+		ColumnAlias: w.ColumnAlias,
+		TagKey:      w.TagKey,
+	}, nil
+}
+
 type createPolicyRequestWire struct {
 	PolicyInfo *policyInfoWire `json:"policy_info,omitempty"`
 }
@@ -69,9 +140,62 @@ func createPolicyRequestToWire(v *CreatePolicyRequest) (*createPolicyRequestWire
 	}, nil
 }
 
+type functionArgExpressionWire struct {
+	TagIntrospection *tagIntrospectionExpressionWire `json:"tag_introspection,omitempty"`
+}
+
+func functionArgExpressionToWire(v *FunctionArgExpression) (*functionArgExpressionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var exprTagIntrospectionWire *tagIntrospectionExpressionWire
+	switch value := v.Expr.(type) {
+	case nil:
+	case *FunctionArgExpression_Expr_TagIntrospection:
+		if value != nil {
+			exprTagIntrospectionConverted, err := tagIntrospectionExpressionToWire(&value.TagIntrospection)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "FunctionArgExpression.Expr.TagIntrospection", err)
+			}
+			exprTagIntrospectionWire = exprTagIntrospectionConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "FunctionArgExpression.Expr", value)
+	}
+	return &functionArgExpressionWire{
+		TagIntrospection: exprTagIntrospectionWire,
+	}, nil
+}
+
+func functionArgExpressionFromWire(w *functionArgExpressionWire) (*FunctionArgExpression, error) {
+	if w == nil {
+		return nil, nil
+	}
+	exprMembers := 0
+	if w.TagIntrospection != nil {
+		exprMembers++
+	}
+	if exprMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "FunctionArgExpression.Expr")
+	}
+	var exprSelection isFunctionArgExpression_Expr
+	switch {
+	case w.TagIntrospection != nil:
+		exprTagIntrospectionConverted, err := tagIntrospectionExpressionFromWire(w.TagIntrospection)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "FunctionArgExpression.Expr.TagIntrospection", err)
+		}
+		exprSelection = &FunctionArgExpression_Expr_TagIntrospection{TagIntrospection: *exprTagIntrospectionConverted}
+	}
+	return &FunctionArgExpression{
+		Expr: exprSelection,
+	}, nil
+}
+
 type functionArgumentWire struct {
-	Alias    *string `json:"alias,omitempty"`
-	Constant *string `json:"constant,omitempty"`
+	Alias                 *string                    `json:"alias,omitempty"`
+	Constant              *string                    `json:"constant,omitempty"`
+	FunctionArgExpression *functionArgExpressionWire `json:"function_arg_expression,omitempty"`
 }
 
 func functionArgumentToWire(v *FunctionArgument) (*functionArgumentWire, error) {
@@ -80,6 +204,7 @@ func functionArgumentToWire(v *FunctionArgument) (*functionArgumentWire, error) 
 	}
 	var argAliasWire *string
 	var argConstantWire *string
+	var argFunctionArgExpressionWire *functionArgExpressionWire
 	switch value := v.Arg.(type) {
 	case nil:
 	case *FunctionArgument_Arg_Alias:
@@ -90,12 +215,21 @@ func functionArgumentToWire(v *FunctionArgument) (*functionArgumentWire, error) 
 		if value != nil {
 			argConstantWire = new(value.Constant)
 		}
+	case *FunctionArgument_Arg_FunctionArgExpression:
+		if value != nil {
+			argFunctionArgExpressionConverted, err := functionArgExpressionToWire(&value.FunctionArgExpression)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "FunctionArgument.Arg.FunctionArgExpression", err)
+			}
+			argFunctionArgExpressionWire = argFunctionArgExpressionConverted
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "FunctionArgument.Arg", value)
 	}
 	return &functionArgumentWire{
-		Alias:    argAliasWire,
-		Constant: argConstantWire,
+		Alias:                 argAliasWire,
+		Constant:              argConstantWire,
+		FunctionArgExpression: argFunctionArgExpressionWire,
 	}, nil
 }
 
@@ -110,6 +244,9 @@ func functionArgumentFromWire(w *functionArgumentWire) (*FunctionArgument, error
 	if w.Constant != nil {
 		argMembers++
 	}
+	if w.FunctionArgExpression != nil {
+		argMembers++
+	}
 	if argMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "FunctionArgument.Arg")
 	}
@@ -119,6 +256,12 @@ func functionArgumentFromWire(w *functionArgumentWire) (*FunctionArgument, error
 		argSelection = &FunctionArgument_Arg_Alias{Alias: *w.Alias}
 	case w.Constant != nil:
 		argSelection = &FunctionArgument_Arg_Constant{Constant: *w.Constant}
+	case w.FunctionArgExpression != nil:
+		argFunctionArgExpressionConverted, err := functionArgExpressionFromWire(w.FunctionArgExpression)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "FunctionArgument.Arg.FunctionArgExpression", err)
+		}
+		argSelection = &FunctionArgument_Arg_FunctionArgExpression{FunctionArgExpression: *argFunctionArgExpressionConverted}
 	}
 	return &FunctionArgument{
 		Arg: argSelection,
@@ -227,9 +370,9 @@ type policyInfoWire struct {
 	ColumnMask          *columnMaskOptionsWire `json:"column_mask,omitempty"`
 	Grant               *grantOptionsWire      `json:"grant,omitempty"`
 	MatchColumns        []matchColumnWire      `json:"match_columns,omitempty"`
-	CreatedAt           *int64                 `json:"created_at,omitempty"`
+	CreatedAt           *wireInt64             `json:"created_at,omitempty"`
 	CreatedBy           *string                `json:"created_by,omitempty"`
-	UpdatedAt           *int64                 `json:"updated_at,omitempty"`
+	UpdatedAt           *wireInt64             `json:"updated_at,omitempty"`
 	UpdatedBy           *string                `json:"updated_by,omitempty"`
 }
 
@@ -240,6 +383,14 @@ func policyInfoToWire(v *PolicyInfo) (*policyInfoWire, error) {
 	matchColumnsWireValue, err := convertSlice(v.MatchColumns, matchColumnToWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "PolicyInfo.MatchColumns", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PolicyInfo.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PolicyInfo.UpdatedAt", err)
 	}
 	var optionsRowFilterWire *rowFilterOptionsWire
 	var optionsColumnMaskWire *columnMaskOptionsWire
@@ -288,9 +439,9 @@ func policyInfoToWire(v *PolicyInfo) (*policyInfoWire, error) {
 		ColumnMask:          optionsColumnMaskWire,
 		Grant:               optionsGrantWire,
 		MatchColumns:        matchColumnsWireValue,
-		CreatedAt:           v.CreatedAt,
+		CreatedAt:           createdAtWireValue,
 		CreatedBy:           v.CreatedBy,
-		UpdatedAt:           v.UpdatedAt,
+		UpdatedAt:           updatedAtWireValue,
 		UpdatedBy:           v.UpdatedBy,
 	}, nil
 }
@@ -315,6 +466,14 @@ func policyInfoFromWire(w *policyInfoWire) (*PolicyInfo, error) {
 	matchColumnsPublicValue, err := convertSlice(w.MatchColumns, matchColumnFromWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "PolicyInfo.MatchColumns", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PolicyInfo.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PolicyInfo.UpdatedAt", err)
 	}
 	var optionsSelection isPolicyInfo_Options
 	switch {
@@ -349,9 +508,9 @@ func policyInfoFromWire(w *policyInfoWire) (*PolicyInfo, error) {
 		WhenCondition:       w.WhenCondition,
 		PolicyType:          w.PolicyType,
 		MatchColumns:        matchColumnsPublicValue,
-		CreatedAt:           w.CreatedAt,
+		CreatedAt:           createdAtPublicValue,
 		CreatedBy:           w.CreatedBy,
-		UpdatedAt:           w.UpdatedAt,
+		UpdatedAt:           updatedAtPublicValue,
 		UpdatedBy:           w.UpdatedBy,
 		Options:             optionsSelection,
 	}, nil
@@ -387,6 +546,100 @@ func rowFilterOptionsFromWire(w *rowFilterOptionsWire) (*RowFilterOptions, error
 	return &RowFilterOptions{
 		FunctionName: w.FunctionName,
 		Using:        usingPublicValue,
+	}, nil
+}
+
+type tagIntrospectionExpressionWire struct {
+	TagValue       *tagValueExtractionWire       `json:"tag_value,omitempty"`
+	ColumnTagValue *columnTagValueExtractionWire `json:"column_tag_value,omitempty"`
+}
+
+func tagIntrospectionExpressionToWire(v *TagIntrospectionExpression) (*tagIntrospectionExpressionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var exprTagValueWire *tagValueExtractionWire
+	var exprColumnTagValueWire *columnTagValueExtractionWire
+	switch value := v.Expr.(type) {
+	case nil:
+	case *TagIntrospectionExpression_Expr_TagValue:
+		if value != nil {
+			exprTagValueConverted, err := tagValueExtractionToWire(&value.TagValue)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "TagIntrospectionExpression.Expr.TagValue", err)
+			}
+			exprTagValueWire = exprTagValueConverted
+		}
+	case *TagIntrospectionExpression_Expr_ColumnTagValue:
+		if value != nil {
+			exprColumnTagValueConverted, err := columnTagValueExtractionToWire(&value.ColumnTagValue)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "TagIntrospectionExpression.Expr.ColumnTagValue", err)
+			}
+			exprColumnTagValueWire = exprColumnTagValueConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "TagIntrospectionExpression.Expr", value)
+	}
+	return &tagIntrospectionExpressionWire{
+		TagValue:       exprTagValueWire,
+		ColumnTagValue: exprColumnTagValueWire,
+	}, nil
+}
+
+func tagIntrospectionExpressionFromWire(w *tagIntrospectionExpressionWire) (*TagIntrospectionExpression, error) {
+	if w == nil {
+		return nil, nil
+	}
+	exprMembers := 0
+	if w.TagValue != nil {
+		exprMembers++
+	}
+	if w.ColumnTagValue != nil {
+		exprMembers++
+	}
+	if exprMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "TagIntrospectionExpression.Expr")
+	}
+	var exprSelection isTagIntrospectionExpression_Expr
+	switch {
+	case w.TagValue != nil:
+		exprTagValueConverted, err := tagValueExtractionFromWire(w.TagValue)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "TagIntrospectionExpression.Expr.TagValue", err)
+		}
+		exprSelection = &TagIntrospectionExpression_Expr_TagValue{TagValue: *exprTagValueConverted}
+	case w.ColumnTagValue != nil:
+		exprColumnTagValueConverted, err := columnTagValueExtractionFromWire(w.ColumnTagValue)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "TagIntrospectionExpression.Expr.ColumnTagValue", err)
+		}
+		exprSelection = &TagIntrospectionExpression_Expr_ColumnTagValue{ColumnTagValue: *exprColumnTagValueConverted}
+	}
+	return &TagIntrospectionExpression{
+		Expr: exprSelection,
+	}, nil
+}
+
+type tagValueExtractionWire struct {
+	TagKey *string `json:"tag_key,omitempty"`
+}
+
+func tagValueExtractionToWire(v *TagValueExtraction) (*tagValueExtractionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &tagValueExtractionWire{
+		TagKey: v.TagKey,
+	}, nil
+}
+
+func tagValueExtractionFromWire(w *tagValueExtractionWire) (*TagValueExtraction, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &TagValueExtraction{
+		TagKey: w.TagKey,
 	}, nil
 }
 

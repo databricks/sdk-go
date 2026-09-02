@@ -3,10 +3,56 @@
 package workspaces
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/databricks/sdk-go/core/types"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	if mask == nil {
@@ -274,10 +320,10 @@ func updateWorkspaceRequestToWire(v *UpdateWorkspaceRequest) (*updateWorkspaceRe
 }
 
 type workspaceWire struct {
-	WorkspaceId                         *int64                       `json:"workspace_id,omitempty"`
+	WorkspaceId                         *wireInt64                   `json:"workspace_id,omitempty"`
 	WorkspaceName                       *string                      `json:"workspace_name,omitempty"`
 	AwsRegion                           *string                      `json:"aws_region,omitempty"`
-	CreationTime                        *int64                       `json:"creation_time,omitempty"`
+	CreationTime                        *wireInt64                   `json:"creation_time,omitempty"`
 	DeploymentName                      *string                      `json:"deployment_name,omitempty"`
 	WorkspaceStatus                     WorkspaceStatus              `json:"workspace_status,omitempty"`
 	AccountId                           *string                      `json:"account_id,omitempty"`
@@ -306,6 +352,14 @@ type workspaceWire struct {
 func workspaceToWire(v *Workspace) (*workspaceWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Workspace.WorkspaceId", err)
+	}
+	creationTimeWireValue, err := int64ToWire(v.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Workspace.CreationTime", err)
 	}
 	networkWireValue, err := workspaceNetworkToWire(v.Network)
 	if err != nil {
@@ -343,10 +397,10 @@ func workspaceToWire(v *Workspace) (*workspaceWire, error) {
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Workspace.NetworkConfig", value)
 	}
 	return &workspaceWire{
-		WorkspaceId:                         v.WorkspaceId,
+		WorkspaceId:                         workspaceIdWireValue,
 		WorkspaceName:                       v.WorkspaceName,
 		AwsRegion:                           v.AwsRegion,
-		CreationTime:                        v.CreationTime,
+		CreationTime:                        creationTimeWireValue,
 		DeploymentName:                      v.DeploymentName,
 		WorkspaceStatus:                     v.WorkspaceStatus,
 		AccountId:                           v.AccountId,
@@ -387,6 +441,14 @@ func workspaceFromWire(w *workspaceWire) (*Workspace, error) {
 	if networkConfigMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "Workspace.NetworkConfig")
 	}
+	workspaceIdPublicValue, err := int64FromWire(w.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Workspace.WorkspaceId", err)
+	}
+	creationTimePublicValue, err := int64FromWire(w.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Workspace.CreationTime", err)
+	}
 	networkPublicValue, err := workspaceNetworkFromWire(w.Network)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Workspace.Network", err)
@@ -415,10 +477,10 @@ func workspaceFromWire(w *workspaceWire) (*Workspace, error) {
 		networkConfigSelection = &Workspace_NetworkConfig_GcpManagedNetworkConfig{GcpManagedNetworkConfig: *networkConfigGcpManagedNetworkConfigConverted}
 	}
 	return &Workspace{
-		WorkspaceId:                         w.WorkspaceId,
+		WorkspaceId:                         workspaceIdPublicValue,
 		WorkspaceName:                       w.WorkspaceName,
 		AwsRegion:                           w.AwsRegion,
-		CreationTime:                        w.CreationTime,
+		CreationTime:                        creationTimePublicValue,
 		DeploymentName:                      w.DeploymentName,
 		WorkspaceStatus:                     w.WorkspaceStatus,
 		AccountId:                           w.AccountId,

@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"iter"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -74,254 +73,9 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	}, nil
 }
 
-// Get details of a cluster policy revision.
-func (c *internalClient) GetClusterPolicyRevision(ctx context.Context, req *GetClusterPolicyRevisionRequest, opts ...call.Option) (*ClusterPolicyRevision, error) {
-
-	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
-	if c.workspaceID != "" {
-		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
-	}
-
-	baseURL, err := url.Parse(c.host)
-	if err != nil {
-		return nil, err
-	}
-	pb := pathBuilder{}
-	pb.literal("/api/2.0/")
-	pb.singleSegment(*req.Name)
-	baseURL.Path, baseURL.RawPath = pb.build()
-	queryParams := url.Values{}
-	baseURL.RawQuery = queryParams.Encode()
-	urlStr := baseURL.String()
-
-	var resp *ClusterPolicyRevision
-
-	call := func(ctx context.Context) error {
-		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
-			Method:      "GET",
-			URL:         urlStr,
-			Credentials: c.credentials,
-			UserAgent:   c.userAgent,
-			Headers:     headers,
-		})
-		if err != nil {
-			return err
-		}
-
-		respBody, _, err := executeHTTPCall(httpCallOptions{
-			req:    httpReq,
-			client: c.httpClient,
-			logger: c.logger,
-		})
-		if err != nil {
-			return err
-		}
-		var wireResp clusterPolicyRevisionWire
-		if err := json.Unmarshal(respBody, &wireResp); err != nil {
-			return err
-		}
-		resp, err = clusterPolicyRevisionFromWire(&wireResp)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if err := executeCall(ctx, call, opts); err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-// Lists a cluster policy's revisions, ordered from most to least recent.
-func (c *internalClient) ListClusterPolicyRevisions(ctx context.Context, req *ListClusterPolicyRevisionsRequest, opts ...call.Option) (*ListClusterPolicyRevisionsResponse, error) {
-	wireReq, err := listClusterPolicyRevisionsRequestToWire(req)
-	if err != nil {
-		return nil, err
-	}
-
-	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
-	if c.workspaceID != "" {
-		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
-	}
-
-	baseURL, err := url.Parse(c.host)
-	if err != nil {
-		return nil, err
-	}
-	pb := pathBuilder{}
-	pb.literal("/api/2.0/")
-	pb.singleSegment(*req.Parent)
-	pb.literal("/revisions")
-	baseURL.Path, baseURL.RawPath = pb.build()
-	queryParams := url.Values{}
-	if err := addQueryValue(queryParams, "page_size", wireReq.PageSize); err != nil {
-		return nil, err
-	}
-	if err := addQueryValue(queryParams, "page_token", wireReq.PageToken); err != nil {
-		return nil, err
-	}
-	baseURL.RawQuery = queryParams.Encode()
-	urlStr := baseURL.String()
-
-	var resp *ListClusterPolicyRevisionsResponse
-
-	call := func(ctx context.Context) error {
-		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
-			Method:      "GET",
-			URL:         urlStr,
-			Credentials: c.credentials,
-			UserAgent:   c.userAgent,
-			Headers:     headers,
-		})
-		if err != nil {
-			return err
-		}
-
-		respBody, _, err := executeHTTPCall(httpCallOptions{
-			req:    httpReq,
-			client: c.httpClient,
-			logger: c.logger,
-		})
-		if err != nil {
-			return err
-		}
-		var wireResp listClusterPolicyRevisionsResponseWire
-		if err := json.Unmarshal(respBody, &wireResp); err != nil {
-			return err
-		}
-		resp, err = listClusterPolicyRevisionsResponseFromWire(&wireResp)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if err := executeCall(ctx, call, opts); err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-// ListClusterPolicyRevisionsIter returns an iterator that iterates
-// over the results of ListClusterPolicyRevisions.
-//
-// For example:
-//
-//	for item, err := range c.ListClusterPolicyRevisionsIter(ctx, &ListClusterPolicyRevisionsRequest{}) {
-//	  if err != nil {
-//	    return err
-//	  }
-//	  fmt.Println(item)
-//	}
-//
-// Options opts are passed to each ListClusterPolicyRevisions call
-// made by the iterator under the hood.
-//
-// Callers who need custom pagination logic should use
-// ListClusterPolicyRevisions directly.
-func (c *internalClient) ListClusterPolicyRevisionsIter(ctx context.Context, req *ListClusterPolicyRevisionsRequest, opts ...call.Option) iter.Seq2[*ClusterPolicyRevision, error] {
-	return func(yield func(*ClusterPolicyRevision, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListClusterPolicyRevisionsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
-		for {
-			resp, err := c.ListClusterPolicyRevisions(ctx, &pageReq, opts...)
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-			for i := range resp.ClusterPolicyRevisions {
-				if !yield(&resp.ClusterPolicyRevisions[i], nil) {
-					return
-				}
-			}
-			if resp.NextPageToken == nil || *resp.NextPageToken == "" {
-				return
-			}
-			pageReq.PageToken = resp.NextPageToken
-		}
-	}
-}
-
-// Rolls back a cluster policy to a previous revision.
-func (c *internalClient) RollbackClusterPolicy(ctx context.Context, req *RollbackClusterPolicyRequest, opts ...call.Option) (*ClusterPolicyRevision, error) {
-	wireReq, err := rollbackClusterPolicyRequestToWire(req)
-	if err != nil {
-		return nil, err
-	}
-	body, err := json.Marshal(wireReq)
-	if err != nil {
-		return nil, err
-	}
-
-	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
-	if c.workspaceID != "" {
-		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
-	}
-
-	baseURL, err := url.Parse(c.host)
-	if err != nil {
-		return nil, err
-	}
-	pb := pathBuilder{}
-	pb.literal("/api/2.0/")
-	pb.singleSegment(*req.Name)
-	pb.literal("/rollback")
-	baseURL.Path, baseURL.RawPath = pb.build()
-	queryParams := url.Values{}
-	baseURL.RawQuery = queryParams.Encode()
-	urlStr := baseURL.String()
-
-	var resp *ClusterPolicyRevision
-
-	call := func(ctx context.Context) error {
-		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
-			Method:      "POST",
-			URL:         urlStr,
-			Credentials: c.credentials,
-			UserAgent:   c.userAgent,
-			Headers:     headers,
-			Body:        bytes.NewBuffer(body),
-		})
-		if err != nil {
-			return err
-		}
-
-		respBody, _, err := executeHTTPCall(httpCallOptions{
-			req:    httpReq,
-			client: c.httpClient,
-			logger: c.logger,
-		})
-		if err != nil {
-			return err
-		}
-		var wireResp clusterPolicyRevisionWire
-		if err := json.Unmarshal(respBody, &wireResp); err != nil {
-			return err
-		}
-		resp, err = clusterPolicyRevisionFromWire(&wireResp)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if err := executeCall(ctx, call, opts); err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
 // Creates a new policy with prescribed settings.
-func (c *internalClient) CreatePolicy(ctx context.Context, req *CreatePolicyRequest, opts ...call.Option) (*CreatePolicyResponse, error) {
-	wireReq, err := createPolicyRequestToWire(req)
+func (c *internalClient) CreatePolicy(ctx context.Context, req CreatePolicyRequest, opts ...call.Option) (*CreatePolicyResponse, error) {
+	wireReq, err := createPolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -387,8 +141,8 @@ func (c *internalClient) CreatePolicy(ctx context.Context, req *CreatePolicyRequ
 
 // Delete a policy for a cluster. Clusters governed by this policy can still
 // run, but cannot be edited.
-func (c *internalClient) DeletePolicy(ctx context.Context, req *DeletePolicyRequest, opts ...call.Option) (*DeletePolicyResponse, error) {
-	wireReq, err := deletePolicyRequestToWire(req)
+func (c *internalClient) DeletePolicy(ctx context.Context, req DeletePolicyRequest, opts ...call.Option) (*DeletePolicyResponse, error) {
+	wireReq, err := deletePolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -448,8 +202,8 @@ func (c *internalClient) DeletePolicy(ctx context.Context, req *DeletePolicyRequ
 
 // Update an existing policy for cluster. This operation may make some clusters
 // governed by the previous policy invalid.
-func (c *internalClient) EditPolicy(ctx context.Context, req *EditPolicyRequest, opts ...call.Option) (*EditPolicyResponse, error) {
-	wireReq, err := editPolicyRequestToWire(req)
+func (c *internalClient) EditPolicy(ctx context.Context, req EditPolicyRequest, opts ...call.Option) (*EditPolicyResponse, error) {
+	wireReq, err := editPolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -509,8 +263,8 @@ func (c *internalClient) EditPolicy(ctx context.Context, req *EditPolicyRequest,
 
 // Get a cluster policy entity. Creation and editing is available to admins
 // only.
-func (c *internalClient) GetPolicy(ctx context.Context, req *GetPolicyRequest, opts ...call.Option) (*Policy, error) {
-	wireReq, err := getPolicyRequestToWire(req)
+func (c *internalClient) GetPolicy(ctx context.Context, req GetPolicyRequest, opts ...call.Option) (*Policy, error) {
+	wireReq, err := getPolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -573,8 +327,8 @@ func (c *internalClient) GetPolicy(ctx context.Context, req *GetPolicyRequest, o
 }
 
 // Returns a list of policies accessible by the requesting user.
-func (c *internalClient) ListPolicies(ctx context.Context, req *ListPoliciesRequest, opts ...call.Option) (*ListPoliciesResponse, error) {
-	wireReq, err := listPoliciesRequestToWire(req)
+func (c *internalClient) ListPolicies(ctx context.Context, req ListPoliciesRequest, opts ...call.Option) (*ListPoliciesResponse, error) {
+	wireReq, err := listPoliciesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}

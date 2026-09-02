@@ -3,8 +3,54 @@
 package resourcequotas
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type getQuotaResponseWire struct {
 	QuotaInfo *quotaInfoWire `json:"quota_info,omitempty"`
@@ -63,12 +109,16 @@ type quotaInfoWire struct {
 	QuotaName           *string       `json:"quota_name,omitempty"`
 	QuotaCount          *int          `json:"quota_count,omitempty"`
 	QuotaLimit          *int          `json:"quota_limit,omitempty"`
-	LastRefreshedAt     *int64        `json:"last_refreshed_at,omitempty"`
+	LastRefreshedAt     *wireInt64    `json:"last_refreshed_at,omitempty"`
 }
 
 func quotaInfoFromWire(w *quotaInfoWire) (*QuotaInfo, error) {
 	if w == nil {
 		return nil, nil
+	}
+	lastRefreshedAtPublicValue, err := int64FromWire(w.LastRefreshedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QuotaInfo.LastRefreshedAt", err)
 	}
 	return &QuotaInfo{
 		ParentSecurableType: w.ParentSecurableType,
@@ -76,7 +126,7 @@ func quotaInfoFromWire(w *quotaInfoWire) (*QuotaInfo, error) {
 		QuotaName:           w.QuotaName,
 		QuotaCount:          w.QuotaCount,
 		QuotaLimit:          w.QuotaLimit,
-		LastRefreshedAt:     w.LastRefreshedAt,
+		LastRefreshedAt:     lastRefreshedAtPublicValue,
 	}, nil
 }
 

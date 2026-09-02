@@ -3,12 +3,58 @@
 package metastores
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type accountsCreateMetastoreAssignmentRequestWire struct {
 	AccountId           *string                  `json:"account_id,omitempty"`
-	WorkspaceId         *int64                   `json:"workspace_id,omitempty"`
+	WorkspaceId         *wireInt64               `json:"workspace_id,omitempty"`
 	MetastoreId         *string                  `json:"metastore_id,omitempty"`
 	MetastoreAssignment *metastoreAssignmentWire `json:"metastore_assignment,omitempty"`
 }
@@ -17,13 +63,17 @@ func accountsCreateMetastoreAssignmentRequestToWire(v *AccountsCreateMetastoreAs
 	if v == nil {
 		return nil, nil
 	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountsCreateMetastoreAssignmentRequest.WorkspaceId", err)
+	}
 	metastoreAssignmentWireValue, err := metastoreAssignmentToWire(v.MetastoreAssignment)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "AccountsCreateMetastoreAssignmentRequest.MetastoreAssignment", err)
 	}
 	return &accountsCreateMetastoreAssignmentRequestWire{
 		AccountId:           v.AccountId,
-		WorkspaceId:         v.WorkspaceId,
+		WorkspaceId:         workspaceIdWireValue,
 		MetastoreId:         v.MetastoreId,
 		MetastoreAssignment: metastoreAssignmentWireValue,
 	}, nil
@@ -134,21 +184,25 @@ func accountsListMetastoresResponseFromWire(w *accountsListMetastoresResponseWir
 }
 
 type accountsListWorkspaceIdsForMetastoreResponseWire struct {
-	WorkspaceIds []int64 `json:"workspace_ids,omitempty"`
+	WorkspaceIds []wireInt64 `json:"workspace_ids,omitempty"`
 }
 
 func accountsListWorkspaceIdsForMetastoreResponseFromWire(w *accountsListWorkspaceIdsForMetastoreResponseWire) (*AccountsListWorkspaceIdsForMetastoreResponse, error) {
 	if w == nil {
 		return nil, nil
 	}
+	workspaceIdsPublicValue, err := convertSlice(w.WorkspaceIds, int64FromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountsListWorkspaceIdsForMetastoreResponse.WorkspaceIds", err)
+	}
 	return &AccountsListWorkspaceIdsForMetastoreResponse{
-		WorkspaceIds: w.WorkspaceIds,
+		WorkspaceIds: workspaceIdsPublicValue,
 	}, nil
 }
 
 type accountsUpdateMetastoreAssignmentRequestWire struct {
 	AccountId           *string                  `json:"account_id,omitempty"`
-	WorkspaceId         *int64                   `json:"workspace_id,omitempty"`
+	WorkspaceId         *wireInt64               `json:"workspace_id,omitempty"`
 	MetastoreId         *string                  `json:"metastore_id,omitempty"`
 	MetastoreAssignment *metastoreAssignmentWire `json:"metastore_assignment,omitempty"`
 }
@@ -157,13 +211,17 @@ func accountsUpdateMetastoreAssignmentRequestToWire(v *AccountsUpdateMetastoreAs
 	if v == nil {
 		return nil, nil
 	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountsUpdateMetastoreAssignmentRequest.WorkspaceId", err)
+	}
 	metastoreAssignmentWireValue, err := metastoreAssignmentToWire(v.MetastoreAssignment)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "AccountsUpdateMetastoreAssignmentRequest.MetastoreAssignment", err)
 	}
 	return &accountsUpdateMetastoreAssignmentRequestWire{
 		AccountId:           v.AccountId,
-		WorkspaceId:         v.WorkspaceId,
+		WorkspaceId:         workspaceIdWireValue,
 		MetastoreId:         v.MetastoreId,
 		MetastoreAssignment: metastoreAssignmentWireValue,
 	}, nil
@@ -213,15 +271,15 @@ type createAccountsMetastoreWire struct {
 	DefaultDataAccessConfigId                   *string                `json:"default_data_access_config_id,omitempty"`
 	StorageRootCredentialId                     *string                `json:"storage_root_credential_id,omitempty"`
 	DeltaSharingScope                           DeltaSharingScope_Enum `json:"delta_sharing_scope,omitempty"`
-	DeltaSharingRecipientTokenLifetimeInSeconds *int64                 `json:"delta_sharing_recipient_token_lifetime_in_seconds,omitempty"`
+	DeltaSharingRecipientTokenLifetimeInSeconds *wireInt64             `json:"delta_sharing_recipient_token_lifetime_in_seconds,omitempty"`
 	DeltaSharingOrganizationName                *string                `json:"delta_sharing_organization_name,omitempty"`
 	Owner                                       *string                `json:"owner,omitempty"`
 	PrivilegeModelVersion                       *string                `json:"privilege_model_version,omitempty"`
 	Region                                      *string                `json:"region,omitempty"`
 	MetastoreId                                 *string                `json:"metastore_id,omitempty"`
-	CreatedAt                                   *int64                 `json:"created_at,omitempty"`
+	CreatedAt                                   *wireInt64             `json:"created_at,omitempty"`
 	CreatedBy                                   *string                `json:"created_by,omitempty"`
-	UpdatedAt                                   *int64                 `json:"updated_at,omitempty"`
+	UpdatedAt                                   *wireInt64             `json:"updated_at,omitempty"`
 	UpdatedBy                                   *string                `json:"updated_by,omitempty"`
 	StorageRootCredentialName                   *string                `json:"storage_root_credential_name,omitempty"`
 	Cloud                                       *string                `json:"cloud,omitempty"`
@@ -233,21 +291,33 @@ func createAccountsMetastoreToWire(v *CreateAccountsMetastore) (*createAccountsM
 	if v == nil {
 		return nil, nil
 	}
+	deltaSharingRecipientTokenLifetimeInSecondsWireValue, err := int64ToWire(v.DeltaSharingRecipientTokenLifetimeInSeconds)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccountsMetastore.DeltaSharingRecipientTokenLifetimeInSeconds", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccountsMetastore.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccountsMetastore.UpdatedAt", err)
+	}
 	return &createAccountsMetastoreWire{
 		Name:                      v.Name,
 		StorageRoot:               v.StorageRoot,
 		DefaultDataAccessConfigId: v.DefaultDataAccessConfigId,
 		StorageRootCredentialId:   v.StorageRootCredentialId,
 		DeltaSharingScope:         v.DeltaSharingScope,
-		DeltaSharingRecipientTokenLifetimeInSeconds: v.DeltaSharingRecipientTokenLifetimeInSeconds,
+		DeltaSharingRecipientTokenLifetimeInSeconds: deltaSharingRecipientTokenLifetimeInSecondsWireValue,
 		DeltaSharingOrganizationName:                v.DeltaSharingOrganizationName,
 		Owner:                                       v.Owner,
 		PrivilegeModelVersion:                       v.PrivilegeModelVersion,
 		Region:                                      v.Region,
 		MetastoreId:                                 v.MetastoreId,
-		CreatedAt:                                   v.CreatedAt,
+		CreatedAt:                                   createdAtWireValue,
 		CreatedBy:                                   v.CreatedBy,
-		UpdatedAt:                                   v.UpdatedAt,
+		UpdatedAt:                                   updatedAtWireValue,
 		UpdatedBy:                                   v.UpdatedBy,
 		StorageRootCredentialName:                   v.StorageRootCredentialName,
 		Cloud:                                       v.Cloud,
@@ -257,17 +327,21 @@ func createAccountsMetastoreToWire(v *CreateAccountsMetastore) (*createAccountsM
 }
 
 type createMetastoreAssignmentRequestWire struct {
-	WorkspaceId        *int64  `json:"workspace_id,omitempty"`
-	MetastoreId        *string `json:"metastore_id,omitempty"`
-	DefaultCatalogName *string `json:"default_catalog_name,omitempty"`
+	WorkspaceId        *wireInt64 `json:"workspace_id,omitempty"`
+	MetastoreId        *string    `json:"metastore_id,omitempty"`
+	DefaultCatalogName *string    `json:"default_catalog_name,omitempty"`
 }
 
 func createMetastoreAssignmentRequestToWire(v *CreateMetastoreAssignmentRequest) (*createMetastoreAssignmentRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateMetastoreAssignmentRequest.WorkspaceId", err)
+	}
 	return &createMetastoreAssignmentRequestWire{
-		WorkspaceId:        v.WorkspaceId,
+		WorkspaceId:        workspaceIdWireValue,
 		MetastoreId:        v.MetastoreId,
 		DefaultCatalogName: v.DefaultCatalogName,
 	}, nil
@@ -279,15 +353,15 @@ type createMetastoreRequestWire struct {
 	DefaultDataAccessConfigId                   *string                `json:"default_data_access_config_id,omitempty"`
 	StorageRootCredentialId                     *string                `json:"storage_root_credential_id,omitempty"`
 	DeltaSharingScope                           DeltaSharingScope_Enum `json:"delta_sharing_scope,omitempty"`
-	DeltaSharingRecipientTokenLifetimeInSeconds *int64                 `json:"delta_sharing_recipient_token_lifetime_in_seconds,omitempty"`
+	DeltaSharingRecipientTokenLifetimeInSeconds *wireInt64             `json:"delta_sharing_recipient_token_lifetime_in_seconds,omitempty"`
 	DeltaSharingOrganizationName                *string                `json:"delta_sharing_organization_name,omitempty"`
 	Owner                                       *string                `json:"owner,omitempty"`
 	PrivilegeModelVersion                       *string                `json:"privilege_model_version,omitempty"`
 	Region                                      *string                `json:"region,omitempty"`
 	MetastoreId                                 *string                `json:"metastore_id,omitempty"`
-	CreatedAt                                   *int64                 `json:"created_at,omitempty"`
+	CreatedAt                                   *wireInt64             `json:"created_at,omitempty"`
 	CreatedBy                                   *string                `json:"created_by,omitempty"`
-	UpdatedAt                                   *int64                 `json:"updated_at,omitempty"`
+	UpdatedAt                                   *wireInt64             `json:"updated_at,omitempty"`
 	UpdatedBy                                   *string                `json:"updated_by,omitempty"`
 	StorageRootCredentialName                   *string                `json:"storage_root_credential_name,omitempty"`
 	Cloud                                       *string                `json:"cloud,omitempty"`
@@ -299,21 +373,33 @@ func createMetastoreRequestToWire(v *CreateMetastoreRequest) (*createMetastoreRe
 	if v == nil {
 		return nil, nil
 	}
+	deltaSharingRecipientTokenLifetimeInSecondsWireValue, err := int64ToWire(v.DeltaSharingRecipientTokenLifetimeInSeconds)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateMetastoreRequest.DeltaSharingRecipientTokenLifetimeInSeconds", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateMetastoreRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateMetastoreRequest.UpdatedAt", err)
+	}
 	return &createMetastoreRequestWire{
 		Name:                      v.Name,
 		StorageRoot:               v.StorageRoot,
 		DefaultDataAccessConfigId: v.DefaultDataAccessConfigId,
 		StorageRootCredentialId:   v.StorageRootCredentialId,
 		DeltaSharingScope:         v.DeltaSharingScope,
-		DeltaSharingRecipientTokenLifetimeInSeconds: v.DeltaSharingRecipientTokenLifetimeInSeconds,
+		DeltaSharingRecipientTokenLifetimeInSeconds: deltaSharingRecipientTokenLifetimeInSecondsWireValue,
 		DeltaSharingOrganizationName:                v.DeltaSharingOrganizationName,
 		Owner:                                       v.Owner,
 		PrivilegeModelVersion:                       v.PrivilegeModelVersion,
 		Region:                                      v.Region,
 		MetastoreId:                                 v.MetastoreId,
-		CreatedAt:                                   v.CreatedAt,
+		CreatedAt:                                   createdAtWireValue,
 		CreatedBy:                                   v.CreatedBy,
-		UpdatedAt:                                   v.UpdatedAt,
+		UpdatedAt:                                   updatedAtWireValue,
 		UpdatedBy:                                   v.UpdatedBy,
 		StorageRootCredentialName:                   v.StorageRootCredentialName,
 		Cloud:                                       v.Cloud,
@@ -323,16 +409,20 @@ func createMetastoreRequestToWire(v *CreateMetastoreRequest) (*createMetastoreRe
 }
 
 type deleteMetastoreAssignmentRequestWire struct {
-	WorkspaceId *int64  `json:"workspace_id,omitempty"`
-	MetastoreId *string `json:"metastore_id,omitempty"`
+	WorkspaceId *wireInt64 `json:"workspace_id,omitempty"`
+	MetastoreId *string    `json:"metastore_id,omitempty"`
 }
 
 func deleteMetastoreAssignmentRequestToWire(v *DeleteMetastoreAssignmentRequest) (*deleteMetastoreAssignmentRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteMetastoreAssignmentRequest.WorkspaceId", err)
+	}
 	return &deleteMetastoreAssignmentRequestWire{
-		WorkspaceId: v.WorkspaceId,
+		WorkspaceId: workspaceIdWireValue,
 		MetastoreId: v.MetastoreId,
 	}, nil
 }
@@ -363,13 +453,13 @@ type getMetastoreSummaryResponseWire struct {
 	StorageRootCredentialName                   *string                `json:"storage_root_credential_name,omitempty"`
 	PrivilegeModelVersion                       *string                `json:"privilege_model_version,omitempty"`
 	DeltaSharingScope                           DeltaSharingScope_Enum `json:"delta_sharing_scope,omitempty"`
-	DeltaSharingRecipientTokenLifetimeInSeconds *int64                 `json:"delta_sharing_recipient_token_lifetime_in_seconds,omitempty"`
+	DeltaSharingRecipientTokenLifetimeInSeconds *wireInt64             `json:"delta_sharing_recipient_token_lifetime_in_seconds,omitempty"`
 	DeltaSharingOrganizationName                *string                `json:"delta_sharing_organization_name,omitempty"`
 	StorageRoot                                 *string                `json:"storage_root,omitempty"`
 	Owner                                       *string                `json:"owner,omitempty"`
-	CreatedAt                                   *int64                 `json:"created_at,omitempty"`
+	CreatedAt                                   *wireInt64             `json:"created_at,omitempty"`
 	CreatedBy                                   *string                `json:"created_by,omitempty"`
-	UpdatedAt                                   *int64                 `json:"updated_at,omitempty"`
+	UpdatedAt                                   *wireInt64             `json:"updated_at,omitempty"`
 	UpdatedBy                                   *string                `json:"updated_by,omitempty"`
 	ExternalAccessEnabled                       *bool                  `json:"external_access_enabled,omitempty"`
 }
@@ -377,6 +467,18 @@ type getMetastoreSummaryResponseWire struct {
 func getMetastoreSummaryResponseFromWire(w *getMetastoreSummaryResponseWire) (*GetMetastoreSummaryResponse, error) {
 	if w == nil {
 		return nil, nil
+	}
+	deltaSharingRecipientTokenLifetimeInSecondsPublicValue, err := int64FromWire(w.DeltaSharingRecipientTokenLifetimeInSeconds)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetMetastoreSummaryResponse.DeltaSharingRecipientTokenLifetimeInSeconds", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetMetastoreSummaryResponse.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetMetastoreSummaryResponse.UpdatedAt", err)
 	}
 	return &GetMetastoreSummaryResponse{
 		MetastoreId:               w.MetastoreId,
@@ -389,13 +491,13 @@ func getMetastoreSummaryResponseFromWire(w *getMetastoreSummaryResponseWire) (*G
 		StorageRootCredentialName: w.StorageRootCredentialName,
 		PrivilegeModelVersion:     w.PrivilegeModelVersion,
 		DeltaSharingScope:         w.DeltaSharingScope,
-		DeltaSharingRecipientTokenLifetimeInSeconds: w.DeltaSharingRecipientTokenLifetimeInSeconds,
+		DeltaSharingRecipientTokenLifetimeInSeconds: deltaSharingRecipientTokenLifetimeInSecondsPublicValue,
 		DeltaSharingOrganizationName:                w.DeltaSharingOrganizationName,
 		StorageRoot:                                 w.StorageRoot,
 		Owner:                                       w.Owner,
-		CreatedAt:                                   w.CreatedAt,
+		CreatedAt:                                   createdAtPublicValue,
 		CreatedBy:                                   w.CreatedBy,
-		UpdatedAt:                                   w.UpdatedAt,
+		UpdatedAt:                                   updatedAtPublicValue,
 		UpdatedBy:                                   w.UpdatedBy,
 		ExternalAccessEnabled:                       w.ExternalAccessEnabled,
 	}, nil
@@ -436,17 +538,21 @@ func listMetastoresResponseFromWire(w *listMetastoresResponseWire) (*ListMetasto
 }
 
 type metastoreAssignmentWire struct {
-	WorkspaceId        *int64  `json:"workspace_id,omitempty"`
-	MetastoreId        *string `json:"metastore_id,omitempty"`
-	DefaultCatalogName *string `json:"default_catalog_name,omitempty"`
+	WorkspaceId        *wireInt64 `json:"workspace_id,omitempty"`
+	MetastoreId        *string    `json:"metastore_id,omitempty"`
+	DefaultCatalogName *string    `json:"default_catalog_name,omitempty"`
 }
 
 func metastoreAssignmentToWire(v *MetastoreAssignment) (*metastoreAssignmentWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MetastoreAssignment.WorkspaceId", err)
+	}
 	return &metastoreAssignmentWire{
-		WorkspaceId:        v.WorkspaceId,
+		WorkspaceId:        workspaceIdWireValue,
 		MetastoreId:        v.MetastoreId,
 		DefaultCatalogName: v.DefaultCatalogName,
 	}, nil
@@ -456,8 +562,12 @@ func metastoreAssignmentFromWire(w *metastoreAssignmentWire) (*MetastoreAssignme
 	if w == nil {
 		return nil, nil
 	}
+	workspaceIdPublicValue, err := int64FromWire(w.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MetastoreAssignment.WorkspaceId", err)
+	}
 	return &MetastoreAssignment{
-		WorkspaceId:        w.WorkspaceId,
+		WorkspaceId:        workspaceIdPublicValue,
 		MetastoreId:        w.MetastoreId,
 		DefaultCatalogName: w.DefaultCatalogName,
 	}, nil
@@ -469,15 +579,15 @@ type metastoreInfoWire struct {
 	DefaultDataAccessConfigId                   *string                `json:"default_data_access_config_id,omitempty"`
 	StorageRootCredentialId                     *string                `json:"storage_root_credential_id,omitempty"`
 	DeltaSharingScope                           DeltaSharingScope_Enum `json:"delta_sharing_scope,omitempty"`
-	DeltaSharingRecipientTokenLifetimeInSeconds *int64                 `json:"delta_sharing_recipient_token_lifetime_in_seconds,omitempty"`
+	DeltaSharingRecipientTokenLifetimeInSeconds *wireInt64             `json:"delta_sharing_recipient_token_lifetime_in_seconds,omitempty"`
 	DeltaSharingOrganizationName                *string                `json:"delta_sharing_organization_name,omitempty"`
 	Owner                                       *string                `json:"owner,omitempty"`
 	PrivilegeModelVersion                       *string                `json:"privilege_model_version,omitempty"`
 	Region                                      *string                `json:"region,omitempty"`
 	MetastoreId                                 *string                `json:"metastore_id,omitempty"`
-	CreatedAt                                   *int64                 `json:"created_at,omitempty"`
+	CreatedAt                                   *wireInt64             `json:"created_at,omitempty"`
 	CreatedBy                                   *string                `json:"created_by,omitempty"`
-	UpdatedAt                                   *int64                 `json:"updated_at,omitempty"`
+	UpdatedAt                                   *wireInt64             `json:"updated_at,omitempty"`
 	UpdatedBy                                   *string                `json:"updated_by,omitempty"`
 	StorageRootCredentialName                   *string                `json:"storage_root_credential_name,omitempty"`
 	Cloud                                       *string                `json:"cloud,omitempty"`
@@ -489,21 +599,33 @@ func metastoreInfoFromWire(w *metastoreInfoWire) (*MetastoreInfo, error) {
 	if w == nil {
 		return nil, nil
 	}
+	deltaSharingRecipientTokenLifetimeInSecondsPublicValue, err := int64FromWire(w.DeltaSharingRecipientTokenLifetimeInSeconds)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MetastoreInfo.DeltaSharingRecipientTokenLifetimeInSeconds", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MetastoreInfo.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MetastoreInfo.UpdatedAt", err)
+	}
 	return &MetastoreInfo{
 		Name:                      w.Name,
 		StorageRoot:               w.StorageRoot,
 		DefaultDataAccessConfigId: w.DefaultDataAccessConfigId,
 		StorageRootCredentialId:   w.StorageRootCredentialId,
 		DeltaSharingScope:         w.DeltaSharingScope,
-		DeltaSharingRecipientTokenLifetimeInSeconds: w.DeltaSharingRecipientTokenLifetimeInSeconds,
+		DeltaSharingRecipientTokenLifetimeInSeconds: deltaSharingRecipientTokenLifetimeInSecondsPublicValue,
 		DeltaSharingOrganizationName:                w.DeltaSharingOrganizationName,
 		Owner:                                       w.Owner,
 		PrivilegeModelVersion:                       w.PrivilegeModelVersion,
 		Region:                                      w.Region,
 		MetastoreId:                                 w.MetastoreId,
-		CreatedAt:                                   w.CreatedAt,
+		CreatedAt:                                   createdAtPublicValue,
 		CreatedBy:                                   w.CreatedBy,
-		UpdatedAt:                                   w.UpdatedAt,
+		UpdatedAt:                                   updatedAtPublicValue,
 		UpdatedBy:                                   w.UpdatedBy,
 		StorageRootCredentialName:                   w.StorageRootCredentialName,
 		Cloud:                                       w.Cloud,
@@ -518,15 +640,15 @@ type updateAccountsMetastoreWire struct {
 	DefaultDataAccessConfigId                   *string                `json:"default_data_access_config_id,omitempty"`
 	StorageRootCredentialId                     *string                `json:"storage_root_credential_id,omitempty"`
 	DeltaSharingScope                           DeltaSharingScope_Enum `json:"delta_sharing_scope,omitempty"`
-	DeltaSharingRecipientTokenLifetimeInSeconds *int64                 `json:"delta_sharing_recipient_token_lifetime_in_seconds,omitempty"`
+	DeltaSharingRecipientTokenLifetimeInSeconds *wireInt64             `json:"delta_sharing_recipient_token_lifetime_in_seconds,omitempty"`
 	DeltaSharingOrganizationName                *string                `json:"delta_sharing_organization_name,omitempty"`
 	Owner                                       *string                `json:"owner,omitempty"`
 	PrivilegeModelVersion                       *string                `json:"privilege_model_version,omitempty"`
 	Region                                      *string                `json:"region,omitempty"`
 	MetastoreId                                 *string                `json:"metastore_id,omitempty"`
-	CreatedAt                                   *int64                 `json:"created_at,omitempty"`
+	CreatedAt                                   *wireInt64             `json:"created_at,omitempty"`
 	CreatedBy                                   *string                `json:"created_by,omitempty"`
-	UpdatedAt                                   *int64                 `json:"updated_at,omitempty"`
+	UpdatedAt                                   *wireInt64             `json:"updated_at,omitempty"`
 	UpdatedBy                                   *string                `json:"updated_by,omitempty"`
 	StorageRootCredentialName                   *string                `json:"storage_root_credential_name,omitempty"`
 	Cloud                                       *string                `json:"cloud,omitempty"`
@@ -538,21 +660,33 @@ func updateAccountsMetastoreToWire(v *UpdateAccountsMetastore) (*updateAccountsM
 	if v == nil {
 		return nil, nil
 	}
+	deltaSharingRecipientTokenLifetimeInSecondsWireValue, err := int64ToWire(v.DeltaSharingRecipientTokenLifetimeInSeconds)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccountsMetastore.DeltaSharingRecipientTokenLifetimeInSeconds", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccountsMetastore.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccountsMetastore.UpdatedAt", err)
+	}
 	return &updateAccountsMetastoreWire{
 		Name:                      v.Name,
 		StorageRoot:               v.StorageRoot,
 		DefaultDataAccessConfigId: v.DefaultDataAccessConfigId,
 		StorageRootCredentialId:   v.StorageRootCredentialId,
 		DeltaSharingScope:         v.DeltaSharingScope,
-		DeltaSharingRecipientTokenLifetimeInSeconds: v.DeltaSharingRecipientTokenLifetimeInSeconds,
+		DeltaSharingRecipientTokenLifetimeInSeconds: deltaSharingRecipientTokenLifetimeInSecondsWireValue,
 		DeltaSharingOrganizationName:                v.DeltaSharingOrganizationName,
 		Owner:                                       v.Owner,
 		PrivilegeModelVersion:                       v.PrivilegeModelVersion,
 		Region:                                      v.Region,
 		MetastoreId:                                 v.MetastoreId,
-		CreatedAt:                                   v.CreatedAt,
+		CreatedAt:                                   createdAtWireValue,
 		CreatedBy:                                   v.CreatedBy,
-		UpdatedAt:                                   v.UpdatedAt,
+		UpdatedAt:                                   updatedAtWireValue,
 		UpdatedBy:                                   v.UpdatedBy,
 		StorageRootCredentialName:                   v.StorageRootCredentialName,
 		Cloud:                                       v.Cloud,
@@ -562,17 +696,21 @@ func updateAccountsMetastoreToWire(v *UpdateAccountsMetastore) (*updateAccountsM
 }
 
 type updateMetastoreAssignmentRequestWire struct {
-	WorkspaceId        *int64  `json:"workspace_id,omitempty"`
-	MetastoreId        *string `json:"metastore_id,omitempty"`
-	DefaultCatalogName *string `json:"default_catalog_name,omitempty"`
+	WorkspaceId        *wireInt64 `json:"workspace_id,omitempty"`
+	MetastoreId        *string    `json:"metastore_id,omitempty"`
+	DefaultCatalogName *string    `json:"default_catalog_name,omitempty"`
 }
 
 func updateMetastoreAssignmentRequestToWire(v *UpdateMetastoreAssignmentRequest) (*updateMetastoreAssignmentRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateMetastoreAssignmentRequest.WorkspaceId", err)
+	}
 	return &updateMetastoreAssignmentRequestWire{
-		WorkspaceId:        v.WorkspaceId,
+		WorkspaceId:        workspaceIdWireValue,
 		MetastoreId:        v.MetastoreId,
 		DefaultCatalogName: v.DefaultCatalogName,
 	}, nil
@@ -586,15 +724,15 @@ type updateMetastoreRequestWire struct {
 	DefaultDataAccessConfigId                   *string                `json:"default_data_access_config_id,omitempty"`
 	StorageRootCredentialId                     *string                `json:"storage_root_credential_id,omitempty"`
 	DeltaSharingScope                           DeltaSharingScope_Enum `json:"delta_sharing_scope,omitempty"`
-	DeltaSharingRecipientTokenLifetimeInSeconds *int64                 `json:"delta_sharing_recipient_token_lifetime_in_seconds,omitempty"`
+	DeltaSharingRecipientTokenLifetimeInSeconds *wireInt64             `json:"delta_sharing_recipient_token_lifetime_in_seconds,omitempty"`
 	DeltaSharingOrganizationName                *string                `json:"delta_sharing_organization_name,omitempty"`
 	Owner                                       *string                `json:"owner,omitempty"`
 	PrivilegeModelVersion                       *string                `json:"privilege_model_version,omitempty"`
 	Region                                      *string                `json:"region,omitempty"`
 	MetastoreId                                 *string                `json:"metastore_id,omitempty"`
-	CreatedAt                                   *int64                 `json:"created_at,omitempty"`
+	CreatedAt                                   *wireInt64             `json:"created_at,omitempty"`
 	CreatedBy                                   *string                `json:"created_by,omitempty"`
-	UpdatedAt                                   *int64                 `json:"updated_at,omitempty"`
+	UpdatedAt                                   *wireInt64             `json:"updated_at,omitempty"`
 	UpdatedBy                                   *string                `json:"updated_by,omitempty"`
 	StorageRootCredentialName                   *string                `json:"storage_root_credential_name,omitempty"`
 	Cloud                                       *string                `json:"cloud,omitempty"`
@@ -606,6 +744,18 @@ func updateMetastoreRequestToWire(v *UpdateMetastoreRequest) (*updateMetastoreRe
 	if v == nil {
 		return nil, nil
 	}
+	deltaSharingRecipientTokenLifetimeInSecondsWireValue, err := int64ToWire(v.DeltaSharingRecipientTokenLifetimeInSeconds)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateMetastoreRequest.DeltaSharingRecipientTokenLifetimeInSeconds", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateMetastoreRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateMetastoreRequest.UpdatedAt", err)
+	}
 	return &updateMetastoreRequestWire{
 		Id:                        v.Id,
 		NewName:                   v.NewName,
@@ -614,15 +764,15 @@ func updateMetastoreRequestToWire(v *UpdateMetastoreRequest) (*updateMetastoreRe
 		DefaultDataAccessConfigId: v.DefaultDataAccessConfigId,
 		StorageRootCredentialId:   v.StorageRootCredentialId,
 		DeltaSharingScope:         v.DeltaSharingScope,
-		DeltaSharingRecipientTokenLifetimeInSeconds: v.DeltaSharingRecipientTokenLifetimeInSeconds,
+		DeltaSharingRecipientTokenLifetimeInSeconds: deltaSharingRecipientTokenLifetimeInSecondsWireValue,
 		DeltaSharingOrganizationName:                v.DeltaSharingOrganizationName,
 		Owner:                                       v.Owner,
 		PrivilegeModelVersion:                       v.PrivilegeModelVersion,
 		Region:                                      v.Region,
 		MetastoreId:                                 v.MetastoreId,
-		CreatedAt:                                   v.CreatedAt,
+		CreatedAt:                                   createdAtWireValue,
 		CreatedBy:                                   v.CreatedBy,
-		UpdatedAt:                                   v.UpdatedAt,
+		UpdatedAt:                                   updatedAtWireValue,
 		UpdatedBy:                                   v.UpdatedBy,
 		StorageRootCredentialName:                   v.StorageRootCredentialName,
 		Cloud:                                       v.Cloud,

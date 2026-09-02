@@ -351,7 +351,7 @@ type isCleanRoomAsset_LocalDetails interface {
 
 // CleanRoomAsset_LocalDetails_TableLocalDetails selects TableLocalDetails for CleanRoomAsset.LocalDetails.
 // Local details for a table that are only available to its owner. Present if
-// and only if **asset_type** is **TABLE**
+// and only if **asset_type** is **TABLE** or **STREAMING_TABLE**
 type CleanRoomAsset_LocalDetails_TableLocalDetails struct {
 	TableLocalDetails CleanRoomAsset_TableLocalDetails
 }
@@ -391,7 +391,7 @@ type isCleanRoomAsset_Details interface {
 
 // CleanRoomAsset_Details_Table selects Table for CleanRoomAsset.Details.
 // Table details available to all collaborators of the clean room. Present if
-// and only if **asset_type** is **TABLE**
+// and only if **asset_type** is **TABLE** or **STREAMING_TABLE**
 type CleanRoomAsset_Details_Table struct {
 	Table CleanRoomAsset_Table
 }
@@ -812,10 +812,9 @@ type ColumnMask struct {
 	// column being masked and the types of the rest of the args should match the
 	// types of columns in 'using_column_names'.
 	UsingColumnNames []string
-	// The list of additional table columns or literals to be passed as additional
-	// arguments to a column mask function. This is the replacement of the
-	// deprecated using_column_names field and carries information about the types
-	// (alias or constant) of the arguments to the mask function.
+	// The list of table columns or literals to be passed as additional arguments to
+	// a column mask function, carrying the type (column reference vs constant
+	// literal) of each argument. Deprecated: use using_column_names instead.
 	UsingArguments []PolicyFunctionArgument
 }
 

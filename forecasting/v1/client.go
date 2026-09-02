@@ -76,8 +76,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Creates a serverless forecasting experiment. Returns the experiment ID.
-func (c *internalClient) createForecastingExperimentBase(ctx context.Context, req *CreateForecastingExperimentRequest, opts ...call.Option) (*CreateForecastingExperimentResponse, error) {
-	wireReq, err := createForecastingExperimentRequestToWire(req)
+func (c *internalClient) createForecastingExperimentBase(ctx context.Context, req CreateForecastingExperimentRequest, opts ...call.Option) (*CreateForecastingExperimentResponse, error) {
+	wireReq, err := createForecastingExperimentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func (c *internalClient) createForecastingExperimentBase(ctx context.Context, re
 }
 
 // Creates a serverless forecasting experiment. Returns the experiment ID.
-func (c *internalClient) CreateForecastingExperiment(ctx context.Context, req *CreateForecastingExperimentRequest, opts ...call.Option) (*CreateForecastingExperimentWaiter, error) {
+func (c *internalClient) CreateForecastingExperiment(ctx context.Context, req CreateForecastingExperimentRequest, opts ...call.Option) (*CreateForecastingExperimentWaiter, error) {
 	resp, err := c.createForecastingExperimentBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -158,13 +158,18 @@ func (c *internalClient) CreateForecastingExperiment(ctx context.Context, req *C
 
 // CreateForecastingExperimentWaiter tracks the state of the operation started by CreateForecastingExperiment.
 type CreateForecastingExperimentWaiter struct {
-	poll         func(context.Context, *GetForecastingExperimentRequest, ...call.Option) (*ForecastingExperiment, error)
+	poll         func(context.Context, GetForecastingExperimentRequest, ...call.Option) (*ForecastingExperiment, error)
 	experimentId string
+}
+
+// GetExperimentId returns the ExperimentId value used to identify the operation.
+func (w *CreateForecastingExperimentWaiter) GetExperimentId() string {
+	return w.experimentId
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *CreateForecastingExperimentWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetForecastingExperimentRequest{
+	pollResp, err := w.poll(ctx, GetForecastingExperimentRequest{
 		ExperimentId: &w.experimentId,
 	}, opts...)
 	if err != nil {
@@ -189,7 +194,7 @@ func (w *CreateForecastingExperimentWaiter) Done(ctx context.Context, opts ...ca
 func (w *CreateForecastingExperimentWaiter) Wait(ctx context.Context, opts ...lro.Option) (*ForecastingExperiment, error) {
 	var result *ForecastingExperiment
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetForecastingExperimentRequest{
+		pollResp, err := w.poll(ctx, GetForecastingExperimentRequest{
 			ExperimentId: &w.experimentId,
 		})
 		if err != nil {
@@ -220,7 +225,7 @@ func (w *CreateForecastingExperimentWaiter) Wait(ctx context.Context, opts ...lr
 }
 
 // Public RPC to get forecasting experiment
-func (c *internalClient) GetForecastingExperiment(ctx context.Context, req *GetForecastingExperimentRequest, opts ...call.Option) (*ForecastingExperiment, error) {
+func (c *internalClient) GetForecastingExperiment(ctx context.Context, req GetForecastingExperimentRequest, opts ...call.Option) (*ForecastingExperiment, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -234,7 +239,11 @@ func (c *internalClient) GetForecastingExperiment(ctx context.Context, req *GetF
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/automl/get-forecasting-experiment/")
-	pb.singleSegment(*req.ExperimentId)
+	if req.ExperimentId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ExperimentId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

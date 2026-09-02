@@ -100,8 +100,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // [Configure audit logging]: https://docs.databricks.com/administration-guide/account-settings/audit-logs.html
 // [Deliver and access billable usage logs]: https://docs.databricks.com/administration-guide/account-settings/billable-usage-delivery.html
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateLogDeliveryConfiguration(ctx context.Context, req *CreateLogDeliveryConfigurationRequest, opts ...call.Option) (*CreateLogDeliveryConfigurationResponse, error) {
-	wireReq, err := createLogDeliveryConfigurationRequestToWire(req)
+func (c *internalClient) CreateLogDeliveryConfiguration(ctx context.Context, req CreateLogDeliveryConfigurationRequest, opts ...call.Option) (*CreateLogDeliveryConfigurationResponse, error) {
+	wireReq, err := createLogDeliveryConfigurationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +170,7 @@ func (c *internalClient) CreateLogDeliveryConfiguration(ctx context.Context, req
 // Gets a <Databricks> log delivery configuration object for an account, both
 // specified by ID.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetLogDeliveryConfiguration(ctx context.Context, req *GetLogDeliveryConfigurationRequest, opts ...call.Option) (*GetLogDeliveryConfigurationResponse, error) {
+func (c *internalClient) GetLogDeliveryConfiguration(ctx context.Context, req GetLogDeliveryConfigurationRequest, opts ...call.Option) (*GetLogDeliveryConfigurationResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -187,7 +187,11 @@ func (c *internalClient) GetLogDeliveryConfiguration(ctx context.Context, req *G
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/log-delivery/")
-	pb.singleSegment(*req.ConfigId)
+	if req.ConfigId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ConfigId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -235,8 +239,8 @@ func (c *internalClient) GetLogDeliveryConfiguration(ctx context.Context, req *G
 // Gets all <Databricks> log delivery configurations associated with an account
 // specified by ID.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListLogDeliveryConfiguration(ctx context.Context, req *ListLogDeliveryConfigurationRequest, opts ...call.Option) (*ListLogDeliveryConfigurationResponse, error) {
-	wireReq, err := listLogDeliveryConfigurationRequestToWire(req)
+func (c *internalClient) ListLogDeliveryConfiguration(ctx context.Context, req ListLogDeliveryConfigurationRequest, opts ...call.Option) (*ListLogDeliveryConfigurationResponse, error) {
+	wireReq, err := listLogDeliveryConfigurationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -319,7 +323,7 @@ func (c *internalClient) ListLogDeliveryConfiguration(ctx context.Context, req *
 //
 // For example:
 //
-//	for item, err := range c.ListLogDeliveryConfigurationIter(ctx, &ListLogDeliveryConfigurationRequest{}) {
+//	for item, err := range c.ListLogDeliveryConfigurationIter(ctx, ListLogDeliveryConfigurationRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -331,16 +335,13 @@ func (c *internalClient) ListLogDeliveryConfiguration(ctx context.Context, req *
 //
 // Callers who need custom pagination logic should use
 // ListLogDeliveryConfiguration directly.
-func (c *internalClient) ListLogDeliveryConfigurationIter(ctx context.Context, req *ListLogDeliveryConfigurationRequest, opts ...call.Option) iter.Seq2[*LogDeliveryConfiguration, error] {
+func (c *internalClient) ListLogDeliveryConfigurationIter(ctx context.Context, req ListLogDeliveryConfigurationRequest, opts ...call.Option) iter.Seq2[*LogDeliveryConfiguration, error] {
 	return func(yield func(*LogDeliveryConfiguration, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListLogDeliveryConfigurationRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListLogDeliveryConfiguration(ctx, &pageReq, opts...)
+			resp, err := c.ListLogDeliveryConfiguration(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -364,8 +365,8 @@ func (c *internalClient) ListLogDeliveryConfigurationIter(ctx context.Context, r
 // if this would violate the delivery configuration limits described under
 // [Create log delivery](:method:LogDelivery/Create).
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) UpdateLogDeliveryConfiguration(ctx context.Context, req *UpdateLogDeliveryConfigurationRequest, opts ...call.Option) (*UpdateLogDeliveryConfigurationResponse, error) {
-	wireReq, err := updateLogDeliveryConfigurationRequestToWire(req)
+func (c *internalClient) UpdateLogDeliveryConfiguration(ctx context.Context, req UpdateLogDeliveryConfigurationRequest, opts ...call.Option) (*UpdateLogDeliveryConfigurationResponse, error) {
+	wireReq, err := updateLogDeliveryConfigurationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -389,7 +390,11 @@ func (c *internalClient) UpdateLogDeliveryConfiguration(ctx context.Context, req
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/log-delivery/")
-	pb.singleSegment(*req.ConfigId)
+	if req.ConfigId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ConfigId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
