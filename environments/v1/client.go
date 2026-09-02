@@ -80,8 +80,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // operation will asynchronously generate a materialized environment to optimize
 // dependency resolution and is only marked as done when the materialized
 // environment has been successfully generated or has failed.
-func (c *internalClient) createWorkspaceBaseEnvironmentBase(ctx context.Context, req *CreateWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := createWorkspaceBaseEnvironmentRequestToWire(req)
+func (c *internalClient) createWorkspaceBaseEnvironmentBase(ctx context.Context, req CreateWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := createWorkspaceBaseEnvironmentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +158,7 @@ func (c *internalClient) createWorkspaceBaseEnvironmentBase(ctx context.Context,
 // operation will asynchronously generate a materialized environment to optimize
 // dependency resolution and is only marked as done when the materialized
 // environment has been successfully generated or has failed.
-func (c *internalClient) CreateWorkspaceBaseEnvironment(ctx context.Context, req *CreateWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*CreateWorkspaceBaseEnvironmentOperation, error) {
+func (c *internalClient) CreateWorkspaceBaseEnvironment(ctx context.Context, req CreateWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*CreateWorkspaceBaseEnvironmentOperation, error) {
 	operation, err := c.createWorkspaceBaseEnvironmentBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -175,7 +175,7 @@ func (c *internalClient) CreateWorkspaceBaseEnvironment(ctx context.Context, req
 // CreateWorkspaceBaseEnvironmentOperation tracks the state of the long-running operation started by CreateWorkspaceBaseEnvironment.
 type CreateWorkspaceBaseEnvironmentOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -201,7 +201,7 @@ func (o *CreateWorkspaceBaseEnvironmentOperation) Metadata() (*WorkspaceBaseEnvi
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *CreateWorkspaceBaseEnvironmentOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -219,7 +219,7 @@ func (o *CreateWorkspaceBaseEnvironmentOperation) Done(ctx context.Context, opts
 func (o *CreateWorkspaceBaseEnvironmentOperation) Wait(ctx context.Context, opts ...lro.Option) (*WorkspaceBaseEnvironment, error) {
 	var result *WorkspaceBaseEnvironment
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -259,7 +259,7 @@ func (o *CreateWorkspaceBaseEnvironmentOperation) Wait(ctx context.Context, opts
 // Deletes a WorkspaceBaseEnvironment. Deleting a base environment may impact
 // linked notebooks and jobs. This operation is irreversible and should be
 // performed only when you are certain the environment is no longer needed.
-func (c *internalClient) DeleteWorkspaceBaseEnvironment(ctx context.Context, req *DeleteWorkspaceBaseEnvironmentRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteWorkspaceBaseEnvironment(ctx context.Context, req DeleteWorkspaceBaseEnvironmentRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -273,7 +273,11 @@ func (c *internalClient) DeleteWorkspaceBaseEnvironment(ctx context.Context, req
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/environments/v1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -312,7 +316,7 @@ func (c *internalClient) DeleteWorkspaceBaseEnvironment(ctx context.Context, req
 // Gets the default WorkspaceBaseEnvironment configuration for the workspace.
 // Returns the current default base environment settings for both CPU and GPU
 // compute.
-func (c *internalClient) GetDefaultWorkspaceBaseEnvironment(ctx context.Context, req *GetDefaultWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*DefaultWorkspaceBaseEnvironment, error) {
+func (c *internalClient) GetDefaultWorkspaceBaseEnvironment(ctx context.Context, req GetDefaultWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*DefaultWorkspaceBaseEnvironment, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -326,7 +330,11 @@ func (c *internalClient) GetDefaultWorkspaceBaseEnvironment(ctx context.Context,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/environments/v1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -373,7 +381,7 @@ func (c *internalClient) GetDefaultWorkspaceBaseEnvironment(ctx context.Context,
 
 // Gets the status of a long-running operation. Clients can use this method to
 // poll the operation result.
-func (c *internalClient) getOperation(ctx context.Context, req *GetOperationRequest, opts ...call.Option) (*Operation, error) {
+func (c *internalClient) getOperation(ctx context.Context, req GetOperationRequest, opts ...call.Option) (*Operation, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -387,7 +395,11 @@ func (c *internalClient) getOperation(ctx context.Context, req *GetOperationRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/environments/v1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -433,7 +445,7 @@ func (c *internalClient) getOperation(ctx context.Context, req *GetOperationRequ
 }
 
 // Retrieves a WorkspaceBaseEnvironment by its name.
-func (c *internalClient) GetWorkspaceBaseEnvironment(ctx context.Context, req *GetWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*WorkspaceBaseEnvironment, error) {
+func (c *internalClient) GetWorkspaceBaseEnvironment(ctx context.Context, req GetWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*WorkspaceBaseEnvironment, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -447,7 +459,11 @@ func (c *internalClient) GetWorkspaceBaseEnvironment(ctx context.Context, req *G
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/environments/v1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -504,8 +520,8 @@ func (c *internalClient) GetWorkspaceBaseEnvironment(ctx context.Context, req *G
 // Databricks-provided base environments are versioned. For example,
 // `workspace-base-environments/databricks_ml_v5` corresponds to the ML
 // environment built on environment version 5.
-func (c *internalClient) ListWorkspaceBaseEnvironments(ctx context.Context, req *ListWorkspaceBaseEnvironmentsRequest, opts ...call.Option) (*ListWorkspaceBaseEnvironmentsResponse, error) {
-	wireReq, err := listWorkspaceBaseEnvironmentsRequestToWire(req)
+func (c *internalClient) ListWorkspaceBaseEnvironments(ctx context.Context, req ListWorkspaceBaseEnvironmentsRequest, opts ...call.Option) (*ListWorkspaceBaseEnvironmentsResponse, error) {
+	wireReq, err := listWorkspaceBaseEnvironmentsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -575,7 +591,7 @@ func (c *internalClient) ListWorkspaceBaseEnvironments(ctx context.Context, req 
 //
 // For example:
 //
-//	for item, err := range c.ListWorkspaceBaseEnvironmentsIter(ctx, &ListWorkspaceBaseEnvironmentsRequest{}) {
+//	for item, err := range c.ListWorkspaceBaseEnvironmentsIter(ctx, ListWorkspaceBaseEnvironmentsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -587,16 +603,13 @@ func (c *internalClient) ListWorkspaceBaseEnvironments(ctx context.Context, req 
 //
 // Callers who need custom pagination logic should use
 // ListWorkspaceBaseEnvironments directly.
-func (c *internalClient) ListWorkspaceBaseEnvironmentsIter(ctx context.Context, req *ListWorkspaceBaseEnvironmentsRequest, opts ...call.Option) iter.Seq2[*WorkspaceBaseEnvironment, error] {
+func (c *internalClient) ListWorkspaceBaseEnvironmentsIter(ctx context.Context, req ListWorkspaceBaseEnvironmentsRequest, opts ...call.Option) iter.Seq2[*WorkspaceBaseEnvironment, error] {
 	return func(yield func(*WorkspaceBaseEnvironment, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListWorkspaceBaseEnvironmentsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListWorkspaceBaseEnvironments(ctx, &pageReq, opts...)
+			resp, err := c.ListWorkspaceBaseEnvironments(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -619,8 +632,8 @@ func (c *internalClient) ListWorkspaceBaseEnvironmentsIter(ctx context.Context, 
 // materialized environment and is only marked as done when the materialized
 // environment has been successfully generated or has failed. The existing
 // materialized environment remains available until it expires.
-func (c *internalClient) refreshWorkspaceBaseEnvironmentBase(ctx context.Context, req *RefreshWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := refreshWorkspaceBaseEnvironmentRequestToWire(req)
+func (c *internalClient) refreshWorkspaceBaseEnvironmentBase(ctx context.Context, req RefreshWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := refreshWorkspaceBaseEnvironmentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -641,7 +654,11 @@ func (c *internalClient) refreshWorkspaceBaseEnvironmentBase(ctx context.Context
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/environments/v1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/refresh")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -693,7 +710,7 @@ func (c *internalClient) refreshWorkspaceBaseEnvironmentBase(ctx context.Context
 // materialized environment and is only marked as done when the materialized
 // environment has been successfully generated or has failed. The existing
 // materialized environment remains available until it expires.
-func (c *internalClient) RefreshWorkspaceBaseEnvironment(ctx context.Context, req *RefreshWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*RefreshWorkspaceBaseEnvironmentOperation, error) {
+func (c *internalClient) RefreshWorkspaceBaseEnvironment(ctx context.Context, req RefreshWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*RefreshWorkspaceBaseEnvironmentOperation, error) {
 	operation, err := c.refreshWorkspaceBaseEnvironmentBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -710,7 +727,7 @@ func (c *internalClient) RefreshWorkspaceBaseEnvironment(ctx context.Context, re
 // RefreshWorkspaceBaseEnvironmentOperation tracks the state of the long-running operation started by RefreshWorkspaceBaseEnvironment.
 type RefreshWorkspaceBaseEnvironmentOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -736,7 +753,7 @@ func (o *RefreshWorkspaceBaseEnvironmentOperation) Metadata() (*WorkspaceBaseEnv
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *RefreshWorkspaceBaseEnvironmentOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -754,7 +771,7 @@ func (o *RefreshWorkspaceBaseEnvironmentOperation) Done(ctx context.Context, opt
 func (o *RefreshWorkspaceBaseEnvironmentOperation) Wait(ctx context.Context, opts ...lro.Option) (*WorkspaceBaseEnvironment, error) {
 	var result *WorkspaceBaseEnvironment
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -794,8 +811,8 @@ func (o *RefreshWorkspaceBaseEnvironmentOperation) Wait(ctx context.Context, opt
 // Updates the default WorkspaceBaseEnvironment configuration for the workspace.
 // Sets the specified base environments as the workspace defaults for CPU and/or
 // GPU compute.
-func (c *internalClient) UpdateDefaultWorkspaceBaseEnvironment(ctx context.Context, req *UpdateDefaultWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*DefaultWorkspaceBaseEnvironment, error) {
-	wireReq, err := updateDefaultWorkspaceBaseEnvironmentRequestToWire(req)
+func (c *internalClient) UpdateDefaultWorkspaceBaseEnvironment(ctx context.Context, req UpdateDefaultWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*DefaultWorkspaceBaseEnvironment, error) {
+	wireReq, err := updateDefaultWorkspaceBaseEnvironmentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -816,7 +833,11 @@ func (c *internalClient) UpdateDefaultWorkspaceBaseEnvironment(ctx context.Conte
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/environments/v1/")
-	pb.singleSegment(*req.DefaultWorkspaceBaseEnvironment.Name)
+	if req.DefaultWorkspaceBaseEnvironment == nil || req.DefaultWorkspaceBaseEnvironment.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.DefaultWorkspaceBaseEnvironment.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -870,8 +891,8 @@ func (c *internalClient) UpdateDefaultWorkspaceBaseEnvironment(ctx context.Conte
 // environment and is only marked as done when the materialized environment has
 // been successfully generated or has failed. The existing materialized
 // environment remains available until it expires.
-func (c *internalClient) updateWorkspaceBaseEnvironmentBase(ctx context.Context, req *UpdateWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := updateWorkspaceBaseEnvironmentRequestToWire(req)
+func (c *internalClient) updateWorkspaceBaseEnvironmentBase(ctx context.Context, req UpdateWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := updateWorkspaceBaseEnvironmentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -892,7 +913,11 @@ func (c *internalClient) updateWorkspaceBaseEnvironmentBase(ctx context.Context,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/environments/v1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -943,7 +968,7 @@ func (c *internalClient) updateWorkspaceBaseEnvironmentBase(ctx context.Context,
 // environment and is only marked as done when the materialized environment has
 // been successfully generated or has failed. The existing materialized
 // environment remains available until it expires.
-func (c *internalClient) UpdateWorkspaceBaseEnvironment(ctx context.Context, req *UpdateWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*UpdateWorkspaceBaseEnvironmentOperation, error) {
+func (c *internalClient) UpdateWorkspaceBaseEnvironment(ctx context.Context, req UpdateWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*UpdateWorkspaceBaseEnvironmentOperation, error) {
 	operation, err := c.updateWorkspaceBaseEnvironmentBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -960,7 +985,7 @@ func (c *internalClient) UpdateWorkspaceBaseEnvironment(ctx context.Context, req
 // UpdateWorkspaceBaseEnvironmentOperation tracks the state of the long-running operation started by UpdateWorkspaceBaseEnvironment.
 type UpdateWorkspaceBaseEnvironmentOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -986,7 +1011,7 @@ func (o *UpdateWorkspaceBaseEnvironmentOperation) Metadata() (*WorkspaceBaseEnvi
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *UpdateWorkspaceBaseEnvironmentOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -1004,7 +1029,7 @@ func (o *UpdateWorkspaceBaseEnvironmentOperation) Done(ctx context.Context, opts
 func (o *UpdateWorkspaceBaseEnvironmentOperation) Wait(ctx context.Context, opts ...lro.Option) (*WorkspaceBaseEnvironment, error) {
 	var result *WorkspaceBaseEnvironment
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}

@@ -79,8 +79,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // Creates a new connection to an external data source. It allows users to
 // specify connection details and configurations for interaction with the
 // external server.
-func (c *internalClient) CreateConnection(ctx context.Context, req *CreateConnectionRequest, opts ...call.Option) (*ConnectionInfo, error) {
-	wireReq, err := createConnectionRequestToWire(req)
+func (c *internalClient) CreateConnection(ctx context.Context, req CreateConnectionRequest, opts ...call.Option) (*ConnectionInfo, error) {
+	wireReq, err := createConnectionRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func (c *internalClient) CreateConnection(ctx context.Context, req *CreateConnec
 }
 
 // Deletes the connection that matches the supplied name.
-func (c *internalClient) DeleteConnection(ctx context.Context, req *DeleteConnectionRequest, opts ...call.Option) (*DeleteConnectionResponse, error) {
+func (c *internalClient) DeleteConnection(ctx context.Context, req DeleteConnectionRequest, opts ...call.Option) (*DeleteConnectionResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -159,7 +159,11 @@ func (c *internalClient) DeleteConnection(ctx context.Context, req *DeleteConnec
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/connections/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -199,7 +203,7 @@ func (c *internalClient) DeleteConnection(ctx context.Context, req *DeleteConnec
 }
 
 // Gets a connection from it's name.
-func (c *internalClient) GetConnection(ctx context.Context, req *GetConnectionRequest, opts ...call.Option) (*ConnectionInfo, error) {
+func (c *internalClient) GetConnection(ctx context.Context, req GetConnectionRequest, opts ...call.Option) (*ConnectionInfo, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -213,7 +217,11 @@ func (c *internalClient) GetConnection(ctx context.Context, req *GetConnectionRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/connections/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -267,8 +275,8 @@ func (c *internalClient) GetConnection(ctx context.Context, req *GetConnectionRe
 // contain zero results while still providing a next_page_token. Clients must
 // continue reading pages until next_page_token is absent, which is the only
 // indication that the end of results has been reached.
-func (c *internalClient) ListConnections(ctx context.Context, req *ListConnectionsRequest, opts ...call.Option) (*ListConnectionsResponse, error) {
-	wireReq, err := listConnectionsRequestToWire(req)
+func (c *internalClient) ListConnections(ctx context.Context, req ListConnectionsRequest, opts ...call.Option) (*ListConnectionsResponse, error) {
+	wireReq, err := listConnectionsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +349,7 @@ func (c *internalClient) ListConnections(ctx context.Context, req *ListConnectio
 //
 // For example:
 //
-//	for item, err := range c.ListConnectionsIter(ctx, &ListConnectionsRequest{}) {
+//	for item, err := range c.ListConnectionsIter(ctx, ListConnectionsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -353,16 +361,13 @@ func (c *internalClient) ListConnections(ctx context.Context, req *ListConnectio
 //
 // Callers who need custom pagination logic should use
 // ListConnections directly.
-func (c *internalClient) ListConnectionsIter(ctx context.Context, req *ListConnectionsRequest, opts ...call.Option) iter.Seq2[*ConnectionInfo, error] {
+func (c *internalClient) ListConnectionsIter(ctx context.Context, req ListConnectionsRequest, opts ...call.Option) iter.Seq2[*ConnectionInfo, error] {
 	return func(yield func(*ConnectionInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListConnectionsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListConnections(ctx, &pageReq, opts...)
+			resp, err := c.ListConnections(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -381,8 +386,8 @@ func (c *internalClient) ListConnectionsIter(ctx context.Context, req *ListConne
 }
 
 // Updates the connection that matches the supplied name.
-func (c *internalClient) UpdateConnection(ctx context.Context, req *UpdateConnectionRequest, opts ...call.Option) (*ConnectionInfo, error) {
-	wireReq, err := updateConnectionRequestToWire(req)
+func (c *internalClient) UpdateConnection(ctx context.Context, req UpdateConnectionRequest, opts ...call.Option) (*ConnectionInfo, error) {
+	wireReq, err := updateConnectionRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -403,7 +408,11 @@ func (c *internalClient) UpdateConnection(ctx context.Context, req *UpdateConnec
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/connections/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

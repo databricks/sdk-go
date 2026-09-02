@@ -3,11 +3,56 @@
 package postgres
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/databricks/sdk-go/core/types"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	if mask == nil {
@@ -113,6 +158,7 @@ type branchSpecWire struct {
 	ExpireTime       *types.Time     `json:"expire_time,omitempty"`
 	Ttl              *types.Duration `json:"ttl,omitempty"`
 	NoExpiry         *bool           `json:"no_expiry,omitempty"`
+	SourceSnapshot   *string         `json:"source_snapshot,omitempty"`
 }
 
 func branchSpecToWire(v *BranchSpec) (*branchSpecWire, error) {
@@ -147,6 +193,7 @@ func branchSpecToWire(v *BranchSpec) (*branchSpecWire, error) {
 		ExpireTime:       expirationExpireTimeWire,
 		Ttl:              expirationTtlWire,
 		NoExpiry:         expirationNoExpiryWire,
+		SourceSnapshot:   v.SourceSnapshot,
 	}, nil
 }
 
@@ -181,6 +228,7 @@ func branchSpecFromWire(w *branchSpecWire) (*BranchSpec, error) {
 		SourceBranchLsn:  w.SourceBranchLsn,
 		SourceBranchTime: w.SourceBranchTime,
 		IsProtected:      w.IsProtected,
+		SourceSnapshot:   w.SourceSnapshot,
 		Expiration:       expirationSelection,
 	}, nil
 }
@@ -194,16 +242,21 @@ type branchStatusWire struct {
 	CurrentState     BranchStatus_State `json:"current_state,omitempty"`
 	PendingState     BranchStatus_State `json:"pending_state,omitempty"`
 	StateChangeTime  *types.Time        `json:"state_change_time,omitempty"`
-	LogicalSizeBytes *int64             `json:"logical_size_bytes,omitempty"`
+	LogicalSizeBytes *wireInt64         `json:"logical_size_bytes,omitempty"`
 	ExpireTime       *types.Time        `json:"expire_time,omitempty"`
 	BranchId         *string            `json:"branch_id,omitempty"`
 	DeleteTime       *types.Time        `json:"delete_time,omitempty"`
 	PurgeTime        *types.Time        `json:"purge_time,omitempty"`
+	SourceSnapshot   *string            `json:"source_snapshot,omitempty"`
 }
 
 func branchStatusToWire(v *BranchStatus) (*branchStatusWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	logicalSizeBytesWireValue, err := int64ToWire(v.LogicalSizeBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BranchStatus.LogicalSizeBytes", err)
 	}
 	return &branchStatusWire{
 		SourceBranch:     v.SourceBranch,
@@ -214,17 +267,22 @@ func branchStatusToWire(v *BranchStatus) (*branchStatusWire, error) {
 		CurrentState:     v.CurrentState,
 		PendingState:     v.PendingState,
 		StateChangeTime:  v.StateChangeTime,
-		LogicalSizeBytes: v.LogicalSizeBytes,
+		LogicalSizeBytes: logicalSizeBytesWireValue,
 		ExpireTime:       v.ExpireTime,
 		BranchId:         v.BranchId,
 		DeleteTime:       v.DeleteTime,
 		PurgeTime:        v.PurgeTime,
+		SourceSnapshot:   v.SourceSnapshot,
 	}, nil
 }
 
 func branchStatusFromWire(w *branchStatusWire) (*BranchStatus, error) {
 	if w == nil {
 		return nil, nil
+	}
+	logicalSizeBytesPublicValue, err := int64FromWire(w.LogicalSizeBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BranchStatus.LogicalSizeBytes", err)
 	}
 	return &BranchStatus{
 		SourceBranch:     w.SourceBranch,
@@ -235,11 +293,12 @@ func branchStatusFromWire(w *branchStatusWire) (*BranchStatus, error) {
 		CurrentState:     w.CurrentState,
 		PendingState:     w.PendingState,
 		StateChangeTime:  w.StateChangeTime,
-		LogicalSizeBytes: w.LogicalSizeBytes,
+		LogicalSizeBytes: logicalSizeBytesPublicValue,
 		ExpireTime:       w.ExpireTime,
 		BranchId:         w.BranchId,
 		DeleteTime:       w.DeleteTime,
 		PurgeTime:        w.PurgeTime,
+		SourceSnapshot:   w.SourceSnapshot,
 	}, nil
 }
 
@@ -609,6 +668,27 @@ func createRoleRequestToWire(v *CreateRoleRequest) (*createRoleRequestWire, erro
 	}, nil
 }
 
+type createSnapshotRequestWire struct {
+	Parent     *string       `json:"parent,omitempty"`
+	Snapshot   *snapshotWire `json:"snapshot,omitempty"`
+	SnapshotId *string       `json:"snapshot_id,omitempty"`
+}
+
+func createSnapshotRequestToWire(v *CreateSnapshotRequest) (*createSnapshotRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	snapshotWireValue, err := snapshotToWire(v.Snapshot)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateSnapshotRequest.Snapshot", err)
+	}
+	return &createSnapshotRequestWire{
+		Parent:     v.Parent,
+		Snapshot:   snapshotWireValue,
+		SnapshotId: v.SnapshotId,
+	}, nil
+}
+
 type createSyncedTableRequestWire struct {
 	SyncedTableId *string          `json:"synced_table_id,omitempty"`
 	SyncedTable   *syncedTableWire `json:"synced_table,omitempty"`
@@ -625,6 +705,28 @@ func createSyncedTableRequestToWire(v *CreateSyncedTableRequest) (*createSyncedT
 	return &createSyncedTableRequestWire{
 		SyncedTableId: v.SyncedTableId,
 		SyncedTable:   syncedTableWireValue,
+	}, nil
+}
+
+type dailyScheduleWire struct {
+	Hour *int `json:"hour,omitempty"`
+}
+
+func dailyScheduleToWire(v *DailySchedule) (*dailyScheduleWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &dailyScheduleWire{
+		Hour: v.Hour,
+	}, nil
+}
+
+func dailyScheduleFromWire(w *dailyScheduleWire) (*DailySchedule, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DailySchedule{
+		Hour: w.Hour,
 	}, nil
 }
 
@@ -984,7 +1086,7 @@ func deleteRoleRequestToWire(v *DeleteRoleRequest) (*deleteRoleRequestWire, erro
 }
 
 type deltaTableSyncInfoWire struct {
-	DeltaCommitVersion *int64      `json:"delta_commit_version,omitempty"`
+	DeltaCommitVersion *wireInt64  `json:"delta_commit_version,omitempty"`
 	DeltaCommitTime    *types.Time `json:"delta_commit_time,omitempty"`
 }
 
@@ -992,8 +1094,12 @@ func deltaTableSyncInfoToWire(v *DeltaTableSyncInfo) (*deltaTableSyncInfoWire, e
 	if v == nil {
 		return nil, nil
 	}
+	deltaCommitVersionWireValue, err := int64ToWire(v.DeltaCommitVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeltaTableSyncInfo.DeltaCommitVersion", err)
+	}
 	return &deltaTableSyncInfoWire{
-		DeltaCommitVersion: v.DeltaCommitVersion,
+		DeltaCommitVersion: deltaCommitVersionWireValue,
 		DeltaCommitTime:    v.DeltaCommitTime,
 	}, nil
 }
@@ -1002,8 +1108,12 @@ func deltaTableSyncInfoFromWire(w *deltaTableSyncInfoWire) (*DeltaTableSyncInfo,
 	if w == nil {
 		return nil, nil
 	}
+	deltaCommitVersionPublicValue, err := int64FromWire(w.DeltaCommitVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeltaTableSyncInfo.DeltaCommitVersion", err)
+	}
 	return &DeltaTableSyncInfo{
-		DeltaCommitVersion: w.DeltaCommitVersion,
+		DeltaCommitVersion: deltaCommitVersionPublicValue,
 		DeltaCommitTime:    w.DeltaCommitTime,
 	}, nil
 }
@@ -1742,6 +1852,67 @@ func listRolesResponseFromWire(w *listRolesResponseWire) (*ListRolesResponse, er
 	}, nil
 }
 
+type listSnapshotsRequestWire struct {
+	Parent    *string `json:"parent,omitempty"`
+	PageToken *string `json:"page_token,omitempty"`
+	PageSize  *int    `json:"page_size,omitempty"`
+}
+
+func listSnapshotsRequestToWire(v *ListSnapshotsRequest) (*listSnapshotsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listSnapshotsRequestWire{
+		Parent:    v.Parent,
+		PageToken: v.PageToken,
+		PageSize:  v.PageSize,
+	}, nil
+}
+
+type listSnapshotsResponseWire struct {
+	Snapshots     []snapshotWire `json:"snapshots,omitempty"`
+	NextPageToken *string        `json:"next_page_token,omitempty"`
+}
+
+func listSnapshotsResponseFromWire(w *listSnapshotsResponseWire) (*ListSnapshotsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	snapshotsPublicValue, err := convertSlice(w.Snapshots, snapshotFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSnapshotsResponse.Snapshots", err)
+	}
+	return &ListSnapshotsResponse{
+		Snapshots:     snapshotsPublicValue,
+		NextPageToken: w.NextPageToken,
+	}, nil
+}
+
+type monthlyScheduleWire struct {
+	Day  *int `json:"day,omitempty"`
+	Hour *int `json:"hour,omitempty"`
+}
+
+func monthlyScheduleToWire(v *MonthlySchedule) (*monthlyScheduleWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &monthlyScheduleWire{
+		Day:  v.Day,
+		Hour: v.Hour,
+	}, nil
+}
+
+func monthlyScheduleFromWire(w *monthlyScheduleWire) (*MonthlySchedule, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &MonthlySchedule{
+		Day:  w.Day,
+		Hour: w.Hour,
+	}, nil
+}
+
 type newPipelineSpecWire struct {
 	StorageCatalog  *string                         `json:"storage_catalog,omitempty"`
 	StorageSchema   *string                         `json:"storage_schema,omitempty"`
@@ -2062,8 +2233,8 @@ type projectStatusWire struct {
 	PgVersion                   *int                                `json:"pg_version,omitempty"`
 	HistoryRetentionDuration    *types.Duration                     `json:"history_retention_duration,omitempty"`
 	DefaultEndpointSettings     *projectDefaultEndpointSettingsWire `json:"default_endpoint_settings,omitempty"`
-	BranchLogicalSizeLimitBytes *int64                              `json:"branch_logical_size_limit_bytes,omitempty"`
-	SyntheticStorageSizeBytes   *int64                              `json:"synthetic_storage_size_bytes,omitempty"`
+	BranchLogicalSizeLimitBytes *wireInt64                          `json:"branch_logical_size_limit_bytes,omitempty"`
+	SyntheticStorageSizeBytes   *wireInt64                          `json:"synthetic_storage_size_bytes,omitempty"`
 	ComputeLastActiveTime       *types.Time                         `json:"compute_last_active_time,omitempty"`
 	BudgetPolicyId              *string                             `json:"budget_policy_id,omitempty"`
 	CustomTags                  []projectCustomTagWire              `json:"custom_tags,omitempty"`
@@ -2081,6 +2252,14 @@ func projectStatusToWire(v *ProjectStatus) (*projectStatusWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ProjectStatus.DefaultEndpointSettings", err)
 	}
+	branchLogicalSizeLimitBytesWireValue, err := int64ToWire(v.BranchLogicalSizeLimitBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ProjectStatus.BranchLogicalSizeLimitBytes", err)
+	}
+	syntheticStorageSizeBytesWireValue, err := int64ToWire(v.SyntheticStorageSizeBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ProjectStatus.SyntheticStorageSizeBytes", err)
+	}
 	customTagsWireValue, err := convertSlice(v.CustomTags, projectCustomTagToWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ProjectStatus.CustomTags", err)
@@ -2090,8 +2269,8 @@ func projectStatusToWire(v *ProjectStatus) (*projectStatusWire, error) {
 		PgVersion:                   v.PgVersion,
 		HistoryRetentionDuration:    v.HistoryRetentionDuration,
 		DefaultEndpointSettings:     defaultEndpointSettingsWireValue,
-		BranchLogicalSizeLimitBytes: v.BranchLogicalSizeLimitBytes,
-		SyntheticStorageSizeBytes:   v.SyntheticStorageSizeBytes,
+		BranchLogicalSizeLimitBytes: branchLogicalSizeLimitBytesWireValue,
+		SyntheticStorageSizeBytes:   syntheticStorageSizeBytesWireValue,
 		ComputeLastActiveTime:       v.ComputeLastActiveTime,
 		BudgetPolicyId:              v.BudgetPolicyId,
 		CustomTags:                  customTagsWireValue,
@@ -2110,6 +2289,14 @@ func projectStatusFromWire(w *projectStatusWire) (*ProjectStatus, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ProjectStatus.DefaultEndpointSettings", err)
 	}
+	branchLogicalSizeLimitBytesPublicValue, err := int64FromWire(w.BranchLogicalSizeLimitBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ProjectStatus.BranchLogicalSizeLimitBytes", err)
+	}
+	syntheticStorageSizeBytesPublicValue, err := int64FromWire(w.SyntheticStorageSizeBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ProjectStatus.SyntheticStorageSizeBytes", err)
+	}
 	customTagsPublicValue, err := convertSlice(w.CustomTags, projectCustomTagFromWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ProjectStatus.CustomTags", err)
@@ -2119,8 +2306,8 @@ func projectStatusFromWire(w *projectStatusWire) (*ProjectStatus, error) {
 		PgVersion:                   w.PgVersion,
 		HistoryRetentionDuration:    w.HistoryRetentionDuration,
 		DefaultEndpointSettings:     defaultEndpointSettingsPublicValue,
-		BranchLogicalSizeLimitBytes: w.BranchLogicalSizeLimitBytes,
-		SyntheticStorageSizeBytes:   w.SyntheticStorageSizeBytes,
+		BranchLogicalSizeLimitBytes: branchLogicalSizeLimitBytesPublicValue,
+		SyntheticStorageSizeBytes:   syntheticStorageSizeBytesPublicValue,
 		ComputeLastActiveTime:       w.ComputeLastActiveTime,
 		BudgetPolicyId:              w.BudgetPolicyId,
 		CustomTags:                  customTagsPublicValue,
@@ -2354,6 +2541,396 @@ func roleOperationMetadataFromWire(w *roleOperationMetadataWire) (*RoleOperation
 	return &RoleOperationMetadata{}, nil
 }
 
+type scheduleCadenceWire struct {
+	DailySchedule   *dailyScheduleWire   `json:"daily_schedule,omitempty"`
+	WeeklySchedule  *weeklyScheduleWire  `json:"weekly_schedule,omitempty"`
+	MonthlySchedule *monthlyScheduleWire `json:"monthly_schedule,omitempty"`
+	Retention       *types.Duration      `json:"retention,omitempty"`
+}
+
+func scheduleCadenceToWire(v *ScheduleCadence) (*scheduleCadenceWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var scheduleDailyScheduleWire *dailyScheduleWire
+	var scheduleWeeklyScheduleWire *weeklyScheduleWire
+	var scheduleMonthlyScheduleWire *monthlyScheduleWire
+	switch value := v.Schedule.(type) {
+	case nil:
+	case *ScheduleCadence_Schedule_DailySchedule:
+		if value != nil {
+			scheduleDailyScheduleConverted, err := dailyScheduleToWire(&value.DailySchedule)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ScheduleCadence.Schedule.DailySchedule", err)
+			}
+			scheduleDailyScheduleWire = scheduleDailyScheduleConverted
+		}
+	case *ScheduleCadence_Schedule_WeeklySchedule:
+		if value != nil {
+			scheduleWeeklyScheduleConverted, err := weeklyScheduleToWire(&value.WeeklySchedule)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ScheduleCadence.Schedule.WeeklySchedule", err)
+			}
+			scheduleWeeklyScheduleWire = scheduleWeeklyScheduleConverted
+		}
+	case *ScheduleCadence_Schedule_MonthlySchedule:
+		if value != nil {
+			scheduleMonthlyScheduleConverted, err := monthlyScheduleToWire(&value.MonthlySchedule)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ScheduleCadence.Schedule.MonthlySchedule", err)
+			}
+			scheduleMonthlyScheduleWire = scheduleMonthlyScheduleConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "ScheduleCadence.Schedule", value)
+	}
+	return &scheduleCadenceWire{
+		DailySchedule:   scheduleDailyScheduleWire,
+		WeeklySchedule:  scheduleWeeklyScheduleWire,
+		MonthlySchedule: scheduleMonthlyScheduleWire,
+		Retention:       v.Retention,
+	}, nil
+}
+
+func scheduleCadenceFromWire(w *scheduleCadenceWire) (*ScheduleCadence, error) {
+	if w == nil {
+		return nil, nil
+	}
+	scheduleMembers := 0
+	if w.DailySchedule != nil {
+		scheduleMembers++
+	}
+	if w.WeeklySchedule != nil {
+		scheduleMembers++
+	}
+	if w.MonthlySchedule != nil {
+		scheduleMembers++
+	}
+	if scheduleMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "ScheduleCadence.Schedule")
+	}
+	var scheduleSelection isScheduleCadence_Schedule
+	switch {
+	case w.DailySchedule != nil:
+		scheduleDailyScheduleConverted, err := dailyScheduleFromWire(w.DailySchedule)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "ScheduleCadence.Schedule.DailySchedule", err)
+		}
+		scheduleSelection = &ScheduleCadence_Schedule_DailySchedule{DailySchedule: *scheduleDailyScheduleConverted}
+	case w.WeeklySchedule != nil:
+		scheduleWeeklyScheduleConverted, err := weeklyScheduleFromWire(w.WeeklySchedule)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "ScheduleCadence.Schedule.WeeklySchedule", err)
+		}
+		scheduleSelection = &ScheduleCadence_Schedule_WeeklySchedule{WeeklySchedule: *scheduleWeeklyScheduleConverted}
+	case w.MonthlySchedule != nil:
+		scheduleMonthlyScheduleConverted, err := monthlyScheduleFromWire(w.MonthlySchedule)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "ScheduleCadence.Schedule.MonthlySchedule", err)
+		}
+		scheduleSelection = &ScheduleCadence_Schedule_MonthlySchedule{MonthlySchedule: *scheduleMonthlyScheduleConverted}
+	}
+	return &ScheduleCadence{
+		Retention: w.Retention,
+		Schedule:  scheduleSelection,
+	}, nil
+}
+
+type snapshotWire struct {
+	Name       *string             `json:"name,omitempty"`
+	Uid        *string             `json:"uid,omitempty"`
+	CreateTime *types.Time         `json:"create_time,omitempty"`
+	Spec       *snapshotSpecWire   `json:"spec,omitempty"`
+	Status     *snapshotStatusWire `json:"status,omitempty"`
+	SnapshotId *string             `json:"snapshot_id,omitempty"`
+}
+
+func snapshotToWire(v *Snapshot) (*snapshotWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	specWireValue, err := snapshotSpecToWire(v.Spec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Snapshot.Spec", err)
+	}
+	statusWireValue, err := snapshotStatusToWire(v.Status)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Snapshot.Status", err)
+	}
+	return &snapshotWire{
+		Name:       v.Name,
+		Uid:        v.Uid,
+		CreateTime: v.CreateTime,
+		Spec:       specWireValue,
+		Status:     statusWireValue,
+		SnapshotId: v.SnapshotId,
+	}, nil
+}
+
+func snapshotFromWire(w *snapshotWire) (*Snapshot, error) {
+	if w == nil {
+		return nil, nil
+	}
+	specPublicValue, err := snapshotSpecFromWire(w.Spec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Snapshot.Spec", err)
+	}
+	statusPublicValue, err := snapshotStatusFromWire(w.Status)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Snapshot.Status", err)
+	}
+	return &Snapshot{
+		Name:       w.Name,
+		Uid:        w.Uid,
+		CreateTime: w.CreateTime,
+		Spec:       specPublicValue,
+		Status:     statusPublicValue,
+		SnapshotId: w.SnapshotId,
+	}, nil
+}
+
+type snapshotOperationMetadataWire struct {
+}
+
+func snapshotOperationMetadataFromWire(w *snapshotOperationMetadataWire) (*SnapshotOperationMetadata, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SnapshotOperationMetadata{}, nil
+}
+
+type snapshotScheduleWire struct {
+	Name     *string               `json:"name,omitempty"`
+	Schedule []scheduleCadenceWire `json:"schedule,omitempty"`
+}
+
+func snapshotScheduleToWire(v *SnapshotSchedule) (*snapshotScheduleWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	scheduleWireValue, err := convertSlice(v.Schedule, scheduleCadenceToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SnapshotSchedule.Schedule", err)
+	}
+	return &snapshotScheduleWire{
+		Name:     v.Name,
+		Schedule: scheduleWireValue,
+	}, nil
+}
+
+func snapshotScheduleFromWire(w *snapshotScheduleWire) (*SnapshotSchedule, error) {
+	if w == nil {
+		return nil, nil
+	}
+	schedulePublicValue, err := convertSlice(w.Schedule, scheduleCadenceFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SnapshotSchedule.Schedule", err)
+	}
+	return &SnapshotSchedule{
+		Name:     w.Name,
+		Schedule: schedulePublicValue,
+	}, nil
+}
+
+type snapshotScheduleOperationMetadataWire struct {
+}
+
+func snapshotScheduleOperationMetadataFromWire(w *snapshotScheduleOperationMetadataWire) (*SnapshotScheduleOperationMetadata, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SnapshotScheduleOperationMetadata{}, nil
+}
+
+type snapshotSpecWire struct {
+	SourceBranch     *string         `json:"source_branch,omitempty"`
+	SourceBranchLsn  *string         `json:"source_branch_lsn,omitempty"`
+	SourceBranchTime *types.Time     `json:"source_branch_time,omitempty"`
+	ExpireTime       *types.Time     `json:"expire_time,omitempty"`
+	Ttl              *types.Duration `json:"ttl,omitempty"`
+	NoExpiry         *bool           `json:"no_expiry,omitempty"`
+}
+
+func snapshotSpecToWire(v *SnapshotSpec) (*snapshotSpecWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var pointInTimeSourceBranchLsnWire *string
+	var pointInTimeSourceBranchTimeWire *types.Time
+	switch value := v.PointInTime.(type) {
+	case nil:
+	case *SnapshotSpec_PointInTime_SourceBranchLsn:
+		if value != nil {
+			pointInTimeSourceBranchLsnWire = new(value.SourceBranchLsn)
+		}
+	case *SnapshotSpec_PointInTime_SourceBranchTime:
+		if value != nil {
+			pointInTimeSourceBranchTimeWire = new(value.SourceBranchTime)
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "SnapshotSpec.PointInTime", value)
+	}
+	var expirationExpireTimeWire *types.Time
+	var expirationTtlWire *types.Duration
+	var expirationNoExpiryWire *bool
+	switch value := v.Expiration.(type) {
+	case nil:
+	case *SnapshotSpec_Expiration_ExpireTime:
+		if value != nil {
+			expirationExpireTimeWire = new(value.ExpireTime)
+		}
+	case *SnapshotSpec_Expiration_Ttl:
+		if value != nil {
+			expirationTtlWire = new(value.Ttl)
+		}
+	case *SnapshotSpec_Expiration_NoExpiry:
+		if value != nil {
+			expirationNoExpiryWire = new(value.NoExpiry)
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "SnapshotSpec.Expiration", value)
+	}
+	return &snapshotSpecWire{
+		SourceBranch:     v.SourceBranch,
+		SourceBranchLsn:  pointInTimeSourceBranchLsnWire,
+		SourceBranchTime: pointInTimeSourceBranchTimeWire,
+		ExpireTime:       expirationExpireTimeWire,
+		Ttl:              expirationTtlWire,
+		NoExpiry:         expirationNoExpiryWire,
+	}, nil
+}
+
+func snapshotSpecFromWire(w *snapshotSpecWire) (*SnapshotSpec, error) {
+	if w == nil {
+		return nil, nil
+	}
+	pointInTimeMembers := 0
+	if w.SourceBranchLsn != nil {
+		pointInTimeMembers++
+	}
+	if w.SourceBranchTime != nil {
+		pointInTimeMembers++
+	}
+	if pointInTimeMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "SnapshotSpec.PointInTime")
+	}
+	expirationMembers := 0
+	if w.ExpireTime != nil {
+		expirationMembers++
+	}
+	if w.Ttl != nil {
+		expirationMembers++
+	}
+	if w.NoExpiry != nil {
+		expirationMembers++
+	}
+	if expirationMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "SnapshotSpec.Expiration")
+	}
+	var pointInTimeSelection isSnapshotSpec_PointInTime
+	switch {
+	case w.SourceBranchLsn != nil:
+		pointInTimeSelection = &SnapshotSpec_PointInTime_SourceBranchLsn{SourceBranchLsn: *w.SourceBranchLsn}
+	case w.SourceBranchTime != nil:
+		pointInTimeSelection = &SnapshotSpec_PointInTime_SourceBranchTime{SourceBranchTime: *w.SourceBranchTime}
+	}
+	var expirationSelection isSnapshotSpec_Expiration
+	switch {
+	case w.ExpireTime != nil:
+		expirationSelection = &SnapshotSpec_Expiration_ExpireTime{ExpireTime: *w.ExpireTime}
+	case w.Ttl != nil:
+		expirationSelection = &SnapshotSpec_Expiration_Ttl{Ttl: *w.Ttl}
+	case w.NoExpiry != nil:
+		expirationSelection = &SnapshotSpec_Expiration_NoExpiry{NoExpiry: *w.NoExpiry}
+	}
+	return &SnapshotSpec{
+		SourceBranch: w.SourceBranch,
+		PointInTime:  pointInTimeSelection,
+		Expiration:   expirationSelection,
+	}, nil
+}
+
+type snapshotStatusWire struct {
+	SourceBranch  *string     `json:"source_branch,omitempty"`
+	ExpireTime    *types.Time `json:"expire_time,omitempty"`
+	NoExpiry      *bool       `json:"no_expiry,omitempty"`
+	FullSizeBytes *wireInt64  `json:"full_size_bytes,omitempty"`
+	DiffSizeBytes *wireInt64  `json:"diff_size_bytes,omitempty"`
+}
+
+func snapshotStatusToWire(v *SnapshotStatus) (*snapshotStatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	fullSizeBytesWireValue, err := int64ToWire(v.FullSizeBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SnapshotStatus.FullSizeBytes", err)
+	}
+	diffSizeBytesWireValue, err := int64ToWire(v.DiffSizeBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SnapshotStatus.DiffSizeBytes", err)
+	}
+	var expirationExpireTimeWire *types.Time
+	var expirationNoExpiryWire *bool
+	switch value := v.Expiration.(type) {
+	case nil:
+	case *SnapshotStatus_Expiration_ExpireTime:
+		if value != nil {
+			expirationExpireTimeWire = new(value.ExpireTime)
+		}
+	case *SnapshotStatus_Expiration_NoExpiry:
+		if value != nil {
+			expirationNoExpiryWire = new(value.NoExpiry)
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "SnapshotStatus.Expiration", value)
+	}
+	return &snapshotStatusWire{
+		SourceBranch:  v.SourceBranch,
+		ExpireTime:    expirationExpireTimeWire,
+		NoExpiry:      expirationNoExpiryWire,
+		FullSizeBytes: fullSizeBytesWireValue,
+		DiffSizeBytes: diffSizeBytesWireValue,
+	}, nil
+}
+
+func snapshotStatusFromWire(w *snapshotStatusWire) (*SnapshotStatus, error) {
+	if w == nil {
+		return nil, nil
+	}
+	expirationMembers := 0
+	if w.ExpireTime != nil {
+		expirationMembers++
+	}
+	if w.NoExpiry != nil {
+		expirationMembers++
+	}
+	if expirationMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "SnapshotStatus.Expiration")
+	}
+	fullSizeBytesPublicValue, err := int64FromWire(w.FullSizeBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SnapshotStatus.FullSizeBytes", err)
+	}
+	diffSizeBytesPublicValue, err := int64FromWire(w.DiffSizeBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SnapshotStatus.DiffSizeBytes", err)
+	}
+	var expirationSelection isSnapshotStatus_Expiration
+	switch {
+	case w.ExpireTime != nil:
+		expirationSelection = &SnapshotStatus_Expiration_ExpireTime{ExpireTime: *w.ExpireTime}
+	case w.NoExpiry != nil:
+		expirationSelection = &SnapshotStatus_Expiration_NoExpiry{NoExpiry: *w.NoExpiry}
+	}
+	return &SnapshotStatus{
+		SourceBranch:  w.SourceBranch,
+		FullSizeBytes: fullSizeBytesPublicValue,
+		DiffSizeBytes: diffSizeBytesPublicValue,
+		Expiration:    expirationSelection,
+	}, nil
+}
+
 type syncedTableWire struct {
 	Name          *string                            `json:"name,omitempty"`
 	Uid           *string                            `json:"uid,omitempty"`
@@ -2551,7 +3128,7 @@ type syncedTable_SyncedTableStatusWire struct {
 	LastSync                      *syncedTablePositionWire         `json:"last_sync,omitempty"`
 	OngoingSyncProgress           *syncedTablePipelineProgressWire `json:"ongoing_sync_progress,omitempty"`
 	ProvisioningPhase             ProvisioningPhase                `json:"provisioning_phase,omitempty"`
-	LastProcessedCommitVersion    *int64                           `json:"last_processed_commit_version,omitempty"`
+	LastProcessedCommitVersion    *wireInt64                       `json:"last_processed_commit_version,omitempty"`
 	LastSyncTime                  *types.Time                      `json:"last_sync_time,omitempty"`
 	PipelineId                    *string                          `json:"pipeline_id,omitempty"`
 	UnityCatalogProvisioningState ProvisioningInfo_State           `json:"unity_catalog_provisioning_state,omitempty"`
@@ -2570,13 +3147,17 @@ func syncedTable_SyncedTableStatusToWire(v *SyncedTable_SyncedTableStatus) (*syn
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "SyncedTable_SyncedTableStatus.OngoingSyncProgress", err)
 	}
+	lastProcessedCommitVersionWireValue, err := int64ToWire(v.LastProcessedCommitVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SyncedTable_SyncedTableStatus.LastProcessedCommitVersion", err)
+	}
 	return &syncedTable_SyncedTableStatusWire{
 		Message:                       v.Message,
 		DetailedState:                 v.DetailedState,
 		LastSync:                      lastSyncWireValue,
 		OngoingSyncProgress:           ongoingSyncProgressWireValue,
 		ProvisioningPhase:             v.ProvisioningPhase,
-		LastProcessedCommitVersion:    v.LastProcessedCommitVersion,
+		LastProcessedCommitVersion:    lastProcessedCommitVersionWireValue,
 		LastSyncTime:                  v.LastSyncTime,
 		PipelineId:                    v.PipelineId,
 		UnityCatalogProvisioningState: v.UnityCatalogProvisioningState,
@@ -2596,13 +3177,17 @@ func syncedTable_SyncedTableStatusFromWire(w *syncedTable_SyncedTableStatusWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "SyncedTable_SyncedTableStatus.OngoingSyncProgress", err)
 	}
+	lastProcessedCommitVersionPublicValue, err := int64FromWire(w.LastProcessedCommitVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SyncedTable_SyncedTableStatus.LastProcessedCommitVersion", err)
+	}
 	return &SyncedTable_SyncedTableStatus{
 		Message:                       w.Message,
 		DetailedState:                 w.DetailedState,
 		LastSync:                      lastSyncPublicValue,
 		OngoingSyncProgress:           ongoingSyncProgressPublicValue,
 		ProvisioningPhase:             w.ProvisioningPhase,
-		LastProcessedCommitVersion:    w.LastProcessedCommitVersion,
+		LastProcessedCommitVersion:    lastProcessedCommitVersionPublicValue,
 		LastSyncTime:                  w.LastSyncTime,
 		PipelineId:                    w.PipelineId,
 		UnityCatalogProvisioningState: w.UnityCatalogProvisioningState,
@@ -2621,21 +3206,33 @@ func syncedTableOperationMetadataFromWire(w *syncedTableOperationMetadataWire) (
 }
 
 type syncedTablePipelineProgressWire struct {
-	LatestVersionCurrentlyProcessing *int64   `json:"latest_version_currently_processing,omitempty"`
-	SyncedRowCount                   *int64   `json:"synced_row_count,omitempty"`
-	TotalRowCount                    *int64   `json:"total_row_count,omitempty"`
-	SyncProgressCompletion           *float64 `json:"sync_progress_completion,omitempty"`
-	EstimatedCompletionTimeSeconds   *float64 `json:"estimated_completion_time_seconds,omitempty"`
+	LatestVersionCurrentlyProcessing *wireInt64 `json:"latest_version_currently_processing,omitempty"`
+	SyncedRowCount                   *wireInt64 `json:"synced_row_count,omitempty"`
+	TotalRowCount                    *wireInt64 `json:"total_row_count,omitempty"`
+	SyncProgressCompletion           *float64   `json:"sync_progress_completion,omitempty"`
+	EstimatedCompletionTimeSeconds   *float64   `json:"estimated_completion_time_seconds,omitempty"`
 }
 
 func syncedTablePipelineProgressToWire(v *SyncedTablePipelineProgress) (*syncedTablePipelineProgressWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	latestVersionCurrentlyProcessingWireValue, err := int64ToWire(v.LatestVersionCurrentlyProcessing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SyncedTablePipelineProgress.LatestVersionCurrentlyProcessing", err)
+	}
+	syncedRowCountWireValue, err := int64ToWire(v.SyncedRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SyncedTablePipelineProgress.SyncedRowCount", err)
+	}
+	totalRowCountWireValue, err := int64ToWire(v.TotalRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SyncedTablePipelineProgress.TotalRowCount", err)
+	}
 	return &syncedTablePipelineProgressWire{
-		LatestVersionCurrentlyProcessing: v.LatestVersionCurrentlyProcessing,
-		SyncedRowCount:                   v.SyncedRowCount,
-		TotalRowCount:                    v.TotalRowCount,
+		LatestVersionCurrentlyProcessing: latestVersionCurrentlyProcessingWireValue,
+		SyncedRowCount:                   syncedRowCountWireValue,
+		TotalRowCount:                    totalRowCountWireValue,
 		SyncProgressCompletion:           v.SyncProgressCompletion,
 		EstimatedCompletionTimeSeconds:   v.EstimatedCompletionTimeSeconds,
 	}, nil
@@ -2645,10 +3242,22 @@ func syncedTablePipelineProgressFromWire(w *syncedTablePipelineProgressWire) (*S
 	if w == nil {
 		return nil, nil
 	}
+	latestVersionCurrentlyProcessingPublicValue, err := int64FromWire(w.LatestVersionCurrentlyProcessing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SyncedTablePipelineProgress.LatestVersionCurrentlyProcessing", err)
+	}
+	syncedRowCountPublicValue, err := int64FromWire(w.SyncedRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SyncedTablePipelineProgress.SyncedRowCount", err)
+	}
+	totalRowCountPublicValue, err := int64FromWire(w.TotalRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SyncedTablePipelineProgress.TotalRowCount", err)
+	}
 	return &SyncedTablePipelineProgress{
-		LatestVersionCurrentlyProcessing: w.LatestVersionCurrentlyProcessing,
-		SyncedRowCount:                   w.SyncedRowCount,
-		TotalRowCount:                    w.TotalRowCount,
+		LatestVersionCurrentlyProcessing: latestVersionCurrentlyProcessingPublicValue,
+		SyncedRowCount:                   syncedRowCountPublicValue,
+		TotalRowCount:                    totalRowCountPublicValue,
 		SyncProgressCompletion:           w.SyncProgressCompletion,
 		EstimatedCompletionTimeSeconds:   w.EstimatedCompletionTimeSeconds,
 	}, nil
@@ -2849,6 +3458,50 @@ func updateRoleRequestToWire(v *UpdateRoleRequest) (*updateRoleRequestWire, erro
 	return &updateRoleRequestWire{
 		Role:       roleWireValue,
 		UpdateMask: fieldMaskToWire(v.UpdateMask),
+	}, nil
+}
+
+type updateSnapshotScheduleRequestWire struct {
+	SnapshotSchedule *snapshotScheduleWire `json:"snapshot_schedule,omitempty"`
+	UpdateMask       *string               `json:"update_mask,omitempty"`
+}
+
+func updateSnapshotScheduleRequestToWire(v *UpdateSnapshotScheduleRequest) (*updateSnapshotScheduleRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	snapshotScheduleWireValue, err := snapshotScheduleToWire(v.SnapshotSchedule)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateSnapshotScheduleRequest.SnapshotSchedule", err)
+	}
+	return &updateSnapshotScheduleRequestWire{
+		SnapshotSchedule: snapshotScheduleWireValue,
+		UpdateMask:       fieldMaskToWire(v.UpdateMask),
+	}, nil
+}
+
+type weeklyScheduleWire struct {
+	DayOfWeek DayOfWeek `json:"day_of_week,omitempty"`
+	Hour      *int      `json:"hour,omitempty"`
+}
+
+func weeklyScheduleToWire(v *WeeklySchedule) (*weeklyScheduleWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &weeklyScheduleWire{
+		DayOfWeek: v.DayOfWeek,
+		Hour:      v.Hour,
+	}, nil
+}
+
+func weeklyScheduleFromWire(w *weeklyScheduleWire) (*WeeklySchedule, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &WeeklySchedule{
+		DayOfWeek: w.DayOfWeek,
+		Hour:      w.Hour,
 	}, nil
 }
 

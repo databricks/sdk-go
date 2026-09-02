@@ -77,8 +77,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Create a Database Catalog.
-func (c *internalClient) CreateDatabaseCatalog(ctx context.Context, req *CreateDatabaseCatalogRequest, opts ...call.Option) (*DatabaseCatalog, error) {
-	wireReq, err := createDatabaseCatalogRequestToWire(req)
+func (c *internalClient) CreateDatabaseCatalog(ctx context.Context, req CreateDatabaseCatalogRequest, opts ...call.Option) (*DatabaseCatalog, error) {
+	wireReq, err := createDatabaseCatalogRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -143,8 +143,8 @@ func (c *internalClient) CreateDatabaseCatalog(ctx context.Context, req *CreateD
 }
 
 // Create a Database Instance.
-func (c *internalClient) createDatabaseInstanceBase(ctx context.Context, req *CreateDatabaseInstanceRequest, opts ...call.Option) (*DatabaseInstance, error) {
-	wireReq, err := createDatabaseInstanceRequestToWire(req)
+func (c *internalClient) createDatabaseInstanceBase(ctx context.Context, req CreateDatabaseInstanceRequest, opts ...call.Option) (*DatabaseInstance, error) {
+	wireReq, err := createDatabaseInstanceRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +209,7 @@ func (c *internalClient) createDatabaseInstanceBase(ctx context.Context, req *Cr
 }
 
 // Create a Database Instance.
-func (c *internalClient) CreateDatabaseInstance(ctx context.Context, req *CreateDatabaseInstanceRequest, opts ...call.Option) (*CreateDatabaseInstanceWaiter, error) {
+func (c *internalClient) CreateDatabaseInstance(ctx context.Context, req CreateDatabaseInstanceRequest, opts ...call.Option) (*CreateDatabaseInstanceWaiter, error) {
 	resp, err := c.createDatabaseInstanceBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -225,13 +225,18 @@ func (c *internalClient) CreateDatabaseInstance(ctx context.Context, req *Create
 
 // CreateDatabaseInstanceWaiter tracks the state of the operation started by CreateDatabaseInstance.
 type CreateDatabaseInstanceWaiter struct {
-	poll func(context.Context, *GetDatabaseInstanceRequest, ...call.Option) (*DatabaseInstance, error)
+	poll func(context.Context, GetDatabaseInstanceRequest, ...call.Option) (*DatabaseInstance, error)
 	name string
+}
+
+// GetName returns the Name value used to identify the operation.
+func (w *CreateDatabaseInstanceWaiter) GetName() string {
+	return w.name
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *CreateDatabaseInstanceWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetDatabaseInstanceRequest{
+	pollResp, err := w.poll(ctx, GetDatabaseInstanceRequest{
 		Name: &w.name,
 	}, opts...)
 	if err != nil {
@@ -256,7 +261,7 @@ func (w *CreateDatabaseInstanceWaiter) Done(ctx context.Context, opts ...call.Op
 func (w *CreateDatabaseInstanceWaiter) Wait(ctx context.Context, opts ...lro.Option) (*DatabaseInstance, error) {
 	var result *DatabaseInstance
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetDatabaseInstanceRequest{
+		pollResp, err := w.poll(ctx, GetDatabaseInstanceRequest{
 			Name: &w.name,
 		})
 		if err != nil {
@@ -284,8 +289,8 @@ func (w *CreateDatabaseInstanceWaiter) Wait(ctx context.Context, opts ...lro.Opt
 }
 
 // Create a role for a Database Instance.
-func (c *internalClient) CreateDatabaseInstanceRole(ctx context.Context, req *CreateDatabaseInstanceRoleRequest, opts ...call.Option) (*DatabaseInstanceRole, error) {
-	wireReq, err := createDatabaseInstanceRoleRequestToWire(req)
+func (c *internalClient) CreateDatabaseInstanceRole(ctx context.Context, req CreateDatabaseInstanceRoleRequest, opts ...call.Option) (*DatabaseInstanceRole, error) {
+	wireReq, err := createDatabaseInstanceRoleRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -306,7 +311,11 @@ func (c *internalClient) CreateDatabaseInstanceRole(ctx context.Context, req *Cr
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/instances/")
-	pb.singleSegment(*req.InstanceName)
+	if req.InstanceName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.InstanceName)
+	}
 	pb.literal("/roles")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -359,8 +368,8 @@ func (c *internalClient) CreateDatabaseInstanceRole(ctx context.Context, req *Cr
 // Create a Database Table. Useful for registering pre-existing PG tables in UC.
 // See CreateSyncedDatabaseTable for creating synced tables in PG from a source
 // table in UC.
-func (c *internalClient) CreateDatabaseTable(ctx context.Context, req *CreateDatabaseTableRequest, opts ...call.Option) (*DatabaseTable, error) {
-	wireReq, err := createDatabaseTableRequestToWire(req)
+func (c *internalClient) CreateDatabaseTable(ctx context.Context, req CreateDatabaseTableRequest, opts ...call.Option) (*DatabaseTable, error) {
+	wireReq, err := createDatabaseTableRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -425,8 +434,8 @@ func (c *internalClient) CreateDatabaseTable(ctx context.Context, req *CreateDat
 }
 
 // Create a Synced Database Table.
-func (c *internalClient) CreateSyncedDatabaseTable(ctx context.Context, req *CreateSyncedDatabaseTableRequest, opts ...call.Option) (*SyncedDatabaseTable, error) {
-	wireReq, err := createSyncedDatabaseTableRequestToWire(req)
+func (c *internalClient) CreateSyncedDatabaseTable(ctx context.Context, req CreateSyncedDatabaseTableRequest, opts ...call.Option) (*SyncedDatabaseTable, error) {
+	wireReq, err := createSyncedDatabaseTableRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -491,7 +500,7 @@ func (c *internalClient) CreateSyncedDatabaseTable(ctx context.Context, req *Cre
 }
 
 // Delete a Database Catalog.
-func (c *internalClient) DeleteDatabaseCatalog(ctx context.Context, req *DeleteDatabaseCatalogRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteDatabaseCatalog(ctx context.Context, req DeleteDatabaseCatalogRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -505,7 +514,11 @@ func (c *internalClient) DeleteDatabaseCatalog(ctx context.Context, req *DeleteD
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/catalogs/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -542,8 +555,8 @@ func (c *internalClient) DeleteDatabaseCatalog(ctx context.Context, req *DeleteD
 }
 
 // Delete a Database Instance.
-func (c *internalClient) DeleteDatabaseInstance(ctx context.Context, req *DeleteDatabaseInstanceRequest, opts ...call.Option) error {
-	wireReq, err := deleteDatabaseInstanceRequestToWire(req)
+func (c *internalClient) DeleteDatabaseInstance(ctx context.Context, req DeleteDatabaseInstanceRequest, opts ...call.Option) error {
+	wireReq, err := deleteDatabaseInstanceRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -560,7 +573,11 @@ func (c *internalClient) DeleteDatabaseInstance(ctx context.Context, req *Delete
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/instances/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -603,8 +620,8 @@ func (c *internalClient) DeleteDatabaseInstance(ctx context.Context, req *Delete
 }
 
 // Deletes a role for a Database Instance.
-func (c *internalClient) DeleteDatabaseInstanceRole(ctx context.Context, req *DeleteDatabaseInstanceRoleRequest, opts ...call.Option) error {
-	wireReq, err := deleteDatabaseInstanceRoleRequestToWire(req)
+func (c *internalClient) DeleteDatabaseInstanceRole(ctx context.Context, req DeleteDatabaseInstanceRoleRequest, opts ...call.Option) error {
+	wireReq, err := deleteDatabaseInstanceRoleRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -621,9 +638,17 @@ func (c *internalClient) DeleteDatabaseInstanceRole(ctx context.Context, req *De
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/instances/")
-	pb.singleSegment(*req.InstanceName)
+	if req.InstanceName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.InstanceName)
+	}
 	pb.literal("/roles/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "reassign_owned_to", wireReq.ReassignOwnedTo); err != nil {
@@ -666,7 +691,7 @@ func (c *internalClient) DeleteDatabaseInstanceRole(ctx context.Context, req *De
 }
 
 // Delete a Database Table.
-func (c *internalClient) DeleteDatabaseTable(ctx context.Context, req *DeleteDatabaseTableRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteDatabaseTable(ctx context.Context, req DeleteDatabaseTableRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -680,7 +705,11 @@ func (c *internalClient) DeleteDatabaseTable(ctx context.Context, req *DeleteDat
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/tables/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -717,8 +746,8 @@ func (c *internalClient) DeleteDatabaseTable(ctx context.Context, req *DeleteDat
 }
 
 // Delete a Synced Database Table.
-func (c *internalClient) DeleteSyncedDatabaseTable(ctx context.Context, req *DeleteSyncedDatabaseTableRequest, opts ...call.Option) error {
-	wireReq, err := deleteSyncedDatabaseTableRequestToWire(req)
+func (c *internalClient) DeleteSyncedDatabaseTable(ctx context.Context, req DeleteSyncedDatabaseTableRequest, opts ...call.Option) error {
+	wireReq, err := deleteSyncedDatabaseTableRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -735,7 +764,11 @@ func (c *internalClient) DeleteSyncedDatabaseTable(ctx context.Context, req *Del
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/synced_tables/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "purge_data", wireReq.PurgeData); err != nil {
@@ -775,8 +808,8 @@ func (c *internalClient) DeleteSyncedDatabaseTable(ctx context.Context, req *Del
 }
 
 // Find a Database Instance by uid.
-func (c *internalClient) FindDatabaseInstanceByUid(ctx context.Context, req *FindDatabaseInstanceByUidRequest, opts ...call.Option) (*DatabaseInstance, error) {
-	wireReq, err := findDatabaseInstanceByUidRequestToWire(req)
+func (c *internalClient) FindDatabaseInstanceByUid(ctx context.Context, req FindDatabaseInstanceByUidRequest, opts ...call.Option) (*DatabaseInstance, error) {
+	wireReq, err := findDatabaseInstanceByUidRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -839,8 +872,8 @@ func (c *internalClient) FindDatabaseInstanceByUid(ctx context.Context, req *Fin
 }
 
 // Generates a credential that can be used to access database instances.
-func (c *internalClient) GenerateDatabaseCredential(ctx context.Context, req *GenerateDatabaseCredentialRequest, opts ...call.Option) (*DatabaseCredential, error) {
-	wireReq, err := generateDatabaseCredentialRequestToWire(req)
+func (c *internalClient) GenerateDatabaseCredential(ctx context.Context, req GenerateDatabaseCredentialRequest, opts ...call.Option) (*DatabaseCredential, error) {
+	wireReq, err := generateDatabaseCredentialRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -908,7 +941,7 @@ func (c *internalClient) GenerateDatabaseCredential(ctx context.Context, req *Ge
 }
 
 // Get a Database Catalog.
-func (c *internalClient) GetDatabaseCatalog(ctx context.Context, req *GetDatabaseCatalogRequest, opts ...call.Option) (*DatabaseCatalog, error) {
+func (c *internalClient) GetDatabaseCatalog(ctx context.Context, req GetDatabaseCatalogRequest, opts ...call.Option) (*DatabaseCatalog, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -922,7 +955,11 @@ func (c *internalClient) GetDatabaseCatalog(ctx context.Context, req *GetDatabas
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/catalogs/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -968,7 +1005,7 @@ func (c *internalClient) GetDatabaseCatalog(ctx context.Context, req *GetDatabas
 }
 
 // Get a Database Instance.
-func (c *internalClient) GetDatabaseInstance(ctx context.Context, req *GetDatabaseInstanceRequest, opts ...call.Option) (*DatabaseInstance, error) {
+func (c *internalClient) GetDatabaseInstance(ctx context.Context, req GetDatabaseInstanceRequest, opts ...call.Option) (*DatabaseInstance, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -982,7 +1019,11 @@ func (c *internalClient) GetDatabaseInstance(ctx context.Context, req *GetDataba
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/instances/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1028,7 +1069,7 @@ func (c *internalClient) GetDatabaseInstance(ctx context.Context, req *GetDataba
 }
 
 // Gets a role for a Database Instance.
-func (c *internalClient) GetDatabaseInstanceRole(ctx context.Context, req *GetDatabaseInstanceRoleRequest, opts ...call.Option) (*DatabaseInstanceRole, error) {
+func (c *internalClient) GetDatabaseInstanceRole(ctx context.Context, req GetDatabaseInstanceRoleRequest, opts ...call.Option) (*DatabaseInstanceRole, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1042,9 +1083,17 @@ func (c *internalClient) GetDatabaseInstanceRole(ctx context.Context, req *GetDa
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/instances/")
-	pb.singleSegment(*req.InstanceName)
+	if req.InstanceName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.InstanceName)
+	}
 	pb.literal("/roles/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1090,7 +1139,7 @@ func (c *internalClient) GetDatabaseInstanceRole(ctx context.Context, req *GetDa
 }
 
 // Get a Database Table.
-func (c *internalClient) GetDatabaseTable(ctx context.Context, req *GetDatabaseTableRequest, opts ...call.Option) (*DatabaseTable, error) {
+func (c *internalClient) GetDatabaseTable(ctx context.Context, req GetDatabaseTableRequest, opts ...call.Option) (*DatabaseTable, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1104,7 +1153,11 @@ func (c *internalClient) GetDatabaseTable(ctx context.Context, req *GetDatabaseT
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/tables/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1150,7 +1203,7 @@ func (c *internalClient) GetDatabaseTable(ctx context.Context, req *GetDatabaseT
 }
 
 // Get a Synced Database Table.
-func (c *internalClient) GetSyncedDatabaseTable(ctx context.Context, req *GetSyncedDatabaseTableRequest, opts ...call.Option) (*SyncedDatabaseTable, error) {
+func (c *internalClient) GetSyncedDatabaseTable(ctx context.Context, req GetSyncedDatabaseTableRequest, opts ...call.Option) (*SyncedDatabaseTable, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1164,7 +1217,11 @@ func (c *internalClient) GetSyncedDatabaseTable(ctx context.Context, req *GetSyn
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/synced_tables/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1210,8 +1267,8 @@ func (c *internalClient) GetSyncedDatabaseTable(ctx context.Context, req *GetSyn
 }
 
 // This API is currently unimplemented, but exposed for Terraform support.
-func (c *internalClient) ListDatabaseCatalogs(ctx context.Context, req *ListDatabaseCatalogsRequest, opts ...call.Option) (*ListDatabaseCatalogsResponse, error) {
-	wireReq, err := listDatabaseCatalogsRequestToWire(req)
+func (c *internalClient) ListDatabaseCatalogs(ctx context.Context, req ListDatabaseCatalogsRequest, opts ...call.Option) (*ListDatabaseCatalogsResponse, error) {
+	wireReq, err := listDatabaseCatalogsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1228,7 +1285,11 @@ func (c *internalClient) ListDatabaseCatalogs(ctx context.Context, req *ListData
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/instances/")
-	pb.singleSegment(*req.InstanceName)
+	if req.InstanceName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.InstanceName)
+	}
 	pb.literal("/catalogs")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1285,7 +1346,7 @@ func (c *internalClient) ListDatabaseCatalogs(ctx context.Context, req *ListData
 //
 // For example:
 //
-//	for item, err := range c.ListDatabaseCatalogsIter(ctx, &ListDatabaseCatalogsRequest{}) {
+//	for item, err := range c.ListDatabaseCatalogsIter(ctx, ListDatabaseCatalogsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1297,16 +1358,13 @@ func (c *internalClient) ListDatabaseCatalogs(ctx context.Context, req *ListData
 //
 // Callers who need custom pagination logic should use
 // ListDatabaseCatalogs directly.
-func (c *internalClient) ListDatabaseCatalogsIter(ctx context.Context, req *ListDatabaseCatalogsRequest, opts ...call.Option) iter.Seq2[*DatabaseCatalog, error] {
+func (c *internalClient) ListDatabaseCatalogsIter(ctx context.Context, req ListDatabaseCatalogsRequest, opts ...call.Option) iter.Seq2[*DatabaseCatalog, error] {
 	return func(yield func(*DatabaseCatalog, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListDatabaseCatalogsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListDatabaseCatalogs(ctx, &pageReq, opts...)
+			resp, err := c.ListDatabaseCatalogs(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1329,8 +1387,8 @@ func (c *internalClient) ListDatabaseCatalogsIter(ctx context.Context, req *List
 // advance these to PUBLIC_PREVIEW. These APIs will remain effectively
 // undocumented/UI-only and we'll aim for a new public roles API as part of V2
 // PuPr.
-func (c *internalClient) ListDatabaseInstanceRoles(ctx context.Context, req *ListDatabaseInstanceRolesRequest, opts ...call.Option) (*ListDatabaseInstanceRolesResponse, error) {
-	wireReq, err := listDatabaseInstanceRolesRequestToWire(req)
+func (c *internalClient) ListDatabaseInstanceRoles(ctx context.Context, req ListDatabaseInstanceRolesRequest, opts ...call.Option) (*ListDatabaseInstanceRolesResponse, error) {
+	wireReq, err := listDatabaseInstanceRolesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1347,7 +1405,11 @@ func (c *internalClient) ListDatabaseInstanceRoles(ctx context.Context, req *Lis
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/instances/")
-	pb.singleSegment(*req.InstanceName)
+	if req.InstanceName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.InstanceName)
+	}
 	pb.literal("/roles")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1404,7 +1466,7 @@ func (c *internalClient) ListDatabaseInstanceRoles(ctx context.Context, req *Lis
 //
 // For example:
 //
-//	for item, err := range c.ListDatabaseInstanceRolesIter(ctx, &ListDatabaseInstanceRolesRequest{}) {
+//	for item, err := range c.ListDatabaseInstanceRolesIter(ctx, ListDatabaseInstanceRolesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1416,16 +1478,13 @@ func (c *internalClient) ListDatabaseInstanceRoles(ctx context.Context, req *Lis
 //
 // Callers who need custom pagination logic should use
 // ListDatabaseInstanceRoles directly.
-func (c *internalClient) ListDatabaseInstanceRolesIter(ctx context.Context, req *ListDatabaseInstanceRolesRequest, opts ...call.Option) iter.Seq2[*DatabaseInstanceRole, error] {
+func (c *internalClient) ListDatabaseInstanceRolesIter(ctx context.Context, req ListDatabaseInstanceRolesRequest, opts ...call.Option) iter.Seq2[*DatabaseInstanceRole, error] {
 	return func(yield func(*DatabaseInstanceRole, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListDatabaseInstanceRolesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListDatabaseInstanceRoles(ctx, &pageReq, opts...)
+			resp, err := c.ListDatabaseInstanceRoles(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1444,8 +1503,8 @@ func (c *internalClient) ListDatabaseInstanceRolesIter(ctx context.Context, req 
 }
 
 // List Database Instances.
-func (c *internalClient) ListDatabaseInstances(ctx context.Context, req *ListDatabaseInstancesRequest, opts ...call.Option) (*ListDatabaseInstancesResponse, error) {
-	wireReq, err := listDatabaseInstancesRequestToWire(req)
+func (c *internalClient) ListDatabaseInstances(ctx context.Context, req ListDatabaseInstancesRequest, opts ...call.Option) (*ListDatabaseInstancesResponse, error) {
+	wireReq, err := listDatabaseInstancesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1515,7 +1574,7 @@ func (c *internalClient) ListDatabaseInstances(ctx context.Context, req *ListDat
 //
 // For example:
 //
-//	for item, err := range c.ListDatabaseInstancesIter(ctx, &ListDatabaseInstancesRequest{}) {
+//	for item, err := range c.ListDatabaseInstancesIter(ctx, ListDatabaseInstancesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1527,16 +1586,13 @@ func (c *internalClient) ListDatabaseInstances(ctx context.Context, req *ListDat
 //
 // Callers who need custom pagination logic should use
 // ListDatabaseInstances directly.
-func (c *internalClient) ListDatabaseInstancesIter(ctx context.Context, req *ListDatabaseInstancesRequest, opts ...call.Option) iter.Seq2[*DatabaseInstance, error] {
+func (c *internalClient) ListDatabaseInstancesIter(ctx context.Context, req ListDatabaseInstancesRequest, opts ...call.Option) iter.Seq2[*DatabaseInstance, error] {
 	return func(yield func(*DatabaseInstance, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListDatabaseInstancesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListDatabaseInstances(ctx, &pageReq, opts...)
+			resp, err := c.ListDatabaseInstances(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1555,8 +1611,8 @@ func (c *internalClient) ListDatabaseInstancesIter(ctx context.Context, req *Lis
 }
 
 // This API is currently unimplemented, but exposed for Terraform support.
-func (c *internalClient) ListSyncedDatabaseTables(ctx context.Context, req *ListSyncedDatabaseTablesRequest, opts ...call.Option) (*ListSyncedDatabaseTablesResponse, error) {
-	wireReq, err := listSyncedDatabaseTablesRequestToWire(req)
+func (c *internalClient) ListSyncedDatabaseTables(ctx context.Context, req ListSyncedDatabaseTablesRequest, opts ...call.Option) (*ListSyncedDatabaseTablesResponse, error) {
+	wireReq, err := listSyncedDatabaseTablesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1573,7 +1629,11 @@ func (c *internalClient) ListSyncedDatabaseTables(ctx context.Context, req *List
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/instances/")
-	pb.singleSegment(*req.InstanceName)
+	if req.InstanceName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.InstanceName)
+	}
 	pb.literal("/synced_tables")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1630,7 +1690,7 @@ func (c *internalClient) ListSyncedDatabaseTables(ctx context.Context, req *List
 //
 // For example:
 //
-//	for item, err := range c.ListSyncedDatabaseTablesIter(ctx, &ListSyncedDatabaseTablesRequest{}) {
+//	for item, err := range c.ListSyncedDatabaseTablesIter(ctx, ListSyncedDatabaseTablesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1642,16 +1702,13 @@ func (c *internalClient) ListSyncedDatabaseTables(ctx context.Context, req *List
 //
 // Callers who need custom pagination logic should use
 // ListSyncedDatabaseTables directly.
-func (c *internalClient) ListSyncedDatabaseTablesIter(ctx context.Context, req *ListSyncedDatabaseTablesRequest, opts ...call.Option) iter.Seq2[*SyncedDatabaseTable, error] {
+func (c *internalClient) ListSyncedDatabaseTablesIter(ctx context.Context, req ListSyncedDatabaseTablesRequest, opts ...call.Option) iter.Seq2[*SyncedDatabaseTable, error] {
 	return func(yield func(*SyncedDatabaseTable, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListSyncedDatabaseTablesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListSyncedDatabaseTables(ctx, &pageReq, opts...)
+			resp, err := c.ListSyncedDatabaseTables(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1670,8 +1727,8 @@ func (c *internalClient) ListSyncedDatabaseTablesIter(ctx context.Context, req *
 }
 
 // This API is currently unimplemented, but exposed for Terraform support.
-func (c *internalClient) UpdateDatabaseCatalog(ctx context.Context, req *UpdateDatabaseCatalogRequest, opts ...call.Option) (*DatabaseCatalog, error) {
-	wireReq, err := updateDatabaseCatalogRequestToWire(req)
+func (c *internalClient) UpdateDatabaseCatalog(ctx context.Context, req UpdateDatabaseCatalogRequest, opts ...call.Option) (*DatabaseCatalog, error) {
+	wireReq, err := updateDatabaseCatalogRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1692,7 +1749,11 @@ func (c *internalClient) UpdateDatabaseCatalog(ctx context.Context, req *UpdateD
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/catalogs/")
-	pb.singleSegment(*req.DatabaseCatalog.Name)
+	if req.DatabaseCatalog == nil || req.DatabaseCatalog.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.DatabaseCatalog.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -1742,8 +1803,8 @@ func (c *internalClient) UpdateDatabaseCatalog(ctx context.Context, req *UpdateD
 }
 
 // Update a Database Instance.
-func (c *internalClient) UpdateDatabaseInstance(ctx context.Context, req *UpdateDatabaseInstanceRequest, opts ...call.Option) (*DatabaseInstance, error) {
-	wireReq, err := updateDatabaseInstanceRequestToWire(req)
+func (c *internalClient) UpdateDatabaseInstance(ctx context.Context, req UpdateDatabaseInstanceRequest, opts ...call.Option) (*DatabaseInstance, error) {
+	wireReq, err := updateDatabaseInstanceRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1764,7 +1825,11 @@ func (c *internalClient) UpdateDatabaseInstance(ctx context.Context, req *Update
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/instances/")
-	pb.singleSegment(*req.DatabaseInstance.Name)
+	if req.DatabaseInstance == nil || req.DatabaseInstance.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.DatabaseInstance.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -1814,8 +1879,8 @@ func (c *internalClient) UpdateDatabaseInstance(ctx context.Context, req *Update
 }
 
 // This API is currently unimplemented, but exposed for Terraform support.
-func (c *internalClient) UpdateSyncedDatabaseTable(ctx context.Context, req *UpdateSyncedDatabaseTableRequest, opts ...call.Option) (*SyncedDatabaseTable, error) {
-	wireReq, err := updateSyncedDatabaseTableRequestToWire(req)
+func (c *internalClient) UpdateSyncedDatabaseTable(ctx context.Context, req UpdateSyncedDatabaseTableRequest, opts ...call.Option) (*SyncedDatabaseTable, error) {
+	wireReq, err := updateSyncedDatabaseTableRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1836,7 +1901,11 @@ func (c *internalClient) UpdateSyncedDatabaseTable(ctx context.Context, req *Upd
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/synced_tables/")
-	pb.singleSegment(*req.SyncedTable.Name)
+	if req.SyncedTable == nil || req.SyncedTable.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SyncedTable.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

@@ -77,8 +77,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // Creates a repo in the workspace and links it to the remote Git repo
 // specified. Note that repos created programmatically must be linked to a
 // remote Git repo, unlike repos created in the browser.
-func (c *internalClient) CreateRepo(ctx context.Context, req *CreateRepoRequest, opts ...call.Option) (*CreateRepoResponse, error) {
-	wireReq, err := createRepoRequestToWire(req)
+func (c *internalClient) CreateRepo(ctx context.Context, req CreateRepoRequest, opts ...call.Option) (*CreateRepoResponse, error) {
+	wireReq, err := createRepoRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (c *internalClient) CreateRepo(ctx context.Context, req *CreateRepoRequest,
 }
 
 // Deletes the specified repo.
-func (c *internalClient) DeleteRepo(ctx context.Context, req *DeleteRepoRequest, opts ...call.Option) (*DeleteRepoResponse, error) {
+func (c *internalClient) DeleteRepo(ctx context.Context, req DeleteRepoRequest, opts ...call.Option) (*DeleteRepoResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -157,7 +157,11 @@ func (c *internalClient) DeleteRepo(ctx context.Context, req *DeleteRepoRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/repos/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -197,7 +201,7 @@ func (c *internalClient) DeleteRepo(ctx context.Context, req *DeleteRepoRequest,
 }
 
 // Returns the repo with the given repo ID.
-func (c *internalClient) GetRepo(ctx context.Context, req *GetRepoRequest, opts ...call.Option) (*GetRepoResponse, error) {
+func (c *internalClient) GetRepo(ctx context.Context, req GetRepoRequest, opts ...call.Option) (*GetRepoResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -211,7 +215,11 @@ func (c *internalClient) GetRepo(ctx context.Context, req *GetRepoRequest, opts 
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/repos/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -263,8 +271,8 @@ func (c *internalClient) GetRepo(ctx context.Context, req *GetRepoRequest, opts 
 // the workspace, because repos with the Git CLI enabled are not included in its
 // results. Instead, use the Repos and Workspace APIs to find repos and their
 // associated metadata in the workspace.
-func (c *internalClient) ListRepos(ctx context.Context, req *ListReposRequest, opts ...call.Option) (*ListReposResponse, error) {
-	wireReq, err := listReposRequestToWire(req)
+func (c *internalClient) ListRepos(ctx context.Context, req ListReposRequest, opts ...call.Option) (*ListReposResponse, error) {
+	wireReq, err := listReposRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -334,7 +342,7 @@ func (c *internalClient) ListRepos(ctx context.Context, req *ListReposRequest, o
 //
 // For example:
 //
-//	for item, err := range c.ListReposIter(ctx, &ListReposRequest{}) {
+//	for item, err := range c.ListReposIter(ctx, ListReposRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -346,16 +354,13 @@ func (c *internalClient) ListRepos(ctx context.Context, req *ListReposRequest, o
 //
 // Callers who need custom pagination logic should use
 // ListRepos directly.
-func (c *internalClient) ListReposIter(ctx context.Context, req *ListReposRequest, opts ...call.Option) iter.Seq2[*RepoInfo, error] {
+func (c *internalClient) ListReposIter(ctx context.Context, req ListReposRequest, opts ...call.Option) iter.Seq2[*RepoInfo, error] {
 	return func(yield func(*RepoInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListReposRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListRepos(ctx, &pageReq, opts...)
+			resp, err := c.ListRepos(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -375,8 +380,8 @@ func (c *internalClient) ListReposIter(ctx context.Context, req *ListReposReques
 
 // Updates the repo to a different branch or tag, or updates the repo to the
 // latest commit on the same branch.
-func (c *internalClient) UpdateRepo(ctx context.Context, req *UpdateRepoRequest, opts ...call.Option) (*UpdateRepoResponse, error) {
-	wireReq, err := updateRepoRequestToWire(req)
+func (c *internalClient) UpdateRepo(ctx context.Context, req UpdateRepoRequest, opts ...call.Option) (*UpdateRepoResponse, error) {
+	wireReq, err := updateRepoRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -397,7 +402,11 @@ func (c *internalClient) UpdateRepo(ctx context.Context, req *UpdateRepoRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/repos/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

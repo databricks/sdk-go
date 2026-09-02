@@ -3,10 +3,56 @@
 package clusters
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/databricks/sdk-go/core/types"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	if mask == nil {
@@ -346,7 +392,7 @@ func clusterComplianceFromWire(w *clusterComplianceWire) (*ClusterCompliance, er
 
 type clusterEventWire struct {
 	ClusterId             *string                           `json:"cluster_id,omitempty"`
-	Timestamp             *int64                            `json:"timestamp,omitempty"`
+	Timestamp             *wireInt64                        `json:"timestamp,omitempty"`
 	Type                  ClusterEventType_ClusterEventType `json:"type,omitempty"`
 	Details               *eventDetailsWire                 `json:"details,omitempty"`
 	DataPlaneEventDetails *dataPlaneEventDetailsWire        `json:"data_plane_event_details,omitempty"`
@@ -355,6 +401,10 @@ type clusterEventWire struct {
 func clusterEventFromWire(w *clusterEventWire) (*ClusterEvent, error) {
 	if w == nil {
 		return nil, nil
+	}
+	timestampPublicValue, err := int64FromWire(w.Timestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterEvent.Timestamp", err)
 	}
 	detailsPublicValue, err := eventDetailsFromWire(w.Details)
 	if err != nil {
@@ -366,7 +416,7 @@ func clusterEventFromWire(w *clusterEventWire) (*ClusterEvent, error) {
 	}
 	return &ClusterEvent{
 		ClusterId:             w.ClusterId,
-		Timestamp:             w.Timestamp,
+		Timestamp:             timestampPublicValue,
 		Type:                  w.Type,
 		Details:               detailsPublicValue,
 		DataPlaneEventDetails: dataPlaneEventDetailsPublicValue,
@@ -378,7 +428,7 @@ type clusterInfoWire struct {
 	CreatorUserName            *string                      `json:"creator_user_name,omitempty"`
 	State                      ClusterState_ClusterState    `json:"state,omitempty"`
 	StateMessage               *string                      `json:"state_message,omitempty"`
-	ClusterMemoryMb            *int64                       `json:"cluster_memory_mb,omitempty"`
+	ClusterMemoryMb            *wireInt64                   `json:"cluster_memory_mb,omitempty"`
 	ClusterCores               *float32                     `json:"cluster_cores,omitempty"`
 	DefaultTags                map[string]string            `json:"default_tags,omitempty"`
 	ClusterLogStatus           *logSyncStatusWire           `json:"cluster_log_status,omitempty"`
@@ -386,7 +436,7 @@ type clusterInfoWire struct {
 	Spec                       *clusterInfo_ComputeSpecWire `json:"spec,omitempty"`
 	Driver                     *sparkInfo_SparkNodeWire     `json:"driver,omitempty"`
 	Executors                  []sparkInfo_SparkNodeWire    `json:"executors,omitempty"`
-	SparkContextId             *int64                       `json:"spark_context_id,omitempty"`
+	SparkContextId             *wireInt64                   `json:"spark_context_id,omitempty"`
 	JdbcPort                   *int                         `json:"jdbc_port,omitempty"`
 	ClusterName                *string                      `json:"cluster_name,omitempty"`
 	SparkVersion               *string                      `json:"spark_version,omitempty"`
@@ -420,10 +470,10 @@ type clusterInfoWire struct {
 	RemoteDiskThroughput       *int                         `json:"remote_disk_throughput,omitempty"`
 	TotalInitialRemoteDiskSize *int                         `json:"total_initial_remote_disk_size,omitempty"`
 	DependencyMode             DependencyMode               `json:"dependency_mode,omitempty"`
-	StartTime                  *int64                       `json:"start_time,omitempty"`
-	TerminatedTime             *int64                       `json:"terminated_time,omitempty"`
-	LastStateLossTime          *int64                       `json:"last_state_loss_time,omitempty"`
-	LastRestartedTime          *int64                       `json:"last_restarted_time,omitempty"`
+	StartTime                  *wireInt64                   `json:"start_time,omitempty"`
+	TerminatedTime             *wireInt64                   `json:"terminated_time,omitempty"`
+	LastStateLossTime          *wireInt64                   `json:"last_state_loss_time,omitempty"`
+	LastRestartedTime          *wireInt64                   `json:"last_restarted_time,omitempty"`
 	NumWorkers                 *int                         `json:"num_workers,omitempty"`
 	Autoscale                  *autoScaleWire               `json:"autoscale,omitempty"`
 }
@@ -441,6 +491,10 @@ func clusterInfoFromWire(w *clusterInfoWire) (*ClusterInfo, error) {
 	}
 	if sizeMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "ClusterInfo.Size")
+	}
+	clusterMemoryMbPublicValue, err := int64FromWire(w.ClusterMemoryMb)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.ClusterMemoryMb", err)
 	}
 	clusterLogStatusPublicValue, err := logSyncStatusFromWire(w.ClusterLogStatus)
 	if err != nil {
@@ -461,6 +515,10 @@ func clusterInfoFromWire(w *clusterInfoWire) (*ClusterInfo, error) {
 	executorsPublicValue, err := convertSlice(w.Executors, sparkInfo_SparkNodeFromWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ClusterInfo.Executors", err)
+	}
+	sparkContextIdPublicValue, err := int64FromWire(w.SparkContextId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.SparkContextId", err)
 	}
 	awsAttributesPublicValue, err := awsAttributesFromWire(w.AwsAttributes)
 	if err != nil {
@@ -498,6 +556,22 @@ func clusterInfoFromWire(w *clusterInfoWire) (*ClusterInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ClusterInfo.WorkloadType", err)
 	}
+	startTimePublicValue, err := int64FromWire(w.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.StartTime", err)
+	}
+	terminatedTimePublicValue, err := int64FromWire(w.TerminatedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.TerminatedTime", err)
+	}
+	lastStateLossTimePublicValue, err := int64FromWire(w.LastStateLossTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.LastStateLossTime", err)
+	}
+	lastRestartedTimePublicValue, err := int64FromWire(w.LastRestartedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.LastRestartedTime", err)
+	}
 	var sizeSelection isClusterInfo_Size
 	switch {
 	case w.NumWorkers != nil:
@@ -514,7 +588,7 @@ func clusterInfoFromWire(w *clusterInfoWire) (*ClusterInfo, error) {
 		CreatorUserName:            w.CreatorUserName,
 		State:                      w.State,
 		StateMessage:               w.StateMessage,
-		ClusterMemoryMb:            w.ClusterMemoryMb,
+		ClusterMemoryMb:            clusterMemoryMbPublicValue,
 		ClusterCores:               w.ClusterCores,
 		DefaultTags:                w.DefaultTags,
 		ClusterLogStatus:           clusterLogStatusPublicValue,
@@ -522,7 +596,7 @@ func clusterInfoFromWire(w *clusterInfoWire) (*ClusterInfo, error) {
 		Spec:                       specPublicValue,
 		Driver:                     driverPublicValue,
 		Executors:                  executorsPublicValue,
-		SparkContextId:             w.SparkContextId,
+		SparkContextId:             sparkContextIdPublicValue,
 		JdbcPort:                   w.JdbcPort,
 		ClusterName:                w.ClusterName,
 		SparkVersion:               w.SparkVersion,
@@ -556,10 +630,10 @@ func clusterInfoFromWire(w *clusterInfoWire) (*ClusterInfo, error) {
 		RemoteDiskThroughput:       w.RemoteDiskThroughput,
 		TotalInitialRemoteDiskSize: w.TotalInitialRemoteDiskSize,
 		DependencyMode:             w.DependencyMode,
-		StartTime:                  w.StartTime,
-		TerminatedTime:             w.TerminatedTime,
-		LastStateLossTime:          w.LastStateLossTime,
-		LastRestartedTime:          w.LastRestartedTime,
+		StartTime:                  startTimePublicValue,
+		TerminatedTime:             terminatedTimePublicValue,
+		LastStateLossTime:          lastStateLossTimePublicValue,
+		LastRestartedTime:          lastRestartedTimePublicValue,
 		Size:                       sizeSelection,
 	}, nil
 }
@@ -793,33 +867,6 @@ func clusterLogConfFromWire(w *clusterLogConfWire) (*ClusterLogConf, error) {
 	}, nil
 }
 
-type clusterRevisionWire struct {
-	RevisionId *string                      `json:"revision_id,omitempty"`
-	CreateTime *types.Time                  `json:"create_time,omitempty"`
-	Settings   *clusterInfo_ComputeSpecWire `json:"settings,omitempty"`
-	EditReason ClusterEditReason            `json:"edit_reason,omitempty"`
-	EditUser   *string                      `json:"edit_user,omitempty"`
-	IsCurrent  *bool                        `json:"is_current,omitempty"`
-}
-
-func clusterRevisionFromWire(w *clusterRevisionWire) (*ClusterRevision, error) {
-	if w == nil {
-		return nil, nil
-	}
-	settingsPublicValue, err := clusterInfo_ComputeSpecFromWire(w.Settings)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "ClusterRevision.Settings", err)
-	}
-	return &ClusterRevision{
-		RevisionId: w.RevisionId,
-		CreateTime: w.CreateTime,
-		Settings:   settingsPublicValue,
-		EditReason: w.EditReason,
-		EditUser:   w.EditUser,
-		IsCurrent:  w.IsCurrent,
-	}, nil
-}
-
 type clusterSizeWire struct {
 	NumWorkers *int           `json:"num_workers,omitempty"`
 	Autoscale  *autoScaleWire `json:"autoscale,omitempty"`
@@ -1012,7 +1059,7 @@ func createClusterResponseFromWire(w *createClusterResponseWire) (*CreateCluster
 
 type dataPlaneEventDetailsWire struct {
 	EventType        DataPlaneClusterEventType `json:"event_type,omitempty"`
-	Timestamp        *int64                    `json:"timestamp,omitempty"`
+	Timestamp        *wireInt64                `json:"timestamp,omitempty"`
 	HostId           *string                   `json:"host_id,omitempty"`
 	ExecutorFailures *int                      `json:"executor_failures,omitempty"`
 }
@@ -1021,9 +1068,13 @@ func dataPlaneEventDetailsFromWire(w *dataPlaneEventDetailsWire) (*DataPlaneEven
 	if w == nil {
 		return nil, nil
 	}
+	timestampPublicValue, err := int64FromWire(w.Timestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DataPlaneEventDetails.Timestamp", err)
+	}
 	return &DataPlaneEventDetails{
 		EventType:        w.EventType,
-		Timestamp:        w.Timestamp,
+		Timestamp:        timestampPublicValue,
 		HostId:           w.HostId,
 		ExecutorFailures: w.ExecutorFailures,
 	}, nil
@@ -1482,9 +1533,9 @@ type eventDetailsWire struct {
 	Cause                               ResizeCause_ResizeCause     `json:"cause,omitempty"`
 	Reason                              *terminationReasonWire      `json:"reason,omitempty"`
 	User                                *string                     `json:"user,omitempty"`
-	PreviousDiskSize                    *int64                      `json:"previous_disk_size,omitempty"`
-	DiskSize                            *int64                      `json:"disk_size,omitempty"`
-	FreeSpace                           *int64                      `json:"free_space,omitempty"`
+	PreviousDiskSize                    *wireInt64                  `json:"previous_disk_size,omitempty"`
+	DiskSize                            *wireInt64                  `json:"disk_size,omitempty"`
+	FreeSpace                           *wireInt64                  `json:"free_space,omitempty"`
 	InstanceId                          *string                     `json:"instance_id,omitempty"`
 	DidNotExpandReason                  *string                     `json:"did_not_expand_reason,omitempty"`
 	DriverStateMessage                  *string                     `json:"driver_state_message,omitempty"`
@@ -1519,6 +1570,18 @@ func eventDetailsFromWire(w *eventDetailsWire) (*EventDetails, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "EventDetails.Reason", err)
 	}
+	previousDiskSizePublicValue, err := int64FromWire(w.PreviousDiskSize)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EventDetails.PreviousDiskSize", err)
+	}
+	diskSizePublicValue, err := int64FromWire(w.DiskSize)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EventDetails.DiskSize", err)
+	}
+	freeSpacePublicValue, err := int64FromWire(w.FreeSpace)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EventDetails.FreeSpace", err)
+	}
 	initScriptsPublicValue, err := initScriptEventDetailsFromWire(w.InitScripts)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "EventDetails.InitScripts", err)
@@ -1533,9 +1596,9 @@ func eventDetailsFromWire(w *eventDetailsWire) (*EventDetails, error) {
 		Cause:                               w.Cause,
 		Reason:                              reasonPublicValue,
 		User:                                w.User,
-		PreviousDiskSize:                    w.PreviousDiskSize,
-		DiskSize:                            w.DiskSize,
-		FreeSpace:                           w.FreeSpace,
+		PreviousDiskSize:                    previousDiskSizePublicValue,
+		DiskSize:                            diskSizePublicValue,
+		FreeSpace:                           freeSpacePublicValue,
 		InstanceId:                          w.InstanceId,
 		DidNotExpandReason:                  w.DidNotExpandReason,
 		DriverStateMessage:                  w.DriverStateMessage,
@@ -1628,7 +1691,7 @@ func getClusterRequestToWire(v *GetClusterRequest) (*getClusterRequestWire, erro
 type getEventsResponseWire struct {
 	Events        []clusterEventWire     `json:"events,omitempty"`
 	NextPage      *listEventsRequestWire `json:"next_page,omitempty"`
-	TotalCount    *int64                 `json:"total_count,omitempty"`
+	TotalCount    *wireInt64             `json:"total_count,omitempty"`
 	NextPageToken *string                `json:"next_page_token,omitempty"`
 	PrevPageToken *string                `json:"prev_page_token,omitempty"`
 }
@@ -1645,10 +1708,14 @@ func getEventsResponseFromWire(w *getEventsResponseWire) (*GetEventsResponse, er
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "GetEventsResponse.NextPage", err)
 	}
+	totalCountPublicValue, err := int64FromWire(w.TotalCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetEventsResponse.TotalCount", err)
+	}
 	return &GetEventsResponse{
 		Events:        eventsPublicValue,
 		NextPage:      nextPagePublicValue,
-		TotalCount:    w.TotalCount,
+		TotalCount:    totalCountPublicValue,
 		NextPageToken: w.NextPageToken,
 		PrevPageToken: w.PrevPageToken,
 	}, nil
@@ -2052,42 +2119,6 @@ func listClusterComplianceForPolicyResponseFromWire(w *listClusterComplianceForP
 	}, nil
 }
 
-type listClusterRevisionsRequestWire struct {
-	Parent    *string `json:"parent,omitempty"`
-	PageSize  *int    `json:"page_size,omitempty"`
-	PageToken *string `json:"page_token,omitempty"`
-}
-
-func listClusterRevisionsRequestToWire(v *ListClusterRevisionsRequest) (*listClusterRevisionsRequestWire, error) {
-	if v == nil {
-		return nil, nil
-	}
-	return &listClusterRevisionsRequestWire{
-		Parent:    v.Parent,
-		PageSize:  v.PageSize,
-		PageToken: v.PageToken,
-	}, nil
-}
-
-type listClusterRevisionsResponseWire struct {
-	ClusterRevisions []clusterRevisionWire `json:"cluster_revisions,omitempty"`
-	NextPageToken    *string               `json:"next_page_token,omitempty"`
-}
-
-func listClusterRevisionsResponseFromWire(w *listClusterRevisionsResponseWire) (*ListClusterRevisionsResponse, error) {
-	if w == nil {
-		return nil, nil
-	}
-	clusterRevisionsPublicValue, err := convertSlice(w.ClusterRevisions, clusterRevisionFromWire)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "ListClusterRevisionsResponse.ClusterRevisions", err)
-	}
-	return &ListClusterRevisionsResponse{
-		ClusterRevisions: clusterRevisionsPublicValue,
-		NextPageToken:    w.NextPageToken,
-	}, nil
-}
-
 type listClustersRequestWire struct {
 	PageToken *string `json:"page_token,omitempty"`
 	PageSize  *int    `json:"page_size,omitempty"`
@@ -2126,12 +2157,12 @@ func listClustersResponseFromWire(w *listClustersResponseWire) (*ListClustersRes
 
 type listEventsRequestWire struct {
 	ClusterId  *string                             `json:"cluster_id,omitempty"`
-	StartTime  *int64                              `json:"start_time,omitempty"`
-	EndTime    *int64                              `json:"end_time,omitempty"`
+	StartTime  *wireInt64                          `json:"start_time,omitempty"`
+	EndTime    *wireInt64                          `json:"end_time,omitempty"`
 	Order      GetEventsOrder                      `json:"order,omitempty"`
 	EventTypes []ClusterEventType_ClusterEventType `json:"event_types,omitempty"`
-	Offset     *int64                              `json:"offset,omitempty"`
-	Limit      *int64                              `json:"limit,omitempty"`
+	Offset     *wireInt64                          `json:"offset,omitempty"`
+	Limit      *wireInt64                          `json:"limit,omitempty"`
 	PageToken  *string                             `json:"page_token,omitempty"`
 	PageSize   *int                                `json:"page_size,omitempty"`
 }
@@ -2140,14 +2171,30 @@ func listEventsRequestToWire(v *ListEventsRequest) (*listEventsRequestWire, erro
 	if v == nil {
 		return nil, nil
 	}
+	startTimeWireValue, err := int64ToWire(v.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListEventsRequest.StartTime", err)
+	}
+	endTimeWireValue, err := int64ToWire(v.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListEventsRequest.EndTime", err)
+	}
+	offsetWireValue, err := int64ToWire(v.Offset)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListEventsRequest.Offset", err)
+	}
+	limitWireValue, err := int64ToWire(v.Limit)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListEventsRequest.Limit", err)
+	}
 	return &listEventsRequestWire{
 		ClusterId:  v.ClusterId,
-		StartTime:  v.StartTime,
-		EndTime:    v.EndTime,
+		StartTime:  startTimeWireValue,
+		EndTime:    endTimeWireValue,
 		Order:      v.Order,
 		EventTypes: v.EventTypes,
-		Offset:     v.Offset,
-		Limit:      v.Limit,
+		Offset:     offsetWireValue,
+		Limit:      limitWireValue,
 		PageToken:  v.PageToken,
 		PageSize:   v.PageSize,
 	}, nil
@@ -2157,14 +2204,30 @@ func listEventsRequestFromWire(w *listEventsRequestWire) (*ListEventsRequest, er
 	if w == nil {
 		return nil, nil
 	}
+	startTimePublicValue, err := int64FromWire(w.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListEventsRequest.StartTime", err)
+	}
+	endTimePublicValue, err := int64FromWire(w.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListEventsRequest.EndTime", err)
+	}
+	offsetPublicValue, err := int64FromWire(w.Offset)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListEventsRequest.Offset", err)
+	}
+	limitPublicValue, err := int64FromWire(w.Limit)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListEventsRequest.Limit", err)
+	}
 	return &ListEventsRequest{
 		ClusterId:  w.ClusterId,
-		StartTime:  w.StartTime,
-		EndTime:    w.EndTime,
+		StartTime:  startTimePublicValue,
+		EndTime:    endTimePublicValue,
 		Order:      w.Order,
 		EventTypes: w.EventTypes,
-		Offset:     w.Offset,
-		Limit:      w.Limit,
+		Offset:     offsetPublicValue,
+		Limit:      limitPublicValue,
 		PageToken:  w.PageToken,
 		PageSize:   w.PageSize,
 	}, nil
@@ -2235,16 +2298,20 @@ func logAnalyticsInfoFromWire(w *logAnalyticsInfoWire) (*LogAnalyticsInfo, error
 }
 
 type logSyncStatusWire struct {
-	LastAttempted *int64  `json:"last_attempted,omitempty"`
-	LastException *string `json:"last_exception,omitempty"`
+	LastAttempted *wireInt64 `json:"last_attempted,omitempty"`
+	LastException *string    `json:"last_exception,omitempty"`
 }
 
 func logSyncStatusFromWire(w *logSyncStatusWire) (*LogSyncStatus, error) {
 	if w == nil {
 		return nil, nil
 	}
+	lastAttemptedPublicValue, err := int64FromWire(w.LastAttempted)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LogSyncStatus.LastAttempted", err)
+	}
 	return &LogSyncStatus{
-		LastAttempted: w.LastAttempted,
+		LastAttempted: lastAttemptedPublicValue,
 		LastException: w.LastException,
 	}, nil
 }
@@ -2331,6 +2398,7 @@ func nodeTypeFromWire(w *nodeTypeWire) (*NodeType, error) {
 
 type nodeTypeFlexibilityWire struct {
 	AlternateNodeTypeIds []string `json:"alternate_node_type_ids,omitempty"`
+	AwsContextId         *string  `json:"aws_context_id,omitempty"`
 }
 
 func nodeTypeFlexibilityToWire(v *NodeTypeFlexibility) (*nodeTypeFlexibilityWire, error) {
@@ -2339,6 +2407,7 @@ func nodeTypeFlexibilityToWire(v *NodeTypeFlexibility) (*nodeTypeFlexibilityWire
 	}
 	return &nodeTypeFlexibilityWire{
 		AlternateNodeTypeIds: v.AlternateNodeTypeIds,
+		AwsContextId:         v.AwsContextId,
 	}, nil
 }
 
@@ -2348,6 +2417,7 @@ func nodeTypeFlexibilityFromWire(w *nodeTypeFlexibilityWire) (*NodeTypeFlexibili
 	}
 	return &NodeTypeFlexibility{
 		AlternateNodeTypeIds: w.AlternateNodeTypeIds,
+		AwsContextId:         w.AwsContextId,
 	}, nil
 }
 
@@ -2457,19 +2527,6 @@ func restartClusterRequestToWire(v *RestartClusterRequest) (*restartClusterReque
 	}, nil
 }
 
-type rollbackClusterRequestWire struct {
-	Name *string `json:"name,omitempty"`
-}
-
-func rollbackClusterRequestToWire(v *RollbackClusterRequest) (*rollbackClusterRequestWire, error) {
-	if v == nil {
-		return nil, nil
-	}
-	return &rollbackClusterRequestWire{
-		Name: v.Name,
-	}, nil
-}
-
 type s3StorageInfoWire struct {
 	Destination      *string `json:"destination,omitempty"`
 	Region           *string `json:"region,omitempty"`
@@ -2515,7 +2572,7 @@ type sparkInfo_SparkNodeWire struct {
 	PublicDns         *string                                         `json:"public_dns,omitempty"`
 	NodeId            *string                                         `json:"node_id,omitempty"`
 	InstanceId        *string                                         `json:"instance_id,omitempty"`
-	StartTimestamp    *int64                                          `json:"start_timestamp,omitempty"`
+	StartTimestamp    *wireInt64                                      `json:"start_timestamp,omitempty"`
 	NodeAwsAttributes *sparkInfo_SparkNode_SparkNodeAwsAttributesWire `json:"node_aws_attributes,omitempty"`
 	HostPrivateIp     *string                                         `json:"host_private_ip,omitempty"`
 }
@@ -2523,6 +2580,10 @@ type sparkInfo_SparkNodeWire struct {
 func sparkInfo_SparkNodeFromWire(w *sparkInfo_SparkNodeWire) (*SparkInfo_SparkNode, error) {
 	if w == nil {
 		return nil, nil
+	}
+	startTimestampPublicValue, err := int64FromWire(w.StartTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SparkInfo_SparkNode.StartTimestamp", err)
 	}
 	nodeAwsAttributesPublicValue, err := sparkInfo_SparkNode_SparkNodeAwsAttributesFromWire(w.NodeAwsAttributes)
 	if err != nil {
@@ -2533,7 +2594,7 @@ func sparkInfo_SparkNodeFromWire(w *sparkInfo_SparkNodeWire) (*SparkInfo_SparkNo
 		PublicDns:         w.PublicDns,
 		NodeId:            w.NodeId,
 		InstanceId:        w.InstanceId,
-		StartTimestamp:    w.StartTimestamp,
+		StartTimestamp:    startTimestampPublicValue,
 		NodeAwsAttributes: nodeAwsAttributesPublicValue,
 		HostPrivateIp:     w.HostPrivateIp,
 	}, nil

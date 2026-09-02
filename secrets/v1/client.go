@@ -110,8 +110,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // “CUSTOMER_UNAUTHORIZED“ if normal user attempts to create a scope with name
 // reserved for databricks internal usage. Throws “UNAUTHENTICATED“ if unable
 // to verify user access permission on Azure KeyVault
-func (c *internalClient) CreateScope(ctx context.Context, req *CreateScopeRequest, opts ...call.Option) (*CreateScopeResponse, error) {
-	wireReq, err := createScopeRequestToWire(req)
+func (c *internalClient) CreateScope(ctx context.Context, req CreateScopeRequest, opts ...call.Option) (*CreateScopeResponse, error) {
+	wireReq, err := createScopeRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -183,8 +183,8 @@ func (c *internalClient) CreateScope(ctx context.Context, req *CreateScopeReques
 // exists. Throws “PERMISSION_DENIED“ if the user does not have permission to
 // make this API call. Throws “INVALID_PARAMETER_VALUE“ if the permission or
 // principal is invalid.
-func (c *internalClient) DeleteAcl(ctx context.Context, req *DeleteAclRequest, opts ...call.Option) (*DeleteAclResponse, error) {
-	wireReq, err := deleteAclRequestToWire(req)
+func (c *internalClient) DeleteAcl(ctx context.Context, req DeleteAclRequest, opts ...call.Option) (*DeleteAclResponse, error) {
+	wireReq, err := deleteAclRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -254,8 +254,8 @@ func (c *internalClient) DeleteAcl(ctx context.Context, req *DeleteAclRequest, o
 // “PERMISSION_DENIED“ if the user does not have permission to make this API
 // call. Throws “BAD_REQUEST“ if system user attempts to delete internal
 // secret scope.
-func (c *internalClient) DeleteScope(ctx context.Context, req *DeleteScopeRequest, opts ...call.Option) (*DeleteScopeResponse, error) {
-	wireReq, err := deleteScopeRequestToWire(req)
+func (c *internalClient) DeleteScope(ctx context.Context, req DeleteScopeRequest, opts ...call.Option) (*DeleteScopeResponse, error) {
+	wireReq, err := deleteScopeRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -326,8 +326,8 @@ func (c *internalClient) DeleteScope(ctx context.Context, req *DeleteScopeReques
 // Throws “PERMISSION_DENIED“ if the user does not have permission to make
 // this API call. Throws “BAD_REQUEST“ if system user attempts to delete an
 // internal secret, or request is made against Azure KeyVault backed scope.
-func (c *internalClient) DeleteSecret(ctx context.Context, req *DeleteSecretRequest, opts ...call.Option) (*DeleteSecretResponse, error) {
-	wireReq, err := deleteSecretRequestToWire(req)
+func (c *internalClient) DeleteSecret(ctx context.Context, req DeleteSecretRequest, opts ...call.Option) (*DeleteSecretResponse, error) {
+	wireReq, err := deleteSecretRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -399,8 +399,8 @@ func (c *internalClient) DeleteSecret(ctx context.Context, req *DeleteSecretRequ
 // “PERMISSION_DENIED“ if the user does not have permission to make this API
 // call. Throws “INVALID_PARAMETER_VALUE“ if the permission or principal is
 // invalid.
-func (c *internalClient) GetAcl(ctx context.Context, req *GetAclRequest, opts ...call.Option) (*AclItem, error) {
-	wireReq, err := getAclRequestToWire(req)
+func (c *internalClient) GetAcl(ctx context.Context, req GetAclRequest, opts ...call.Option) (*AclItem, error) {
+	wireReq, err := getAclRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -492,8 +492,8 @@ func (c *internalClient) GetAcl(ctx context.Context, req *GetAclRequest, opts ..
 // alphanumeric or too long. Throws “PERMISSION_DENIED“ if secret manager
 // cannot access AKV with 403 error Throws “MALFORMED_REQUEST“ if secret
 // manager cannot access AKV with any other 4xx error
-func (c *internalClient) GetSecret(ctx context.Context, req *GetSecretRequest, opts ...call.Option) (*GetSecretResponse, error) {
-	wireReq, err := getSecretRequestToWire(req)
+func (c *internalClient) GetSecret(ctx context.Context, req GetSecretRequest, opts ...call.Option) (*GetSecretResponse, error) {
+	wireReq, err := getSecretRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -572,8 +572,8 @@ func (c *internalClient) GetSecret(ctx context.Context, req *GetSecretRequest, o
 // Throws “RESOURCE_DOES_NOT_EXIST“ if no such secret scope exists. Throws
 // “PERMISSION_DENIED“ if the user does not have permission to make this API
 // call.
-func (c *internalClient) ListAcls(ctx context.Context, req *ListAclsRequest, opts ...call.Option) (*ListAclsResponse, error) {
-	wireReq, err := listAclsRequestToWire(req)
+func (c *internalClient) ListAcls(ctx context.Context, req ListAclsRequest, opts ...call.Option) (*ListAclsResponse, error) {
+	wireReq, err := listAclsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -646,7 +646,7 @@ func (c *internalClient) ListAcls(ctx context.Context, req *ListAclsRequest, opt
 //
 // Throws “PERMISSION_DENIED“ if the user does not have permission to make
 // this API call.
-func (c *internalClient) ListScopes(ctx context.Context, req *ListScopesRequest, opts ...call.Option) (*ListScopesResponse, error) {
+func (c *internalClient) ListScopes(ctx context.Context, req ListScopesRequest, opts ...call.Option) (*ListScopesResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -719,8 +719,8 @@ func (c *internalClient) ListScopes(ctx context.Context, req *ListScopesRequest,
 // Throws “RESOURCE_DOES_NOT_EXIST“ if no such secret scope exists. Throws
 // “PERMISSION_DENIED“ if the user does not have permission to make this API
 // call.
-func (c *internalClient) ListSecrets(ctx context.Context, req *ListSecretsRequest, opts ...call.Option) (*ListSecretsResponse, error) {
-	wireReq, err := listSecretsRequestToWire(req)
+func (c *internalClient) ListSecrets(ctx context.Context, req ListSecretsRequest, opts ...call.Option) (*ListSecretsResponse, error) {
+	wireReq, err := listSecretsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -815,8 +815,8 @@ func (c *internalClient) ListSecrets(ctx context.Context, req *ListSecretsReques
 // Throws “INVALID_PARAMETER_VALUE“ if the permission or principal is invalid.
 // Throws “PERMISSION_DENIED“ if the user does not have permission to make
 // this API call.
-func (c *internalClient) PutAcl(ctx context.Context, req *PutAclRequest, opts ...call.Option) (*PutAclResponse, error) {
-	wireReq, err := putAclRequestToWire(req)
+func (c *internalClient) PutAcl(ctx context.Context, req PutAclRequest, opts ...call.Option) (*PutAclResponse, error) {
+	wireReq, err := putAclRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -902,8 +902,8 @@ func (c *internalClient) PutAcl(ctx context.Context, req *PutAclRequest, opts ..
 // make this API call. Throws “MALFORMED_REQUEST“ if request is incorrectly
 // formatted or conflicting. Throws “BAD_REQUEST“ if request is made against
 // Azure KeyVault backed scope.
-func (c *internalClient) PutSecret(ctx context.Context, req *PutSecretRequest, opts ...call.Option) (*PutSecretResponse, error) {
-	wireReq, err := putSecretRequestToWire(req)
+func (c *internalClient) PutSecret(ctx context.Context, req PutSecretRequest, opts ...call.Option) (*PutSecretResponse, error) {
+	wireReq, err := putSecretRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}

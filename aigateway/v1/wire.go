@@ -3,10 +3,56 @@
 package aigateway
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/databricks/sdk-go/core/types"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	if mask == nil {
@@ -127,7 +173,6 @@ func deleteModelServiceRequestToWire(v *DeleteModelServiceRequest) (*deleteModel
 type inferenceTableConfigWire struct {
 	Parent          *string `json:"parent,omitempty"`
 	TableNamePrefix *string `json:"table_name_prefix,omitempty"`
-	Disabled        *bool   `json:"disabled,omitempty"`
 	Table           *string `json:"table,omitempty"`
 	IsDeleted       *bool   `json:"is_deleted,omitempty"`
 }
@@ -139,7 +184,6 @@ func inferenceTableConfigToWire(v *InferenceTableConfig) (*inferenceTableConfigW
 	return &inferenceTableConfigWire{
 		Parent:          v.Parent,
 		TableNamePrefix: v.TableNamePrefix,
-		Disabled:        v.Disabled,
 		Table:           v.Table,
 		IsDeleted:       v.IsDeleted,
 	}, nil
@@ -152,7 +196,6 @@ func inferenceTableConfigFromWire(w *inferenceTableConfigWire) (*InferenceTableC
 	return &InferenceTableConfig{
 		Parent:          w.Parent,
 		TableNamePrefix: w.TableNamePrefix,
-		Disabled:        w.Disabled,
 		Table:           w.Table,
 		IsDeleted:       w.IsDeleted,
 	}, nil
@@ -274,7 +317,6 @@ func listModelServicesResponseFromWire(w *listModelServicesResponseWire) (*ListM
 
 type mcpServiceWire struct {
 	Name           *string               `json:"name,omitempty"`
-	Owner          *string               `json:"owner,omitempty"`
 	EffectiveOwner *string               `json:"effective_owner,omitempty"`
 	MetastoreId    *string               `json:"metastore_id,omitempty"`
 	CreateTime     *types.Time           `json:"create_time,omitempty"`
@@ -296,7 +338,6 @@ func mcpServiceToWire(v *McpService) (*mcpServiceWire, error) {
 	}
 	return &mcpServiceWire{
 		Name:           v.Name,
-		Owner:          v.Owner,
 		EffectiveOwner: v.EffectiveOwner,
 		MetastoreId:    v.MetastoreId,
 		CreateTime:     v.CreateTime,
@@ -319,7 +360,6 @@ func mcpServiceFromWire(w *mcpServiceWire) (*McpService, error) {
 	}
 	return &McpService{
 		Name:           w.Name,
-		Owner:          w.Owner,
 		EffectiveOwner: w.EffectiveOwner,
 		MetastoreId:    w.MetastoreId,
 		CreateTime:     w.CreateTime,
@@ -425,7 +465,6 @@ func mcpServiceConfig_SourceConnectionFromWire(w *mcpServiceConfig_SourceConnect
 
 type modelProviderServiceWire struct {
 	Name           *string                         `json:"name,omitempty"`
-	Owner          *string                         `json:"owner,omitempty"`
 	EffectiveOwner *string                         `json:"effective_owner,omitempty"`
 	MetastoreId    *string                         `json:"metastore_id,omitempty"`
 	CreateTime     *types.Time                     `json:"create_time,omitempty"`
@@ -447,7 +486,6 @@ func modelProviderServiceToWire(v *ModelProviderService) (*modelProviderServiceW
 	}
 	return &modelProviderServiceWire{
 		Name:           v.Name,
-		Owner:          v.Owner,
 		EffectiveOwner: v.EffectiveOwner,
 		MetastoreId:    v.MetastoreId,
 		CreateTime:     v.CreateTime,
@@ -470,7 +508,6 @@ func modelProviderServiceFromWire(w *modelProviderServiceWire) (*ModelProviderSe
 	}
 	return &ModelProviderService{
 		Name:           w.Name,
-		Owner:          w.Owner,
 		EffectiveOwner: w.EffectiveOwner,
 		MetastoreId:    w.MetastoreId,
 		CreateTime:     w.CreateTime,
@@ -955,25 +992,20 @@ func modelProviderServiceConfig_AnthropicProviderDirectConfigFromWire(w *modelPr
 }
 
 type modelProviderServiceConfig_AnthropicProviderRelayedConfigWire struct {
-	PlanType ModelProviderServiceConfig_AnthropicProviderRelayedConfig_AnthropicRelayedPlanType `json:"plan_type,omitempty"`
 }
 
 func modelProviderServiceConfig_AnthropicProviderRelayedConfigToWire(v *ModelProviderServiceConfig_AnthropicProviderRelayedConfig) (*modelProviderServiceConfig_AnthropicProviderRelayedConfigWire, error) {
 	if v == nil {
 		return nil, nil
 	}
-	return &modelProviderServiceConfig_AnthropicProviderRelayedConfigWire{
-		PlanType: v.PlanType,
-	}, nil
+	return &modelProviderServiceConfig_AnthropicProviderRelayedConfigWire{}, nil
 }
 
 func modelProviderServiceConfig_AnthropicProviderRelayedConfigFromWire(w *modelProviderServiceConfig_AnthropicProviderRelayedConfigWire) (*ModelProviderServiceConfig_AnthropicProviderRelayedConfig, error) {
 	if w == nil {
 		return nil, nil
 	}
-	return &ModelProviderServiceConfig_AnthropicProviderRelayedConfig{
-		PlanType: w.PlanType,
-	}, nil
+	return &ModelProviderServiceConfig_AnthropicProviderRelayedConfig{}, nil
 }
 
 type modelProviderServiceConfig_AwsAccessKeyWire struct {
@@ -1781,7 +1813,6 @@ func modelProviderServiceConfig_ServiceCredentialFromWire(w *modelProviderServic
 
 type modelServiceWire struct {
 	Name              *string                 `json:"name,omitempty"`
-	Owner             *string                 `json:"owner,omitempty"`
 	EffectiveOwner    *string                 `json:"effective_owner,omitempty"`
 	MetastoreId       *string                 `json:"metastore_id,omitempty"`
 	CreateTime        *types.Time             `json:"create_time,omitempty"`
@@ -1804,7 +1835,6 @@ func modelServiceToWire(v *ModelService) (*modelServiceWire, error) {
 	}
 	return &modelServiceWire{
 		Name:              v.Name,
-		Owner:             v.Owner,
 		EffectiveOwner:    v.EffectiveOwner,
 		MetastoreId:       v.MetastoreId,
 		CreateTime:        v.CreateTime,
@@ -1828,7 +1858,6 @@ func modelServiceFromWire(w *modelServiceWire) (*ModelService, error) {
 	}
 	return &ModelService{
 		Name:              w.Name,
-		Owner:             w.Owner,
 		EffectiveOwner:    w.EffectiveOwner,
 		MetastoreId:       w.MetastoreId,
 		CreateTime:        w.CreateTime,
@@ -2109,10 +2138,9 @@ func modelServiceConfig_ProvisionedThroughputConfigFromWire(w *modelServiceConfi
 }
 
 type modelServiceConfig_RoutingConfigWire struct {
-	Destinations      []modelServiceConfig_DestinationConfigWire             `json:"destinations,omitempty"`
-	TrafficSplitting  *modelServiceConfig_RoutingConfig_TrafficSplittingWire `json:"traffic_splitting,omitempty"`
-	Fallback          *modelServiceConfig_FallbackConfigWire                 `json:"fallback,omitempty"`
-	FirstTokenTimeout *types.Duration                                        `json:"first_token_timeout,omitempty"`
+	Destinations      []modelServiceConfig_DestinationConfigWire `json:"destinations,omitempty"`
+	Fallback          *modelServiceConfig_FallbackConfigWire     `json:"fallback,omitempty"`
+	FirstTokenTimeout *types.Duration                            `json:"first_token_timeout,omitempty"`
 }
 
 func modelServiceConfig_RoutingConfigToWire(v *ModelServiceConfig_RoutingConfig) (*modelServiceConfig_RoutingConfigWire, error) {
@@ -2127,23 +2155,8 @@ func modelServiceConfig_RoutingConfigToWire(v *ModelServiceConfig_RoutingConfig)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ModelServiceConfig_RoutingConfig.Fallback", err)
 	}
-	var routingStrategyTrafficSplittingWire *modelServiceConfig_RoutingConfig_TrafficSplittingWire
-	switch value := v.RoutingStrategy.(type) {
-	case nil:
-	case *ModelServiceConfig_RoutingConfig_RoutingStrategy_TrafficSplitting:
-		if value != nil {
-			routingStrategyTrafficSplittingConverted, err := modelServiceConfig_RoutingConfig_TrafficSplittingToWire(&value.TrafficSplitting)
-			if err != nil {
-				return nil, fmt.Errorf("%s: %w", "ModelServiceConfig_RoutingConfig.RoutingStrategy.TrafficSplitting", err)
-			}
-			routingStrategyTrafficSplittingWire = routingStrategyTrafficSplittingConverted
-		}
-	default:
-		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "ModelServiceConfig_RoutingConfig.RoutingStrategy", value)
-	}
 	return &modelServiceConfig_RoutingConfigWire{
 		Destinations:      destinationsWireValue,
-		TrafficSplitting:  routingStrategyTrafficSplittingWire,
 		Fallback:          fallbackWireValue,
 		FirstTokenTimeout: v.FirstTokenTimeout,
 	}, nil
@@ -2153,13 +2166,6 @@ func modelServiceConfig_RoutingConfigFromWire(w *modelServiceConfig_RoutingConfi
 	if w == nil {
 		return nil, nil
 	}
-	routingStrategyMembers := 0
-	if w.TrafficSplitting != nil {
-		routingStrategyMembers++
-	}
-	if routingStrategyMembers > 1 {
-		return nil, fmt.Errorf("%s: multiple oneof members set", "ModelServiceConfig_RoutingConfig.RoutingStrategy")
-	}
 	destinationsPublicValue, err := convertSlice(w.Destinations, modelServiceConfig_DestinationConfigFromWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ModelServiceConfig_RoutingConfig.Destinations", err)
@@ -2168,46 +2174,19 @@ func modelServiceConfig_RoutingConfigFromWire(w *modelServiceConfig_RoutingConfi
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ModelServiceConfig_RoutingConfig.Fallback", err)
 	}
-	var routingStrategySelection isModelServiceConfig_RoutingConfig_RoutingStrategy
-	switch {
-	case w.TrafficSplitting != nil:
-		routingStrategyTrafficSplittingConverted, err := modelServiceConfig_RoutingConfig_TrafficSplittingFromWire(w.TrafficSplitting)
-		if err != nil {
-			return nil, fmt.Errorf("%s: %w", "ModelServiceConfig_RoutingConfig.RoutingStrategy.TrafficSplitting", err)
-		}
-		routingStrategySelection = &ModelServiceConfig_RoutingConfig_RoutingStrategy_TrafficSplitting{TrafficSplitting: *routingStrategyTrafficSplittingConverted}
-	}
 	return &ModelServiceConfig_RoutingConfig{
 		Destinations:      destinationsPublicValue,
 		Fallback:          fallbackPublicValue,
 		FirstTokenTimeout: w.FirstTokenTimeout,
-		RoutingStrategy:   routingStrategySelection,
 	}, nil
-}
-
-type modelServiceConfig_RoutingConfig_TrafficSplittingWire struct {
-}
-
-func modelServiceConfig_RoutingConfig_TrafficSplittingToWire(v *ModelServiceConfig_RoutingConfig_TrafficSplitting) (*modelServiceConfig_RoutingConfig_TrafficSplittingWire, error) {
-	if v == nil {
-		return nil, nil
-	}
-	return &modelServiceConfig_RoutingConfig_TrafficSplittingWire{}, nil
-}
-
-func modelServiceConfig_RoutingConfig_TrafficSplittingFromWire(w *modelServiceConfig_RoutingConfig_TrafficSplittingWire) (*ModelServiceConfig_RoutingConfig_TrafficSplitting, error) {
-	if w == nil {
-		return nil, nil
-	}
-	return &ModelServiceConfig_RoutingConfig_TrafficSplitting{}, nil
 }
 
 type rateLimitWire struct {
 	Key             RateLimit_RateLimitKey           `json:"key,omitempty"`
 	RenewalPeriod   RateLimit_RateLimitRenewalPeriod `json:"renewal_period,omitempty"`
 	Principal       *string                          `json:"principal,omitempty"`
-	Requests        *int64                           `json:"requests,omitempty"`
-	Tokens          *int64                           `json:"tokens,omitempty"`
+	Requests        *wireInt64                       `json:"requests,omitempty"`
+	Tokens          *wireInt64                       `json:"tokens,omitempty"`
 	RequestTagKey   *string                          `json:"request_tag_key,omitempty"`
 	RequestTagValue *string                          `json:"request_tag_value,omitempty"`
 }
@@ -2216,12 +2195,20 @@ func rateLimitToWire(v *RateLimit) (*rateLimitWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	requestsWireValue, err := int64ToWire(v.Requests)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RateLimit.Requests", err)
+	}
+	tokensWireValue, err := int64ToWire(v.Tokens)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RateLimit.Tokens", err)
+	}
 	return &rateLimitWire{
 		Key:             v.Key,
 		RenewalPeriod:   v.RenewalPeriod,
 		Principal:       v.Principal,
-		Requests:        v.Requests,
-		Tokens:          v.Tokens,
+		Requests:        requestsWireValue,
+		Tokens:          tokensWireValue,
 		RequestTagKey:   v.RequestTagKey,
 		RequestTagValue: v.RequestTagValue,
 	}, nil
@@ -2231,12 +2218,20 @@ func rateLimitFromWire(w *rateLimitWire) (*RateLimit, error) {
 	if w == nil {
 		return nil, nil
 	}
+	requestsPublicValue, err := int64FromWire(w.Requests)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RateLimit.Requests", err)
+	}
+	tokensPublicValue, err := int64FromWire(w.Tokens)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RateLimit.Tokens", err)
+	}
 	return &RateLimit{
 		Key:             w.Key,
 		RenewalPeriod:   w.RenewalPeriod,
 		Principal:       w.Principal,
-		Requests:        w.Requests,
-		Tokens:          w.Tokens,
+		Requests:        requestsPublicValue,
+		Tokens:          tokensPublicValue,
 		RequestTagKey:   w.RequestTagKey,
 		RequestTagValue: w.RequestTagValue,
 	}, nil

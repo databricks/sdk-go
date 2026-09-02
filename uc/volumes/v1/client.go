@@ -92,8 +92,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // location. - There are no other tables, nor volumes existing in the specified
 // storage location. - The specified storage location is not under the location
 // of other tables, nor volumes, or catalogs or schemas.
-func (c *internalClient) CreateVolume(ctx context.Context, req *CreateVolumeRequest, opts ...call.Option) (*VolumeInfo, error) {
-	wireReq, err := createVolumeRequestToWire(req)
+func (c *internalClient) CreateVolume(ctx context.Context, req CreateVolumeRequest, opts ...call.Option) (*VolumeInfo, error) {
+	wireReq, err := createVolumeRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +163,7 @@ func (c *internalClient) CreateVolume(ctx context.Context, req *CreateVolumeRequ
 // latter case, the caller must also be the owner or have the **USE_CATALOG**
 // privilege on the parent catalog and the **USE_SCHEMA** privilege on the
 // parent schema.
-func (c *internalClient) DeleteVolume(ctx context.Context, req *DeleteVolumeRequest, opts ...call.Option) (*DeleteVolumeResponse, error) {
+func (c *internalClient) DeleteVolume(ctx context.Context, req DeleteVolumeRequest, opts ...call.Option) (*DeleteVolumeResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -177,7 +177,11 @@ func (c *internalClient) DeleteVolume(ctx context.Context, req *DeleteVolumeRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/volumes/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -222,8 +226,8 @@ func (c *internalClient) DeleteVolume(ctx context.Context, req *DeleteVolumeRequ
 // VOLUME** privilege on) the volume. For the latter case, the caller must also
 // be the owner or have the **USE_CATALOG** privilege on the parent catalog and
 // the **USE_SCHEMA** privilege on the parent schema.
-func (c *internalClient) GetVolume(ctx context.Context, req *GetVolumeRequest, opts ...call.Option) (*VolumeInfo, error) {
-	wireReq, err := getVolumeRequestToWire(req)
+func (c *internalClient) GetVolume(ctx context.Context, req GetVolumeRequest, opts ...call.Option) (*VolumeInfo, error) {
+	wireReq, err := getVolumeRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +244,11 @@ func (c *internalClient) GetVolume(ctx context.Context, req *GetVolumeRequest, o
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/volumes/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_browse", wireReq.IncludeBrowse); err != nil {
@@ -304,8 +312,8 @@ func (c *internalClient) GetVolume(ctx context.Context, req *GetVolumeRequest, o
 // results while still providing a next_page_token. Clients must continue
 // reading pages until next_page_token is absent, which is the only indication
 // that the end of results has been reached.
-func (c *internalClient) ListVolumes(ctx context.Context, req *ListVolumesRequest, opts ...call.Option) (*ListVolumesResponse, error) {
-	wireReq, err := listVolumesRequestToWire(req)
+func (c *internalClient) ListVolumes(ctx context.Context, req ListVolumesRequest, opts ...call.Option) (*ListVolumesResponse, error) {
+	wireReq, err := listVolumesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -384,7 +392,7 @@ func (c *internalClient) ListVolumes(ctx context.Context, req *ListVolumesReques
 //
 // For example:
 //
-//	for item, err := range c.ListVolumesIter(ctx, &ListVolumesRequest{}) {
+//	for item, err := range c.ListVolumesIter(ctx, ListVolumesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -396,16 +404,13 @@ func (c *internalClient) ListVolumes(ctx context.Context, req *ListVolumesReques
 //
 // Callers who need custom pagination logic should use
 // ListVolumes directly.
-func (c *internalClient) ListVolumesIter(ctx context.Context, req *ListVolumesRequest, opts ...call.Option) iter.Seq2[*VolumeInfo, error] {
+func (c *internalClient) ListVolumesIter(ctx context.Context, req ListVolumesRequest, opts ...call.Option) iter.Seq2[*VolumeInfo, error] {
 	return func(yield func(*VolumeInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListVolumesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListVolumes(ctx, &pageReq, opts...)
+			resp, err := c.ListVolumes(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -432,8 +437,8 @@ func (c *internalClient) ListVolumesIter(ctx context.Context, req *ListVolumesRe
 //
 // Currently only the name, the owner or the comment of the volume could be
 // updated.
-func (c *internalClient) UpdateVolume(ctx context.Context, req *UpdateVolumeRequest, opts ...call.Option) (*VolumeInfo, error) {
-	wireReq, err := updateVolumeRequestToWire(req)
+func (c *internalClient) UpdateVolume(ctx context.Context, req UpdateVolumeRequest, opts ...call.Option) (*VolumeInfo, error) {
+	wireReq, err := updateVolumeRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -454,7 +459,11 @@ func (c *internalClient) UpdateVolume(ctx context.Context, req *UpdateVolumeRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/volumes/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

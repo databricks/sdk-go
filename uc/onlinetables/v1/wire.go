@@ -3,13 +3,59 @@
 package onlinetables
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/databricks/sdk-go/core/types"
 )
 
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
+
 type continuousUpdateStatusWire struct {
-	LastProcessedCommitVersion  *int64                `json:"last_processed_commit_version,omitempty"`
+	LastProcessedCommitVersion  *wireInt64            `json:"last_processed_commit_version,omitempty"`
 	Timestamp                   *types.Time           `json:"timestamp,omitempty"`
 	InitialPipelineSyncProgress *pipelineProgressWire `json:"initial_pipeline_sync_progress,omitempty"`
 }
@@ -18,12 +64,16 @@ func continuousUpdateStatusToWire(v *ContinuousUpdateStatus) (*continuousUpdateS
 	if v == nil {
 		return nil, nil
 	}
+	lastProcessedCommitVersionWireValue, err := int64ToWire(v.LastProcessedCommitVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ContinuousUpdateStatus.LastProcessedCommitVersion", err)
+	}
 	initialPipelineSyncProgressWireValue, err := pipelineProgressToWire(v.InitialPipelineSyncProgress)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ContinuousUpdateStatus.InitialPipelineSyncProgress", err)
 	}
 	return &continuousUpdateStatusWire{
-		LastProcessedCommitVersion:  v.LastProcessedCommitVersion,
+		LastProcessedCommitVersion:  lastProcessedCommitVersionWireValue,
 		Timestamp:                   v.Timestamp,
 		InitialPipelineSyncProgress: initialPipelineSyncProgressWireValue,
 	}, nil
@@ -33,12 +83,16 @@ func continuousUpdateStatusFromWire(w *continuousUpdateStatusWire) (*ContinuousU
 	if w == nil {
 		return nil, nil
 	}
+	lastProcessedCommitVersionPublicValue, err := int64FromWire(w.LastProcessedCommitVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ContinuousUpdateStatus.LastProcessedCommitVersion", err)
+	}
 	initialPipelineSyncProgressPublicValue, err := pipelineProgressFromWire(w.InitialPipelineSyncProgress)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ContinuousUpdateStatus.InitialPipelineSyncProgress", err)
 	}
 	return &ContinuousUpdateStatus{
-		LastProcessedCommitVersion:  w.LastProcessedCommitVersion,
+		LastProcessedCommitVersion:  lastProcessedCommitVersionPublicValue,
 		Timestamp:                   w.Timestamp,
 		InitialPipelineSyncProgress: initialPipelineSyncProgressPublicValue,
 	}, nil
@@ -62,7 +116,7 @@ func createOnlineTableRequestToWire(v *CreateOnlineTableRequest) (*createOnlineT
 }
 
 type failedStatusWire struct {
-	LastProcessedCommitVersion *int64      `json:"last_processed_commit_version,omitempty"`
+	LastProcessedCommitVersion *wireInt64  `json:"last_processed_commit_version,omitempty"`
 	Timestamp                  *types.Time `json:"timestamp,omitempty"`
 }
 
@@ -70,8 +124,12 @@ func failedStatusToWire(v *FailedStatus) (*failedStatusWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	lastProcessedCommitVersionWireValue, err := int64ToWire(v.LastProcessedCommitVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FailedStatus.LastProcessedCommitVersion", err)
+	}
 	return &failedStatusWire{
-		LastProcessedCommitVersion: v.LastProcessedCommitVersion,
+		LastProcessedCommitVersion: lastProcessedCommitVersionWireValue,
 		Timestamp:                  v.Timestamp,
 	}, nil
 }
@@ -80,8 +138,12 @@ func failedStatusFromWire(w *failedStatusWire) (*FailedStatus, error) {
 	if w == nil {
 		return nil, nil
 	}
+	lastProcessedCommitVersionPublicValue, err := int64FromWire(w.LastProcessedCommitVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FailedStatus.LastProcessedCommitVersion", err)
+	}
 	return &FailedStatus{
-		LastProcessedCommitVersion: w.LastProcessedCommitVersion,
+		LastProcessedCommitVersion: lastProcessedCommitVersionPublicValue,
 		Timestamp:                  w.Timestamp,
 	}, nil
 }
@@ -376,21 +438,33 @@ func onlineTableStatusFromWire(w *onlineTableStatusWire) (*OnlineTableStatus, er
 }
 
 type pipelineProgressWire struct {
-	LatestVersionCurrentlyProcessing *int64   `json:"latest_version_currently_processing,omitempty"`
-	SyncedRowCount                   *int64   `json:"synced_row_count,omitempty"`
-	TotalRowCount                    *int64   `json:"total_row_count,omitempty"`
-	SyncProgressCompletion           *float64 `json:"sync_progress_completion,omitempty"`
-	EstimatedCompletionTimeSeconds   *float64 `json:"estimated_completion_time_seconds,omitempty"`
+	LatestVersionCurrentlyProcessing *wireInt64 `json:"latest_version_currently_processing,omitempty"`
+	SyncedRowCount                   *wireInt64 `json:"synced_row_count,omitempty"`
+	TotalRowCount                    *wireInt64 `json:"total_row_count,omitempty"`
+	SyncProgressCompletion           *float64   `json:"sync_progress_completion,omitempty"`
+	EstimatedCompletionTimeSeconds   *float64   `json:"estimated_completion_time_seconds,omitempty"`
 }
 
 func pipelineProgressToWire(v *PipelineProgress) (*pipelineProgressWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	latestVersionCurrentlyProcessingWireValue, err := int64ToWire(v.LatestVersionCurrentlyProcessing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineProgress.LatestVersionCurrentlyProcessing", err)
+	}
+	syncedRowCountWireValue, err := int64ToWire(v.SyncedRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineProgress.SyncedRowCount", err)
+	}
+	totalRowCountWireValue, err := int64ToWire(v.TotalRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineProgress.TotalRowCount", err)
+	}
 	return &pipelineProgressWire{
-		LatestVersionCurrentlyProcessing: v.LatestVersionCurrentlyProcessing,
-		SyncedRowCount:                   v.SyncedRowCount,
-		TotalRowCount:                    v.TotalRowCount,
+		LatestVersionCurrentlyProcessing: latestVersionCurrentlyProcessingWireValue,
+		SyncedRowCount:                   syncedRowCountWireValue,
+		TotalRowCount:                    totalRowCountWireValue,
 		SyncProgressCompletion:           v.SyncProgressCompletion,
 		EstimatedCompletionTimeSeconds:   v.EstimatedCompletionTimeSeconds,
 	}, nil
@@ -400,10 +474,22 @@ func pipelineProgressFromWire(w *pipelineProgressWire) (*PipelineProgress, error
 	if w == nil {
 		return nil, nil
 	}
+	latestVersionCurrentlyProcessingPublicValue, err := int64FromWire(w.LatestVersionCurrentlyProcessing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineProgress.LatestVersionCurrentlyProcessing", err)
+	}
+	syncedRowCountPublicValue, err := int64FromWire(w.SyncedRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineProgress.SyncedRowCount", err)
+	}
+	totalRowCountPublicValue, err := int64FromWire(w.TotalRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineProgress.TotalRowCount", err)
+	}
 	return &PipelineProgress{
-		LatestVersionCurrentlyProcessing: w.LatestVersionCurrentlyProcessing,
-		SyncedRowCount:                   w.SyncedRowCount,
-		TotalRowCount:                    w.TotalRowCount,
+		LatestVersionCurrentlyProcessing: latestVersionCurrentlyProcessingPublicValue,
+		SyncedRowCount:                   syncedRowCountPublicValue,
+		TotalRowCount:                    totalRowCountPublicValue,
 		SyncProgressCompletion:           w.SyncProgressCompletion,
 		EstimatedCompletionTimeSeconds:   w.EstimatedCompletionTimeSeconds,
 	}, nil
@@ -440,7 +526,7 @@ func provisioningStatusFromWire(w *provisioningStatusWire) (*ProvisioningStatus,
 }
 
 type triggeredUpdateStatusWire struct {
-	LastProcessedCommitVersion *int64                `json:"last_processed_commit_version,omitempty"`
+	LastProcessedCommitVersion *wireInt64            `json:"last_processed_commit_version,omitempty"`
 	Timestamp                  *types.Time           `json:"timestamp,omitempty"`
 	TriggeredUpdateProgress    *pipelineProgressWire `json:"triggered_update_progress,omitempty"`
 }
@@ -449,12 +535,16 @@ func triggeredUpdateStatusToWire(v *TriggeredUpdateStatus) (*triggeredUpdateStat
 	if v == nil {
 		return nil, nil
 	}
+	lastProcessedCommitVersionWireValue, err := int64ToWire(v.LastProcessedCommitVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TriggeredUpdateStatus.LastProcessedCommitVersion", err)
+	}
 	triggeredUpdateProgressWireValue, err := pipelineProgressToWire(v.TriggeredUpdateProgress)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "TriggeredUpdateStatus.TriggeredUpdateProgress", err)
 	}
 	return &triggeredUpdateStatusWire{
-		LastProcessedCommitVersion: v.LastProcessedCommitVersion,
+		LastProcessedCommitVersion: lastProcessedCommitVersionWireValue,
 		Timestamp:                  v.Timestamp,
 		TriggeredUpdateProgress:    triggeredUpdateProgressWireValue,
 	}, nil
@@ -464,12 +554,16 @@ func triggeredUpdateStatusFromWire(w *triggeredUpdateStatusWire) (*TriggeredUpda
 	if w == nil {
 		return nil, nil
 	}
+	lastProcessedCommitVersionPublicValue, err := int64FromWire(w.LastProcessedCommitVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TriggeredUpdateStatus.LastProcessedCommitVersion", err)
+	}
 	triggeredUpdateProgressPublicValue, err := pipelineProgressFromWire(w.TriggeredUpdateProgress)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "TriggeredUpdateStatus.TriggeredUpdateProgress", err)
 	}
 	return &TriggeredUpdateStatus{
-		LastProcessedCommitVersion: w.LastProcessedCommitVersion,
+		LastProcessedCommitVersion: lastProcessedCommitVersionPublicValue,
 		Timestamp:                  w.Timestamp,
 		TriggeredUpdateProgress:    triggeredUpdateProgressPublicValue,
 	}, nil

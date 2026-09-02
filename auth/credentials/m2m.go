@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"sync/atomic"
 
 	"github.com/databricks/sdk-go/auth"
@@ -31,6 +32,10 @@ type M2MOptions struct {
 	// Host is the Databricks workspace or account URL (for example,
 	// "https://example.cloud.databricks.com"). Required.
 	Host string
+
+	// GroupID is the ID of the group whose role is assumed by the issued token.
+	// When empty, no group role is assumed.
+	GroupID string
 
 	// Scopes overrides the OAuth scopes requested for the token. If empty,
 	// defaults to ["all-apis"].
@@ -67,6 +72,7 @@ func NewM2MCredentials(opts M2MOptions) (auth.TokenProvider, error) {
 		clientID:     opts.ClientID,
 		clientSecret: opts.ClientSecret,
 		host:         opts.Host,
+		groupID:      opts.GroupID,
 		scopes:       scopes,
 		httpClient:   opts.HTTPClient,
 	}, nil
@@ -76,6 +82,7 @@ type m2mTokenProvider struct {
 	clientID     string
 	clientSecret string
 	host         string
+	groupID      string
 	scopes       []string
 	httpClient   *http.Client
 
@@ -97,6 +104,9 @@ func (m *m2mTokenProvider) Token(ctx context.Context) (*auth.Token, error) {
 		TokenURL:     server.TokenEndpoint,
 		Scopes:       m.scopes,
 		AuthStyle:    oauth2.AuthStyleInHeader,
+	}
+	if m.groupID != "" {
+		cfg.EndpointParams = url.Values{"assume_group": {m.groupID}}
 	}
 	ot, err := fetchToken(ctx, m.httpClient, cfg)
 	if err != nil {

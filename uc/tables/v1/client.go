@@ -98,8 +98,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // only **table_type** **EXTERNAL** and **data_source_format** **DELTA** are
 // supported. Additionally, column masks are not supported when creating tables
 // through this API.
-func (c *internalClient) CreateTable(ctx context.Context, req *CreateTableRequest, opts ...call.Option) (*TableInfo, error) {
-	wireReq, err := createTableRequestToWire(req)
+func (c *internalClient) CreateTable(ctx context.Context, req CreateTableRequest, opts ...call.Option) (*TableInfo, error) {
+	wireReq, err := createTableRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -173,8 +173,8 @@ func (c *internalClient) CreateTable(ctx context.Context, req *CreateTableReques
 // the referenced parent table's catalog, the **USE_SCHEMA** privilege on the
 // referenced parent table's schema, and be the owner of the referenced parent
 // table.
-func (c *internalClient) CreateTableConstraint(ctx context.Context, req *CreateTableConstraintRequest, opts ...call.Option) (*TableConstraint, error) {
-	wireReq, err := createTableConstraintRequestToWire(req)
+func (c *internalClient) CreateTableConstraint(ctx context.Context, req CreateTableConstraintRequest, opts ...call.Option) (*TableConstraint, error) {
+	wireReq, err := createTableConstraintRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +243,7 @@ func (c *internalClient) CreateTableConstraint(ctx context.Context, req *CreateT
 // parent catalog and be the owner of the parent schema, or be the owner of the
 // table and have the **USE_CATALOG** privilege on the parent catalog and the
 // **USE_SCHEMA** privilege on the parent schema.
-func (c *internalClient) DeleteTable(ctx context.Context, req *DeleteTableRequest, opts ...call.Option) (*DeleteTableResponse, error) {
+func (c *internalClient) DeleteTable(ctx context.Context, req DeleteTableRequest, opts ...call.Option) (*DeleteTableResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -257,7 +257,11 @@ func (c *internalClient) DeleteTable(ctx context.Context, req *DeleteTableReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/tables/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -305,8 +309,8 @@ func (c *internalClient) DeleteTable(ctx context.Context, req *DeleteTableReques
 // the user must have the following permissions on all of the child tables: the
 // **USE_CATALOG** privilege on the table's catalog, the **USE_SCHEMA**
 // privilege on the table's schema, and be the owner of the table.
-func (c *internalClient) DeleteTableConstraint(ctx context.Context, req *DeleteTableConstraintRequest, opts ...call.Option) (*DeleteTableConstraintResponse, error) {
-	wireReq, err := deleteTableConstraintRequestToWire(req)
+func (c *internalClient) DeleteTableConstraint(ctx context.Context, req DeleteTableConstraintRequest, opts ...call.Option) (*DeleteTableConstraintResponse, error) {
+	wireReq, err := deleteTableConstraintRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +327,11 @@ func (c *internalClient) DeleteTableConstraint(ctx context.Context, req *DeleteT
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/constraints/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "constraint_name", wireReq.ConstraintName); err != nil {
@@ -375,8 +383,8 @@ func (c *internalClient) DeleteTableConstraint(ctx context.Context, req *DeleteT
 // **USE_CATALOG** privilege on the parent catalog and the **USE_SCHEMA**
 // privilege on the parent schema, and either be the table owner or have the
 // **SELECT** privilege on the table.
-func (c *internalClient) GetTable(ctx context.Context, req *GetTableRequest, opts ...call.Option) (*TableInfo, error) {
-	wireReq, err := getTableRequestToWire(req)
+func (c *internalClient) GetTable(ctx context.Context, req GetTableRequest, opts ...call.Option) (*TableInfo, error) {
+	wireReq, err := getTableRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -393,7 +401,11 @@ func (c *internalClient) GetTable(ctx context.Context, req *GetTableRequest, opt
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/tables/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_delta_metadata", wireReq.IncludeDeltaMetadata); err != nil {
@@ -463,8 +475,8 @@ func (c *internalClient) GetTable(ctx context.Context, req *GetTableRequest, opt
 // results while still providing a next_page_token. Clients must continue
 // reading pages until next_page_token is absent, which is the only indication
 // that the end of results has been reached.
-func (c *internalClient) ListTableSummaries(ctx context.Context, req *ListTableSummariesRequest, opts ...call.Option) (*ListTableSummariesResponse, error) {
-	wireReq, err := listTableSummariesRequestToWire(req)
+func (c *internalClient) ListTableSummaries(ctx context.Context, req ListTableSummariesRequest, opts ...call.Option) (*ListTableSummariesResponse, error) {
+	wireReq, err := listTableSummariesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -546,7 +558,7 @@ func (c *internalClient) ListTableSummaries(ctx context.Context, req *ListTableS
 //
 // For example:
 //
-//	for item, err := range c.ListTableSummariesIter(ctx, &ListTableSummariesRequest{}) {
+//	for item, err := range c.ListTableSummariesIter(ctx, ListTableSummariesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -558,16 +570,13 @@ func (c *internalClient) ListTableSummaries(ctx context.Context, req *ListTableS
 //
 // Callers who need custom pagination logic should use
 // ListTableSummaries directly.
-func (c *internalClient) ListTableSummariesIter(ctx context.Context, req *ListTableSummariesRequest, opts ...call.Option) iter.Seq2[*TableSummary, error] {
+func (c *internalClient) ListTableSummariesIter(ctx context.Context, req ListTableSummariesRequest, opts ...call.Option) iter.Seq2[*TableSummary, error] {
 	return func(yield func(*TableSummary, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListTableSummariesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListTableSummaries(ctx, &pageReq, opts...)
+			resp, err := c.ListTableSummaries(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -602,8 +611,8 @@ func (c *internalClient) ListTableSummariesIter(ctx context.Context, req *ListTa
 // contain zero results while still providing a next_page_token. Clients must
 // continue reading pages until next_page_token is absent, which is the only
 // indication that the end of results has been reached.
-func (c *internalClient) ListTables(ctx context.Context, req *ListTablesRequest, opts ...call.Option) (*ListTablesResponse, error) {
-	wireReq, err := listTablesRequestToWire(req)
+func (c *internalClient) ListTables(ctx context.Context, req ListTablesRequest, opts ...call.Option) (*ListTablesResponse, error) {
+	wireReq, err := listTablesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -694,7 +703,7 @@ func (c *internalClient) ListTables(ctx context.Context, req *ListTablesRequest,
 //
 // For example:
 //
-//	for item, err := range c.ListTablesIter(ctx, &ListTablesRequest{}) {
+//	for item, err := range c.ListTablesIter(ctx, ListTablesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -706,16 +715,13 @@ func (c *internalClient) ListTables(ctx context.Context, req *ListTablesRequest,
 //
 // Callers who need custom pagination logic should use
 // ListTables directly.
-func (c *internalClient) ListTablesIter(ctx context.Context, req *ListTablesRequest, opts ...call.Option) iter.Seq2[*TableInfo, error] {
+func (c *internalClient) ListTablesIter(ctx context.Context, req ListTablesRequest, opts ...call.Option) iter.Seq2[*TableInfo, error] {
 	return func(yield func(*TableInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListTablesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListTables(ctx, &pageReq, opts...)
+			resp, err := c.ListTables(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -741,7 +747,7 @@ func (c *internalClient) ListTablesIter(ctx context.Context, req *ListTablesRequ
 // privilege on the parent schema, and either be the table owner or have the
 // **SELECT** privilege on the table. * Have **BROWSE** privilege on the parent
 // catalog * Have **BROWSE** privilege on the parent schema
-func (c *internalClient) TableExists(ctx context.Context, req *TableExistsRequest, opts ...call.Option) (*TableExistsResponse, error) {
+func (c *internalClient) TableExists(ctx context.Context, req TableExistsRequest, opts ...call.Option) (*TableExistsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -755,7 +761,11 @@ func (c *internalClient) TableExists(ctx context.Context, req *TableExistsReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/tables/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	pb.literal("/exists")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -806,8 +816,8 @@ func (c *internalClient) TableExists(ctx context.Context, req *TableExistsReques
 // owner of the parent schema, or be the owner of the table and have the
 // **USE_CATALOG** privilege on the parent catalog and the **USE_SCHEMA**
 // privilege on the parent schema.
-func (c *internalClient) UpdateTable(ctx context.Context, req *UpdateTableRequest, opts ...call.Option) (*UpdateTableResponse, error) {
-	wireReq, err := updateTableRequestToWire(req)
+func (c *internalClient) UpdateTable(ctx context.Context, req UpdateTableRequest, opts ...call.Option) (*UpdateTableResponse, error) {
+	wireReq, err := updateTableRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -828,7 +838,11 @@ func (c *internalClient) UpdateTable(ctx context.Context, req *UpdateTableReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/tables/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

@@ -77,8 +77,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // Creates a new external location entry in the metastore. The caller must be a
 // metastore admin or have the **CREATE_EXTERNAL_LOCATION** privilege on both
 // the metastore and the associated storage credential.
-func (c *internalClient) CreateExternalLocation(ctx context.Context, req *CreateExternalLocationRequest, opts ...call.Option) (*ExternalLocationInfo, error) {
-	wireReq, err := createExternalLocationRequestToWire(req)
+func (c *internalClient) CreateExternalLocation(ctx context.Context, req CreateExternalLocationRequest, opts ...call.Option) (*ExternalLocationInfo, error) {
+	wireReq, err := createExternalLocationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -144,8 +144,8 @@ func (c *internalClient) CreateExternalLocation(ctx context.Context, req *Create
 
 // Deletes the specified external location from the metastore. The caller must
 // be the owner of the external location.
-func (c *internalClient) DeleteExternalLocation(ctx context.Context, req *DeleteExternalLocationRequest, opts ...call.Option) (*DeleteExternalLocationResponse, error) {
-	wireReq, err := deleteExternalLocationRequestToWire(req)
+func (c *internalClient) DeleteExternalLocation(ctx context.Context, req DeleteExternalLocationRequest, opts ...call.Option) (*DeleteExternalLocationResponse, error) {
+	wireReq, err := deleteExternalLocationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +162,11 @@ func (c *internalClient) DeleteExternalLocation(ctx context.Context, req *Delete
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/external-locations/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -207,8 +211,8 @@ func (c *internalClient) DeleteExternalLocation(ctx context.Context, req *Delete
 // Gets an external location from the metastore. The caller must be either a
 // metastore admin, the owner of the external location, or a user that has some
 // privilege on the external location.
-func (c *internalClient) GetExternalLocation(ctx context.Context, req *GetExternalLocationRequest, opts ...call.Option) (*ExternalLocationInfo, error) {
-	wireReq, err := getExternalLocationRequestToWire(req)
+func (c *internalClient) GetExternalLocation(ctx context.Context, req GetExternalLocationRequest, opts ...call.Option) (*ExternalLocationInfo, error) {
+	wireReq, err := getExternalLocationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +229,11 @@ func (c *internalClient) GetExternalLocation(ctx context.Context, req *GetExtern
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/external-locations/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_browse", wireReq.IncludeBrowse); err != nil {
@@ -286,8 +294,8 @@ func (c *internalClient) GetExternalLocation(ctx context.Context, req *GetExtern
 // contain zero results while still providing a next_page_token. Clients must
 // continue reading pages until next_page_token is absent, which is the only
 // indication that the end of results has been reached.
-func (c *internalClient) ListExternalLocations(ctx context.Context, req *ListExternalLocationsRequest, opts ...call.Option) (*ListExternalLocationsResponse, error) {
-	wireReq, err := listExternalLocationsRequestToWire(req)
+func (c *internalClient) ListExternalLocations(ctx context.Context, req ListExternalLocationsRequest, opts ...call.Option) (*ListExternalLocationsResponse, error) {
+	wireReq, err := listExternalLocationsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -363,7 +371,7 @@ func (c *internalClient) ListExternalLocations(ctx context.Context, req *ListExt
 //
 // For example:
 //
-//	for item, err := range c.ListExternalLocationsIter(ctx, &ListExternalLocationsRequest{}) {
+//	for item, err := range c.ListExternalLocationsIter(ctx, ListExternalLocationsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -375,16 +383,13 @@ func (c *internalClient) ListExternalLocations(ctx context.Context, req *ListExt
 //
 // Callers who need custom pagination logic should use
 // ListExternalLocations directly.
-func (c *internalClient) ListExternalLocationsIter(ctx context.Context, req *ListExternalLocationsRequest, opts ...call.Option) iter.Seq2[*ExternalLocationInfo, error] {
+func (c *internalClient) ListExternalLocationsIter(ctx context.Context, req ListExternalLocationsRequest, opts ...call.Option) iter.Seq2[*ExternalLocationInfo, error] {
 	return func(yield func(*ExternalLocationInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListExternalLocationsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListExternalLocations(ctx, &pageReq, opts...)
+			resp, err := c.ListExternalLocations(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -405,8 +410,8 @@ func (c *internalClient) ListExternalLocationsIter(ctx context.Context, req *Lis
 // Updates an external location in the metastore. The caller must be the owner
 // of the external location, or be a metastore admin. In the second case, the
 // admin can only update the name of the external location.
-func (c *internalClient) UpdateExternalLocation(ctx context.Context, req *UpdateExternalLocationRequest, opts ...call.Option) (*ExternalLocationInfo, error) {
-	wireReq, err := updateExternalLocationRequestToWire(req)
+func (c *internalClient) UpdateExternalLocation(ctx context.Context, req UpdateExternalLocationRequest, opts ...call.Option) (*ExternalLocationInfo, error) {
+	wireReq, err := updateExternalLocationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -427,7 +432,11 @@ func (c *internalClient) UpdateExternalLocation(ctx context.Context, req *Update
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/external-locations/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

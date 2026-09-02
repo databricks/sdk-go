@@ -184,7 +184,11 @@ const (
 	SecurableType_Credential        SecurableType = "CREDENTIAL"
 	SecurableType_ExternalMetadata  SecurableType = "EXTERNAL_METADATA"
 	// TODO: [UC-2980] Staging tables aren't full-fleged securables yet.
-	SecurableType_StagingTable SecurableType = "STAGING_TABLE"
+	SecurableType_StagingTable         SecurableType = "STAGING_TABLE"
+	SecurableType_Model                SecurableType = "MODEL"
+	SecurableType_ModelService         SecurableType = "MODEL_SERVICE"
+	SecurableType_McpService           SecurableType = "MCP_SERVICE"
+	SecurableType_ModelProviderService SecurableType = "MODEL_PROVIDER_SERVICE"
 )
 
 type SseEncryptionAlgorithm string
@@ -273,10 +277,9 @@ type ColumnMask struct {
 	// column being masked and the types of the rest of the args should match the
 	// types of columns in 'using_column_names'.
 	UsingColumnNames []string
-	// The list of additional table columns or literals to be passed as additional
-	// arguments to a column mask function. This is the replacement of the
-	// deprecated using_column_names field and carries information about the types
-	// (alias or constant) of the arguments to the mask function.
+	// The list of table columns or literals to be passed as additional arguments to
+	// a column mask function, carrying the type (column reference vs constant
+	// literal) of each argument. Deprecated: use using_column_names instead.
 	UsingArguments []PolicyFunctionArgument
 }
 
@@ -667,10 +670,9 @@ type RowFilter struct {
 	// The list of table columns to be passed as input to the row filter function.
 	// The column types should match the types of the filter function arguments.
 	InputColumnNames []string
-	// The list of additional table columns or literals to be passed as additional
-	// arguments to a row filter function. This is the replacement of the deprecated
-	// input_column_names field and carries information about the types (alias or
-	// constant) of the arguments to the filter function.
+	// The list of table columns or literals to be passed as additional arguments to
+	// a row filter function, carrying the type (column reference vs constant
+	// literal) of each argument. Deprecated: use input_column_names instead.
 	InputArguments []PolicyFunctionArgument
 }
 

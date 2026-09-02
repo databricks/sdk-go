@@ -75,7 +75,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 
 // Get the status of all libraries on all clusters. A status is returned for all
 // libraries installed on this cluster via the API or the libraries UI.
-func (c *internalClient) AllClusterStatuses(ctx context.Context, req *ListAllClusterLibraryStatusesRequest, opts ...call.Option) (*ListAllClusterLibraryStatusesResponse, error) {
+func (c *internalClient) AllClusterStatuses(ctx context.Context, req ListAllClusterLibraryStatusesRequest, opts ...call.Option) (*ListAllClusterLibraryStatusesResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -138,8 +138,8 @@ func (c *internalClient) AllClusterStatuses(ctx context.Context, req *ListAllClu
 // are returned first. 2. Libraries that were previously requested to be
 // installed on this cluster or, but are now marked for removal, in no
 // particular order, are returned last.
-func (c *internalClient) ClusterStatus(ctx context.Context, req *ClusterStatusRequest, opts ...call.Option) (*ClusterLibraryStatuses, error) {
-	wireReq, err := clusterStatusRequestToWire(req)
+func (c *internalClient) ClusterStatus(ctx context.Context, req ClusterStatusRequest, opts ...call.Option) (*ClusterLibraryStatuses, error) {
+	wireReq, err := clusterStatusRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -203,8 +203,8 @@ func (c *internalClient) ClusterStatus(ctx context.Context, req *ClusterStatusRe
 
 // Add libraries to install on a cluster. The installation is asynchronous; it
 // happens in the background after the completion of this request.
-func (c *internalClient) InstallLibraries(ctx context.Context, req *InstallLibrariesRequest, opts ...call.Option) (*InstallLibrariesResponse, error) {
-	wireReq, err := installLibrariesRequestToWire(req)
+func (c *internalClient) InstallLibraries(ctx context.Context, req InstallLibrariesRequest, opts ...call.Option) (*InstallLibrariesResponse, error) {
+	wireReq, err := installLibrariesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -265,8 +265,8 @@ func (c *internalClient) InstallLibraries(ctx context.Context, req *InstallLibra
 // Set libraries to uninstall from a cluster. The libraries won't be uninstalled
 // until the cluster is restarted. A request to uninstall a library that is not
 // currently installed is ignored.
-func (c *internalClient) UninstallLibraries(ctx context.Context, req *UninstallLibrariesRequest, opts ...call.Option) (*UninstallLibrariesResponse, error) {
-	wireReq, err := uninstallLibrariesRequestToWire(req)
+func (c *internalClient) UninstallLibraries(ctx context.Context, req UninstallLibrariesRequest, opts ...call.Option) (*UninstallLibrariesResponse, error) {
+	wireReq, err := uninstallLibrariesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}

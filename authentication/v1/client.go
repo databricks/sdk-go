@@ -76,8 +76,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 
 // Create account federation policy.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateAccountFederationPolicy(ctx context.Context, req *CreateAccountFederationPolicyRequest, opts ...call.Option) (*FederationPolicy, error) {
-	wireReq, err := createAccountFederationPolicyRequestToWire(req)
+func (c *internalClient) CreateAccountFederationPolicy(ctx context.Context, req CreateAccountFederationPolicyRequest, opts ...call.Option) (*FederationPolicy, error) {
+	wireReq, err := createAccountFederationPolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -154,8 +154,8 @@ func (c *internalClient) CreateAccountFederationPolicy(ctx context.Context, req 
 
 // Create account federation policy.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateServicePrincipalFederationPolicy(ctx context.Context, req *CreateServicePrincipalFederationPolicyRequest, opts ...call.Option) (*FederationPolicy, error) {
-	wireReq, err := createServicePrincipalFederationPolicyRequestToWire(req)
+func (c *internalClient) CreateServicePrincipalFederationPolicy(ctx context.Context, req CreateServicePrincipalFederationPolicyRequest, opts ...call.Option) (*FederationPolicy, error) {
+	wireReq, err := createServicePrincipalFederationPolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +179,11 @@ func (c *internalClient) CreateServicePrincipalFederationPolicy(ctx context.Cont
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/servicePrincipals/")
-	pb.singleSegment(*req.ServicePrincipalId)
+	if req.ServicePrincipalId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ServicePrincipalId)
+	}
 	pb.literal("/federationPolicies")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -231,8 +235,8 @@ func (c *internalClient) CreateServicePrincipalFederationPolicy(ctx context.Cont
 
 // Delete account federation policy.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteAccountFederationPolicy(ctx context.Context, req *DeleteAccountFederationPolicyRequest, opts ...call.Option) error {
-	wireReq, err := deleteAccountFederationPolicyRequestToWire(req)
+func (c *internalClient) DeleteAccountFederationPolicy(ctx context.Context, req DeleteAccountFederationPolicyRequest, opts ...call.Option) error {
+	wireReq, err := deleteAccountFederationPolicyRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -252,7 +256,11 @@ func (c *internalClient) DeleteAccountFederationPolicy(ctx context.Context, req 
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/federationPolicies/")
-	pb.singleSegment(*req.PolicyId)
+	if req.PolicyId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PolicyId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "service_principal_id", wireReq.ServicePrincipalId); err != nil {
@@ -293,7 +301,7 @@ func (c *internalClient) DeleteAccountFederationPolicy(ctx context.Context, req 
 
 // Delete account federation policy.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteServicePrincipalFederationPolicy(ctx context.Context, req *DeleteServicePrincipalFederationPolicyRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteServicePrincipalFederationPolicy(ctx context.Context, req DeleteServicePrincipalFederationPolicyRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -310,9 +318,17 @@ func (c *internalClient) DeleteServicePrincipalFederationPolicy(ctx context.Cont
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/servicePrincipals/")
-	pb.singleSegment(*req.ServicePrincipalId)
+	if req.ServicePrincipalId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ServicePrincipalId)
+	}
 	pb.literal("/federationPolicies/")
-	pb.singleSegment(*req.PolicyId)
+	if req.PolicyId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PolicyId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -350,8 +366,8 @@ func (c *internalClient) DeleteServicePrincipalFederationPolicy(ctx context.Cont
 
 // Get account federation policy.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetAccountFederationPolicy(ctx context.Context, req *GetAccountFederationPolicyRequest, opts ...call.Option) (*FederationPolicy, error) {
-	wireReq, err := getAccountFederationPolicyRequestToWire(req)
+func (c *internalClient) GetAccountFederationPolicy(ctx context.Context, req GetAccountFederationPolicyRequest, opts ...call.Option) (*FederationPolicy, error) {
+	wireReq, err := getAccountFederationPolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -371,7 +387,11 @@ func (c *internalClient) GetAccountFederationPolicy(ctx context.Context, req *Ge
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/federationPolicies/")
-	pb.singleSegment(*req.PolicyId)
+	if req.PolicyId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PolicyId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "service_principal_id", wireReq.ServicePrincipalId); err != nil {
@@ -421,7 +441,7 @@ func (c *internalClient) GetAccountFederationPolicy(ctx context.Context, req *Ge
 
 // Get account federation policy.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetServicePrincipalFederationPolicy(ctx context.Context, req *GetServicePrincipalFederationPolicyRequest, opts ...call.Option) (*FederationPolicy, error) {
+func (c *internalClient) GetServicePrincipalFederationPolicy(ctx context.Context, req GetServicePrincipalFederationPolicyRequest, opts ...call.Option) (*FederationPolicy, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -438,9 +458,17 @@ func (c *internalClient) GetServicePrincipalFederationPolicy(ctx context.Context
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/servicePrincipals/")
-	pb.singleSegment(*req.ServicePrincipalId)
+	if req.ServicePrincipalId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ServicePrincipalId)
+	}
 	pb.literal("/federationPolicies/")
-	pb.singleSegment(*req.PolicyId)
+	if req.PolicyId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PolicyId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -487,8 +515,8 @@ func (c *internalClient) GetServicePrincipalFederationPolicy(ctx context.Context
 
 // List account federation policies.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListAccountFederationPolicies(ctx context.Context, req *ListAccountFederationPoliciesRequest, opts ...call.Option) (*ListFederationPoliciesResponse, error) {
-	wireReq, err := listAccountFederationPoliciesRequestToWire(req)
+func (c *internalClient) ListAccountFederationPolicies(ctx context.Context, req ListAccountFederationPoliciesRequest, opts ...call.Option) (*ListFederationPoliciesResponse, error) {
+	wireReq, err := listAccountFederationPoliciesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -566,7 +594,7 @@ func (c *internalClient) ListAccountFederationPolicies(ctx context.Context, req 
 //
 // For example:
 //
-//	for item, err := range c.ListAccountFederationPoliciesIter(ctx, &ListAccountFederationPoliciesRequest{}) {
+//	for item, err := range c.ListAccountFederationPoliciesIter(ctx, ListAccountFederationPoliciesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -578,16 +606,13 @@ func (c *internalClient) ListAccountFederationPolicies(ctx context.Context, req 
 //
 // Callers who need custom pagination logic should use
 // ListAccountFederationPolicies directly.
-func (c *internalClient) ListAccountFederationPoliciesIter(ctx context.Context, req *ListAccountFederationPoliciesRequest, opts ...call.Option) iter.Seq2[*FederationPolicy, error] {
+func (c *internalClient) ListAccountFederationPoliciesIter(ctx context.Context, req ListAccountFederationPoliciesRequest, opts ...call.Option) iter.Seq2[*FederationPolicy, error] {
 	return func(yield func(*FederationPolicy, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListAccountFederationPoliciesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListAccountFederationPolicies(ctx, &pageReq, opts...)
+			resp, err := c.ListAccountFederationPolicies(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -607,8 +632,8 @@ func (c *internalClient) ListAccountFederationPoliciesIter(ctx context.Context, 
 
 // List account federation policies.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListServicePrincipalFederationPolicies(ctx context.Context, req *ListServicePrincipalFederationPoliciesRequest, opts ...call.Option) (*ListFederationPoliciesResponse, error) {
-	wireReq, err := listServicePrincipalFederationPoliciesRequestToWire(req)
+func (c *internalClient) ListServicePrincipalFederationPolicies(ctx context.Context, req ListServicePrincipalFederationPoliciesRequest, opts ...call.Option) (*ListFederationPoliciesResponse, error) {
+	wireReq, err := listServicePrincipalFederationPoliciesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -628,7 +653,11 @@ func (c *internalClient) ListServicePrincipalFederationPolicies(ctx context.Cont
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/servicePrincipals/")
-	pb.singleSegment(*req.ServicePrincipalId)
+	if req.ServicePrincipalId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ServicePrincipalId)
+	}
 	pb.literal("/federationPolicies")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -685,7 +714,7 @@ func (c *internalClient) ListServicePrincipalFederationPolicies(ctx context.Cont
 //
 // For example:
 //
-//	for item, err := range c.ListServicePrincipalFederationPoliciesIter(ctx, &ListServicePrincipalFederationPoliciesRequest{}) {
+//	for item, err := range c.ListServicePrincipalFederationPoliciesIter(ctx, ListServicePrincipalFederationPoliciesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -697,16 +726,13 @@ func (c *internalClient) ListServicePrincipalFederationPolicies(ctx context.Cont
 //
 // Callers who need custom pagination logic should use
 // ListServicePrincipalFederationPolicies directly.
-func (c *internalClient) ListServicePrincipalFederationPoliciesIter(ctx context.Context, req *ListServicePrincipalFederationPoliciesRequest, opts ...call.Option) iter.Seq2[*FederationPolicy, error] {
+func (c *internalClient) ListServicePrincipalFederationPoliciesIter(ctx context.Context, req ListServicePrincipalFederationPoliciesRequest, opts ...call.Option) iter.Seq2[*FederationPolicy, error] {
 	return func(yield func(*FederationPolicy, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListServicePrincipalFederationPoliciesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListServicePrincipalFederationPolicies(ctx, &pageReq, opts...)
+			resp, err := c.ListServicePrincipalFederationPolicies(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -726,8 +752,8 @@ func (c *internalClient) ListServicePrincipalFederationPoliciesIter(ctx context.
 
 // Update account federation policy.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) UpdateAccountFederationPolicy(ctx context.Context, req *UpdateAccountFederationPolicyRequest, opts ...call.Option) (*FederationPolicy, error) {
-	wireReq, err := updateAccountFederationPolicyRequestToWire(req)
+func (c *internalClient) UpdateAccountFederationPolicy(ctx context.Context, req UpdateAccountFederationPolicyRequest, opts ...call.Option) (*FederationPolicy, error) {
+	wireReq, err := updateAccountFederationPolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -751,7 +777,11 @@ func (c *internalClient) UpdateAccountFederationPolicy(ctx context.Context, req 
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/federationPolicies/")
-	pb.singleSegment(*req.PolicyId)
+	if req.PolicyId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PolicyId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "service_principal_id", wireReq.ServicePrincipalId); err != nil {
@@ -805,8 +835,8 @@ func (c *internalClient) UpdateAccountFederationPolicy(ctx context.Context, req 
 
 // Update account federation policy.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) UpdateServicePrincipalFederationPolicy(ctx context.Context, req *UpdateServicePrincipalFederationPolicyRequest, opts ...call.Option) (*FederationPolicy, error) {
-	wireReq, err := updateServicePrincipalFederationPolicyRequestToWire(req)
+func (c *internalClient) UpdateServicePrincipalFederationPolicy(ctx context.Context, req UpdateServicePrincipalFederationPolicyRequest, opts ...call.Option) (*FederationPolicy, error) {
+	wireReq, err := updateServicePrincipalFederationPolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -830,9 +860,17 @@ func (c *internalClient) UpdateServicePrincipalFederationPolicy(ctx context.Cont
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/servicePrincipals/")
-	pb.singleSegment(*req.ServicePrincipalId)
+	if req.ServicePrincipalId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ServicePrincipalId)
+	}
 	pb.literal("/federationPolicies/")
-	pb.singleSegment(*req.PolicyId)
+	if req.PolicyId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PolicyId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -883,8 +921,8 @@ func (c *internalClient) UpdateServicePrincipalFederationPolicy(ctx context.Cont
 
 // Create a secret for the given service principal.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateServicePrincipalSecret(ctx context.Context, req *CreateServicePrincipalSecretRequest, opts ...call.Option) (*CreateServicePrincipalSecretResponse, error) {
-	wireReq, err := createServicePrincipalSecretRequestToWire(req)
+func (c *internalClient) CreateServicePrincipalSecret(ctx context.Context, req CreateServicePrincipalSecretRequest, opts ...call.Option) (*CreateServicePrincipalSecretResponse, error) {
+	wireReq, err := createServicePrincipalSecretRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -908,7 +946,11 @@ func (c *internalClient) CreateServicePrincipalSecret(ctx context.Context, req *
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/servicePrincipals/")
-	pb.singleSegment(*req.ServicePrincipal)
+	if req.ServicePrincipal == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ServicePrincipal)
+	}
 	pb.literal("/credentials/secrets")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -956,8 +998,8 @@ func (c *internalClient) CreateServicePrincipalSecret(ctx context.Context, req *
 }
 
 // Create a secret for the given service principal.
-func (c *internalClient) CreateServicePrincipalSecretProxy(ctx context.Context, req *CreateServicePrincipalSecretRequest, opts ...call.Option) (*CreateServicePrincipalSecretResponse, error) {
-	wireReq, err := createServicePrincipalSecretRequestToWire(req)
+func (c *internalClient) CreateServicePrincipalSecretProxy(ctx context.Context, req CreateServicePrincipalSecretRequest, opts ...call.Option) (*CreateServicePrincipalSecretResponse, error) {
+	wireReq, err := createServicePrincipalSecretRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -978,7 +1020,11 @@ func (c *internalClient) CreateServicePrincipalSecretProxy(ctx context.Context, 
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/accounts/servicePrincipals/")
-	pb.singleSegment(*req.ServicePrincipal)
+	if req.ServicePrincipal == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ServicePrincipal)
+	}
 	pb.literal("/credentials/secrets")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1027,7 +1073,7 @@ func (c *internalClient) CreateServicePrincipalSecretProxy(ctx context.Context, 
 
 // Delete a secret from the given service principal.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteServicePrincipalSecret(ctx context.Context, req *DeleteServicePrincipalSecretRequest, opts ...call.Option) (*DeleteServicePrincipalSecretResponse, error) {
+func (c *internalClient) DeleteServicePrincipalSecret(ctx context.Context, req DeleteServicePrincipalSecretRequest, opts ...call.Option) (*DeleteServicePrincipalSecretResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1044,9 +1090,17 @@ func (c *internalClient) DeleteServicePrincipalSecret(ctx context.Context, req *
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/servicePrincipals/")
-	pb.singleSegment(*req.ServicePrincipal)
+	if req.ServicePrincipal == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ServicePrincipal)
+	}
 	pb.literal("/credentials/secrets/")
-	pb.singleSegment(*req.SecretId)
+	if req.SecretId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SecretId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1086,8 +1140,8 @@ func (c *internalClient) DeleteServicePrincipalSecret(ctx context.Context, req *
 }
 
 // Delete a secret from the given service principal.
-func (c *internalClient) DeleteServicePrincipalSecretProxy(ctx context.Context, req *DeleteServicePrincipalSecretRequest, opts ...call.Option) (*DeleteServicePrincipalSecretResponse, error) {
-	wireReq, err := deleteServicePrincipalSecretRequestToWire(req)
+func (c *internalClient) DeleteServicePrincipalSecretProxy(ctx context.Context, req DeleteServicePrincipalSecretRequest, opts ...call.Option) (*DeleteServicePrincipalSecretResponse, error) {
+	wireReq, err := deleteServicePrincipalSecretRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1104,9 +1158,17 @@ func (c *internalClient) DeleteServicePrincipalSecretProxy(ctx context.Context, 
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/accounts/servicePrincipals/")
-	pb.singleSegment(*req.ServicePrincipal)
+	if req.ServicePrincipal == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ServicePrincipal)
+	}
 	pb.literal("/credentials/secrets/")
-	pb.singleSegment(*req.SecretId)
+	if req.SecretId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SecretId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "account_id", wireReq.AccountId); err != nil {
@@ -1152,8 +1214,8 @@ func (c *internalClient) DeleteServicePrincipalSecretProxy(ctx context.Context, 
 // only returns information about the secrets themselves and does not include
 // the secret values.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListServicePrincipalSecrets(ctx context.Context, req *ListServicePrincipalSecretsRequest, opts ...call.Option) (*ListServicePrincipalSecretsResponse, error) {
-	wireReq, err := listServicePrincipalSecretsRequestToWire(req)
+func (c *internalClient) ListServicePrincipalSecrets(ctx context.Context, req ListServicePrincipalSecretsRequest, opts ...call.Option) (*ListServicePrincipalSecretsResponse, error) {
+	wireReq, err := listServicePrincipalSecretsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1173,7 +1235,11 @@ func (c *internalClient) ListServicePrincipalSecrets(ctx context.Context, req *L
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/servicePrincipals/")
-	pb.singleSegment(*req.ServicePrincipal)
+	if req.ServicePrincipal == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ServicePrincipal)
+	}
 	pb.literal("/credentials/secrets")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1230,7 +1296,7 @@ func (c *internalClient) ListServicePrincipalSecrets(ctx context.Context, req *L
 //
 // For example:
 //
-//	for item, err := range c.ListServicePrincipalSecretsIter(ctx, &ListServicePrincipalSecretsRequest{}) {
+//	for item, err := range c.ListServicePrincipalSecretsIter(ctx, ListServicePrincipalSecretsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1242,16 +1308,13 @@ func (c *internalClient) ListServicePrincipalSecrets(ctx context.Context, req *L
 //
 // Callers who need custom pagination logic should use
 // ListServicePrincipalSecrets directly.
-func (c *internalClient) ListServicePrincipalSecretsIter(ctx context.Context, req *ListServicePrincipalSecretsRequest, opts ...call.Option) iter.Seq2[*ServicePrincipalSecret, error] {
+func (c *internalClient) ListServicePrincipalSecretsIter(ctx context.Context, req ListServicePrincipalSecretsRequest, opts ...call.Option) iter.Seq2[*ServicePrincipalSecret, error] {
 	return func(yield func(*ServicePrincipalSecret, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListServicePrincipalSecretsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListServicePrincipalSecrets(ctx, &pageReq, opts...)
+			resp, err := c.ListServicePrincipalSecrets(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1272,8 +1335,8 @@ func (c *internalClient) ListServicePrincipalSecretsIter(ctx context.Context, re
 // List all secrets associated with the given service principal. This operation
 // only returns information about the secrets themselves and does not include
 // the secret values.
-func (c *internalClient) ListServicePrincipalSecretsProxy(ctx context.Context, req *ListServicePrincipalSecretsRequest, opts ...call.Option) (*ListServicePrincipalSecretsResponse, error) {
-	wireReq, err := listServicePrincipalSecretsRequestToWire(req)
+func (c *internalClient) ListServicePrincipalSecretsProxy(ctx context.Context, req ListServicePrincipalSecretsRequest, opts ...call.Option) (*ListServicePrincipalSecretsResponse, error) {
+	wireReq, err := listServicePrincipalSecretsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1290,7 +1353,11 @@ func (c *internalClient) ListServicePrincipalSecretsProxy(ctx context.Context, r
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/accounts/servicePrincipals/")
-	pb.singleSegment(*req.ServicePrincipal)
+	if req.ServicePrincipal == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ServicePrincipal)
+	}
 	pb.literal("/credentials/secrets")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1350,7 +1417,7 @@ func (c *internalClient) ListServicePrincipalSecretsProxy(ctx context.Context, r
 //
 // For example:
 //
-//	for item, err := range c.ListServicePrincipalSecretsProxyIter(ctx, &ListServicePrincipalSecretsRequest{}) {
+//	for item, err := range c.ListServicePrincipalSecretsProxyIter(ctx, ListServicePrincipalSecretsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1362,16 +1429,13 @@ func (c *internalClient) ListServicePrincipalSecretsProxy(ctx context.Context, r
 //
 // Callers who need custom pagination logic should use
 // ListServicePrincipalSecretsProxy directly.
-func (c *internalClient) ListServicePrincipalSecretsProxyIter(ctx context.Context, req *ListServicePrincipalSecretsRequest, opts ...call.Option) iter.Seq2[*ServicePrincipalSecret, error] {
+func (c *internalClient) ListServicePrincipalSecretsProxyIter(ctx context.Context, req ListServicePrincipalSecretsRequest, opts ...call.Option) iter.Seq2[*ServicePrincipalSecret, error] {
 	return func(yield func(*ServicePrincipalSecret, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListServicePrincipalSecretsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListServicePrincipalSecretsProxy(ctx, &pageReq, opts...)
+			resp, err := c.ListServicePrincipalSecretsProxy(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return

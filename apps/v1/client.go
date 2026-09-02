@@ -79,8 +79,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // Creates an app update and starts the update process. The update process is
 // asynchronous and the status of the update can be checked with the
 // GetAppUpdate method.
-func (c *internalClient) asyncUpdateAppBase(ctx context.Context, req *AsyncUpdateAppRequest, opts ...call.Option) (*AppUpdate, error) {
-	wireReq, err := asyncUpdateAppRequestToWire(req)
+func (c *internalClient) asyncUpdateAppBase(ctx context.Context, req AsyncUpdateAppRequest, opts ...call.Option) (*AppUpdate, error) {
+	wireReq, err := asyncUpdateAppRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,11 @@ func (c *internalClient) asyncUpdateAppBase(ctx context.Context, req *AsyncUpdat
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/apps/")
-	pb.singleSegment(*req.AppName)
+	if req.AppName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.AppName)
+	}
 	pb.literal("/update")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -151,7 +155,7 @@ func (c *internalClient) asyncUpdateAppBase(ctx context.Context, req *AsyncUpdat
 // Creates an app update and starts the update process. The update process is
 // asynchronous and the status of the update can be checked with the
 // GetAppUpdate method.
-func (c *internalClient) AsyncUpdateApp(ctx context.Context, req *AsyncUpdateAppRequest, opts ...call.Option) (*AsyncUpdateAppWaiter, error) {
+func (c *internalClient) AsyncUpdateApp(ctx context.Context, req AsyncUpdateAppRequest, opts ...call.Option) (*AsyncUpdateAppWaiter, error) {
 	if req.AppName == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "AppName")
 	}
@@ -168,13 +172,18 @@ func (c *internalClient) AsyncUpdateApp(ctx context.Context, req *AsyncUpdateApp
 
 // AsyncUpdateAppWaiter tracks the state of the operation started by AsyncUpdateApp.
 type AsyncUpdateAppWaiter struct {
-	poll    func(context.Context, *GetAppUpdateRequest, ...call.Option) (*AppUpdate, error)
+	poll    func(context.Context, GetAppUpdateRequest, ...call.Option) (*AppUpdate, error)
 	appName string
+}
+
+// GetAppName returns the AppName value used to identify the operation.
+func (w *AsyncUpdateAppWaiter) GetAppName() string {
+	return w.appName
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *AsyncUpdateAppWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetAppUpdateRequest{
+	pollResp, err := w.poll(ctx, GetAppUpdateRequest{
 		AppName: &w.appName,
 	}, opts...)
 	if err != nil {
@@ -202,7 +211,7 @@ func (w *AsyncUpdateAppWaiter) Done(ctx context.Context, opts ...call.Option) (b
 func (w *AsyncUpdateAppWaiter) Wait(ctx context.Context, opts ...lro.Option) (*AppUpdate, error) {
 	var result *AppUpdate
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetAppUpdateRequest{
+		pollResp, err := w.poll(ctx, GetAppUpdateRequest{
 			AppName: &w.appName,
 		})
 		if err != nil {
@@ -239,8 +248,8 @@ func (w *AsyncUpdateAppWaiter) Wait(ctx context.Context, opts ...lro.Option) (*A
 }
 
 // Creates a new app.
-func (c *internalClient) createAppBase(ctx context.Context, req *CreateAppRequest, opts ...call.Option) (*App, error) {
-	wireReq, err := createAppRequestToWire(req)
+func (c *internalClient) createAppBase(ctx context.Context, req CreateAppRequest, opts ...call.Option) (*App, error) {
+	wireReq, err := createAppRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -308,7 +317,7 @@ func (c *internalClient) createAppBase(ctx context.Context, req *CreateAppReques
 }
 
 // Creates a new app.
-func (c *internalClient) CreateApp(ctx context.Context, req *CreateAppRequest, opts ...call.Option) (*CreateAppWaiter, error) {
+func (c *internalClient) CreateApp(ctx context.Context, req CreateAppRequest, opts ...call.Option) (*CreateAppWaiter, error) {
 	resp, err := c.createAppBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -324,13 +333,18 @@ func (c *internalClient) CreateApp(ctx context.Context, req *CreateAppRequest, o
 
 // CreateAppWaiter tracks the state of the operation started by CreateApp.
 type CreateAppWaiter struct {
-	poll func(context.Context, *GetAppRequest, ...call.Option) (*App, error)
+	poll func(context.Context, GetAppRequest, ...call.Option) (*App, error)
 	name string
+}
+
+// GetName returns the Name value used to identify the operation.
+func (w *CreateAppWaiter) GetName() string {
+	return w.name
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *CreateAppWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetAppRequest{
+	pollResp, err := w.poll(ctx, GetAppRequest{
 		Name: &w.name,
 	}, opts...)
 	if err != nil {
@@ -358,7 +372,7 @@ func (w *CreateAppWaiter) Done(ctx context.Context, opts ...call.Option) (bool, 
 func (w *CreateAppWaiter) Wait(ctx context.Context, opts ...lro.Option) (*App, error) {
 	var result *App
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetAppRequest{
+		pollResp, err := w.poll(ctx, GetAppRequest{
 			Name: &w.name,
 		})
 		if err != nil {
@@ -395,8 +409,8 @@ func (w *CreateAppWaiter) Wait(ctx context.Context, opts ...lro.Option) (*App, e
 }
 
 // Creates an app deployment for the app with the supplied name.
-func (c *internalClient) createAppDeploymentBase(ctx context.Context, req *CreateAppDeploymentRequest, opts ...call.Option) (*AppDeployment, error) {
-	wireReq, err := createAppDeploymentRequestToWire(req)
+func (c *internalClient) createAppDeploymentBase(ctx context.Context, req CreateAppDeploymentRequest, opts ...call.Option) (*AppDeployment, error) {
+	wireReq, err := createAppDeploymentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -417,7 +431,11 @@ func (c *internalClient) createAppDeploymentBase(ctx context.Context, req *Creat
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/apps/")
-	pb.singleSegment(*req.AppName)
+	if req.AppName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.AppName)
+	}
 	pb.literal("/deployments")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -465,7 +483,7 @@ func (c *internalClient) createAppDeploymentBase(ctx context.Context, req *Creat
 }
 
 // Creates an app deployment for the app with the supplied name.
-func (c *internalClient) CreateAppDeployment(ctx context.Context, req *CreateAppDeploymentRequest, opts ...call.Option) (*CreateAppDeploymentWaiter, error) {
+func (c *internalClient) CreateAppDeployment(ctx context.Context, req CreateAppDeploymentRequest, opts ...call.Option) (*CreateAppDeploymentWaiter, error) {
 	if req.AppName == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "AppName")
 	}
@@ -486,14 +504,24 @@ func (c *internalClient) CreateAppDeployment(ctx context.Context, req *CreateApp
 
 // CreateAppDeploymentWaiter tracks the state of the operation started by CreateAppDeployment.
 type CreateAppDeploymentWaiter struct {
-	poll         func(context.Context, *GetAppDeploymentRequest, ...call.Option) (*AppDeployment, error)
+	poll         func(context.Context, GetAppDeploymentRequest, ...call.Option) (*AppDeployment, error)
 	deploymentId string
 	appName      string
 }
 
+// GetDeploymentId returns the DeploymentId value used to identify the operation.
+func (w *CreateAppDeploymentWaiter) GetDeploymentId() string {
+	return w.deploymentId
+}
+
+// GetAppName returns the AppName value used to identify the operation.
+func (w *CreateAppDeploymentWaiter) GetAppName() string {
+	return w.appName
+}
+
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *CreateAppDeploymentWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetAppDeploymentRequest{
+	pollResp, err := w.poll(ctx, GetAppDeploymentRequest{
 		DeploymentId: &w.deploymentId,
 		AppName:      &w.appName,
 	}, opts...)
@@ -522,7 +550,7 @@ func (w *CreateAppDeploymentWaiter) Done(ctx context.Context, opts ...call.Optio
 func (w *CreateAppDeploymentWaiter) Wait(ctx context.Context, opts ...lro.Option) (*AppDeployment, error) {
 	var result *AppDeployment
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetAppDeploymentRequest{
+		pollResp, err := w.poll(ctx, GetAppDeploymentRequest{
 			DeploymentId: &w.deploymentId,
 			AppName:      &w.appName,
 		})
@@ -560,8 +588,8 @@ func (w *CreateAppDeploymentWaiter) Wait(ctx context.Context, opts ...lro.Option
 }
 
 // Creates a custom template.
-func (c *internalClient) CreateCustomTemplate(ctx context.Context, req *CreateCustomTemplateRequest, opts ...call.Option) (*CustomTemplate, error) {
-	wireReq, err := createCustomTemplateRequestToWire(req)
+func (c *internalClient) CreateCustomTemplate(ctx context.Context, req CreateCustomTemplateRequest, opts ...call.Option) (*CustomTemplate, error) {
+	wireReq, err := createCustomTemplateRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -626,8 +654,8 @@ func (c *internalClient) CreateCustomTemplate(ctx context.Context, req *CreateCu
 }
 
 // Creates a new app space.
-func (c *internalClient) createSpaceBase(ctx context.Context, req *CreateSpaceRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := createSpaceRequestToWire(req)
+func (c *internalClient) createSpaceBase(ctx context.Context, req CreateSpaceRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := createSpaceRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -692,7 +720,7 @@ func (c *internalClient) createSpaceBase(ctx context.Context, req *CreateSpaceRe
 }
 
 // Creates a new app space.
-func (c *internalClient) CreateSpace(ctx context.Context, req *CreateSpaceRequest, opts ...call.Option) (*CreateSpaceOperation, error) {
+func (c *internalClient) CreateSpace(ctx context.Context, req CreateSpaceRequest, opts ...call.Option) (*CreateSpaceOperation, error) {
 	operation, err := c.createSpaceBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -709,7 +737,7 @@ func (c *internalClient) CreateSpace(ctx context.Context, req *CreateSpaceReques
 // CreateSpaceOperation tracks the state of the long-running operation started by CreateSpace.
 type CreateSpaceOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -735,7 +763,7 @@ func (o *CreateSpaceOperation) Metadata() (*Space, error) {
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *CreateSpaceOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -753,7 +781,7 @@ func (o *CreateSpaceOperation) Done(ctx context.Context, opts ...call.Option) (b
 func (o *CreateSpaceOperation) Wait(ctx context.Context, opts ...lro.Option) (*Space, error) {
 	var result *Space
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -791,7 +819,7 @@ func (o *CreateSpaceOperation) Wait(ctx context.Context, opts ...lro.Option) (*S
 }
 
 // Deletes an app.
-func (c *internalClient) DeleteApp(ctx context.Context, req *DeleteAppRequest, opts ...call.Option) (*App, error) {
+func (c *internalClient) DeleteApp(ctx context.Context, req DeleteAppRequest, opts ...call.Option) (*App, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -805,7 +833,11 @@ func (c *internalClient) DeleteApp(ctx context.Context, req *DeleteAppRequest, o
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/apps/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -851,7 +883,7 @@ func (c *internalClient) DeleteApp(ctx context.Context, req *DeleteAppRequest, o
 }
 
 // Deletes the thumbnail for an app.
-func (c *internalClient) DeleteAppThumbnail(ctx context.Context, req *DeleteAppThumbnailRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteAppThumbnail(ctx context.Context, req DeleteAppThumbnailRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -865,7 +897,11 @@ func (c *internalClient) DeleteAppThumbnail(ctx context.Context, req *DeleteAppT
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/apps/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/thumbnail")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -903,7 +939,7 @@ func (c *internalClient) DeleteAppThumbnail(ctx context.Context, req *DeleteAppT
 }
 
 // Deletes the custom template with the specified name.
-func (c *internalClient) DeleteCustomTemplate(ctx context.Context, req *DeleteCustomTemplateRequest, opts ...call.Option) (*CustomTemplate, error) {
+func (c *internalClient) DeleteCustomTemplate(ctx context.Context, req DeleteCustomTemplateRequest, opts ...call.Option) (*CustomTemplate, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -917,7 +953,11 @@ func (c *internalClient) DeleteCustomTemplate(ctx context.Context, req *DeleteCu
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/apps-settings/templates/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -963,7 +1003,7 @@ func (c *internalClient) DeleteCustomTemplate(ctx context.Context, req *DeleteCu
 }
 
 // Deletes an app space.
-func (c *internalClient) deleteSpaceBase(ctx context.Context, req *DeleteSpaceRequest, opts ...call.Option) (*Operation, error) {
+func (c *internalClient) deleteSpaceBase(ctx context.Context, req DeleteSpaceRequest, opts ...call.Option) (*Operation, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -977,7 +1017,11 @@ func (c *internalClient) deleteSpaceBase(ctx context.Context, req *DeleteSpaceRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/app-spaces/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1023,7 +1067,7 @@ func (c *internalClient) deleteSpaceBase(ctx context.Context, req *DeleteSpaceRe
 }
 
 // Deletes an app space.
-func (c *internalClient) DeleteSpace(ctx context.Context, req *DeleteSpaceRequest, opts ...call.Option) (*DeleteSpaceOperation, error) {
+func (c *internalClient) DeleteSpace(ctx context.Context, req DeleteSpaceRequest, opts ...call.Option) (*DeleteSpaceOperation, error) {
 	operation, err := c.deleteSpaceBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -1040,7 +1084,7 @@ func (c *internalClient) DeleteSpace(ctx context.Context, req *DeleteSpaceReques
 // DeleteSpaceOperation tracks the state of the long-running operation started by DeleteSpace.
 type DeleteSpaceOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -1066,7 +1110,7 @@ func (o *DeleteSpaceOperation) Metadata() (*Space, error) {
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *DeleteSpaceOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -1083,7 +1127,7 @@ func (o *DeleteSpaceOperation) Done(ctx context.Context, opts ...call.Option) (b
 // Wait polls the operation until it completes.
 func (o *DeleteSpaceOperation) Wait(ctx context.Context, opts ...lro.Option) error {
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}
@@ -1113,7 +1157,7 @@ func (o *DeleteSpaceOperation) Wait(ctx context.Context, opts ...lro.Option) err
 }
 
 // Retrieves information for the app with the supplied name.
-func (c *internalClient) GetApp(ctx context.Context, req *GetAppRequest, opts ...call.Option) (*App, error) {
+func (c *internalClient) GetApp(ctx context.Context, req GetAppRequest, opts ...call.Option) (*App, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1127,7 +1171,11 @@ func (c *internalClient) GetApp(ctx context.Context, req *GetAppRequest, opts ..
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/apps/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1174,7 +1222,7 @@ func (c *internalClient) GetApp(ctx context.Context, req *GetAppRequest, opts ..
 
 // Retrieves information for the app deployment with the supplied name and
 // deployment id.
-func (c *internalClient) GetAppDeployment(ctx context.Context, req *GetAppDeploymentRequest, opts ...call.Option) (*AppDeployment, error) {
+func (c *internalClient) GetAppDeployment(ctx context.Context, req GetAppDeploymentRequest, opts ...call.Option) (*AppDeployment, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1188,9 +1236,17 @@ func (c *internalClient) GetAppDeployment(ctx context.Context, req *GetAppDeploy
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/apps/")
-	pb.singleSegment(*req.AppName)
+	if req.AppName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.AppName)
+	}
 	pb.literal("/deployments/")
-	pb.singleSegment(*req.DeploymentId)
+	if req.DeploymentId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.DeploymentId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1236,7 +1292,7 @@ func (c *internalClient) GetAppDeployment(ctx context.Context, req *GetAppDeploy
 }
 
 // Gets the status of an app update.
-func (c *internalClient) GetAppUpdate(ctx context.Context, req *GetAppUpdateRequest, opts ...call.Option) (*AppUpdate, error) {
+func (c *internalClient) GetAppUpdate(ctx context.Context, req GetAppUpdateRequest, opts ...call.Option) (*AppUpdate, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1250,7 +1306,11 @@ func (c *internalClient) GetAppUpdate(ctx context.Context, req *GetAppUpdateRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/apps/")
-	pb.singleSegment(*req.AppName)
+	if req.AppName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.AppName)
+	}
 	pb.literal("/update")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1297,7 +1357,7 @@ func (c *internalClient) GetAppUpdate(ctx context.Context, req *GetAppUpdateRequ
 }
 
 // Gets the custom template with the specified name.
-func (c *internalClient) GetCustomTemplate(ctx context.Context, req *GetCustomTemplateRequest, opts ...call.Option) (*CustomTemplate, error) {
+func (c *internalClient) GetCustomTemplate(ctx context.Context, req GetCustomTemplateRequest, opts ...call.Option) (*CustomTemplate, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1311,7 +1371,11 @@ func (c *internalClient) GetCustomTemplate(ctx context.Context, req *GetCustomTe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/apps-settings/templates/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1357,7 +1421,7 @@ func (c *internalClient) GetCustomTemplate(ctx context.Context, req *GetCustomTe
 }
 
 // Retrieves information for the app space with the supplied name.
-func (c *internalClient) GetSpace(ctx context.Context, req *GetSpaceRequest, opts ...call.Option) (*Space, error) {
+func (c *internalClient) GetSpace(ctx context.Context, req GetSpaceRequest, opts ...call.Option) (*Space, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1371,7 +1435,11 @@ func (c *internalClient) GetSpace(ctx context.Context, req *GetSpaceRequest, opt
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/app-spaces/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1417,7 +1485,7 @@ func (c *internalClient) GetSpace(ctx context.Context, req *GetSpaceRequest, opt
 }
 
 // Gets the status of an app space update operation.
-func (c *internalClient) getSpaceOperation(ctx context.Context, req *GetOperationRequest, opts ...call.Option) (*Operation, error) {
+func (c *internalClient) getSpaceOperation(ctx context.Context, req GetOperationRequest, opts ...call.Option) (*Operation, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1431,7 +1499,11 @@ func (c *internalClient) getSpaceOperation(ctx context.Context, req *GetOperatio
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/app-spaces/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/operation")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1478,8 +1550,8 @@ func (c *internalClient) getSpaceOperation(ctx context.Context, req *GetOperatio
 }
 
 // Lists all app deployments for the app with the supplied name.
-func (c *internalClient) ListAppDeployments(ctx context.Context, req *ListAppDeploymentsRequest, opts ...call.Option) (*ListAppDeploymentsResponse, error) {
-	wireReq, err := listAppDeploymentsRequestToWire(req)
+func (c *internalClient) ListAppDeployments(ctx context.Context, req ListAppDeploymentsRequest, opts ...call.Option) (*ListAppDeploymentsResponse, error) {
+	wireReq, err := listAppDeploymentsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1496,7 +1568,11 @@ func (c *internalClient) ListAppDeployments(ctx context.Context, req *ListAppDep
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/apps/")
-	pb.singleSegment(*req.AppName)
+	if req.AppName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.AppName)
+	}
 	pb.literal("/deployments")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1553,7 +1629,7 @@ func (c *internalClient) ListAppDeployments(ctx context.Context, req *ListAppDep
 //
 // For example:
 //
-//	for item, err := range c.ListAppDeploymentsIter(ctx, &ListAppDeploymentsRequest{}) {
+//	for item, err := range c.ListAppDeploymentsIter(ctx, ListAppDeploymentsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1565,16 +1641,13 @@ func (c *internalClient) ListAppDeployments(ctx context.Context, req *ListAppDep
 //
 // Callers who need custom pagination logic should use
 // ListAppDeployments directly.
-func (c *internalClient) ListAppDeploymentsIter(ctx context.Context, req *ListAppDeploymentsRequest, opts ...call.Option) iter.Seq2[*AppDeployment, error] {
+func (c *internalClient) ListAppDeploymentsIter(ctx context.Context, req ListAppDeploymentsRequest, opts ...call.Option) iter.Seq2[*AppDeployment, error] {
 	return func(yield func(*AppDeployment, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListAppDeploymentsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListAppDeployments(ctx, &pageReq, opts...)
+			resp, err := c.ListAppDeployments(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1593,8 +1666,8 @@ func (c *internalClient) ListAppDeploymentsIter(ctx context.Context, req *ListAp
 }
 
 // Lists all apps in the workspace.
-func (c *internalClient) ListApps(ctx context.Context, req *ListAppsRequest, opts ...call.Option) (*ListAppsResponse, error) {
-	wireReq, err := listAppsRequestToWire(req)
+func (c *internalClient) ListApps(ctx context.Context, req ListAppsRequest, opts ...call.Option) (*ListAppsResponse, error) {
+	wireReq, err := listAppsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1667,7 +1740,7 @@ func (c *internalClient) ListApps(ctx context.Context, req *ListAppsRequest, opt
 //
 // For example:
 //
-//	for item, err := range c.ListAppsIter(ctx, &ListAppsRequest{}) {
+//	for item, err := range c.ListAppsIter(ctx, ListAppsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1679,16 +1752,13 @@ func (c *internalClient) ListApps(ctx context.Context, req *ListAppsRequest, opt
 //
 // Callers who need custom pagination logic should use
 // ListApps directly.
-func (c *internalClient) ListAppsIter(ctx context.Context, req *ListAppsRequest, opts ...call.Option) iter.Seq2[*App, error] {
+func (c *internalClient) ListAppsIter(ctx context.Context, req ListAppsRequest, opts ...call.Option) iter.Seq2[*App, error] {
 	return func(yield func(*App, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListAppsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListApps(ctx, &pageReq, opts...)
+			resp, err := c.ListApps(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1707,8 +1777,8 @@ func (c *internalClient) ListAppsIter(ctx context.Context, req *ListAppsRequest,
 }
 
 // Lists all custom templates in the workspace.
-func (c *internalClient) ListCustomTemplates(ctx context.Context, req *ListCustomTemplatesRequest, opts ...call.Option) (*ListCustomTemplatesResponse, error) {
-	wireReq, err := listCustomTemplatesRequestToWire(req)
+func (c *internalClient) ListCustomTemplates(ctx context.Context, req ListCustomTemplatesRequest, opts ...call.Option) (*ListCustomTemplatesResponse, error) {
+	wireReq, err := listCustomTemplatesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1778,7 +1848,7 @@ func (c *internalClient) ListCustomTemplates(ctx context.Context, req *ListCusto
 //
 // For example:
 //
-//	for item, err := range c.ListCustomTemplatesIter(ctx, &ListCustomTemplatesRequest{}) {
+//	for item, err := range c.ListCustomTemplatesIter(ctx, ListCustomTemplatesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1790,16 +1860,13 @@ func (c *internalClient) ListCustomTemplates(ctx context.Context, req *ListCusto
 //
 // Callers who need custom pagination logic should use
 // ListCustomTemplates directly.
-func (c *internalClient) ListCustomTemplatesIter(ctx context.Context, req *ListCustomTemplatesRequest, opts ...call.Option) iter.Seq2[*CustomTemplate, error] {
+func (c *internalClient) ListCustomTemplatesIter(ctx context.Context, req ListCustomTemplatesRequest, opts ...call.Option) iter.Seq2[*CustomTemplate, error] {
 	return func(yield func(*CustomTemplate, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListCustomTemplatesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListCustomTemplates(ctx, &pageReq, opts...)
+			resp, err := c.ListCustomTemplates(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1818,8 +1885,8 @@ func (c *internalClient) ListCustomTemplatesIter(ctx context.Context, req *ListC
 }
 
 // Lists all app spaces in the workspace.
-func (c *internalClient) ListSpaces(ctx context.Context, req *ListSpacesRequest, opts ...call.Option) (*ListSpacesResponse, error) {
-	wireReq, err := listSpacesRequestToWire(req)
+func (c *internalClient) ListSpaces(ctx context.Context, req ListSpacesRequest, opts ...call.Option) (*ListSpacesResponse, error) {
+	wireReq, err := listSpacesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1889,7 +1956,7 @@ func (c *internalClient) ListSpaces(ctx context.Context, req *ListSpacesRequest,
 //
 // For example:
 //
-//	for item, err := range c.ListSpacesIter(ctx, &ListSpacesRequest{}) {
+//	for item, err := range c.ListSpacesIter(ctx, ListSpacesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1901,16 +1968,13 @@ func (c *internalClient) ListSpaces(ctx context.Context, req *ListSpacesRequest,
 //
 // Callers who need custom pagination logic should use
 // ListSpaces directly.
-func (c *internalClient) ListSpacesIter(ctx context.Context, req *ListSpacesRequest, opts ...call.Option) iter.Seq2[*Space, error] {
+func (c *internalClient) ListSpacesIter(ctx context.Context, req ListSpacesRequest, opts ...call.Option) iter.Seq2[*Space, error] {
 	return func(yield func(*Space, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListSpacesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListSpaces(ctx, &pageReq, opts...)
+			resp, err := c.ListSpaces(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1929,8 +1993,8 @@ func (c *internalClient) ListSpacesIter(ctx context.Context, req *ListSpacesRequ
 }
 
 // Start the last active deployment of the app in the workspace.
-func (c *internalClient) startAppBase(ctx context.Context, req *StartAppRequest, opts ...call.Option) (*App, error) {
-	wireReq, err := startAppRequestToWire(req)
+func (c *internalClient) startAppBase(ctx context.Context, req StartAppRequest, opts ...call.Option) (*App, error) {
+	wireReq, err := startAppRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1951,7 +2015,11 @@ func (c *internalClient) startAppBase(ctx context.Context, req *StartAppRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/apps/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/start")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1999,7 +2067,7 @@ func (c *internalClient) startAppBase(ctx context.Context, req *StartAppRequest,
 }
 
 // Start the last active deployment of the app in the workspace.
-func (c *internalClient) StartApp(ctx context.Context, req *StartAppRequest, opts ...call.Option) (*StartAppWaiter, error) {
+func (c *internalClient) StartApp(ctx context.Context, req StartAppRequest, opts ...call.Option) (*StartAppWaiter, error) {
 	if req.Name == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "Name")
 	}
@@ -2016,13 +2084,18 @@ func (c *internalClient) StartApp(ctx context.Context, req *StartAppRequest, opt
 
 // StartAppWaiter tracks the state of the operation started by StartApp.
 type StartAppWaiter struct {
-	poll func(context.Context, *GetAppRequest, ...call.Option) (*App, error)
+	poll func(context.Context, GetAppRequest, ...call.Option) (*App, error)
 	name string
+}
+
+// GetName returns the Name value used to identify the operation.
+func (w *StartAppWaiter) GetName() string {
+	return w.name
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *StartAppWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetAppRequest{
+	pollResp, err := w.poll(ctx, GetAppRequest{
 		Name: &w.name,
 	}, opts...)
 	if err != nil {
@@ -2050,7 +2123,7 @@ func (w *StartAppWaiter) Done(ctx context.Context, opts ...call.Option) (bool, e
 func (w *StartAppWaiter) Wait(ctx context.Context, opts ...lro.Option) (*App, error) {
 	var result *App
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetAppRequest{
+		pollResp, err := w.poll(ctx, GetAppRequest{
 			Name: &w.name,
 		})
 		if err != nil {
@@ -2087,8 +2160,8 @@ func (w *StartAppWaiter) Wait(ctx context.Context, opts ...lro.Option) (*App, er
 }
 
 // Stops the active deployment of the app in the workspace.
-func (c *internalClient) stopAppBase(ctx context.Context, req *StopAppRequest, opts ...call.Option) (*App, error) {
-	wireReq, err := stopAppRequestToWire(req)
+func (c *internalClient) stopAppBase(ctx context.Context, req StopAppRequest, opts ...call.Option) (*App, error) {
+	wireReq, err := stopAppRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2109,7 +2182,11 @@ func (c *internalClient) stopAppBase(ctx context.Context, req *StopAppRequest, o
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/apps/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/stop")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -2157,7 +2234,7 @@ func (c *internalClient) stopAppBase(ctx context.Context, req *StopAppRequest, o
 }
 
 // Stops the active deployment of the app in the workspace.
-func (c *internalClient) StopApp(ctx context.Context, req *StopAppRequest, opts ...call.Option) (*StopAppWaiter, error) {
+func (c *internalClient) StopApp(ctx context.Context, req StopAppRequest, opts ...call.Option) (*StopAppWaiter, error) {
 	if req.Name == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "Name")
 	}
@@ -2174,13 +2251,18 @@ func (c *internalClient) StopApp(ctx context.Context, req *StopAppRequest, opts 
 
 // StopAppWaiter tracks the state of the operation started by StopApp.
 type StopAppWaiter struct {
-	poll func(context.Context, *GetAppRequest, ...call.Option) (*App, error)
+	poll func(context.Context, GetAppRequest, ...call.Option) (*App, error)
 	name string
+}
+
+// GetName returns the Name value used to identify the operation.
+func (w *StopAppWaiter) GetName() string {
+	return w.name
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *StopAppWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetAppRequest{
+	pollResp, err := w.poll(ctx, GetAppRequest{
 		Name: &w.name,
 	}, opts...)
 	if err != nil {
@@ -2208,7 +2290,7 @@ func (w *StopAppWaiter) Done(ctx context.Context, opts ...call.Option) (bool, er
 func (w *StopAppWaiter) Wait(ctx context.Context, opts ...lro.Option) (*App, error) {
 	var result *App
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetAppRequest{
+		pollResp, err := w.poll(ctx, GetAppRequest{
 			Name: &w.name,
 		})
 		if err != nil {
@@ -2245,8 +2327,8 @@ func (w *StopAppWaiter) Wait(ctx context.Context, opts ...lro.Option) (*App, err
 }
 
 // Updates the app with the supplied name.
-func (c *internalClient) UpdateApp(ctx context.Context, req *UpdateAppRequest, opts ...call.Option) (*App, error) {
-	wireReq, err := updateAppRequestToWire(req)
+func (c *internalClient) UpdateApp(ctx context.Context, req UpdateAppRequest, opts ...call.Option) (*App, error) {
+	wireReq, err := updateAppRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2267,7 +2349,11 @@ func (c *internalClient) UpdateApp(ctx context.Context, req *UpdateAppRequest, o
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/apps/")
-	pb.singleSegment(*req.App.Name)
+	if req.App == nil || req.App.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.App.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2314,8 +2400,8 @@ func (c *internalClient) UpdateApp(ctx context.Context, req *UpdateAppRequest, o
 }
 
 // Updates the thumbnail for an app.
-func (c *internalClient) UpdateAppThumbnail(ctx context.Context, req *UpdateAppThumbnailRequest, opts ...call.Option) (*AppThumbnail, error) {
-	wireReq, err := updateAppThumbnailRequestToWire(req)
+func (c *internalClient) UpdateAppThumbnail(ctx context.Context, req UpdateAppThumbnailRequest, opts ...call.Option) (*AppThumbnail, error) {
+	wireReq, err := updateAppThumbnailRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2336,7 +2422,11 @@ func (c *internalClient) UpdateAppThumbnail(ctx context.Context, req *UpdateAppT
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/apps/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/thumbnail")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -2385,8 +2475,8 @@ func (c *internalClient) UpdateAppThumbnail(ctx context.Context, req *UpdateAppT
 
 // Updates the custom template with the specified name. Note that the template
 // name cannot be updated.
-func (c *internalClient) UpdateCustomTemplate(ctx context.Context, req *UpdateCustomTemplateRequest, opts ...call.Option) (*CustomTemplate, error) {
-	wireReq, err := updateCustomTemplateRequestToWire(req)
+func (c *internalClient) UpdateCustomTemplate(ctx context.Context, req UpdateCustomTemplateRequest, opts ...call.Option) (*CustomTemplate, error) {
+	wireReq, err := updateCustomTemplateRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2407,7 +2497,11 @@ func (c *internalClient) UpdateCustomTemplate(ctx context.Context, req *UpdateCu
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/apps-settings/templates/")
-	pb.singleSegment(*req.Template.Name)
+	if req.Template == nil || req.Template.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Template.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2455,8 +2549,8 @@ func (c *internalClient) UpdateCustomTemplate(ctx context.Context, req *UpdateCu
 
 // Updates an app space. The update process is asynchronous and the status of
 // the update can be checked with the GetSpaceOperation method.
-func (c *internalClient) updateSpaceBase(ctx context.Context, req *UpdateSpaceRequest, opts ...call.Option) (*Operation, error) {
-	wireReq, err := updateSpaceRequestToWire(req)
+func (c *internalClient) updateSpaceBase(ctx context.Context, req UpdateSpaceRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := updateSpaceRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2477,7 +2571,11 @@ func (c *internalClient) updateSpaceBase(ctx context.Context, req *UpdateSpaceRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/app-spaces/")
-	pb.singleSegment(*req.Space.Name)
+	if req.Space == nil || req.Space.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Space.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -2528,7 +2626,7 @@ func (c *internalClient) updateSpaceBase(ctx context.Context, req *UpdateSpaceRe
 
 // Updates an app space. The update process is asynchronous and the status of
 // the update can be checked with the GetSpaceOperation method.
-func (c *internalClient) UpdateSpace(ctx context.Context, req *UpdateSpaceRequest, opts ...call.Option) (*UpdateSpaceOperation, error) {
+func (c *internalClient) UpdateSpace(ctx context.Context, req UpdateSpaceRequest, opts ...call.Option) (*UpdateSpaceOperation, error) {
 	operation, err := c.updateSpaceBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -2545,7 +2643,7 @@ func (c *internalClient) UpdateSpace(ctx context.Context, req *UpdateSpaceReques
 // UpdateSpaceOperation tracks the state of the long-running operation started by UpdateSpace.
 type UpdateSpaceOperation struct {
 	operation    *Operation
-	getOperation func(context.Context, *GetOperationRequest, ...call.Option) (*Operation, error)
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
 }
 
 // Name returns the server-assigned operation name.
@@ -2571,7 +2669,7 @@ func (o *UpdateSpaceOperation) Metadata() (*SpaceUpdate, error) {
 
 // Done refreshes the operation and reports whether it has completed.
 func (o *UpdateSpaceOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name}, opts...)
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -2589,7 +2687,7 @@ func (o *UpdateSpaceOperation) Done(ctx context.Context, opts ...call.Option) (b
 func (o *UpdateSpaceOperation) Wait(ctx context.Context, opts ...lro.Option) (*Space, error) {
 	var result *Space
 	poll := func(ctx context.Context) error {
-		operation, err := o.getOperation(ctx, &GetOperationRequest{Name: o.operation.Name})
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
 		if err != nil {
 			return err
 		}

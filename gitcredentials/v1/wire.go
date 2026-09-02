@@ -3,28 +3,78 @@
 package gitcredentials
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
 
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
+
 type createCredentialsRequestWire struct {
-	GitProvider          *string `json:"git_provider,omitempty"`
-	GitUsername          *string `json:"git_username,omitempty"`
-	PersonalAccessToken  *string `json:"personal_access_token,omitempty"`
-	PrincipalId          *int64  `json:"principal_id,omitempty"`
-	Name                 *string `json:"name,omitempty"`
-	IsDefaultForProvider *bool   `json:"is_default_for_provider,omitempty"`
-	GitEmail             *string `json:"git_email,omitempty"`
+	GitProvider          *string    `json:"git_provider,omitempty"`
+	GitUsername          *string    `json:"git_username,omitempty"`
+	PersonalAccessToken  *string    `json:"personal_access_token,omitempty"`
+	PrincipalId          *wireInt64 `json:"principal_id,omitempty"`
+	Name                 *string    `json:"name,omitempty"`
+	IsDefaultForProvider *bool      `json:"is_default_for_provider,omitempty"`
+	GitEmail             *string    `json:"git_email,omitempty"`
 }
 
 func createCredentialsRequestToWire(v *CreateCredentialsRequest) (*createCredentialsRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	principalIdWireValue, err := int64ToWire(v.PrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCredentialsRequest.PrincipalId", err)
+	}
 	return &createCredentialsRequestWire{
 		GitProvider:          v.GitProvider,
 		GitUsername:          v.GitUsername,
 		PersonalAccessToken:  v.PersonalAccessToken,
-		PrincipalId:          v.PrincipalId,
+		PrincipalId:          principalIdWireValue,
 		Name:                 v.Name,
 		IsDefaultForProvider: v.IsDefaultForProvider,
 		GitEmail:             v.GitEmail,
@@ -32,20 +82,24 @@ func createCredentialsRequestToWire(v *CreateCredentialsRequest) (*createCredent
 }
 
 type createCredentialsResponseWire struct {
-	CredentialId         *int64  `json:"credential_id,omitempty"`
-	GitProvider          *string `json:"git_provider,omitempty"`
-	GitUsername          *string `json:"git_username,omitempty"`
-	Name                 *string `json:"name,omitempty"`
-	IsDefaultForProvider *bool   `json:"is_default_for_provider,omitempty"`
-	GitEmail             *string `json:"git_email,omitempty"`
+	CredentialId         *wireInt64 `json:"credential_id,omitempty"`
+	GitProvider          *string    `json:"git_provider,omitempty"`
+	GitUsername          *string    `json:"git_username,omitempty"`
+	Name                 *string    `json:"name,omitempty"`
+	IsDefaultForProvider *bool      `json:"is_default_for_provider,omitempty"`
+	GitEmail             *string    `json:"git_email,omitempty"`
 }
 
 func createCredentialsResponseFromWire(w *createCredentialsResponseWire) (*CreateCredentialsResponse, error) {
 	if w == nil {
 		return nil, nil
 	}
+	credentialIdPublicValue, err := int64FromWire(w.CredentialId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCredentialsResponse.CredentialId", err)
+	}
 	return &CreateCredentialsResponse{
-		CredentialId:         w.CredentialId,
+		CredentialId:         credentialIdPublicValue,
 		GitProvider:          w.GitProvider,
 		GitUsername:          w.GitUsername,
 		Name:                 w.Name,
@@ -55,20 +109,24 @@ func createCredentialsResponseFromWire(w *createCredentialsResponseWire) (*Creat
 }
 
 type credentialWire struct {
-	CredentialId         *int64  `json:"credential_id,omitempty"`
-	GitProvider          *string `json:"git_provider,omitempty"`
-	GitUsername          *string `json:"git_username,omitempty"`
-	Name                 *string `json:"name,omitempty"`
-	IsDefaultForProvider *bool   `json:"is_default_for_provider,omitempty"`
-	GitEmail             *string `json:"git_email,omitempty"`
+	CredentialId         *wireInt64 `json:"credential_id,omitempty"`
+	GitProvider          *string    `json:"git_provider,omitempty"`
+	GitUsername          *string    `json:"git_username,omitempty"`
+	Name                 *string    `json:"name,omitempty"`
+	IsDefaultForProvider *bool      `json:"is_default_for_provider,omitempty"`
+	GitEmail             *string    `json:"git_email,omitempty"`
 }
 
 func credentialFromWire(w *credentialWire) (*Credential, error) {
 	if w == nil {
 		return nil, nil
 	}
+	credentialIdPublicValue, err := int64FromWire(w.CredentialId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Credential.CredentialId", err)
+	}
 	return &Credential{
-		CredentialId:         w.CredentialId,
+		CredentialId:         credentialIdPublicValue,
 		GitProvider:          w.GitProvider,
 		GitUsername:          w.GitUsername,
 		Name:                 w.Name,
@@ -78,50 +136,70 @@ func credentialFromWire(w *credentialWire) (*Credential, error) {
 }
 
 type deleteCredentialsRequestWire struct {
-	Id          *int64 `json:"id,omitempty"`
-	PrincipalId *int64 `json:"principal_id,omitempty"`
+	Id          *wireInt64 `json:"id,omitempty"`
+	PrincipalId *wireInt64 `json:"principal_id,omitempty"`
 }
 
 func deleteCredentialsRequestToWire(v *DeleteCredentialsRequest) (*deleteCredentialsRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	idWireValue, err := int64ToWire(v.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteCredentialsRequest.Id", err)
+	}
+	principalIdWireValue, err := int64ToWire(v.PrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteCredentialsRequest.PrincipalId", err)
+	}
 	return &deleteCredentialsRequestWire{
-		Id:          v.Id,
-		PrincipalId: v.PrincipalId,
+		Id:          idWireValue,
+		PrincipalId: principalIdWireValue,
 	}, nil
 }
 
 type getCredentialsRequestWire struct {
-	Id          *int64 `json:"id,omitempty"`
-	PrincipalId *int64 `json:"principal_id,omitempty"`
+	Id          *wireInt64 `json:"id,omitempty"`
+	PrincipalId *wireInt64 `json:"principal_id,omitempty"`
 }
 
 func getCredentialsRequestToWire(v *GetCredentialsRequest) (*getCredentialsRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	idWireValue, err := int64ToWire(v.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetCredentialsRequest.Id", err)
+	}
+	principalIdWireValue, err := int64ToWire(v.PrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetCredentialsRequest.PrincipalId", err)
+	}
 	return &getCredentialsRequestWire{
-		Id:          v.Id,
-		PrincipalId: v.PrincipalId,
+		Id:          idWireValue,
+		PrincipalId: principalIdWireValue,
 	}, nil
 }
 
 type getCredentialsResponseWire struct {
-	CredentialId         *int64  `json:"credential_id,omitempty"`
-	GitProvider          *string `json:"git_provider,omitempty"`
-	GitUsername          *string `json:"git_username,omitempty"`
-	Name                 *string `json:"name,omitempty"`
-	IsDefaultForProvider *bool   `json:"is_default_for_provider,omitempty"`
-	GitEmail             *string `json:"git_email,omitempty"`
+	CredentialId         *wireInt64 `json:"credential_id,omitempty"`
+	GitProvider          *string    `json:"git_provider,omitempty"`
+	GitUsername          *string    `json:"git_username,omitempty"`
+	Name                 *string    `json:"name,omitempty"`
+	IsDefaultForProvider *bool      `json:"is_default_for_provider,omitempty"`
+	GitEmail             *string    `json:"git_email,omitempty"`
 }
 
 func getCredentialsResponseFromWire(w *getCredentialsResponseWire) (*GetCredentialsResponse, error) {
 	if w == nil {
 		return nil, nil
 	}
+	credentialIdPublicValue, err := int64FromWire(w.CredentialId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetCredentialsResponse.CredentialId", err)
+	}
 	return &GetCredentialsResponse{
-		CredentialId:         w.CredentialId,
+		CredentialId:         credentialIdPublicValue,
 		GitProvider:          w.GitProvider,
 		GitUsername:          w.GitUsername,
 		Name:                 w.Name,
@@ -131,15 +209,19 @@ func getCredentialsResponseFromWire(w *getCredentialsResponseWire) (*GetCredenti
 }
 
 type listCredentialsRequestWire struct {
-	PrincipalId *int64 `json:"principal_id,omitempty"`
+	PrincipalId *wireInt64 `json:"principal_id,omitempty"`
 }
 
 func listCredentialsRequestToWire(v *ListCredentialsRequest) (*listCredentialsRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	principalIdWireValue, err := int64ToWire(v.PrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCredentialsRequest.PrincipalId", err)
+	}
 	return &listCredentialsRequestWire{
-		PrincipalId: v.PrincipalId,
+		PrincipalId: principalIdWireValue,
 	}, nil
 }
 
@@ -161,26 +243,34 @@ func listCredentialsResponseFromWire(w *listCredentialsResponseWire) (*ListCrede
 }
 
 type updateCredentialsRequestWire struct {
-	Id                   *int64  `json:"id,omitempty"`
-	PersonalAccessToken  *string `json:"personal_access_token,omitempty"`
-	GitProvider          *string `json:"git_provider,omitempty"`
-	GitUsername          *string `json:"git_username,omitempty"`
-	PrincipalId          *int64  `json:"principal_id,omitempty"`
-	Name                 *string `json:"name,omitempty"`
-	IsDefaultForProvider *bool   `json:"is_default_for_provider,omitempty"`
-	GitEmail             *string `json:"git_email,omitempty"`
+	Id                   *wireInt64 `json:"id,omitempty"`
+	PersonalAccessToken  *string    `json:"personal_access_token,omitempty"`
+	GitProvider          *string    `json:"git_provider,omitempty"`
+	GitUsername          *string    `json:"git_username,omitempty"`
+	PrincipalId          *wireInt64 `json:"principal_id,omitempty"`
+	Name                 *string    `json:"name,omitempty"`
+	IsDefaultForProvider *bool      `json:"is_default_for_provider,omitempty"`
+	GitEmail             *string    `json:"git_email,omitempty"`
 }
 
 func updateCredentialsRequestToWire(v *UpdateCredentialsRequest) (*updateCredentialsRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	idWireValue, err := int64ToWire(v.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCredentialsRequest.Id", err)
+	}
+	principalIdWireValue, err := int64ToWire(v.PrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCredentialsRequest.PrincipalId", err)
+	}
 	return &updateCredentialsRequestWire{
-		Id:                   v.Id,
+		Id:                   idWireValue,
 		PersonalAccessToken:  v.PersonalAccessToken,
 		GitProvider:          v.GitProvider,
 		GitUsername:          v.GitUsername,
-		PrincipalId:          v.PrincipalId,
+		PrincipalId:          principalIdWireValue,
 		Name:                 v.Name,
 		IsDefaultForProvider: v.IsDefaultForProvider,
 		GitEmail:             v.GitEmail,

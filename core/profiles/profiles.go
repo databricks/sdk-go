@@ -97,6 +97,10 @@ type Profile struct {
 	// AccountID is the Databricks Account ID for Accounts API.
 	AccountID string
 
+	// GroupID is the ID of the group whose role is assumed when obtaining
+	// OAuth tokens.
+	GroupID string
+
 	// Token is the personal access token for PAT authentication.
 	Token Secret
 
@@ -362,6 +366,12 @@ var properties = []property{
 		iniKey: "account_id",
 		set:    func(p *Profile, v string) error { p.AccountID = v; return nil },
 		get:    func(p *Profile) string { return p.AccountID },
+	},
+	{
+		envVar: "DATABRICKS_GROUP_ID",
+		iniKey: "group_id",
+		set:    func(p *Profile, v string) error { p.GroupID = v; return nil },
+		get:    func(p *Profile) string { return p.GroupID },
 	},
 	{
 		envVar: "DATABRICKS_TOKEN",

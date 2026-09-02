@@ -76,7 +76,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // Deletes the workspace permissions assignment in a given account and workspace
 // for the specified principal.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteWorkspacePermissionAssignment(ctx context.Context, req *DeleteWorkspacePermissionAssignmentRequest, opts ...call.Option) (*DeleteWorkspacePermissionAssignmentResponse, error) {
+func (c *internalClient) DeleteWorkspacePermissionAssignment(ctx context.Context, req DeleteWorkspacePermissionAssignmentRequest, opts ...call.Option) (*DeleteWorkspacePermissionAssignmentResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -93,9 +93,17 @@ func (c *internalClient) DeleteWorkspacePermissionAssignment(ctx context.Context
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/workspaces/")
-	pb.singleSegment(*req.WorkspaceId)
+	if req.WorkspaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.WorkspaceId)
+	}
 	pb.literal("/permissionassignments/principals/")
-	pb.singleSegment(*req.PrincipalId)
+	if req.PrincipalId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PrincipalId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -136,7 +144,7 @@ func (c *internalClient) DeleteWorkspacePermissionAssignment(ctx context.Context
 
 // Get the permission assignments for the specified <Account> and <Workspace>.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListWorkspacePermissionAssignments(ctx context.Context, req *ListWorkspacePermissionAssignmentsRequest, opts ...call.Option) (*ListWorkspacePermissionAssignmentsResponse, error) {
+func (c *internalClient) ListWorkspacePermissionAssignments(ctx context.Context, req ListWorkspacePermissionAssignmentsRequest, opts ...call.Option) (*ListWorkspacePermissionAssignmentsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -153,7 +161,11 @@ func (c *internalClient) ListWorkspacePermissionAssignments(ctx context.Context,
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/workspaces/")
-	pb.singleSegment(*req.WorkspaceId)
+	if req.WorkspaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.WorkspaceId)
+	}
 	pb.literal("/permissionassignments")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -202,7 +214,7 @@ func (c *internalClient) ListWorkspacePermissionAssignments(ctx context.Context,
 // Get an array of workspace permissions for the specified account and
 // workspace.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListWorkspacePermissions(ctx context.Context, req *ListWorkspacePermissionsRequest, opts ...call.Option) (*ListWorkspacePermissionsResponse, error) {
+func (c *internalClient) ListWorkspacePermissions(ctx context.Context, req ListWorkspacePermissionsRequest, opts ...call.Option) (*ListWorkspacePermissionsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -219,7 +231,11 @@ func (c *internalClient) ListWorkspacePermissions(ctx context.Context, req *List
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/workspaces/")
-	pb.singleSegment(*req.WorkspaceId)
+	if req.WorkspaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.WorkspaceId)
+	}
 	pb.literal("/permissionassignments/permissions")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -268,8 +284,8 @@ func (c *internalClient) ListWorkspacePermissions(ctx context.Context, req *List
 // Creates or updates the workspace permissions assignment in a given account
 // and workspace for the specified principal.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) UpdateWorkspacePermissionAssignment(ctx context.Context, req *UpdateWorkspacePermissionAssignmentRequest, opts ...call.Option) (*WorkspacePermissionAssignmentOutput, error) {
-	wireReq, err := updateWorkspacePermissionAssignmentRequestToWire(req)
+func (c *internalClient) UpdateWorkspacePermissionAssignment(ctx context.Context, req UpdateWorkspacePermissionAssignmentRequest, opts ...call.Option) (*WorkspacePermissionAssignmentOutput, error) {
+	wireReq, err := updateWorkspacePermissionAssignmentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -293,9 +309,17 @@ func (c *internalClient) UpdateWorkspacePermissionAssignment(ctx context.Context
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/workspaces/")
-	pb.singleSegment(*req.WorkspaceId)
+	if req.WorkspaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.WorkspaceId)
+	}
 	pb.literal("/permissionassignments/principals/")
-	pb.singleSegment(*req.PrincipalId)
+	if req.PrincipalId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PrincipalId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -345,8 +369,8 @@ func (c *internalClient) UpdateWorkspacePermissionAssignment(ctx context.Context
 // contains a list of access rules on the said resource. Currently only a
 // default rule set for each resource is supported.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetRuleSet(ctx context.Context, req *GetRuleSetRequest, opts ...call.Option) (*RuleSet, error) {
-	wireReq, err := getRuleSetRequestToWire(req)
+func (c *internalClient) GetRuleSet(ctx context.Context, req GetRuleSetRequest, opts ...call.Option) (*RuleSet, error) {
+	wireReq, err := getRuleSetRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -419,8 +443,8 @@ func (c *internalClient) GetRuleSet(ctx context.Context, req *GetRuleSetRequest,
 // Get a rule set by its name. A rule set is always attached to a resource and
 // contains a list of access rules on the said resource. Currently only a
 // default rule set for each resource is supported.
-func (c *internalClient) GetRuleSetProxy(ctx context.Context, req *GetRuleSetRequest, opts ...call.Option) (*RuleSet, error) {
-	wireReq, err := getRuleSetRequestToWire(req)
+func (c *internalClient) GetRuleSetProxy(ctx context.Context, req GetRuleSetRequest, opts ...call.Option) (*RuleSet, error) {
+	wireReq, err := getRuleSetRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -492,8 +516,8 @@ func (c *internalClient) GetRuleSetProxy(ctx context.Context, req *GetRuleSetReq
 // is grantable if the rule set on the resource can contain an access rule of
 // the role.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListAssignableRolesForResource(ctx context.Context, req *ListAssignableRolesForResourceRequest, opts ...call.Option) (*ListAssignableRolesForResourceResponse, error) {
-	wireReq, err := listAssignableRolesForResourceRequestToWire(req)
+func (c *internalClient) ListAssignableRolesForResource(ctx context.Context, req ListAssignableRolesForResourceRequest, opts ...call.Option) (*ListAssignableRolesForResourceResponse, error) {
+	wireReq, err := listAssignableRolesForResourceRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -563,8 +587,8 @@ func (c *internalClient) ListAssignableRolesForResource(ctx context.Context, req
 // Gets all the roles that can be granted on an account level resource. A role
 // is grantable if the rule set on the resource can contain an access rule of
 // the role.
-func (c *internalClient) ListAssignableRolesForResourceProxy(ctx context.Context, req *ListAssignableRolesForResourceRequest, opts ...call.Option) (*ListAssignableRolesForResourceResponse, error) {
-	wireReq, err := listAssignableRolesForResourceRequestToWire(req)
+func (c *internalClient) ListAssignableRolesForResourceProxy(ctx context.Context, req ListAssignableRolesForResourceRequest, opts ...call.Option) (*ListAssignableRolesForResourceResponse, error) {
+	wireReq, err := listAssignableRolesForResourceRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -633,8 +657,8 @@ func (c *internalClient) ListAssignableRolesForResourceProxy(ctx context.Context
 // of the rule set before modifying it. This pattern helps prevent conflicts
 // between concurrent updates.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) UpdateRuleSet(ctx context.Context, req *UpdateRuleSetRequest, opts ...call.Option) (*RuleSet, error) {
-	wireReq, err := updateRuleSetRequestToWire(req)
+func (c *internalClient) UpdateRuleSet(ctx context.Context, req UpdateRuleSetRequest, opts ...call.Option) (*RuleSet, error) {
+	wireReq, err := updateRuleSetRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -706,8 +730,8 @@ func (c *internalClient) UpdateRuleSet(ctx context.Context, req *UpdateRuleSetRe
 // Replace the rules of a rule set. First, use get to read the current version
 // of the rule set before modifying it. This pattern helps prevent conflicts
 // between concurrent updates.
-func (c *internalClient) UpdateRuleSetProxy(ctx context.Context, req *UpdateRuleSetRequest, opts ...call.Option) (*RuleSet, error) {
-	wireReq, err := updateRuleSetRequestToWire(req)
+func (c *internalClient) UpdateRuleSetProxy(ctx context.Context, req UpdateRuleSetRequest, opts ...call.Option) (*RuleSet, error) {
+	wireReq, err := updateRuleSetRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -773,7 +797,7 @@ func (c *internalClient) UpdateRuleSetProxy(ctx context.Context, req *UpdateRule
 
 // Gets the permissions of an object. Objects can inherit permissions from their
 // parent objects or root object.
-func (c *internalClient) GetObjectPermissions(ctx context.Context, req *GetObjectPermissionsRequest, opts ...call.Option) (*PermissionsResponse, error) {
+func (c *internalClient) GetObjectPermissions(ctx context.Context, req GetObjectPermissionsRequest, opts ...call.Option) (*PermissionsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -787,9 +811,17 @@ func (c *internalClient) GetObjectPermissions(ctx context.Context, req *GetObjec
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/permissions/")
-	pb.singleSegment(*req.RequestObjectType)
+	if req.RequestObjectType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.RequestObjectType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.RequestObjectId)
+	if req.RequestObjectId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.RequestObjectId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -835,7 +867,7 @@ func (c *internalClient) GetObjectPermissions(ctx context.Context, req *GetObjec
 }
 
 // Gets the permission levels that a user can have on an object.
-func (c *internalClient) ListPermissionLevels(ctx context.Context, req *ListPermissionLevelsRequest, opts ...call.Option) (*ListPermissionLevelsResponse, error) {
+func (c *internalClient) ListPermissionLevels(ctx context.Context, req ListPermissionLevelsRequest, opts ...call.Option) (*ListPermissionLevelsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -849,9 +881,17 @@ func (c *internalClient) ListPermissionLevels(ctx context.Context, req *ListPerm
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/permissions/")
-	pb.singleSegment(*req.RequestObjectType)
+	if req.RequestObjectType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.RequestObjectType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.RequestObjectId)
+	if req.RequestObjectId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.RequestObjectId)
+	}
 	pb.literal("/permissionLevels")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -900,8 +940,8 @@ func (c *internalClient) ListPermissionLevels(ctx context.Context, req *ListPerm
 // Sets permissions on an object, replacing existing permissions if they exist.
 // Deletes all direct permissions if none are specified. Objects can inherit
 // permissions from their parent objects or root object.
-func (c *internalClient) SetObjectPermissions(ctx context.Context, req *SetObjectPermissionsRequest, opts ...call.Option) (*PermissionsResponse, error) {
-	wireReq, err := setObjectPermissionsRequestToWire(req)
+func (c *internalClient) SetObjectPermissions(ctx context.Context, req SetObjectPermissionsRequest, opts ...call.Option) (*PermissionsResponse, error) {
+	wireReq, err := setObjectPermissionsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -922,9 +962,17 @@ func (c *internalClient) SetObjectPermissions(ctx context.Context, req *SetObjec
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/permissions/")
-	pb.singleSegment(*req.RequestObjectType)
+	if req.RequestObjectType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.RequestObjectType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.RequestObjectId)
+	if req.RequestObjectId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.RequestObjectId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -972,8 +1020,8 @@ func (c *internalClient) SetObjectPermissions(ctx context.Context, req *SetObjec
 
 // Updates the permissions on an object. Objects can inherit permissions from
 // their parent objects or root object.
-func (c *internalClient) UpdateObjectPermissions(ctx context.Context, req *UpdateObjectPermissionsRequest, opts ...call.Option) (*PermissionsResponse, error) {
-	wireReq, err := updateObjectPermissionsRequestToWire(req)
+func (c *internalClient) UpdateObjectPermissions(ctx context.Context, req UpdateObjectPermissionsRequest, opts ...call.Option) (*PermissionsResponse, error) {
+	wireReq, err := updateObjectPermissionsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -994,9 +1042,17 @@ func (c *internalClient) UpdateObjectPermissions(ctx context.Context, req *Updat
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/permissions/")
-	pb.singleSegment(*req.RequestObjectType)
+	if req.RequestObjectType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.RequestObjectType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.RequestObjectId)
+	if req.RequestObjectId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.RequestObjectId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1043,8 +1099,8 @@ func (c *internalClient) UpdateObjectPermissions(ctx context.Context, req *Updat
 }
 
 // Check access policy to a resource.
-func (c *internalClient) CheckPolicy(ctx context.Context, req *CheckPolicyRequest, opts ...call.Option) (*CheckPolicyResponse, error) {
-	wireReq, err := checkPolicyRequestToWire(req)
+func (c *internalClient) CheckPolicy(ctx context.Context, req CheckPolicyRequest, opts ...call.Option) (*CheckPolicyResponse, error) {
+	wireReq, err := checkPolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}

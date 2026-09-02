@@ -3,8 +3,54 @@
 package accessmanagement
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type accessControlRequestWire struct {
 	UserName             *string         `json:"user_name,omitempty"`
@@ -91,19 +137,23 @@ func accessControlResponseFromWire(w *accessControlResponseWire) (*AccessControl
 }
 
 type actorWire struct {
-	ActorId *int64 `json:"actor_id,omitempty"`
+	ActorId *wireInt64 `json:"actor_id,omitempty"`
 }
 
 func actorToWire(v *Actor) (*actorWire, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var kindActorIdWire *int64
+	var kindActorIdWire *wireInt64
 	switch value := v.Kind.(type) {
 	case nil:
 	case *Actor_Kind_ActorId:
 		if value != nil {
-			kindActorIdWire = new(value.ActorId)
+			kindActorIdConverted, err := int64ToWire(&value.ActorId)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Actor.Kind.ActorId", err)
+			}
+			kindActorIdWire = kindActorIdConverted
 		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Actor.Kind", value)
@@ -383,11 +433,11 @@ func permissionsResponseFromWire(w *permissionsResponseWire) (*PermissionsRespon
 }
 
 type principalOutputWire struct {
-	UserName             *string `json:"user_name,omitempty"`
-	GroupName            *string `json:"group_name,omitempty"`
-	ServicePrincipalName *string `json:"service_principal_name,omitempty"`
-	PrincipalId          *int64  `json:"principal_id,omitempty"`
-	DisplayName          *string `json:"display_name,omitempty"`
+	UserName             *string    `json:"user_name,omitempty"`
+	GroupName            *string    `json:"group_name,omitempty"`
+	ServicePrincipalName *string    `json:"service_principal_name,omitempty"`
+	PrincipalId          *wireInt64 `json:"principal_id,omitempty"`
+	DisplayName          *string    `json:"display_name,omitempty"`
 }
 
 func principalOutputFromWire(w *principalOutputWire) (*PrincipalOutput, error) {
@@ -407,6 +457,10 @@ func principalOutputFromWire(w *principalOutputWire) (*PrincipalOutput, error) {
 	if principalNameMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "PrincipalOutput.PrincipalName")
 	}
+	principalIdPublicValue, err := int64FromWire(w.PrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PrincipalOutput.PrincipalId", err)
+	}
 	var principalNameSelection isPrincipalOutput_PrincipalName
 	switch {
 	case w.UserName != nil:
@@ -417,7 +471,7 @@ func principalOutputFromWire(w *principalOutputWire) (*PrincipalOutput, error) {
 		principalNameSelection = &PrincipalOutput_PrincipalName_ServicePrincipalName{ServicePrincipalName: *w.ServicePrincipalName}
 	}
 	return &PrincipalOutput{
-		PrincipalId:   w.PrincipalId,
+		PrincipalId:   principalIdPublicValue,
 		DisplayName:   w.DisplayName,
 		PrincipalName: principalNameSelection,
 	}, nil
@@ -564,8 +618,8 @@ func updateRuleSetRequestToWire(v *UpdateRuleSetRequest) (*updateRuleSetRequestW
 
 type updateWorkspacePermissionAssignmentRequestWire struct {
 	AccountId   *string               `json:"account_id,omitempty"`
-	WorkspaceId *int64                `json:"workspace_id,omitempty"`
-	PrincipalId *int64                `json:"principal_id,omitempty"`
+	WorkspaceId *wireInt64            `json:"workspace_id,omitempty"`
+	PrincipalId *wireInt64            `json:"principal_id,omitempty"`
 	Permissions []WorkspacePermission `json:"permissions,omitempty"`
 }
 
@@ -573,10 +627,18 @@ func updateWorkspacePermissionAssignmentRequestToWire(v *UpdateWorkspacePermissi
 	if v == nil {
 		return nil, nil
 	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateWorkspacePermissionAssignmentRequest.WorkspaceId", err)
+	}
+	principalIdWireValue, err := int64ToWire(v.PrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateWorkspacePermissionAssignmentRequest.PrincipalId", err)
+	}
 	return &updateWorkspacePermissionAssignmentRequestWire{
 		AccountId:   v.AccountId,
-		WorkspaceId: v.WorkspaceId,
-		PrincipalId: v.PrincipalId,
+		WorkspaceId: workspaceIdWireValue,
+		PrincipalId: principalIdWireValue,
 		Permissions: v.Permissions,
 	}, nil
 }

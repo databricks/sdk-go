@@ -75,8 +75,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Creates an alert.
-func (c *internalClient) CreateAlert(ctx context.Context, req *CreateAlertRequest, opts ...call.Option) (*Alert, error) {
-	wireReq, err := createAlertRequestToWire(req)
+func (c *internalClient) CreateAlert(ctx context.Context, req CreateAlertRequest, opts ...call.Option) (*Alert, error) {
+	wireReq, err := createAlertRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func (c *internalClient) CreateAlert(ctx context.Context, req *CreateAlertReques
 }
 
 // Gets an alert.
-func (c *internalClient) GetAlert(ctx context.Context, req *GetAlertRequest, opts ...call.Option) (*Alert, error) {
+func (c *internalClient) GetAlert(ctx context.Context, req GetAlertRequest, opts ...call.Option) (*Alert, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -155,7 +155,11 @@ func (c *internalClient) GetAlert(ctx context.Context, req *GetAlertRequest, opt
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/alerts/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -203,8 +207,8 @@ func (c *internalClient) GetAlert(ctx context.Context, req *GetAlertRequest, opt
 // Gets a list of alerts accessible to the user, ordered by creation time.
 // **Warning:** Calling this API concurrently 10 or more times could result in
 // throttling, service degradation, or a temporary ban.
-func (c *internalClient) ListAlerts(ctx context.Context, req *ListAlertsRequest, opts ...call.Option) (*ListAlertsResponse, error) {
-	wireReq, err := listAlertsRequestToWire(req)
+func (c *internalClient) ListAlerts(ctx context.Context, req ListAlertsRequest, opts ...call.Option) (*ListAlertsResponse, error) {
+	wireReq, err := listAlertsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -274,7 +278,7 @@ func (c *internalClient) ListAlerts(ctx context.Context, req *ListAlertsRequest,
 //
 // For example:
 //
-//	for item, err := range c.ListAlertsIter(ctx, &ListAlertsRequest{}) {
+//	for item, err := range c.ListAlertsIter(ctx, ListAlertsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -286,16 +290,13 @@ func (c *internalClient) ListAlerts(ctx context.Context, req *ListAlertsRequest,
 //
 // Callers who need custom pagination logic should use
 // ListAlerts directly.
-func (c *internalClient) ListAlertsIter(ctx context.Context, req *ListAlertsRequest, opts ...call.Option) iter.Seq2[*ListAlertsResponseAlert, error] {
+func (c *internalClient) ListAlertsIter(ctx context.Context, req ListAlertsRequest, opts ...call.Option) iter.Seq2[*ListAlertsResponseAlert, error] {
 	return func(yield func(*ListAlertsResponseAlert, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListAlertsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListAlerts(ctx, &pageReq, opts...)
+			resp, err := c.ListAlerts(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -316,7 +317,7 @@ func (c *internalClient) ListAlertsIter(ctx context.Context, req *ListAlertsRequ
 // Moves an alert to the trash. Trashed alerts immediately disappear from
 // searches and list views, and can no longer trigger. You can restore a trashed
 // alert through the UI. A trashed alert is permanently deleted after 30 days.
-func (c *internalClient) TrashAlert(ctx context.Context, req *TrashAlertRequest, opts ...call.Option) (*Empty, error) {
+func (c *internalClient) TrashAlert(ctx context.Context, req TrashAlertRequest, opts ...call.Option) (*Empty, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -330,7 +331,11 @@ func (c *internalClient) TrashAlert(ctx context.Context, req *TrashAlertRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/alerts/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -370,8 +375,8 @@ func (c *internalClient) TrashAlert(ctx context.Context, req *TrashAlertRequest,
 }
 
 // Updates an alert.
-func (c *internalClient) UpdateAlert(ctx context.Context, req *UpdateAlertRequest, opts ...call.Option) (*Alert, error) {
-	wireReq, err := updateAlertRequestToWire(req)
+func (c *internalClient) UpdateAlert(ctx context.Context, req UpdateAlertRequest, opts ...call.Option) (*Alert, error) {
+	wireReq, err := updateAlertRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -392,7 +397,11 @@ func (c *internalClient) UpdateAlert(ctx context.Context, req *UpdateAlertReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/alerts/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

@@ -3,8 +3,54 @@
 package logdelivery
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type createLogDeliveryConfigurationParamsWire struct {
 	ConfigId               *string                 `json:"config_id,omitempty"`
@@ -14,18 +60,30 @@ type createLogDeliveryConfigurationParamsWire struct {
 	AccountId              *string                 `json:"account_id,omitempty"`
 	CredentialsId          *string                 `json:"credentials_id,omitempty"`
 	StorageConfigurationId *string                 `json:"storage_configuration_id,omitempty"`
-	WorkspaceIdsFilter     []int64                 `json:"workspace_ids_filter,omitempty"`
+	WorkspaceIdsFilter     []wireInt64             `json:"workspace_ids_filter,omitempty"`
 	DeliveryPathPrefix     *string                 `json:"delivery_path_prefix,omitempty"`
 	DeliveryStartTime      *string                 `json:"delivery_start_time,omitempty"`
 	Status                 LogDeliveryConfigStatus `json:"status,omitempty"`
-	CreationTime           *int64                  `json:"creation_time,omitempty"`
-	UpdateTime             *int64                  `json:"update_time,omitempty"`
+	CreationTime           *wireInt64              `json:"creation_time,omitempty"`
+	UpdateTime             *wireInt64              `json:"update_time,omitempty"`
 	LogDeliveryStatus      *logDeliveryStatusWire  `json:"log_delivery_status,omitempty"`
 }
 
 func createLogDeliveryConfigurationParamsToWire(v *CreateLogDeliveryConfigurationParams) (*createLogDeliveryConfigurationParamsWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	workspaceIdsFilterWireValue, err := convertSlice(v.WorkspaceIdsFilter, int64ToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateLogDeliveryConfigurationParams.WorkspaceIdsFilter", err)
+	}
+	creationTimeWireValue, err := int64ToWire(v.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateLogDeliveryConfigurationParams.CreationTime", err)
+	}
+	updateTimeWireValue, err := int64ToWire(v.UpdateTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateLogDeliveryConfigurationParams.UpdateTime", err)
 	}
 	logDeliveryStatusWireValue, err := logDeliveryStatusToWire(v.LogDeliveryStatus)
 	if err != nil {
@@ -39,12 +97,12 @@ func createLogDeliveryConfigurationParamsToWire(v *CreateLogDeliveryConfiguratio
 		AccountId:              v.AccountId,
 		CredentialsId:          v.CredentialsId,
 		StorageConfigurationId: v.StorageConfigurationId,
-		WorkspaceIdsFilter:     v.WorkspaceIdsFilter,
+		WorkspaceIdsFilter:     workspaceIdsFilterWireValue,
 		DeliveryPathPrefix:     v.DeliveryPathPrefix,
 		DeliveryStartTime:      v.DeliveryStartTime,
 		Status:                 v.Status,
-		CreationTime:           v.CreationTime,
-		UpdateTime:             v.UpdateTime,
+		CreationTime:           creationTimeWireValue,
+		UpdateTime:             updateTimeWireValue,
 		LogDeliveryStatus:      logDeliveryStatusWireValue,
 	}, nil
 }
@@ -148,18 +206,30 @@ type logDeliveryConfigurationWire struct {
 	AccountId              *string                 `json:"account_id,omitempty"`
 	CredentialsId          *string                 `json:"credentials_id,omitempty"`
 	StorageConfigurationId *string                 `json:"storage_configuration_id,omitempty"`
-	WorkspaceIdsFilter     []int64                 `json:"workspace_ids_filter,omitempty"`
+	WorkspaceIdsFilter     []wireInt64             `json:"workspace_ids_filter,omitempty"`
 	DeliveryPathPrefix     *string                 `json:"delivery_path_prefix,omitempty"`
 	DeliveryStartTime      *string                 `json:"delivery_start_time,omitempty"`
 	Status                 LogDeliveryConfigStatus `json:"status,omitempty"`
-	CreationTime           *int64                  `json:"creation_time,omitempty"`
-	UpdateTime             *int64                  `json:"update_time,omitempty"`
+	CreationTime           *wireInt64              `json:"creation_time,omitempty"`
+	UpdateTime             *wireInt64              `json:"update_time,omitempty"`
 	LogDeliveryStatus      *logDeliveryStatusWire  `json:"log_delivery_status,omitempty"`
 }
 
 func logDeliveryConfigurationFromWire(w *logDeliveryConfigurationWire) (*LogDeliveryConfiguration, error) {
 	if w == nil {
 		return nil, nil
+	}
+	workspaceIdsFilterPublicValue, err := convertSlice(w.WorkspaceIdsFilter, int64FromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LogDeliveryConfiguration.WorkspaceIdsFilter", err)
+	}
+	creationTimePublicValue, err := int64FromWire(w.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LogDeliveryConfiguration.CreationTime", err)
+	}
+	updateTimePublicValue, err := int64FromWire(w.UpdateTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LogDeliveryConfiguration.UpdateTime", err)
 	}
 	logDeliveryStatusPublicValue, err := logDeliveryStatusFromWire(w.LogDeliveryStatus)
 	if err != nil {
@@ -173,12 +243,12 @@ func logDeliveryConfigurationFromWire(w *logDeliveryConfigurationWire) (*LogDeli
 		AccountId:              w.AccountId,
 		CredentialsId:          w.CredentialsId,
 		StorageConfigurationId: w.StorageConfigurationId,
-		WorkspaceIdsFilter:     w.WorkspaceIdsFilter,
+		WorkspaceIdsFilter:     workspaceIdsFilterPublicValue,
 		DeliveryPathPrefix:     w.DeliveryPathPrefix,
 		DeliveryStartTime:      w.DeliveryStartTime,
 		Status:                 w.Status,
-		CreationTime:           w.CreationTime,
-		UpdateTime:             w.UpdateTime,
+		CreationTime:           creationTimePublicValue,
+		UpdateTime:             updateTimePublicValue,
 		LogDeliveryStatus:      logDeliveryStatusPublicValue,
 	}, nil
 }

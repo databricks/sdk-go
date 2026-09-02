@@ -3,34 +3,88 @@
 package files
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
 
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
+
 type addBlockRequestWire struct {
-	Handle *int64 `json:"handle,omitempty"`
-	Data   []byte `json:"data,omitempty"`
+	Handle *wireInt64 `json:"handle,omitempty"`
+	Data   []byte     `json:"data,omitempty"`
 }
 
 func addBlockRequestToWire(v *AddBlockRequest) (*addBlockRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	handleWireValue, err := int64ToWire(v.Handle)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AddBlockRequest.Handle", err)
+	}
 	return &addBlockRequestWire{
-		Handle: v.Handle,
+		Handle: handleWireValue,
 		Data:   v.Data,
 	}, nil
 }
 
 type closeRequestWire struct {
-	Handle *int64 `json:"handle,omitempty"`
+	Handle *wireInt64 `json:"handle,omitempty"`
 }
 
 func closeRequestToWire(v *CloseRequest) (*closeRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	handleWireValue, err := int64ToWire(v.Handle)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CloseRequest.Handle", err)
+	}
 	return &closeRequestWire{
-		Handle: v.Handle,
+		Handle: handleWireValue,
 	}, nil
 }
 
@@ -50,15 +104,19 @@ func createRequestToWire(v *CreateRequest) (*createRequestWire, error) {
 }
 
 type createResponseWire struct {
-	Handle *int64 `json:"handle,omitempty"`
+	Handle *wireInt64 `json:"handle,omitempty"`
 }
 
 func createResponseFromWire(w *createResponseWire) (*CreateResponse, error) {
 	if w == nil {
 		return nil, nil
 	}
+	handlePublicValue, err := int64FromWire(w.Handle)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateResponse.Handle", err)
+	}
 	return &CreateResponse{
-		Handle: w.Handle,
+		Handle: handlePublicValue,
 	}, nil
 }
 
@@ -99,21 +157,29 @@ func directoryEntryFromWire(w *directoryEntryWire) (*DirectoryEntry, error) {
 }
 
 type fileInfoWire struct {
-	Path             *string `json:"path,omitempty"`
-	IsDir            *bool   `json:"is_dir,omitempty"`
-	FileSize         *int64  `json:"file_size,omitempty"`
-	ModificationTime *int64  `json:"modification_time,omitempty"`
+	Path             *string    `json:"path,omitempty"`
+	IsDir            *bool      `json:"is_dir,omitempty"`
+	FileSize         *wireInt64 `json:"file_size,omitempty"`
+	ModificationTime *wireInt64 `json:"modification_time,omitempty"`
 }
 
 func fileInfoFromWire(w *fileInfoWire) (*FileInfo, error) {
 	if w == nil {
 		return nil, nil
 	}
+	fileSizePublicValue, err := int64FromWire(w.FileSize)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FileInfo.FileSize", err)
+	}
+	modificationTimePublicValue, err := int64FromWire(w.ModificationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FileInfo.ModificationTime", err)
+	}
 	return &FileInfo{
 		Path:             w.Path,
 		IsDir:            w.IsDir,
-		FileSize:         w.FileSize,
-		ModificationTime: w.ModificationTime,
+		FileSize:         fileSizePublicValue,
+		ModificationTime: modificationTimePublicValue,
 	}, nil
 }
 
@@ -131,37 +197,49 @@ func getStatusRequestToWire(v *GetStatusRequest) (*getStatusRequestWire, error) 
 }
 
 type getStatusResponseWire struct {
-	Path             *string `json:"path,omitempty"`
-	IsDir            *bool   `json:"is_dir,omitempty"`
-	FileSize         *int64  `json:"file_size,omitempty"`
-	ModificationTime *int64  `json:"modification_time,omitempty"`
+	Path             *string    `json:"path,omitempty"`
+	IsDir            *bool      `json:"is_dir,omitempty"`
+	FileSize         *wireInt64 `json:"file_size,omitempty"`
+	ModificationTime *wireInt64 `json:"modification_time,omitempty"`
 }
 
 func getStatusResponseFromWire(w *getStatusResponseWire) (*GetStatusResponse, error) {
 	if w == nil {
 		return nil, nil
 	}
+	fileSizePublicValue, err := int64FromWire(w.FileSize)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetStatusResponse.FileSize", err)
+	}
+	modificationTimePublicValue, err := int64FromWire(w.ModificationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetStatusResponse.ModificationTime", err)
+	}
 	return &GetStatusResponse{
 		Path:             w.Path,
 		IsDir:            w.IsDir,
-		FileSize:         w.FileSize,
-		ModificationTime: w.ModificationTime,
+		FileSize:         fileSizePublicValue,
+		ModificationTime: modificationTimePublicValue,
 	}, nil
 }
 
 type listDirectoryContentsRequestWire struct {
-	DirectoryPath *string `json:"directory_path,omitempty"`
-	PageSize      *int64  `json:"page_size,omitempty"`
-	PageToken     *string `json:"page_token,omitempty"`
+	DirectoryPath *string    `json:"directory_path,omitempty"`
+	PageSize      *wireInt64 `json:"page_size,omitempty"`
+	PageToken     *string    `json:"page_token,omitempty"`
 }
 
 func listDirectoryContentsRequestToWire(v *ListDirectoryContentsRequest) (*listDirectoryContentsRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	pageSizeWireValue, err := int64ToWire(v.PageSize)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListDirectoryContentsRequest.PageSize", err)
+	}
 	return &listDirectoryContentsRequestWire{
 		DirectoryPath: v.DirectoryPath,
-		PageSize:      v.PageSize,
+		PageSize:      pageSizeWireValue,
 		PageToken:     v.PageToken,
 	}, nil
 }
@@ -261,33 +339,45 @@ func putRequestToWire(v *PutRequest) (*putRequestWire, error) {
 }
 
 type readRequestWire struct {
-	Path   *string `json:"path,omitempty"`
-	Offset *int64  `json:"offset,omitempty"`
-	Length *int64  `json:"length,omitempty"`
+	Path   *string    `json:"path,omitempty"`
+	Offset *wireInt64 `json:"offset,omitempty"`
+	Length *wireInt64 `json:"length,omitempty"`
 }
 
 func readRequestToWire(v *ReadRequest) (*readRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	offsetWireValue, err := int64ToWire(v.Offset)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ReadRequest.Offset", err)
+	}
+	lengthWireValue, err := int64ToWire(v.Length)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ReadRequest.Length", err)
+	}
 	return &readRequestWire{
 		Path:   v.Path,
-		Offset: v.Offset,
-		Length: v.Length,
+		Offset: offsetWireValue,
+		Length: lengthWireValue,
 	}, nil
 }
 
 type readResponseWire struct {
-	BytesRead *int64 `json:"bytes_read,omitempty"`
-	Data      []byte `json:"data,omitempty"`
+	BytesRead *wireInt64 `json:"bytes_read,omitempty"`
+	Data      []byte     `json:"data,omitempty"`
 }
 
 func readResponseFromWire(w *readResponseWire) (*ReadResponse, error) {
 	if w == nil {
 		return nil, nil
 	}
+	bytesReadPublicValue, err := int64FromWire(w.BytesRead)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ReadResponse.BytesRead", err)
+	}
 	return &ReadResponse{
-		BytesRead: w.BytesRead,
+		BytesRead: bytesReadPublicValue,
 		Data:      w.Data,
 	}, nil
 }

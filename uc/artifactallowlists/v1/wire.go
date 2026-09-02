@@ -3,14 +3,60 @@
 package artifactallowlists
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type artifactAllowlistInfoWire struct {
 	ArtifactMatchers []artifactMatcherWire `json:"artifact_matchers,omitempty"`
 	MetastoreId      *string               `json:"metastore_id,omitempty"`
 	CreatedBy        *string               `json:"created_by,omitempty"`
-	CreatedAt        *int64                `json:"created_at,omitempty"`
+	CreatedAt        *wireInt64            `json:"created_at,omitempty"`
 }
 
 func artifactAllowlistInfoFromWire(w *artifactAllowlistInfoWire) (*ArtifactAllowlistInfo, error) {
@@ -21,11 +67,15 @@ func artifactAllowlistInfoFromWire(w *artifactAllowlistInfoWire) (*ArtifactAllow
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ArtifactAllowlistInfo.ArtifactMatchers", err)
 	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ArtifactAllowlistInfo.CreatedAt", err)
+	}
 	return &ArtifactAllowlistInfo{
 		ArtifactMatchers: artifactMatchersPublicValue,
 		MetastoreId:      w.MetastoreId,
 		CreatedBy:        w.CreatedBy,
-		CreatedAt:        w.CreatedAt,
+		CreatedAt:        createdAtPublicValue,
 	}, nil
 }
 
@@ -59,7 +109,7 @@ type setArtifactAllowlistRequestWire struct {
 	ArtifactMatchers []artifactMatcherWire `json:"artifact_matchers,omitempty"`
 	MetastoreId      *string               `json:"metastore_id,omitempty"`
 	CreatedBy        *string               `json:"created_by,omitempty"`
-	CreatedAt        *int64                `json:"created_at,omitempty"`
+	CreatedAt        *wireInt64            `json:"created_at,omitempty"`
 }
 
 func setArtifactAllowlistRequestToWire(v *SetArtifactAllowlistRequest) (*setArtifactAllowlistRequestWire, error) {
@@ -70,12 +120,16 @@ func setArtifactAllowlistRequestToWire(v *SetArtifactAllowlistRequest) (*setArti
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "SetArtifactAllowlistRequest.ArtifactMatchers", err)
 	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SetArtifactAllowlistRequest.CreatedAt", err)
+	}
 	return &setArtifactAllowlistRequestWire{
 		ArtifactType:     v.ArtifactType,
 		ArtifactMatchers: artifactMatchersWireValue,
 		MetastoreId:      v.MetastoreId,
 		CreatedBy:        v.CreatedBy,
-		CreatedAt:        v.CreatedAt,
+		CreatedAt:        createdAtWireValue,
 	}, nil
 }
 

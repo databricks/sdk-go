@@ -76,8 +76,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 
 // Creates a new policy.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateBudgetPolicy(ctx context.Context, req *CreateBudgetPolicyRequest, opts ...call.Option) (*BudgetPolicy, error) {
-	wireReq, err := createBudgetPolicyRequestToWire(req)
+func (c *internalClient) CreateBudgetPolicy(ctx context.Context, req CreateBudgetPolicyRequest, opts ...call.Option) (*BudgetPolicy, error) {
+	wireReq, err := createBudgetPolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +151,7 @@ func (c *internalClient) CreateBudgetPolicy(ctx context.Context, req *CreateBudg
 
 // Deletes a policy
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteBudgetPolicy(ctx context.Context, req *DeleteBudgetPolicyRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteBudgetPolicy(ctx context.Context, req DeleteBudgetPolicyRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -168,7 +168,11 @@ func (c *internalClient) DeleteBudgetPolicy(ctx context.Context, req *DeleteBudg
 	pb.literal("/api/2.1/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/budget-policies/")
-	pb.singleSegment(*req.PolicyId)
+	if req.PolicyId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PolicyId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -206,7 +210,7 @@ func (c *internalClient) DeleteBudgetPolicy(ctx context.Context, req *DeleteBudg
 
 // Retrieves a policy by it's ID.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetBudgetPolicy(ctx context.Context, req *GetBudgetPolicyRequest, opts ...call.Option) (*BudgetPolicy, error) {
+func (c *internalClient) GetBudgetPolicy(ctx context.Context, req GetBudgetPolicyRequest, opts ...call.Option) (*BudgetPolicy, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -223,7 +227,11 @@ func (c *internalClient) GetBudgetPolicy(ctx context.Context, req *GetBudgetPoli
 	pb.literal("/api/2.1/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/budget-policies/")
-	pb.singleSegment(*req.PolicyId)
+	if req.PolicyId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PolicyId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -271,8 +279,8 @@ func (c *internalClient) GetBudgetPolicy(ctx context.Context, req *GetBudgetPoli
 // Lists all policies. Policies are returned in the alphabetically ascending
 // order of their names.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListBudgetPolicies(ctx context.Context, req *ListBudgetPoliciesRequest, opts ...call.Option) (*ListBudgetPoliciesResponse, error) {
-	wireReq, err := listBudgetPoliciesRequestToWire(req)
+func (c *internalClient) ListBudgetPolicies(ctx context.Context, req ListBudgetPoliciesRequest, opts ...call.Option) (*ListBudgetPoliciesResponse, error) {
+	wireReq, err := listBudgetPoliciesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -353,7 +361,7 @@ func (c *internalClient) ListBudgetPolicies(ctx context.Context, req *ListBudget
 //
 // For example:
 //
-//	for item, err := range c.ListBudgetPoliciesIter(ctx, &ListBudgetPoliciesRequest{}) {
+//	for item, err := range c.ListBudgetPoliciesIter(ctx, ListBudgetPoliciesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -365,16 +373,13 @@ func (c *internalClient) ListBudgetPolicies(ctx context.Context, req *ListBudget
 //
 // Callers who need custom pagination logic should use
 // ListBudgetPolicies directly.
-func (c *internalClient) ListBudgetPoliciesIter(ctx context.Context, req *ListBudgetPoliciesRequest, opts ...call.Option) iter.Seq2[*BudgetPolicy, error] {
+func (c *internalClient) ListBudgetPoliciesIter(ctx context.Context, req ListBudgetPoliciesRequest, opts ...call.Option) iter.Seq2[*BudgetPolicy, error] {
 	return func(yield func(*BudgetPolicy, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListBudgetPoliciesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListBudgetPolicies(ctx, &pageReq, opts...)
+			resp, err := c.ListBudgetPolicies(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -394,8 +399,8 @@ func (c *internalClient) ListBudgetPoliciesIter(ctx context.Context, req *ListBu
 
 // Updates a policy
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) UpdateBudgetPolicy(ctx context.Context, req *UpdateBudgetPolicyRequest, opts ...call.Option) (*BudgetPolicy, error) {
-	wireReq, err := updateBudgetPolicyRequestToWire(req)
+func (c *internalClient) UpdateBudgetPolicy(ctx context.Context, req UpdateBudgetPolicyRequest, opts ...call.Option) (*BudgetPolicy, error) {
+	wireReq, err := updateBudgetPolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -419,7 +424,11 @@ func (c *internalClient) UpdateBudgetPolicy(ctx context.Context, req *UpdateBudg
 	pb.literal("/api/2.1/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/budget-policies/")
-	pb.singleSegment(*req.Policy.PolicyId)
+	if req.Policy == nil || req.Policy.PolicyId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Policy.PolicyId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "limit_config", wireReq.LimitConfig); err != nil {

@@ -77,8 +77,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // Creates a new external metadata object in the parent metastore if the caller
 // is a metastore admin or has the **CREATE_EXTERNAL_METADATA** privilege.
 // Grants **BROWSE** to all account users upon creation by default.
-func (c *internalClient) CreateExternalMetadataV2(ctx context.Context, req *CreateExternalMetadataRequest, opts ...call.Option) (*ExternalMetadata, error) {
-	wireReq, err := createExternalMetadataRequestToWire(req)
+func (c *internalClient) CreateExternalMetadataV2(ctx context.Context, req CreateExternalMetadataRequest, opts ...call.Option) (*ExternalMetadata, error) {
+	wireReq, err := createExternalMetadataRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func (c *internalClient) CreateExternalMetadataV2(ctx context.Context, req *Crea
 // Deletes the external metadata object that matches the supplied name. The
 // caller must be a metastore admin, the owner of the external metadata object,
 // or a user that has the **MANAGE** privilege.
-func (c *internalClient) DeleteExternalMetadataV2(ctx context.Context, req *DeleteExternalMetadataRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteExternalMetadataV2(ctx context.Context, req DeleteExternalMetadataRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -159,7 +159,11 @@ func (c *internalClient) DeleteExternalMetadataV2(ctx context.Context, req *Dele
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lineage-tracking/external-metadata/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -198,7 +202,7 @@ func (c *internalClient) DeleteExternalMetadataV2(ctx context.Context, req *Dele
 // Gets the specified external metadata object in a metastore. The caller must
 // be a metastore admin, the owner of the external metadata object, or a user
 // that has the **BROWSE** privilege.
-func (c *internalClient) GetExternalMetadataV2(ctx context.Context, req *GetExternalMetadataRequest, opts ...call.Option) (*ExternalMetadata, error) {
+func (c *internalClient) GetExternalMetadataV2(ctx context.Context, req GetExternalMetadataRequest, opts ...call.Option) (*ExternalMetadata, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -212,7 +216,11 @@ func (c *internalClient) GetExternalMetadataV2(ctx context.Context, req *GetExte
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lineage-tracking/external-metadata/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -262,8 +270,8 @@ func (c *internalClient) GetExternalMetadataV2(ctx context.Context, req *GetExte
 // Otherwise, only external metadata objects that the caller has **BROWSE** on
 // will be retrieved. There is no guarantee of a specific ordering of the
 // elements in the array.
-func (c *internalClient) ListExternalMetadataV2(ctx context.Context, req *ListExternalMetadataRequest, opts ...call.Option) (*ListExternalMetadataResponseV2, error) {
-	wireReq, err := listExternalMetadataRequestToWire(req)
+func (c *internalClient) ListExternalMetadataV2(ctx context.Context, req ListExternalMetadataRequest, opts ...call.Option) (*ListExternalMetadataResponseV2, error) {
+	wireReq, err := listExternalMetadataRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -333,7 +341,7 @@ func (c *internalClient) ListExternalMetadataV2(ctx context.Context, req *ListEx
 //
 // For example:
 //
-//	for item, err := range c.ListExternalMetadataV2Iter(ctx, &ListExternalMetadataRequest{}) {
+//	for item, err := range c.ListExternalMetadataV2Iter(ctx, ListExternalMetadataRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -345,16 +353,13 @@ func (c *internalClient) ListExternalMetadataV2(ctx context.Context, req *ListEx
 //
 // Callers who need custom pagination logic should use
 // ListExternalMetadataV2 directly.
-func (c *internalClient) ListExternalMetadataV2Iter(ctx context.Context, req *ListExternalMetadataRequest, opts ...call.Option) iter.Seq2[*ExternalMetadata, error] {
+func (c *internalClient) ListExternalMetadataV2Iter(ctx context.Context, req ListExternalMetadataRequest, opts ...call.Option) iter.Seq2[*ExternalMetadata, error] {
 	return func(yield func(*ExternalMetadata, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListExternalMetadataRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListExternalMetadataV2(ctx, &pageReq, opts...)
+			resp, err := c.ListExternalMetadataV2(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -377,8 +382,8 @@ func (c *internalClient) ListExternalMetadataV2Iter(ctx context.Context, req *Li
 // request. The caller must be a metastore admin, the owner of the external
 // metadata object, or a user that has the **MODIFY** privilege. If the caller
 // is updating the owner, they must also have the **MANAGE** privilege.
-func (c *internalClient) UpdateExternalMetadataV2(ctx context.Context, req *UpdateExternalMetadataRequest, opts ...call.Option) (*ExternalMetadata, error) {
-	wireReq, err := updateExternalMetadataRequestToWire(req)
+func (c *internalClient) UpdateExternalMetadataV2(ctx context.Context, req UpdateExternalMetadataRequest, opts ...call.Option) (*ExternalMetadata, error) {
+	wireReq, err := updateExternalMetadataRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -399,7 +404,11 @@ func (c *internalClient) UpdateExternalMetadataV2(ctx context.Context, req *Upda
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lineage-tracking/external-metadata/")
-	pb.singleSegment(*req.ExternalMetadata.Name)
+	if req.ExternalMetadata == nil || req.ExternalMetadata.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ExternalMetadata.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

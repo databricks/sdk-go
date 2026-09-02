@@ -3,35 +3,89 @@
 package policyfamilies
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
 
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
+
 type getPolicyFamilyRequestWire struct {
-	PolicyFamilyId *string `json:"policy_family_id,omitempty"`
-	Version        *int64  `json:"version,omitempty"`
+	PolicyFamilyId *string    `json:"policy_family_id,omitempty"`
+	Version        *wireInt64 `json:"version,omitempty"`
 }
 
 func getPolicyFamilyRequestToWire(v *GetPolicyFamilyRequest) (*getPolicyFamilyRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	versionWireValue, err := int64ToWire(v.Version)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetPolicyFamilyRequest.Version", err)
+	}
 	return &getPolicyFamilyRequestWire{
 		PolicyFamilyId: v.PolicyFamilyId,
-		Version:        v.Version,
+		Version:        versionWireValue,
 	}, nil
 }
 
 type listPolicyFamiliesRequestWire struct {
-	MaxResults *int64  `json:"max_results,omitempty"`
-	PageToken  *string `json:"page_token,omitempty"`
+	MaxResults *wireInt64 `json:"max_results,omitempty"`
+	PageToken  *string    `json:"page_token,omitempty"`
 }
 
 func listPolicyFamiliesRequestToWire(v *ListPolicyFamiliesRequest) (*listPolicyFamiliesRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	maxResultsWireValue, err := int64ToWire(v.MaxResults)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListPolicyFamiliesRequest.MaxResults", err)
+	}
 	return &listPolicyFamiliesRequestWire{
-		MaxResults: v.MaxResults,
+		MaxResults: maxResultsWireValue,
 		PageToken:  v.PageToken,
 	}, nil
 }

@@ -204,6 +204,28 @@ func TestResolve(t *testing.T) {
 			},
 		},
 		{
+			name: "groupIDEnvOverridesFile",
+			opts: []ResolveOption{
+				WithFile("testdata/databrickscfg_group_id"),
+				WithProfile("workspace"),
+				WithEnv(),
+			},
+			env: map[string]string{
+				"DATABRICKS_GROUP_ID": "env-group-id",
+			},
+			want: &Profile{
+				Name:         "workspace",
+				Host:         "https://workspace.cloud.databricks.com",
+				Token:        Secret("workspace-token"),
+				AccountID:    "acc-123",
+				ClientID:     "client-abc",
+				ClientSecret: Secret("secret-xyz"),
+				ClusterID:    "0123-456789-abcdef",
+				WarehouseID:  "abc123def456",
+				GroupID:      "env-group-id",
+			},
+		},
+		{
 			name: "noOptions",
 			env: map[string]string{
 				"DATABRICKS_CONFIG_FILE":    "testdata/databrickscfg",
@@ -490,9 +512,10 @@ func TestProfile_SaveToFile(t *testing.T) {
 	}{
 		{
 			desc:    "known fields are written to the ini file",
-			profile: &Profile{Name: "test", Host: "https://saved.cloud.databricks.com", Token: Secret("saved-token"), ClientID: "saved-client-id"},
+			profile: &Profile{Name: "test", Host: "https://saved.cloud.databricks.com", GroupID: "saved-group-id", Token: Secret("saved-token"), ClientID: "saved-client-id"},
 			want: `[test]
 host      = https://saved.cloud.databricks.com
+group_id  = saved-group-id
 token     = saved-token
 client_id = saved-client-id
 `,
@@ -610,7 +633,7 @@ func TestProfile_SaveToFile_emptyPath(t *testing.T) {
 
 func TestProfile_SaveToFile_roundTrip(t *testing.T) {
 	resetEnv(t)
-	src := "testdata/databrickscfg"
+	src := "testdata/databrickscfg_group_id"
 	p, err := Resolve(WithFile(src), WithProfile("workspace"))
 	if err != nil {
 		t.Fatalf("Resolve() error: %v", err)

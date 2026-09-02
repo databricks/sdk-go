@@ -76,8 +76,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Creates a Genie space from a serialized payload.
-func (c *internalClient) CreateSpace(ctx context.Context, req *GenieCreateSpaceRequest, opts ...call.Option) (*GenieSpace, error) {
-	wireReq, err := genieCreateSpaceRequestToWire(req)
+func (c *internalClient) CreateSpace(ctx context.Context, req GenieCreateSpaceRequest, opts ...call.Option) (*GenieSpace, error) {
+	wireReq, err := genieCreateSpaceRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func (c *internalClient) CreateSpace(ctx context.Context, req *GenieCreateSpaceR
 // body is the raw PNG image, not a JSON payload. This is only available if the
 // attachment is a visualization and the message status is `COMPLETED`. This
 // endpoint is not supported for Private Link workspaces.
-func (c *internalClient) DownloadMessageAttachmentVisualization(ctx context.Context, req *DownloadMessageAttachmentVisualizationRequest, opts ...call.Option) (*DownloadMessageAttachmentVisualizationResponse, error) {
+func (c *internalClient) DownloadMessageAttachmentVisualization(ctx context.Context, req DownloadMessageAttachmentVisualizationRequest, opts ...call.Option) (*DownloadMessageAttachmentVisualizationResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -160,7 +160,11 @@ func (c *internalClient) DownloadMessageAttachmentVisualization(ctx context.Cont
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/download-visualization")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -200,11 +204,99 @@ func (c *internalClient) DownloadMessageAttachmentVisualization(ctx context.Cont
 	return resp, nil
 }
 
+// Cancels an in-flight agent-mode response. `response_id` is the id returned in
+// the `response.created` event from the agent-mode responses endpoint. The
+// response stops at the next agent boundary and its terminal state is returned.
+func (c *internalClient) GenieCancelResponse(ctx context.Context, req GenieCancelResponseRequest, opts ...call.Option) (*GenieMessage, error) {
+	wireReq, err := genieCancelResponseRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/genie/agents/")
+	if req.AgentId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.AgentId)
+	}
+	pb.literal("/conversations/")
+	if req.ConversationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ConversationId)
+	}
+	pb.literal("/responses/")
+	if req.ResponseId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ResponseId)
+	}
+	pb.literal("/cancel")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *GenieMessage
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp genieMessageWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = genieMessageFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Create new message in a [conversation](:method:genie/startconversation). The
 // AI response uses all previously created messages in the conversation to
 // respond.
-func (c *internalClient) genieCreateConversationMessageBase(ctx context.Context, req *GenieCreateConversationMessageRequest, opts ...call.Option) (*GenieMessage, error) {
-	wireReq, err := genieCreateConversationMessageRequestToWire(req)
+func (c *internalClient) genieCreateConversationMessageBase(ctx context.Context, req GenieCreateConversationMessageRequest, opts ...call.Option) (*GenieMessage, error) {
+	wireReq, err := genieCreateConversationMessageRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -225,9 +317,17 @@ func (c *internalClient) genieCreateConversationMessageBase(ctx context.Context,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/conversations/")
-	pb.singleSegment(*req.ConversationId)
+	if req.ConversationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ConversationId)
+	}
 	pb.literal("/messages")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -277,7 +377,7 @@ func (c *internalClient) genieCreateConversationMessageBase(ctx context.Context,
 // Create new message in a [conversation](:method:genie/startconversation). The
 // AI response uses all previously created messages in the conversation to
 // respond.
-func (c *internalClient) GenieCreateConversationMessage(ctx context.Context, req *GenieCreateConversationMessageRequest, opts ...call.Option) (*GenieCreateConversationMessageWaiter, error) {
+func (c *internalClient) GenieCreateConversationMessage(ctx context.Context, req GenieCreateConversationMessageRequest, opts ...call.Option) (*GenieCreateConversationMessageWaiter, error) {
 	if req.ConversationId == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "ConversationId")
 	}
@@ -303,15 +403,30 @@ func (c *internalClient) GenieCreateConversationMessage(ctx context.Context, req
 
 // GenieCreateConversationMessageWaiter tracks the state of the operation started by GenieCreateConversationMessage.
 type GenieCreateConversationMessageWaiter struct {
-	poll           func(context.Context, *GenieGetConversationMessageRequest, ...call.Option) (*GenieMessage, error)
+	poll           func(context.Context, GenieGetConversationMessageRequest, ...call.Option) (*GenieMessage, error)
 	messageId      string
 	conversationId string
 	spaceId        string
 }
 
+// GetMessageId returns the MessageId value used to identify the operation.
+func (w *GenieCreateConversationMessageWaiter) GetMessageId() string {
+	return w.messageId
+}
+
+// GetConversationId returns the ConversationId value used to identify the operation.
+func (w *GenieCreateConversationMessageWaiter) GetConversationId() string {
+	return w.conversationId
+}
+
+// GetSpaceId returns the SpaceId value used to identify the operation.
+func (w *GenieCreateConversationMessageWaiter) GetSpaceId() string {
+	return w.spaceId
+}
+
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *GenieCreateConversationMessageWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GenieGetConversationMessageRequest{
+	pollResp, err := w.poll(ctx, GenieGetConversationMessageRequest{
 		MessageId:      &w.messageId,
 		ConversationId: &w.conversationId,
 		SpaceId:        &w.spaceId,
@@ -338,7 +453,7 @@ func (w *GenieCreateConversationMessageWaiter) Done(ctx context.Context, opts ..
 func (w *GenieCreateConversationMessageWaiter) Wait(ctx context.Context, opts ...lro.Option) (*GenieMessage, error) {
 	var result *GenieMessage
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GenieGetConversationMessageRequest{
+		pollResp, err := w.poll(ctx, GenieGetConversationMessageRequest{
 			MessageId:      &w.messageId,
 			ConversationId: &w.conversationId,
 			SpaceId:        &w.spaceId,
@@ -371,8 +486,8 @@ func (w *GenieCreateConversationMessageWaiter) Wait(ctx context.Context, opts ..
 }
 
 // Create and run evaluations for multiple benchmark questions in a Genie space.
-func (c *internalClient) GenieCreateEvalRun(ctx context.Context, req *GenieCreateEvalRunRequest, opts ...call.Option) (*GenieEvalRunResponse, error) {
-	wireReq, err := genieCreateEvalRunRequestToWire(req)
+func (c *internalClient) GenieCreateEvalRun(ctx context.Context, req GenieCreateEvalRunRequest, opts ...call.Option) (*GenieEvalRunResponse, error) {
+	wireReq, err := genieCreateEvalRunRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -393,7 +508,11 @@ func (c *internalClient) GenieCreateEvalRun(ctx context.Context, req *GenieCreat
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/eval-runs")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -441,8 +560,8 @@ func (c *internalClient) GenieCreateEvalRun(ctx context.Context, req *GenieCreat
 }
 
 // Create a comment on a conversation message.
-func (c *internalClient) GenieCreateMessageComment(ctx context.Context, req *GenieCreateMessageCommentRequest, opts ...call.Option) (*GenieMessageComment, error) {
-	wireReq, err := genieCreateMessageCommentRequestToWire(req)
+func (c *internalClient) GenieCreateMessageComment(ctx context.Context, req GenieCreateMessageCommentRequest, opts ...call.Option) (*GenieMessageComment, error) {
+	wireReq, err := genieCreateMessageCommentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -463,11 +582,23 @@ func (c *internalClient) GenieCreateMessageComment(ctx context.Context, req *Gen
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/conversations/")
-	pb.singleSegment(*req.ConversationId)
+	if req.ConversationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ConversationId)
+	}
 	pb.literal("/messages/")
-	pb.singleSegment(*req.MessageId)
+	if req.MessageId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MessageId)
+	}
 	pb.literal("/comments")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -515,7 +646,7 @@ func (c *internalClient) GenieCreateMessageComment(ctx context.Context, req *Gen
 }
 
 // Delete a conversation.
-func (c *internalClient) GenieDeleteConversation(ctx context.Context, req *GenieDeleteConversationRequest, opts ...call.Option) error {
+func (c *internalClient) GenieDeleteConversation(ctx context.Context, req GenieDeleteConversationRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -529,9 +660,17 @@ func (c *internalClient) GenieDeleteConversation(ctx context.Context, req *Genie
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/conversations/")
-	pb.singleSegment(*req.ConversationId)
+	if req.ConversationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ConversationId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -568,7 +707,7 @@ func (c *internalClient) GenieDeleteConversation(ctx context.Context, req *Genie
 }
 
 // Delete a conversation message.
-func (c *internalClient) GenieDeleteConversationMessage(ctx context.Context, req *GenieDeleteConversationMessageRequest, opts ...call.Option) error {
+func (c *internalClient) GenieDeleteConversationMessage(ctx context.Context, req GenieDeleteConversationMessageRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -582,11 +721,23 @@ func (c *internalClient) GenieDeleteConversationMessage(ctx context.Context, req
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/conversations/")
-	pb.singleSegment(*req.ConversationId)
+	if req.ConversationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ConversationId)
+	}
 	pb.literal("/messages/")
-	pb.singleSegment(*req.MessageId)
+	if req.MessageId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MessageId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -624,8 +775,8 @@ func (c *internalClient) GenieDeleteConversationMessage(ctx context.Context, req
 
 // Execute the SQL for a message query attachment. Use this API when the query
 // attachment has expired and needs to be re-executed.
-func (c *internalClient) GenieExecuteMessageAttachmentQuery(ctx context.Context, req *GenieExecuteMessageAttachmentQueryRequest, opts ...call.Option) (*GenieGetMessageQueryResultResponse, error) {
-	wireReq, err := genieExecuteMessageAttachmentQueryRequestToWire(req)
+func (c *internalClient) GenieExecuteMessageAttachmentQuery(ctx context.Context, req GenieExecuteMessageAttachmentQueryRequest, opts ...call.Option) (*GenieGetMessageQueryResultResponse, error) {
+	wireReq, err := genieExecuteMessageAttachmentQueryRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -646,13 +797,29 @@ func (c *internalClient) GenieExecuteMessageAttachmentQuery(ctx context.Context,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/conversations/")
-	pb.singleSegment(*req.ConversationId)
+	if req.ConversationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ConversationId)
+	}
 	pb.literal("/messages/")
-	pb.singleSegment(*req.MessageId)
+	if req.MessageId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MessageId)
+	}
 	pb.literal("/attachments/")
-	pb.singleSegment(*req.AttachmentId)
+	if req.AttachmentId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.AttachmentId)
+	}
 	pb.literal("/execute-query")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -701,8 +868,8 @@ func (c *internalClient) GenieExecuteMessageAttachmentQuery(ctx context.Context,
 
 // DEPRECATED: Use [Execute Message Attachment
 // Query](:method:genie/executemessageattachmentquery) instead.
-func (c *internalClient) GenieExecuteMessageQuery(ctx context.Context, req *GenieExecuteMessageQueryRequest, opts ...call.Option) (*GenieGetMessageQueryResultResponse, error) {
-	wireReq, err := genieExecuteMessageQueryRequestToWire(req)
+func (c *internalClient) GenieExecuteMessageQuery(ctx context.Context, req GenieExecuteMessageQueryRequest, opts ...call.Option) (*GenieGetMessageQueryResultResponse, error) {
+	wireReq, err := genieExecuteMessageQueryRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -723,11 +890,23 @@ func (c *internalClient) GenieExecuteMessageQuery(ctx context.Context, req *Geni
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/conversations/")
-	pb.singleSegment(*req.ConversationId)
+	if req.ConversationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ConversationId)
+	}
 	pb.literal("/messages/")
-	pb.singleSegment(*req.MessageId)
+	if req.MessageId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MessageId)
+	}
 	pb.literal("/execute-query")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -797,8 +976,8 @@ func (c *internalClient) GenieExecuteMessageQuery(ctx context.Context, req *Geni
 // details.
 //
 // ----
-func (c *internalClient) GenieGenerateDownloadFullQueryResult(ctx context.Context, req *GenieGenerateDownloadFullQueryResultRequest, opts ...call.Option) (*GenieGenerateDownloadFullQueryResultResponse, error) {
-	wireReq, err := genieGenerateDownloadFullQueryResultRequestToWire(req)
+func (c *internalClient) GenieGenerateDownloadFullQueryResult(ctx context.Context, req GenieGenerateDownloadFullQueryResultRequest, opts ...call.Option) (*GenieGenerateDownloadFullQueryResultResponse, error) {
+	wireReq, err := genieGenerateDownloadFullQueryResultRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -819,13 +998,29 @@ func (c *internalClient) GenieGenerateDownloadFullQueryResult(ctx context.Contex
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/conversations/")
-	pb.singleSegment(*req.ConversationId)
+	if req.ConversationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ConversationId)
+	}
 	pb.literal("/messages/")
-	pb.singleSegment(*req.MessageId)
+	if req.MessageId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MessageId)
+	}
 	pb.literal("/attachments/")
-	pb.singleSegment(*req.AttachmentId)
+	if req.AttachmentId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.AttachmentId)
+	}
 	pb.literal("/downloads")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -873,7 +1068,7 @@ func (c *internalClient) GenieGenerateDownloadFullQueryResult(ctx context.Contex
 }
 
 // Get message from conversation.
-func (c *internalClient) GenieGetConversationMessage(ctx context.Context, req *GenieGetConversationMessageRequest, opts ...call.Option) (*GenieMessage, error) {
+func (c *internalClient) GenieGetConversationMessage(ctx context.Context, req GenieGetConversationMessageRequest, opts ...call.Option) (*GenieMessage, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -887,11 +1082,23 @@ func (c *internalClient) GenieGetConversationMessage(ctx context.Context, req *G
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/conversations/")
-	pb.singleSegment(*req.ConversationId)
+	if req.ConversationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ConversationId)
+	}
 	pb.literal("/messages/")
-	pb.singleSegment(*req.MessageId)
+	if req.MessageId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MessageId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -960,8 +1167,8 @@ func (c *internalClient) GenieGetConversationMessage(ctx context.Context, req *G
 // details.
 //
 // ----
-func (c *internalClient) GenieGetDownloadFullQueryResult(ctx context.Context, req *GenieGetDownloadFullQueryResultRequest, opts ...call.Option) (*GenieGetDownloadFullQueryResultResponse, error) {
-	wireReq, err := genieGetDownloadFullQueryResultRequestToWire(req)
+func (c *internalClient) GenieGetDownloadFullQueryResult(ctx context.Context, req GenieGetDownloadFullQueryResultRequest, opts ...call.Option) (*GenieGetDownloadFullQueryResultResponse, error) {
+	wireReq, err := genieGetDownloadFullQueryResultRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -978,15 +1185,35 @@ func (c *internalClient) GenieGetDownloadFullQueryResult(ctx context.Context, re
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/conversations/")
-	pb.singleSegment(*req.ConversationId)
+	if req.ConversationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ConversationId)
+	}
 	pb.literal("/messages/")
-	pb.singleSegment(*req.MessageId)
+	if req.MessageId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MessageId)
+	}
 	pb.literal("/attachments/")
-	pb.singleSegment(*req.AttachmentId)
+	if req.AttachmentId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.AttachmentId)
+	}
 	pb.literal("/downloads/")
-	pb.singleSegment(*req.DownloadId)
+	if req.DownloadId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.DownloadId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "download_id_signature", wireReq.DownloadIdSignature); err != nil {
@@ -1035,7 +1262,7 @@ func (c *internalClient) GenieGetDownloadFullQueryResult(ctx context.Context, re
 }
 
 // Get details for evaluation results.
-func (c *internalClient) GenieGetEvalResultDetails(ctx context.Context, req *GenieGetEvalResultDetailsRequest, opts ...call.Option) (*GenieEvalResultDetails, error) {
+func (c *internalClient) GenieGetEvalResultDetails(ctx context.Context, req GenieGetEvalResultDetailsRequest, opts ...call.Option) (*GenieEvalResultDetails, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1049,11 +1276,23 @@ func (c *internalClient) GenieGetEvalResultDetails(ctx context.Context, req *Gen
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/eval-runs/")
-	pb.singleSegment(*req.EvalRunId)
+	if req.EvalRunId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.EvalRunId)
+	}
 	pb.literal("/results/")
-	pb.singleSegment(*req.ResultId)
+	if req.ResultId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ResultId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1099,7 +1338,7 @@ func (c *internalClient) GenieGetEvalResultDetails(ctx context.Context, req *Gen
 }
 
 // Get evaluation run details.
-func (c *internalClient) GenieGetEvalRun(ctx context.Context, req *GenieGetEvalRunRequest, opts ...call.Option) (*GenieEvalRunResponse, error) {
+func (c *internalClient) GenieGetEvalRun(ctx context.Context, req GenieGetEvalRunRequest, opts ...call.Option) (*GenieEvalRunResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1113,9 +1352,17 @@ func (c *internalClient) GenieGetEvalRun(ctx context.Context, req *GenieGetEvalR
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/eval-runs/")
-	pb.singleSegment(*req.EvalRunId)
+	if req.EvalRunId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.EvalRunId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1163,7 +1410,7 @@ func (c *internalClient) GenieGetEvalRun(ctx context.Context, req *GenieGetEvalR
 // Get the result of SQL query if the message has a query attachment. This is
 // only available if a message has a query attachment and the message status is
 // `EXECUTING_QUERY` OR `COMPLETED`.
-func (c *internalClient) GenieGetMessageAttachmentQueryResult(ctx context.Context, req *GenieGetMessageAttachmentQueryResultRequest, opts ...call.Option) (*GenieGetMessageQueryResultResponse, error) {
+func (c *internalClient) GenieGetMessageAttachmentQueryResult(ctx context.Context, req GenieGetMessageAttachmentQueryResultRequest, opts ...call.Option) (*GenieGetMessageQueryResultResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1177,13 +1424,29 @@ func (c *internalClient) GenieGetMessageAttachmentQueryResult(ctx context.Contex
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/conversations/")
-	pb.singleSegment(*req.ConversationId)
+	if req.ConversationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ConversationId)
+	}
 	pb.literal("/messages/")
-	pb.singleSegment(*req.MessageId)
+	if req.MessageId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MessageId)
+	}
 	pb.literal("/attachments/")
-	pb.singleSegment(*req.AttachmentId)
+	if req.AttachmentId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.AttachmentId)
+	}
 	pb.literal("/query-result")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1231,7 +1494,7 @@ func (c *internalClient) GenieGetMessageAttachmentQueryResult(ctx context.Contex
 
 // DEPRECATED: Use [Get Message Attachment Query
 // Result](:method:genie/getmessageattachmentqueryresult) instead.
-func (c *internalClient) GenieGetMessageQueryResult(ctx context.Context, req *GenieGetMessageQueryResultRequest, opts ...call.Option) (*GenieGetMessageQueryResultResponse, error) {
+func (c *internalClient) GenieGetMessageQueryResult(ctx context.Context, req GenieGetMessageQueryResultRequest, opts ...call.Option) (*GenieGetMessageQueryResultResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1245,11 +1508,23 @@ func (c *internalClient) GenieGetMessageQueryResult(ctx context.Context, req *Ge
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/conversations/")
-	pb.singleSegment(*req.ConversationId)
+	if req.ConversationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ConversationId)
+	}
 	pb.literal("/messages/")
-	pb.singleSegment(*req.MessageId)
+	if req.MessageId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MessageId)
+	}
 	pb.literal("/query-result")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1297,7 +1572,7 @@ func (c *internalClient) GenieGetMessageQueryResult(ctx context.Context, req *Ge
 
 // DEPRECATED: Use [Get Message Attachment Query
 // Result](:method:genie/getmessageattachmentqueryresult) instead.
-func (c *internalClient) GenieGetQueryResultByAttachment(ctx context.Context, req *GenieGetQueryResultByAttachmentRequest, opts ...call.Option) (*GenieGetMessageQueryResultResponse, error) {
+func (c *internalClient) GenieGetQueryResultByAttachment(ctx context.Context, req GenieGetQueryResultByAttachmentRequest, opts ...call.Option) (*GenieGetMessageQueryResultResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1311,13 +1586,29 @@ func (c *internalClient) GenieGetQueryResultByAttachment(ctx context.Context, re
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/conversations/")
-	pb.singleSegment(*req.ConversationId)
+	if req.ConversationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ConversationId)
+	}
 	pb.literal("/messages/")
-	pb.singleSegment(*req.MessageId)
+	if req.MessageId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MessageId)
+	}
 	pb.literal("/query-result/")
-	pb.singleSegment(*req.AttachmentId)
+	if req.AttachmentId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.AttachmentId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1363,8 +1654,8 @@ func (c *internalClient) GenieGetQueryResultByAttachment(ctx context.Context, re
 }
 
 // Get details of a Genie Space.
-func (c *internalClient) GenieGetSpace(ctx context.Context, req *GenieGetSpaceRequest, opts ...call.Option) (*GenieSpace, error) {
-	wireReq, err := genieGetSpaceRequestToWire(req)
+func (c *internalClient) GenieGetSpace(ctx context.Context, req GenieGetSpaceRequest, opts ...call.Option) (*GenieSpace, error) {
+	wireReq, err := genieGetSpaceRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1381,7 +1672,11 @@ func (c *internalClient) GenieGetSpace(ctx context.Context, req *GenieGetSpaceRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_serialized_space", wireReq.IncludeSerializedSpace); err != nil {
@@ -1430,8 +1725,8 @@ func (c *internalClient) GenieGetSpace(ctx context.Context, req *GenieGetSpaceRe
 }
 
 // List all comments across all messages in a conversation.
-func (c *internalClient) GenieListConversationComments(ctx context.Context, req *GenieListConversationCommentsRequest, opts ...call.Option) (*GenieListConversationCommentsResponse, error) {
-	wireReq, err := genieListConversationCommentsRequestToWire(req)
+func (c *internalClient) GenieListConversationComments(ctx context.Context, req GenieListConversationCommentsRequest, opts ...call.Option) (*GenieListConversationCommentsResponse, error) {
+	wireReq, err := genieListConversationCommentsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1448,9 +1743,17 @@ func (c *internalClient) GenieListConversationComments(ctx context.Context, req 
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/conversations/")
-	pb.singleSegment(*req.ConversationId)
+	if req.ConversationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ConversationId)
+	}
 	pb.literal("/list-comments")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1503,8 +1806,8 @@ func (c *internalClient) GenieListConversationComments(ctx context.Context, req 
 }
 
 // List messages in a conversation
-func (c *internalClient) GenieListConversationMessages(ctx context.Context, req *GenieListConversationMessagesRequest, opts ...call.Option) (*GenieListConversationMessagesResponse, error) {
-	wireReq, err := genieListConversationMessagesRequestToWire(req)
+func (c *internalClient) GenieListConversationMessages(ctx context.Context, req GenieListConversationMessagesRequest, opts ...call.Option) (*GenieListConversationMessagesResponse, error) {
+	wireReq, err := genieListConversationMessagesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1521,9 +1824,17 @@ func (c *internalClient) GenieListConversationMessages(ctx context.Context, req 
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/conversations/")
-	pb.singleSegment(*req.ConversationId)
+	if req.ConversationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ConversationId)
+	}
 	pb.literal("/messages")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1576,8 +1887,8 @@ func (c *internalClient) GenieListConversationMessages(ctx context.Context, req 
 }
 
 // Get a list of conversations in a Genie Space.
-func (c *internalClient) GenieListConversations(ctx context.Context, req *GenieListConversationsRequest, opts ...call.Option) (*GenieListConversationsResponse, error) {
-	wireReq, err := genieListConversationsRequestToWire(req)
+func (c *internalClient) GenieListConversations(ctx context.Context, req GenieListConversationsRequest, opts ...call.Option) (*GenieListConversationsResponse, error) {
+	wireReq, err := genieListConversationsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1594,7 +1905,11 @@ func (c *internalClient) GenieListConversations(ctx context.Context, req *GenieL
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/conversations")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1650,8 +1965,8 @@ func (c *internalClient) GenieListConversations(ctx context.Context, req *GenieL
 }
 
 // List evaluation results for a specific evaluation run.
-func (c *internalClient) GenieListEvalResults(ctx context.Context, req *GenieListEvalResultsRequest, opts ...call.Option) (*GenieListEvalResultsResponse, error) {
-	wireReq, err := genieListEvalResultsRequestToWire(req)
+func (c *internalClient) GenieListEvalResults(ctx context.Context, req GenieListEvalResultsRequest, opts ...call.Option) (*GenieListEvalResultsResponse, error) {
+	wireReq, err := genieListEvalResultsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1668,9 +1983,17 @@ func (c *internalClient) GenieListEvalResults(ctx context.Context, req *GenieLis
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/eval-runs/")
-	pb.singleSegment(*req.EvalRunId)
+	if req.EvalRunId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.EvalRunId)
+	}
 	pb.literal("/results")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1723,8 +2046,8 @@ func (c *internalClient) GenieListEvalResults(ctx context.Context, req *GenieLis
 }
 
 // Lists all evaluation runs in a space.
-func (c *internalClient) GenieListEvalRuns(ctx context.Context, req *GenieListEvalRunsRequest, opts ...call.Option) (*GenieListEvalRunsResponse, error) {
-	wireReq, err := genieListEvalRunsRequestToWire(req)
+func (c *internalClient) GenieListEvalRuns(ctx context.Context, req GenieListEvalRunsRequest, opts ...call.Option) (*GenieListEvalRunsResponse, error) {
+	wireReq, err := genieListEvalRunsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1741,7 +2064,11 @@ func (c *internalClient) GenieListEvalRuns(ctx context.Context, req *GenieListEv
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/eval-runs")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1794,8 +2121,8 @@ func (c *internalClient) GenieListEvalRuns(ctx context.Context, req *GenieListEv
 }
 
 // List comments on a specific conversation message.
-func (c *internalClient) GenieListMessageComments(ctx context.Context, req *GenieListMessageCommentsRequest, opts ...call.Option) (*GenieListMessageCommentsResponse, error) {
-	wireReq, err := genieListMessageCommentsRequestToWire(req)
+func (c *internalClient) GenieListMessageComments(ctx context.Context, req GenieListMessageCommentsRequest, opts ...call.Option) (*GenieListMessageCommentsResponse, error) {
+	wireReq, err := genieListMessageCommentsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1812,11 +2139,23 @@ func (c *internalClient) GenieListMessageComments(ctx context.Context, req *Geni
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/conversations/")
-	pb.singleSegment(*req.ConversationId)
+	if req.ConversationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ConversationId)
+	}
 	pb.literal("/messages/")
-	pb.singleSegment(*req.MessageId)
+	if req.MessageId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MessageId)
+	}
 	pb.literal("/comments")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1869,8 +2208,8 @@ func (c *internalClient) GenieListMessageComments(ctx context.Context, req *Geni
 }
 
 // Get list of Genie Spaces.
-func (c *internalClient) GenieListSpaces(ctx context.Context, req *GenieListSpacesRequest, opts ...call.Option) (*GenieListSpacesResponse, error) {
-	wireReq, err := genieListSpacesRequestToWire(req)
+func (c *internalClient) GenieListSpaces(ctx context.Context, req GenieListSpacesRequest, opts ...call.Option) (*GenieListSpacesResponse, error) {
+	wireReq, err := genieListSpacesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1936,8 +2275,8 @@ func (c *internalClient) GenieListSpaces(ctx context.Context, req *GenieListSpac
 }
 
 // Send feedback for a message.
-func (c *internalClient) GenieSendMessageFeedback(ctx context.Context, req *GenieSendMessageFeedbackRequest, opts ...call.Option) error {
-	wireReq, err := genieSendMessageFeedbackRequestToWire(req)
+func (c *internalClient) GenieSendMessageFeedback(ctx context.Context, req GenieSendMessageFeedbackRequest, opts ...call.Option) error {
+	wireReq, err := genieSendMessageFeedbackRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -1958,11 +2297,23 @@ func (c *internalClient) GenieSendMessageFeedback(ctx context.Context, req *Geni
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/conversations/")
-	pb.singleSegment(*req.ConversationId)
+	if req.ConversationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ConversationId)
+	}
 	pb.literal("/messages/")
-	pb.singleSegment(*req.MessageId)
+	if req.MessageId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MessageId)
+	}
 	pb.literal("/feedback")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -2001,8 +2352,8 @@ func (c *internalClient) GenieSendMessageFeedback(ctx context.Context, req *Geni
 }
 
 // Start a new conversation.
-func (c *internalClient) genieStartConversationBase(ctx context.Context, req *GenieStartConversationRequest, opts ...call.Option) (*GenieStartConversationResponse, error) {
-	wireReq, err := genieStartConversationRequestToWire(req)
+func (c *internalClient) genieStartConversationBase(ctx context.Context, req GenieStartConversationRequest, opts ...call.Option) (*GenieStartConversationResponse, error) {
+	wireReq, err := genieStartConversationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2023,7 +2374,11 @@ func (c *internalClient) genieStartConversationBase(ctx context.Context, req *Ge
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	pb.literal("/start-conversation")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -2071,7 +2426,7 @@ func (c *internalClient) genieStartConversationBase(ctx context.Context, req *Ge
 }
 
 // Start a new conversation.
-func (c *internalClient) GenieStartConversation(ctx context.Context, req *GenieStartConversationRequest, opts ...call.Option) (*GenieStartConversationWaiter, error) {
+func (c *internalClient) GenieStartConversation(ctx context.Context, req GenieStartConversationRequest, opts ...call.Option) (*GenieStartConversationWaiter, error) {
 	if req.SpaceId == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "SpaceId")
 	}
@@ -2096,15 +2451,30 @@ func (c *internalClient) GenieStartConversation(ctx context.Context, req *GenieS
 
 // GenieStartConversationWaiter tracks the state of the operation started by GenieStartConversation.
 type GenieStartConversationWaiter struct {
-	poll           func(context.Context, *GenieGetConversationMessageRequest, ...call.Option) (*GenieMessage, error)
+	poll           func(context.Context, GenieGetConversationMessageRequest, ...call.Option) (*GenieMessage, error)
 	messageId      string
 	conversationId string
 	spaceId        string
 }
 
+// GetMessageId returns the MessageId value used to identify the operation.
+func (w *GenieStartConversationWaiter) GetMessageId() string {
+	return w.messageId
+}
+
+// GetConversationId returns the ConversationId value used to identify the operation.
+func (w *GenieStartConversationWaiter) GetConversationId() string {
+	return w.conversationId
+}
+
+// GetSpaceId returns the SpaceId value used to identify the operation.
+func (w *GenieStartConversationWaiter) GetSpaceId() string {
+	return w.spaceId
+}
+
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *GenieStartConversationWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GenieGetConversationMessageRequest{
+	pollResp, err := w.poll(ctx, GenieGetConversationMessageRequest{
 		MessageId:      &w.messageId,
 		ConversationId: &w.conversationId,
 		SpaceId:        &w.spaceId,
@@ -2131,7 +2501,7 @@ func (w *GenieStartConversationWaiter) Done(ctx context.Context, opts ...call.Op
 func (w *GenieStartConversationWaiter) Wait(ctx context.Context, opts ...lro.Option) (*GenieMessage, error) {
 	var result *GenieMessage
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GenieGetConversationMessageRequest{
+		pollResp, err := w.poll(ctx, GenieGetConversationMessageRequest{
 			MessageId:      &w.messageId,
 			ConversationId: &w.conversationId,
 			SpaceId:        &w.spaceId,
@@ -2164,7 +2534,7 @@ func (w *GenieStartConversationWaiter) Wait(ctx context.Context, opts ...lro.Opt
 }
 
 // Move a Genie Space to the trash.
-func (c *internalClient) GenieTrashSpace(ctx context.Context, req *GenieTrashSpaceRequest, opts ...call.Option) error {
+func (c *internalClient) GenieTrashSpace(ctx context.Context, req GenieTrashSpaceRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2178,7 +2548,11 @@ func (c *internalClient) GenieTrashSpace(ctx context.Context, req *GenieTrashSpa
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2215,8 +2589,8 @@ func (c *internalClient) GenieTrashSpace(ctx context.Context, req *GenieTrashSpa
 }
 
 // Updates a Genie space with a serialized payload.
-func (c *internalClient) UpdateSpace(ctx context.Context, req *GenieUpdateSpaceRequest, opts ...call.Option) (*GenieSpace, error) {
-	wireReq, err := genieUpdateSpaceRequestToWire(req)
+func (c *internalClient) UpdateSpace(ctx context.Context, req GenieUpdateSpaceRequest, opts ...call.Option) (*GenieSpace, error) {
+	wireReq, err := genieUpdateSpaceRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2237,7 +2611,11 @@ func (c *internalClient) UpdateSpace(ctx context.Context, req *GenieUpdateSpaceR
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
-	pb.singleSegment(*req.SpaceId)
+	if req.SpaceId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SpaceId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

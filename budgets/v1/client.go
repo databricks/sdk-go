@@ -77,8 +77,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // Create a new budget configuration for an account. For full details, see
 // https://docs.databricks.com/en/admin/account-settings/budgets.html.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateBudgetConfiguration(ctx context.Context, req *CreateBudgetConfigurationRequest, opts ...call.Option) (*CreateBudgetConfigurationResponse, error) {
-	wireReq, err := createBudgetConfigurationRequestToWire(req)
+func (c *internalClient) CreateBudgetConfiguration(ctx context.Context, req CreateBudgetConfigurationRequest, opts ...call.Option) (*CreateBudgetConfigurationResponse, error) {
+	wireReq, err := createBudgetConfigurationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +147,7 @@ func (c *internalClient) CreateBudgetConfiguration(ctx context.Context, req *Cre
 // Deletes a budget configuration for an account. Both account and budget
 // configuration are specified by ID. This cannot be undone.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteBudgetConfiguration(ctx context.Context, req *DeleteBudgetConfigurationRequest, opts ...call.Option) (*DeleteBudgetConfigurationResponse, error) {
+func (c *internalClient) DeleteBudgetConfiguration(ctx context.Context, req DeleteBudgetConfigurationRequest, opts ...call.Option) (*DeleteBudgetConfigurationResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -164,7 +164,11 @@ func (c *internalClient) DeleteBudgetConfiguration(ctx context.Context, req *Del
 	pb.literal("/api/2.1/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/budgets/")
-	pb.singleSegment(*req.BudgetId)
+	if req.BudgetId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.BudgetId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -206,8 +210,8 @@ func (c *internalClient) DeleteBudgetConfiguration(ctx context.Context, req *Del
 // Gets a budget configuration for an account. Both account and budget
 // configuration are specified by ID.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetBudgetConfiguration(ctx context.Context, req *GetBudgetConfigurationRequest, opts ...call.Option) (*GetBudgetConfigurationResponse, error) {
-	wireReq, err := getBudgetConfigurationRequestToWire(req)
+func (c *internalClient) GetBudgetConfiguration(ctx context.Context, req GetBudgetConfigurationRequest, opts ...call.Option) (*GetBudgetConfigurationResponse, error) {
+	wireReq, err := getBudgetConfigurationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +231,11 @@ func (c *internalClient) GetBudgetConfiguration(ctx context.Context, req *GetBud
 	pb.literal("/api/2.1/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/budgets/")
-	pb.singleSegment(*req.BudgetId)
+	if req.BudgetId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.BudgetId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_spend_status", wireReq.IncludeSpendStatus); err != nil {
@@ -277,8 +285,8 @@ func (c *internalClient) GetBudgetConfiguration(ctx context.Context, req *GetBud
 
 // Gets all budgets associated with this account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListBudgetConfigurations(ctx context.Context, req *ListBudgetConfigurationsRequest, opts ...call.Option) (*ListBudgetConfigurationsResponse, error) {
-	wireReq, err := listBudgetConfigurationsRequestToWire(req)
+func (c *internalClient) ListBudgetConfigurations(ctx context.Context, req ListBudgetConfigurationsRequest, opts ...call.Option) (*ListBudgetConfigurationsResponse, error) {
+	wireReq, err := listBudgetConfigurationsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -356,7 +364,7 @@ func (c *internalClient) ListBudgetConfigurations(ctx context.Context, req *List
 //
 // For example:
 //
-//	for item, err := range c.ListBudgetConfigurationsIter(ctx, &ListBudgetConfigurationsRequest{}) {
+//	for item, err := range c.ListBudgetConfigurationsIter(ctx, ListBudgetConfigurationsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -368,16 +376,13 @@ func (c *internalClient) ListBudgetConfigurations(ctx context.Context, req *List
 //
 // Callers who need custom pagination logic should use
 // ListBudgetConfigurations directly.
-func (c *internalClient) ListBudgetConfigurationsIter(ctx context.Context, req *ListBudgetConfigurationsRequest, opts ...call.Option) iter.Seq2[*BudgetConfiguration, error] {
+func (c *internalClient) ListBudgetConfigurationsIter(ctx context.Context, req ListBudgetConfigurationsRequest, opts ...call.Option) iter.Seq2[*BudgetConfiguration, error] {
 	return func(yield func(*BudgetConfiguration, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListBudgetConfigurationsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListBudgetConfigurations(ctx, &pageReq, opts...)
+			resp, err := c.ListBudgetConfigurations(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -398,8 +403,8 @@ func (c *internalClient) ListBudgetConfigurationsIter(ctx context.Context, req *
 // Updates a budget configuration for an account. Both account and budget
 // configuration are specified by ID.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) UpdateBudgetConfiguration(ctx context.Context, req *UpdateBudgetConfigurationRequest, opts ...call.Option) (*UpdateBudgetConfigurationResponse, error) {
-	wireReq, err := updateBudgetConfigurationRequestToWire(req)
+func (c *internalClient) UpdateBudgetConfiguration(ctx context.Context, req UpdateBudgetConfigurationRequest, opts ...call.Option) (*UpdateBudgetConfigurationResponse, error) {
+	wireReq, err := updateBudgetConfigurationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -420,7 +425,11 @@ func (c *internalClient) UpdateBudgetConfiguration(ctx context.Context, req *Upd
 	pb.literal("/api/2.1/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/budgets/")
-	pb.singleSegment(*req.BudgetId)
+	if req.BudgetId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.BudgetId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

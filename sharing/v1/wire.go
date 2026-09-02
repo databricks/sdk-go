@@ -3,10 +3,56 @@
 package sharing
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/databricks/sdk-go/core/types"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type createFederationPolicyRequestWire struct {
 	RecipientName *string               `json:"recipient_name,omitempty"`
@@ -34,9 +80,9 @@ type createProviderRequestWire struct {
 	Comment                       *string                        `json:"comment,omitempty"`
 	Owner                         *string                        `json:"owner,omitempty"`
 	RecipientProfile              *recipientProfileWire          `json:"recipient_profile,omitempty"`
-	CreatedAt                     *int64                         `json:"created_at,omitempty"`
+	CreatedAt                     *wireInt64                     `json:"created_at,omitempty"`
 	CreatedBy                     *string                        `json:"created_by,omitempty"`
-	UpdatedAt                     *int64                         `json:"updated_at,omitempty"`
+	UpdatedAt                     *wireInt64                     `json:"updated_at,omitempty"`
 	UpdatedBy                     *string                        `json:"updated_by,omitempty"`
 	Cloud                         *string                        `json:"cloud,omitempty"`
 	Region                        *string                        `json:"region,omitempty"`
@@ -52,6 +98,14 @@ func createProviderRequestToWire(v *CreateProviderRequest) (*createProviderReque
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreateProviderRequest.RecipientProfile", err)
 	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateProviderRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateProviderRequest.UpdatedAt", err)
+	}
 	return &createProviderRequestWire{
 		Name:                          v.Name,
 		AuthenticationType:            v.AuthenticationType,
@@ -59,9 +113,9 @@ func createProviderRequestToWire(v *CreateProviderRequest) (*createProviderReque
 		Comment:                       v.Comment,
 		Owner:                         v.Owner,
 		RecipientProfile:              recipientProfileWireValue,
-		CreatedAt:                     v.CreatedAt,
+		CreatedAt:                     createdAtWireValue,
 		CreatedBy:                     v.CreatedBy,
-		UpdatedAt:                     v.UpdatedAt,
+		UpdatedAt:                     updatedAtWireValue,
 		UpdatedBy:                     v.UpdatedBy,
 		Cloud:                         v.Cloud,
 		Region:                        v.Region,
@@ -79,13 +133,13 @@ type createRecipientRequestWire struct {
 	Comment                        *string                        `json:"comment,omitempty"`
 	IpAccessList                   *ipAccessListWire              `json:"ip_access_list,omitempty"`
 	PropertiesKvpairs              *propertiesKvPairsWire         `json:"properties_kvpairs,omitempty"`
-	ExpirationTime                 *int64                         `json:"expiration_time,omitempty"`
+	ExpirationTime                 *wireInt64                     `json:"expiration_time,omitempty"`
 	ActivationUrl                  *string                        `json:"activation_url,omitempty"`
 	Activated                      *bool                          `json:"activated,omitempty"`
-	CreatedAt                      *int64                         `json:"created_at,omitempty"`
+	CreatedAt                      *wireInt64                     `json:"created_at,omitempty"`
 	CreatedBy                      *string                        `json:"created_by,omitempty"`
 	Tokens                         []recipientTokenInfoWire       `json:"tokens,omitempty"`
-	UpdatedAt                      *int64                         `json:"updated_at,omitempty"`
+	UpdatedAt                      *wireInt64                     `json:"updated_at,omitempty"`
 	UpdatedBy                      *string                        `json:"updated_by,omitempty"`
 	Cloud                          *string                        `json:"cloud,omitempty"`
 	Region                         *string                        `json:"region,omitempty"`
@@ -105,9 +159,21 @@ func createRecipientRequestToWire(v *CreateRecipientRequest) (*createRecipientRe
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreateRecipientRequest.PropertiesKvpairs", err)
 	}
+	expirationTimeWireValue, err := int64ToWire(v.ExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRecipientRequest.ExpirationTime", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRecipientRequest.CreatedAt", err)
+	}
 	tokensWireValue, err := convertSlice(v.Tokens, recipientTokenInfoToWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreateRecipientRequest.Tokens", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRecipientRequest.UpdatedAt", err)
 	}
 	return &createRecipientRequestWire{
 		Name:                           v.Name,
@@ -118,13 +184,13 @@ func createRecipientRequestToWire(v *CreateRecipientRequest) (*createRecipientRe
 		Comment:                        v.Comment,
 		IpAccessList:                   ipAccessListWireValue,
 		PropertiesKvpairs:              propertiesKvpairsWireValue,
-		ExpirationTime:                 v.ExpirationTime,
+		ExpirationTime:                 expirationTimeWireValue,
 		ActivationUrl:                  v.ActivationUrl,
 		Activated:                      v.Activated,
-		CreatedAt:                      v.CreatedAt,
+		CreatedAt:                      createdAtWireValue,
 		CreatedBy:                      v.CreatedBy,
 		Tokens:                         tokensWireValue,
-		UpdatedAt:                      v.UpdatedAt,
+		UpdatedAt:                      updatedAtWireValue,
 		UpdatedBy:                      v.UpdatedBy,
 		Cloud:                          v.Cloud,
 		Region:                         v.Region,
@@ -139,9 +205,9 @@ type createShareRequestWire struct {
 	Comment         *string                `json:"comment,omitempty"`
 	StorageRoot     *string                `json:"storage_root,omitempty"`
 	Objects         []sharedDataObjectWire `json:"objects,omitempty"`
-	CreatedAt       *int64                 `json:"created_at,omitempty"`
+	CreatedAt       *wireInt64             `json:"created_at,omitempty"`
 	CreatedBy       *string                `json:"created_by,omitempty"`
-	UpdatedAt       *int64                 `json:"updated_at,omitempty"`
+	UpdatedAt       *wireInt64             `json:"updated_at,omitempty"`
 	UpdatedBy       *string                `json:"updated_by,omitempty"`
 	StorageLocation *string                `json:"storage_location,omitempty"`
 }
@@ -154,15 +220,23 @@ func createShareRequestToWire(v *CreateShareRequest) (*createShareRequestWire, e
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreateShareRequest.Objects", err)
 	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateShareRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateShareRequest.UpdatedAt", err)
+	}
 	return &createShareRequestWire{
 		Name:            v.Name,
 		Owner:           v.Owner,
 		Comment:         v.Comment,
 		StorageRoot:     v.StorageRoot,
 		Objects:         objectsWireValue,
-		CreatedAt:       v.CreatedAt,
+		CreatedAt:       createdAtWireValue,
 		CreatedBy:       v.CreatedBy,
-		UpdatedAt:       v.UpdatedAt,
+		UpdatedAt:       updatedAtWireValue,
 		UpdatedBy:       v.UpdatedBy,
 		StorageLocation: v.StorageLocation,
 	}, nil
@@ -948,9 +1022,9 @@ type providerInfoWire struct {
 	Comment                       *string                        `json:"comment,omitempty"`
 	Owner                         *string                        `json:"owner,omitempty"`
 	RecipientProfile              *recipientProfileWire          `json:"recipient_profile,omitempty"`
-	CreatedAt                     *int64                         `json:"created_at,omitempty"`
+	CreatedAt                     *wireInt64                     `json:"created_at,omitempty"`
 	CreatedBy                     *string                        `json:"created_by,omitempty"`
-	UpdatedAt                     *int64                         `json:"updated_at,omitempty"`
+	UpdatedAt                     *wireInt64                     `json:"updated_at,omitempty"`
 	UpdatedBy                     *string                        `json:"updated_by,omitempty"`
 	Cloud                         *string                        `json:"cloud,omitempty"`
 	Region                        *string                        `json:"region,omitempty"`
@@ -966,6 +1040,14 @@ func providerInfoFromWire(w *providerInfoWire) (*ProviderInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ProviderInfo.RecipientProfile", err)
 	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ProviderInfo.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ProviderInfo.UpdatedAt", err)
+	}
 	return &ProviderInfo{
 		Name:                          w.Name,
 		AuthenticationType:            w.AuthenticationType,
@@ -973,9 +1055,9 @@ func providerInfoFromWire(w *providerInfoWire) (*ProviderInfo, error) {
 		Comment:                       w.Comment,
 		Owner:                         w.Owner,
 		RecipientProfile:              recipientProfilePublicValue,
-		CreatedAt:                     w.CreatedAt,
+		CreatedAt:                     createdAtPublicValue,
 		CreatedBy:                     w.CreatedBy,
-		UpdatedAt:                     w.UpdatedAt,
+		UpdatedAt:                     updatedAtPublicValue,
 		UpdatedBy:                     w.UpdatedBy,
 		Cloud:                         w.Cloud,
 		Region:                        w.Region,
@@ -1006,13 +1088,13 @@ type recipientInfoWire struct {
 	Comment                        *string                        `json:"comment,omitempty"`
 	IpAccessList                   *ipAccessListWire              `json:"ip_access_list,omitempty"`
 	PropertiesKvpairs              *propertiesKvPairsWire         `json:"properties_kvpairs,omitempty"`
-	ExpirationTime                 *int64                         `json:"expiration_time,omitempty"`
+	ExpirationTime                 *wireInt64                     `json:"expiration_time,omitempty"`
 	ActivationUrl                  *string                        `json:"activation_url,omitempty"`
 	Activated                      *bool                          `json:"activated,omitempty"`
-	CreatedAt                      *int64                         `json:"created_at,omitempty"`
+	CreatedAt                      *wireInt64                     `json:"created_at,omitempty"`
 	CreatedBy                      *string                        `json:"created_by,omitempty"`
 	Tokens                         []recipientTokenInfoWire       `json:"tokens,omitempty"`
-	UpdatedAt                      *int64                         `json:"updated_at,omitempty"`
+	UpdatedAt                      *wireInt64                     `json:"updated_at,omitempty"`
 	UpdatedBy                      *string                        `json:"updated_by,omitempty"`
 	Cloud                          *string                        `json:"cloud,omitempty"`
 	Region                         *string                        `json:"region,omitempty"`
@@ -1032,9 +1114,21 @@ func recipientInfoFromWire(w *recipientInfoWire) (*RecipientInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "RecipientInfo.PropertiesKvpairs", err)
 	}
+	expirationTimePublicValue, err := int64FromWire(w.ExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RecipientInfo.ExpirationTime", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RecipientInfo.CreatedAt", err)
+	}
 	tokensPublicValue, err := convertSlice(w.Tokens, recipientTokenInfoFromWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "RecipientInfo.Tokens", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RecipientInfo.UpdatedAt", err)
 	}
 	return &RecipientInfo{
 		Name:                           w.Name,
@@ -1045,13 +1139,13 @@ func recipientInfoFromWire(w *recipientInfoWire) (*RecipientInfo, error) {
 		Comment:                        w.Comment,
 		IpAccessList:                   ipAccessListPublicValue,
 		PropertiesKvpairs:              propertiesKvpairsPublicValue,
-		ExpirationTime:                 w.ExpirationTime,
+		ExpirationTime:                 expirationTimePublicValue,
 		ActivationUrl:                  w.ActivationUrl,
 		Activated:                      w.Activated,
-		CreatedAt:                      w.CreatedAt,
+		CreatedAt:                      createdAtPublicValue,
 		CreatedBy:                      w.CreatedBy,
 		Tokens:                         tokensPublicValue,
-		UpdatedAt:                      w.UpdatedAt,
+		UpdatedAt:                      updatedAtPublicValue,
 		UpdatedBy:                      w.UpdatedBy,
 		Cloud:                          w.Cloud,
 		Region:                         w.Region,
@@ -1089,26 +1183,38 @@ func recipientProfileFromWire(w *recipientProfileWire) (*RecipientProfile, error
 }
 
 type recipientTokenInfoWire struct {
-	Id             *string `json:"id,omitempty"`
-	CreatedAt      *int64  `json:"created_at,omitempty"`
-	CreatedBy      *string `json:"created_by,omitempty"`
-	ActivationUrl  *string `json:"activation_url,omitempty"`
-	ExpirationTime *int64  `json:"expiration_time,omitempty"`
-	UpdatedAt      *int64  `json:"updated_at,omitempty"`
-	UpdatedBy      *string `json:"updated_by,omitempty"`
+	Id             *string    `json:"id,omitempty"`
+	CreatedAt      *wireInt64 `json:"created_at,omitempty"`
+	CreatedBy      *string    `json:"created_by,omitempty"`
+	ActivationUrl  *string    `json:"activation_url,omitempty"`
+	ExpirationTime *wireInt64 `json:"expiration_time,omitempty"`
+	UpdatedAt      *wireInt64 `json:"updated_at,omitempty"`
+	UpdatedBy      *string    `json:"updated_by,omitempty"`
 }
 
 func recipientTokenInfoToWire(v *RecipientTokenInfo) (*recipientTokenInfoWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RecipientTokenInfo.CreatedAt", err)
+	}
+	expirationTimeWireValue, err := int64ToWire(v.ExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RecipientTokenInfo.ExpirationTime", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RecipientTokenInfo.UpdatedAt", err)
+	}
 	return &recipientTokenInfoWire{
 		Id:             v.Id,
-		CreatedAt:      v.CreatedAt,
+		CreatedAt:      createdAtWireValue,
 		CreatedBy:      v.CreatedBy,
 		ActivationUrl:  v.ActivationUrl,
-		ExpirationTime: v.ExpirationTime,
-		UpdatedAt:      v.UpdatedAt,
+		ExpirationTime: expirationTimeWireValue,
+		UpdatedAt:      updatedAtWireValue,
 		UpdatedBy:      v.UpdatedBy,
 	}, nil
 }
@@ -1117,29 +1223,45 @@ func recipientTokenInfoFromWire(w *recipientTokenInfoWire) (*RecipientTokenInfo,
 	if w == nil {
 		return nil, nil
 	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RecipientTokenInfo.CreatedAt", err)
+	}
+	expirationTimePublicValue, err := int64FromWire(w.ExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RecipientTokenInfo.ExpirationTime", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RecipientTokenInfo.UpdatedAt", err)
+	}
 	return &RecipientTokenInfo{
 		Id:             w.Id,
-		CreatedAt:      w.CreatedAt,
+		CreatedAt:      createdAtPublicValue,
 		CreatedBy:      w.CreatedBy,
 		ActivationUrl:  w.ActivationUrl,
-		ExpirationTime: w.ExpirationTime,
-		UpdatedAt:      w.UpdatedAt,
+		ExpirationTime: expirationTimePublicValue,
+		UpdatedAt:      updatedAtPublicValue,
 		UpdatedBy:      w.UpdatedBy,
 	}, nil
 }
 
 type registeredModelAliasWire struct {
-	AliasName  *string `json:"alias_name,omitempty"`
-	VersionNum *int64  `json:"version_num,omitempty"`
+	AliasName  *string    `json:"alias_name,omitempty"`
+	VersionNum *wireInt64 `json:"version_num,omitempty"`
 }
 
 func registeredModelAliasFromWire(w *registeredModelAliasWire) (*RegisteredModelAlias, error) {
 	if w == nil {
 		return nil, nil
 	}
+	versionNumPublicValue, err := int64FromWire(w.VersionNum)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegisteredModelAlias.VersionNum", err)
+	}
 	return &RegisteredModelAlias{
 		AliasName:  w.AliasName,
-		VersionNum: w.VersionNum,
+		VersionNum: versionNumPublicValue,
 	}, nil
 }
 
@@ -1163,17 +1285,21 @@ func retrieveTokenResponseFromWire(w *retrieveTokenResponseWire) (*RetrieveToken
 }
 
 type rotateRecipientTokenRequestWire struct {
-	Name                         *string `json:"name,omitempty"`
-	ExistingTokenExpireInSeconds *int64  `json:"existing_token_expire_in_seconds,omitempty"`
+	Name                         *string    `json:"name,omitempty"`
+	ExistingTokenExpireInSeconds *wireInt64 `json:"existing_token_expire_in_seconds,omitempty"`
 }
 
 func rotateRecipientTokenRequestToWire(v *RotateRecipientTokenRequest) (*rotateRecipientTokenRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	existingTokenExpireInSecondsWireValue, err := int64ToWire(v.ExistingTokenExpireInSeconds)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RotateRecipientTokenRequest.ExistingTokenExpireInSeconds", err)
+	}
 	return &rotateRecipientTokenRequestWire{
 		Name:                         v.Name,
-		ExistingTokenExpireInSeconds: v.ExistingTokenExpireInSeconds,
+		ExistingTokenExpireInSeconds: existingTokenExpireInSecondsWireValue,
 	}, nil
 }
 
@@ -1198,9 +1324,9 @@ type shareInfoWire struct {
 	Comment         *string                `json:"comment,omitempty"`
 	StorageRoot     *string                `json:"storage_root,omitempty"`
 	Objects         []sharedDataObjectWire `json:"objects,omitempty"`
-	CreatedAt       *int64                 `json:"created_at,omitempty"`
+	CreatedAt       *wireInt64             `json:"created_at,omitempty"`
 	CreatedBy       *string                `json:"created_by,omitempty"`
-	UpdatedAt       *int64                 `json:"updated_at,omitempty"`
+	UpdatedAt       *wireInt64             `json:"updated_at,omitempty"`
 	UpdatedBy       *string                `json:"updated_by,omitempty"`
 	StorageLocation *string                `json:"storage_location,omitempty"`
 }
@@ -1213,15 +1339,23 @@ func shareInfoFromWire(w *shareInfoWire) (*ShareInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ShareInfo.Objects", err)
 	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ShareInfo.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ShareInfo.UpdatedAt", err)
+	}
 	return &ShareInfo{
 		Name:            w.Name,
 		Owner:           w.Owner,
 		Comment:         w.Comment,
 		StorageRoot:     w.StorageRoot,
 		Objects:         objectsPublicValue,
-		CreatedAt:       w.CreatedAt,
+		CreatedAt:       createdAtPublicValue,
 		CreatedBy:       w.CreatedBy,
-		UpdatedAt:       w.UpdatedAt,
+		UpdatedAt:       updatedAtPublicValue,
 		UpdatedBy:       w.UpdatedBy,
 		StorageLocation: w.StorageLocation,
 	}, nil
@@ -1249,13 +1383,13 @@ func shareToPrivilegeAssignmentFromWire(w *shareToPrivilegeAssignmentWire) (*Sha
 type sharedDataObjectWire struct {
 	Name                     *string                                        `json:"name,omitempty"`
 	DataObjectType           *string                                        `json:"data_object_type,omitempty"`
-	AddedAt                  *int64                                         `json:"added_at,omitempty"`
+	AddedAt                  *wireInt64                                     `json:"added_at,omitempty"`
 	AddedBy                  *string                                        `json:"added_by,omitempty"`
 	Comment                  *string                                        `json:"comment,omitempty"`
 	SharedAs                 *string                                        `json:"shared_as,omitempty"`
 	CdfEnabled               *bool                                          `json:"cdf_enabled,omitempty"`
 	HistoryDataSharingStatus SharedDataObject_HistoryDataSharingStatus_Enum `json:"history_data_sharing_status,omitempty"`
-	StartVersion             *int64                                         `json:"start_version,omitempty"`
+	StartVersion             *wireInt64                                     `json:"start_version,omitempty"`
 	Status                   SharedDataObject_Status_Enum                   `json:"status,omitempty"`
 	Content                  *string                                        `json:"content,omitempty"`
 	StringSharedAs           *string                                        `json:"string_shared_as,omitempty"`
@@ -1266,6 +1400,14 @@ func sharedDataObjectToWire(v *SharedDataObject) (*sharedDataObjectWire, error) 
 	if v == nil {
 		return nil, nil
 	}
+	addedAtWireValue, err := int64ToWire(v.AddedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SharedDataObject.AddedAt", err)
+	}
+	startVersionWireValue, err := int64ToWire(v.StartVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SharedDataObject.StartVersion", err)
+	}
 	partitionsWireValue, err := convertSlice(v.Partitions, partitionSpecification_PartitionToWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "SharedDataObject.Partitions", err)
@@ -1273,13 +1415,13 @@ func sharedDataObjectToWire(v *SharedDataObject) (*sharedDataObjectWire, error) 
 	return &sharedDataObjectWire{
 		Name:                     v.Name,
 		DataObjectType:           v.DataObjectType,
-		AddedAt:                  v.AddedAt,
+		AddedAt:                  addedAtWireValue,
 		AddedBy:                  v.AddedBy,
 		Comment:                  v.Comment,
 		SharedAs:                 v.SharedAs,
 		CdfEnabled:               v.CdfEnabled,
 		HistoryDataSharingStatus: v.HistoryDataSharingStatus,
-		StartVersion:             v.StartVersion,
+		StartVersion:             startVersionWireValue,
 		Status:                   v.Status,
 		Content:                  v.Content,
 		StringSharedAs:           v.StringSharedAs,
@@ -1291,6 +1433,14 @@ func sharedDataObjectFromWire(w *sharedDataObjectWire) (*SharedDataObject, error
 	if w == nil {
 		return nil, nil
 	}
+	addedAtPublicValue, err := int64FromWire(w.AddedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SharedDataObject.AddedAt", err)
+	}
+	startVersionPublicValue, err := int64FromWire(w.StartVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SharedDataObject.StartVersion", err)
+	}
 	partitionsPublicValue, err := convertSlice(w.Partitions, partitionSpecification_PartitionFromWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "SharedDataObject.Partitions", err)
@@ -1298,13 +1448,13 @@ func sharedDataObjectFromWire(w *sharedDataObjectWire) (*SharedDataObject, error
 	return &SharedDataObject{
 		Name:                     w.Name,
 		DataObjectType:           w.DataObjectType,
-		AddedAt:                  w.AddedAt,
+		AddedAt:                  addedAtPublicValue,
 		AddedBy:                  w.AddedBy,
 		Comment:                  w.Comment,
 		SharedAs:                 w.SharedAs,
 		CdfEnabled:               w.CdfEnabled,
 		HistoryDataSharingStatus: w.HistoryDataSharingStatus,
-		StartVersion:             w.StartVersion,
+		StartVersion:             startVersionPublicValue,
 		Status:                   w.Status,
 		Content:                  w.Content,
 		StringSharedAs:           w.StringSharedAs,
@@ -1384,9 +1534,9 @@ type updateProviderRequestWire struct {
 	Comment                       *string                        `json:"comment,omitempty"`
 	Owner                         *string                        `json:"owner,omitempty"`
 	RecipientProfile              *recipientProfileWire          `json:"recipient_profile,omitempty"`
-	CreatedAt                     *int64                         `json:"created_at,omitempty"`
+	CreatedAt                     *wireInt64                     `json:"created_at,omitempty"`
 	CreatedBy                     *string                        `json:"created_by,omitempty"`
-	UpdatedAt                     *int64                         `json:"updated_at,omitempty"`
+	UpdatedAt                     *wireInt64                     `json:"updated_at,omitempty"`
 	UpdatedBy                     *string                        `json:"updated_by,omitempty"`
 	Cloud                         *string                        `json:"cloud,omitempty"`
 	Region                        *string                        `json:"region,omitempty"`
@@ -1402,6 +1552,14 @@ func updateProviderRequestToWire(v *UpdateProviderRequest) (*updateProviderReque
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "UpdateProviderRequest.RecipientProfile", err)
 	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateProviderRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateProviderRequest.UpdatedAt", err)
+	}
 	return &updateProviderRequestWire{
 		NameArg:                       v.NameArg,
 		NewName:                       v.NewName,
@@ -1411,9 +1569,9 @@ func updateProviderRequestToWire(v *UpdateProviderRequest) (*updateProviderReque
 		Comment:                       v.Comment,
 		Owner:                         v.Owner,
 		RecipientProfile:              recipientProfileWireValue,
-		CreatedAt:                     v.CreatedAt,
+		CreatedAt:                     createdAtWireValue,
 		CreatedBy:                     v.CreatedBy,
-		UpdatedAt:                     v.UpdatedAt,
+		UpdatedAt:                     updatedAtWireValue,
 		UpdatedBy:                     v.UpdatedBy,
 		Cloud:                         v.Cloud,
 		Region:                        v.Region,
@@ -1433,13 +1591,13 @@ type updateRecipientRequestWire struct {
 	Comment                        *string                        `json:"comment,omitempty"`
 	IpAccessList                   *ipAccessListWire              `json:"ip_access_list,omitempty"`
 	PropertiesKvpairs              *propertiesKvPairsWire         `json:"properties_kvpairs,omitempty"`
-	ExpirationTime                 *int64                         `json:"expiration_time,omitempty"`
+	ExpirationTime                 *wireInt64                     `json:"expiration_time,omitempty"`
 	ActivationUrl                  *string                        `json:"activation_url,omitempty"`
 	Activated                      *bool                          `json:"activated,omitempty"`
-	CreatedAt                      *int64                         `json:"created_at,omitempty"`
+	CreatedAt                      *wireInt64                     `json:"created_at,omitempty"`
 	CreatedBy                      *string                        `json:"created_by,omitempty"`
 	Tokens                         []recipientTokenInfoWire       `json:"tokens,omitempty"`
-	UpdatedAt                      *int64                         `json:"updated_at,omitempty"`
+	UpdatedAt                      *wireInt64                     `json:"updated_at,omitempty"`
 	UpdatedBy                      *string                        `json:"updated_by,omitempty"`
 	Cloud                          *string                        `json:"cloud,omitempty"`
 	Region                         *string                        `json:"region,omitempty"`
@@ -1459,9 +1617,21 @@ func updateRecipientRequestToWire(v *UpdateRecipientRequest) (*updateRecipientRe
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "UpdateRecipientRequest.PropertiesKvpairs", err)
 	}
+	expirationTimeWireValue, err := int64ToWire(v.ExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRecipientRequest.ExpirationTime", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRecipientRequest.CreatedAt", err)
+	}
 	tokensWireValue, err := convertSlice(v.Tokens, recipientTokenInfoToWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "UpdateRecipientRequest.Tokens", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRecipientRequest.UpdatedAt", err)
 	}
 	return &updateRecipientRequestWire{
 		NameArg:                        v.NameArg,
@@ -1474,13 +1644,13 @@ func updateRecipientRequestToWire(v *UpdateRecipientRequest) (*updateRecipientRe
 		Comment:                        v.Comment,
 		IpAccessList:                   ipAccessListWireValue,
 		PropertiesKvpairs:              propertiesKvpairsWireValue,
-		ExpirationTime:                 v.ExpirationTime,
+		ExpirationTime:                 expirationTimeWireValue,
 		ActivationUrl:                  v.ActivationUrl,
 		Activated:                      v.Activated,
-		CreatedAt:                      v.CreatedAt,
+		CreatedAt:                      createdAtWireValue,
 		CreatedBy:                      v.CreatedBy,
 		Tokens:                         tokensWireValue,
-		UpdatedAt:                      v.UpdatedAt,
+		UpdatedAt:                      updatedAtWireValue,
 		UpdatedBy:                      v.UpdatedBy,
 		Cloud:                          v.Cloud,
 		Region:                         v.Region,
@@ -1536,9 +1706,9 @@ type updateShareRequestWire struct {
 	Comment         *string                                         `json:"comment,omitempty"`
 	StorageRoot     *string                                         `json:"storage_root,omitempty"`
 	Objects         []sharedDataObjectWire                          `json:"objects,omitempty"`
-	CreatedAt       *int64                                          `json:"created_at,omitempty"`
+	CreatedAt       *wireInt64                                      `json:"created_at,omitempty"`
 	CreatedBy       *string                                         `json:"created_by,omitempty"`
-	UpdatedAt       *int64                                          `json:"updated_at,omitempty"`
+	UpdatedAt       *wireInt64                                      `json:"updated_at,omitempty"`
 	UpdatedBy       *string                                         `json:"updated_by,omitempty"`
 	StorageLocation *string                                         `json:"storage_location,omitempty"`
 }
@@ -1555,6 +1725,14 @@ func updateShareRequestToWire(v *UpdateShareRequest) (*updateShareRequestWire, e
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "UpdateShareRequest.Objects", err)
 	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateShareRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateShareRequest.UpdatedAt", err)
+	}
 	return &updateShareRequestWire{
 		NameArg:         v.NameArg,
 		NewName:         v.NewName,
@@ -1564,9 +1742,9 @@ func updateShareRequestToWire(v *UpdateShareRequest) (*updateShareRequestWire, e
 		Comment:         v.Comment,
 		StorageRoot:     v.StorageRoot,
 		Objects:         objectsWireValue,
-		CreatedAt:       v.CreatedAt,
+		CreatedAt:       createdAtWireValue,
 		CreatedBy:       v.CreatedBy,
-		UpdatedAt:       v.UpdatedAt,
+		UpdatedAt:       updatedAtWireValue,
 		UpdatedBy:       v.UpdatedBy,
 		StorageLocation: v.StorageLocation,
 	}, nil

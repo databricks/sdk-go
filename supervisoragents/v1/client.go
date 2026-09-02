@@ -75,8 +75,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Creates an example for a Supervisor Agent.
-func (c *internalClient) CreateExample(ctx context.Context, req *CreateExampleRequest, opts ...call.Option) (*Example, error) {
-	wireReq, err := createExampleRequestToWire(req)
+func (c *internalClient) CreateExample(ctx context.Context, req CreateExampleRequest, opts ...call.Option) (*Example, error) {
+	wireReq, err := createExampleRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,11 @@ func (c *internalClient) CreateExample(ctx context.Context, req *CreateExampleRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/examples")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -145,8 +149,8 @@ func (c *internalClient) CreateExample(ctx context.Context, req *CreateExampleRe
 }
 
 // Creates a new Supervisor Agent.
-func (c *internalClient) CreateSupervisorAgent(ctx context.Context, req *CreateSupervisorAgentRequest, opts ...call.Option) (*SupervisorAgent, error) {
-	wireReq, err := createSupervisorAgentRequestToWire(req)
+func (c *internalClient) CreateSupervisorAgent(ctx context.Context, req CreateSupervisorAgentRequest, opts ...call.Option) (*SupervisorAgent, error) {
+	wireReq, err := createSupervisorAgentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -218,8 +222,8 @@ func (c *internalClient) CreateSupervisorAgent(ctx context.Context, req *CreateS
 // accepted and remain equivalent to "dashboard", "table", and
 // "databricks_web_search" respectively. The "databricks_web_search" tool_type
 // maps to the `web_search` spec field.
-func (c *internalClient) CreateTool(ctx context.Context, req *CreateToolRequest, opts ...call.Option) (*Tool, error) {
-	wireReq, err := createToolRequestToWire(req)
+func (c *internalClient) CreateTool(ctx context.Context, req CreateToolRequest, opts ...call.Option) (*Tool, error) {
+	wireReq, err := createToolRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +244,11 @@ func (c *internalClient) CreateTool(ctx context.Context, req *CreateToolRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/tools")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -291,7 +299,7 @@ func (c *internalClient) CreateTool(ctx context.Context, req *CreateToolRequest,
 }
 
 // Deletes an example from a Supervisor Agent.
-func (c *internalClient) DeleteExample(ctx context.Context, req *DeleteExampleRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteExample(ctx context.Context, req DeleteExampleRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -305,7 +313,11 @@ func (c *internalClient) DeleteExample(ctx context.Context, req *DeleteExampleRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -342,7 +354,7 @@ func (c *internalClient) DeleteExample(ctx context.Context, req *DeleteExampleRe
 }
 
 // Deletes a Supervisor Agent.
-func (c *internalClient) DeleteSupervisorAgent(ctx context.Context, req *DeleteSupervisorAgentRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteSupervisorAgent(ctx context.Context, req DeleteSupervisorAgentRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -356,7 +368,11 @@ func (c *internalClient) DeleteSupervisorAgent(ctx context.Context, req *DeleteS
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -393,7 +409,7 @@ func (c *internalClient) DeleteSupervisorAgent(ctx context.Context, req *DeleteS
 }
 
 // Deletes a Tool.
-func (c *internalClient) DeleteTool(ctx context.Context, req *DeleteToolRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteTool(ctx context.Context, req DeleteToolRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -407,7 +423,11 @@ func (c *internalClient) DeleteTool(ctx context.Context, req *DeleteToolRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -444,7 +464,7 @@ func (c *internalClient) DeleteTool(ctx context.Context, req *DeleteToolRequest,
 }
 
 // Gets an example from a Supervisor Agent.
-func (c *internalClient) GetExample(ctx context.Context, req *GetExampleRequest, opts ...call.Option) (*Example, error) {
+func (c *internalClient) GetExample(ctx context.Context, req GetExampleRequest, opts ...call.Option) (*Example, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -458,7 +478,11 @@ func (c *internalClient) GetExample(ctx context.Context, req *GetExampleRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -504,7 +528,7 @@ func (c *internalClient) GetExample(ctx context.Context, req *GetExampleRequest,
 }
 
 // Gets a Supervisor Agent.
-func (c *internalClient) GetSupervisorAgent(ctx context.Context, req *GetSupervisorAgentRequest, opts ...call.Option) (*SupervisorAgent, error) {
+func (c *internalClient) GetSupervisorAgent(ctx context.Context, req GetSupervisorAgentRequest, opts ...call.Option) (*SupervisorAgent, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -518,7 +542,11 @@ func (c *internalClient) GetSupervisorAgent(ctx context.Context, req *GetSupervi
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -564,7 +592,7 @@ func (c *internalClient) GetSupervisorAgent(ctx context.Context, req *GetSupervi
 }
 
 // Gets a Tool.
-func (c *internalClient) GetTool(ctx context.Context, req *GetToolRequest, opts ...call.Option) (*Tool, error) {
+func (c *internalClient) GetTool(ctx context.Context, req GetToolRequest, opts ...call.Option) (*Tool, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -578,7 +606,11 @@ func (c *internalClient) GetTool(ctx context.Context, req *GetToolRequest, opts 
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -624,8 +656,8 @@ func (c *internalClient) GetTool(ctx context.Context, req *GetToolRequest, opts 
 }
 
 // Lists examples under a Supervisor Agent.
-func (c *internalClient) ListExamples(ctx context.Context, req *ListExamplesRequest, opts ...call.Option) (*ListExamplesResponse, error) {
-	wireReq, err := listExamplesRequestToWire(req)
+func (c *internalClient) ListExamples(ctx context.Context, req ListExamplesRequest, opts ...call.Option) (*ListExamplesResponse, error) {
+	wireReq, err := listExamplesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -642,7 +674,11 @@ func (c *internalClient) ListExamples(ctx context.Context, req *ListExamplesRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/examples")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -699,7 +735,7 @@ func (c *internalClient) ListExamples(ctx context.Context, req *ListExamplesRequ
 //
 // For example:
 //
-//	for item, err := range c.ListExamplesIter(ctx, &ListExamplesRequest{}) {
+//	for item, err := range c.ListExamplesIter(ctx, ListExamplesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -711,16 +747,13 @@ func (c *internalClient) ListExamples(ctx context.Context, req *ListExamplesRequ
 //
 // Callers who need custom pagination logic should use
 // ListExamples directly.
-func (c *internalClient) ListExamplesIter(ctx context.Context, req *ListExamplesRequest, opts ...call.Option) iter.Seq2[*Example, error] {
+func (c *internalClient) ListExamplesIter(ctx context.Context, req ListExamplesRequest, opts ...call.Option) iter.Seq2[*Example, error] {
 	return func(yield func(*Example, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListExamplesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListExamples(ctx, &pageReq, opts...)
+			resp, err := c.ListExamples(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -739,8 +772,8 @@ func (c *internalClient) ListExamplesIter(ctx context.Context, req *ListExamples
 }
 
 // Lists Supervisor Agents.
-func (c *internalClient) ListSupervisorAgents(ctx context.Context, req *ListSupervisorAgentsRequest, opts ...call.Option) (*ListSupervisorAgentsResponse, error) {
-	wireReq, err := listSupervisorAgentsRequestToWire(req)
+func (c *internalClient) ListSupervisorAgents(ctx context.Context, req ListSupervisorAgentsRequest, opts ...call.Option) (*ListSupervisorAgentsResponse, error) {
+	wireReq, err := listSupervisorAgentsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -810,7 +843,7 @@ func (c *internalClient) ListSupervisorAgents(ctx context.Context, req *ListSupe
 //
 // For example:
 //
-//	for item, err := range c.ListSupervisorAgentsIter(ctx, &ListSupervisorAgentsRequest{}) {
+//	for item, err := range c.ListSupervisorAgentsIter(ctx, ListSupervisorAgentsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -822,16 +855,13 @@ func (c *internalClient) ListSupervisorAgents(ctx context.Context, req *ListSupe
 //
 // Callers who need custom pagination logic should use
 // ListSupervisorAgents directly.
-func (c *internalClient) ListSupervisorAgentsIter(ctx context.Context, req *ListSupervisorAgentsRequest, opts ...call.Option) iter.Seq2[*SupervisorAgent, error] {
+func (c *internalClient) ListSupervisorAgentsIter(ctx context.Context, req ListSupervisorAgentsRequest, opts ...call.Option) iter.Seq2[*SupervisorAgent, error] {
 	return func(yield func(*SupervisorAgent, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListSupervisorAgentsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListSupervisorAgents(ctx, &pageReq, opts...)
+			resp, err := c.ListSupervisorAgents(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -850,8 +880,8 @@ func (c *internalClient) ListSupervisorAgentsIter(ctx context.Context, req *List
 }
 
 // Lists Tools under a Supervisor Agent.
-func (c *internalClient) ListTools(ctx context.Context, req *ListToolsRequest, opts ...call.Option) (*ListToolsResponse, error) {
-	wireReq, err := listToolsRequestToWire(req)
+func (c *internalClient) ListTools(ctx context.Context, req ListToolsRequest, opts ...call.Option) (*ListToolsResponse, error) {
+	wireReq, err := listToolsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -868,7 +898,11 @@ func (c *internalClient) ListTools(ctx context.Context, req *ListToolsRequest, o
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/tools")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -925,7 +959,7 @@ func (c *internalClient) ListTools(ctx context.Context, req *ListToolsRequest, o
 //
 // For example:
 //
-//	for item, err := range c.ListToolsIter(ctx, &ListToolsRequest{}) {
+//	for item, err := range c.ListToolsIter(ctx, ListToolsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -937,16 +971,13 @@ func (c *internalClient) ListTools(ctx context.Context, req *ListToolsRequest, o
 //
 // Callers who need custom pagination logic should use
 // ListTools directly.
-func (c *internalClient) ListToolsIter(ctx context.Context, req *ListToolsRequest, opts ...call.Option) iter.Seq2[*Tool, error] {
+func (c *internalClient) ListToolsIter(ctx context.Context, req ListToolsRequest, opts ...call.Option) iter.Seq2[*Tool, error] {
 	return func(yield func(*Tool, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListToolsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListTools(ctx, &pageReq, opts...)
+			resp, err := c.ListTools(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -965,8 +996,8 @@ func (c *internalClient) ListToolsIter(ctx context.Context, req *ListToolsReques
 }
 
 // Updates an example in a Supervisor Agent.
-func (c *internalClient) UpdateExample(ctx context.Context, req *UpdateExampleRequest, opts ...call.Option) (*Example, error) {
-	wireReq, err := updateExampleRequestToWire(req)
+func (c *internalClient) UpdateExample(ctx context.Context, req UpdateExampleRequest, opts ...call.Option) (*Example, error) {
+	wireReq, err := updateExampleRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -987,7 +1018,11 @@ func (c *internalClient) UpdateExample(ctx context.Context, req *UpdateExampleRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -1038,8 +1073,8 @@ func (c *internalClient) UpdateExample(ctx context.Context, req *UpdateExampleRe
 
 // Updates a Supervisor Agent. The fields that are required depend on the paths
 // specified in `update_mask`. Only fields included in the mask will be updated.
-func (c *internalClient) UpdateSupervisorAgent(ctx context.Context, req *UpdateSupervisorAgentRequest, opts ...call.Option) (*SupervisorAgent, error) {
-	wireReq, err := updateSupervisorAgentRequestToWire(req)
+func (c *internalClient) UpdateSupervisorAgent(ctx context.Context, req UpdateSupervisorAgentRequest, opts ...call.Option) (*SupervisorAgent, error) {
+	wireReq, err := updateSupervisorAgentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1060,7 +1095,11 @@ func (c *internalClient) UpdateSupervisorAgent(ctx context.Context, req *UpdateS
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.SupervisorAgent.Name)
+	if req.SupervisorAgent == nil || req.SupervisorAgent.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SupervisorAgent.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -1112,8 +1151,8 @@ func (c *internalClient) UpdateSupervisorAgent(ctx context.Context, req *UpdateS
 // Updates a Tool. Only the `description` field can be updated. To change
 // immutable fields such as tool type, spec, or tool ID, delete the tool and
 // recreate it.
-func (c *internalClient) UpdateTool(ctx context.Context, req *UpdateToolRequest, opts ...call.Option) (*Tool, error) {
-	wireReq, err := updateToolRequestToWire(req)
+func (c *internalClient) UpdateTool(ctx context.Context, req UpdateToolRequest, opts ...call.Option) (*Tool, error) {
+	wireReq, err := updateToolRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1134,7 +1173,11 @@ func (c *internalClient) UpdateTool(ctx context.Context, req *UpdateToolRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Tool.Name)
+	if req.Tool == nil || req.Tool.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Tool.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

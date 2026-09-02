@@ -2,10 +2,6 @@
 
 package clusterpolicies
 
-import (
-	"github.com/databricks/sdk-go/core/types"
-)
-
 type ListOrder string
 
 const (
@@ -23,22 +19,6 @@ const (
 	// Sort result list by policy name.
 	PolicySortColumn_PolicyName PolicySortColumn = "POLICY_NAME"
 )
-
-// Represents a cluster policy revision.
-//
-// Only the 100 most recent revisions are stored for each cluster policy..
-type ClusterPolicyRevision struct {
-	// ID of the cluster policy revision.
-	RevisionId *string
-	// Time when the cluster policy revision was created.
-	CreateTime *types.Time
-	// Settings used to create/edit the policy.
-	Settings *PolicyOwnAttributes
-	// Name of the user who edited this policy.
-	EditUser *string
-	// Whether this is the current revision.
-	IsCurrent *bool
-}
 
 type CreatePolicyRequest struct {
 	// Cluster Policy name requested by the user. This has to be unique. Length must
@@ -128,13 +108,6 @@ type EditPolicyRequest struct {
 type EditPolicyResponse struct {
 }
 
-// Request to get a cluster policy revision by ID..
-type GetClusterPolicyRevisionRequest struct {
-	// The fully qualified resource name of the cluster policy revision. Format:
-	// cluster-policies/{policy_id}/revisions/{revision_id}.
-	Name *string
-}
-
 type GetPolicyRequest struct {
 	// Canonical unique identifier for the Cluster Policy.
 	PolicyId *string
@@ -222,25 +195,6 @@ type Library_Lib_Requirements struct {
 
 func (*Library_Lib_Requirements) isLibrary_Lib() {}
 
-// Request to list cluster policy revisions..
-type ListClusterPolicyRevisionsRequest struct {
-	// The fully qualified resource name of the parent cluster. Format:
-	// cluster-policies/{policy_id}.
-	Parent *string
-	// Maximum number of cluster policy revisions to return per page.
-	PageSize *int
-	// Pagination token from a previous list cluster policy revisions request.
-	PageToken *string
-}
-
-// Response when listing cluster policy revisions..
-type ListClusterPolicyRevisionsResponse struct {
-	// Cluster policy revisions in the current page.
-	ClusterPolicyRevisions []ClusterPolicyRevision
-	// Token for fetching the next page. Empty when there are no more results.
-	NextPageToken *string
-}
-
 type ListPoliciesRequest struct {
 	// The order in which the policies get listed. * `DESC` - Sort result list in
 	// descending order. * `ASC` - Sort result list in ascending order.
@@ -318,41 +272,6 @@ type Policy struct {
 	Libraries []Library
 }
 
-type PolicyOwnAttributes struct {
-	// Cluster Policy name requested by the user. This has to be unique. Length must
-	// be between 1 and 100 characters.
-	Name *string
-	// Policy definition document expressed in [Databricks Cluster Policy Definition
-	// Language].
-	//
-	// [Databricks Cluster Policy Definition Language]: https://docs.databricks.com/administration-guide/clusters/policy-definition.html
-	Definition *string
-	// Additional human-readable description of the cluster policy.
-	Description *string
-	// ID of the policy family. The cluster policy's policy definition inherits the
-	// policy family's policy definition.
-	//
-	// Cannot be used with `definition`. Use `policy_family_definition_overrides`
-	// instead to customize the policy definition.
-	PolicyFamilyId *string
-	// Policy definition JSON document expressed in [Databricks Policy Definition
-	// Language]. The JSON document must be passed as a string and cannot be
-	// embedded in the requests.
-	//
-	// You can use this to customize the policy definition inherited from the policy
-	// family. Policy rules specified here are merged into the inherited policy
-	// definition.
-	//
-	// [Databricks Policy Definition Language]: https://docs.databricks.com/administration-guide/clusters/policy-definition.html
-	PolicyFamilyDefinitionOverrides *string
-	// Max number of clusters per user that can be active using this policy. If not
-	// present, there is no max limit.
-	MaxClustersPerUser *int64
-	// A list of libraries to be installed on the next cluster restart that uses
-	// this policy. The maximum number of libraries is 500.
-	Libraries []Library
-}
-
 type PythonPyPiLibrary struct {
 	// The name of the pypi package to install. An optional exact version
 	// specification is also supported. Examples: "simplejson" and
@@ -369,11 +288,4 @@ type RCranLibrary struct {
 	// The repository where the package can be found. If not specified, the default
 	// CRAN repo is used.
 	Repo *string
-}
-
-// Request to roll back cluster policy..
-type RollbackClusterPolicyRequest struct {
-	// The fully qualified resource name of the cluster policy revision. Format:
-	// cluster-policies/{policy_id}/revisions/{revision_id}.
-	Name *string
 }

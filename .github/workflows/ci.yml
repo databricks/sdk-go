@@ -63,8 +63,8 @@ jobs:
 
       - name: Run tests
         working-directory: ${{ matrix.module }}
-        # Only run tests if there are any packages to test.
-        run: go list ./... | xargs -r go test -v -race
+        # The examples module intentionally has no packages without its build tag.
+        run: go list -tags=examples ./... | xargs -r go test -tags=examples -v -race
 
   lint:
     needs: discover
@@ -98,7 +98,7 @@ jobs:
         with:
           install-mode: none
           working-directory: ${{ matrix.module }}
-          args: --timeout=5m ./...
+          args: --timeout=5m --build-tags=examples ./...
 
   fmt:
     runs-on:

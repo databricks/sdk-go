@@ -3,8 +3,54 @@
 package globalinitscripts
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type createGlobalInitScriptRequestWire struct {
 	Name     *string `json:"name,omitempty"`
@@ -39,19 +85,27 @@ func createGlobalInitScriptResponseFromWire(w *createGlobalInitScriptResponseWir
 }
 
 type globalInitScriptDetailsWire struct {
-	ScriptId  *string `json:"script_id,omitempty"`
-	Name      *string `json:"name,omitempty"`
-	Position  *int    `json:"position,omitempty"`
-	Enabled   *bool   `json:"enabled,omitempty"`
-	CreatedBy *string `json:"created_by,omitempty"`
-	CreatedAt *int64  `json:"created_at,omitempty"`
-	UpdatedBy *string `json:"updated_by,omitempty"`
-	UpdatedAt *int64  `json:"updated_at,omitempty"`
+	ScriptId  *string    `json:"script_id,omitempty"`
+	Name      *string    `json:"name,omitempty"`
+	Position  *int       `json:"position,omitempty"`
+	Enabled   *bool      `json:"enabled,omitempty"`
+	CreatedBy *string    `json:"created_by,omitempty"`
+	CreatedAt *wireInt64 `json:"created_at,omitempty"`
+	UpdatedBy *string    `json:"updated_by,omitempty"`
+	UpdatedAt *wireInt64 `json:"updated_at,omitempty"`
 }
 
 func globalInitScriptDetailsFromWire(w *globalInitScriptDetailsWire) (*GlobalInitScriptDetails, error) {
 	if w == nil {
 		return nil, nil
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GlobalInitScriptDetails.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GlobalInitScriptDetails.UpdatedAt", err)
 	}
 	return &GlobalInitScriptDetails{
 		ScriptId:  w.ScriptId,
@@ -59,9 +113,9 @@ func globalInitScriptDetailsFromWire(w *globalInitScriptDetailsWire) (*GlobalIni
 		Position:  w.Position,
 		Enabled:   w.Enabled,
 		CreatedBy: w.CreatedBy,
-		CreatedAt: w.CreatedAt,
+		CreatedAt: createdAtPublicValue,
 		UpdatedBy: w.UpdatedBy,
-		UpdatedAt: w.UpdatedAt,
+		UpdatedAt: updatedAtPublicValue,
 	}, nil
 }
 

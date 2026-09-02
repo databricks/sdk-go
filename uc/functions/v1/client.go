@@ -81,8 +81,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // The user must have the following permissions in order for the function to be
 // created: - **USE_CATALOG** on the function's parent catalog - **USE_SCHEMA**
 // and **CREATE_FUNCTION** on the function's parent schema
-func (c *internalClient) CreateFunction(ctx context.Context, req *CreateFunctionRequest, opts ...call.Option) (*FunctionInfo, error) {
-	wireReq, err := createFunctionRequestToWire(req)
+func (c *internalClient) CreateFunction(ctx context.Context, req CreateFunctionRequest, opts ...call.Option) (*FunctionInfo, error) {
+	wireReq, err := createFunctionRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -153,8 +153,8 @@ func (c *internalClient) CreateFunction(ctx context.Context, req *CreateFunction
 // Is the owner of the function itself and have both the **USE_CATALOG**
 // privilege on its parent catalog and the **USE_SCHEMA** privilege on its
 // parent schema
-func (c *internalClient) DeleteFunction(ctx context.Context, req *DeleteFunctionRequest, opts ...call.Option) (*DeleteFunctionResponse, error) {
-	wireReq, err := deleteFunctionRequestToWire(req)
+func (c *internalClient) DeleteFunction(ctx context.Context, req DeleteFunctionRequest, opts ...call.Option) (*DeleteFunctionResponse, error) {
+	wireReq, err := deleteFunctionRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +171,11 @@ func (c *internalClient) DeleteFunction(ctx context.Context, req *DeleteFunction
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/functions/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -220,8 +224,8 @@ func (c *internalClient) DeleteFunction(ctx context.Context, req *DeleteFunction
 // of the function - Have the **USE_CATALOG** privilege on the function's parent
 // catalog, the **USE_SCHEMA** privilege on the function's parent schema, and
 // the **EXECUTE** privilege on the function itself
-func (c *internalClient) GetFunction(ctx context.Context, req *GetFunctionRequest, opts ...call.Option) (*FunctionInfo, error) {
-	wireReq, err := getFunctionRequestToWire(req)
+func (c *internalClient) GetFunction(ctx context.Context, req GetFunctionRequest, opts ...call.Option) (*FunctionInfo, error) {
+	wireReq, err := getFunctionRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +242,11 @@ func (c *internalClient) GetFunction(ctx context.Context, req *GetFunctionReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/functions/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_browse", wireReq.IncludeBrowse); err != nil {
@@ -301,8 +309,8 @@ func (c *internalClient) GetFunction(ctx context.Context, req *GetFunctionReques
 // contain zero results while still providing a next_page_token. Clients must
 // continue reading pages until next_page_token is absent, which is the only
 // indication that the end of results has been reached.
-func (c *internalClient) ListFunctions(ctx context.Context, req *ListFunctionsRequest, opts ...call.Option) (*ListFunctionsResponse, error) {
-	wireReq, err := listFunctionsRequestToWire(req)
+func (c *internalClient) ListFunctions(ctx context.Context, req ListFunctionsRequest, opts ...call.Option) (*ListFunctionsResponse, error) {
+	wireReq, err := listFunctionsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -381,7 +389,7 @@ func (c *internalClient) ListFunctions(ctx context.Context, req *ListFunctionsRe
 //
 // For example:
 //
-//	for item, err := range c.ListFunctionsIter(ctx, &ListFunctionsRequest{}) {
+//	for item, err := range c.ListFunctionsIter(ctx, ListFunctionsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -393,16 +401,13 @@ func (c *internalClient) ListFunctions(ctx context.Context, req *ListFunctionsRe
 //
 // Callers who need custom pagination logic should use
 // ListFunctions directly.
-func (c *internalClient) ListFunctionsIter(ctx context.Context, req *ListFunctionsRequest, opts ...call.Option) iter.Seq2[*FunctionInfo, error] {
+func (c *internalClient) ListFunctionsIter(ctx context.Context, req ListFunctionsRequest, opts ...call.Option) iter.Seq2[*FunctionInfo, error] {
 	return func(yield func(*FunctionInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListFunctionsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListFunctions(ctx, &pageReq, opts...)
+			resp, err := c.ListFunctions(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -428,8 +433,8 @@ func (c *internalClient) ListFunctionsIter(ctx context.Context, req *ListFunctio
 // catalog - Is the owner of the function itself and has the **USE_CATALOG**
 // privilege on its parent catalog as well as the **USE_SCHEMA** privilege on
 // the function's parent schema.
-func (c *internalClient) UpdateFunction(ctx context.Context, req *UpdateFunctionRequest, opts ...call.Option) (*FunctionInfo, error) {
-	wireReq, err := updateFunctionRequestToWire(req)
+func (c *internalClient) UpdateFunction(ctx context.Context, req UpdateFunctionRequest, opts ...call.Option) (*FunctionInfo, error) {
+	wireReq, err := updateFunctionRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -450,7 +455,11 @@ func (c *internalClient) UpdateFunction(ctx context.Context, req *UpdateFunction
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/functions/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

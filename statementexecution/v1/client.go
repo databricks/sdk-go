@@ -76,8 +76,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // Requests that an executing statement be canceled. Callers must poll for
 // status to see the terminal state. Cancel response is empty; receiving
 // response indicates successful receipt.
-func (c *internalClient) CancelStatement(ctx context.Context, req *CancelStatementRequest, opts ...call.Option) (*CancelStatementResponse, error) {
-	wireReq, err := cancelStatementRequestToWire(req)
+func (c *internalClient) CancelStatement(ctx context.Context, req CancelStatementRequest, opts ...call.Option) (*CancelStatementResponse, error) {
+	wireReq, err := cancelStatementRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,11 @@ func (c *internalClient) CancelStatement(ctx context.Context, req *CancelStateme
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/statements/")
-	pb.singleSegment(*req.StatementId)
+	if req.StatementId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.StatementId)
+	}
 	pb.literal("/cancel")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -190,8 +194,8 @@ func (c *internalClient) CancelStatement(ctx context.Context, req *CancelStateme
 // `FAILED` (in contrast to a failure when accepting the request, which results
 // in a non-200 response). Details of the error can be found at `status.error`
 // in case of execution failures.
-func (c *internalClient) ExecuteStatement(ctx context.Context, req *ExecuteStatementRequest, opts ...call.Option) (*StatementResponse, error) {
-	wireReq, err := executeStatementRequestToWire(req)
+func (c *internalClient) ExecuteStatement(ctx context.Context, req ExecuteStatementRequest, opts ...call.Option) (*StatementResponse, error) {
+	wireReq, err := executeStatementRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +269,7 @@ func (c *internalClient) ExecuteStatement(ctx context.Context, req *ExecuteState
 // fields for simple iteration through the result set. Depending on
 // `disposition`, the response returns chunks of data either inline, or as
 // links.
-func (c *internalClient) GetResultData(ctx context.Context, req *GetResultDataRequest, opts ...call.Option) (*ResultData, error) {
+func (c *internalClient) GetResultData(ctx context.Context, req GetResultDataRequest, opts ...call.Option) (*ResultData, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -279,9 +283,17 @@ func (c *internalClient) GetResultData(ctx context.Context, req *GetResultDataRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/statements/")
-	pb.singleSegment(*req.StatementId)
+	if req.StatementId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.StatementId)
+	}
 	pb.literal("/result/chunks/")
-	pb.singleSegment(*req.ChunkIndex)
+	if req.ChunkIndex == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ChunkIndex)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -337,7 +349,7 @@ func (c *internalClient) GetResultData(ctx context.Context, req *GetResultDataRe
 //
 // **NOTE** This call currently might take up to 5 seconds to get the latest
 // status and result.
-func (c *internalClient) GetStatementResult(ctx context.Context, req *GetStatementResultRequest, opts ...call.Option) (*StatementResponse, error) {
+func (c *internalClient) GetStatementResult(ctx context.Context, req GetStatementResultRequest, opts ...call.Option) (*StatementResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -351,7 +363,11 @@ func (c *internalClient) GetStatementResult(ctx context.Context, req *GetStateme
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/statements/")
-	pb.singleSegment(*req.StatementId)
+	if req.StatementId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.StatementId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

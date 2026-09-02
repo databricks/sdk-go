@@ -75,8 +75,10 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Create a draft dashboard.
-func (c *internalClient) CreateDashboard(ctx context.Context, req *CreateDashboardRequest, opts ...call.Option) (*Dashboard, error) {
-	wireReq, err := createDashboardRequestToWire(req)
+//
+// Requires the Databricks SQL access entitlement.
+func (c *internalClient) CreateDashboard(ctx context.Context, req CreateDashboardRequest, opts ...call.Option) (*Dashboard, error) {
+	wireReq, err := createDashboardRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -147,8 +149,8 @@ func (c *internalClient) CreateDashboard(ctx context.Context, req *CreateDashboa
 }
 
 // Create dashboard schedule.
-func (c *internalClient) CreateSchedule(ctx context.Context, req *CreateScheduleRequest, opts ...call.Option) (*Schedule, error) {
-	wireReq, err := createScheduleRequestToWire(req)
+func (c *internalClient) CreateSchedule(ctx context.Context, req CreateScheduleRequest, opts ...call.Option) (*Schedule, error) {
+	wireReq, err := createScheduleRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +171,11 @@ func (c *internalClient) CreateSchedule(ctx context.Context, req *CreateSchedule
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
-	pb.singleSegment(*req.Schedule.DashboardId)
+	if req.Schedule == nil || req.Schedule.DashboardId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Schedule.DashboardId)
+	}
 	pb.literal("/schedules")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -217,8 +223,8 @@ func (c *internalClient) CreateSchedule(ctx context.Context, req *CreateSchedule
 }
 
 // Create schedule subscription.
-func (c *internalClient) CreateSubscription(ctx context.Context, req *CreateSubscriptionRequest, opts ...call.Option) (*Subscription, error) {
-	wireReq, err := createSubscriptionRequestToWire(req)
+func (c *internalClient) CreateSubscription(ctx context.Context, req CreateSubscriptionRequest, opts ...call.Option) (*Subscription, error) {
+	wireReq, err := createSubscriptionRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -239,9 +245,17 @@ func (c *internalClient) CreateSubscription(ctx context.Context, req *CreateSubs
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
-	pb.singleSegment(*req.Subscription.DashboardId)
+	if req.Subscription == nil || req.Subscription.DashboardId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Subscription.DashboardId)
+	}
 	pb.literal("/schedules/")
-	pb.singleSegment(*req.Subscription.ScheduleId)
+	if req.Subscription == nil || req.Subscription.ScheduleId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Subscription.ScheduleId)
+	}
 	pb.literal("/subscriptions")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -289,8 +303,8 @@ func (c *internalClient) CreateSubscription(ctx context.Context, req *CreateSubs
 }
 
 // Delete dashboard schedule.
-func (c *internalClient) DeleteSchedule(ctx context.Context, req *DeleteScheduleRequest, opts ...call.Option) error {
-	wireReq, err := deleteScheduleRequestToWire(req)
+func (c *internalClient) DeleteSchedule(ctx context.Context, req DeleteScheduleRequest, opts ...call.Option) error {
+	wireReq, err := deleteScheduleRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -307,9 +321,17 @@ func (c *internalClient) DeleteSchedule(ctx context.Context, req *DeleteSchedule
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
-	pb.singleSegment(*req.DashboardId)
+	if req.DashboardId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.DashboardId)
+	}
 	pb.literal("/schedules/")
-	pb.singleSegment(*req.ScheduleId)
+	if req.ScheduleId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ScheduleId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "etag", wireReq.Etag); err != nil {
@@ -349,8 +371,8 @@ func (c *internalClient) DeleteSchedule(ctx context.Context, req *DeleteSchedule
 }
 
 // Delete schedule subscription.
-func (c *internalClient) DeleteSubscription(ctx context.Context, req *DeleteSubscriptionRequest, opts ...call.Option) error {
-	wireReq, err := deleteSubscriptionRequestToWire(req)
+func (c *internalClient) DeleteSubscription(ctx context.Context, req DeleteSubscriptionRequest, opts ...call.Option) error {
+	wireReq, err := deleteSubscriptionRequestToWire(&req)
 	if err != nil {
 		return err
 	}
@@ -367,11 +389,23 @@ func (c *internalClient) DeleteSubscription(ctx context.Context, req *DeleteSubs
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
-	pb.singleSegment(*req.DashboardId)
+	if req.DashboardId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.DashboardId)
+	}
 	pb.literal("/schedules/")
-	pb.singleSegment(*req.ScheduleId)
+	if req.ScheduleId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ScheduleId)
+	}
 	pb.literal("/subscriptions/")
-	pb.singleSegment(*req.SubscriptionId)
+	if req.SubscriptionId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SubscriptionId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "etag", wireReq.Etag); err != nil {
@@ -411,7 +445,9 @@ func (c *internalClient) DeleteSubscription(ctx context.Context, req *DeleteSubs
 }
 
 // Get a draft dashboard.
-func (c *internalClient) GetDashboard(ctx context.Context, req *GetDashboardRequest, opts ...call.Option) (*Dashboard, error) {
+//
+// Requires the Databricks SQL access entitlement.
+func (c *internalClient) GetDashboard(ctx context.Context, req GetDashboardRequest, opts ...call.Option) (*Dashboard, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -425,7 +461,11 @@ func (c *internalClient) GetDashboard(ctx context.Context, req *GetDashboardRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
-	pb.singleSegment(*req.DashboardId)
+	if req.DashboardId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.DashboardId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -471,7 +511,13 @@ func (c *internalClient) GetDashboard(ctx context.Context, req *GetDashboardRequ
 }
 
 // Get the current published dashboard.
-func (c *internalClient) GetPublishedDashboard(ctx context.Context, req *GetPublishedDashboardRequest, opts ...call.Option) (*PublishedDashboard, error) {
+//
+// The caller must be a workspace user with one of the following entitlements:
+// Workspace access, Databricks SQL access, or Consumer access.
+//
+// Account-level users who are not members of the workspace cannot call this
+// endpoint, even if the dashboard has been shared with them.
+func (c *internalClient) GetPublishedDashboard(ctx context.Context, req GetPublishedDashboardRequest, opts ...call.Option) (*PublishedDashboard, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -485,7 +531,11 @@ func (c *internalClient) GetPublishedDashboard(ctx context.Context, req *GetPubl
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
-	pb.singleSegment(*req.DashboardId)
+	if req.DashboardId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.DashboardId)
+	}
 	pb.literal("/published")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -533,8 +583,14 @@ func (c *internalClient) GetPublishedDashboard(ctx context.Context, req *GetPubl
 
 // Get a required authorization details and scopes of a published dashboard to
 // mint an OAuth token.
-func (c *internalClient) GetPublishedDashboardTokenInfo(ctx context.Context, req *GetPublishedDashboardTokenInfoRequest, opts ...call.Option) (*GetPublishedDashboardTokenInfoResponse, error) {
-	wireReq, err := getPublishedDashboardTokenInfoRequestToWire(req)
+//
+// The caller must be a workspace user with one of the following entitlements:
+// Workspace access, Databricks SQL access, or Consumer access.
+//
+// Account-level users who are not members of the workspace cannot call this
+// endpoint, even if the dashboard has been shared with them.
+func (c *internalClient) GetPublishedDashboardTokenInfo(ctx context.Context, req GetPublishedDashboardTokenInfoRequest, opts ...call.Option) (*GetPublishedDashboardTokenInfoResponse, error) {
+	wireReq, err := getPublishedDashboardTokenInfoRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -551,7 +607,11 @@ func (c *internalClient) GetPublishedDashboardTokenInfo(ctx context.Context, req
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
-	pb.singleSegment(*req.DashboardId)
+	if req.DashboardId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.DashboardId)
+	}
 	pb.literal("/published/tokeninfo")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -604,7 +664,7 @@ func (c *internalClient) GetPublishedDashboardTokenInfo(ctx context.Context, req
 }
 
 // Get dashboard schedule.
-func (c *internalClient) GetSchedule(ctx context.Context, req *GetScheduleRequest, opts ...call.Option) (*Schedule, error) {
+func (c *internalClient) GetSchedule(ctx context.Context, req GetScheduleRequest, opts ...call.Option) (*Schedule, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -618,9 +678,17 @@ func (c *internalClient) GetSchedule(ctx context.Context, req *GetScheduleReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
-	pb.singleSegment(*req.DashboardId)
+	if req.DashboardId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.DashboardId)
+	}
 	pb.literal("/schedules/")
-	pb.singleSegment(*req.ScheduleId)
+	if req.ScheduleId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ScheduleId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -666,7 +734,7 @@ func (c *internalClient) GetSchedule(ctx context.Context, req *GetScheduleReques
 }
 
 // Get schedule subscription.
-func (c *internalClient) GetSubscription(ctx context.Context, req *GetSubscriptionRequest, opts ...call.Option) (*Subscription, error) {
+func (c *internalClient) GetSubscription(ctx context.Context, req GetSubscriptionRequest, opts ...call.Option) (*Subscription, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -680,11 +748,23 @@ func (c *internalClient) GetSubscription(ctx context.Context, req *GetSubscripti
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
-	pb.singleSegment(*req.DashboardId)
+	if req.DashboardId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.DashboardId)
+	}
 	pb.literal("/schedules/")
-	pb.singleSegment(*req.ScheduleId)
+	if req.ScheduleId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ScheduleId)
+	}
 	pb.literal("/subscriptions/")
-	pb.singleSegment(*req.SubscriptionId)
+	if req.SubscriptionId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SubscriptionId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -730,8 +810,10 @@ func (c *internalClient) GetSubscription(ctx context.Context, req *GetSubscripti
 }
 
 // List dashboards.
-func (c *internalClient) ListDashboards(ctx context.Context, req *ListDashboardsRequest, opts ...call.Option) (*ListDashboardsResponse, error) {
-	wireReq, err := listDashboardsRequestToWire(req)
+//
+// Requires the Databricks SQL access entitlement.
+func (c *internalClient) ListDashboards(ctx context.Context, req ListDashboardsRequest, opts ...call.Option) (*ListDashboardsResponse, error) {
+	wireReq, err := listDashboardsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -809,7 +891,7 @@ func (c *internalClient) ListDashboards(ctx context.Context, req *ListDashboards
 //
 // For example:
 //
-//	for item, err := range c.ListDashboardsIter(ctx, &ListDashboardsRequest{}) {
+//	for item, err := range c.ListDashboardsIter(ctx, ListDashboardsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -821,16 +903,13 @@ func (c *internalClient) ListDashboards(ctx context.Context, req *ListDashboards
 //
 // Callers who need custom pagination logic should use
 // ListDashboards directly.
-func (c *internalClient) ListDashboardsIter(ctx context.Context, req *ListDashboardsRequest, opts ...call.Option) iter.Seq2[*Dashboard, error] {
+func (c *internalClient) ListDashboardsIter(ctx context.Context, req ListDashboardsRequest, opts ...call.Option) iter.Seq2[*Dashboard, error] {
 	return func(yield func(*Dashboard, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListDashboardsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListDashboards(ctx, &pageReq, opts...)
+			resp, err := c.ListDashboards(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -849,8 +928,8 @@ func (c *internalClient) ListDashboardsIter(ctx context.Context, req *ListDashbo
 }
 
 // List dashboard schedules.
-func (c *internalClient) ListSchedules(ctx context.Context, req *ListSchedulesRequest, opts ...call.Option) (*ListSchedulesResponse, error) {
-	wireReq, err := listSchedulesRequestToWire(req)
+func (c *internalClient) ListSchedules(ctx context.Context, req ListSchedulesRequest, opts ...call.Option) (*ListSchedulesResponse, error) {
+	wireReq, err := listSchedulesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -867,7 +946,11 @@ func (c *internalClient) ListSchedules(ctx context.Context, req *ListSchedulesRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
-	pb.singleSegment(*req.DashboardId)
+	if req.DashboardId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.DashboardId)
+	}
 	pb.literal("/schedules")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -924,7 +1007,7 @@ func (c *internalClient) ListSchedules(ctx context.Context, req *ListSchedulesRe
 //
 // For example:
 //
-//	for item, err := range c.ListSchedulesIter(ctx, &ListSchedulesRequest{}) {
+//	for item, err := range c.ListSchedulesIter(ctx, ListSchedulesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -936,16 +1019,13 @@ func (c *internalClient) ListSchedules(ctx context.Context, req *ListSchedulesRe
 //
 // Callers who need custom pagination logic should use
 // ListSchedules directly.
-func (c *internalClient) ListSchedulesIter(ctx context.Context, req *ListSchedulesRequest, opts ...call.Option) iter.Seq2[*Schedule, error] {
+func (c *internalClient) ListSchedulesIter(ctx context.Context, req ListSchedulesRequest, opts ...call.Option) iter.Seq2[*Schedule, error] {
 	return func(yield func(*Schedule, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListSchedulesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListSchedules(ctx, &pageReq, opts...)
+			resp, err := c.ListSchedules(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -964,8 +1044,8 @@ func (c *internalClient) ListSchedulesIter(ctx context.Context, req *ListSchedul
 }
 
 // List schedule subscriptions.
-func (c *internalClient) ListSubscriptions(ctx context.Context, req *ListSubscriptionsRequest, opts ...call.Option) (*ListSubscriptionsResponse, error) {
-	wireReq, err := listSubscriptionsRequestToWire(req)
+func (c *internalClient) ListSubscriptions(ctx context.Context, req ListSubscriptionsRequest, opts ...call.Option) (*ListSubscriptionsResponse, error) {
+	wireReq, err := listSubscriptionsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -982,9 +1062,17 @@ func (c *internalClient) ListSubscriptions(ctx context.Context, req *ListSubscri
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
-	pb.singleSegment(*req.DashboardId)
+	if req.DashboardId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.DashboardId)
+	}
 	pb.literal("/schedules/")
-	pb.singleSegment(*req.ScheduleId)
+	if req.ScheduleId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ScheduleId)
+	}
 	pb.literal("/subscriptions")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1041,7 +1129,7 @@ func (c *internalClient) ListSubscriptions(ctx context.Context, req *ListSubscri
 //
 // For example:
 //
-//	for item, err := range c.ListSubscriptionsIter(ctx, &ListSubscriptionsRequest{}) {
+//	for item, err := range c.ListSubscriptionsIter(ctx, ListSubscriptionsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1053,16 +1141,13 @@ func (c *internalClient) ListSubscriptions(ctx context.Context, req *ListSubscri
 //
 // Callers who need custom pagination logic should use
 // ListSubscriptions directly.
-func (c *internalClient) ListSubscriptionsIter(ctx context.Context, req *ListSubscriptionsRequest, opts ...call.Option) iter.Seq2[*Subscription, error] {
+func (c *internalClient) ListSubscriptionsIter(ctx context.Context, req ListSubscriptionsRequest, opts ...call.Option) iter.Seq2[*Subscription, error] {
 	return func(yield func(*Subscription, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListSubscriptionsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListSubscriptions(ctx, &pageReq, opts...)
+			resp, err := c.ListSubscriptions(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1080,9 +1165,10 @@ func (c *internalClient) ListSubscriptionsIter(ctx context.Context, req *ListSub
 	}
 }
 
-// Migrates a classic SQL dashboard to Lakeview.
-func (c *internalClient) MigrateDashboard(ctx context.Context, req *MigrateDashboardRequest, opts ...call.Option) (*Dashboard, error) {
-	wireReq, err := migrateDashboardRequestToWire(req)
+// Deprecated: Legacy dashboard migration is no longer supported. Use Lakeview
+// (AI/BI) dashboards instead.
+func (c *internalClient) MigrateDashboard(ctx context.Context, req MigrateDashboardRequest, opts ...call.Option) (*Dashboard, error) {
+	wireReq, err := migrateDashboardRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1147,8 +1233,10 @@ func (c *internalClient) MigrateDashboard(ctx context.Context, req *MigrateDashb
 }
 
 // Publish the current draft dashboard.
-func (c *internalClient) PublishDashboard(ctx context.Context, req *PublishDashboardRequest, opts ...call.Option) (*PublishedDashboard, error) {
-	wireReq, err := publishDashboardRequestToWire(req)
+//
+// Requires the Databricks SQL access entitlement.
+func (c *internalClient) PublishDashboard(ctx context.Context, req PublishDashboardRequest, opts ...call.Option) (*PublishedDashboard, error) {
+	wireReq, err := publishDashboardRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1169,7 +1257,11 @@ func (c *internalClient) PublishDashboard(ctx context.Context, req *PublishDashb
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
-	pb.singleSegment(*req.DashboardId)
+	if req.DashboardId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.DashboardId)
+	}
 	pb.literal("/published")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1217,8 +1309,10 @@ func (c *internalClient) PublishDashboard(ctx context.Context, req *PublishDashb
 }
 
 // Revert a dashboard's definition in draft mode to the last published version.
-func (c *internalClient) RevertDashboard(ctx context.Context, req *RevertDashboardRequest, opts ...call.Option) (*RevertDashboardResponse, error) {
-	wireReq, err := revertDashboardRequestToWire(req)
+//
+// Requires the Databricks SQL access entitlement.
+func (c *internalClient) RevertDashboard(ctx context.Context, req RevertDashboardRequest, opts ...call.Option) (*RevertDashboardResponse, error) {
+	wireReq, err := revertDashboardRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1239,7 +1333,11 @@ func (c *internalClient) RevertDashboard(ctx context.Context, req *RevertDashboa
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
-	pb.singleSegment(*req.DashboardId)
+	if req.DashboardId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.DashboardId)
+	}
 	pb.literal("/revert")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1287,7 +1385,9 @@ func (c *internalClient) RevertDashboard(ctx context.Context, req *RevertDashboa
 }
 
 // Trash a dashboard.
-func (c *internalClient) TrashDashboard(ctx context.Context, req *TrashDashboardRequest, opts ...call.Option) (*TrashDashboardResponse, error) {
+//
+// Requires the Databricks SQL access entitlement.
+func (c *internalClient) TrashDashboard(ctx context.Context, req TrashDashboardRequest, opts ...call.Option) (*TrashDashboardResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1301,7 +1401,11 @@ func (c *internalClient) TrashDashboard(ctx context.Context, req *TrashDashboard
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
-	pb.singleSegment(*req.DashboardId)
+	if req.DashboardId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.DashboardId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1341,7 +1445,9 @@ func (c *internalClient) TrashDashboard(ctx context.Context, req *TrashDashboard
 }
 
 // Unpublish the dashboard.
-func (c *internalClient) UnpublishDashboard(ctx context.Context, req *UnpublishDashboardRequest, opts ...call.Option) (*UnpublishDashboardResponse, error) {
+//
+// Requires the Databricks SQL access entitlement.
+func (c *internalClient) UnpublishDashboard(ctx context.Context, req UnpublishDashboardRequest, opts ...call.Option) (*UnpublishDashboardResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1355,7 +1461,11 @@ func (c *internalClient) UnpublishDashboard(ctx context.Context, req *UnpublishD
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
-	pb.singleSegment(*req.DashboardId)
+	if req.DashboardId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.DashboardId)
+	}
 	pb.literal("/published")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1396,8 +1506,10 @@ func (c *internalClient) UnpublishDashboard(ctx context.Context, req *UnpublishD
 }
 
 // Update a draft dashboard.
-func (c *internalClient) UpdateDashboard(ctx context.Context, req *UpdateDashboardRequest, opts ...call.Option) (*Dashboard, error) {
-	wireReq, err := updateDashboardRequestToWire(req)
+//
+// Requires the Databricks SQL access entitlement.
+func (c *internalClient) UpdateDashboard(ctx context.Context, req UpdateDashboardRequest, opts ...call.Option) (*Dashboard, error) {
+	wireReq, err := updateDashboardRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1418,7 +1530,11 @@ func (c *internalClient) UpdateDashboard(ctx context.Context, req *UpdateDashboa
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
-	pb.singleSegment(*req.Dashboard.DashboardId)
+	if req.Dashboard == nil || req.Dashboard.DashboardId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Dashboard.DashboardId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "dataset_catalog", wireReq.DatasetCatalog); err != nil {
@@ -1471,8 +1587,8 @@ func (c *internalClient) UpdateDashboard(ctx context.Context, req *UpdateDashboa
 }
 
 // Update dashboard schedule.
-func (c *internalClient) UpdateSchedule(ctx context.Context, req *UpdateScheduleRequest, opts ...call.Option) (*Schedule, error) {
-	wireReq, err := updateScheduleRequestToWire(req)
+func (c *internalClient) UpdateSchedule(ctx context.Context, req UpdateScheduleRequest, opts ...call.Option) (*Schedule, error) {
+	wireReq, err := updateScheduleRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1493,9 +1609,17 @@ func (c *internalClient) UpdateSchedule(ctx context.Context, req *UpdateSchedule
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
-	pb.singleSegment(*req.Schedule.DashboardId)
+	if req.Schedule == nil || req.Schedule.DashboardId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Schedule.DashboardId)
+	}
 	pb.literal("/schedules/")
-	pb.singleSegment(*req.Schedule.ScheduleId)
+	if req.Schedule == nil || req.Schedule.ScheduleId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Schedule.ScheduleId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

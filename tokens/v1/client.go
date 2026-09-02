@@ -77,8 +77,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // authentication, it creates a token with the same client ID as the
 // authenticated token. If the user's token quota is exceeded, this call returns
 // an error **QUOTA_EXCEEDED**.
-func (c *internalClient) CreateToken(ctx context.Context, req *CreateTokenRequest, opts ...call.Option) (*CreateTokenResponse, error) {
-	wireReq, err := createTokenRequestToWire(req)
+func (c *internalClient) CreateToken(ctx context.Context, req CreateTokenRequest, opts ...call.Option) (*CreateTokenResponse, error) {
+	wireReq, err := createTokenRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (c *internalClient) CreateToken(ctx context.Context, req *CreateTokenReques
 }
 
 // Lists all the valid tokens for a user-workspace pair.
-func (c *internalClient) ListTokens(ctx context.Context, req *ListTokensRequest, opts ...call.Option) (*ListTokensResponse, error) {
+func (c *internalClient) ListTokens(ctx context.Context, req ListTokensRequest, opts ...call.Option) (*ListTokensResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -203,8 +203,8 @@ func (c *internalClient) ListTokens(ctx context.Context, req *ListTokensRequest,
 //
 // If a token with the specified ID is not valid, this call returns an error
 // **RESOURCE_DOES_NOT_EXIST**.
-func (c *internalClient) RevokeToken(ctx context.Context, req *RevokeTokenRequest, opts ...call.Option) (*RevokeTokenResponse, error) {
-	wireReq, err := revokeTokenRequestToWire(req)
+func (c *internalClient) RevokeToken(ctx context.Context, req RevokeTokenRequest, opts ...call.Option) (*RevokeTokenResponse, error) {
+	wireReq, err := revokeTokenRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -266,8 +266,8 @@ func (c *internalClient) RevokeToken(ctx context.Context, req *RevokeTokenReques
 //
 // If a token with the specified ID is not valid, this call returns an error
 // **NOT_FOUND**.
-func (c *internalClient) UpdateToken(ctx context.Context, req *UpdateTokenRequest, opts ...call.Option) (*UpdateTokenResponse, error) {
-	wireReq, err := updateTokenRequestToWire(req)
+func (c *internalClient) UpdateToken(ctx context.Context, req UpdateTokenRequest, opts ...call.Option) (*UpdateTokenResponse, error) {
+	wireReq, err := updateTokenRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -288,7 +288,11 @@ func (c *internalClient) UpdateToken(ctx context.Context, req *UpdateTokenReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/token/")
-	pb.singleSegment(*req.TokenId)
+	if req.TokenId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.TokenId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

@@ -76,8 +76,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Create a new Online Table.
-func (c *internalClient) createOnlineTableBase(ctx context.Context, req *CreateOnlineTableRequest, opts ...call.Option) (*OnlineTable, error) {
-	wireReq, err := createOnlineTableRequestToWire(req)
+func (c *internalClient) createOnlineTableBase(ctx context.Context, req CreateOnlineTableRequest, opts ...call.Option) (*OnlineTable, error) {
+	wireReq, err := createOnlineTableRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func (c *internalClient) createOnlineTableBase(ctx context.Context, req *CreateO
 }
 
 // Create a new Online Table.
-func (c *internalClient) CreateOnlineTable(ctx context.Context, req *CreateOnlineTableRequest, opts ...call.Option) (*CreateOnlineTableWaiter, error) {
+func (c *internalClient) CreateOnlineTable(ctx context.Context, req CreateOnlineTableRequest, opts ...call.Option) (*CreateOnlineTableWaiter, error) {
 	resp, err := c.createOnlineTableBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -158,13 +158,18 @@ func (c *internalClient) CreateOnlineTable(ctx context.Context, req *CreateOnlin
 
 // CreateOnlineTableWaiter tracks the state of the operation started by CreateOnlineTable.
 type CreateOnlineTableWaiter struct {
-	poll func(context.Context, *GetOnlineTableRequest, ...call.Option) (*OnlineTable, error)
+	poll func(context.Context, GetOnlineTableRequest, ...call.Option) (*OnlineTable, error)
 	name string
+}
+
+// GetName returns the Name value used to identify the operation.
+func (w *CreateOnlineTableWaiter) GetName() string {
+	return w.name
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *CreateOnlineTableWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetOnlineTableRequest{
+	pollResp, err := w.poll(ctx, GetOnlineTableRequest{
 		Name: &w.name,
 	}, opts...)
 	if err != nil {
@@ -189,7 +194,7 @@ func (w *CreateOnlineTableWaiter) Done(ctx context.Context, opts ...call.Option)
 func (w *CreateOnlineTableWaiter) Wait(ctx context.Context, opts ...lro.Option) (*OnlineTable, error) {
 	var result *OnlineTable
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetOnlineTableRequest{
+		pollResp, err := w.poll(ctx, GetOnlineTableRequest{
 			Name: &w.name,
 		})
 		if err != nil {
@@ -222,7 +227,7 @@ func (w *CreateOnlineTableWaiter) Wait(ctx context.Context, opts ...lro.Option) 
 // Delete an online table. Warning: This will delete all the data in the online
 // table. If the source Delta table was deleted or modified since this Online
 // Table was created, this will lose the data forever!
-func (c *internalClient) DeleteOnlineTable(ctx context.Context, req *DeleteOnlineTableRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteOnlineTable(ctx context.Context, req DeleteOnlineTableRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -236,7 +241,11 @@ func (c *internalClient) DeleteOnlineTable(ctx context.Context, req *DeleteOnlin
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/online-tables/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -273,7 +282,7 @@ func (c *internalClient) DeleteOnlineTable(ctx context.Context, req *DeleteOnlin
 }
 
 // Get information about an existing online table and its status.
-func (c *internalClient) GetOnlineTable(ctx context.Context, req *GetOnlineTableRequest, opts ...call.Option) (*OnlineTable, error) {
+func (c *internalClient) GetOnlineTable(ctx context.Context, req GetOnlineTableRequest, opts ...call.Option) (*OnlineTable, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -287,7 +296,11 @@ func (c *internalClient) GetOnlineTable(ctx context.Context, req *GetOnlineTable
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/online-tables/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

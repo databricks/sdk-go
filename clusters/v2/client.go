@@ -79,8 +79,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // Retrieves a list of events about the activity of a cluster. This API is
 // paginated. If there are more events to read, the response includes all the
 // parameters necessary to request the next page of events.
-func (c *internalClient) ListEvents(ctx context.Context, req *ListEventsRequest, opts ...call.Option) (*GetEventsResponse, error) {
-	wireReq, err := listEventsRequestToWire(req)
+func (c *internalClient) ListEvents(ctx context.Context, req ListEventsRequest, opts ...call.Option) (*GetEventsResponse, error) {
+	wireReq, err := listEventsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func (c *internalClient) ListEvents(ctx context.Context, req *ListEventsRequest,
 //
 // For example:
 //
-//	for item, err := range c.ListEventsIter(ctx, &ListEventsRequest{}) {
+//	for item, err := range c.ListEventsIter(ctx, ListEventsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -161,16 +161,13 @@ func (c *internalClient) ListEvents(ctx context.Context, req *ListEventsRequest,
 //
 // Callers who need custom pagination logic should use
 // ListEvents directly.
-func (c *internalClient) ListEventsIter(ctx context.Context, req *ListEventsRequest, opts ...call.Option) iter.Seq2[*ClusterEvent, error] {
+func (c *internalClient) ListEventsIter(ctx context.Context, req ListEventsRequest, opts ...call.Option) iter.Seq2[*ClusterEvent, error] {
 	return func(yield func(*ClusterEvent, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListEventsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListEvents(ctx, &pageReq, opts...)
+			resp, err := c.ListEvents(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -188,265 +185,11 @@ func (c *internalClient) ListEventsIter(ctx context.Context, req *ListEventsRequ
 	}
 }
 
-// Get details of a cluster revision.
-func (c *internalClient) GetClusterRevision(ctx context.Context, req *GetClusterRevisionRequest, opts ...call.Option) (*ClusterRevision, error) {
-
-	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
-	if c.workspaceID != "" {
-		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
-	}
-
-	baseURL, err := url.Parse(c.host)
-	if err != nil {
-		return nil, err
-	}
-	pb := pathBuilder{}
-	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Name)
-	baseURL.Path, baseURL.RawPath = pb.build()
-	queryParams := url.Values{}
-	baseURL.RawQuery = queryParams.Encode()
-	urlStr := baseURL.String()
-
-	var resp *ClusterRevision
-
-	call := func(ctx context.Context) error {
-		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
-			Method:      "GET",
-			URL:         urlStr,
-			Credentials: c.credentials,
-			UserAgent:   c.userAgent,
-			Headers:     headers,
-		})
-		if err != nil {
-			return err
-		}
-
-		respBody, _, err := executeHTTPCall(httpCallOptions{
-			req:    httpReq,
-			client: c.httpClient,
-			logger: c.logger,
-		})
-		if err != nil {
-			return err
-		}
-		var wireResp clusterRevisionWire
-		if err := json.Unmarshal(respBody, &wireResp); err != nil {
-			return err
-		}
-		resp, err = clusterRevisionFromWire(&wireResp)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if err := executeCall(ctx, call, opts); err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-// Lists a cluster's revisions, ordered from most to least recent.
-func (c *internalClient) ListClusterRevisions(ctx context.Context, req *ListClusterRevisionsRequest, opts ...call.Option) (*ListClusterRevisionsResponse, error) {
-	wireReq, err := listClusterRevisionsRequestToWire(req)
-	if err != nil {
-		return nil, err
-	}
-
-	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
-	if c.workspaceID != "" {
-		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
-	}
-
-	baseURL, err := url.Parse(c.host)
-	if err != nil {
-		return nil, err
-	}
-	pb := pathBuilder{}
-	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Parent)
-	pb.literal("/revisions")
-	baseURL.Path, baseURL.RawPath = pb.build()
-	queryParams := url.Values{}
-	if err := addQueryValue(queryParams, "page_size", wireReq.PageSize); err != nil {
-		return nil, err
-	}
-	if err := addQueryValue(queryParams, "page_token", wireReq.PageToken); err != nil {
-		return nil, err
-	}
-	baseURL.RawQuery = queryParams.Encode()
-	urlStr := baseURL.String()
-
-	var resp *ListClusterRevisionsResponse
-
-	call := func(ctx context.Context) error {
-		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
-			Method:      "GET",
-			URL:         urlStr,
-			Credentials: c.credentials,
-			UserAgent:   c.userAgent,
-			Headers:     headers,
-		})
-		if err != nil {
-			return err
-		}
-
-		respBody, _, err := executeHTTPCall(httpCallOptions{
-			req:    httpReq,
-			client: c.httpClient,
-			logger: c.logger,
-		})
-		if err != nil {
-			return err
-		}
-		var wireResp listClusterRevisionsResponseWire
-		if err := json.Unmarshal(respBody, &wireResp); err != nil {
-			return err
-		}
-		resp, err = listClusterRevisionsResponseFromWire(&wireResp)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if err := executeCall(ctx, call, opts); err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-// ListClusterRevisionsIter returns an iterator that iterates
-// over the results of ListClusterRevisions.
-//
-// For example:
-//
-//	for item, err := range c.ListClusterRevisionsIter(ctx, &ListClusterRevisionsRequest{}) {
-//	  if err != nil {
-//	    return err
-//	  }
-//	  fmt.Println(item)
-//	}
-//
-// Options opts are passed to each ListClusterRevisions call
-// made by the iterator under the hood.
-//
-// Callers who need custom pagination logic should use
-// ListClusterRevisions directly.
-func (c *internalClient) ListClusterRevisionsIter(ctx context.Context, req *ListClusterRevisionsRequest, opts ...call.Option) iter.Seq2[*ClusterRevision, error] {
-	return func(yield func(*ClusterRevision, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListClusterRevisionsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
-		for {
-			resp, err := c.ListClusterRevisions(ctx, &pageReq, opts...)
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-			for i := range resp.ClusterRevisions {
-				if !yield(&resp.ClusterRevisions[i], nil) {
-					return
-				}
-			}
-			if resp.NextPageToken == nil || *resp.NextPageToken == "" {
-				return
-			}
-			pageReq.PageToken = resp.NextPageToken
-		}
-	}
-}
-
-// Rolls back a cluster to a previous revision. A cluster can be rolled back if
-// it is in a `RUNNING` or `TERMINATED` state.
-//
-// If a cluster is rolled back while in a `RUNNING` state, it will be restarted
-// so that the new attributes can take effect.
-//
-// If a cluster is rolled back while in a `TERMINATED` state, it will remain
-// `TERMINATED`. The next time it is started using the `clusters/start` API, the
-// new attributes will take effect. Any attempt to roll back a cluster in any
-// other state will be rejected with an `INVALID_PARAMETER_VALUE` error code.
-func (c *internalClient) RollbackCluster(ctx context.Context, req *RollbackClusterRequest, opts ...call.Option) (*ClusterRevision, error) {
-	wireReq, err := rollbackClusterRequestToWire(req)
-	if err != nil {
-		return nil, err
-	}
-	body, err := json.Marshal(wireReq)
-	if err != nil {
-		return nil, err
-	}
-
-	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
-	if c.workspaceID != "" {
-		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
-	}
-
-	baseURL, err := url.Parse(c.host)
-	if err != nil {
-		return nil, err
-	}
-	pb := pathBuilder{}
-	pb.literal("/api/2.1/")
-	pb.singleSegment(*req.Name)
-	pb.literal("/rollback")
-	baseURL.Path, baseURL.RawPath = pb.build()
-	queryParams := url.Values{}
-	baseURL.RawQuery = queryParams.Encode()
-	urlStr := baseURL.String()
-
-	var resp *ClusterRevision
-
-	call := func(ctx context.Context) error {
-		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
-			Method:      "POST",
-			URL:         urlStr,
-			Credentials: c.credentials,
-			UserAgent:   c.userAgent,
-			Headers:     headers,
-			Body:        bytes.NewBuffer(body),
-		})
-		if err != nil {
-			return err
-		}
-
-		respBody, _, err := executeHTTPCall(httpCallOptions{
-			req:    httpReq,
-			client: c.httpClient,
-			logger: c.logger,
-		})
-		if err != nil {
-			return err
-		}
-		var wireResp clusterRevisionWire
-		if err := json.Unmarshal(respBody, &wireResp); err != nil {
-			return err
-		}
-		resp, err = clusterRevisionFromWire(&wireResp)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if err := executeCall(ctx, call, opts); err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
 // Change the owner of the cluster. You must be an admin and the cluster must be
 // terminated to perform this operation. The service principal application ID
 // can be supplied as an argument to `owner_username`.
-func (c *internalClient) ChangeClusterOwner(ctx context.Context, req *ChangeClusterOwnerRequest, opts ...call.Option) (*ChangeClusterOwnerResponse, error) {
-	wireReq, err := changeClusterOwnerRequestToWire(req)
+func (c *internalClient) ChangeClusterOwner(ctx context.Context, req ChangeClusterOwnerRequest, opts ...call.Option) (*ChangeClusterOwnerResponse, error) {
+	wireReq, err := changeClusterOwnerRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -519,8 +262,8 @@ func (c *internalClient) ChangeClusterOwner(ctx context.Context, req *ChangeClus
 // Rather than authoring the cluster's JSON definition from scratch, Databricks
 // recommends filling out the [create compute UI](/compute/configure.html) and
 // then copying the generated JSON definition from the UI.
-func (c *internalClient) createClusterBase(ctx context.Context, req *CreateClusterRequest, opts ...call.Option) (*CreateClusterResponse, error) {
-	wireReq, err := createClusterRequestToWire(req)
+func (c *internalClient) createClusterBase(ctx context.Context, req CreateClusterRequest, opts ...call.Option) (*CreateClusterResponse, error) {
+	wireReq, err := createClusterRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -599,7 +342,7 @@ func (c *internalClient) createClusterBase(ctx context.Context, req *CreateClust
 // Rather than authoring the cluster's JSON definition from scratch, Databricks
 // recommends filling out the [create compute UI](/compute/configure.html) and
 // then copying the generated JSON definition from the UI.
-func (c *internalClient) CreateCluster(ctx context.Context, req *CreateClusterRequest, opts ...call.Option) (*CreateClusterWaiter, error) {
+func (c *internalClient) CreateCluster(ctx context.Context, req CreateClusterRequest, opts ...call.Option) (*CreateClusterWaiter, error) {
 	resp, err := c.createClusterBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -615,13 +358,18 @@ func (c *internalClient) CreateCluster(ctx context.Context, req *CreateClusterRe
 
 // CreateClusterWaiter tracks the state of the operation started by CreateCluster.
 type CreateClusterWaiter struct {
-	poll      func(context.Context, *GetClusterRequest, ...call.Option) (*ClusterInfo, error)
+	poll      func(context.Context, GetClusterRequest, ...call.Option) (*ClusterInfo, error)
 	clusterId string
+}
+
+// GetClusterId returns the ClusterId value used to identify the operation.
+func (w *CreateClusterWaiter) GetClusterId() string {
+	return w.clusterId
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *CreateClusterWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetClusterRequest{
+	pollResp, err := w.poll(ctx, GetClusterRequest{
 		ClusterId: &w.clusterId,
 	}, opts...)
 	if err != nil {
@@ -646,7 +394,7 @@ func (w *CreateClusterWaiter) Done(ctx context.Context, opts ...call.Option) (bo
 func (w *CreateClusterWaiter) Wait(ctx context.Context, opts ...lro.Option) (*ClusterInfo, error) {
 	var result *ClusterInfo
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetClusterRequest{
+		pollResp, err := w.poll(ctx, GetClusterRequest{
 			ClusterId: &w.clusterId,
 		})
 		if err != nil {
@@ -683,8 +431,8 @@ func (w *CreateClusterWaiter) Wait(ctx context.Context, opts ...lro.Option) (*Cl
 // asynchronously. Once the termination has completed, the cluster will be in a
 // `TERMINATED` state. If the cluster is already in a `TERMINATING` or
 // `TERMINATED` state, nothing will happen.
-func (c *internalClient) deleteClusterBase(ctx context.Context, req *DeleteClusterRequest, opts ...call.Option) (*DeleteClusterResponse, error) {
-	wireReq, err := deleteClusterRequestToWire(req)
+func (c *internalClient) deleteClusterBase(ctx context.Context, req DeleteClusterRequest, opts ...call.Option) (*DeleteClusterResponse, error) {
+	wireReq, err := deleteClusterRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -746,7 +494,7 @@ func (c *internalClient) deleteClusterBase(ctx context.Context, req *DeleteClust
 // asynchronously. Once the termination has completed, the cluster will be in a
 // `TERMINATED` state. If the cluster is already in a `TERMINATING` or
 // `TERMINATED` state, nothing will happen.
-func (c *internalClient) DeleteCluster(ctx context.Context, req *DeleteClusterRequest, opts ...call.Option) (*DeleteClusterWaiter, error) {
+func (c *internalClient) DeleteCluster(ctx context.Context, req DeleteClusterRequest, opts ...call.Option) (*DeleteClusterWaiter, error) {
 	if req.ClusterId == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "ClusterId")
 	}
@@ -763,13 +511,18 @@ func (c *internalClient) DeleteCluster(ctx context.Context, req *DeleteClusterRe
 
 // DeleteClusterWaiter tracks the state of the operation started by DeleteCluster.
 type DeleteClusterWaiter struct {
-	poll      func(context.Context, *GetClusterRequest, ...call.Option) (*ClusterInfo, error)
+	poll      func(context.Context, GetClusterRequest, ...call.Option) (*ClusterInfo, error)
 	clusterId string
+}
+
+// GetClusterId returns the ClusterId value used to identify the operation.
+func (w *DeleteClusterWaiter) GetClusterId() string {
+	return w.clusterId
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *DeleteClusterWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetClusterRequest{
+	pollResp, err := w.poll(ctx, GetClusterRequest{
 		ClusterId: &w.clusterId,
 	}, opts...)
 	if err != nil {
@@ -794,7 +547,7 @@ func (w *DeleteClusterWaiter) Done(ctx context.Context, opts ...call.Option) (bo
 func (w *DeleteClusterWaiter) Wait(ctx context.Context, opts ...lro.Option) (*ClusterInfo, error) {
 	var result *ClusterInfo
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetClusterRequest{
+		pollResp, err := w.poll(ctx, GetClusterRequest{
 			ClusterId: &w.clusterId,
 		})
 		if err != nil {
@@ -839,8 +592,8 @@ func (w *DeleteClusterWaiter) Wait(ctx context.Context, opts ...lro.Option) (*Cl
 // state will be rejected with an `INVALID_STATE` error code.
 //
 // Clusters created by the Databricks Jobs service cannot be edited.
-func (c *internalClient) editClusterBase(ctx context.Context, req *EditClusterRequest, opts ...call.Option) (*EditClusterResponse, error) {
-	wireReq, err := editClusterRequestToWire(req)
+func (c *internalClient) editClusterBase(ctx context.Context, req EditClusterRequest, opts ...call.Option) (*EditClusterResponse, error) {
+	wireReq, err := editClusterRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -910,7 +663,7 @@ func (c *internalClient) editClusterBase(ctx context.Context, req *EditClusterRe
 // state will be rejected with an `INVALID_STATE` error code.
 //
 // Clusters created by the Databricks Jobs service cannot be edited.
-func (c *internalClient) EditCluster(ctx context.Context, req *EditClusterRequest, opts ...call.Option) (*EditClusterWaiter, error) {
+func (c *internalClient) EditCluster(ctx context.Context, req EditClusterRequest, opts ...call.Option) (*EditClusterWaiter, error) {
 	if req.ClusterId == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "ClusterId")
 	}
@@ -927,13 +680,18 @@ func (c *internalClient) EditCluster(ctx context.Context, req *EditClusterReques
 
 // EditClusterWaiter tracks the state of the operation started by EditCluster.
 type EditClusterWaiter struct {
-	poll      func(context.Context, *GetClusterRequest, ...call.Option) (*ClusterInfo, error)
+	poll      func(context.Context, GetClusterRequest, ...call.Option) (*ClusterInfo, error)
 	clusterId string
+}
+
+// GetClusterId returns the ClusterId value used to identify the operation.
+func (w *EditClusterWaiter) GetClusterId() string {
+	return w.clusterId
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *EditClusterWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetClusterRequest{
+	pollResp, err := w.poll(ctx, GetClusterRequest{
 		ClusterId: &w.clusterId,
 	}, opts...)
 	if err != nil {
@@ -958,7 +716,7 @@ func (w *EditClusterWaiter) Done(ctx context.Context, opts ...call.Option) (bool
 func (w *EditClusterWaiter) Wait(ctx context.Context, opts ...lro.Option) (*ClusterInfo, error) {
 	var result *ClusterInfo
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetClusterRequest{
+		pollResp, err := w.poll(ctx, GetClusterRequest{
 			ClusterId: &w.clusterId,
 		})
 		if err != nil {
@@ -993,8 +751,8 @@ func (w *EditClusterWaiter) Wait(ctx context.Context, opts ...lro.Option) (*Clus
 
 // Retrieves the information for a cluster given its identifier. Clusters can be
 // described while they are running, or up to 60 days after they are terminated.
-func (c *internalClient) GetCluster(ctx context.Context, req *GetClusterRequest, opts ...call.Option) (*ClusterInfo, error) {
-	wireReq, err := getClusterRequestToWire(req)
+func (c *internalClient) GetCluster(ctx context.Context, req GetClusterRequest, opts ...call.Option) (*ClusterInfo, error) {
+	wireReq, err := getClusterRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1058,7 +816,7 @@ func (c *internalClient) GetCluster(ctx context.Context, req *GetClusterRequest,
 
 // Returns a list of availability zones where clusters can be created in (For
 // example, us-west-2a). These zones can be used to launch a cluster.
-func (c *internalClient) ListAvailableZones(ctx context.Context, req *ListAvailableZonesRequest, opts ...call.Option) (*ListAvailableZonesResponse, error) {
+func (c *internalClient) ListAvailableZones(ctx context.Context, req ListAvailableZonesRequest, opts ...call.Option) (*ListAvailableZonesResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1117,8 +875,8 @@ func (c *internalClient) ListAvailableZones(ctx context.Context, req *ListAvaila
 // Return information about all pinned and active clusters, and all clusters
 // terminated within the last 30 days. Clusters terminated prior to this period
 // are not included.
-func (c *internalClient) ListClusters(ctx context.Context, req *ListClustersRequest, opts ...call.Option) (*ListClustersResponse, error) {
-	wireReq, err := listClustersRequestToWire(req)
+func (c *internalClient) ListClusters(ctx context.Context, req ListClustersRequest, opts ...call.Option) (*ListClustersResponse, error) {
+	wireReq, err := listClustersRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1188,7 +946,7 @@ func (c *internalClient) ListClusters(ctx context.Context, req *ListClustersRequ
 //
 // For example:
 //
-//	for item, err := range c.ListClustersIter(ctx, &ListClustersRequest{}) {
+//	for item, err := range c.ListClustersIter(ctx, ListClustersRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1200,16 +958,13 @@ func (c *internalClient) ListClusters(ctx context.Context, req *ListClustersRequ
 //
 // Callers who need custom pagination logic should use
 // ListClusters directly.
-func (c *internalClient) ListClustersIter(ctx context.Context, req *ListClustersRequest, opts ...call.Option) iter.Seq2[*ClusterInfo, error] {
+func (c *internalClient) ListClustersIter(ctx context.Context, req ListClustersRequest, opts ...call.Option) iter.Seq2[*ClusterInfo, error] {
 	return func(yield func(*ClusterInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListClustersRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListClusters(ctx, &pageReq, opts...)
+			resp, err := c.ListClusters(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1229,7 +984,7 @@ func (c *internalClient) ListClustersIter(ctx context.Context, req *ListClusters
 
 // Returns a list of supported Spark node types. These node types can be used to
 // launch a cluster.
-func (c *internalClient) ListNodeTypes(ctx context.Context, req *ListNodeTypesRequest, opts ...call.Option) (*ListNodeTypesResponse, error) {
+func (c *internalClient) ListNodeTypes(ctx context.Context, req ListNodeTypesRequest, opts ...call.Option) (*ListNodeTypesResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1287,7 +1042,7 @@ func (c *internalClient) ListNodeTypes(ctx context.Context, req *ListNodeTypesRe
 
 // Returns the list of available Spark versions. These versions can be used to
 // launch a cluster.
-func (c *internalClient) ListSparkVersions(ctx context.Context, req *GetSparkVersionsRequest, opts ...call.Option) (*GetSparkVersionsResponse, error) {
+func (c *internalClient) ListSparkVersions(ctx context.Context, req GetSparkVersionsRequest, opts ...call.Option) (*GetSparkVersionsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1349,8 +1104,8 @@ func (c *internalClient) ListSparkVersions(ctx context.Context, req *GetSparkVer
 // In addition, users will no longer see permanently deleted clusters in the
 // cluster list, and API users can no longer perform any action on permanently
 // deleted clusters.
-func (c *internalClient) PermanentDeleteCluster(ctx context.Context, req *PermanentDeleteClusterRequest, opts ...call.Option) (*PermanentDeleteClusterResponse, error) {
-	wireReq, err := permanentDeleteClusterRequestToWire(req)
+func (c *internalClient) PermanentDeleteCluster(ctx context.Context, req PermanentDeleteClusterRequest, opts ...call.Option) (*PermanentDeleteClusterResponse, error) {
+	wireReq, err := permanentDeleteClusterRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1411,8 +1166,8 @@ func (c *internalClient) PermanentDeleteCluster(ctx context.Context, req *Perman
 // Pinning a cluster ensures that the cluster will always be returned by the
 // ListClusters API. Pinning a cluster that is already pinned will have no
 // effect. This API can only be called by workspace admins.
-func (c *internalClient) PinCluster(ctx context.Context, req *PinClusterRequest, opts ...call.Option) (*PinClusterResponse, error) {
-	wireReq, err := pinClusterRequestToWire(req)
+func (c *internalClient) PinCluster(ctx context.Context, req PinClusterRequest, opts ...call.Option) (*PinClusterResponse, error) {
+	wireReq, err := pinClusterRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1472,8 +1227,8 @@ func (c *internalClient) PinCluster(ctx context.Context, req *PinClusterRequest,
 
 // Resizes a cluster to have a desired number of workers. This will fail unless
 // the cluster is in a `RUNNING` state.
-func (c *internalClient) resizeClusterBase(ctx context.Context, req *ResizeClusterRequest, opts ...call.Option) (*ResizeClusterResponse, error) {
-	wireReq, err := resizeClusterRequestToWire(req)
+func (c *internalClient) resizeClusterBase(ctx context.Context, req ResizeClusterRequest, opts ...call.Option) (*ResizeClusterResponse, error) {
+	wireReq, err := resizeClusterRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1533,7 +1288,7 @@ func (c *internalClient) resizeClusterBase(ctx context.Context, req *ResizeClust
 
 // Resizes a cluster to have a desired number of workers. This will fail unless
 // the cluster is in a `RUNNING` state.
-func (c *internalClient) ResizeCluster(ctx context.Context, req *ResizeClusterRequest, opts ...call.Option) (*ResizeClusterWaiter, error) {
+func (c *internalClient) ResizeCluster(ctx context.Context, req ResizeClusterRequest, opts ...call.Option) (*ResizeClusterWaiter, error) {
 	if req.ClusterId == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "ClusterId")
 	}
@@ -1550,13 +1305,18 @@ func (c *internalClient) ResizeCluster(ctx context.Context, req *ResizeClusterRe
 
 // ResizeClusterWaiter tracks the state of the operation started by ResizeCluster.
 type ResizeClusterWaiter struct {
-	poll      func(context.Context, *GetClusterRequest, ...call.Option) (*ClusterInfo, error)
+	poll      func(context.Context, GetClusterRequest, ...call.Option) (*ClusterInfo, error)
 	clusterId string
+}
+
+// GetClusterId returns the ClusterId value used to identify the operation.
+func (w *ResizeClusterWaiter) GetClusterId() string {
+	return w.clusterId
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *ResizeClusterWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetClusterRequest{
+	pollResp, err := w.poll(ctx, GetClusterRequest{
 		ClusterId: &w.clusterId,
 	}, opts...)
 	if err != nil {
@@ -1581,7 +1341,7 @@ func (w *ResizeClusterWaiter) Done(ctx context.Context, opts ...call.Option) (bo
 func (w *ResizeClusterWaiter) Wait(ctx context.Context, opts ...lro.Option) (*ClusterInfo, error) {
 	var result *ClusterInfo
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetClusterRequest{
+		pollResp, err := w.poll(ctx, GetClusterRequest{
 			ClusterId: &w.clusterId,
 		})
 		if err != nil {
@@ -1616,8 +1376,8 @@ func (w *ResizeClusterWaiter) Wait(ctx context.Context, opts ...lro.Option) (*Cl
 
 // Restarts a Spark cluster with the supplied ID. If the cluster is not
 // currently in a `RUNNING` state, nothing will happen.
-func (c *internalClient) restartClusterBase(ctx context.Context, req *RestartClusterRequest, opts ...call.Option) (*RestartClusterResponse, error) {
-	wireReq, err := restartClusterRequestToWire(req)
+func (c *internalClient) restartClusterBase(ctx context.Context, req RestartClusterRequest, opts ...call.Option) (*RestartClusterResponse, error) {
+	wireReq, err := restartClusterRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1677,7 +1437,7 @@ func (c *internalClient) restartClusterBase(ctx context.Context, req *RestartClu
 
 // Restarts a Spark cluster with the supplied ID. If the cluster is not
 // currently in a `RUNNING` state, nothing will happen.
-func (c *internalClient) RestartCluster(ctx context.Context, req *RestartClusterRequest, opts ...call.Option) (*RestartClusterWaiter, error) {
+func (c *internalClient) RestartCluster(ctx context.Context, req RestartClusterRequest, opts ...call.Option) (*RestartClusterWaiter, error) {
 	if req.ClusterId == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "ClusterId")
 	}
@@ -1694,13 +1454,18 @@ func (c *internalClient) RestartCluster(ctx context.Context, req *RestartCluster
 
 // RestartClusterWaiter tracks the state of the operation started by RestartCluster.
 type RestartClusterWaiter struct {
-	poll      func(context.Context, *GetClusterRequest, ...call.Option) (*ClusterInfo, error)
+	poll      func(context.Context, GetClusterRequest, ...call.Option) (*ClusterInfo, error)
 	clusterId string
+}
+
+// GetClusterId returns the ClusterId value used to identify the operation.
+func (w *RestartClusterWaiter) GetClusterId() string {
+	return w.clusterId
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *RestartClusterWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetClusterRequest{
+	pollResp, err := w.poll(ctx, GetClusterRequest{
 		ClusterId: &w.clusterId,
 	}, opts...)
 	if err != nil {
@@ -1725,7 +1490,7 @@ func (w *RestartClusterWaiter) Done(ctx context.Context, opts ...call.Option) (b
 func (w *RestartClusterWaiter) Wait(ctx context.Context, opts ...lro.Option) (*ClusterInfo, error) {
 	var result *ClusterInfo
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetClusterRequest{
+		pollResp, err := w.poll(ctx, GetClusterRequest{
 			ClusterId: &w.clusterId,
 		})
 		if err != nil {
@@ -1765,8 +1530,8 @@ func (w *RestartClusterWaiter) Wait(ctx context.Context, opts ...lro.Option) (*C
 // with the minimum number of nodes. - If the cluster is not currently in a
 // “TERMINATED“ state, nothing will happen. - Clusters launched to run a job
 // cannot be started.
-func (c *internalClient) startClusterBase(ctx context.Context, req *StartClusterRequest, opts ...call.Option) (*StartClusterResponse, error) {
-	wireReq, err := startClusterRequestToWire(req)
+func (c *internalClient) startClusterBase(ctx context.Context, req StartClusterRequest, opts ...call.Option) (*StartClusterResponse, error) {
+	wireReq, err := startClusterRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1831,7 +1596,7 @@ func (c *internalClient) startClusterBase(ctx context.Context, req *StartCluster
 // with the minimum number of nodes. - If the cluster is not currently in a
 // “TERMINATED“ state, nothing will happen. - Clusters launched to run a job
 // cannot be started.
-func (c *internalClient) StartCluster(ctx context.Context, req *StartClusterRequest, opts ...call.Option) (*StartClusterWaiter, error) {
+func (c *internalClient) StartCluster(ctx context.Context, req StartClusterRequest, opts ...call.Option) (*StartClusterWaiter, error) {
 	if req.ClusterId == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "ClusterId")
 	}
@@ -1848,13 +1613,18 @@ func (c *internalClient) StartCluster(ctx context.Context, req *StartClusterRequ
 
 // StartClusterWaiter tracks the state of the operation started by StartCluster.
 type StartClusterWaiter struct {
-	poll      func(context.Context, *GetClusterRequest, ...call.Option) (*ClusterInfo, error)
+	poll      func(context.Context, GetClusterRequest, ...call.Option) (*ClusterInfo, error)
 	clusterId string
+}
+
+// GetClusterId returns the ClusterId value used to identify the operation.
+func (w *StartClusterWaiter) GetClusterId() string {
+	return w.clusterId
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *StartClusterWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetClusterRequest{
+	pollResp, err := w.poll(ctx, GetClusterRequest{
 		ClusterId: &w.clusterId,
 	}, opts...)
 	if err != nil {
@@ -1879,7 +1649,7 @@ func (w *StartClusterWaiter) Done(ctx context.Context, opts ...call.Option) (boo
 func (w *StartClusterWaiter) Wait(ctx context.Context, opts ...lro.Option) (*ClusterInfo, error) {
 	var result *ClusterInfo
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetClusterRequest{
+		pollResp, err := w.poll(ctx, GetClusterRequest{
 			ClusterId: &w.clusterId,
 		})
 		if err != nil {
@@ -1915,8 +1685,8 @@ func (w *StartClusterWaiter) Wait(ctx context.Context, opts ...lro.Option) (*Clu
 // Unpinning a cluster will allow the cluster to eventually be removed from the
 // ListClusters API. Unpinning a cluster that is not pinned will have no effect.
 // This API can only be called by workspace admins.
-func (c *internalClient) UnpinCluster(ctx context.Context, req *UnpinClusterRequest, opts ...call.Option) (*UnpinClusterResponse, error) {
-	wireReq, err := unpinClusterRequestToWire(req)
+func (c *internalClient) UnpinCluster(ctx context.Context, req UnpinClusterRequest, opts ...call.Option) (*UnpinClusterResponse, error) {
+	wireReq, err := unpinClusterRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1984,8 +1754,8 @@ func (c *internalClient) UnpinCluster(ctx context.Context, req *UnpinClusterRequ
 // using the `clusters/start` API. Attempts to update a cluster in any other
 // state will be rejected with an `INVALID_STATE` error code. Clusters created
 // by the Databricks Jobs service cannot be updated.
-func (c *internalClient) updateClusterBase(ctx context.Context, req *UpdateClusterRequest, opts ...call.Option) (*UpdateClusterResponse, error) {
-	wireReq, err := updateClusterRequestToWire(req)
+func (c *internalClient) updateClusterBase(ctx context.Context, req UpdateClusterRequest, opts ...call.Option) (*UpdateClusterResponse, error) {
+	wireReq, err := updateClusterRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2053,7 +1823,7 @@ func (c *internalClient) updateClusterBase(ctx context.Context, req *UpdateClust
 // using the `clusters/start` API. Attempts to update a cluster in any other
 // state will be rejected with an `INVALID_STATE` error code. Clusters created
 // by the Databricks Jobs service cannot be updated.
-func (c *internalClient) UpdateCluster(ctx context.Context, req *UpdateClusterRequest, opts ...call.Option) (*UpdateClusterWaiter, error) {
+func (c *internalClient) UpdateCluster(ctx context.Context, req UpdateClusterRequest, opts ...call.Option) (*UpdateClusterWaiter, error) {
 	if req.ClusterId == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "ClusterId")
 	}
@@ -2070,13 +1840,18 @@ func (c *internalClient) UpdateCluster(ctx context.Context, req *UpdateClusterRe
 
 // UpdateClusterWaiter tracks the state of the operation started by UpdateCluster.
 type UpdateClusterWaiter struct {
-	poll      func(context.Context, *GetClusterRequest, ...call.Option) (*ClusterInfo, error)
+	poll      func(context.Context, GetClusterRequest, ...call.Option) (*ClusterInfo, error)
 	clusterId string
+}
+
+// GetClusterId returns the ClusterId value used to identify the operation.
+func (w *UpdateClusterWaiter) GetClusterId() string {
+	return w.clusterId
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *UpdateClusterWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetClusterRequest{
+	pollResp, err := w.poll(ctx, GetClusterRequest{
 		ClusterId: &w.clusterId,
 	}, opts...)
 	if err != nil {
@@ -2101,7 +1876,7 @@ func (w *UpdateClusterWaiter) Done(ctx context.Context, opts ...call.Option) (bo
 func (w *UpdateClusterWaiter) Wait(ctx context.Context, opts ...lro.Option) (*ClusterInfo, error) {
 	var result *ClusterInfo
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetClusterRequest{
+		pollResp, err := w.poll(ctx, GetClusterRequest{
 			ClusterId: &w.clusterId,
 		})
 		if err != nil {
@@ -2138,8 +1913,8 @@ func (w *UpdateClusterWaiter) Wait(ctx context.Context, opts ...lro.Option) (*Cl
 // enforcement, the cluster will no longer update on the next termination or
 // restart. Pending enforcements cannot be canceled when a cluster is in
 // `TERMINATING` state. Only workspace admins can cancel pending enforcements.
-func (c *internalClient) CancelPendingClusterEnforcement(ctx context.Context, req *CancelPendingClusterEnforcementRequest, opts ...call.Option) (*CancelPendingClusterEnforcementResponse, error) {
-	wireReq, err := cancelPendingClusterEnforcementRequestToWire(req)
+func (c *internalClient) CancelPendingClusterEnforcement(ctx context.Context, req CancelPendingClusterEnforcementRequest, opts ...call.Option) (*CancelPendingClusterEnforcementResponse, error) {
+	wireReq, err := cancelPendingClusterEnforcementRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2209,8 +1984,8 @@ func (c *internalClient) CancelPendingClusterEnforcement(ctx context.Context, re
 // Clusters created by the Databricks Jobs, SDP, or Models services cannot be
 // enforced by this API. Instead, use the "Enforce job policy compliance" API to
 // enforce policy compliance on jobs.
-func (c *internalClient) EnforcePolicyComplianceForCluster(ctx context.Context, req *EnforcePolicyComplianceForClusterRequest, opts ...call.Option) (*EnforcePolicyComplianceForClusterResponse, error) {
-	wireReq, err := enforcePolicyComplianceForClusterRequestToWire(req)
+func (c *internalClient) EnforcePolicyComplianceForCluster(ctx context.Context, req EnforcePolicyComplianceForClusterRequest, opts ...call.Option) (*EnforcePolicyComplianceForClusterResponse, error) {
+	wireReq, err := enforcePolicyComplianceForClusterRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2276,8 +2051,8 @@ func (c *internalClient) EnforcePolicyComplianceForCluster(ctx context.Context, 
 
 // Returns the policy compliance status of a cluster. Clusters could be out of
 // compliance if their policy was updated after the cluster was last edited.
-func (c *internalClient) GetPolicyComplianceForCluster(ctx context.Context, req *GetPolicyComplianceForClusterRequest, opts ...call.Option) (*GetPolicyComplianceForClusterResponse, error) {
-	wireReq, err := getPolicyComplianceForClusterRequestToWire(req)
+func (c *internalClient) GetPolicyComplianceForCluster(ctx context.Context, req GetPolicyComplianceForClusterRequest, opts ...call.Option) (*GetPolicyComplianceForClusterResponse, error) {
+	wireReq, err := getPolicyComplianceForClusterRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2342,8 +2117,8 @@ func (c *internalClient) GetPolicyComplianceForCluster(ctx context.Context, req 
 // Returns the policy compliance status of all clusters that use a given policy.
 // Clusters could be out of compliance if their policy was updated after the
 // cluster was last edited.
-func (c *internalClient) ListClusterComplianceForPolicy(ctx context.Context, req *ListClusterComplianceForPolicyRequest, opts ...call.Option) (*ListClusterComplianceForPolicyResponse, error) {
-	wireReq, err := listClusterComplianceForPolicyRequestToWire(req)
+func (c *internalClient) ListClusterComplianceForPolicy(ctx context.Context, req ListClusterComplianceForPolicyRequest, opts ...call.Option) (*ListClusterComplianceForPolicyResponse, error) {
+	wireReq, err := listClusterComplianceForPolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2416,7 +2191,7 @@ func (c *internalClient) ListClusterComplianceForPolicy(ctx context.Context, req
 //
 // For example:
 //
-//	for item, err := range c.ListClusterComplianceForPolicyIter(ctx, &ListClusterComplianceForPolicyRequest{}) {
+//	for item, err := range c.ListClusterComplianceForPolicyIter(ctx, ListClusterComplianceForPolicyRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -2428,16 +2203,13 @@ func (c *internalClient) ListClusterComplianceForPolicy(ctx context.Context, req
 //
 // Callers who need custom pagination logic should use
 // ListClusterComplianceForPolicy directly.
-func (c *internalClient) ListClusterComplianceForPolicyIter(ctx context.Context, req *ListClusterComplianceForPolicyRequest, opts ...call.Option) iter.Seq2[*ClusterCompliance, error] {
+func (c *internalClient) ListClusterComplianceForPolicyIter(ctx context.Context, req ListClusterComplianceForPolicyRequest, opts ...call.Option) iter.Seq2[*ClusterCompliance, error] {
 	return func(yield func(*ClusterCompliance, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListClusterComplianceForPolicyRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListClusterComplianceForPolicy(ctx, &pageReq, opts...)
+			resp, err := c.ListClusterComplianceForPolicy(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return

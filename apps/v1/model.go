@@ -1453,6 +1453,10 @@ type Space struct {
 	UsagePolicyId *string `fieldmask:"usage_policy_id"`
 	// The effective usage policy ID used by apps in the space.
 	EffectiveUsagePolicyId *string `fieldmask:"effective_usage_policy_id"`
+	// The group whose permissions users assume via Role Authorization for apps in
+	// this space. When set, user tokens assume the role of this group instead of
+	// doing regular obo token downscoping. Set only at space creation.
+	AssumeGroupId *string `fieldmask:"assume_group_id"`
 }
 
 type SpaceStatus struct {

@@ -86,8 +86,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // parent catalog and the **USE_SCHEMA** privilege on the parent schema. - The
 // caller must have the **CREATE MODEL** or **CREATE FUNCTION** privilege on the
 // parent schema.
-func (c *internalClient) CreateRegisteredModel(ctx context.Context, req *CreateRegisteredModelRequest, opts ...call.Option) (*RegisteredModelInfo, error) {
-	wireReq, err := createRegisteredModelRequestToWire(req)
+func (c *internalClient) CreateRegisteredModel(ctx context.Context, req CreateRegisteredModelRequest, opts ...call.Option) (*RegisteredModelInfo, error) {
+	wireReq, err := createRegisteredModelRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +158,7 @@ func (c *internalClient) CreateRegisteredModel(ctx context.Context, req *CreateR
 // model. For the latter case, the caller must also be the owner or have the
 // **USE_CATALOG** privilege on the parent catalog and the **USE_SCHEMA**
 // privilege on the parent schema.
-func (c *internalClient) DeleteModelVersion(ctx context.Context, req *DeleteModelVersionRequest, opts ...call.Option) (*DeleteModelVersionResponse, error) {
+func (c *internalClient) DeleteModelVersion(ctx context.Context, req DeleteModelVersionRequest, opts ...call.Option) (*DeleteModelVersionResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -172,9 +172,17 @@ func (c *internalClient) DeleteModelVersion(ctx context.Context, req *DeleteMode
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/models/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	pb.literal("/versions/")
-	pb.singleSegment(*req.VersionArg)
+	if req.VersionArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.VersionArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -220,7 +228,7 @@ func (c *internalClient) DeleteModelVersion(ctx context.Context, req *DeleteMode
 // the latter case, the caller must also be the owner or have the
 // **USE_CATALOG** privilege on the parent catalog and the **USE_SCHEMA**
 // privilege on the parent schema.
-func (c *internalClient) DeleteRegisteredModel(ctx context.Context, req *DeleteRegisteredModelRequest, opts ...call.Option) (*DeleteRegisteredModelResponse, error) {
+func (c *internalClient) DeleteRegisteredModel(ctx context.Context, req DeleteRegisteredModelRequest, opts ...call.Option) (*DeleteRegisteredModelResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -234,7 +242,11 @@ func (c *internalClient) DeleteRegisteredModel(ctx context.Context, req *DeleteR
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/models/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -279,7 +291,7 @@ func (c *internalClient) DeleteRegisteredModel(ctx context.Context, req *DeleteR
 // the latter case, the caller must also be the owner or have the
 // **USE_CATALOG** privilege on the parent catalog and the **USE_SCHEMA**
 // privilege on the parent schema.
-func (c *internalClient) DeleteRegisteredModelAlias(ctx context.Context, req *DeleteRegisteredModelAliasRequest, opts ...call.Option) (*DeleteRegisteredModelAliasResponse, error) {
+func (c *internalClient) DeleteRegisteredModelAlias(ctx context.Context, req DeleteRegisteredModelAliasRequest, opts ...call.Option) (*DeleteRegisteredModelAliasResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -293,9 +305,17 @@ func (c *internalClient) DeleteRegisteredModelAlias(ctx context.Context, req *De
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/models/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	pb.literal("/aliases/")
-	pb.singleSegment(*req.AliasArg)
+	if req.AliasArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.AliasArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -340,8 +360,8 @@ func (c *internalClient) DeleteRegisteredModelAlias(ctx context.Context, req *De
 // privilege on) the parent registered model. For the latter case, the caller
 // must also be the owner or have the **USE_CATALOG** privilege on the parent
 // catalog and the **USE_SCHEMA** privilege on the parent schema.
-func (c *internalClient) GetModelVersion(ctx context.Context, req *GetModelVersionRequest, opts ...call.Option) (*ModelVersionInfo, error) {
-	wireReq, err := getModelVersionRequestToWire(req)
+func (c *internalClient) GetModelVersion(ctx context.Context, req GetModelVersionRequest, opts ...call.Option) (*ModelVersionInfo, error) {
+	wireReq, err := getModelVersionRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -358,9 +378,17 @@ func (c *internalClient) GetModelVersion(ctx context.Context, req *GetModelVersi
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/models/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	pb.literal("/versions/")
-	pb.singleSegment(*req.VersionArg)
+	if req.VersionArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.VersionArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_aliases", wireReq.IncludeAliases); err != nil {
@@ -417,8 +445,8 @@ func (c *internalClient) GetModelVersion(ctx context.Context, req *GetModelVersi
 // privilege on) the registered model. For the latter case, the caller must also
 // be the owner or have the **USE_CATALOG** privilege on the parent catalog and
 // the **USE_SCHEMA** privilege on the parent schema.
-func (c *internalClient) GetModelVersionByAlias(ctx context.Context, req *GetModelVersionByAliasRequest, opts ...call.Option) (*ModelVersionInfo, error) {
-	wireReq, err := getModelVersionByAliasRequestToWire(req)
+func (c *internalClient) GetModelVersionByAlias(ctx context.Context, req GetModelVersionByAliasRequest, opts ...call.Option) (*ModelVersionInfo, error) {
+	wireReq, err := getModelVersionByAliasRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -435,9 +463,17 @@ func (c *internalClient) GetModelVersionByAlias(ctx context.Context, req *GetMod
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/models/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	pb.literal("/aliases/")
-	pb.singleSegment(*req.AliasArg)
+	if req.AliasArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.AliasArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_aliases", wireReq.IncludeAliases); err != nil {
@@ -491,8 +527,8 @@ func (c *internalClient) GetModelVersionByAlias(ctx context.Context, req *GetMod
 // privilege on) the registered model. For the latter case, the caller must also
 // be the owner or have the **USE_CATALOG** privilege on the parent catalog and
 // the **USE_SCHEMA** privilege on the parent schema.
-func (c *internalClient) GetRegisteredModel(ctx context.Context, req *GetRegisteredModelRequest, opts ...call.Option) (*RegisteredModelInfo, error) {
-	wireReq, err := getRegisteredModelRequestToWire(req)
+func (c *internalClient) GetRegisteredModel(ctx context.Context, req GetRegisteredModelRequest, opts ...call.Option) (*RegisteredModelInfo, error) {
+	wireReq, err := getRegisteredModelRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -509,7 +545,11 @@ func (c *internalClient) GetRegisteredModel(ctx context.Context, req *GetRegiste
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/models/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_aliases", wireReq.IncludeAliases); err != nil {
@@ -578,8 +618,8 @@ func (c *internalClient) GetRegisteredModel(ctx context.Context, req *GetRegiste
 // results while still providing a next_page_token. Clients must continue
 // reading pages until next_page_token is absent, which is the only indication
 // that the end of results has been reached.
-func (c *internalClient) ListModelVersions(ctx context.Context, req *ListModelVersionsRequest, opts ...call.Option) (*ListModelVersionsResponse, error) {
-	wireReq, err := listModelVersionsRequestToWire(req)
+func (c *internalClient) ListModelVersions(ctx context.Context, req ListModelVersionsRequest, opts ...call.Option) (*ListModelVersionsResponse, error) {
+	wireReq, err := listModelVersionsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -596,7 +636,11 @@ func (c *internalClient) ListModelVersions(ctx context.Context, req *ListModelVe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/models/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	pb.literal("/versions")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -656,7 +700,7 @@ func (c *internalClient) ListModelVersions(ctx context.Context, req *ListModelVe
 //
 // For example:
 //
-//	for item, err := range c.ListModelVersionsIter(ctx, &ListModelVersionsRequest{}) {
+//	for item, err := range c.ListModelVersionsIter(ctx, ListModelVersionsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -668,16 +712,13 @@ func (c *internalClient) ListModelVersions(ctx context.Context, req *ListModelVe
 //
 // Callers who need custom pagination logic should use
 // ListModelVersions directly.
-func (c *internalClient) ListModelVersionsIter(ctx context.Context, req *ListModelVersionsRequest, opts ...call.Option) iter.Seq2[*ModelVersionInfo, error] {
+func (c *internalClient) ListModelVersionsIter(ctx context.Context, req ListModelVersionsRequest, opts ...call.Option) iter.Seq2[*ModelVersionInfo, error] {
 	return func(yield func(*ModelVersionInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListModelVersionsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListModelVersions(ctx, &pageReq, opts...)
+			resp, err := c.ListModelVersions(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -712,8 +753,8 @@ func (c *internalClient) ListModelVersionsIter(ctx context.Context, req *ListMod
 // results while still providing a next_page_token. Clients must continue
 // reading pages until next_page_token is absent, which is the only indication
 // that the end of results has been reached.
-func (c *internalClient) ListRegisteredModels(ctx context.Context, req *ListRegisteredModelsRequest, opts ...call.Option) (*ListRegisteredModelsResponse, error) {
-	wireReq, err := listRegisteredModelsRequestToWire(req)
+func (c *internalClient) ListRegisteredModels(ctx context.Context, req ListRegisteredModelsRequest, opts ...call.Option) (*ListRegisteredModelsResponse, error) {
+	wireReq, err := listRegisteredModelsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -792,7 +833,7 @@ func (c *internalClient) ListRegisteredModels(ctx context.Context, req *ListRegi
 //
 // For example:
 //
-//	for item, err := range c.ListRegisteredModelsIter(ctx, &ListRegisteredModelsRequest{}) {
+//	for item, err := range c.ListRegisteredModelsIter(ctx, ListRegisteredModelsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -804,16 +845,13 @@ func (c *internalClient) ListRegisteredModels(ctx context.Context, req *ListRegi
 //
 // Callers who need custom pagination logic should use
 // ListRegisteredModels directly.
-func (c *internalClient) ListRegisteredModelsIter(ctx context.Context, req *ListRegisteredModelsRequest, opts ...call.Option) iter.Seq2[*RegisteredModelInfo, error] {
+func (c *internalClient) ListRegisteredModelsIter(ctx context.Context, req ListRegisteredModelsRequest, opts ...call.Option) iter.Seq2[*RegisteredModelInfo, error] {
 	return func(yield func(*RegisteredModelInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListRegisteredModelsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListRegisteredModels(ctx, &pageReq, opts...)
+			resp, err := c.ListRegisteredModels(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -837,8 +875,8 @@ func (c *internalClient) ListRegisteredModelsIter(ctx context.Context, req *List
 // the latter case, the caller must also be the owner or have the
 // **USE_CATALOG** privilege on the parent catalog and the **USE_SCHEMA**
 // privilege on the parent schema.
-func (c *internalClient) SetRegisteredModelAlias(ctx context.Context, req *SetRegisteredModelAliasRequest, opts ...call.Option) (*RegisteredModelAliasInfo, error) {
-	wireReq, err := setRegisteredModelAliasRequestToWire(req)
+func (c *internalClient) SetRegisteredModelAlias(ctx context.Context, req SetRegisteredModelAliasRequest, opts ...call.Option) (*RegisteredModelAliasInfo, error) {
+	wireReq, err := setRegisteredModelAliasRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -859,9 +897,17 @@ func (c *internalClient) SetRegisteredModelAlias(ctx context.Context, req *SetRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/models/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	pb.literal("/aliases/")
-	pb.singleSegment(*req.AliasArg)
+	if req.AliasArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.AliasArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -915,8 +961,8 @@ func (c *internalClient) SetRegisteredModelAlias(ctx context.Context, req *SetRe
 // privilege on the parent schema.
 //
 // Currently only the comment of the model version can be updated.
-func (c *internalClient) UpdateModelVersion(ctx context.Context, req *UpdateModelVersionRequest, opts ...call.Option) (*ModelVersionInfo, error) {
-	wireReq, err := updateModelVersionRequestToWire(req)
+func (c *internalClient) UpdateModelVersion(ctx context.Context, req UpdateModelVersionRequest, opts ...call.Option) (*ModelVersionInfo, error) {
+	wireReq, err := updateModelVersionRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -937,9 +983,17 @@ func (c *internalClient) UpdateModelVersion(ctx context.Context, req *UpdateMode
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/models/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	pb.literal("/versions/")
-	pb.singleSegment(*req.VersionArg)
+	if req.VersionArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.VersionArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -994,8 +1048,8 @@ func (c *internalClient) UpdateModelVersion(ctx context.Context, req *UpdateMode
 //
 // Currently only the name, the owner or the comment of the registered model can
 // be updated.
-func (c *internalClient) UpdateRegisteredModel(ctx context.Context, req *UpdateRegisteredModelRequest, opts ...call.Option) (*RegisteredModelInfo, error) {
-	wireReq, err := updateRegisteredModelRequestToWire(req)
+func (c *internalClient) UpdateRegisteredModel(ctx context.Context, req UpdateRegisteredModelRequest, opts ...call.Option) (*RegisteredModelInfo, error) {
+	wireReq, err := updateRegisteredModelRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1016,7 +1070,11 @@ func (c *internalClient) UpdateRegisteredModel(ctx context.Context, req *UpdateR
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/models/")
-	pb.singleSegment(*req.FullNameArg)
+	if req.FullNameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullNameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

@@ -76,8 +76,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 
 // Creates a <Databricks> storage configuration for an account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateStorageConfigurationPublic(ctx context.Context, req *CreateStorageConfigurationRequest, opts ...call.Option) (*StorageConfiguration, error) {
-	wireReq, err := createStorageConfigurationRequestToWire(req)
+func (c *internalClient) CreateStorageConfigurationPublic(ctx context.Context, req CreateStorageConfigurationRequest, opts ...call.Option) (*StorageConfiguration, error) {
+	wireReq, err := createStorageConfigurationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func (c *internalClient) CreateStorageConfigurationPublic(ctx context.Context, r
 // Deletes a <Databricks> storage configuration. You cannot delete a storage
 // configuration that is associated with any workspace.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteStorageConfigurationPublic(ctx context.Context, req *DeleteStorageConfigurationRequest, opts ...call.Option) (*StorageConfiguration, error) {
+func (c *internalClient) DeleteStorageConfigurationPublic(ctx context.Context, req DeleteStorageConfigurationRequest, opts ...call.Option) (*StorageConfiguration, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -166,7 +166,11 @@ func (c *internalClient) DeleteStorageConfigurationPublic(ctx context.Context, r
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/storage-configurations/")
-	pb.singleSegment(*req.StorageConfigurationId)
+	if req.StorageConfigurationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.StorageConfigurationId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -214,7 +218,7 @@ func (c *internalClient) DeleteStorageConfigurationPublic(ctx context.Context, r
 // Gets a <Databricks> storage configuration for an account, both specified by
 // ID.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetStorageConfigurationPublic(ctx context.Context, req *GetStorageConfigurationRequest, opts ...call.Option) (*StorageConfiguration, error) {
+func (c *internalClient) GetStorageConfigurationPublic(ctx context.Context, req GetStorageConfigurationRequest, opts ...call.Option) (*StorageConfiguration, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -231,7 +235,11 @@ func (c *internalClient) GetStorageConfigurationPublic(ctx context.Context, req 
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/storage-configurations/")
-	pb.singleSegment(*req.StorageConfigurationId)
+	if req.StorageConfigurationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.StorageConfigurationId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -278,7 +286,7 @@ func (c *internalClient) GetStorageConfigurationPublic(ctx context.Context, req 
 
 // Lists <Databricks> storage configurations for an account, specified by ID.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListStorageConfigurationPublic(ctx context.Context, req *ListStorageConfigurationRequest, opts ...call.Option) (*ListStorageConfigurationResponse, error) {
+func (c *internalClient) ListStorageConfigurationPublic(ctx context.Context, req ListStorageConfigurationRequest, opts ...call.Option) (*ListStorageConfigurationResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")

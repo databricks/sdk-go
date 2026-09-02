@@ -3,8 +3,54 @@
 package externallocations
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type awsSqsQueueWire struct {
 	QueueUrl          *string `json:"queue_url,omitempty"`
@@ -75,9 +121,9 @@ type createExternalLocationRequestWire struct {
 	EncryptionDetails         *encryptionDetailsWire `json:"encryption_details,omitempty"`
 	MetastoreId               *string                `json:"metastore_id,omitempty"`
 	CredentialId              *string                `json:"credential_id,omitempty"`
-	CreatedAt                 *int64                 `json:"created_at,omitempty"`
+	CreatedAt                 *wireInt64             `json:"created_at,omitempty"`
 	CreatedBy                 *string                `json:"created_by,omitempty"`
-	UpdatedAt                 *int64                 `json:"updated_at,omitempty"`
+	UpdatedAt                 *wireInt64             `json:"updated_at,omitempty"`
 	UpdatedBy                 *string                `json:"updated_by,omitempty"`
 	BrowseOnly                *bool                  `json:"browse_only,omitempty"`
 	IsolationMode             IsolationMode          `json:"isolation_mode,omitempty"`
@@ -98,6 +144,14 @@ func createExternalLocationRequestToWire(v *CreateExternalLocationRequest) (*cre
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreateExternalLocationRequest.EncryptionDetails", err)
 	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateExternalLocationRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateExternalLocationRequest.UpdatedAt", err)
+	}
 	effectiveFileEventQueueWireValue, err := fileEventQueueToWire(v.EffectiveFileEventQueue)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreateExternalLocationRequest.EffectiveFileEventQueue", err)
@@ -115,9 +169,9 @@ func createExternalLocationRequestToWire(v *CreateExternalLocationRequest) (*cre
 		EncryptionDetails:         encryptionDetailsWireValue,
 		MetastoreId:               v.MetastoreId,
 		CredentialId:              v.CredentialId,
-		CreatedAt:                 v.CreatedAt,
+		CreatedAt:                 createdAtWireValue,
 		CreatedBy:                 v.CreatedBy,
-		UpdatedAt:                 v.UpdatedAt,
+		UpdatedAt:                 updatedAtWireValue,
 		UpdatedBy:                 v.UpdatedBy,
 		BrowseOnly:                v.BrowseOnly,
 		IsolationMode:             v.IsolationMode,
@@ -206,9 +260,9 @@ type externalLocationInfoWire struct {
 	EncryptionDetails         *encryptionDetailsWire `json:"encryption_details,omitempty"`
 	MetastoreId               *string                `json:"metastore_id,omitempty"`
 	CredentialId              *string                `json:"credential_id,omitempty"`
-	CreatedAt                 *int64                 `json:"created_at,omitempty"`
+	CreatedAt                 *wireInt64             `json:"created_at,omitempty"`
 	CreatedBy                 *string                `json:"created_by,omitempty"`
-	UpdatedAt                 *int64                 `json:"updated_at,omitempty"`
+	UpdatedAt                 *wireInt64             `json:"updated_at,omitempty"`
 	UpdatedBy                 *string                `json:"updated_by,omitempty"`
 	BrowseOnly                *bool                  `json:"browse_only,omitempty"`
 	IsolationMode             IsolationMode          `json:"isolation_mode,omitempty"`
@@ -229,6 +283,14 @@ func externalLocationInfoFromWire(w *externalLocationInfoWire) (*ExternalLocatio
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ExternalLocationInfo.EncryptionDetails", err)
 	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLocationInfo.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLocationInfo.UpdatedAt", err)
+	}
 	effectiveFileEventQueuePublicValue, err := fileEventQueueFromWire(w.EffectiveFileEventQueue)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ExternalLocationInfo.EffectiveFileEventQueue", err)
@@ -245,9 +307,9 @@ func externalLocationInfoFromWire(w *externalLocationInfoWire) (*ExternalLocatio
 		EncryptionDetails:         encryptionDetailsPublicValue,
 		MetastoreId:               w.MetastoreId,
 		CredentialId:              w.CredentialId,
-		CreatedAt:                 w.CreatedAt,
+		CreatedAt:                 createdAtPublicValue,
 		CreatedBy:                 w.CreatedBy,
-		UpdatedAt:                 w.UpdatedAt,
+		UpdatedAt:                 updatedAtPublicValue,
 		UpdatedBy:                 w.UpdatedBy,
 		BrowseOnly:                w.BrowseOnly,
 		IsolationMode:             w.IsolationMode,
@@ -541,9 +603,9 @@ type updateExternalLocationRequestWire struct {
 	EncryptionDetails         *encryptionDetailsWire `json:"encryption_details,omitempty"`
 	MetastoreId               *string                `json:"metastore_id,omitempty"`
 	CredentialId              *string                `json:"credential_id,omitempty"`
-	CreatedAt                 *int64                 `json:"created_at,omitempty"`
+	CreatedAt                 *wireInt64             `json:"created_at,omitempty"`
 	CreatedBy                 *string                `json:"created_by,omitempty"`
-	UpdatedAt                 *int64                 `json:"updated_at,omitempty"`
+	UpdatedAt                 *wireInt64             `json:"updated_at,omitempty"`
 	UpdatedBy                 *string                `json:"updated_by,omitempty"`
 	BrowseOnly                *bool                  `json:"browse_only,omitempty"`
 	IsolationMode             IsolationMode          `json:"isolation_mode,omitempty"`
@@ -563,6 +625,14 @@ func updateExternalLocationRequestToWire(v *UpdateExternalLocationRequest) (*upd
 	encryptionDetailsWireValue, err := encryptionDetailsToWire(v.EncryptionDetails)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "UpdateExternalLocationRequest.EncryptionDetails", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateExternalLocationRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateExternalLocationRequest.UpdatedAt", err)
 	}
 	effectiveFileEventQueueWireValue, err := fileEventQueueToWire(v.EffectiveFileEventQueue)
 	if err != nil {
@@ -584,9 +654,9 @@ func updateExternalLocationRequestToWire(v *UpdateExternalLocationRequest) (*upd
 		EncryptionDetails:         encryptionDetailsWireValue,
 		MetastoreId:               v.MetastoreId,
 		CredentialId:              v.CredentialId,
-		CreatedAt:                 v.CreatedAt,
+		CreatedAt:                 createdAtWireValue,
 		CreatedBy:                 v.CreatedBy,
-		UpdatedAt:                 v.UpdatedAt,
+		UpdatedAt:                 updatedAtWireValue,
 		UpdatedBy:                 v.UpdatedBy,
 		BrowseOnly:                v.BrowseOnly,
 		IsolationMode:             v.IsolationMode,

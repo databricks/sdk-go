@@ -3,8 +3,54 @@
 package catalogs
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type azureEncryptionSettingsWire struct {
 	AzureTenantId             *string `json:"azure_tenant_id,omitempty"`
@@ -45,9 +91,9 @@ type catalogInfoWire struct {
 	ShareName                           *string                                  `json:"share_name,omitempty"`
 	ConnectionName                      *string                                  `json:"connection_name,omitempty"`
 	MetastoreId                         *string                                  `json:"metastore_id,omitempty"`
-	CreatedAt                           *int64                                   `json:"created_at,omitempty"`
+	CreatedAt                           *wireInt64                               `json:"created_at,omitempty"`
 	CreatedBy                           *string                                  `json:"created_by,omitempty"`
-	UpdatedAt                           *int64                                   `json:"updated_at,omitempty"`
+	UpdatedAt                           *wireInt64                               `json:"updated_at,omitempty"`
 	UpdatedBy                           *string                                  `json:"updated_by,omitempty"`
 	StorageLocation                     *string                                  `json:"storage_location,omitempty"`
 	IsolationMode                       CatalogIsolationMode                     `json:"isolation_mode,omitempty"`
@@ -56,7 +102,7 @@ type catalogInfoWire struct {
 	ProvisioningInfo                    *provisioningInfoWire                    `json:"provisioning_info,omitempty"`
 	FullName                            *string                                  `json:"full_name,omitempty"`
 	SecurableType                       SecurableType                            `json:"securable_type,omitempty"`
-	CustomMaxRetentionHours             *int64                                   `json:"custom_max_retention_hours,omitempty"`
+	CustomMaxRetentionHours             *wireInt64                               `json:"custom_max_retention_hours,omitempty"`
 	ManagedEncryptionSettings           *encryptionSettingsWire                  `json:"managed_encryption_settings,omitempty"`
 	Properties                          map[string]string                        `json:"properties,omitempty"`
 	Options                             map[string]string                        `json:"options,omitempty"`
@@ -66,6 +112,14 @@ func catalogInfoFromWire(w *catalogInfoWire) (*CatalogInfo, error) {
 	if w == nil {
 		return nil, nil
 	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CatalogInfo.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CatalogInfo.UpdatedAt", err)
+	}
 	effectivePredictiveOptimizationFlagPublicValue, err := effectivePredictiveOptimizationFlagFromWire(w.EffectivePredictiveOptimizationFlag)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CatalogInfo.EffectivePredictiveOptimizationFlag", err)
@@ -73,6 +127,10 @@ func catalogInfoFromWire(w *catalogInfoWire) (*CatalogInfo, error) {
 	provisioningInfoPublicValue, err := provisioningInfoFromWire(w.ProvisioningInfo)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CatalogInfo.ProvisioningInfo", err)
+	}
+	customMaxRetentionHoursPublicValue, err := int64FromWire(w.CustomMaxRetentionHours)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CatalogInfo.CustomMaxRetentionHours", err)
 	}
 	managedEncryptionSettingsPublicValue, err := encryptionSettingsFromWire(w.ManagedEncryptionSettings)
 	if err != nil {
@@ -89,9 +147,9 @@ func catalogInfoFromWire(w *catalogInfoWire) (*CatalogInfo, error) {
 		ShareName:                           w.ShareName,
 		ConnectionName:                      w.ConnectionName,
 		MetastoreId:                         w.MetastoreId,
-		CreatedAt:                           w.CreatedAt,
+		CreatedAt:                           createdAtPublicValue,
 		CreatedBy:                           w.CreatedBy,
-		UpdatedAt:                           w.UpdatedAt,
+		UpdatedAt:                           updatedAtPublicValue,
 		UpdatedBy:                           w.UpdatedBy,
 		StorageLocation:                     w.StorageLocation,
 		IsolationMode:                       w.IsolationMode,
@@ -100,7 +158,7 @@ func catalogInfoFromWire(w *catalogInfoWire) (*CatalogInfo, error) {
 		ProvisioningInfo:                    provisioningInfoPublicValue,
 		FullName:                            w.FullName,
 		SecurableType:                       w.SecurableType,
-		CustomMaxRetentionHours:             w.CustomMaxRetentionHours,
+		CustomMaxRetentionHours:             customMaxRetentionHoursPublicValue,
 		ManagedEncryptionSettings:           managedEncryptionSettingsPublicValue,
 		Properties:                          w.Properties,
 		Options:                             w.Options,
@@ -118,9 +176,9 @@ type createCatalogRequestWire struct {
 	ShareName                           *string                                  `json:"share_name,omitempty"`
 	ConnectionName                      *string                                  `json:"connection_name,omitempty"`
 	MetastoreId                         *string                                  `json:"metastore_id,omitempty"`
-	CreatedAt                           *int64                                   `json:"created_at,omitempty"`
+	CreatedAt                           *wireInt64                               `json:"created_at,omitempty"`
 	CreatedBy                           *string                                  `json:"created_by,omitempty"`
-	UpdatedAt                           *int64                                   `json:"updated_at,omitempty"`
+	UpdatedAt                           *wireInt64                               `json:"updated_at,omitempty"`
 	UpdatedBy                           *string                                  `json:"updated_by,omitempty"`
 	StorageLocation                     *string                                  `json:"storage_location,omitempty"`
 	IsolationMode                       CatalogIsolationMode                     `json:"isolation_mode,omitempty"`
@@ -129,7 +187,7 @@ type createCatalogRequestWire struct {
 	ProvisioningInfo                    *provisioningInfoWire                    `json:"provisioning_info,omitempty"`
 	FullName                            *string                                  `json:"full_name,omitempty"`
 	SecurableType                       SecurableType                            `json:"securable_type,omitempty"`
-	CustomMaxRetentionHours             *int64                                   `json:"custom_max_retention_hours,omitempty"`
+	CustomMaxRetentionHours             *wireInt64                               `json:"custom_max_retention_hours,omitempty"`
 	ManagedEncryptionSettings           *encryptionSettingsWire                  `json:"managed_encryption_settings,omitempty"`
 	Properties                          map[string]string                        `json:"properties,omitempty"`
 	Options                             map[string]string                        `json:"options,omitempty"`
@@ -139,6 +197,14 @@ func createCatalogRequestToWire(v *CreateCatalogRequest) (*createCatalogRequestW
 	if v == nil {
 		return nil, nil
 	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCatalogRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCatalogRequest.UpdatedAt", err)
+	}
 	effectivePredictiveOptimizationFlagWireValue, err := effectivePredictiveOptimizationFlagToWire(v.EffectivePredictiveOptimizationFlag)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreateCatalogRequest.EffectivePredictiveOptimizationFlag", err)
@@ -146,6 +212,10 @@ func createCatalogRequestToWire(v *CreateCatalogRequest) (*createCatalogRequestW
 	provisioningInfoWireValue, err := provisioningInfoToWire(v.ProvisioningInfo)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreateCatalogRequest.ProvisioningInfo", err)
+	}
+	customMaxRetentionHoursWireValue, err := int64ToWire(v.CustomMaxRetentionHours)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCatalogRequest.CustomMaxRetentionHours", err)
 	}
 	managedEncryptionSettingsWireValue, err := encryptionSettingsToWire(v.ManagedEncryptionSettings)
 	if err != nil {
@@ -162,9 +232,9 @@ func createCatalogRequestToWire(v *CreateCatalogRequest) (*createCatalogRequestW
 		ShareName:                           v.ShareName,
 		ConnectionName:                      v.ConnectionName,
 		MetastoreId:                         v.MetastoreId,
-		CreatedAt:                           v.CreatedAt,
+		CreatedAt:                           createdAtWireValue,
 		CreatedBy:                           v.CreatedBy,
-		UpdatedAt:                           v.UpdatedAt,
+		UpdatedAt:                           updatedAtWireValue,
 		UpdatedBy:                           v.UpdatedBy,
 		StorageLocation:                     v.StorageLocation,
 		IsolationMode:                       v.IsolationMode,
@@ -173,7 +243,7 @@ func createCatalogRequestToWire(v *CreateCatalogRequest) (*createCatalogRequestW
 		ProvisioningInfo:                    provisioningInfoWireValue,
 		FullName:                            v.FullName,
 		SecurableType:                       v.SecurableType,
-		CustomMaxRetentionHours:             v.CustomMaxRetentionHours,
+		CustomMaxRetentionHours:             customMaxRetentionHoursWireValue,
 		ManagedEncryptionSettings:           managedEncryptionSettingsWireValue,
 		Properties:                          v.Properties,
 		Options:                             v.Options,
@@ -347,9 +417,9 @@ type updateCatalogRequestWire struct {
 	ShareName                           *string                                  `json:"share_name,omitempty"`
 	ConnectionName                      *string                                  `json:"connection_name,omitempty"`
 	MetastoreId                         *string                                  `json:"metastore_id,omitempty"`
-	CreatedAt                           *int64                                   `json:"created_at,omitempty"`
+	CreatedAt                           *wireInt64                               `json:"created_at,omitempty"`
 	CreatedBy                           *string                                  `json:"created_by,omitempty"`
-	UpdatedAt                           *int64                                   `json:"updated_at,omitempty"`
+	UpdatedAt                           *wireInt64                               `json:"updated_at,omitempty"`
 	UpdatedBy                           *string                                  `json:"updated_by,omitempty"`
 	StorageLocation                     *string                                  `json:"storage_location,omitempty"`
 	IsolationMode                       CatalogIsolationMode                     `json:"isolation_mode,omitempty"`
@@ -358,7 +428,7 @@ type updateCatalogRequestWire struct {
 	ProvisioningInfo                    *provisioningInfoWire                    `json:"provisioning_info,omitempty"`
 	FullName                            *string                                  `json:"full_name,omitempty"`
 	SecurableType                       SecurableType                            `json:"securable_type,omitempty"`
-	CustomMaxRetentionHours             *int64                                   `json:"custom_max_retention_hours,omitempty"`
+	CustomMaxRetentionHours             *wireInt64                               `json:"custom_max_retention_hours,omitempty"`
 	ManagedEncryptionSettings           *encryptionSettingsWire                  `json:"managed_encryption_settings,omitempty"`
 	Properties                          map[string]string                        `json:"properties,omitempty"`
 	Options                             map[string]string                        `json:"options,omitempty"`
@@ -368,6 +438,14 @@ func updateCatalogRequestToWire(v *UpdateCatalogRequest) (*updateCatalogRequestW
 	if v == nil {
 		return nil, nil
 	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogRequest.UpdatedAt", err)
+	}
 	effectivePredictiveOptimizationFlagWireValue, err := effectivePredictiveOptimizationFlagToWire(v.EffectivePredictiveOptimizationFlag)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "UpdateCatalogRequest.EffectivePredictiveOptimizationFlag", err)
@@ -375,6 +453,10 @@ func updateCatalogRequestToWire(v *UpdateCatalogRequest) (*updateCatalogRequestW
 	provisioningInfoWireValue, err := provisioningInfoToWire(v.ProvisioningInfo)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "UpdateCatalogRequest.ProvisioningInfo", err)
+	}
+	customMaxRetentionHoursWireValue, err := int64ToWire(v.CustomMaxRetentionHours)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogRequest.CustomMaxRetentionHours", err)
 	}
 	managedEncryptionSettingsWireValue, err := encryptionSettingsToWire(v.ManagedEncryptionSettings)
 	if err != nil {
@@ -393,9 +475,9 @@ func updateCatalogRequestToWire(v *UpdateCatalogRequest) (*updateCatalogRequestW
 		ShareName:                           v.ShareName,
 		ConnectionName:                      v.ConnectionName,
 		MetastoreId:                         v.MetastoreId,
-		CreatedAt:                           v.CreatedAt,
+		CreatedAt:                           createdAtWireValue,
 		CreatedBy:                           v.CreatedBy,
-		UpdatedAt:                           v.UpdatedAt,
+		UpdatedAt:                           updatedAtWireValue,
 		UpdatedBy:                           v.UpdatedBy,
 		StorageLocation:                     v.StorageLocation,
 		IsolationMode:                       v.IsolationMode,
@@ -404,7 +486,7 @@ func updateCatalogRequestToWire(v *UpdateCatalogRequest) (*updateCatalogRequestW
 		ProvisioningInfo:                    provisioningInfoWireValue,
 		FullName:                            v.FullName,
 		SecurableType:                       v.SecurableType,
-		CustomMaxRetentionHours:             v.CustomMaxRetentionHours,
+		CustomMaxRetentionHours:             customMaxRetentionHoursWireValue,
 		ManagedEncryptionSettings:           managedEncryptionSettingsWireValue,
 		Properties:                          v.Properties,
 		Options:                             v.Options,

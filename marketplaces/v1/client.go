@@ -76,8 +76,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 
 // Batch get a published listing in the Databricks Marketplace that the consumer
 // has access to.
-func (c *internalClient) BatchGetListings(ctx context.Context, req *BatchGetListingsRequest, opts ...call.Option) (*BatchGetListingsResponse, error) {
-	wireReq, err := batchGetListingsRequestToWire(req)
+func (c *internalClient) BatchGetListings(ctx context.Context, req BatchGetListingsRequest, opts ...call.Option) (*BatchGetListingsResponse, error) {
+	wireReq, err := batchGetListingsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -141,8 +141,8 @@ func (c *internalClient) BatchGetListings(ctx context.Context, req *BatchGetList
 
 // Batch get a provider in the Databricks Marketplace with at least one visible
 // listing.
-func (c *internalClient) BatchGetProviders(ctx context.Context, req *BatchGetProvidersRequest, opts ...call.Option) (*BatchGetProvidersResponse, error) {
-	wireReq, err := batchGetProvidersRequestToWire(req)
+func (c *internalClient) BatchGetProviders(ctx context.Context, req BatchGetProvidersRequest, opts ...call.Option) (*BatchGetProvidersResponse, error) {
+	wireReq, err := batchGetProvidersRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -205,8 +205,8 @@ func (c *internalClient) BatchGetProviders(ctx context.Context, req *BatchGetPro
 }
 
 // Create a personalization request for a listing.
-func (c *internalClient) CreatePersonalizationRequest(ctx context.Context, req *CreatePersonalizationRequest, opts ...call.Option) (*CreatePersonalizationResponse, error) {
-	wireReq, err := createPersonalizationRequestToWire(req)
+func (c *internalClient) CreatePersonalizationRequest(ctx context.Context, req CreatePersonalizationRequest, opts ...call.Option) (*CreatePersonalizationResponse, error) {
+	wireReq, err := createPersonalizationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +227,11 @@ func (c *internalClient) CreatePersonalizationRequest(ctx context.Context, req *
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/marketplace-consumer/listings/")
-	pb.singleSegment(*req.ListingId)
+	if req.ListingId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ListingId)
+	}
 	pb.literal("/personalization-requests")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -275,8 +279,8 @@ func (c *internalClient) CreatePersonalizationRequest(ctx context.Context, req *
 }
 
 // List all installations for a particular listing.
-func (c *internalClient) GetInstallationDetails(ctx context.Context, req *GetInstallationDetailsRequest, opts ...call.Option) (*ListInstallationsResponse, error) {
-	wireReq, err := getInstallationDetailsRequestToWire(req)
+func (c *internalClient) GetInstallationDetails(ctx context.Context, req GetInstallationDetailsRequest, opts ...call.Option) (*ListInstallationsResponse, error) {
+	wireReq, err := getInstallationDetailsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +297,11 @@ func (c *internalClient) GetInstallationDetails(ctx context.Context, req *GetIns
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/marketplace-consumer/listings/")
-	pb.singleSegment(*req.ListingId)
+	if req.ListingId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ListingId)
+	}
 	pb.literal("/installations")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -350,7 +358,7 @@ func (c *internalClient) GetInstallationDetails(ctx context.Context, req *GetIns
 //
 // For example:
 //
-//	for item, err := range c.GetInstallationDetailsIter(ctx, &GetInstallationDetailsRequest{}) {
+//	for item, err := range c.GetInstallationDetailsIter(ctx, GetInstallationDetailsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -362,16 +370,13 @@ func (c *internalClient) GetInstallationDetails(ctx context.Context, req *GetIns
 //
 // Callers who need custom pagination logic should use
 // GetInstallationDetails directly.
-func (c *internalClient) GetInstallationDetailsIter(ctx context.Context, req *GetInstallationDetailsRequest, opts ...call.Option) iter.Seq2[*InstallationDetail, error] {
+func (c *internalClient) GetInstallationDetailsIter(ctx context.Context, req GetInstallationDetailsRequest, opts ...call.Option) iter.Seq2[*InstallationDetail, error] {
 	return func(yield func(*InstallationDetail, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := GetInstallationDetailsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.GetInstallationDetails(ctx, &pageReq, opts...)
+			resp, err := c.GetInstallationDetails(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -390,8 +395,8 @@ func (c *internalClient) GetInstallationDetailsIter(ctx context.Context, req *Ge
 }
 
 // Get a high level preview of the metadata of listing installable content.
-func (c *internalClient) GetListingContent(ctx context.Context, req *GetListingContentMetadataRequest, opts ...call.Option) (*GetListingContentMetadataResponse, error) {
-	wireReq, err := getListingContentMetadataRequestToWire(req)
+func (c *internalClient) GetListingContent(ctx context.Context, req GetListingContentMetadataRequest, opts ...call.Option) (*GetListingContentMetadataResponse, error) {
+	wireReq, err := getListingContentMetadataRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -408,7 +413,11 @@ func (c *internalClient) GetListingContent(ctx context.Context, req *GetListingC
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/marketplace-consumer/listings/")
-	pb.singleSegment(*req.ListingId)
+	if req.ListingId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ListingId)
+	}
 	pb.literal("/content")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -465,7 +474,7 @@ func (c *internalClient) GetListingContent(ctx context.Context, req *GetListingC
 //
 // For example:
 //
-//	for item, err := range c.GetListingContentIter(ctx, &GetListingContentMetadataRequest{}) {
+//	for item, err := range c.GetListingContentIter(ctx, GetListingContentMetadataRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -477,16 +486,13 @@ func (c *internalClient) GetListingContent(ctx context.Context, req *GetListingC
 //
 // Callers who need custom pagination logic should use
 // GetListingContent directly.
-func (c *internalClient) GetListingContentIter(ctx context.Context, req *GetListingContentMetadataRequest, opts ...call.Option) iter.Seq2[*SharedDataObject, error] {
+func (c *internalClient) GetListingContentIter(ctx context.Context, req GetListingContentMetadataRequest, opts ...call.Option) iter.Seq2[*SharedDataObject, error] {
 	return func(yield func(*SharedDataObject, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := GetListingContentMetadataRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.GetListingContent(ctx, &pageReq, opts...)
+			resp, err := c.GetListingContent(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -506,7 +512,7 @@ func (c *internalClient) GetListingContentIter(ctx context.Context, req *GetList
 
 // Get the personalization request for a listing. Each consumer can make at
 // *most* one personalization request for a listing.
-func (c *internalClient) GetPersonalizationRequestsForConsumer(ctx context.Context, req *GetPersonalizationRequestsForConsumerRequest, opts ...call.Option) (*GetPersonalizationRequestsForConsumerResponse, error) {
+func (c *internalClient) GetPersonalizationRequestsForConsumer(ctx context.Context, req GetPersonalizationRequestsForConsumerRequest, opts ...call.Option) (*GetPersonalizationRequestsForConsumerResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -520,7 +526,11 @@ func (c *internalClient) GetPersonalizationRequestsForConsumer(ctx context.Conte
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/marketplace-consumer/listings/")
-	pb.singleSegment(*req.ListingId)
+	if req.ListingId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ListingId)
+	}
 	pb.literal("/personalization-requests")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -568,7 +578,7 @@ func (c *internalClient) GetPersonalizationRequestsForConsumer(ctx context.Conte
 
 // Get a published listing in the Databricks Marketplace that the consumer has
 // access to.
-func (c *internalClient) GetPublishedListingForConsumer(ctx context.Context, req *GetPublishedListingForConsumerRequest, opts ...call.Option) (*GetPublishedListingForConsumerResponse, error) {
+func (c *internalClient) GetPublishedListingForConsumer(ctx context.Context, req GetPublishedListingForConsumerRequest, opts ...call.Option) (*GetPublishedListingForConsumerResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -582,7 +592,11 @@ func (c *internalClient) GetPublishedListingForConsumer(ctx context.Context, req
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/marketplace-consumer/listings/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -629,7 +643,7 @@ func (c *internalClient) GetPublishedListingForConsumer(ctx context.Context, req
 
 // Get a provider in the Databricks Marketplace with at least one visible
 // listing.
-func (c *internalClient) GetPublishedProviderForConsumer(ctx context.Context, req *GetPublishedProviderForConsumerRequest, opts ...call.Option) (*GetPublishedProviderForConsumerResponse, error) {
+func (c *internalClient) GetPublishedProviderForConsumer(ctx context.Context, req GetPublishedProviderForConsumerRequest, opts ...call.Option) (*GetPublishedProviderForConsumerResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -643,7 +657,11 @@ func (c *internalClient) GetPublishedProviderForConsumer(ctx context.Context, re
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/marketplace-consumer/providers/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -689,8 +707,8 @@ func (c *internalClient) GetPublishedProviderForConsumer(ctx context.Context, re
 }
 
 // Install payload associated with a Databricks Marketplace listing.
-func (c *internalClient) InstallListing(ctx context.Context, req *CreateInstallationRequest, opts ...call.Option) (*CreateInstallationResponse, error) {
-	wireReq, err := createInstallationRequestToWire(req)
+func (c *internalClient) InstallListing(ctx context.Context, req CreateInstallationRequest, opts ...call.Option) (*CreateInstallationResponse, error) {
+	wireReq, err := createInstallationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -711,7 +729,11 @@ func (c *internalClient) InstallListing(ctx context.Context, req *CreateInstalla
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/marketplace-consumer/listings/")
-	pb.singleSegment(*req.ListingId)
+	if req.ListingId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ListingId)
+	}
 	pb.literal("/installations")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -759,8 +781,8 @@ func (c *internalClient) InstallListing(ctx context.Context, req *CreateInstalla
 }
 
 // List all installations across all listings.
-func (c *internalClient) ListInstallations(ctx context.Context, req *ListInstallationsRequest, opts ...call.Option) (*ListAllInstallationsResponse, error) {
-	wireReq, err := listInstallationsRequestToWire(req)
+func (c *internalClient) ListInstallations(ctx context.Context, req ListInstallationsRequest, opts ...call.Option) (*ListAllInstallationsResponse, error) {
+	wireReq, err := listInstallationsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -830,7 +852,7 @@ func (c *internalClient) ListInstallations(ctx context.Context, req *ListInstall
 //
 // For example:
 //
-//	for item, err := range c.ListInstallationsIter(ctx, &ListInstallationsRequest{}) {
+//	for item, err := range c.ListInstallationsIter(ctx, ListInstallationsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -842,16 +864,13 @@ func (c *internalClient) ListInstallations(ctx context.Context, req *ListInstall
 //
 // Callers who need custom pagination logic should use
 // ListInstallations directly.
-func (c *internalClient) ListInstallationsIter(ctx context.Context, req *ListInstallationsRequest, opts ...call.Option) iter.Seq2[*InstallationDetail, error] {
+func (c *internalClient) ListInstallationsIter(ctx context.Context, req ListInstallationsRequest, opts ...call.Option) iter.Seq2[*InstallationDetail, error] {
 	return func(yield func(*InstallationDetail, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListInstallationsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListInstallations(ctx, &pageReq, opts...)
+			resp, err := c.ListInstallations(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -874,8 +893,8 @@ func (c *internalClient) ListInstallationsIter(ctx context.Context, req *ListIns
 // attached share or git repo. Only one of these fields will be present.
 // Personalized installations contain metadata about the attached share or git
 // repo, as well as the Delta Sharing recipient type.
-func (c *internalClient) ListListingFulfillments(ctx context.Context, req *ListListingFulfillmentsRequest, opts ...call.Option) (*ListFulfillmentsResponse, error) {
-	wireReq, err := listListingFulfillmentsRequestToWire(req)
+func (c *internalClient) ListListingFulfillments(ctx context.Context, req ListListingFulfillmentsRequest, opts ...call.Option) (*ListFulfillmentsResponse, error) {
+	wireReq, err := listListingFulfillmentsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -892,7 +911,11 @@ func (c *internalClient) ListListingFulfillments(ctx context.Context, req *ListL
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/marketplace-consumer/listings/")
-	pb.singleSegment(*req.ListingId)
+	if req.ListingId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ListingId)
+	}
 	pb.literal("/fulfillments")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -949,7 +972,7 @@ func (c *internalClient) ListListingFulfillments(ctx context.Context, req *ListL
 //
 // For example:
 //
-//	for item, err := range c.ListListingFulfillmentsIter(ctx, &ListListingFulfillmentsRequest{}) {
+//	for item, err := range c.ListListingFulfillmentsIter(ctx, ListListingFulfillmentsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -961,16 +984,13 @@ func (c *internalClient) ListListingFulfillments(ctx context.Context, req *ListL
 //
 // Callers who need custom pagination logic should use
 // ListListingFulfillments directly.
-func (c *internalClient) ListListingFulfillmentsIter(ctx context.Context, req *ListListingFulfillmentsRequest, opts ...call.Option) iter.Seq2[*ListingFulfillment, error] {
+func (c *internalClient) ListListingFulfillmentsIter(ctx context.Context, req ListListingFulfillmentsRequest, opts ...call.Option) iter.Seq2[*ListingFulfillment, error] {
 	return func(yield func(*ListingFulfillment, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListListingFulfillmentsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListListingFulfillments(ctx, &pageReq, opts...)
+			resp, err := c.ListListingFulfillments(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -989,8 +1009,8 @@ func (c *internalClient) ListListingFulfillmentsIter(ctx context.Context, req *L
 }
 
 // List personalization requests for a consumer across all listings.
-func (c *internalClient) ListPersonalizationRequestsForConsumer(ctx context.Context, req *ListPersonalizationRequestsForConsumerRequest, opts ...call.Option) (*GetAllPersonalizationRequestsForConsumerResponse, error) {
-	wireReq, err := listPersonalizationRequestsForConsumerRequestToWire(req)
+func (c *internalClient) ListPersonalizationRequestsForConsumer(ctx context.Context, req ListPersonalizationRequestsForConsumerRequest, opts ...call.Option) (*GetAllPersonalizationRequestsForConsumerResponse, error) {
+	wireReq, err := listPersonalizationRequestsForConsumerRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1060,7 +1080,7 @@ func (c *internalClient) ListPersonalizationRequestsForConsumer(ctx context.Cont
 //
 // For example:
 //
-//	for item, err := range c.ListPersonalizationRequestsForConsumerIter(ctx, &ListPersonalizationRequestsForConsumerRequest{}) {
+//	for item, err := range c.ListPersonalizationRequestsForConsumerIter(ctx, ListPersonalizationRequestsForConsumerRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1072,16 +1092,13 @@ func (c *internalClient) ListPersonalizationRequestsForConsumer(ctx context.Cont
 //
 // Callers who need custom pagination logic should use
 // ListPersonalizationRequestsForConsumer directly.
-func (c *internalClient) ListPersonalizationRequestsForConsumerIter(ctx context.Context, req *ListPersonalizationRequestsForConsumerRequest, opts ...call.Option) iter.Seq2[*PersonalizationRequest, error] {
+func (c *internalClient) ListPersonalizationRequestsForConsumerIter(ctx context.Context, req ListPersonalizationRequestsForConsumerRequest, opts ...call.Option) iter.Seq2[*PersonalizationRequest, error] {
 	return func(yield func(*PersonalizationRequest, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListPersonalizationRequestsForConsumerRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListPersonalizationRequestsForConsumer(ctx, &pageReq, opts...)
+			resp, err := c.ListPersonalizationRequestsForConsumer(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1101,8 +1118,8 @@ func (c *internalClient) ListPersonalizationRequestsForConsumerIter(ctx context.
 
 // List all published listings in the Databricks Marketplace that the consumer
 // has access to.
-func (c *internalClient) ListPublishedListingsForConsumer(ctx context.Context, req *ListPublishedListingsForConsumerRequest, opts ...call.Option) (*GetPublishedListingsForConsumerResponse, error) {
-	wireReq, err := listPublishedListingsForConsumerRequestToWire(req)
+func (c *internalClient) ListPublishedListingsForConsumer(ctx context.Context, req ListPublishedListingsForConsumerRequest, opts ...call.Option) (*GetPublishedListingsForConsumerResponse, error) {
+	wireReq, err := listPublishedListingsForConsumerRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1193,7 +1210,7 @@ func (c *internalClient) ListPublishedListingsForConsumer(ctx context.Context, r
 //
 // For example:
 //
-//	for item, err := range c.ListPublishedListingsForConsumerIter(ctx, &ListPublishedListingsForConsumerRequest{}) {
+//	for item, err := range c.ListPublishedListingsForConsumerIter(ctx, ListPublishedListingsForConsumerRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1205,16 +1222,13 @@ func (c *internalClient) ListPublishedListingsForConsumer(ctx context.Context, r
 //
 // Callers who need custom pagination logic should use
 // ListPublishedListingsForConsumer directly.
-func (c *internalClient) ListPublishedListingsForConsumerIter(ctx context.Context, req *ListPublishedListingsForConsumerRequest, opts ...call.Option) iter.Seq2[*Listing, error] {
+func (c *internalClient) ListPublishedListingsForConsumerIter(ctx context.Context, req ListPublishedListingsForConsumerRequest, opts ...call.Option) iter.Seq2[*Listing, error] {
 	return func(yield func(*Listing, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListPublishedListingsForConsumerRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListPublishedListingsForConsumer(ctx, &pageReq, opts...)
+			resp, err := c.ListPublishedListingsForConsumer(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1234,8 +1248,8 @@ func (c *internalClient) ListPublishedListingsForConsumerIter(ctx context.Contex
 
 // List all providers in the Databricks Marketplace with at least one visible
 // listing.
-func (c *internalClient) ListPublishedProvidersForConsumer(ctx context.Context, req *ListPublishedProvidersForConsumerRequest, opts ...call.Option) (*ListPublishedProvidersForConsumerResponse, error) {
-	wireReq, err := listPublishedProvidersForConsumerRequestToWire(req)
+func (c *internalClient) ListPublishedProvidersForConsumer(ctx context.Context, req ListPublishedProvidersForConsumerRequest, opts ...call.Option) (*ListPublishedProvidersForConsumerResponse, error) {
+	wireReq, err := listPublishedProvidersForConsumerRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1308,7 +1322,7 @@ func (c *internalClient) ListPublishedProvidersForConsumer(ctx context.Context, 
 //
 // For example:
 //
-//	for item, err := range c.ListPublishedProvidersForConsumerIter(ctx, &ListPublishedProvidersForConsumerRequest{}) {
+//	for item, err := range c.ListPublishedProvidersForConsumerIter(ctx, ListPublishedProvidersForConsumerRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1320,16 +1334,13 @@ func (c *internalClient) ListPublishedProvidersForConsumer(ctx context.Context, 
 //
 // Callers who need custom pagination logic should use
 // ListPublishedProvidersForConsumer directly.
-func (c *internalClient) ListPublishedProvidersForConsumerIter(ctx context.Context, req *ListPublishedProvidersForConsumerRequest, opts ...call.Option) iter.Seq2[*ProviderInfo, error] {
+func (c *internalClient) ListPublishedProvidersForConsumerIter(ctx context.Context, req ListPublishedProvidersForConsumerRequest, opts ...call.Option) iter.Seq2[*ProviderInfo, error] {
 	return func(yield func(*ProviderInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListPublishedProvidersForConsumerRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListPublishedProvidersForConsumer(ctx, &pageReq, opts...)
+			resp, err := c.ListPublishedProvidersForConsumer(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1350,8 +1361,8 @@ func (c *internalClient) ListPublishedProvidersForConsumerIter(ctx context.Conte
 // Search published listings in the Databricks Marketplace that the consumer has
 // access to. This query supports a variety of different search parameters and
 // performs fuzzy matching.
-func (c *internalClient) SearchPublishedListingsForConsumer(ctx context.Context, req *SearchPublishedListingsForConsumerRequest, opts ...call.Option) (*SearchPublishedListingsForConsumerResponse, error) {
-	wireReq, err := searchPublishedListingsForConsumerRequestToWire(req)
+func (c *internalClient) SearchPublishedListingsForConsumer(ctx context.Context, req SearchPublishedListingsForConsumerRequest, opts ...call.Option) (*SearchPublishedListingsForConsumerResponse, error) {
+	wireReq, err := searchPublishedListingsForConsumerRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1439,7 +1450,7 @@ func (c *internalClient) SearchPublishedListingsForConsumer(ctx context.Context,
 //
 // For example:
 //
-//	for item, err := range c.SearchPublishedListingsForConsumerIter(ctx, &SearchPublishedListingsForConsumerRequest{}) {
+//	for item, err := range c.SearchPublishedListingsForConsumerIter(ctx, SearchPublishedListingsForConsumerRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1451,16 +1462,13 @@ func (c *internalClient) SearchPublishedListingsForConsumer(ctx context.Context,
 //
 // Callers who need custom pagination logic should use
 // SearchPublishedListingsForConsumer directly.
-func (c *internalClient) SearchPublishedListingsForConsumerIter(ctx context.Context, req *SearchPublishedListingsForConsumerRequest, opts ...call.Option) iter.Seq2[*Listing, error] {
+func (c *internalClient) SearchPublishedListingsForConsumerIter(ctx context.Context, req SearchPublishedListingsForConsumerRequest, opts ...call.Option) iter.Seq2[*Listing, error] {
 	return func(yield func(*Listing, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := SearchPublishedListingsForConsumerRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.SearchPublishedListingsForConsumer(ctx, &pageReq, opts...)
+			resp, err := c.SearchPublishedListingsForConsumer(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1479,7 +1487,7 @@ func (c *internalClient) SearchPublishedListingsForConsumerIter(ctx context.Cont
 }
 
 // Uninstall an installation associated with a Databricks Marketplace listing.
-func (c *internalClient) UninstallListing(ctx context.Context, req *DeleteInstallationRequest, opts ...call.Option) (*DeleteInstallationResponse, error) {
+func (c *internalClient) UninstallListing(ctx context.Context, req DeleteInstallationRequest, opts ...call.Option) (*DeleteInstallationResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -1493,9 +1501,17 @@ func (c *internalClient) UninstallListing(ctx context.Context, req *DeleteInstal
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/marketplace-consumer/listings/")
-	pb.singleSegment(*req.ListingId)
+	if req.ListingId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ListingId)
+	}
 	pb.literal("/installations/")
-	pb.singleSegment(*req.InstallationId)
+	if req.InstallationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.InstallationId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1539,8 +1555,8 @@ func (c *internalClient) UninstallListing(ctx context.Context, req *DeleteInstal
 // the fields not included in the installation table 1. the token will be rotate
 // if the rotateToken flag is true 2. the token will be forcibly rotate if the
 // rotateToken flag is true and the tokenInfo field is empty
-func (c *internalClient) UpdateInstallationDetail(ctx context.Context, req *UpdateInstallationRequest, opts ...call.Option) (*UpdateInstallationResponse, error) {
-	wireReq, err := updateInstallationRequestToWire(req)
+func (c *internalClient) UpdateInstallationDetail(ctx context.Context, req UpdateInstallationRequest, opts ...call.Option) (*UpdateInstallationResponse, error) {
+	wireReq, err := updateInstallationRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1561,9 +1577,17 @@ func (c *internalClient) UpdateInstallationDetail(ctx context.Context, req *Upda
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/marketplace-consumer/listings/")
-	pb.singleSegment(*req.ListingId)
+	if req.ListingId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ListingId)
+	}
 	pb.literal("/installations/")
-	pb.singleSegment(*req.InstallationId)
+	if req.InstallationId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.InstallationId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1610,8 +1634,8 @@ func (c *internalClient) UpdateInstallationDetail(ctx context.Context, req *Upda
 }
 
 // Associate an exchange with a listing
-func (c *internalClient) AddExchangeForListing(ctx context.Context, req *AddExchangeForListingRequest, opts ...call.Option) (*AddExchangeForListingResponse, error) {
-	wireReq, err := addExchangeForListingRequestToWire(req)
+func (c *internalClient) AddExchangeForListing(ctx context.Context, req AddExchangeForListingRequest, opts ...call.Option) (*AddExchangeForListingResponse, error) {
+	wireReq, err := addExchangeForListingRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1676,8 +1700,8 @@ func (c *internalClient) AddExchangeForListing(ctx context.Context, req *AddExch
 }
 
 // Create an exchange
-func (c *internalClient) CreateExchange(ctx context.Context, req *CreateExchangeRequest, opts ...call.Option) (*CreateExchangeResponse, error) {
-	wireReq, err := createExchangeRequestToWire(req)
+func (c *internalClient) CreateExchange(ctx context.Context, req CreateExchangeRequest, opts ...call.Option) (*CreateExchangeResponse, error) {
+	wireReq, err := createExchangeRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1742,8 +1766,8 @@ func (c *internalClient) CreateExchange(ctx context.Context, req *CreateExchange
 }
 
 // Add an exchange filter.
-func (c *internalClient) CreateExchangeFilter(ctx context.Context, req *CreateExchangeFilterRequest, opts ...call.Option) (*CreateExchangeFilterResponse, error) {
-	wireReq, err := createExchangeFilterRequestToWire(req)
+func (c *internalClient) CreateExchangeFilter(ctx context.Context, req CreateExchangeFilterRequest, opts ...call.Option) (*CreateExchangeFilterResponse, error) {
+	wireReq, err := createExchangeFilterRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1809,8 +1833,8 @@ func (c *internalClient) CreateExchangeFilter(ctx context.Context, req *CreateEx
 
 // Create a file. Currently, only provider icons and attached notebooks are
 // supported.
-func (c *internalClient) CreateFile(ctx context.Context, req *CreateFileRequest, opts ...call.Option) (*CreateFileResponse, error) {
-	wireReq, err := createFileRequestToWire(req)
+func (c *internalClient) CreateFile(ctx context.Context, req CreateFileRequest, opts ...call.Option) (*CreateFileResponse, error) {
+	wireReq, err := createFileRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1875,8 +1899,8 @@ func (c *internalClient) CreateFile(ctx context.Context, req *CreateFileRequest,
 }
 
 // Create a new listing
-func (c *internalClient) CreateListing(ctx context.Context, req *CreateListingRequest, opts ...call.Option) (*CreateListingResponse, error) {
-	wireReq, err := createListingRequestToWire(req)
+func (c *internalClient) CreateListing(ctx context.Context, req CreateListingRequest, opts ...call.Option) (*CreateListingResponse, error) {
+	wireReq, err := createListingRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1941,8 +1965,8 @@ func (c *internalClient) CreateListing(ctx context.Context, req *CreateListingRe
 }
 
 // Create a provider
-func (c *internalClient) CreateProvider(ctx context.Context, req *CreateProviderRequest, opts ...call.Option) (*CreateProviderResponse, error) {
-	wireReq, err := createProviderRequestToWire(req)
+func (c *internalClient) CreateProvider(ctx context.Context, req CreateProviderRequest, opts ...call.Option) (*CreateProviderResponse, error) {
+	wireReq, err := createProviderRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2008,8 +2032,8 @@ func (c *internalClient) CreateProvider(ctx context.Context, req *CreateProvider
 
 // Create provider analytics dashboard. Returns Marketplace specific `id`. Not
 // to be confused with the Lakeview dashboard id.
-func (c *internalClient) CreateProviderAnalyticsDashboard(ctx context.Context, req *CreateProviderAnalyticsDashboardRequest, opts ...call.Option) (*CreateProviderAnalyticsDashboardResponse, error) {
-	wireReq, err := createProviderAnalyticsDashboardRequestToWire(req)
+func (c *internalClient) CreateProviderAnalyticsDashboard(ctx context.Context, req CreateProviderAnalyticsDashboardRequest, opts ...call.Option) (*CreateProviderAnalyticsDashboardResponse, error) {
+	wireReq, err := createProviderAnalyticsDashboardRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2074,7 +2098,7 @@ func (c *internalClient) CreateProviderAnalyticsDashboard(ctx context.Context, r
 }
 
 // This removes a listing from marketplace.
-func (c *internalClient) DeleteExchange(ctx context.Context, req *DeleteExchangeRequest, opts ...call.Option) (*DeleteExchangeResponse, error) {
+func (c *internalClient) DeleteExchange(ctx context.Context, req DeleteExchangeRequest, opts ...call.Option) (*DeleteExchangeResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2088,7 +2112,11 @@ func (c *internalClient) DeleteExchange(ctx context.Context, req *DeleteExchange
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-exchange/exchanges/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2128,7 +2156,7 @@ func (c *internalClient) DeleteExchange(ctx context.Context, req *DeleteExchange
 }
 
 // Delete an exchange filter
-func (c *internalClient) DeleteExchangeFilter(ctx context.Context, req *DeleteExchangeFilterRequest, opts ...call.Option) (*DeleteExchangeFilterResponse, error) {
+func (c *internalClient) DeleteExchangeFilter(ctx context.Context, req DeleteExchangeFilterRequest, opts ...call.Option) (*DeleteExchangeFilterResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2142,7 +2170,11 @@ func (c *internalClient) DeleteExchangeFilter(ctx context.Context, req *DeleteEx
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-exchange/filters/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2182,7 +2214,7 @@ func (c *internalClient) DeleteExchangeFilter(ctx context.Context, req *DeleteEx
 }
 
 // Delete a file
-func (c *internalClient) DeleteFile(ctx context.Context, req *DeleteFileRequest, opts ...call.Option) (*DeleteFileResponse, error) {
+func (c *internalClient) DeleteFile(ctx context.Context, req DeleteFileRequest, opts ...call.Option) (*DeleteFileResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2196,7 +2228,11 @@ func (c *internalClient) DeleteFile(ctx context.Context, req *DeleteFileRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-provider/files/")
-	pb.singleSegment(*req.FileId)
+	if req.FileId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FileId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2236,7 +2272,7 @@ func (c *internalClient) DeleteFile(ctx context.Context, req *DeleteFileRequest,
 }
 
 // Delete a listing
-func (c *internalClient) DeleteListing(ctx context.Context, req *DeleteListingRequest, opts ...call.Option) (*DeleteListingResponse, error) {
+func (c *internalClient) DeleteListing(ctx context.Context, req DeleteListingRequest, opts ...call.Option) (*DeleteListingResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2250,7 +2286,11 @@ func (c *internalClient) DeleteListing(ctx context.Context, req *DeleteListingRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-provider/listings/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2290,7 +2330,7 @@ func (c *internalClient) DeleteListing(ctx context.Context, req *DeleteListingRe
 }
 
 // Delete provider
-func (c *internalClient) DeleteProvider(ctx context.Context, req *DeleteProviderRequest, opts ...call.Option) (*DeleteProviderResponse, error) {
+func (c *internalClient) DeleteProvider(ctx context.Context, req DeleteProviderRequest, opts ...call.Option) (*DeleteProviderResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2304,7 +2344,11 @@ func (c *internalClient) DeleteProvider(ctx context.Context, req *DeleteProvider
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-provider/providers/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2344,7 +2388,7 @@ func (c *internalClient) DeleteProvider(ctx context.Context, req *DeleteProvider
 }
 
 // Get an exchange.
-func (c *internalClient) GetExchange(ctx context.Context, req *GetExchangeRequest, opts ...call.Option) (*GetExchangeResponse, error) {
+func (c *internalClient) GetExchange(ctx context.Context, req GetExchangeRequest, opts ...call.Option) (*GetExchangeResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2358,7 +2402,11 @@ func (c *internalClient) GetExchange(ctx context.Context, req *GetExchangeReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-exchange/exchanges/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2404,7 +2452,7 @@ func (c *internalClient) GetExchange(ctx context.Context, req *GetExchangeReques
 }
 
 // Get a file
-func (c *internalClient) GetFile(ctx context.Context, req *GetFileRequest, opts ...call.Option) (*GetFileResponse, error) {
+func (c *internalClient) GetFile(ctx context.Context, req GetFileRequest, opts ...call.Option) (*GetFileResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2418,7 +2466,11 @@ func (c *internalClient) GetFile(ctx context.Context, req *GetFileRequest, opts 
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-provider/files/")
-	pb.singleSegment(*req.FileId)
+	if req.FileId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FileId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2464,7 +2516,7 @@ func (c *internalClient) GetFile(ctx context.Context, req *GetFileRequest, opts 
 }
 
 // Get latest version of provider analytics dashboard.
-func (c *internalClient) GetLatestVersionProviderAnalyticsDashboard(ctx context.Context, req *GetLatestVersionProviderAnalyticsDashboardRequest, opts ...call.Option) (*GetLatestVersionProviderAnalyticsDashboardResponse, error) {
+func (c *internalClient) GetLatestVersionProviderAnalyticsDashboard(ctx context.Context, req GetLatestVersionProviderAnalyticsDashboardRequest, opts ...call.Option) (*GetLatestVersionProviderAnalyticsDashboardResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2521,7 +2573,7 @@ func (c *internalClient) GetLatestVersionProviderAnalyticsDashboard(ctx context.
 }
 
 // Get a listing
-func (c *internalClient) GetListing(ctx context.Context, req *GetListingRequest, opts ...call.Option) (*GetListingResponse, error) {
+func (c *internalClient) GetListing(ctx context.Context, req GetListingRequest, opts ...call.Option) (*GetListingResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2535,7 +2587,11 @@ func (c *internalClient) GetListing(ctx context.Context, req *GetListingRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-provider/listings/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2582,8 +2638,8 @@ func (c *internalClient) GetListing(ctx context.Context, req *GetListingRequest,
 
 // List personalization requests to this provider. This will return all
 // personalization requests, regardless of which listing they are for.
-func (c *internalClient) GetPersonalizationRequestsForProvider(ctx context.Context, req *GetPersonalizationRequestsForProviderRequest, opts ...call.Option) (*GetPersonalizationRequestsForProviderResponse, error) {
-	wireReq, err := getPersonalizationRequestsForProviderRequestToWire(req)
+func (c *internalClient) GetPersonalizationRequestsForProvider(ctx context.Context, req GetPersonalizationRequestsForProviderRequest, opts ...call.Option) (*GetPersonalizationRequestsForProviderResponse, error) {
+	wireReq, err := getPersonalizationRequestsForProviderRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2653,7 +2709,7 @@ func (c *internalClient) GetPersonalizationRequestsForProvider(ctx context.Conte
 //
 // For example:
 //
-//	for item, err := range c.GetPersonalizationRequestsForProviderIter(ctx, &GetPersonalizationRequestsForProviderRequest{}) {
+//	for item, err := range c.GetPersonalizationRequestsForProviderIter(ctx, GetPersonalizationRequestsForProviderRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -2665,16 +2721,13 @@ func (c *internalClient) GetPersonalizationRequestsForProvider(ctx context.Conte
 //
 // Callers who need custom pagination logic should use
 // GetPersonalizationRequestsForProvider directly.
-func (c *internalClient) GetPersonalizationRequestsForProviderIter(ctx context.Context, req *GetPersonalizationRequestsForProviderRequest, opts ...call.Option) iter.Seq2[*PersonalizationRequest, error] {
+func (c *internalClient) GetPersonalizationRequestsForProviderIter(ctx context.Context, req GetPersonalizationRequestsForProviderRequest, opts ...call.Option) iter.Seq2[*PersonalizationRequest, error] {
 	return func(yield func(*PersonalizationRequest, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := GetPersonalizationRequestsForProviderRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.GetPersonalizationRequestsForProvider(ctx, &pageReq, opts...)
+			resp, err := c.GetPersonalizationRequestsForProvider(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -2693,7 +2746,7 @@ func (c *internalClient) GetPersonalizationRequestsForProviderIter(ctx context.C
 }
 
 // Get provider profile
-func (c *internalClient) GetProvider(ctx context.Context, req *GetProviderRequest, opts ...call.Option) (*GetProviderResponse, error) {
+func (c *internalClient) GetProvider(ctx context.Context, req GetProviderRequest, opts ...call.Option) (*GetProviderResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -2707,7 +2760,11 @@ func (c *internalClient) GetProvider(ctx context.Context, req *GetProviderReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-provider/providers/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2753,8 +2810,8 @@ func (c *internalClient) GetProvider(ctx context.Context, req *GetProviderReques
 }
 
 // List exchange filter
-func (c *internalClient) ListExchangeFilters(ctx context.Context, req *ListExchangeFiltersRequest, opts ...call.Option) (*ListExchangeFiltersResponse, error) {
-	wireReq, err := listExchangeFiltersRequestToWire(req)
+func (c *internalClient) ListExchangeFilters(ctx context.Context, req ListExchangeFiltersRequest, opts ...call.Option) (*ListExchangeFiltersResponse, error) {
+	wireReq, err := listExchangeFiltersRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2827,7 +2884,7 @@ func (c *internalClient) ListExchangeFilters(ctx context.Context, req *ListExcha
 //
 // For example:
 //
-//	for item, err := range c.ListExchangeFiltersIter(ctx, &ListExchangeFiltersRequest{}) {
+//	for item, err := range c.ListExchangeFiltersIter(ctx, ListExchangeFiltersRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -2839,16 +2896,13 @@ func (c *internalClient) ListExchangeFilters(ctx context.Context, req *ListExcha
 //
 // Callers who need custom pagination logic should use
 // ListExchangeFilters directly.
-func (c *internalClient) ListExchangeFiltersIter(ctx context.Context, req *ListExchangeFiltersRequest, opts ...call.Option) iter.Seq2[*ExchangeFilter, error] {
+func (c *internalClient) ListExchangeFiltersIter(ctx context.Context, req ListExchangeFiltersRequest, opts ...call.Option) iter.Seq2[*ExchangeFilter, error] {
 	return func(yield func(*ExchangeFilter, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListExchangeFiltersRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListExchangeFilters(ctx, &pageReq, opts...)
+			resp, err := c.ListExchangeFilters(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -2867,8 +2921,8 @@ func (c *internalClient) ListExchangeFiltersIter(ctx context.Context, req *ListE
 }
 
 // List exchanges visible to provider
-func (c *internalClient) ListExchanges(ctx context.Context, req *ListExchangesRequest, opts ...call.Option) (*ListExchangesResponse, error) {
-	wireReq, err := listExchangesRequestToWire(req)
+func (c *internalClient) ListExchanges(ctx context.Context, req ListExchangesRequest, opts ...call.Option) (*ListExchangesResponse, error) {
+	wireReq, err := listExchangesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2938,7 +2992,7 @@ func (c *internalClient) ListExchanges(ctx context.Context, req *ListExchangesRe
 //
 // For example:
 //
-//	for item, err := range c.ListExchangesIter(ctx, &ListExchangesRequest{}) {
+//	for item, err := range c.ListExchangesIter(ctx, ListExchangesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -2950,16 +3004,13 @@ func (c *internalClient) ListExchanges(ctx context.Context, req *ListExchangesRe
 //
 // Callers who need custom pagination logic should use
 // ListExchanges directly.
-func (c *internalClient) ListExchangesIter(ctx context.Context, req *ListExchangesRequest, opts ...call.Option) iter.Seq2[*Exchange, error] {
+func (c *internalClient) ListExchangesIter(ctx context.Context, req ListExchangesRequest, opts ...call.Option) iter.Seq2[*Exchange, error] {
 	return func(yield func(*Exchange, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListExchangesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListExchanges(ctx, &pageReq, opts...)
+			resp, err := c.ListExchanges(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -2978,8 +3029,8 @@ func (c *internalClient) ListExchangesIter(ctx context.Context, req *ListExchang
 }
 
 // List exchanges associated with a listing
-func (c *internalClient) ListExchangesForListing(ctx context.Context, req *ListExchangesForListingRequest, opts ...call.Option) (*ListExchangesForListingResponse, error) {
-	wireReq, err := listExchangesForListingRequestToWire(req)
+func (c *internalClient) ListExchangesForListing(ctx context.Context, req ListExchangesForListingRequest, opts ...call.Option) (*ListExchangesForListingResponse, error) {
+	wireReq, err := listExchangesForListingRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -3052,7 +3103,7 @@ func (c *internalClient) ListExchangesForListing(ctx context.Context, req *ListE
 //
 // For example:
 //
-//	for item, err := range c.ListExchangesForListingIter(ctx, &ListExchangesForListingRequest{}) {
+//	for item, err := range c.ListExchangesForListingIter(ctx, ListExchangesForListingRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -3064,16 +3115,13 @@ func (c *internalClient) ListExchangesForListing(ctx context.Context, req *ListE
 //
 // Callers who need custom pagination logic should use
 // ListExchangesForListing directly.
-func (c *internalClient) ListExchangesForListingIter(ctx context.Context, req *ListExchangesForListingRequest, opts ...call.Option) iter.Seq2[*ExchangeListing, error] {
+func (c *internalClient) ListExchangesForListingIter(ctx context.Context, req ListExchangesForListingRequest, opts ...call.Option) iter.Seq2[*ExchangeListing, error] {
 	return func(yield func(*ExchangeListing, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListExchangesForListingRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListExchangesForListing(ctx, &pageReq, opts...)
+			resp, err := c.ListExchangesForListing(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -3092,8 +3140,8 @@ func (c *internalClient) ListExchangesForListingIter(ctx context.Context, req *L
 }
 
 // List files attached to a parent entity.
-func (c *internalClient) ListFiles(ctx context.Context, req *ListFilesRequest, opts ...call.Option) (*ListFilesResponse, error) {
-	wireReq, err := listFilesRequestToWire(req)
+func (c *internalClient) ListFiles(ctx context.Context, req ListFilesRequest, opts ...call.Option) (*ListFilesResponse, error) {
+	wireReq, err := listFilesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -3166,7 +3214,7 @@ func (c *internalClient) ListFiles(ctx context.Context, req *ListFilesRequest, o
 //
 // For example:
 //
-//	for item, err := range c.ListFilesIter(ctx, &ListFilesRequest{}) {
+//	for item, err := range c.ListFilesIter(ctx, ListFilesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -3178,16 +3226,13 @@ func (c *internalClient) ListFiles(ctx context.Context, req *ListFilesRequest, o
 //
 // Callers who need custom pagination logic should use
 // ListFiles directly.
-func (c *internalClient) ListFilesIter(ctx context.Context, req *ListFilesRequest, opts ...call.Option) iter.Seq2[*FileInfo, error] {
+func (c *internalClient) ListFilesIter(ctx context.Context, req ListFilesRequest, opts ...call.Option) iter.Seq2[*FileInfo, error] {
 	return func(yield func(*FileInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListFilesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListFiles(ctx, &pageReq, opts...)
+			resp, err := c.ListFiles(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -3206,8 +3251,8 @@ func (c *internalClient) ListFilesIter(ctx context.Context, req *ListFilesReques
 }
 
 // List listings owned by this provider
-func (c *internalClient) ListListings(ctx context.Context, req *ListListingsRequest, opts ...call.Option) (*GetListingsResponse, error) {
-	wireReq, err := listListingsRequestToWire(req)
+func (c *internalClient) ListListings(ctx context.Context, req ListListingsRequest, opts ...call.Option) (*GetListingsResponse, error) {
+	wireReq, err := listListingsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -3277,7 +3322,7 @@ func (c *internalClient) ListListings(ctx context.Context, req *ListListingsRequ
 //
 // For example:
 //
-//	for item, err := range c.ListListingsIter(ctx, &ListListingsRequest{}) {
+//	for item, err := range c.ListListingsIter(ctx, ListListingsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -3289,16 +3334,13 @@ func (c *internalClient) ListListings(ctx context.Context, req *ListListingsRequ
 //
 // Callers who need custom pagination logic should use
 // ListListings directly.
-func (c *internalClient) ListListingsIter(ctx context.Context, req *ListListingsRequest, opts ...call.Option) iter.Seq2[*Listing, error] {
+func (c *internalClient) ListListingsIter(ctx context.Context, req ListListingsRequest, opts ...call.Option) iter.Seq2[*Listing, error] {
 	return func(yield func(*Listing, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListListingsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListListings(ctx, &pageReq, opts...)
+			resp, err := c.ListListings(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -3317,8 +3359,8 @@ func (c *internalClient) ListListingsIter(ctx context.Context, req *ListListings
 }
 
 // List listings associated with an exchange
-func (c *internalClient) ListListingsForExchange(ctx context.Context, req *ListListingsForExchangeRequest, opts ...call.Option) (*ListListingsForExchangeResponse, error) {
-	wireReq, err := listListingsForExchangeRequestToWire(req)
+func (c *internalClient) ListListingsForExchange(ctx context.Context, req ListListingsForExchangeRequest, opts ...call.Option) (*ListListingsForExchangeResponse, error) {
+	wireReq, err := listListingsForExchangeRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -3391,7 +3433,7 @@ func (c *internalClient) ListListingsForExchange(ctx context.Context, req *ListL
 //
 // For example:
 //
-//	for item, err := range c.ListListingsForExchangeIter(ctx, &ListListingsForExchangeRequest{}) {
+//	for item, err := range c.ListListingsForExchangeIter(ctx, ListListingsForExchangeRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -3403,16 +3445,13 @@ func (c *internalClient) ListListingsForExchange(ctx context.Context, req *ListL
 //
 // Callers who need custom pagination logic should use
 // ListListingsForExchange directly.
-func (c *internalClient) ListListingsForExchangeIter(ctx context.Context, req *ListListingsForExchangeRequest, opts ...call.Option) iter.Seq2[*ExchangeListing, error] {
+func (c *internalClient) ListListingsForExchangeIter(ctx context.Context, req ListListingsForExchangeRequest, opts ...call.Option) iter.Seq2[*ExchangeListing, error] {
 	return func(yield func(*ExchangeListing, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListListingsForExchangeRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListListingsForExchange(ctx, &pageReq, opts...)
+			resp, err := c.ListListingsForExchange(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -3431,7 +3470,7 @@ func (c *internalClient) ListListingsForExchangeIter(ctx context.Context, req *L
 }
 
 // Get provider analytics dashboard.
-func (c *internalClient) ListProviderAnalyticsDashboard(ctx context.Context, req *ListProviderAnalyticsDashboardRequest, opts ...call.Option) (*ListProviderAnalyticsDashboardResponse, error) {
+func (c *internalClient) ListProviderAnalyticsDashboard(ctx context.Context, req ListProviderAnalyticsDashboardRequest, opts ...call.Option) (*ListProviderAnalyticsDashboardResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -3488,8 +3527,8 @@ func (c *internalClient) ListProviderAnalyticsDashboard(ctx context.Context, req
 }
 
 // List provider profiles for account.
-func (c *internalClient) ListProviders(ctx context.Context, req *ListProvidersRequest, opts ...call.Option) (*ListProvidersResponse, error) {
-	wireReq, err := listProvidersRequestToWire(req)
+func (c *internalClient) ListProviders(ctx context.Context, req ListProvidersRequest, opts ...call.Option) (*ListProvidersResponse, error) {
+	wireReq, err := listProvidersRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -3559,7 +3598,7 @@ func (c *internalClient) ListProviders(ctx context.Context, req *ListProvidersRe
 //
 // For example:
 //
-//	for item, err := range c.ListProvidersIter(ctx, &ListProvidersRequest{}) {
+//	for item, err := range c.ListProvidersIter(ctx, ListProvidersRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -3571,16 +3610,13 @@ func (c *internalClient) ListProviders(ctx context.Context, req *ListProvidersRe
 //
 // Callers who need custom pagination logic should use
 // ListProviders directly.
-func (c *internalClient) ListProvidersIter(ctx context.Context, req *ListProvidersRequest, opts ...call.Option) iter.Seq2[*ProviderInfo, error] {
+func (c *internalClient) ListProvidersIter(ctx context.Context, req ListProvidersRequest, opts ...call.Option) iter.Seq2[*ProviderInfo, error] {
 	return func(yield func(*ProviderInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListProvidersRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListProviders(ctx, &pageReq, opts...)
+			resp, err := c.ListProviders(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -3599,7 +3635,7 @@ func (c *internalClient) ListProvidersIter(ctx context.Context, req *ListProvide
 }
 
 // Disassociate an exchange with a listing
-func (c *internalClient) RemoveExchangeForListing(ctx context.Context, req *RemoveExchangeForListingRequest, opts ...call.Option) (*RemoveExchangeForListingResponse, error) {
+func (c *internalClient) RemoveExchangeForListing(ctx context.Context, req RemoveExchangeForListingRequest, opts ...call.Option) (*RemoveExchangeForListingResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -3613,7 +3649,11 @@ func (c *internalClient) RemoveExchangeForListing(ctx context.Context, req *Remo
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-exchange/exchanges-for-listing/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3653,8 +3693,8 @@ func (c *internalClient) RemoveExchangeForListing(ctx context.Context, req *Remo
 }
 
 // Update an exchange
-func (c *internalClient) UpdateExchange(ctx context.Context, req *UpdateExchangeRequest, opts ...call.Option) (*UpdateExchangeResponse, error) {
-	wireReq, err := updateExchangeRequestToWire(req)
+func (c *internalClient) UpdateExchange(ctx context.Context, req UpdateExchangeRequest, opts ...call.Option) (*UpdateExchangeResponse, error) {
+	wireReq, err := updateExchangeRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -3675,7 +3715,11 @@ func (c *internalClient) UpdateExchange(ctx context.Context, req *UpdateExchange
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-exchange/exchanges/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3722,8 +3766,8 @@ func (c *internalClient) UpdateExchange(ctx context.Context, req *UpdateExchange
 }
 
 // Update an exchange filter.
-func (c *internalClient) UpdateExchangeFilter(ctx context.Context, req *UpdateExchangeFilterRequest, opts ...call.Option) (*UpdateExchangeFilterResponse, error) {
-	wireReq, err := updateExchangeFilterRequestToWire(req)
+func (c *internalClient) UpdateExchangeFilter(ctx context.Context, req UpdateExchangeFilterRequest, opts ...call.Option) (*UpdateExchangeFilterResponse, error) {
+	wireReq, err := updateExchangeFilterRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -3744,7 +3788,11 @@ func (c *internalClient) UpdateExchangeFilter(ctx context.Context, req *UpdateEx
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-exchange/filters/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3791,8 +3839,8 @@ func (c *internalClient) UpdateExchangeFilter(ctx context.Context, req *UpdateEx
 }
 
 // Update a listing
-func (c *internalClient) UpdateListing(ctx context.Context, req *UpdateListingRequest, opts ...call.Option) (*UpdateListingResponse, error) {
-	wireReq, err := updateListingRequestToWire(req)
+func (c *internalClient) UpdateListing(ctx context.Context, req UpdateListingRequest, opts ...call.Option) (*UpdateListingResponse, error) {
+	wireReq, err := updateListingRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -3813,7 +3861,11 @@ func (c *internalClient) UpdateListing(ctx context.Context, req *UpdateListingRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-provider/listings/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3861,8 +3913,8 @@ func (c *internalClient) UpdateListing(ctx context.Context, req *UpdateListingRe
 
 // Update personalization request. This method only permits updating the status
 // of the request.
-func (c *internalClient) UpdatePersonalizationRequestStatus(ctx context.Context, req *UpdatePersonalizationRequestStatusRequest, opts ...call.Option) (*UpdatePersonalizationRequestStatusResponse, error) {
-	wireReq, err := updatePersonalizationRequestStatusRequestToWire(req)
+func (c *internalClient) UpdatePersonalizationRequestStatus(ctx context.Context, req UpdatePersonalizationRequestStatusRequest, opts ...call.Option) (*UpdatePersonalizationRequestStatusResponse, error) {
+	wireReq, err := updatePersonalizationRequestStatusRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -3883,9 +3935,17 @@ func (c *internalClient) UpdatePersonalizationRequestStatus(ctx context.Context,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-provider/listings/")
-	pb.singleSegment(*req.ListingId)
+	if req.ListingId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ListingId)
+	}
 	pb.literal("/personalization-requests/")
-	pb.singleSegment(*req.RequestId)
+	if req.RequestId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.RequestId)
+	}
 	pb.literal("/request-status")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -3933,8 +3993,8 @@ func (c *internalClient) UpdatePersonalizationRequestStatus(ctx context.Context,
 }
 
 // Update provider profile
-func (c *internalClient) UpdateProvider(ctx context.Context, req *UpdateProviderRequest, opts ...call.Option) (*UpdateProviderResponse, error) {
-	wireReq, err := updateProviderRequestToWire(req)
+func (c *internalClient) UpdateProvider(ctx context.Context, req UpdateProviderRequest, opts ...call.Option) (*UpdateProviderResponse, error) {
+	wireReq, err := updateProviderRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -3955,7 +4015,11 @@ func (c *internalClient) UpdateProvider(ctx context.Context, req *UpdateProvider
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-provider/providers/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -4002,8 +4066,8 @@ func (c *internalClient) UpdateProvider(ctx context.Context, req *UpdateProvider
 }
 
 // Update provider analytics dashboard.
-func (c *internalClient) UpdateProviderAnalyticsDashboard(ctx context.Context, req *UpdateProviderAnalyticsDashboardRequest, opts ...call.Option) (*UpdateProviderAnalyticsDashboardResponse, error) {
-	wireReq, err := updateProviderAnalyticsDashboardRequestToWire(req)
+func (c *internalClient) UpdateProviderAnalyticsDashboard(ctx context.Context, req UpdateProviderAnalyticsDashboardRequest, opts ...call.Option) (*UpdateProviderAnalyticsDashboardResponse, error) {
+	wireReq, err := updateProviderAnalyticsDashboardRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -4024,7 +4088,11 @@ func (c *internalClient) UpdateProviderAnalyticsDashboard(ctx context.Context, r
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-provider/analytics_dashboard/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

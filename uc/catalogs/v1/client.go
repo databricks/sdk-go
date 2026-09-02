@@ -76,8 +76,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 
 // Creates a new catalog instance in the parent metastore if the caller is a
 // metastore admin or has the **CREATE_CATALOG** privilege.
-func (c *internalClient) CreateCatalog(ctx context.Context, req *CreateCatalogRequest, opts ...call.Option) (*CatalogInfo, error) {
-	wireReq, err := createCatalogRequestToWire(req)
+func (c *internalClient) CreateCatalog(ctx context.Context, req CreateCatalogRequest, opts ...call.Option) (*CatalogInfo, error) {
+	wireReq, err := createCatalogRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -143,8 +143,8 @@ func (c *internalClient) CreateCatalog(ctx context.Context, req *CreateCatalogRe
 
 // Deletes the catalog that matches the supplied name. The caller must be a
 // metastore admin or the owner of the catalog.
-func (c *internalClient) DeleteCatalog(ctx context.Context, req *DeleteCatalogRequest, opts ...call.Option) (*DeleteCatalogResponse, error) {
-	wireReq, err := deleteCatalogRequestToWire(req)
+func (c *internalClient) DeleteCatalog(ctx context.Context, req DeleteCatalogRequest, opts ...call.Option) (*DeleteCatalogResponse, error) {
+	wireReq, err := deleteCatalogRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,11 @@ func (c *internalClient) DeleteCatalog(ctx context.Context, req *DeleteCatalogRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/catalogs/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -206,8 +210,8 @@ func (c *internalClient) DeleteCatalog(ctx context.Context, req *DeleteCatalogRe
 // Gets the specified catalog in a metastore. The caller must be a metastore
 // admin, the owner of the catalog, or a user that has the **USE_CATALOG**
 // privilege set for their account.
-func (c *internalClient) GetCatalog(ctx context.Context, req *GetCatalogRequest, opts ...call.Option) (*CatalogInfo, error) {
-	wireReq, err := getCatalogRequestToWire(req)
+func (c *internalClient) GetCatalog(ctx context.Context, req GetCatalogRequest, opts ...call.Option) (*CatalogInfo, error) {
+	wireReq, err := getCatalogRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -224,7 +228,11 @@ func (c *internalClient) GetCatalog(ctx context.Context, req *GetCatalogRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/catalogs/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_browse", wireReq.IncludeBrowse); err != nil {
@@ -285,8 +293,8 @@ func (c *internalClient) GetCatalog(ctx context.Context, req *GetCatalogRequest,
 // contain zero results while still providing a next_page_token. Clients must
 // continue reading pages until next_page_token is absent, which is the only
 // indication that the end of results has been reached.
-func (c *internalClient) ListCatalogs(ctx context.Context, req *ListCatalogsRequest, opts ...call.Option) (*ListCatalogsResponse, error) {
-	wireReq, err := listCatalogsRequestToWire(req)
+func (c *internalClient) ListCatalogs(ctx context.Context, req ListCatalogsRequest, opts ...call.Option) (*ListCatalogsResponse, error) {
+	wireReq, err := listCatalogsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -362,7 +370,7 @@ func (c *internalClient) ListCatalogs(ctx context.Context, req *ListCatalogsRequ
 //
 // For example:
 //
-//	for item, err := range c.ListCatalogsIter(ctx, &ListCatalogsRequest{}) {
+//	for item, err := range c.ListCatalogsIter(ctx, ListCatalogsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -374,16 +382,13 @@ func (c *internalClient) ListCatalogs(ctx context.Context, req *ListCatalogsRequ
 //
 // Callers who need custom pagination logic should use
 // ListCatalogs directly.
-func (c *internalClient) ListCatalogsIter(ctx context.Context, req *ListCatalogsRequest, opts ...call.Option) iter.Seq2[*CatalogInfo, error] {
+func (c *internalClient) ListCatalogsIter(ctx context.Context, req ListCatalogsRequest, opts ...call.Option) iter.Seq2[*CatalogInfo, error] {
 	return func(yield func(*CatalogInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListCatalogsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListCatalogs(ctx, &pageReq, opts...)
+			resp, err := c.ListCatalogs(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -404,8 +409,8 @@ func (c *internalClient) ListCatalogsIter(ctx context.Context, req *ListCatalogs
 // Updates the catalog that matches the supplied name. The caller must be either
 // the owner of the catalog, or a metastore admin (when changing the owner field
 // of the catalog).
-func (c *internalClient) UpdateCatalog(ctx context.Context, req *UpdateCatalogRequest, opts ...call.Option) (*CatalogInfo, error) {
-	wireReq, err := updateCatalogRequestToWire(req)
+func (c *internalClient) UpdateCatalog(ctx context.Context, req UpdateCatalogRequest, opts ...call.Option) (*CatalogInfo, error) {
+	wireReq, err := updateCatalogRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -426,7 +431,11 @@ func (c *internalClient) UpdateCatalog(ctx context.Context, req *UpdateCatalogRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/catalogs/")
-	pb.singleSegment(*req.NameArg)
+	if req.NameArg == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NameArg)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

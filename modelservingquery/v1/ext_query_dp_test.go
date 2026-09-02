@@ -57,7 +57,8 @@ func newQueryTestClient(t *testing.T, server *httptest.Server, creds auth.Creden
 		client.WithCredentials(creds),
 		client.WithWorkspaceID("ws-123"),
 		client.WithLogger(slog.New(slog.NewTextHandler(io.Discard, nil))),
-		client.WithoutProfileResolution(),
+		client.WithoutConfigFile(),
+		client.WithoutEnv(),
 	)
 	if err != nil {
 		t.Fatalf("NewClient: %v", err)
@@ -250,7 +251,7 @@ func TestQueryOptimized(t *testing.T) {
 			cl := newQueryTestClient(t, srv, tc.creds)
 
 			for i := range tc.calls {
-				resp, gotErr := cl.QueryOptimized(context.Background(), &QueryEndpointRequest{Name: new(testEndpointName)})
+				resp, gotErr := cl.QueryOptimized(context.Background(), QueryEndpointRequest{Name: new(testEndpointName)})
 
 				if tc.wantAPIError {
 					if _, ok := errors.AsType[*apierr.APIError](gotErr); !ok {
@@ -290,7 +291,7 @@ func TestQueryOptimized_DataPlaneRequest(t *testing.T) {
 	defer srv.Close()
 
 	cl := newQueryTestClient(t, srv, oauthCreds{})
-	if _, err := cl.QueryOptimized(context.Background(), &QueryEndpointRequest{Name: new(testEndpointName)}); err != nil {
+	if _, err := cl.QueryOptimized(context.Background(), QueryEndpointRequest{Name: new(testEndpointName)}); err != nil {
 		t.Fatalf("QueryOptimized: %v", err)
 	}
 

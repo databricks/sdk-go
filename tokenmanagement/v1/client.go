@@ -74,8 +74,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Creates a token on behalf of a service principal.
-func (c *internalClient) CreateOnBehalfOfToken(ctx context.Context, req *CreateOnBehalfOfTokenRequest, opts ...call.Option) (*CreateOnBehalfOfTokenResponse, error) {
-	wireReq, err := createOnBehalfOfTokenRequestToWire(req)
+func (c *internalClient) CreateOnBehalfOfToken(ctx context.Context, req CreateOnBehalfOfTokenRequest, opts ...call.Option) (*CreateOnBehalfOfTokenResponse, error) {
+	wireReq, err := createOnBehalfOfTokenRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +140,7 @@ func (c *internalClient) CreateOnBehalfOfToken(ctx context.Context, req *CreateO
 }
 
 // Deletes a token, specified by its ID.
-func (c *internalClient) DeleteToken(ctx context.Context, req *RevokeTokenRequest, opts ...call.Option) (*RevokeTokenResponse, error) {
+func (c *internalClient) DeleteToken(ctx context.Context, req RevokeTokenRequest, opts ...call.Option) (*RevokeTokenResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -154,7 +154,11 @@ func (c *internalClient) DeleteToken(ctx context.Context, req *RevokeTokenReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/token-management/tokens/")
-	pb.singleSegment(*req.TokenId)
+	if req.TokenId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.TokenId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -194,7 +198,7 @@ func (c *internalClient) DeleteToken(ctx context.Context, req *RevokeTokenReques
 }
 
 // Gets information about a token, specified by its ID.
-func (c *internalClient) GetToken(ctx context.Context, req *GetTokenRequest, opts ...call.Option) (*GetTokenResponse, error) {
+func (c *internalClient) GetToken(ctx context.Context, req GetTokenRequest, opts ...call.Option) (*GetTokenResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -208,7 +212,11 @@ func (c *internalClient) GetToken(ctx context.Context, req *GetTokenRequest, opt
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/token-management/tokens/")
-	pb.singleSegment(*req.TokenId)
+	if req.TokenId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.TokenId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -254,8 +262,8 @@ func (c *internalClient) GetToken(ctx context.Context, req *GetTokenRequest, opt
 }
 
 // Lists all tokens associated with the specified workspace or user.
-func (c *internalClient) ListTokens(ctx context.Context, req *ListTokensRequest, opts ...call.Option) (*ListTokensResponse, error) {
-	wireReq, err := listTokensRequestToWire(req)
+func (c *internalClient) ListTokens(ctx context.Context, req ListTokensRequest, opts ...call.Option) (*ListTokensResponse, error) {
+	wireReq, err := listTokensRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -321,8 +329,8 @@ func (c *internalClient) ListTokens(ctx context.Context, req *ListTokensRequest,
 }
 
 // Updates a token, specified by its ID.
-func (c *internalClient) UpdateToken(ctx context.Context, req *UpdateTokenRequest, opts ...call.Option) (*AdminTokenInfo, error) {
-	wireReq, err := updateTokenRequestToWire(req)
+func (c *internalClient) UpdateToken(ctx context.Context, req UpdateTokenRequest, opts ...call.Option) (*AdminTokenInfo, error) {
+	wireReq, err := updateTokenRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -343,7 +351,11 @@ func (c *internalClient) UpdateToken(ctx context.Context, req *UpdateTokenReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/token-management/tokens/")
-	pb.singleSegment(*req.Token.TokenId)
+	if req.Token == nil || req.Token.TokenId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Token.TokenId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

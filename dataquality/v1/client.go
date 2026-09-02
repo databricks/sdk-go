@@ -84,8 +84,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // **USE_SCHEMA** on the table's parent schema. 3. **USE_CATALOG** on the
 // table's parent catalog, **USE_SCHEMA** on the table's parent schema, and
 // **MANAGE** on the table.
-func (c *internalClient) CancelRefresh(ctx context.Context, req *CancelRefreshRequest, opts ...call.Option) (*CancelRefreshResponse, error) {
-	wireReq, err := cancelRefreshRequestToWire(req)
+func (c *internalClient) CancelRefresh(ctx context.Context, req CancelRefreshRequest, opts ...call.Option) (*CancelRefreshResponse, error) {
+	wireReq, err := cancelRefreshRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -106,11 +106,23 @@ func (c *internalClient) CancelRefresh(ctx context.Context, req *CancelRefreshRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/data-quality/v1/monitors/")
-	pb.singleSegment(*req.ObjectType)
+	if req.ObjectType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ObjectType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.ObjectId)
+	if req.ObjectId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ObjectId)
+	}
 	pb.literal("/refreshes/")
-	pb.singleSegment(*req.RefreshId)
+	if req.RefreshId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.RefreshId)
+	}
 	pb.literal("/cancel")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -176,8 +188,8 @@ func (c *internalClient) CancelRefresh(ctx context.Context, req *CancelRefreshRe
 // sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the schema's parent
 // catalog. 2. **USE_CATALOG** on the schema's parent catalog, and **MANAGE**
 // and **USE_SCHEMA** on the schema.
-func (c *internalClient) CreateMonitor(ctx context.Context, req *CreateMonitorRequest, opts ...call.Option) (*Monitor, error) {
-	wireReq, err := createMonitorRequestToWire(req)
+func (c *internalClient) CreateMonitor(ctx context.Context, req CreateMonitorRequest, opts ...call.Option) (*Monitor, error) {
+	wireReq, err := createMonitorRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -250,8 +262,8 @@ func (c *internalClient) CreateMonitor(ctx context.Context, req *CreateMonitorRe
 // **USE_SCHEMA** on the table's parent schema. 3. **USE_CATALOG** on the
 // table's parent catalog, **USE_SCHEMA** on the table's parent schema, and
 // **MANAGE** on the table.
-func (c *internalClient) CreateRefresh(ctx context.Context, req *CreateRefreshRequest, opts ...call.Option) (*Refresh, error) {
-	wireReq, err := createRefreshRequestToWire(req)
+func (c *internalClient) CreateRefresh(ctx context.Context, req CreateRefreshRequest, opts ...call.Option) (*Refresh, error) {
+	wireReq, err := createRefreshRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -272,9 +284,17 @@ func (c *internalClient) CreateRefresh(ctx context.Context, req *CreateRefreshRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/data-quality/v1/monitors/")
-	pb.singleSegment(*req.Refresh.ObjectType)
+	if req.Refresh == nil || req.Refresh.ObjectType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Refresh.ObjectType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.Refresh.ObjectId)
+	if req.Refresh == nil || req.Refresh.ObjectId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Refresh.ObjectId)
+	}
 	pb.literal("/refreshes")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -337,7 +357,7 @@ func (c *internalClient) CreateRefresh(ctx context.Context, req *CreateRefreshRe
 // sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the schema's parent
 // catalog. 2. **USE_CATALOG** on the schema's parent catalog, and **MANAGE**
 // and **USE_SCHEMA** on the schema.
-func (c *internalClient) DeleteMonitor(ctx context.Context, req *DeleteMonitorRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteMonitor(ctx context.Context, req DeleteMonitorRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -351,9 +371,17 @@ func (c *internalClient) DeleteMonitor(ctx context.Context, req *DeleteMonitorRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/data-quality/v1/monitors/")
-	pb.singleSegment(*req.ObjectType)
+	if req.ObjectType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ObjectType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.ObjectId)
+	if req.ObjectId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ObjectId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -390,7 +418,7 @@ func (c *internalClient) DeleteMonitor(ctx context.Context, req *DeleteMonitorRe
 }
 
 // (Unimplemented) Delete a refresh
-func (c *internalClient) DeleteRefresh(ctx context.Context, req *DeleteRefreshRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteRefresh(ctx context.Context, req DeleteRefreshRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -404,11 +432,23 @@ func (c *internalClient) DeleteRefresh(ctx context.Context, req *DeleteRefreshRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/data-quality/v1/monitors/")
-	pb.singleSegment(*req.ObjectType)
+	if req.ObjectType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ObjectType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.ObjectId)
+	if req.ObjectId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ObjectId)
+	}
 	pb.literal("/refreshes/")
-	pb.singleSegment(*req.RefreshId)
+	if req.RefreshId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.RefreshId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -462,7 +502,7 @@ func (c *internalClient) DeleteRefresh(ctx context.Context, req *DeleteRefreshRe
 // parent entity as well as information on assets created by the monitor. Some
 // information (e.g. dashboard) may be filtered out if the caller is in a
 // different workspace than where the monitor was created.
-func (c *internalClient) GetMonitor(ctx context.Context, req *GetMonitorRequest, opts ...call.Option) (*Monitor, error) {
+func (c *internalClient) GetMonitor(ctx context.Context, req GetMonitorRequest, opts ...call.Option) (*Monitor, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -476,9 +516,17 @@ func (c *internalClient) GetMonitor(ctx context.Context, req *GetMonitorRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/data-quality/v1/monitors/")
-	pb.singleSegment(*req.ObjectType)
+	if req.ObjectType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ObjectType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.ObjectId)
+	if req.ObjectId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ObjectId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -537,7 +585,7 @@ func (c *internalClient) GetMonitor(ctx context.Context, req *GetMonitorRequest,
 // sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the schema's parent
 // catalog. 2. **USE_CATALOG** on the schema's parent catalog, and
 // **USE_SCHEMA** on the schema.
-func (c *internalClient) GetRefresh(ctx context.Context, req *GetRefreshRequest, opts ...call.Option) (*Refresh, error) {
+func (c *internalClient) GetRefresh(ctx context.Context, req GetRefreshRequest, opts ...call.Option) (*Refresh, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -551,11 +599,23 @@ func (c *internalClient) GetRefresh(ctx context.Context, req *GetRefreshRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/data-quality/v1/monitors/")
-	pb.singleSegment(*req.ObjectType)
+	if req.ObjectType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ObjectType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.ObjectId)
+	if req.ObjectId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ObjectId)
+	}
 	pb.literal("/refreshes/")
-	pb.singleSegment(*req.RefreshId)
+	if req.RefreshId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.RefreshId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -601,8 +661,8 @@ func (c *internalClient) GetRefresh(ctx context.Context, req *GetRefreshRequest,
 }
 
 // (Unimplemented) List data quality monitors.
-func (c *internalClient) ListMonitor(ctx context.Context, req *ListMonitorRequest, opts ...call.Option) (*ListMonitorResponse, error) {
-	wireReq, err := listMonitorRequestToWire(req)
+func (c *internalClient) ListMonitor(ctx context.Context, req ListMonitorRequest, opts ...call.Option) (*ListMonitorResponse, error) {
+	wireReq, err := listMonitorRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -672,7 +732,7 @@ func (c *internalClient) ListMonitor(ctx context.Context, req *ListMonitorReques
 //
 // For example:
 //
-//	for item, err := range c.ListMonitorIter(ctx, &ListMonitorRequest{}) {
+//	for item, err := range c.ListMonitorIter(ctx, ListMonitorRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -684,16 +744,13 @@ func (c *internalClient) ListMonitor(ctx context.Context, req *ListMonitorReques
 //
 // Callers who need custom pagination logic should use
 // ListMonitor directly.
-func (c *internalClient) ListMonitorIter(ctx context.Context, req *ListMonitorRequest, opts ...call.Option) iter.Seq2[*Monitor, error] {
+func (c *internalClient) ListMonitorIter(ctx context.Context, req ListMonitorRequest, opts ...call.Option) iter.Seq2[*Monitor, error] {
 	return func(yield func(*Monitor, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListMonitorRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListMonitor(ctx, &pageReq, opts...)
+			resp, err := c.ListMonitor(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -725,8 +782,8 @@ func (c *internalClient) ListMonitorIter(ctx context.Context, req *ListMonitorRe
 // sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the schema's parent
 // catalog. 2. **USE_CATALOG** on the schema's parent catalog, and
 // **USE_SCHEMA** on the schema.
-func (c *internalClient) ListRefresh(ctx context.Context, req *ListRefreshRequest, opts ...call.Option) (*ListRefreshResponse, error) {
-	wireReq, err := listRefreshRequestToWire(req)
+func (c *internalClient) ListRefresh(ctx context.Context, req ListRefreshRequest, opts ...call.Option) (*ListRefreshResponse, error) {
+	wireReq, err := listRefreshRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -743,9 +800,17 @@ func (c *internalClient) ListRefresh(ctx context.Context, req *ListRefreshReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/data-quality/v1/monitors/")
-	pb.singleSegment(*req.ObjectType)
+	if req.ObjectType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ObjectType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.ObjectId)
+	if req.ObjectId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ObjectId)
+	}
 	pb.literal("/refreshes")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -802,7 +867,7 @@ func (c *internalClient) ListRefresh(ctx context.Context, req *ListRefreshReques
 //
 // For example:
 //
-//	for item, err := range c.ListRefreshIter(ctx, &ListRefreshRequest{}) {
+//	for item, err := range c.ListRefreshIter(ctx, ListRefreshRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -814,16 +879,13 @@ func (c *internalClient) ListRefresh(ctx context.Context, req *ListRefreshReques
 //
 // Callers who need custom pagination logic should use
 // ListRefresh directly.
-func (c *internalClient) ListRefreshIter(ctx context.Context, req *ListRefreshRequest, opts ...call.Option) iter.Seq2[*Refresh, error] {
+func (c *internalClient) ListRefreshIter(ctx context.Context, req ListRefreshRequest, opts ...call.Option) iter.Seq2[*Refresh, error] {
 	return func(yield func(*Refresh, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListRefreshRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListRefresh(ctx, &pageReq, opts...)
+			resp, err := c.ListRefresh(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -854,8 +916,8 @@ func (c *internalClient) ListRefreshIter(ctx context.Context, req *ListRefreshRe
 // sets of permissions: 1. **MANAGE** and **USE_CATALOG** on the schema's parent
 // catalog. 2. **USE_CATALOG** on the schema's parent catalog, and **MANAGE**
 // and **USE_SCHEMA** on the schema.
-func (c *internalClient) UpdateMonitor(ctx context.Context, req *UpdateMonitorRequest, opts ...call.Option) (*Monitor, error) {
-	wireReq, err := updateMonitorRequestToWire(req)
+func (c *internalClient) UpdateMonitor(ctx context.Context, req UpdateMonitorRequest, opts ...call.Option) (*Monitor, error) {
+	wireReq, err := updateMonitorRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -876,9 +938,17 @@ func (c *internalClient) UpdateMonitor(ctx context.Context, req *UpdateMonitorRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/data-quality/v1/monitors/")
-	pb.singleSegment(*req.ObjectType)
+	if req.ObjectType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ObjectType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.ObjectId)
+	if req.ObjectId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ObjectId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -928,8 +998,8 @@ func (c *internalClient) UpdateMonitor(ctx context.Context, req *UpdateMonitorRe
 }
 
 // (Unimplemented) Update a refresh
-func (c *internalClient) UpdateRefresh(ctx context.Context, req *UpdateRefreshRequest, opts ...call.Option) (*Refresh, error) {
-	wireReq, err := updateRefreshRequestToWire(req)
+func (c *internalClient) UpdateRefresh(ctx context.Context, req UpdateRefreshRequest, opts ...call.Option) (*Refresh, error) {
+	wireReq, err := updateRefreshRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -950,11 +1020,23 @@ func (c *internalClient) UpdateRefresh(ctx context.Context, req *UpdateRefreshRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/data-quality/v1/monitors/")
-	pb.singleSegment(*req.ObjectType)
+	if req.ObjectType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ObjectType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.ObjectId)
+	if req.ObjectId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ObjectId)
+	}
 	pb.literal("/refreshes/")
-	pb.singleSegment(*req.RefreshId)
+	if req.RefreshId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.RefreshId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

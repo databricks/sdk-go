@@ -76,8 +76,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 
 // Creates a new policy on a securable. The new policy applies to the securable
 // and all its descendants.
-func (c *internalClient) CreatePolicy(ctx context.Context, req *CreatePolicyRequest, opts ...call.Option) (*PolicyInfo, error) {
-	wireReq, err := createPolicyRequestToWire(req)
+func (c *internalClient) CreatePolicy(ctx context.Context, req CreatePolicyRequest, opts ...call.Option) (*PolicyInfo, error) {
+	wireReq, err := createPolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func (c *internalClient) CreatePolicy(ctx context.Context, req *CreatePolicyRequ
 }
 
 // Delete an ABAC policy defined on a securable.
-func (c *internalClient) DeletePolicy(ctx context.Context, req *DeletePolicyRequest, opts ...call.Option) (*DeletePolicyResponse, error) {
+func (c *internalClient) DeletePolicy(ctx context.Context, req DeletePolicyRequest, opts ...call.Option) (*DeletePolicyResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -156,11 +156,23 @@ func (c *internalClient) DeletePolicy(ctx context.Context, req *DeletePolicyRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/policies/")
-	pb.singleSegment(*req.OnSecurableType)
+	if req.OnSecurableType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.OnSecurableType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.OnSecurableFullname)
+	if req.OnSecurableFullname == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.OnSecurableFullname)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -200,7 +212,7 @@ func (c *internalClient) DeletePolicy(ctx context.Context, req *DeletePolicyRequ
 }
 
 // Get the policy definition on a securable
-func (c *internalClient) GetPolicy(ctx context.Context, req *GetPolicyRequest, opts ...call.Option) (*PolicyInfo, error) {
+func (c *internalClient) GetPolicy(ctx context.Context, req GetPolicyRequest, opts ...call.Option) (*PolicyInfo, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -214,11 +226,23 @@ func (c *internalClient) GetPolicy(ctx context.Context, req *GetPolicyRequest, o
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/policies/")
-	pb.singleSegment(*req.OnSecurableType)
+	if req.OnSecurableType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.OnSecurableType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.OnSecurableFullname)
+	if req.OnSecurableFullname == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.OnSecurableFullname)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -270,8 +294,8 @@ func (c *internalClient) GetPolicy(ctx context.Context, req *GetPolicyRequest, o
 // results while still providing a next_page_token. Clients must continue
 // reading pages until next_page_token is absent, which is the only indication
 // that the end of results has been reached.
-func (c *internalClient) ListPolicies(ctx context.Context, req *ListPoliciesRequest, opts ...call.Option) (*ListPoliciesResponse, error) {
-	wireReq, err := listPoliciesRequestToWire(req)
+func (c *internalClient) ListPolicies(ctx context.Context, req ListPoliciesRequest, opts ...call.Option) (*ListPoliciesResponse, error) {
+	wireReq, err := listPoliciesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -288,9 +312,17 @@ func (c *internalClient) ListPolicies(ctx context.Context, req *ListPoliciesRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/policies/")
-	pb.singleSegment(*req.OnSecurableType)
+	if req.OnSecurableType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.OnSecurableType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.OnSecurableFullname)
+	if req.OnSecurableFullname == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.OnSecurableFullname)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_inherited", wireReq.IncludeInherited); err != nil {
@@ -349,7 +381,7 @@ func (c *internalClient) ListPolicies(ctx context.Context, req *ListPoliciesRequ
 //
 // For example:
 //
-//	for item, err := range c.ListPoliciesIter(ctx, &ListPoliciesRequest{}) {
+//	for item, err := range c.ListPoliciesIter(ctx, ListPoliciesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -361,16 +393,13 @@ func (c *internalClient) ListPolicies(ctx context.Context, req *ListPoliciesRequ
 //
 // Callers who need custom pagination logic should use
 // ListPolicies directly.
-func (c *internalClient) ListPoliciesIter(ctx context.Context, req *ListPoliciesRequest, opts ...call.Option) iter.Seq2[*PolicyInfo, error] {
+func (c *internalClient) ListPoliciesIter(ctx context.Context, req ListPoliciesRequest, opts ...call.Option) iter.Seq2[*PolicyInfo, error] {
 	return func(yield func(*PolicyInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListPoliciesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListPolicies(ctx, &pageReq, opts...)
+			resp, err := c.ListPolicies(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -389,8 +418,8 @@ func (c *internalClient) ListPoliciesIter(ctx context.Context, req *ListPolicies
 }
 
 // Update an ABAC policy on a securable.
-func (c *internalClient) UpdatePolicy(ctx context.Context, req *UpdatePolicyRequest, opts ...call.Option) (*PolicyInfo, error) {
-	wireReq, err := updatePolicyRequestToWire(req)
+func (c *internalClient) UpdatePolicy(ctx context.Context, req UpdatePolicyRequest, opts ...call.Option) (*PolicyInfo, error) {
+	wireReq, err := updatePolicyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -411,11 +440,23 @@ func (c *internalClient) UpdatePolicy(ctx context.Context, req *UpdatePolicyRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/policies/")
-	pb.singleSegment(*req.OnSecurableType)
+	if req.OnSecurableType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.OnSecurableType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.OnSecurableFullname)
+	if req.OnSecurableFullname == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.OnSecurableFullname)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

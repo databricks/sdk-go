@@ -82,8 +82,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 //
 // The secret is stored in the specified catalog and schema, and the **value**
 // field contains the sensitive data to be securely stored.
-func (c *internalClient) CreateSecret(ctx context.Context, req *CreateSecretRequest, opts ...call.Option) (*Secret, error) {
-	wireReq, err := createSecretRequestToWire(req)
+func (c *internalClient) CreateSecret(ctx context.Context, req CreateSecretRequest, opts ...call.Option) (*Secret, error) {
+	wireReq, err := createSecretRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +150,7 @@ func (c *internalClient) CreateSecret(ctx context.Context, req *CreateSecretRequ
 // Deletes a secret by its three-level (fully qualified) name.
 //
 // You must be the owner of the secret or a metastore admin.
-func (c *internalClient) DeleteSecret(ctx context.Context, req *DeleteSecretRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteSecret(ctx context.Context, req DeleteSecretRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -164,7 +164,11 @@ func (c *internalClient) DeleteSecret(ctx context.Context, req *DeleteSecretRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/secrets/")
-	pb.singleSegment(*req.FullName)
+	if req.FullName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullName)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -208,8 +212,8 @@ func (c *internalClient) DeleteSecret(ctx context.Context, req *DeleteSecretRequ
 // The secret value isn't returned by default. To retrieve it, you must also
 // have the **READ_SECRET** privilege and set **include_value** to true in the
 // request.
-func (c *internalClient) GetSecret(ctx context.Context, req *GetSecretRequest, opts ...call.Option) (*Secret, error) {
-	wireReq, err := getSecretRequestToWire(req)
+func (c *internalClient) GetSecret(ctx context.Context, req GetSecretRequest, opts ...call.Option) (*Secret, error) {
+	wireReq, err := getSecretRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -226,7 +230,11 @@ func (c *internalClient) GetSecret(ctx context.Context, req *GetSecretRequest, o
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/secrets/")
-	pb.singleSegment(*req.FullName)
+	if req.FullName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullName)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_value", wireReq.IncludeValue); err != nil {
@@ -282,8 +290,8 @@ func (c *internalClient) GetSecret(ctx context.Context, req *GetSecretRequest, o
 // Both **catalog_name** and **schema_name** must be specified together to
 // filter secrets within a specific schema. Results are paginated; use the
 // **page_token** field from the response to retrieve subsequent pages.
-func (c *internalClient) ListSecrets(ctx context.Context, req *ListSecretsRequest, opts ...call.Option) (*ListSecretsResponse, error) {
-	wireReq, err := listSecretsRequestToWire(req)
+func (c *internalClient) ListSecrets(ctx context.Context, req ListSecretsRequest, opts ...call.Option) (*ListSecretsResponse, error) {
+	wireReq, err := listSecretsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -359,7 +367,7 @@ func (c *internalClient) ListSecrets(ctx context.Context, req *ListSecretsReques
 //
 // For example:
 //
-//	for item, err := range c.ListSecretsIter(ctx, &ListSecretsRequest{}) {
+//	for item, err := range c.ListSecretsIter(ctx, ListSecretsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -371,16 +379,13 @@ func (c *internalClient) ListSecrets(ctx context.Context, req *ListSecretsReques
 //
 // Callers who need custom pagination logic should use
 // ListSecrets directly.
-func (c *internalClient) ListSecretsIter(ctx context.Context, req *ListSecretsRequest, opts ...call.Option) iter.Seq2[*Secret, error] {
+func (c *internalClient) ListSecretsIter(ctx context.Context, req ListSecretsRequest, opts ...call.Option) iter.Seq2[*Secret, error] {
 	return func(yield func(*Secret, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListSecretsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListSecrets(ctx, &pageReq, opts...)
+			resp, err := c.ListSecrets(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -406,8 +411,8 @@ func (c *internalClient) ListSecretsIter(ctx context.Context, req *ListSecretsRe
 // Use the **update_mask** field to specify which fields to update. Supported
 // updatable fields include **value**, **comment**, **owner**, and
 // **expire_time**.
-func (c *internalClient) UpdateSecret(ctx context.Context, req *UpdateSecretRequest, opts ...call.Option) (*Secret, error) {
-	wireReq, err := updateSecretRequestToWire(req)
+func (c *internalClient) UpdateSecret(ctx context.Context, req UpdateSecretRequest, opts ...call.Option) (*Secret, error) {
+	wireReq, err := updateSecretRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -428,7 +433,11 @@ func (c *internalClient) UpdateSecret(ctx context.Context, req *UpdateSecretRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/secrets/")
-	pb.singleSegment(*req.FullName)
+	if req.FullName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullName)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

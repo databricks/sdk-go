@@ -3,10 +3,56 @@
 package features
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/databricks/sdk-go/core/types"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	if mask == nil {
@@ -399,6 +445,25 @@ func aggregationFunctionFromWire(w *aggregationFunctionWire) (*AggregationFuncti
 	}, nil
 }
 
+type apiErrorWire struct {
+	ErrorCode  ErrorCode         `json:"error_code,omitempty"`
+	Message    *string           `json:"message,omitempty"`
+	StackTrace *string           `json:"stack_trace,omitempty"`
+	Details    []json.RawMessage `json:"details,omitempty"`
+}
+
+func apiErrorFromWire(w *apiErrorWire) (*ApiError, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ApiError{
+		ErrorCode:  w.ErrorCode,
+		Message:    w.Message,
+		StackTrace: w.StackTrace,
+		Details:    w.Details,
+	}, nil
+}
+
 type approxCountDistinctFunctionWire struct {
 	Input      *string  `json:"input,omitempty"`
 	RelativeSd *float64 `json:"relative_sd,omitempty"`
@@ -425,19 +490,23 @@ func approxCountDistinctFunctionFromWire(w *approxCountDistinctFunctionWire) (*A
 }
 
 type approxPercentileFunctionWire struct {
-	Input      *string  `json:"input,omitempty"`
-	Percentile *float64 `json:"percentile,omitempty"`
-	Accuracy   *int64   `json:"accuracy,omitempty"`
+	Input      *string    `json:"input,omitempty"`
+	Percentile *float64   `json:"percentile,omitempty"`
+	Accuracy   *wireInt64 `json:"accuracy,omitempty"`
 }
 
 func approxPercentileFunctionToWire(v *ApproxPercentileFunction) (*approxPercentileFunctionWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	accuracyWireValue, err := int64ToWire(v.Accuracy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ApproxPercentileFunction.Accuracy", err)
+	}
 	return &approxPercentileFunctionWire{
 		Input:      v.Input,
 		Percentile: v.Percentile,
-		Accuracy:   v.Accuracy,
+		Accuracy:   accuracyWireValue,
 	}, nil
 }
 
@@ -445,10 +514,14 @@ func approxPercentileFunctionFromWire(w *approxPercentileFunctionWire) (*ApproxP
 	if w == nil {
 		return nil, nil
 	}
+	accuracyPublicValue, err := int64FromWire(w.Accuracy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ApproxPercentileFunction.Accuracy", err)
+	}
 	return &ApproxPercentileFunction{
 		Input:      w.Input,
 		Percentile: w.Percentile,
-		Accuracy:   w.Accuracy,
+		Accuracy:   accuracyPublicValue,
 	}, nil
 }
 
@@ -535,6 +608,83 @@ func avgFunctionFromWire(w *avgFunctionWire) (*AvgFunction, error) {
 	}
 	return &AvgFunction{
 		Input: w.Input,
+	}, nil
+}
+
+type backfillFeaturesRequestWire struct {
+	FeatureFullNames []string            `json:"feature_full_names,omitempty"`
+	BackfillRanges   []backfillRangeWire `json:"backfill_ranges,omitempty"`
+	RequestId        *string             `json:"request_id,omitempty"`
+}
+
+func backfillFeaturesRequestToWire(v *BackfillFeaturesRequest) (*backfillFeaturesRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	backfillRangesWireValue, err := convertSlice(v.BackfillRanges, backfillRangeToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BackfillFeaturesRequest.BackfillRanges", err)
+	}
+	return &backfillFeaturesRequestWire{
+		FeatureFullNames: v.FeatureFullNames,
+		BackfillRanges:   backfillRangesWireValue,
+		RequestId:        v.RequestId,
+	}, nil
+}
+
+type backfillFeaturesResponseWire struct {
+}
+
+func backfillFeaturesResponseFromWire(w *backfillFeaturesResponseWire) (*BackfillFeaturesResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &BackfillFeaturesResponse{}, nil
+}
+
+type backfillOperationMetadataWire struct {
+	FeatureFullNames []string                        `json:"feature_full_names,omitempty"`
+	BackfillRanges   []backfillRangeWire             `json:"backfill_ranges,omitempty"`
+	State            BackfillOperationMetadata_State `json:"state,omitempty"`
+}
+
+func backfillOperationMetadataFromWire(w *backfillOperationMetadataWire) (*BackfillOperationMetadata, error) {
+	if w == nil {
+		return nil, nil
+	}
+	backfillRangesPublicValue, err := convertSlice(w.BackfillRanges, backfillRangeFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BackfillOperationMetadata.BackfillRanges", err)
+	}
+	return &BackfillOperationMetadata{
+		FeatureFullNames: w.FeatureFullNames,
+		BackfillRanges:   backfillRangesPublicValue,
+		State:            w.State,
+	}, nil
+}
+
+type backfillRangeWire struct {
+	StartTime *types.Time `json:"start_time,omitempty"`
+	EndTime   *types.Time `json:"end_time,omitempty"`
+}
+
+func backfillRangeToWire(v *BackfillRange) (*backfillRangeWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &backfillRangeWire{
+		StartTime: v.StartTime,
+		EndTime:   v.EndTime,
+	}, nil
+}
+
+func backfillRangeFromWire(w *backfillRangeWire) (*BackfillRange, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &BackfillRange{
+		StartTime: w.StartTime,
+		EndTime:   w.EndTime,
 	}, nil
 }
 
@@ -633,6 +783,19 @@ func batchCreateMaterializedFeaturesResponseFromWire(w *batchCreateMaterializedF
 	}
 	return &BatchCreateMaterializedFeaturesResponse{
 		MaterializedFeatures: materializedFeaturesPublicValue,
+	}, nil
+}
+
+type cancelOperationRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func cancelOperationRequestToWire(v *CancelOperationRequest) (*cancelOperationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &cancelOperationRequestWire{
+		Name: v.Name,
 	}, nil
 }
 
@@ -1174,17 +1337,21 @@ func fieldDefinitionFromWire(w *fieldDefinitionWire) (*FieldDefinition, error) {
 }
 
 type firstDistinctFunctionWire struct {
-	Input *string `json:"input,omitempty"`
-	N     *int64  `json:"n,omitempty"`
+	Input *string    `json:"input,omitempty"`
+	N     *wireInt64 `json:"n,omitempty"`
 }
 
 func firstDistinctFunctionToWire(v *FirstDistinctFunction) (*firstDistinctFunctionWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	nWireValue, err := int64ToWire(v.N)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FirstDistinctFunction.N", err)
+	}
 	return &firstDistinctFunctionWire{
 		Input: v.Input,
-		N:     v.N,
+		N:     nWireValue,
 	}, nil
 }
 
@@ -1192,9 +1359,13 @@ func firstDistinctFunctionFromWire(w *firstDistinctFunctionWire) (*FirstDistinct
 	if w == nil {
 		return nil, nil
 	}
+	nPublicValue, err := int64FromWire(w.N)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FirstDistinctFunction.N", err)
+	}
 	return &FirstDistinctFunction{
 		Input: w.Input,
-		N:     w.N,
+		N:     nPublicValue,
 	}, nil
 }
 
@@ -1221,17 +1392,21 @@ func firstFunctionFromWire(w *firstFunctionWire) (*FirstFunction, error) {
 }
 
 type firstNFunctionWire struct {
-	Input *string `json:"input,omitempty"`
-	N     *int64  `json:"n,omitempty"`
+	Input *string    `json:"input,omitempty"`
+	N     *wireInt64 `json:"n,omitempty"`
 }
 
 func firstNFunctionToWire(v *FirstNFunction) (*firstNFunctionWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	nWireValue, err := int64ToWire(v.N)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FirstNFunction.N", err)
+	}
 	return &firstNFunctionWire{
 		Input: v.Input,
-		N:     v.N,
+		N:     nWireValue,
 	}, nil
 }
 
@@ -1239,9 +1414,13 @@ func firstNFunctionFromWire(w *firstNFunctionWire) (*FirstNFunction, error) {
 	if w == nil {
 		return nil, nil
 	}
+	nPublicValue, err := int64FromWire(w.N)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FirstNFunction.N", err)
+	}
 	return &FirstNFunction{
 		Input: w.Input,
-		N:     w.N,
+		N:     nPublicValue,
 	}, nil
 }
 
@@ -1372,8 +1551,8 @@ type ingestionConfigWire struct {
 	BackfillSource       *backfillSourceWire       `json:"backfill_source,omitempty"`
 	DeduplicationColumns []string                  `json:"deduplication_columns,omitempty"`
 	IngestionPipelineId  *string                   `json:"ingestion_pipeline_id,omitempty"`
-	IngestionJobId       *int64                    `json:"ingestion_job_id,omitempty"`
-	BackfillJobId        *int64                    `json:"backfill_job_id,omitempty"`
+	IngestionJobId       *wireInt64                `json:"ingestion_job_id,omitempty"`
+	BackfillJobId        *wireInt64                `json:"backfill_job_id,omitempty"`
 }
 
 func ingestionConfigToWire(v *IngestionConfig) (*ingestionConfigWire, error) {
@@ -1388,13 +1567,21 @@ func ingestionConfigToWire(v *IngestionConfig) (*ingestionConfigWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "IngestionConfig.BackfillSource", err)
 	}
+	ingestionJobIdWireValue, err := int64ToWire(v.IngestionJobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "IngestionConfig.IngestionJobId", err)
+	}
+	backfillJobIdWireValue, err := int64ToWire(v.BackfillJobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "IngestionConfig.BackfillJobId", err)
+	}
 	return &ingestionConfigWire{
 		IngestionDestination: ingestionDestinationWireValue,
 		BackfillSource:       backfillSourceWireValue,
 		DeduplicationColumns: v.DeduplicationColumns,
 		IngestionPipelineId:  v.IngestionPipelineId,
-		IngestionJobId:       v.IngestionJobId,
-		BackfillJobId:        v.BackfillJobId,
+		IngestionJobId:       ingestionJobIdWireValue,
+		BackfillJobId:        backfillJobIdWireValue,
 	}, nil
 }
 
@@ -1410,13 +1597,21 @@ func ingestionConfigFromWire(w *ingestionConfigWire) (*IngestionConfig, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "IngestionConfig.BackfillSource", err)
 	}
+	ingestionJobIdPublicValue, err := int64FromWire(w.IngestionJobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "IngestionConfig.IngestionJobId", err)
+	}
+	backfillJobIdPublicValue, err := int64FromWire(w.BackfillJobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "IngestionConfig.BackfillJobId", err)
+	}
 	return &IngestionConfig{
 		IngestionDestination: ingestionDestinationPublicValue,
 		BackfillSource:       backfillSourcePublicValue,
 		DeduplicationColumns: w.DeduplicationColumns,
 		IngestionPipelineId:  w.IngestionPipelineId,
-		IngestionJobId:       w.IngestionJobId,
-		BackfillJobId:        w.BackfillJobId,
+		IngestionJobId:       ingestionJobIdPublicValue,
+		BackfillJobId:        backfillJobIdPublicValue,
 	}, nil
 }
 
@@ -1490,17 +1685,25 @@ func inputBindingFromWire(w *inputBindingWire) (*InputBinding, error) {
 }
 
 type jobContextWire struct {
-	JobId    *int64 `json:"job_id,omitempty"`
-	JobRunId *int64 `json:"job_run_id,omitempty"`
+	JobId    *wireInt64 `json:"job_id,omitempty"`
+	JobRunId *wireInt64 `json:"job_run_id,omitempty"`
 }
 
 func jobContextToWire(v *JobContext) (*jobContextWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	jobIdWireValue, err := int64ToWire(v.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "JobContext.JobId", err)
+	}
+	jobRunIdWireValue, err := int64ToWire(v.JobRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "JobContext.JobRunId", err)
+	}
 	return &jobContextWire{
-		JobId:    v.JobId,
-		JobRunId: v.JobRunId,
+		JobId:    jobIdWireValue,
+		JobRunId: jobRunIdWireValue,
 	}, nil
 }
 
@@ -1508,9 +1711,17 @@ func jobContextFromWire(w *jobContextWire) (*JobContext, error) {
 	if w == nil {
 		return nil, nil
 	}
+	jobIdPublicValue, err := int64FromWire(w.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "JobContext.JobId", err)
+	}
+	jobRunIdPublicValue, err := int64FromWire(w.JobRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "JobContext.JobRunId", err)
+	}
 	return &JobContext{
-		JobId:    w.JobId,
-		JobRunId: w.JobRunId,
+		JobId:    jobIdPublicValue,
+		JobRunId: jobRunIdPublicValue,
 	}, nil
 }
 
@@ -1810,17 +2021,21 @@ func kinesisStreamConfigFromWire(w *kinesisStreamConfigWire) (*KinesisStreamConf
 }
 
 type lastDistinctFunctionWire struct {
-	Input *string `json:"input,omitempty"`
-	N     *int64  `json:"n,omitempty"`
+	Input *string    `json:"input,omitempty"`
+	N     *wireInt64 `json:"n,omitempty"`
 }
 
 func lastDistinctFunctionToWire(v *LastDistinctFunction) (*lastDistinctFunctionWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	nWireValue, err := int64ToWire(v.N)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LastDistinctFunction.N", err)
+	}
 	return &lastDistinctFunctionWire{
 		Input: v.Input,
-		N:     v.N,
+		N:     nWireValue,
 	}, nil
 }
 
@@ -1828,9 +2043,13 @@ func lastDistinctFunctionFromWire(w *lastDistinctFunctionWire) (*LastDistinctFun
 	if w == nil {
 		return nil, nil
 	}
+	nPublicValue, err := int64FromWire(w.N)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LastDistinctFunction.N", err)
+	}
 	return &LastDistinctFunction{
 		Input: w.Input,
-		N:     w.N,
+		N:     nPublicValue,
 	}, nil
 }
 
@@ -1857,17 +2076,21 @@ func lastFunctionFromWire(w *lastFunctionWire) (*LastFunction, error) {
 }
 
 type lastNFunctionWire struct {
-	Input *string `json:"input,omitempty"`
-	N     *int64  `json:"n,omitempty"`
+	Input *string    `json:"input,omitempty"`
+	N     *wireInt64 `json:"n,omitempty"`
 }
 
 func lastNFunctionToWire(v *LastNFunction) (*lastNFunctionWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	nWireValue, err := int64ToWire(v.N)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LastNFunction.N", err)
+	}
 	return &lastNFunctionWire{
 		Input: v.Input,
-		N:     v.N,
+		N:     nWireValue,
 	}, nil
 }
 
@@ -1875,14 +2098,18 @@ func lastNFunctionFromWire(w *lastNFunctionWire) (*LastNFunction, error) {
 	if w == nil {
 		return nil, nil
 	}
+	nPublicValue, err := int64FromWire(w.N)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LastNFunction.N", err)
+	}
 	return &LastNFunction{
 		Input: w.Input,
-		N:     w.N,
+		N:     nPublicValue,
 	}, nil
 }
 
 type lineageContextWire struct {
-	NotebookId *int64          `json:"notebook_id,omitempty"`
+	NotebookId *wireInt64      `json:"notebook_id,omitempty"`
 	JobContext *jobContextWire `json:"job_context,omitempty"`
 }
 
@@ -1890,12 +2117,16 @@ func lineageContextToWire(v *LineageContext) (*lineageContextWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	notebookIdWireValue, err := int64ToWire(v.NotebookId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LineageContext.NotebookId", err)
+	}
 	jobContextWireValue, err := jobContextToWire(v.JobContext)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "LineageContext.JobContext", err)
 	}
 	return &lineageContextWire{
-		NotebookId: v.NotebookId,
+		NotebookId: notebookIdWireValue,
 		JobContext: jobContextWireValue,
 	}, nil
 }
@@ -1904,12 +2135,16 @@ func lineageContextFromWire(w *lineageContextWire) (*LineageContext, error) {
 	if w == nil {
 		return nil, nil
 	}
+	notebookIdPublicValue, err := int64FromWire(w.NotebookId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LineageContext.NotebookId", err)
+	}
 	jobContextPublicValue, err := jobContextFromWire(w.JobContext)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "LineageContext.JobContext", err)
 	}
 	return &LineageContext{
-		NotebookId: w.NotebookId,
+		NotebookId: notebookIdPublicValue,
 		JobContext: jobContextPublicValue,
 	}, nil
 }
@@ -2385,6 +2620,47 @@ func onlineStoreConfigFromWire(w *onlineStoreConfigWire) (*OnlineStoreConfig, er
 	}, nil
 }
 
+type operationWire struct {
+	Name     *string         `json:"name,omitempty"`
+	Metadata json.RawMessage `json:"metadata,omitempty"`
+	Done     *bool           `json:"done,omitempty"`
+	Error    *apiErrorWire   `json:"error,omitempty"`
+	Response json.RawMessage `json:"response,omitempty"`
+}
+
+func operationFromWire(w *operationWire) (*Operation, error) {
+	if w == nil {
+		return nil, nil
+	}
+	resultMembers := 0
+	if w.Error != nil {
+		resultMembers++
+	}
+	if w.Response != nil {
+		resultMembers++
+	}
+	if resultMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "Operation.Result")
+	}
+	var resultSelection isOperation_Result
+	switch {
+	case w.Error != nil:
+		resultErrorConverted, err := apiErrorFromWire(w.Error)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "Operation.Result.Error", err)
+		}
+		resultSelection = &Operation_Result_Error{Error: *resultErrorConverted}
+	case w.Response != nil:
+		resultSelection = &Operation_Result_Response{Response: w.Response}
+	}
+	return &Operation{
+		Name:     w.Name,
+		Metadata: w.Metadata,
+		Done:     w.Done,
+		Result:   resultSelection,
+	}, nil
+}
+
 type protoSchemaSpecWire struct {
 	SchemaText  *string `json:"schema_text,omitempty"`
 	MessageName *string `json:"message_name,omitempty"`
@@ -2849,6 +3125,8 @@ type streamWire struct {
 	ConnectionConfig *streamConnectionConfigWire `json:"connection_config,omitempty"`
 	SchemaConfig     *streamSchemaConfigWire     `json:"schema_config,omitempty"`
 	IngestionConfig  *ingestionConfigWire        `json:"ingestion_config,omitempty"`
+	RecordTypeFilter *string                     `json:"record_type_filter,omitempty"`
+	ExcludedColumns  []string                    `json:"excluded_columns,omitempty"`
 	CreateTime       *types.Time                 `json:"create_time,omitempty"`
 	CreatedBy        *string                     `json:"created_by,omitempty"`
 	UpdateTime       *types.Time                 `json:"update_time,omitempty"`
@@ -2883,6 +3161,8 @@ func streamToWire(v *Stream) (*streamWire, error) {
 		ConnectionConfig: connectionConfigWireValue,
 		SchemaConfig:     schemaConfigWireValue,
 		IngestionConfig:  ingestionConfigWireValue,
+		RecordTypeFilter: v.RecordTypeFilter,
+		ExcludedColumns:  v.ExcludedColumns,
 		CreateTime:       v.CreateTime,
 		CreatedBy:        v.CreatedBy,
 		UpdateTime:       v.UpdateTime,
@@ -2918,6 +3198,8 @@ func streamFromWire(w *streamWire) (*Stream, error) {
 		ConnectionConfig: connectionConfigPublicValue,
 		SchemaConfig:     schemaConfigPublicValue,
 		IngestionConfig:  ingestionConfigPublicValue,
+		RecordTypeFilter: w.RecordTypeFilter,
+		ExcludedColumns:  w.ExcludedColumns,
 		CreateTime:       w.CreateTime,
 		CreatedBy:        w.CreatedBy,
 		UpdateTime:       w.UpdateTime,
