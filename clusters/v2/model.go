@@ -48,22 +48,6 @@ const (
 	CloudProviderNodeStatus_NotAvailableInRegion     CloudProviderNodeStatus = "NotAvailableInRegion"
 )
 
-// Possible reasons a cluster might be edited.
-type ClusterEditReason string
-
-const (
-	ClusterEditReason_Unspecified ClusterEditReason = ""
-	// Cluster was initially created.
-	ClusterEditReason_Creation ClusterEditReason = "CREATION"
-	// Cluster was manually edited by the user.
-	ClusterEditReason_ManualEdit ClusterEditReason = "MANUAL_EDIT"
-	// Cluster was edited as part of a policy enforcement.
-	ClusterEditReason_PolicyEnforcement ClusterEditReason = "POLICY_ENFORCEMENT"
-	// Cluster was edited as part of a policy enforcement that was scheduled on the
-	// next cluster termination / restart.
-	ClusterEditReason_DeferredPolicyEnforcement ClusterEditReason = "DEFERRED_POLICY_ENFORCEMENT"
-)
-
 // The kind of compute described by this compute specification.
 //
 // Depending on `kind`, different validations and default values will be
@@ -1267,7 +1251,7 @@ type ClusterAttributes struct {
 	// Currently only supported for GCP HYPERDISK_BALANCED disks.
 	RemoteDiskThroughput *int
 	// If set, what the total initial volume size (in GB) of the remote disks should
-	// be. Currently only supported for GCP HYPERDISK_BALANCED disks.
+	// be. Supported for GCP.
 	TotalInitialRemoteDiskSize *int
 	// Controls dependency configuration for the cluster.
 	DependencyMode DependencyMode
@@ -1489,7 +1473,7 @@ type ClusterInfo struct {
 	// Currently only supported for GCP HYPERDISK_BALANCED disks.
 	RemoteDiskThroughput *int
 	// If set, what the total initial volume size (in GB) of the remote disks should
-	// be. Currently only supported for GCP HYPERDISK_BALANCED disks.
+	// be. Supported for GCP.
 	TotalInitialRemoteDiskSize *int
 	// Controls dependency configuration for the cluster.
 	DependencyMode DependencyMode
@@ -1676,7 +1660,7 @@ type ClusterInfo_ComputeSpec struct {
 	// Currently only supported for GCP HYPERDISK_BALANCED disks.
 	RemoteDiskThroughput *int
 	// If set, what the total initial volume size (in GB) of the remote disks should
-	// be. Currently only supported for GCP HYPERDISK_BALANCED disks.
+	// be. Supported for GCP.
 	TotalInitialRemoteDiskSize *int
 	// Controls dependency configuration for the cluster.
 	DependencyMode DependencyMode
@@ -1757,24 +1741,6 @@ type clusterLogConfStorageInfoFieldMaskMetadata struct {
 	*ClusterLogConf_StorageInfo_Dbfs
 	*ClusterLogConf_StorageInfo_S3
 	*ClusterLogConf_StorageInfo_Volumes
-}
-
-// Represents a cluster revision.
-//
-// Only the 100 most recent revisions are stored for each cluster..
-type ClusterRevision struct {
-	// ID of the cluster revision.
-	RevisionId *string
-	// Time when the cluster revision was created.
-	CreateTime *types.Time
-	// Settings used to create/edit the cluster.
-	Settings *ClusterInfo_ComputeSpec
-	// Reason the cluster was edited.
-	EditReason ClusterEditReason
-	// Name of the user who edited this cluster.
-	EditUser *string
-	// Whether this is the current revision.
-	IsCurrent *bool
 }
 
 type ClusterSize struct {
@@ -1956,7 +1922,7 @@ type CreateClusterRequest struct {
 	// Currently only supported for GCP HYPERDISK_BALANCED disks.
 	RemoteDiskThroughput *int
 	// If set, what the total initial volume size (in GB) of the remote disks should
-	// be. Currently only supported for GCP HYPERDISK_BALANCED disks.
+	// be. Supported for GCP.
 	TotalInitialRemoteDiskSize *int
 	// Controls dependency configuration for the cluster.
 	DependencyMode DependencyMode
@@ -2188,7 +2154,7 @@ type EditClusterRequest struct {
 	// Currently only supported for GCP HYPERDISK_BALANCED disks.
 	RemoteDiskThroughput *int
 	// If set, what the total initial volume size (in GB) of the remote disks should
-	// be. Currently only supported for GCP HYPERDISK_BALANCED disks.
+	// be. Supported for GCP.
 	TotalInitialRemoteDiskSize *int
 	// Controls dependency configuration for the cluster.
 	DependencyMode DependencyMode
@@ -2394,7 +2360,7 @@ type EnforcePolicyComplianceForClusterResponse_ClusterSettings struct {
 	// Currently only supported for GCP HYPERDISK_BALANCED disks.
 	RemoteDiskThroughput *int
 	// If set, what the total initial volume size (in GB) of the remote disks should
-	// be. Currently only supported for GCP HYPERDISK_BALANCED disks.
+	// be. Supported for GCP.
 	TotalInitialRemoteDiskSize *int
 	// Controls dependency configuration for the cluster.
 	DependencyMode DependencyMode
@@ -2553,13 +2519,6 @@ type GcsStorageInfo struct {
 type GetClusterRequest struct {
 	// The cluster about which to retrieve information.
 	ClusterId *string
-}
-
-// Request to get a cluster revision by ID..
-type GetClusterRevisionRequest struct {
-	// The fully qualified resource name of the cluster revision. Format:
-	// clusters/{cluster_id}/revisions/{revision_id}.
-	Name *string
 }
 
 type GetEventsResponse struct {
@@ -2830,25 +2789,6 @@ type ListClusterComplianceForPolicyResponse struct {
 	PrevPageToken *string
 }
 
-// Request to list cluster revisions..
-type ListClusterRevisionsRequest struct {
-	// The fully qualified resource name of the parent cluster. Format:
-	// clusters/{cluster_id}.
-	Parent *string
-	// Maximum number of cluster revisions to return per page.
-	PageSize *int
-	// Pagination token from a previous list cluster revisions request.
-	PageToken *string
-}
-
-// Response when listing cluster revisions..
-type ListClusterRevisionsResponse struct {
-	// Cluster revisions in the current page.
-	ClusterRevisions []ClusterRevision
-	// Token for fetching the next page. Empty when there are no more results.
-	NextPageToken *string
-}
-
 type ListClustersRequest struct {
 	// Use next_page_token or prev_page_token returned from the previous request to
 	// list the next or previous page of clusters respectively.
@@ -3010,6 +2950,9 @@ type NodeTypeFlexibility struct {
 	// A list of node type IDs to use as fallbacks when the primary node type is
 	// unavailable.
 	AlternateNodeTypeIds []string `fieldmask:"alternate_node_type_ids"`
+	// The AWS Context ID for EC2 Fleet. When set (non-empty), the value is passed
+	// to AWS CreateFleet API to create the EC2 Fleet.
+	AwsContextId *string `fieldmask:"aws_context_id"`
 }
 
 // Represents a pending enforcement on a cluster, which contains the changes to
@@ -3096,13 +3039,6 @@ type RestartClusterRequest struct {
 }
 
 type RestartClusterResponse struct {
-}
-
-// Request to roll back cluster..
-type RollbackClusterRequest struct {
-	// The fully qualified resource name of the cluster revision. Format:
-	// clusters/{cluster_id}/revisions/{revision_id}.
-	Name *string
 }
 
 // A storage location in Amazon S3.
@@ -3350,7 +3286,7 @@ type UpdateClusterRequest_UpdateClusterResource struct {
 	// Currently only supported for GCP HYPERDISK_BALANCED disks.
 	RemoteDiskThroughput *int `fieldmask:"remote_disk_throughput"`
 	// If set, what the total initial volume size (in GB) of the remote disks should
-	// be. Currently only supported for GCP HYPERDISK_BALANCED disks.
+	// be. Supported for GCP.
 	TotalInitialRemoteDiskSize *int `fieldmask:"total_initial_remote_disk_size"`
 	// Controls dependency configuration for the cluster.
 	DependencyMode DependencyMode                                                     `fieldmask:"dependency_mode"`

@@ -3,10 +3,56 @@
 package tokenmanagement
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/databricks/sdk-go/core/types"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	if mask == nil {
@@ -18,14 +64,14 @@ func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 
 type adminTokenInfoWire struct {
 	TokenId           *string        `json:"token_id,omitempty"`
-	CreationTime      *int64         `json:"creation_time,omitempty"`
-	ExpiryTime        *int64         `json:"expiry_time,omitempty"`
+	CreationTime      *wireInt64     `json:"creation_time,omitempty"`
+	ExpiryTime        *wireInt64     `json:"expiry_time,omitempty"`
 	Comment           *string        `json:"comment,omitempty"`
-	CreatedById       *int64         `json:"created_by_id,omitempty"`
+	CreatedById       *wireInt64     `json:"created_by_id,omitempty"`
 	CreatedByUsername *string        `json:"created_by_username,omitempty"`
-	OwnerId           *int64         `json:"owner_id,omitempty"`
-	WorkspaceId       *int64         `json:"workspace_id,omitempty"`
-	LastUsedDay       *int64         `json:"last_used_day,omitempty"`
+	OwnerId           *wireInt64     `json:"owner_id,omitempty"`
+	WorkspaceId       *wireInt64     `json:"workspace_id,omitempty"`
+	LastUsedDay       *wireInt64     `json:"last_used_day,omitempty"`
 	Scopes            []string       `json:"scopes,omitempty"`
 	AutoscopeState    AutoscopeState `json:"autoscope_state,omitempty"`
 	InferredScopes    []string       `json:"inferred_scopes,omitempty"`
@@ -36,16 +82,40 @@ func adminTokenInfoToWire(v *AdminTokenInfo) (*adminTokenInfoWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	creationTimeWireValue, err := int64ToWire(v.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AdminTokenInfo.CreationTime", err)
+	}
+	expiryTimeWireValue, err := int64ToWire(v.ExpiryTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AdminTokenInfo.ExpiryTime", err)
+	}
+	createdByIdWireValue, err := int64ToWire(v.CreatedById)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AdminTokenInfo.CreatedById", err)
+	}
+	ownerIdWireValue, err := int64ToWire(v.OwnerId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AdminTokenInfo.OwnerId", err)
+	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AdminTokenInfo.WorkspaceId", err)
+	}
+	lastUsedDayWireValue, err := int64ToWire(v.LastUsedDay)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AdminTokenInfo.LastUsedDay", err)
+	}
 	return &adminTokenInfoWire{
 		TokenId:           v.TokenId,
-		CreationTime:      v.CreationTime,
-		ExpiryTime:        v.ExpiryTime,
+		CreationTime:      creationTimeWireValue,
+		ExpiryTime:        expiryTimeWireValue,
 		Comment:           v.Comment,
-		CreatedById:       v.CreatedById,
+		CreatedById:       createdByIdWireValue,
 		CreatedByUsername: v.CreatedByUsername,
-		OwnerId:           v.OwnerId,
-		WorkspaceId:       v.WorkspaceId,
-		LastUsedDay:       v.LastUsedDay,
+		OwnerId:           ownerIdWireValue,
+		WorkspaceId:       workspaceIdWireValue,
+		LastUsedDay:       lastUsedDayWireValue,
 		Scopes:            v.Scopes,
 		AutoscopeState:    v.AutoscopeState,
 		InferredScopes:    v.InferredScopes,
@@ -57,16 +127,40 @@ func adminTokenInfoFromWire(w *adminTokenInfoWire) (*AdminTokenInfo, error) {
 	if w == nil {
 		return nil, nil
 	}
+	creationTimePublicValue, err := int64FromWire(w.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AdminTokenInfo.CreationTime", err)
+	}
+	expiryTimePublicValue, err := int64FromWire(w.ExpiryTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AdminTokenInfo.ExpiryTime", err)
+	}
+	createdByIdPublicValue, err := int64FromWire(w.CreatedById)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AdminTokenInfo.CreatedById", err)
+	}
+	ownerIdPublicValue, err := int64FromWire(w.OwnerId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AdminTokenInfo.OwnerId", err)
+	}
+	workspaceIdPublicValue, err := int64FromWire(w.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AdminTokenInfo.WorkspaceId", err)
+	}
+	lastUsedDayPublicValue, err := int64FromWire(w.LastUsedDay)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AdminTokenInfo.LastUsedDay", err)
+	}
 	return &AdminTokenInfo{
 		TokenId:           w.TokenId,
-		CreationTime:      w.CreationTime,
-		ExpiryTime:        w.ExpiryTime,
+		CreationTime:      creationTimePublicValue,
+		ExpiryTime:        expiryTimePublicValue,
 		Comment:           w.Comment,
-		CreatedById:       w.CreatedById,
+		CreatedById:       createdByIdPublicValue,
 		CreatedByUsername: w.CreatedByUsername,
-		OwnerId:           w.OwnerId,
-		WorkspaceId:       w.WorkspaceId,
-		LastUsedDay:       w.LastUsedDay,
+		OwnerId:           ownerIdPublicValue,
+		WorkspaceId:       workspaceIdPublicValue,
+		LastUsedDay:       lastUsedDayPublicValue,
 		Scopes:            w.Scopes,
 		AutoscopeState:    w.AutoscopeState,
 		InferredScopes:    w.InferredScopes,
@@ -75,20 +169,24 @@ func adminTokenInfoFromWire(w *adminTokenInfoWire) (*AdminTokenInfo, error) {
 }
 
 type createOnBehalfOfTokenRequestWire struct {
-	ApplicationId    *string  `json:"application_id,omitempty"`
-	LifetimeSeconds  *int64   `json:"lifetime_seconds,omitempty"`
-	Comment          *string  `json:"comment,omitempty"`
-	Scopes           []string `json:"scopes,omitempty"`
-	AutoscopeEnabled *bool    `json:"autoscope_enabled,omitempty"`
+	ApplicationId    *string    `json:"application_id,omitempty"`
+	LifetimeSeconds  *wireInt64 `json:"lifetime_seconds,omitempty"`
+	Comment          *string    `json:"comment,omitempty"`
+	Scopes           []string   `json:"scopes,omitempty"`
+	AutoscopeEnabled *bool      `json:"autoscope_enabled,omitempty"`
 }
 
 func createOnBehalfOfTokenRequestToWire(v *CreateOnBehalfOfTokenRequest) (*createOnBehalfOfTokenRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	lifetimeSecondsWireValue, err := int64ToWire(v.LifetimeSeconds)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateOnBehalfOfTokenRequest.LifetimeSeconds", err)
+	}
 	return &createOnBehalfOfTokenRequestWire{
 		ApplicationId:    v.ApplicationId,
-		LifetimeSeconds:  v.LifetimeSeconds,
+		LifetimeSeconds:  lifetimeSecondsWireValue,
 		Comment:          v.Comment,
 		Scopes:           v.Scopes,
 		AutoscopeEnabled: v.AutoscopeEnabled,
@@ -132,16 +230,20 @@ func getTokenResponseFromWire(w *getTokenResponseWire) (*GetTokenResponse, error
 }
 
 type listTokensRequestWire struct {
-	CreatedById       *int64  `json:"created_by_id,omitempty"`
-	CreatedByUsername *string `json:"created_by_username,omitempty"`
+	CreatedById       *wireInt64 `json:"created_by_id,omitempty"`
+	CreatedByUsername *string    `json:"created_by_username,omitempty"`
 }
 
 func listTokensRequestToWire(v *ListTokensRequest) (*listTokensRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	createdByIdWireValue, err := int64ToWire(v.CreatedById)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListTokensRequest.CreatedById", err)
+	}
 	return &listTokensRequestWire{
-		CreatedById:       v.CreatedById,
+		CreatedById:       createdByIdWireValue,
 		CreatedByUsername: v.CreatedByUsername,
 	}, nil
 }

@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 	"github.com/databricks/sdk-go/options/call"
 	"github.com/databricks/sdk-go/options/client"
 	"github.com/databricks/sdk-go/options/internaloptions"
+	"github.com/databricks/sdk-go/options/lro"
 )
 
 type Client struct {
@@ -74,9 +76,184 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	}, nil
 }
 
+// Backfill features.
+func (c *internalClient) backfillFeaturesBase(ctx context.Context, req BackfillFeaturesRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := backfillFeaturesRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	if wireReq.RequestId == nil || *wireReq.RequestId == "" {
+		wireReq.RequestId = new(generateRequestID())
+	}
+	body, err := json.Marshal(wireReq)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = "/api/2.0/feature-engineering/features:backfill"
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Operation
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp operationWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = operationFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Backfill features.
+func (c *internalClient) BackfillFeatures(ctx context.Context, req BackfillFeaturesRequest, opts ...call.Option) (*BackfillFeaturesOperation, error) {
+	operation, err := c.backfillFeaturesBase(ctx, req, opts...)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateOperationName(operation.Name); err != nil {
+		return nil, err
+	}
+	return &BackfillFeaturesOperation{
+		operation:       operation,
+		getOperation:    c.getOperation,
+		cancelOperation: c.cancelOperation,
+	}, nil
+}
+
+// BackfillFeaturesOperation tracks the state of the long-running operation started by BackfillFeatures.
+type BackfillFeaturesOperation struct {
+	operation       *Operation
+	getOperation    func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
+	cancelOperation func(context.Context, CancelOperationRequest, ...call.Option) error
+}
+
+// Name returns the server-assigned operation name.
+func (o *BackfillFeaturesOperation) Name() *string {
+	return o.operation.Name
+}
+
+// Metadata returns metadata associated with the operation.
+func (o *BackfillFeaturesOperation) Metadata() (*BackfillOperationMetadata, error) {
+	if len(o.operation.Metadata) == 0 || bytes.Equal(bytes.TrimSpace(o.operation.Metadata), []byte("null")) {
+		return nil, nil
+	}
+	var metadata backfillOperationMetadataWire
+	if err := json.Unmarshal(o.operation.Metadata, &metadata); err != nil {
+		return nil, fmt.Errorf("decode operation metadata: %w", err)
+	}
+	converted, err := backfillOperationMetadataFromWire(&metadata)
+	if err != nil {
+		return nil, err
+	}
+	return converted, nil
+}
+
+// Done refreshes the operation and reports whether it has completed.
+func (o *BackfillFeaturesOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
+	if err != nil {
+		return false, err
+	}
+	if err := validateOperationName(operation.Name); err != nil {
+		return false, err
+	}
+	o.operation = operation
+	if operation.Done == nil {
+		return false, fmt.Errorf("invalid operation response: missing done field")
+	}
+	return *operation.Done, nil
+}
+
+// Wait polls the operation until it completes.
+func (o *BackfillFeaturesOperation) Wait(ctx context.Context, opts ...lro.Option) (*BackfillFeaturesResponse, error) {
+	var result *BackfillFeaturesResponse
+	poll := func(ctx context.Context) error {
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
+		if err != nil {
+			return err
+		}
+		if err := validateOperationName(operation.Name); err != nil {
+			return err
+		}
+		o.operation = operation
+		if operation.Done == nil {
+			return fmt.Errorf("invalid operation response: missing done field")
+		}
+		if !*operation.Done {
+			return errOperationStillRunning
+		}
+		if operationError, ok := operation.Result.(*Operation_Result_Error); ok && operationError != nil {
+			return fmt.Errorf("operation failed: %w", &operationError.Error)
+		}
+		operationResponse, ok := operation.Result.(*Operation_Result_Response)
+		if !ok || operationResponse == nil || len(operationResponse.Response) == 0 || bytes.Equal(bytes.TrimSpace(operationResponse.Response), []byte("null")) {
+			return fmt.Errorf("operation completed without a response")
+		}
+		var response backfillFeaturesResponseWire
+		if err := json.Unmarshal(operationResponse.Response, &response); err != nil {
+			return fmt.Errorf("decode operation response: %w", err)
+		}
+		result, err = backfillFeaturesResponseFromWire(&response)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	if err := executeWait(ctx, poll, opts...); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Cancel starts asynchronous cancellation of the operation.
+func (o *BackfillFeaturesOperation) Cancel(ctx context.Context, opts ...call.Option) error {
+	return o.cancelOperation(ctx, CancelOperationRequest{Name: o.operation.Name}, opts...)
+}
+
 // Batch create materialized features.
-func (c *internalClient) BatchCreateMaterializedFeatures(ctx context.Context, req *BatchCreateMaterializedFeaturesRequest, opts ...call.Option) (*BatchCreateMaterializedFeaturesResponse, error) {
-	wireReq, err := batchCreateMaterializedFeaturesRequestToWire(req)
+func (c *internalClient) BatchCreateMaterializedFeatures(ctx context.Context, req BatchCreateMaterializedFeaturesRequest, opts ...call.Option) (*BatchCreateMaterializedFeaturesResponse, error) {
+	wireReq, err := batchCreateMaterializedFeaturesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -140,9 +317,74 @@ func (c *internalClient) BatchCreateMaterializedFeatures(ctx context.Context, re
 	return resp, nil
 }
 
+// Cancel an operation.
+func (c *internalClient) cancelOperation(ctx context.Context, req CancelOperationRequest, opts ...call.Option) error {
+	wireReq, err := cancelOperationRequestToWire(&req)
+	if err != nil {
+		return err
+	}
+	body, err := json.Marshal(wireReq)
+	if err != nil {
+		return err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/feature-engineering/")
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
+	pb.literal(":cancel")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		_ = respBody
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Create a Feature.
-func (c *internalClient) CreateFeature(ctx context.Context, req *CreateFeatureRequest, opts ...call.Option) (*Feature, error) {
-	wireReq, err := createFeatureRequestToWire(req)
+func (c *internalClient) CreateFeature(ctx context.Context, req CreateFeatureRequest, opts ...call.Option) (*Feature, error) {
+	wireReq, err := createFeatureRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -209,8 +451,8 @@ func (c *internalClient) CreateFeature(ctx context.Context, req *CreateFeatureRe
 // Create a Kafka config. During PrPr, Kafka configs can be read and used when
 // creating features under the entire metastore. Only the creator of the Kafka
 // config can delete it.
-func (c *internalClient) CreateKafkaConfig(ctx context.Context, req *CreateKafkaConfigRequest, opts ...call.Option) (*KafkaConfig, error) {
-	wireReq, err := createKafkaConfigRequestToWire(req)
+func (c *internalClient) CreateKafkaConfig(ctx context.Context, req CreateKafkaConfigRequest, opts ...call.Option) (*KafkaConfig, error) {
+	wireReq, err := createKafkaConfigRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -275,8 +517,8 @@ func (c *internalClient) CreateKafkaConfig(ctx context.Context, req *CreateKafka
 }
 
 // Create a materialized feature.
-func (c *internalClient) CreateMaterializedFeature(ctx context.Context, req *CreateMaterializedFeatureRequest, opts ...call.Option) (*MaterializedFeature, error) {
-	wireReq, err := createMaterializedFeatureRequestToWire(req)
+func (c *internalClient) CreateMaterializedFeature(ctx context.Context, req CreateMaterializedFeatureRequest, opts ...call.Option) (*MaterializedFeature, error) {
+	wireReq, err := createMaterializedFeatureRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -342,8 +584,8 @@ func (c *internalClient) CreateMaterializedFeature(ctx context.Context, req *Cre
 
 // Create a Stream, a governed UC entity representing an external streaming data
 // source.
-func (c *internalClient) CreateStream(ctx context.Context, req *CreateStreamRequest, opts ...call.Option) (*Stream, error) {
-	wireReq, err := createStreamRequestToWire(req)
+func (c *internalClient) CreateStream(ctx context.Context, req CreateStreamRequest, opts ...call.Option) (*Stream, error) {
+	wireReq, err := createStreamRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -408,7 +650,7 @@ func (c *internalClient) CreateStream(ctx context.Context, req *CreateStreamRequ
 }
 
 // Delete a Feature.
-func (c *internalClient) DeleteFeature(ctx context.Context, req *DeleteFeatureRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteFeature(ctx context.Context, req DeleteFeatureRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -422,7 +664,11 @@ func (c *internalClient) DeleteFeature(ctx context.Context, req *DeleteFeatureRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/features/")
-	pb.singleSegment(*req.FullName)
+	if req.FullName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullName)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -461,7 +707,7 @@ func (c *internalClient) DeleteFeature(ctx context.Context, req *DeleteFeatureRe
 // Delete a Kafka config. During PrPr, Kafka configs can be read and used when
 // creating features under the entire metastore. Only the creator of the Kafka
 // config can delete it.
-func (c *internalClient) DeleteKafkaConfig(ctx context.Context, req *DeleteKafkaConfigRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteKafkaConfig(ctx context.Context, req DeleteKafkaConfigRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -475,7 +721,11 @@ func (c *internalClient) DeleteKafkaConfig(ctx context.Context, req *DeleteKafka
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/features/kafka-configs/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -512,7 +762,7 @@ func (c *internalClient) DeleteKafkaConfig(ctx context.Context, req *DeleteKafka
 }
 
 // Delete a materialized feature.
-func (c *internalClient) DeleteMaterializedFeature(ctx context.Context, req *DeleteMaterializedFeatureRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteMaterializedFeature(ctx context.Context, req DeleteMaterializedFeatureRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -526,7 +776,11 @@ func (c *internalClient) DeleteMaterializedFeature(ctx context.Context, req *Del
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/materialized-features/")
-	pb.singleSegment(*req.MaterializedFeatureId)
+	if req.MaterializedFeatureId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MaterializedFeatureId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -563,7 +817,7 @@ func (c *internalClient) DeleteMaterializedFeature(ctx context.Context, req *Del
 }
 
 // Delete a Stream by its full three-part name (catalog.schema.stream).
-func (c *internalClient) DeleteStream(ctx context.Context, req *DeleteStreamRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteStream(ctx context.Context, req DeleteStreamRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -577,7 +831,11 @@ func (c *internalClient) DeleteStream(ctx context.Context, req *DeleteStreamRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/streams/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -614,7 +872,7 @@ func (c *internalClient) DeleteStream(ctx context.Context, req *DeleteStreamRequ
 }
 
 // Get a Feature.
-func (c *internalClient) GetFeature(ctx context.Context, req *GetFeatureRequest, opts ...call.Option) (*Feature, error) {
+func (c *internalClient) GetFeature(ctx context.Context, req GetFeatureRequest, opts ...call.Option) (*Feature, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -628,7 +886,11 @@ func (c *internalClient) GetFeature(ctx context.Context, req *GetFeatureRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/features/")
-	pb.singleSegment(*req.FullName)
+	if req.FullName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullName)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -676,7 +938,7 @@ func (c *internalClient) GetFeature(ctx context.Context, req *GetFeatureRequest,
 // Get a Kafka config. During PrPr, Kafka configs can be read and used when
 // creating features under the entire metastore. Only the creator of the Kafka
 // config can delete it.
-func (c *internalClient) GetKafkaConfig(ctx context.Context, req *GetKafkaConfigRequest, opts ...call.Option) (*KafkaConfig, error) {
+func (c *internalClient) GetKafkaConfig(ctx context.Context, req GetKafkaConfigRequest, opts ...call.Option) (*KafkaConfig, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -690,7 +952,11 @@ func (c *internalClient) GetKafkaConfig(ctx context.Context, req *GetKafkaConfig
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/features/kafka-configs/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -736,7 +1002,7 @@ func (c *internalClient) GetKafkaConfig(ctx context.Context, req *GetKafkaConfig
 }
 
 // Get a materialized feature.
-func (c *internalClient) GetMaterializedFeature(ctx context.Context, req *GetMaterializedFeatureRequest, opts ...call.Option) (*MaterializedFeature, error) {
+func (c *internalClient) GetMaterializedFeature(ctx context.Context, req GetMaterializedFeatureRequest, opts ...call.Option) (*MaterializedFeature, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -750,7 +1016,11 @@ func (c *internalClient) GetMaterializedFeature(ctx context.Context, req *GetMat
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/materialized-features/")
-	pb.singleSegment(*req.MaterializedFeatureId)
+	if req.MaterializedFeatureId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MaterializedFeatureId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -795,8 +1065,72 @@ func (c *internalClient) GetMaterializedFeature(ctx context.Context, req *GetMat
 	return resp, nil
 }
 
+// Get an operation.
+func (c *internalClient) getOperation(ctx context.Context, req GetOperationRequest, opts ...call.Option) (*Operation, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/feature-engineering/")
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Operation
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp operationWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = operationFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Get a Stream by its full three-part name (catalog.schema.stream).
-func (c *internalClient) GetStream(ctx context.Context, req *GetStreamRequest, opts ...call.Option) (*Stream, error) {
+func (c *internalClient) GetStream(ctx context.Context, req GetStreamRequest, opts ...call.Option) (*Stream, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -810,7 +1144,11 @@ func (c *internalClient) GetStream(ctx context.Context, req *GetStreamRequest, o
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/streams/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -856,8 +1194,8 @@ func (c *internalClient) GetStream(ctx context.Context, req *GetStreamRequest, o
 }
 
 // List Features.
-func (c *internalClient) ListFeatures(ctx context.Context, req *ListFeaturesRequest, opts ...call.Option) (*ListFeaturesResponse, error) {
-	wireReq, err := listFeaturesRequestToWire(req)
+func (c *internalClient) ListFeatures(ctx context.Context, req ListFeaturesRequest, opts ...call.Option) (*ListFeaturesResponse, error) {
+	wireReq, err := listFeaturesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -933,7 +1271,7 @@ func (c *internalClient) ListFeatures(ctx context.Context, req *ListFeaturesRequ
 //
 // For example:
 //
-//	for item, err := range c.ListFeaturesIter(ctx, &ListFeaturesRequest{}) {
+//	for item, err := range c.ListFeaturesIter(ctx, ListFeaturesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -945,16 +1283,13 @@ func (c *internalClient) ListFeatures(ctx context.Context, req *ListFeaturesRequ
 //
 // Callers who need custom pagination logic should use
 // ListFeatures directly.
-func (c *internalClient) ListFeaturesIter(ctx context.Context, req *ListFeaturesRequest, opts ...call.Option) iter.Seq2[*Feature, error] {
+func (c *internalClient) ListFeaturesIter(ctx context.Context, req ListFeaturesRequest, opts ...call.Option) iter.Seq2[*Feature, error] {
 	return func(yield func(*Feature, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListFeaturesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListFeatures(ctx, &pageReq, opts...)
+			resp, err := c.ListFeatures(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -975,8 +1310,8 @@ func (c *internalClient) ListFeaturesIter(ctx context.Context, req *ListFeatures
 // List Kafka configs. During PrPr, Kafka configs can be read and used when
 // creating features under the entire metastore. Only the creator of the Kafka
 // config can delete it.
-func (c *internalClient) ListKafkaConfigs(ctx context.Context, req *ListKafkaConfigsRequest, opts ...call.Option) (*ListKafkaConfigsResponse, error) {
-	wireReq, err := listKafkaConfigsRequestToWire(req)
+func (c *internalClient) ListKafkaConfigs(ctx context.Context, req ListKafkaConfigsRequest, opts ...call.Option) (*ListKafkaConfigsResponse, error) {
+	wireReq, err := listKafkaConfigsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1046,7 +1381,7 @@ func (c *internalClient) ListKafkaConfigs(ctx context.Context, req *ListKafkaCon
 //
 // For example:
 //
-//	for item, err := range c.ListKafkaConfigsIter(ctx, &ListKafkaConfigsRequest{}) {
+//	for item, err := range c.ListKafkaConfigsIter(ctx, ListKafkaConfigsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1058,16 +1393,13 @@ func (c *internalClient) ListKafkaConfigs(ctx context.Context, req *ListKafkaCon
 //
 // Callers who need custom pagination logic should use
 // ListKafkaConfigs directly.
-func (c *internalClient) ListKafkaConfigsIter(ctx context.Context, req *ListKafkaConfigsRequest, opts ...call.Option) iter.Seq2[*KafkaConfig, error] {
+func (c *internalClient) ListKafkaConfigsIter(ctx context.Context, req ListKafkaConfigsRequest, opts ...call.Option) iter.Seq2[*KafkaConfig, error] {
 	return func(yield func(*KafkaConfig, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListKafkaConfigsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListKafkaConfigs(ctx, &pageReq, opts...)
+			resp, err := c.ListKafkaConfigs(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1086,8 +1418,8 @@ func (c *internalClient) ListKafkaConfigsIter(ctx context.Context, req *ListKafk
 }
 
 // List materialized features.
-func (c *internalClient) ListMaterializedFeatures(ctx context.Context, req *ListMaterializedFeaturesRequest, opts ...call.Option) (*ListMaterializedFeaturesResponse, error) {
-	wireReq, err := listMaterializedFeaturesRequestToWire(req)
+func (c *internalClient) ListMaterializedFeatures(ctx context.Context, req ListMaterializedFeaturesRequest, opts ...call.Option) (*ListMaterializedFeaturesResponse, error) {
+	wireReq, err := listMaterializedFeaturesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1160,7 +1492,7 @@ func (c *internalClient) ListMaterializedFeatures(ctx context.Context, req *List
 //
 // For example:
 //
-//	for item, err := range c.ListMaterializedFeaturesIter(ctx, &ListMaterializedFeaturesRequest{}) {
+//	for item, err := range c.ListMaterializedFeaturesIter(ctx, ListMaterializedFeaturesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1172,16 +1504,13 @@ func (c *internalClient) ListMaterializedFeatures(ctx context.Context, req *List
 //
 // Callers who need custom pagination logic should use
 // ListMaterializedFeatures directly.
-func (c *internalClient) ListMaterializedFeaturesIter(ctx context.Context, req *ListMaterializedFeaturesRequest, opts ...call.Option) iter.Seq2[*MaterializedFeature, error] {
+func (c *internalClient) ListMaterializedFeaturesIter(ctx context.Context, req ListMaterializedFeaturesRequest, opts ...call.Option) iter.Seq2[*MaterializedFeature, error] {
 	return func(yield func(*MaterializedFeature, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListMaterializedFeaturesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListMaterializedFeatures(ctx, &pageReq, opts...)
+			resp, err := c.ListMaterializedFeatures(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1200,8 +1529,8 @@ func (c *internalClient) ListMaterializedFeaturesIter(ctx context.Context, req *
 }
 
 // List Streams under a given catalog.schema parent.
-func (c *internalClient) ListStreams(ctx context.Context, req *ListStreamsRequest, opts ...call.Option) (*ListStreamsResponse, error) {
-	wireReq, err := listStreamsRequestToWire(req)
+func (c *internalClient) ListStreams(ctx context.Context, req ListStreamsRequest, opts ...call.Option) (*ListStreamsResponse, error) {
+	wireReq, err := listStreamsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1274,7 +1603,7 @@ func (c *internalClient) ListStreams(ctx context.Context, req *ListStreamsReques
 //
 // For example:
 //
-//	for item, err := range c.ListStreamsIter(ctx, &ListStreamsRequest{}) {
+//	for item, err := range c.ListStreamsIter(ctx, ListStreamsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1286,16 +1615,13 @@ func (c *internalClient) ListStreams(ctx context.Context, req *ListStreamsReques
 //
 // Callers who need custom pagination logic should use
 // ListStreams directly.
-func (c *internalClient) ListStreamsIter(ctx context.Context, req *ListStreamsRequest, opts ...call.Option) iter.Seq2[*Stream, error] {
+func (c *internalClient) ListStreamsIter(ctx context.Context, req ListStreamsRequest, opts ...call.Option) iter.Seq2[*Stream, error] {
 	return func(yield func(*Stream, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListStreamsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListStreams(ctx, &pageReq, opts...)
+			resp, err := c.ListStreams(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1314,8 +1640,8 @@ func (c *internalClient) ListStreamsIter(ctx context.Context, req *ListStreamsRe
 }
 
 // Update a Feature.
-func (c *internalClient) UpdateFeature(ctx context.Context, req *UpdateFeatureRequest, opts ...call.Option) (*Feature, error) {
-	wireReq, err := updateFeatureRequestToWire(req)
+func (c *internalClient) UpdateFeature(ctx context.Context, req UpdateFeatureRequest, opts ...call.Option) (*Feature, error) {
+	wireReq, err := updateFeatureRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1336,7 +1662,11 @@ func (c *internalClient) UpdateFeature(ctx context.Context, req *UpdateFeatureRe
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/features/")
-	pb.singleSegment(*req.Feature.FullName)
+	if req.Feature == nil || req.Feature.FullName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Feature.FullName)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -1388,8 +1718,8 @@ func (c *internalClient) UpdateFeature(ctx context.Context, req *UpdateFeatureRe
 // Update a Kafka config. During PrPr, Kafka configs can be read and used when
 // creating features under the entire metastore. Only the creator of the Kafka
 // config can delete it.
-func (c *internalClient) UpdateKafkaConfig(ctx context.Context, req *UpdateKafkaConfigRequest, opts ...call.Option) (*KafkaConfig, error) {
-	wireReq, err := updateKafkaConfigRequestToWire(req)
+func (c *internalClient) UpdateKafkaConfig(ctx context.Context, req UpdateKafkaConfigRequest, opts ...call.Option) (*KafkaConfig, error) {
+	wireReq, err := updateKafkaConfigRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1410,7 +1740,11 @@ func (c *internalClient) UpdateKafkaConfig(ctx context.Context, req *UpdateKafka
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/features/kafka-configs/")
-	pb.singleSegment(*req.KafkaConfig.Name)
+	if req.KafkaConfig == nil || req.KafkaConfig.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.KafkaConfig.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -1460,8 +1794,8 @@ func (c *internalClient) UpdateKafkaConfig(ctx context.Context, req *UpdateKafka
 }
 
 // Update a materialized feature (pause/resume).
-func (c *internalClient) UpdateMaterializedFeature(ctx context.Context, req *UpdateMaterializedFeatureRequest, opts ...call.Option) (*MaterializedFeature, error) {
-	wireReq, err := updateMaterializedFeatureRequestToWire(req)
+func (c *internalClient) UpdateMaterializedFeature(ctx context.Context, req UpdateMaterializedFeatureRequest, opts ...call.Option) (*MaterializedFeature, error) {
+	wireReq, err := updateMaterializedFeatureRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1482,7 +1816,11 @@ func (c *internalClient) UpdateMaterializedFeature(ctx context.Context, req *Upd
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/materialized-features/")
-	pb.singleSegment(*req.MaterializedFeature.MaterializedFeatureId)
+	if req.MaterializedFeature == nil || req.MaterializedFeature.MaterializedFeatureId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MaterializedFeature.MaterializedFeatureId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -1532,8 +1870,8 @@ func (c *internalClient) UpdateMaterializedFeature(ctx context.Context, req *Upd
 }
 
 // Update a Stream. Only fields listed in `update_mask` are mutated.
-func (c *internalClient) UpdateStream(ctx context.Context, req *UpdateStreamRequest, opts ...call.Option) (*Stream, error) {
-	wireReq, err := updateStreamRequestToWire(req)
+func (c *internalClient) UpdateStream(ctx context.Context, req UpdateStreamRequest, opts ...call.Option) (*Stream, error) {
+	wireReq, err := updateStreamRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1554,7 +1892,11 @@ func (c *internalClient) UpdateStream(ctx context.Context, req *UpdateStreamRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/streams/")
-	pb.singleSegment(*req.Stream.Name)
+	if req.Stream == nil || req.Stream.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Stream.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

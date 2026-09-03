@@ -87,8 +87,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // privilege on the metastore.
 //
 // [cleanrooms/get]: https://docs.databricks.com/api/workspace/cleanrooms/get
-func (c *internalClient) createCleanRoomBase(ctx context.Context, req *CreateCleanRoomRequest, opts ...call.Option) (*CleanRoom, error) {
-	wireReq, err := createCleanRoomRequestToWire(req)
+func (c *internalClient) createCleanRoomBase(ctx context.Context, req CreateCleanRoomRequest, opts ...call.Option) (*CleanRoom, error) {
+	wireReq, err := createCleanRoomRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +163,7 @@ func (c *internalClient) createCleanRoomBase(ctx context.Context, req *CreateCle
 // privilege on the metastore.
 //
 // [cleanrooms/get]: https://docs.databricks.com/api/workspace/cleanrooms/get
-func (c *internalClient) CreateCleanRoom(ctx context.Context, req *CreateCleanRoomRequest, opts ...call.Option) (*CreateCleanRoomWaiter, error) {
+func (c *internalClient) CreateCleanRoom(ctx context.Context, req CreateCleanRoomRequest, opts ...call.Option) (*CreateCleanRoomWaiter, error) {
 	resp, err := c.createCleanRoomBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -179,13 +179,18 @@ func (c *internalClient) CreateCleanRoom(ctx context.Context, req *CreateCleanRo
 
 // CreateCleanRoomWaiter tracks the state of the operation started by CreateCleanRoom.
 type CreateCleanRoomWaiter struct {
-	poll func(context.Context, *GetCleanRoomRequest, ...call.Option) (*CleanRoom, error)
+	poll func(context.Context, GetCleanRoomRequest, ...call.Option) (*CleanRoom, error)
 	name string
+}
+
+// GetName returns the Name value used to identify the operation.
+func (w *CreateCleanRoomWaiter) GetName() string {
+	return w.name
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *CreateCleanRoomWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetCleanRoomRequest{
+	pollResp, err := w.poll(ctx, GetCleanRoomRequest{
 		Name: &w.name,
 	}, opts...)
 	if err != nil {
@@ -210,7 +215,7 @@ func (w *CreateCleanRoomWaiter) Done(ctx context.Context, opts ...call.Option) (
 func (w *CreateCleanRoomWaiter) Wait(ctx context.Context, opts ...lro.Option) (*CleanRoom, error) {
 	var result *CleanRoom
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetCleanRoomRequest{
+		pollResp, err := w.poll(ctx, GetCleanRoomRequest{
 			Name: &w.name,
 		})
 		if err != nil {
@@ -242,8 +247,8 @@ func (w *CreateCleanRoomWaiter) Wait(ctx context.Context, opts ...lro.Option) (*
 // room owner must also have enough privilege on the asset to consume it. The
 // privilege must be maintained indefinitely for the clean room to be able to
 // access the asset. Typically, you should use a group as the clean room owner.
-func (c *internalClient) CreateCleanRoomAsset(ctx context.Context, req *CreateCleanRoomAssetRequest, opts ...call.Option) (*CleanRoomAsset, error) {
-	wireReq, err := createCleanRoomAssetRequestToWire(req)
+func (c *internalClient) CreateCleanRoomAsset(ctx context.Context, req CreateCleanRoomAssetRequest, opts ...call.Option) (*CleanRoomAsset, error) {
+	wireReq, err := createCleanRoomAssetRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -264,7 +269,11 @@ func (c *internalClient) CreateCleanRoomAsset(ctx context.Context, req *CreateCl
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
-	pb.singleSegment(*req.Asset.CleanRoomName)
+	if req.Asset == nil || req.Asset.CleanRoomName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Asset.CleanRoomName)
+	}
 	pb.literal("/assets")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -312,8 +321,8 @@ func (c *internalClient) CreateCleanRoomAsset(ctx context.Context, req *CreateCl
 }
 
 // Submit an asset review
-func (c *internalClient) CreateCleanRoomAssetReview(ctx context.Context, req *CreateCleanRoomAssetReviewRequest, opts ...call.Option) (*CreateCleanRoomAssetReviewResponse, error) {
-	wireReq, err := createCleanRoomAssetReviewRequestToWire(req)
+func (c *internalClient) CreateCleanRoomAssetReview(ctx context.Context, req CreateCleanRoomAssetReviewRequest, opts ...call.Option) (*CreateCleanRoomAssetReviewResponse, error) {
+	wireReq, err := createCleanRoomAssetReviewRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -332,16 +341,21 @@ func (c *internalClient) CreateCleanRoomAssetReview(ctx context.Context, req *Cr
 	if err != nil {
 		return nil, err
 	}
-	if req.AssetType == "" {
-		return nil, fmt.Errorf("path parameter %q is required", "asset_type")
-	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
-	pb.singleSegment(*req.CleanRoomName)
+	if req.CleanRoomName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CleanRoomName)
+	}
 	pb.literal("/assets/")
 	pb.singleSegment(req.AssetType)
 	pb.literal("/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/reviews")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -389,8 +403,8 @@ func (c *internalClient) CreateCleanRoomAssetReview(ctx context.Context, req *Cr
 }
 
 // Create an auto-approval rule
-func (c *internalClient) CreateCleanRoomAutoApprovalRule(ctx context.Context, req *CreateCleanRoomAutoApprovalRuleRequest, opts ...call.Option) (*CleanRoomAutoApprovalRule, error) {
-	wireReq, err := createCleanRoomAutoApprovalRuleRequestToWire(req)
+func (c *internalClient) CreateCleanRoomAutoApprovalRule(ctx context.Context, req CreateCleanRoomAutoApprovalRuleRequest, opts ...call.Option) (*CleanRoomAutoApprovalRule, error) {
+	wireReq, err := createCleanRoomAutoApprovalRuleRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -411,7 +425,11 @@ func (c *internalClient) CreateCleanRoomAutoApprovalRule(ctx context.Context, re
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
-	pb.singleSegment(*req.AutoApprovalRule.CleanRoomName)
+	if req.AutoApprovalRule == nil || req.AutoApprovalRule.CleanRoomName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.AutoApprovalRule.CleanRoomName)
+	}
 	pb.literal("/auto-approval-rules")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -459,8 +477,8 @@ func (c *internalClient) CreateCleanRoomAutoApprovalRule(ctx context.Context, re
 }
 
 // Create the output catalog of the clean room.
-func (c *internalClient) CreateCleanRoomOutputCatalog(ctx context.Context, req *CreateCleanRoomOutputCatalogRequest, opts ...call.Option) (*CreateCleanRoomOutputCatalogResponse, error) {
-	wireReq, err := createCleanRoomOutputCatalogRequestToWire(req)
+func (c *internalClient) CreateCleanRoomOutputCatalog(ctx context.Context, req CreateCleanRoomOutputCatalogRequest, opts ...call.Option) (*CreateCleanRoomOutputCatalogResponse, error) {
+	wireReq, err := createCleanRoomOutputCatalogRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -481,7 +499,11 @@ func (c *internalClient) CreateCleanRoomOutputCatalog(ctx context.Context, req *
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
-	pb.singleSegment(*req.CleanRoomName)
+	if req.CleanRoomName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CleanRoomName)
+	}
 	pb.literal("/output-catalogs")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -532,7 +554,7 @@ func (c *internalClient) CreateCleanRoomOutputCatalog(ctx context.Context, req *
 // metastore. If the other collaborators have not deleted the clean room, they
 // will still have the clean room in their metastore, but it will be in a
 // DELETED state and no operations other than deletion can be performed on it.
-func (c *internalClient) DeleteCleanRoom(ctx context.Context, req *DeleteCleanRoomRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteCleanRoom(ctx context.Context, req DeleteCleanRoomRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -546,7 +568,11 @@ func (c *internalClient) DeleteCleanRoom(ctx context.Context, req *DeleteCleanRo
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -583,7 +609,7 @@ func (c *internalClient) DeleteCleanRoom(ctx context.Context, req *DeleteCleanRo
 }
 
 // Delete a clean room asset - unshare/remove the asset from the clean room
-func (c *internalClient) DeleteCleanRoomAsset(ctx context.Context, req *DeleteCleanRoomAssetRequest, opts ...call.Option) (*DeleteCleanRoomAssetResponse, error) {
+func (c *internalClient) DeleteCleanRoomAsset(ctx context.Context, req DeleteCleanRoomAssetRequest, opts ...call.Option) (*DeleteCleanRoomAssetResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -595,16 +621,21 @@ func (c *internalClient) DeleteCleanRoomAsset(ctx context.Context, req *DeleteCl
 	if err != nil {
 		return nil, err
 	}
-	if req.AssetType == "" {
-		return nil, fmt.Errorf("path parameter %q is required", "asset_type")
-	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
-	pb.singleSegment(*req.CleanRoomName)
+	if req.CleanRoomName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CleanRoomName)
+	}
 	pb.literal("/assets/")
 	pb.singleSegment(req.AssetType)
 	pb.literal("/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -644,7 +675,7 @@ func (c *internalClient) DeleteCleanRoomAsset(ctx context.Context, req *DeleteCl
 }
 
 // Delete a auto-approval rule by rule ID
-func (c *internalClient) DeleteCleanRoomAutoApprovalRule(ctx context.Context, req *DeleteCleanRoomAutoApprovalRuleRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteCleanRoomAutoApprovalRule(ctx context.Context, req DeleteCleanRoomAutoApprovalRuleRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -658,9 +689,17 @@ func (c *internalClient) DeleteCleanRoomAutoApprovalRule(ctx context.Context, re
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
-	pb.singleSegment(*req.CleanRoomName)
+	if req.CleanRoomName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CleanRoomName)
+	}
 	pb.literal("/auto-approval-rules/")
-	pb.singleSegment(*req.RuleId)
+	if req.RuleId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.RuleId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -697,7 +736,7 @@ func (c *internalClient) DeleteCleanRoomAutoApprovalRule(ctx context.Context, re
 }
 
 // Get the details of a clean room given its name.
-func (c *internalClient) GetCleanRoom(ctx context.Context, req *GetCleanRoomRequest, opts ...call.Option) (*CleanRoom, error) {
+func (c *internalClient) GetCleanRoom(ctx context.Context, req GetCleanRoomRequest, opts ...call.Option) (*CleanRoom, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -711,7 +750,11 @@ func (c *internalClient) GetCleanRoom(ctx context.Context, req *GetCleanRoomRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -757,7 +800,7 @@ func (c *internalClient) GetCleanRoom(ctx context.Context, req *GetCleanRoomRequ
 }
 
 // Get the details of a clean room asset by its type and full name.
-func (c *internalClient) GetCleanRoomAsset(ctx context.Context, req *GetCleanRoomAssetRequest, opts ...call.Option) (*CleanRoomAsset, error) {
+func (c *internalClient) GetCleanRoomAsset(ctx context.Context, req GetCleanRoomAssetRequest, opts ...call.Option) (*CleanRoomAsset, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -769,16 +812,21 @@ func (c *internalClient) GetCleanRoomAsset(ctx context.Context, req *GetCleanRoo
 	if err != nil {
 		return nil, err
 	}
-	if req.AssetType == "" {
-		return nil, fmt.Errorf("path parameter %q is required", "asset_type")
-	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
-	pb.singleSegment(*req.CleanRoomName)
+	if req.CleanRoomName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CleanRoomName)
+	}
 	pb.literal("/assets/")
 	pb.singleSegment(req.AssetType)
 	pb.literal("/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -824,7 +872,7 @@ func (c *internalClient) GetCleanRoomAsset(ctx context.Context, req *GetCleanRoo
 }
 
 // Get a specific revision of an asset
-func (c *internalClient) GetCleanRoomAssetRevision(ctx context.Context, req *GetCleanRoomAssetRevisionRequest, opts ...call.Option) (*CleanRoomAsset, error) {
+func (c *internalClient) GetCleanRoomAssetRevision(ctx context.Context, req GetCleanRoomAssetRevisionRequest, opts ...call.Option) (*CleanRoomAsset, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -836,18 +884,27 @@ func (c *internalClient) GetCleanRoomAssetRevision(ctx context.Context, req *Get
 	if err != nil {
 		return nil, err
 	}
-	if req.AssetType == "" {
-		return nil, fmt.Errorf("path parameter %q is required", "asset_type")
-	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
-	pb.singleSegment(*req.CleanRoomName)
+	if req.CleanRoomName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CleanRoomName)
+	}
 	pb.literal("/assets/")
 	pb.singleSegment(req.AssetType)
 	pb.literal("/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/revisions/")
-	pb.singleSegment(*req.Etag)
+	if req.Etag == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Etag)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -893,7 +950,7 @@ func (c *internalClient) GetCleanRoomAssetRevision(ctx context.Context, req *Get
 }
 
 // Get a auto-approval rule by rule ID
-func (c *internalClient) GetCleanRoomAutoApprovalRule(ctx context.Context, req *GetCleanRoomAutoApprovalRuleRequest, opts ...call.Option) (*CleanRoomAutoApprovalRule, error) {
+func (c *internalClient) GetCleanRoomAutoApprovalRule(ctx context.Context, req GetCleanRoomAutoApprovalRuleRequest, opts ...call.Option) (*CleanRoomAutoApprovalRule, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -907,9 +964,17 @@ func (c *internalClient) GetCleanRoomAutoApprovalRule(ctx context.Context, req *
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
-	pb.singleSegment(*req.CleanRoomName)
+	if req.CleanRoomName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CleanRoomName)
+	}
 	pb.literal("/auto-approval-rules/")
-	pb.singleSegment(*req.RuleId)
+	if req.RuleId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.RuleId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -955,8 +1020,8 @@ func (c *internalClient) GetCleanRoomAutoApprovalRule(ctx context.Context, req *
 }
 
 // List revisions for an asset
-func (c *internalClient) ListCleanRoomAssetRevisions(ctx context.Context, req *ListCleanRoomAssetRevisionsRequest, opts ...call.Option) (*ListCleanRoomAssetRevisionsResponse, error) {
-	wireReq, err := listCleanRoomAssetRevisionsRequestToWire(req)
+func (c *internalClient) ListCleanRoomAssetRevisions(ctx context.Context, req ListCleanRoomAssetRevisionsRequest, opts ...call.Option) (*ListCleanRoomAssetRevisionsResponse, error) {
+	wireReq, err := listCleanRoomAssetRevisionsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -971,16 +1036,21 @@ func (c *internalClient) ListCleanRoomAssetRevisions(ctx context.Context, req *L
 	if err != nil {
 		return nil, err
 	}
-	if req.AssetType == "" {
-		return nil, fmt.Errorf("path parameter %q is required", "asset_type")
-	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
-	pb.singleSegment(*req.CleanRoomName)
+	if req.CleanRoomName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CleanRoomName)
+	}
 	pb.literal("/assets/")
 	pb.singleSegment(req.AssetType)
 	pb.literal("/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/revisions")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1037,7 +1107,7 @@ func (c *internalClient) ListCleanRoomAssetRevisions(ctx context.Context, req *L
 //
 // For example:
 //
-//	for item, err := range c.ListCleanRoomAssetRevisionsIter(ctx, &ListCleanRoomAssetRevisionsRequest{}) {
+//	for item, err := range c.ListCleanRoomAssetRevisionsIter(ctx, ListCleanRoomAssetRevisionsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1049,16 +1119,13 @@ func (c *internalClient) ListCleanRoomAssetRevisions(ctx context.Context, req *L
 //
 // Callers who need custom pagination logic should use
 // ListCleanRoomAssetRevisions directly.
-func (c *internalClient) ListCleanRoomAssetRevisionsIter(ctx context.Context, req *ListCleanRoomAssetRevisionsRequest, opts ...call.Option) iter.Seq2[*CleanRoomAsset, error] {
+func (c *internalClient) ListCleanRoomAssetRevisionsIter(ctx context.Context, req ListCleanRoomAssetRevisionsRequest, opts ...call.Option) iter.Seq2[*CleanRoomAsset, error] {
 	return func(yield func(*CleanRoomAsset, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListCleanRoomAssetRevisionsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListCleanRoomAssetRevisions(ctx, &pageReq, opts...)
+			resp, err := c.ListCleanRoomAssetRevisions(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1077,8 +1144,8 @@ func (c *internalClient) ListCleanRoomAssetRevisionsIter(ctx context.Context, re
 }
 
 // List assets.
-func (c *internalClient) ListCleanRoomAssets(ctx context.Context, req *ListCleanRoomAssetsRequest, opts ...call.Option) (*ListCleanRoomAssetsResponse, error) {
-	wireReq, err := listCleanRoomAssetsRequestToWire(req)
+func (c *internalClient) ListCleanRoomAssets(ctx context.Context, req ListCleanRoomAssetsRequest, opts ...call.Option) (*ListCleanRoomAssetsResponse, error) {
+	wireReq, err := listCleanRoomAssetsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1095,7 +1162,11 @@ func (c *internalClient) ListCleanRoomAssets(ctx context.Context, req *ListClean
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
-	pb.singleSegment(*req.CleanRoomName)
+	if req.CleanRoomName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CleanRoomName)
+	}
 	pb.literal("/assets")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1149,7 +1220,7 @@ func (c *internalClient) ListCleanRoomAssets(ctx context.Context, req *ListClean
 //
 // For example:
 //
-//	for item, err := range c.ListCleanRoomAssetsIter(ctx, &ListCleanRoomAssetsRequest{}) {
+//	for item, err := range c.ListCleanRoomAssetsIter(ctx, ListCleanRoomAssetsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1161,16 +1232,13 @@ func (c *internalClient) ListCleanRoomAssets(ctx context.Context, req *ListClean
 //
 // Callers who need custom pagination logic should use
 // ListCleanRoomAssets directly.
-func (c *internalClient) ListCleanRoomAssetsIter(ctx context.Context, req *ListCleanRoomAssetsRequest, opts ...call.Option) iter.Seq2[*CleanRoomAsset, error] {
+func (c *internalClient) ListCleanRoomAssetsIter(ctx context.Context, req ListCleanRoomAssetsRequest, opts ...call.Option) iter.Seq2[*CleanRoomAsset, error] {
 	return func(yield func(*CleanRoomAsset, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListCleanRoomAssetsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListCleanRoomAssets(ctx, &pageReq, opts...)
+			resp, err := c.ListCleanRoomAssets(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1189,8 +1257,8 @@ func (c *internalClient) ListCleanRoomAssetsIter(ctx context.Context, req *ListC
 }
 
 // List all auto-approval rules for the caller
-func (c *internalClient) ListCleanRoomAutoApprovalRules(ctx context.Context, req *ListCleanRoomAutoApprovalRulesRequest, opts ...call.Option) (*ListCleanRoomAutoApprovalRulesResponse, error) {
-	wireReq, err := listCleanRoomAutoApprovalRulesRequestToWire(req)
+func (c *internalClient) ListCleanRoomAutoApprovalRules(ctx context.Context, req ListCleanRoomAutoApprovalRulesRequest, opts ...call.Option) (*ListCleanRoomAutoApprovalRulesResponse, error) {
+	wireReq, err := listCleanRoomAutoApprovalRulesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1207,7 +1275,11 @@ func (c *internalClient) ListCleanRoomAutoApprovalRules(ctx context.Context, req
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
-	pb.singleSegment(*req.CleanRoomName)
+	if req.CleanRoomName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CleanRoomName)
+	}
 	pb.literal("/auto-approval-rules")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1264,7 +1336,7 @@ func (c *internalClient) ListCleanRoomAutoApprovalRules(ctx context.Context, req
 //
 // For example:
 //
-//	for item, err := range c.ListCleanRoomAutoApprovalRulesIter(ctx, &ListCleanRoomAutoApprovalRulesRequest{}) {
+//	for item, err := range c.ListCleanRoomAutoApprovalRulesIter(ctx, ListCleanRoomAutoApprovalRulesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1276,16 +1348,13 @@ func (c *internalClient) ListCleanRoomAutoApprovalRules(ctx context.Context, req
 //
 // Callers who need custom pagination logic should use
 // ListCleanRoomAutoApprovalRules directly.
-func (c *internalClient) ListCleanRoomAutoApprovalRulesIter(ctx context.Context, req *ListCleanRoomAutoApprovalRulesRequest, opts ...call.Option) iter.Seq2[*CleanRoomAutoApprovalRule, error] {
+func (c *internalClient) ListCleanRoomAutoApprovalRulesIter(ctx context.Context, req ListCleanRoomAutoApprovalRulesRequest, opts ...call.Option) iter.Seq2[*CleanRoomAutoApprovalRule, error] {
 	return func(yield func(*CleanRoomAutoApprovalRule, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListCleanRoomAutoApprovalRulesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListCleanRoomAutoApprovalRules(ctx, &pageReq, opts...)
+			resp, err := c.ListCleanRoomAutoApprovalRules(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1304,8 +1373,8 @@ func (c *internalClient) ListCleanRoomAutoApprovalRulesIter(ctx context.Context,
 }
 
 // List all the historical notebook task runs in a clean room.
-func (c *internalClient) ListCleanRoomNotebookTaskRuns(ctx context.Context, req *ListCleanRoomNotebookTaskRunsRequest, opts ...call.Option) (*ListCleanRoomNotebookTaskRunsResponse, error) {
-	wireReq, err := listCleanRoomNotebookTaskRunsRequestToWire(req)
+func (c *internalClient) ListCleanRoomNotebookTaskRuns(ctx context.Context, req ListCleanRoomNotebookTaskRunsRequest, opts ...call.Option) (*ListCleanRoomNotebookTaskRunsResponse, error) {
+	wireReq, err := listCleanRoomNotebookTaskRunsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1322,7 +1391,11 @@ func (c *internalClient) ListCleanRoomNotebookTaskRuns(ctx context.Context, req 
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
-	pb.singleSegment(*req.CleanRoomName)
+	if req.CleanRoomName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CleanRoomName)
+	}
 	pb.literal("/runs")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1382,7 +1455,7 @@ func (c *internalClient) ListCleanRoomNotebookTaskRuns(ctx context.Context, req 
 //
 // For example:
 //
-//	for item, err := range c.ListCleanRoomNotebookTaskRunsIter(ctx, &ListCleanRoomNotebookTaskRunsRequest{}) {
+//	for item, err := range c.ListCleanRoomNotebookTaskRunsIter(ctx, ListCleanRoomNotebookTaskRunsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1394,16 +1467,13 @@ func (c *internalClient) ListCleanRoomNotebookTaskRuns(ctx context.Context, req 
 //
 // Callers who need custom pagination logic should use
 // ListCleanRoomNotebookTaskRuns directly.
-func (c *internalClient) ListCleanRoomNotebookTaskRunsIter(ctx context.Context, req *ListCleanRoomNotebookTaskRunsRequest, opts ...call.Option) iter.Seq2[*CleanRoomNotebookTaskRun, error] {
+func (c *internalClient) ListCleanRoomNotebookTaskRunsIter(ctx context.Context, req ListCleanRoomNotebookTaskRunsRequest, opts ...call.Option) iter.Seq2[*CleanRoomNotebookTaskRun, error] {
 	return func(yield func(*CleanRoomNotebookTaskRun, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListCleanRoomNotebookTaskRunsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListCleanRoomNotebookTaskRuns(ctx, &pageReq, opts...)
+			resp, err := c.ListCleanRoomNotebookTaskRuns(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1422,8 +1492,8 @@ func (c *internalClient) ListCleanRoomNotebookTaskRunsIter(ctx context.Context, 
 }
 
 // List all the historical task runs in a clean room.
-func (c *internalClient) ListCleanRoomTaskRunsHandler(ctx context.Context, req *ListCleanRoomTaskRunsRequest, opts ...call.Option) (*ListCleanRoomTaskRunsResponse, error) {
-	wireReq, err := listCleanRoomTaskRunsRequestToWire(req)
+func (c *internalClient) ListCleanRoomTaskRunsHandler(ctx context.Context, req ListCleanRoomTaskRunsRequest, opts ...call.Option) (*ListCleanRoomTaskRunsResponse, error) {
+	wireReq, err := listCleanRoomTaskRunsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1440,7 +1510,11 @@ func (c *internalClient) ListCleanRoomTaskRunsHandler(ctx context.Context, req *
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
-	pb.singleSegment(*req.CleanRoomName)
+	if req.CleanRoomName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CleanRoomName)
+	}
 	pb.literal("/task-runs")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1505,7 +1579,7 @@ func (c *internalClient) ListCleanRoomTaskRunsHandler(ctx context.Context, req *
 //
 // For example:
 //
-//	for item, err := range c.ListCleanRoomTaskRunsHandlerIter(ctx, &ListCleanRoomTaskRunsRequest{}) {
+//	for item, err := range c.ListCleanRoomTaskRunsHandlerIter(ctx, ListCleanRoomTaskRunsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1517,16 +1591,13 @@ func (c *internalClient) ListCleanRoomTaskRunsHandler(ctx context.Context, req *
 //
 // Callers who need custom pagination logic should use
 // ListCleanRoomTaskRunsHandler directly.
-func (c *internalClient) ListCleanRoomTaskRunsHandlerIter(ctx context.Context, req *ListCleanRoomTaskRunsRequest, opts ...call.Option) iter.Seq2[*CleanRoomTaskRun, error] {
+func (c *internalClient) ListCleanRoomTaskRunsHandlerIter(ctx context.Context, req ListCleanRoomTaskRunsRequest, opts ...call.Option) iter.Seq2[*CleanRoomTaskRun, error] {
 	return func(yield func(*CleanRoomTaskRun, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListCleanRoomTaskRunsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListCleanRoomTaskRunsHandler(ctx, &pageReq, opts...)
+			resp, err := c.ListCleanRoomTaskRunsHandler(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1546,8 +1617,8 @@ func (c *internalClient) ListCleanRoomTaskRunsHandlerIter(ctx context.Context, r
 
 // Get a list of all clean rooms of the metastore. Only clean rooms the caller
 // has access to are returned.
-func (c *internalClient) ListCleanRooms(ctx context.Context, req *ListCleanRoomsRequest, opts ...call.Option) (*ListCleanRoomsResponse, error) {
-	wireReq, err := listCleanRoomsRequestToWire(req)
+func (c *internalClient) ListCleanRooms(ctx context.Context, req ListCleanRoomsRequest, opts ...call.Option) (*ListCleanRoomsResponse, error) {
+	wireReq, err := listCleanRoomsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1617,7 +1688,7 @@ func (c *internalClient) ListCleanRooms(ctx context.Context, req *ListCleanRooms
 //
 // For example:
 //
-//	for item, err := range c.ListCleanRoomsIter(ctx, &ListCleanRoomsRequest{}) {
+//	for item, err := range c.ListCleanRoomsIter(ctx, ListCleanRoomsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1629,16 +1700,13 @@ func (c *internalClient) ListCleanRooms(ctx context.Context, req *ListCleanRooms
 //
 // Callers who need custom pagination logic should use
 // ListCleanRooms directly.
-func (c *internalClient) ListCleanRoomsIter(ctx context.Context, req *ListCleanRoomsRequest, opts ...call.Option) iter.Seq2[*CleanRoom, error] {
+func (c *internalClient) ListCleanRoomsIter(ctx context.Context, req ListCleanRoomsRequest, opts ...call.Option) iter.Seq2[*CleanRoom, error] {
 	return func(yield func(*CleanRoom, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListCleanRoomsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListCleanRooms(ctx, &pageReq, opts...)
+			resp, err := c.ListCleanRooms(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1661,8 +1729,8 @@ func (c *internalClient) ListCleanRoomsIter(ctx context.Context, req *ListCleanR
 //
 // When the caller is a metastore admin, only the __owner__ field can be
 // updated.
-func (c *internalClient) UpdateCleanRoom(ctx context.Context, req *UpdateCleanRoomRequest, opts ...call.Option) (*CleanRoom, error) {
-	wireReq, err := updateCleanRoomRequestToWire(req)
+func (c *internalClient) UpdateCleanRoom(ctx context.Context, req UpdateCleanRoomRequest, opts ...call.Option) (*CleanRoom, error) {
+	wireReq, err := updateCleanRoomRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1683,7 +1751,11 @@ func (c *internalClient) UpdateCleanRoom(ctx context.Context, req *UpdateCleanRo
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1731,8 +1803,8 @@ func (c *internalClient) UpdateCleanRoom(ctx context.Context, req *UpdateCleanRo
 
 // Update a clean room asset. For example, updating the content of a notebook;
 // changing the shared partitions of a table; etc.
-func (c *internalClient) UpdateCleanRoomAsset(ctx context.Context, req *UpdateCleanRoomAssetRequest, opts ...call.Option) (*CleanRoomAsset, error) {
-	wireReq, err := updateCleanRoomAssetRequestToWire(req)
+func (c *internalClient) UpdateCleanRoomAsset(ctx context.Context, req UpdateCleanRoomAssetRequest, opts ...call.Option) (*CleanRoomAsset, error) {
+	wireReq, err := updateCleanRoomAssetRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1751,16 +1823,25 @@ func (c *internalClient) UpdateCleanRoomAsset(ctx context.Context, req *UpdateCl
 	if err != nil {
 		return nil, err
 	}
-	if req.Asset.AssetType == "" {
-		return nil, fmt.Errorf("path parameter %q is required", "asset_type")
-	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
-	pb.singleSegment(*req.CleanRoomName)
+	if req.CleanRoomName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CleanRoomName)
+	}
 	pb.literal("/assets/")
-	pb.singleSegment(req.Asset.AssetType)
+	if req.Asset == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(req.Asset.AssetType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.Asset.Name)
+	if req.Asset == nil || req.Asset.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Asset.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1807,8 +1888,8 @@ func (c *internalClient) UpdateCleanRoomAsset(ctx context.Context, req *UpdateCl
 }
 
 // Update a auto-approval rule by rule ID
-func (c *internalClient) UpdateCleanRoomAutoApprovalRule(ctx context.Context, req *UpdateCleanRoomAutoApprovalRuleRequest, opts ...call.Option) (*CleanRoomAutoApprovalRule, error) {
-	wireReq, err := updateCleanRoomAutoApprovalRuleRequestToWire(req)
+func (c *internalClient) UpdateCleanRoomAutoApprovalRule(ctx context.Context, req UpdateCleanRoomAutoApprovalRuleRequest, opts ...call.Option) (*CleanRoomAutoApprovalRule, error) {
+	wireReq, err := updateCleanRoomAutoApprovalRuleRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1829,9 +1910,17 @@ func (c *internalClient) UpdateCleanRoomAutoApprovalRule(ctx context.Context, re
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
-	pb.singleSegment(*req.AutoApprovalRule.CleanRoomName)
+	if req.AutoApprovalRule == nil || req.AutoApprovalRule.CleanRoomName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.AutoApprovalRule.CleanRoomName)
+	}
 	pb.literal("/auto-approval-rules/")
-	pb.singleSegment(*req.AutoApprovalRule.RuleId)
+	if req.AutoApprovalRule == nil || req.AutoApprovalRule.RuleId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.AutoApprovalRule.RuleId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

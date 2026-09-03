@@ -3,10 +3,56 @@
 package dataquality
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/databricks/sdk-go/core/types"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	if mask == nil {
@@ -39,19 +85,23 @@ func anomalyDetectionConfigFromWire(w *anomalyDetectionConfigWire) (*AnomalyDete
 }
 
 type cancelRefreshRequestWire struct {
-	ObjectType *string `json:"object_type,omitempty"`
-	ObjectId   *string `json:"object_id,omitempty"`
-	RefreshId  *int64  `json:"refresh_id,omitempty"`
+	ObjectType *string    `json:"object_type,omitempty"`
+	ObjectId   *string    `json:"object_id,omitempty"`
+	RefreshId  *wireInt64 `json:"refresh_id,omitempty"`
 }
 
 func cancelRefreshRequestToWire(v *CancelRefreshRequest) (*cancelRefreshRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	refreshIdWireValue, err := int64ToWire(v.RefreshId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CancelRefreshRequest.RefreshId", err)
+	}
 	return &cancelRefreshRequestWire{
 		ObjectType: v.ObjectType,
 		ObjectId:   v.ObjectId,
-		RefreshId:  v.RefreshId,
+		RefreshId:  refreshIdWireValue,
 	}, nil
 }
 
@@ -153,7 +203,7 @@ type dataProfilingConfigWire struct {
 	ProfileMetricsTableName     *string                         `json:"profile_metrics_table_name,omitempty"`
 	DriftMetricsTableName       *string                         `json:"drift_metrics_table_name,omitempty"`
 	DashboardId                 *string                         `json:"dashboard_id,omitempty"`
-	MonitorVersion              *int64                          `json:"monitor_version,omitempty"`
+	MonitorVersion              *wireInt64                      `json:"monitor_version,omitempty"`
 	EffectiveWarehouseId        *string                         `json:"effective_warehouse_id,omitempty"`
 }
 
@@ -172,6 +222,10 @@ func dataProfilingConfigToWire(v *DataProfilingConfig) (*dataProfilingConfigWire
 	notificationSettingsWireValue, err := notificationSettingsToWire(v.NotificationSettings)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "DataProfilingConfig.NotificationSettings", err)
+	}
+	monitorVersionWireValue, err := int64ToWire(v.MonitorVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DataProfilingConfig.MonitorVersion", err)
 	}
 	var analysisConfigInferenceLogWire *inferenceLogConfigWire
 	var analysisConfigTimeSeriesWire *timeSeriesConfigWire
@@ -224,7 +278,7 @@ func dataProfilingConfigToWire(v *DataProfilingConfig) (*dataProfilingConfigWire
 		ProfileMetricsTableName:     v.ProfileMetricsTableName,
 		DriftMetricsTableName:       v.DriftMetricsTableName,
 		DashboardId:                 v.DashboardId,
-		MonitorVersion:              v.MonitorVersion,
+		MonitorVersion:              monitorVersionWireValue,
 		EffectiveWarehouseId:        v.EffectiveWarehouseId,
 	}, nil
 }
@@ -257,6 +311,10 @@ func dataProfilingConfigFromWire(w *dataProfilingConfigWire) (*DataProfilingConf
 	notificationSettingsPublicValue, err := notificationSettingsFromWire(w.NotificationSettings)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "DataProfilingConfig.NotificationSettings", err)
+	}
+	monitorVersionPublicValue, err := int64FromWire(w.MonitorVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DataProfilingConfig.MonitorVersion", err)
 	}
 	var analysisConfigSelection isDataProfilingConfig_AnalysisConfig
 	switch {
@@ -295,7 +353,7 @@ func dataProfilingConfigFromWire(w *dataProfilingConfigWire) (*DataProfilingConf
 		ProfileMetricsTableName:     w.ProfileMetricsTableName,
 		DriftMetricsTableName:       w.DriftMetricsTableName,
 		DashboardId:                 w.DashboardId,
-		MonitorVersion:              w.MonitorVersion,
+		MonitorVersion:              monitorVersionPublicValue,
 		EffectiveWarehouseId:        w.EffectiveWarehouseId,
 		AnalysisConfig:              analysisConfigSelection,
 	}, nil
@@ -546,11 +604,11 @@ func notificationSettingsFromWire(w *notificationSettingsWire) (*NotificationSet
 type refreshWire struct {
 	ObjectType  *string        `json:"object_type,omitempty"`
 	ObjectId    *string        `json:"object_id,omitempty"`
-	RefreshId   *int64         `json:"refresh_id,omitempty"`
+	RefreshId   *wireInt64     `json:"refresh_id,omitempty"`
 	State       RefreshState   `json:"state,omitempty"`
 	Message     *string        `json:"message,omitempty"`
-	StartTimeMs *int64         `json:"start_time_ms,omitempty"`
-	EndTimeMs   *int64         `json:"end_time_ms,omitempty"`
+	StartTimeMs *wireInt64     `json:"start_time_ms,omitempty"`
+	EndTimeMs   *wireInt64     `json:"end_time_ms,omitempty"`
 	Trigger     RefreshTrigger `json:"trigger,omitempty"`
 }
 
@@ -558,14 +616,26 @@ func refreshToWire(v *Refresh) (*refreshWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	refreshIdWireValue, err := int64ToWire(v.RefreshId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Refresh.RefreshId", err)
+	}
+	startTimeMsWireValue, err := int64ToWire(v.StartTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Refresh.StartTimeMs", err)
+	}
+	endTimeMsWireValue, err := int64ToWire(v.EndTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Refresh.EndTimeMs", err)
+	}
 	return &refreshWire{
 		ObjectType:  v.ObjectType,
 		ObjectId:    v.ObjectId,
-		RefreshId:   v.RefreshId,
+		RefreshId:   refreshIdWireValue,
 		State:       v.State,
 		Message:     v.Message,
-		StartTimeMs: v.StartTimeMs,
-		EndTimeMs:   v.EndTimeMs,
+		StartTimeMs: startTimeMsWireValue,
+		EndTimeMs:   endTimeMsWireValue,
 		Trigger:     v.Trigger,
 	}, nil
 }
@@ -574,14 +644,26 @@ func refreshFromWire(w *refreshWire) (*Refresh, error) {
 	if w == nil {
 		return nil, nil
 	}
+	refreshIdPublicValue, err := int64FromWire(w.RefreshId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Refresh.RefreshId", err)
+	}
+	startTimeMsPublicValue, err := int64FromWire(w.StartTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Refresh.StartTimeMs", err)
+	}
+	endTimeMsPublicValue, err := int64FromWire(w.EndTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Refresh.EndTimeMs", err)
+	}
 	return &Refresh{
 		ObjectType:  w.ObjectType,
 		ObjectId:    w.ObjectId,
-		RefreshId:   w.RefreshId,
+		RefreshId:   refreshIdPublicValue,
 		State:       w.State,
 		Message:     w.Message,
-		StartTimeMs: w.StartTimeMs,
-		EndTimeMs:   w.EndTimeMs,
+		StartTimeMs: startTimeMsPublicValue,
+		EndTimeMs:   endTimeMsPublicValue,
 		Trigger:     w.Trigger,
 	}, nil
 }
@@ -654,7 +736,7 @@ func updateMonitorRequestToWire(v *UpdateMonitorRequest) (*updateMonitorRequestW
 type updateRefreshRequestWire struct {
 	ObjectType *string      `json:"object_type,omitempty"`
 	ObjectId   *string      `json:"object_id,omitempty"`
-	RefreshId  *int64       `json:"refresh_id,omitempty"`
+	RefreshId  *wireInt64   `json:"refresh_id,omitempty"`
 	Refresh    *refreshWire `json:"refresh,omitempty"`
 	UpdateMask *string      `json:"update_mask,omitempty"`
 }
@@ -663,6 +745,10 @@ func updateRefreshRequestToWire(v *UpdateRefreshRequest) (*updateRefreshRequestW
 	if v == nil {
 		return nil, nil
 	}
+	refreshIdWireValue, err := int64ToWire(v.RefreshId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRefreshRequest.RefreshId", err)
+	}
 	refreshWireValue, err := refreshToWire(v.Refresh)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "UpdateRefreshRequest.Refresh", err)
@@ -670,7 +756,7 @@ func updateRefreshRequestToWire(v *UpdateRefreshRequest) (*updateRefreshRequestW
 	return &updateRefreshRequestWire{
 		ObjectType: v.ObjectType,
 		ObjectId:   v.ObjectId,
-		RefreshId:  v.RefreshId,
+		RefreshId:  refreshIdWireValue,
 		Refresh:    refreshWireValue,
 		UpdateMask: fieldMaskToWire(v.UpdateMask),
 	}, nil

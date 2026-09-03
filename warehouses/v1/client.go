@@ -78,8 +78,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 
 // Creates a new default warehouse override for a user. Users can create their
 // own override. Admins can create overrides for any user.
-func (c *internalClient) CreateDefaultWarehouseOverride(ctx context.Context, req *CreateDefaultWarehouseOverrideRequest, opts ...call.Option) (*DefaultWarehouseOverride, error) {
-	wireReq, err := createDefaultWarehouseOverrideRequestToWire(req)
+func (c *internalClient) CreateDefaultWarehouseOverride(ctx context.Context, req CreateDefaultWarehouseOverrideRequest, opts ...call.Option) (*DefaultWarehouseOverride, error) {
+	wireReq, err := createDefaultWarehouseOverrideRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -147,8 +147,8 @@ func (c *internalClient) CreateDefaultWarehouseOverride(ctx context.Context, req
 }
 
 // Creates a new SQL warehouse.
-func (c *internalClient) createWarehouseBase(ctx context.Context, req *CreateWarehouseRequest, opts ...call.Option) (*CreateWarehouseResponse, error) {
-	wireReq, err := createWarehouseRequestToWire(req)
+func (c *internalClient) createWarehouseBase(ctx context.Context, req CreateWarehouseRequest, opts ...call.Option) (*CreateWarehouseResponse, error) {
+	wireReq, err := createWarehouseRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +213,7 @@ func (c *internalClient) createWarehouseBase(ctx context.Context, req *CreateWar
 }
 
 // Creates a new SQL warehouse.
-func (c *internalClient) CreateWarehouse(ctx context.Context, req *CreateWarehouseRequest, opts ...call.Option) (*CreateWarehouseWaiter, error) {
+func (c *internalClient) CreateWarehouse(ctx context.Context, req CreateWarehouseRequest, opts ...call.Option) (*CreateWarehouseWaiter, error) {
 	resp, err := c.createWarehouseBase(ctx, req, opts...)
 	if err != nil {
 		return nil, err
@@ -229,13 +229,18 @@ func (c *internalClient) CreateWarehouse(ctx context.Context, req *CreateWarehou
 
 // CreateWarehouseWaiter tracks the state of the operation started by CreateWarehouse.
 type CreateWarehouseWaiter struct {
-	poll func(context.Context, *GetWarehouseRequest, ...call.Option) (*GetWarehouseResponse, error)
+	poll func(context.Context, GetWarehouseRequest, ...call.Option) (*GetWarehouseResponse, error)
 	id   string
+}
+
+// GetId returns the Id value used to identify the operation.
+func (w *CreateWarehouseWaiter) GetId() string {
+	return w.id
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *CreateWarehouseWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetWarehouseRequest{
+	pollResp, err := w.poll(ctx, GetWarehouseRequest{
 		Id: &w.id,
 	}, opts...)
 	if err != nil {
@@ -260,7 +265,7 @@ func (w *CreateWarehouseWaiter) Done(ctx context.Context, opts ...call.Option) (
 func (w *CreateWarehouseWaiter) Wait(ctx context.Context, opts ...lro.Option) (*GetWarehouseResponse, error) {
 	var result *GetWarehouseResponse
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetWarehouseRequest{
+		pollResp, err := w.poll(ctx, GetWarehouseRequest{
 			Id: &w.id,
 		})
 		if err != nil {
@@ -296,7 +301,7 @@ func (w *CreateWarehouseWaiter) Wait(ctx context.Context, opts ...lro.Option) (*
 // Deletes the default warehouse override for a user. Users can delete their own
 // override. Admins can delete overrides for any user. After deletion, the
 // workspace default warehouse will be used.
-func (c *internalClient) DeleteDefaultWarehouseOverride(ctx context.Context, req *DeleteDefaultWarehouseOverrideRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteDefaultWarehouseOverride(ctx context.Context, req DeleteDefaultWarehouseOverrideRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -310,7 +315,11 @@ func (c *internalClient) DeleteDefaultWarehouseOverride(ctx context.Context, req
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/warehouses/v1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -347,7 +356,7 @@ func (c *internalClient) DeleteDefaultWarehouseOverride(ctx context.Context, req
 }
 
 // Deletes a SQL warehouse.
-func (c *internalClient) DeleteWarehouse(ctx context.Context, req *DeleteWarehouseRequest, opts ...call.Option) (*DeleteWarehouseResponse, error) {
+func (c *internalClient) DeleteWarehouse(ctx context.Context, req DeleteWarehouseRequest, opts ...call.Option) (*DeleteWarehouseResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -361,7 +370,11 @@ func (c *internalClient) DeleteWarehouse(ctx context.Context, req *DeleteWarehou
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/warehouses/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -401,8 +414,8 @@ func (c *internalClient) DeleteWarehouse(ctx context.Context, req *DeleteWarehou
 }
 
 // Updates the configuration for a SQL warehouse.
-func (c *internalClient) editWarehouseBase(ctx context.Context, req *EditWarehouseRequest, opts ...call.Option) (*EditWarehouseResponse, error) {
-	wireReq, err := editWarehouseRequestToWire(req)
+func (c *internalClient) editWarehouseBase(ctx context.Context, req EditWarehouseRequest, opts ...call.Option) (*EditWarehouseResponse, error) {
+	wireReq, err := editWarehouseRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -423,7 +436,11 @@ func (c *internalClient) editWarehouseBase(ctx context.Context, req *EditWarehou
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/warehouses/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	pb.literal("/edit")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -465,7 +482,7 @@ func (c *internalClient) editWarehouseBase(ctx context.Context, req *EditWarehou
 }
 
 // Updates the configuration for a SQL warehouse.
-func (c *internalClient) EditWarehouse(ctx context.Context, req *EditWarehouseRequest, opts ...call.Option) (*EditWarehouseWaiter, error) {
+func (c *internalClient) EditWarehouse(ctx context.Context, req EditWarehouseRequest, opts ...call.Option) (*EditWarehouseWaiter, error) {
 	if req.Id == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "Id")
 	}
@@ -482,13 +499,18 @@ func (c *internalClient) EditWarehouse(ctx context.Context, req *EditWarehouseRe
 
 // EditWarehouseWaiter tracks the state of the operation started by EditWarehouse.
 type EditWarehouseWaiter struct {
-	poll func(context.Context, *GetWarehouseRequest, ...call.Option) (*GetWarehouseResponse, error)
+	poll func(context.Context, GetWarehouseRequest, ...call.Option) (*GetWarehouseResponse, error)
 	id   string
+}
+
+// GetId returns the Id value used to identify the operation.
+func (w *EditWarehouseWaiter) GetId() string {
+	return w.id
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *EditWarehouseWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetWarehouseRequest{
+	pollResp, err := w.poll(ctx, GetWarehouseRequest{
 		Id: &w.id,
 	}, opts...)
 	if err != nil {
@@ -513,7 +535,7 @@ func (w *EditWarehouseWaiter) Done(ctx context.Context, opts ...call.Option) (bo
 func (w *EditWarehouseWaiter) Wait(ctx context.Context, opts ...lro.Option) (*GetWarehouseResponse, error) {
 	var result *GetWarehouseResponse
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetWarehouseRequest{
+		pollResp, err := w.poll(ctx, GetWarehouseRequest{
 			Id: &w.id,
 		})
 		if err != nil {
@@ -549,7 +571,7 @@ func (w *EditWarehouseWaiter) Wait(ctx context.Context, opts ...lro.Option) (*Ge
 // Returns the default warehouse override for a user. Users can fetch their own
 // override. Admins can fetch overrides for any user. If no override exists, the
 // UI will fallback to the workspace default warehouse.
-func (c *internalClient) GetDefaultWarehouseOverride(ctx context.Context, req *GetDefaultWarehouseOverrideRequest, opts ...call.Option) (*DefaultWarehouseOverride, error) {
+func (c *internalClient) GetDefaultWarehouseOverride(ctx context.Context, req GetDefaultWarehouseOverrideRequest, opts ...call.Option) (*DefaultWarehouseOverride, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -563,7 +585,11 @@ func (c *internalClient) GetDefaultWarehouseOverride(ctx context.Context, req *G
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/warehouses/v1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -609,7 +635,7 @@ func (c *internalClient) GetDefaultWarehouseOverride(ctx context.Context, req *G
 }
 
 // Gets the information for a single SQL warehouse.
-func (c *internalClient) GetWarehouse(ctx context.Context, req *GetWarehouseRequest, opts ...call.Option) (*GetWarehouseResponse, error) {
+func (c *internalClient) GetWarehouse(ctx context.Context, req GetWarehouseRequest, opts ...call.Option) (*GetWarehouseResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -623,7 +649,11 @@ func (c *internalClient) GetWarehouse(ctx context.Context, req *GetWarehouseRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/warehouses/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -670,7 +700,7 @@ func (c *internalClient) GetWarehouse(ctx context.Context, req *GetWarehouseRequ
 
 // Gets the workspace level configuration that is shared by all SQL warehouses
 // in a workspace.
-func (c *internalClient) GetWorkspaceWarehouseConfig(ctx context.Context, req *GetWorkspaceWarehouseConfigRequest, opts ...call.Option) (*GetWorkspaceWarehouseConfigResponse, error) {
+func (c *internalClient) GetWorkspaceWarehouseConfig(ctx context.Context, req GetWorkspaceWarehouseConfigRequest, opts ...call.Option) (*GetWorkspaceWarehouseConfigResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -728,8 +758,8 @@ func (c *internalClient) GetWorkspaceWarehouseConfig(ctx context.Context, req *G
 
 // Lists all default warehouse overrides in the workspace. Only workspace
 // administrators can list all overrides.
-func (c *internalClient) ListDefaultWarehouseOverrides(ctx context.Context, req *ListDefaultWarehouseOverridesRequest, opts ...call.Option) (*ListDefaultWarehouseOverridesResponse, error) {
-	wireReq, err := listDefaultWarehouseOverridesRequestToWire(req)
+func (c *internalClient) ListDefaultWarehouseOverrides(ctx context.Context, req ListDefaultWarehouseOverridesRequest, opts ...call.Option) (*ListDefaultWarehouseOverridesResponse, error) {
+	wireReq, err := listDefaultWarehouseOverridesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -799,7 +829,7 @@ func (c *internalClient) ListDefaultWarehouseOverrides(ctx context.Context, req 
 //
 // For example:
 //
-//	for item, err := range c.ListDefaultWarehouseOverridesIter(ctx, &ListDefaultWarehouseOverridesRequest{}) {
+//	for item, err := range c.ListDefaultWarehouseOverridesIter(ctx, ListDefaultWarehouseOverridesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -811,16 +841,13 @@ func (c *internalClient) ListDefaultWarehouseOverrides(ctx context.Context, req 
 //
 // Callers who need custom pagination logic should use
 // ListDefaultWarehouseOverrides directly.
-func (c *internalClient) ListDefaultWarehouseOverridesIter(ctx context.Context, req *ListDefaultWarehouseOverridesRequest, opts ...call.Option) iter.Seq2[*DefaultWarehouseOverride, error] {
+func (c *internalClient) ListDefaultWarehouseOverridesIter(ctx context.Context, req ListDefaultWarehouseOverridesRequest, opts ...call.Option) iter.Seq2[*DefaultWarehouseOverride, error] {
 	return func(yield func(*DefaultWarehouseOverride, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListDefaultWarehouseOverridesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListDefaultWarehouseOverrides(ctx, &pageReq, opts...)
+			resp, err := c.ListDefaultWarehouseOverrides(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -839,8 +866,8 @@ func (c *internalClient) ListDefaultWarehouseOverridesIter(ctx context.Context, 
 }
 
 // Lists all SQL warehouses that a user has access to.
-func (c *internalClient) ListWarehouses(ctx context.Context, req *ListWarehousesRequest, opts ...call.Option) (*ListWarehousesResponse, error) {
-	wireReq, err := listWarehousesRequestToWire(req)
+func (c *internalClient) ListWarehouses(ctx context.Context, req ListWarehousesRequest, opts ...call.Option) (*ListWarehousesResponse, error) {
+	wireReq, err := listWarehousesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -913,7 +940,7 @@ func (c *internalClient) ListWarehouses(ctx context.Context, req *ListWarehouses
 //
 // For example:
 //
-//	for item, err := range c.ListWarehousesIter(ctx, &ListWarehousesRequest{}) {
+//	for item, err := range c.ListWarehousesIter(ctx, ListWarehousesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -925,16 +952,13 @@ func (c *internalClient) ListWarehouses(ctx context.Context, req *ListWarehouses
 //
 // Callers who need custom pagination logic should use
 // ListWarehouses directly.
-func (c *internalClient) ListWarehousesIter(ctx context.Context, req *ListWarehousesRequest, opts ...call.Option) iter.Seq2[*EndpointInfo, error] {
+func (c *internalClient) ListWarehousesIter(ctx context.Context, req ListWarehousesRequest, opts ...call.Option) iter.Seq2[*EndpointInfo, error] {
 	return func(yield func(*EndpointInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListWarehousesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListWarehouses(ctx, &pageReq, opts...)
+			resp, err := c.ListWarehouses(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -954,8 +978,8 @@ func (c *internalClient) ListWarehousesIter(ctx context.Context, req *ListWareho
 
 // Sets the workspace level configuration that is shared by all SQL warehouses
 // in a workspace.
-func (c *internalClient) SetWorkspaceWarehouseConfig(ctx context.Context, req *SetWorkspaceWarehouseConfigRequest, opts ...call.Option) (*SetWorkspaceWarehouseConfigResponse, error) {
-	wireReq, err := setWorkspaceWarehouseConfigRequestToWire(req)
+func (c *internalClient) SetWorkspaceWarehouseConfig(ctx context.Context, req SetWorkspaceWarehouseConfigRequest, opts ...call.Option) (*SetWorkspaceWarehouseConfigResponse, error) {
+	wireReq, err := setWorkspaceWarehouseConfigRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1014,8 +1038,8 @@ func (c *internalClient) SetWorkspaceWarehouseConfig(ctx context.Context, req *S
 }
 
 // Starts a SQL warehouse.
-func (c *internalClient) startWarehouseBase(ctx context.Context, req *StartRequest, opts ...call.Option) (*StartResponse, error) {
-	wireReq, err := startRequestToWire(req)
+func (c *internalClient) startWarehouseBase(ctx context.Context, req StartRequest, opts ...call.Option) (*StartResponse, error) {
+	wireReq, err := startRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1036,7 +1060,11 @@ func (c *internalClient) startWarehouseBase(ctx context.Context, req *StartReque
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/warehouses/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	pb.literal("/start")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1078,7 +1106,7 @@ func (c *internalClient) startWarehouseBase(ctx context.Context, req *StartReque
 }
 
 // Starts a SQL warehouse.
-func (c *internalClient) StartWarehouse(ctx context.Context, req *StartRequest, opts ...call.Option) (*StartWarehouseWaiter, error) {
+func (c *internalClient) StartWarehouse(ctx context.Context, req StartRequest, opts ...call.Option) (*StartWarehouseWaiter, error) {
 	if req.Id == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "Id")
 	}
@@ -1095,13 +1123,18 @@ func (c *internalClient) StartWarehouse(ctx context.Context, req *StartRequest, 
 
 // StartWarehouseWaiter tracks the state of the operation started by StartWarehouse.
 type StartWarehouseWaiter struct {
-	poll func(context.Context, *GetWarehouseRequest, ...call.Option) (*GetWarehouseResponse, error)
+	poll func(context.Context, GetWarehouseRequest, ...call.Option) (*GetWarehouseResponse, error)
 	id   string
+}
+
+// GetId returns the Id value used to identify the operation.
+func (w *StartWarehouseWaiter) GetId() string {
+	return w.id
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *StartWarehouseWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetWarehouseRequest{
+	pollResp, err := w.poll(ctx, GetWarehouseRequest{
 		Id: &w.id,
 	}, opts...)
 	if err != nil {
@@ -1126,7 +1159,7 @@ func (w *StartWarehouseWaiter) Done(ctx context.Context, opts ...call.Option) (b
 func (w *StartWarehouseWaiter) Wait(ctx context.Context, opts ...lro.Option) (*GetWarehouseResponse, error) {
 	var result *GetWarehouseResponse
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetWarehouseRequest{
+		pollResp, err := w.poll(ctx, GetWarehouseRequest{
 			Id: &w.id,
 		})
 		if err != nil {
@@ -1160,8 +1193,8 @@ func (w *StartWarehouseWaiter) Wait(ctx context.Context, opts ...lro.Option) (*G
 }
 
 // Stops a SQL warehouse.
-func (c *internalClient) stopWarehouseBase(ctx context.Context, req *StopRequest, opts ...call.Option) (*StopResponse, error) {
-	wireReq, err := stopRequestToWire(req)
+func (c *internalClient) stopWarehouseBase(ctx context.Context, req StopRequest, opts ...call.Option) (*StopResponse, error) {
+	wireReq, err := stopRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1182,7 +1215,11 @@ func (c *internalClient) stopWarehouseBase(ctx context.Context, req *StopRequest
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/warehouses/")
-	pb.singleSegment(*req.Id)
+	if req.Id == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Id)
+	}
 	pb.literal("/stop")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1224,7 +1261,7 @@ func (c *internalClient) stopWarehouseBase(ctx context.Context, req *StopRequest
 }
 
 // Stops a SQL warehouse.
-func (c *internalClient) StopWarehouse(ctx context.Context, req *StopRequest, opts ...call.Option) (*StopWarehouseWaiter, error) {
+func (c *internalClient) StopWarehouse(ctx context.Context, req StopRequest, opts ...call.Option) (*StopWarehouseWaiter, error) {
 	if req.Id == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "Id")
 	}
@@ -1241,13 +1278,18 @@ func (c *internalClient) StopWarehouse(ctx context.Context, req *StopRequest, op
 
 // StopWarehouseWaiter tracks the state of the operation started by StopWarehouse.
 type StopWarehouseWaiter struct {
-	poll func(context.Context, *GetWarehouseRequest, ...call.Option) (*GetWarehouseResponse, error)
+	poll func(context.Context, GetWarehouseRequest, ...call.Option) (*GetWarehouseResponse, error)
 	id   string
+}
+
+// GetId returns the Id value used to identify the operation.
+func (w *StopWarehouseWaiter) GetId() string {
+	return w.id
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *StopWarehouseWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetWarehouseRequest{
+	pollResp, err := w.poll(ctx, GetWarehouseRequest{
 		Id: &w.id,
 	}, opts...)
 	if err != nil {
@@ -1272,7 +1314,7 @@ func (w *StopWarehouseWaiter) Done(ctx context.Context, opts ...call.Option) (bo
 func (w *StopWarehouseWaiter) Wait(ctx context.Context, opts ...lro.Option) (*GetWarehouseResponse, error) {
 	var result *GetWarehouseResponse
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetWarehouseRequest{
+		pollResp, err := w.poll(ctx, GetWarehouseRequest{
 			Id: &w.id,
 		})
 		if err != nil {
@@ -1301,8 +1343,8 @@ func (w *StopWarehouseWaiter) Wait(ctx context.Context, opts ...lro.Option) (*Ge
 
 // Updates an existing default warehouse override for a user. Users can update
 // their own override. Admins can update overrides for any user.
-func (c *internalClient) UpdateDefaultWarehouseOverride(ctx context.Context, req *UpdateDefaultWarehouseOverrideRequest, opts ...call.Option) (*DefaultWarehouseOverride, error) {
-	wireReq, err := updateDefaultWarehouseOverrideRequestToWire(req)
+func (c *internalClient) UpdateDefaultWarehouseOverride(ctx context.Context, req UpdateDefaultWarehouseOverrideRequest, opts ...call.Option) (*DefaultWarehouseOverride, error) {
+	wireReq, err := updateDefaultWarehouseOverrideRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1323,7 +1365,11 @@ func (c *internalClient) UpdateDefaultWarehouseOverride(ctx context.Context, req
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/warehouses/v1/")
-	pb.singleSegment(*req.DefaultWarehouseOverride.Name)
+	if req.DefaultWarehouseOverride == nil || req.DefaultWarehouseOverride.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.DefaultWarehouseOverride.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

@@ -3,10 +3,56 @@
 package lakeview
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/databricks/sdk-go/core/types"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type authorizationDetailsWire struct {
 	Type                  *string                              `json:"type,omitempty"`
@@ -505,7 +551,7 @@ type subscriptionWire struct {
 	ScheduleId      *string                      `json:"schedule_id,omitempty"`
 	DashboardId     *string                      `json:"dashboard_id,omitempty"`
 	Subscriber      *subscription_SubscriberWire `json:"subscriber,omitempty"`
-	CreatedByUserId *int64                       `json:"created_by_user_id,omitempty"`
+	CreatedByUserId *wireInt64                   `json:"created_by_user_id,omitempty"`
 	Etag            *string                      `json:"etag,omitempty"`
 	CreateTime      *types.Time                  `json:"create_time,omitempty"`
 	UpdateTime      *types.Time                  `json:"update_time,omitempty"`
@@ -520,12 +566,16 @@ func subscriptionToWire(v *Subscription) (*subscriptionWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Subscription.Subscriber", err)
 	}
+	createdByUserIdWireValue, err := int64ToWire(v.CreatedByUserId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Subscription.CreatedByUserId", err)
+	}
 	return &subscriptionWire{
 		SubscriptionId:  v.SubscriptionId,
 		ScheduleId:      v.ScheduleId,
 		DashboardId:     v.DashboardId,
 		Subscriber:      subscriberWireValue,
-		CreatedByUserId: v.CreatedByUserId,
+		CreatedByUserId: createdByUserIdWireValue,
 		Etag:            v.Etag,
 		CreateTime:      v.CreateTime,
 		UpdateTime:      v.UpdateTime,
@@ -541,12 +591,16 @@ func subscriptionFromWire(w *subscriptionWire) (*Subscription, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Subscription.Subscriber", err)
 	}
+	createdByUserIdPublicValue, err := int64FromWire(w.CreatedByUserId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Subscription.CreatedByUserId", err)
+	}
 	return &Subscription{
 		SubscriptionId:  w.SubscriptionId,
 		ScheduleId:      w.ScheduleId,
 		DashboardId:     w.DashboardId,
 		Subscriber:      subscriberPublicValue,
-		CreatedByUserId: w.CreatedByUserId,
+		CreatedByUserId: createdByUserIdPublicValue,
 		Etag:            w.Etag,
 		CreateTime:      w.CreateTime,
 		UpdateTime:      w.UpdateTime,
@@ -618,15 +672,19 @@ func subscription_Subscriber_DestinationFromWire(w *subscription_Subscriber_Dest
 }
 
 type subscription_Subscriber_UserWire struct {
-	UserId *int64 `json:"user_id,omitempty"`
+	UserId *wireInt64 `json:"user_id,omitempty"`
 }
 
 func subscription_Subscriber_UserToWire(v *Subscription_Subscriber_User) (*subscription_Subscriber_UserWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	userIdWireValue, err := int64ToWire(v.UserId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Subscription_Subscriber_User.UserId", err)
+	}
 	return &subscription_Subscriber_UserWire{
-		UserId: v.UserId,
+		UserId: userIdWireValue,
 	}, nil
 }
 
@@ -634,8 +692,12 @@ func subscription_Subscriber_UserFromWire(w *subscription_Subscriber_UserWire) (
 	if w == nil {
 		return nil, nil
 	}
+	userIdPublicValue, err := int64FromWire(w.UserId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Subscription_Subscriber_User.UserId", err)
+	}
 	return &Subscription_Subscriber_User{
-		UserId: w.UserId,
+		UserId: userIdPublicValue,
 	}, nil
 }
 

@@ -76,7 +76,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 
 // Gets workspace bindings of the catalog. The caller must be a metastore admin
 // or an owner of the catalog.
-func (c *internalClient) GetCatalogWorkspaceBindings(ctx context.Context, req *GetCatalogWorkspaceBindingsRequest, opts ...call.Option) (*GetCatalogWorkspaceBindingsResponse, error) {
+func (c *internalClient) GetCatalogWorkspaceBindings(ctx context.Context, req GetCatalogWorkspaceBindingsRequest, opts ...call.Option) (*GetCatalogWorkspaceBindingsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -90,7 +90,11 @@ func (c *internalClient) GetCatalogWorkspaceBindings(ctx context.Context, req *G
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/workspace-bindings/catalogs/")
-	pb.singleSegment(*req.CatalogName)
+	if req.CatalogName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CatalogName)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -145,8 +149,8 @@ func (c *internalClient) GetCatalogWorkspaceBindings(ctx context.Context, req *G
 // contain zero results while still providing a next_page_token. Clients must
 // continue reading pages until next_page_token is absent, which is the only
 // indication that the end of results has been reached.
-func (c *internalClient) GetWorkspaceBindings(ctx context.Context, req *GetWorkspaceBindingsRequest, opts ...call.Option) (*GetWorkspaceBindingsResponse, error) {
-	wireReq, err := getWorkspaceBindingsRequestToWire(req)
+func (c *internalClient) GetWorkspaceBindings(ctx context.Context, req GetWorkspaceBindingsRequest, opts ...call.Option) (*GetWorkspaceBindingsResponse, error) {
+	wireReq, err := getWorkspaceBindingsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -163,9 +167,17 @@ func (c *internalClient) GetWorkspaceBindings(ctx context.Context, req *GetWorks
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/bindings/")
-	pb.singleSegment(*req.SecurableType)
+	if req.SecurableType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SecurableType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.SecurableFullName)
+	if req.SecurableFullName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SecurableFullName)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "max_results", wireReq.MaxResults); err != nil {
@@ -221,7 +233,7 @@ func (c *internalClient) GetWorkspaceBindings(ctx context.Context, req *GetWorks
 //
 // For example:
 //
-//	for item, err := range c.GetWorkspaceBindingsIter(ctx, &GetWorkspaceBindingsRequest{}) {
+//	for item, err := range c.GetWorkspaceBindingsIter(ctx, GetWorkspaceBindingsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -233,16 +245,13 @@ func (c *internalClient) GetWorkspaceBindings(ctx context.Context, req *GetWorks
 //
 // Callers who need custom pagination logic should use
 // GetWorkspaceBindings directly.
-func (c *internalClient) GetWorkspaceBindingsIter(ctx context.Context, req *GetWorkspaceBindingsRequest, opts ...call.Option) iter.Seq2[*WorkspaceBindingInfo, error] {
+func (c *internalClient) GetWorkspaceBindingsIter(ctx context.Context, req GetWorkspaceBindingsRequest, opts ...call.Option) iter.Seq2[*WorkspaceBindingInfo, error] {
 	return func(yield func(*WorkspaceBindingInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := GetWorkspaceBindingsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.GetWorkspaceBindings(ctx, &pageReq, opts...)
+			resp, err := c.GetWorkspaceBindings(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -262,8 +271,8 @@ func (c *internalClient) GetWorkspaceBindingsIter(ctx context.Context, req *GetW
 
 // Updates workspace bindings of the catalog. The caller must be a metastore
 // admin or an owner of the catalog.
-func (c *internalClient) UpdateCatalogWorkspaceBindings(ctx context.Context, req *UpdateCatalogWorkspaceBindingsRequest, opts ...call.Option) (*UpdateCatalogWorkspaceBindingsResponse, error) {
-	wireReq, err := updateCatalogWorkspaceBindingsRequestToWire(req)
+func (c *internalClient) UpdateCatalogWorkspaceBindings(ctx context.Context, req UpdateCatalogWorkspaceBindingsRequest, opts ...call.Option) (*UpdateCatalogWorkspaceBindingsResponse, error) {
+	wireReq, err := updateCatalogWorkspaceBindingsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -284,7 +293,11 @@ func (c *internalClient) UpdateCatalogWorkspaceBindings(ctx context.Context, req
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/workspace-bindings/catalogs/")
-	pb.singleSegment(*req.CatalogName)
+	if req.CatalogName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CatalogName)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -332,8 +345,8 @@ func (c *internalClient) UpdateCatalogWorkspaceBindings(ctx context.Context, req
 
 // Updates workspace bindings of the securable. The caller must be a metastore
 // admin or an owner of the securable.
-func (c *internalClient) UpdateWorkspaceBindings(ctx context.Context, req *UpdateWorkspaceBindingsRequest, opts ...call.Option) (*UpdateWorkspaceBindingsResponse, error) {
-	wireReq, err := updateWorkspaceBindingsRequestToWire(req)
+func (c *internalClient) UpdateWorkspaceBindings(ctx context.Context, req UpdateWorkspaceBindingsRequest, opts ...call.Option) (*UpdateWorkspaceBindingsResponse, error) {
+	wireReq, err := updateWorkspaceBindingsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -354,9 +367,17 @@ func (c *internalClient) UpdateWorkspaceBindings(ctx context.Context, req *Updat
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/bindings/")
-	pb.singleSegment(*req.SecurableType)
+	if req.SecurableType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SecurableType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.SecurableFullName)
+	if req.SecurableFullName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SecurableFullName)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

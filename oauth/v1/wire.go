@@ -3,8 +3,54 @@
 package oauth
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type createCustomOAuthAppIntegrationRequestWire struct {
 	AccountId            *string                `json:"account_id,omitempty"`
@@ -77,7 +123,7 @@ type customOAuthAppIntegrationWire struct {
 	Confidential         *bool                  `json:"confidential,omitempty"`
 	TokenAccessPolicy    *tokenAccessPolicyWire `json:"token_access_policy,omitempty"`
 	Scopes               []string               `json:"scopes,omitempty"`
-	CreatedBy            *int64                 `json:"created_by,omitempty"`
+	CreatedBy            *wireInt64             `json:"created_by,omitempty"`
 	CreateTime           *string                `json:"create_time,omitempty"`
 	CreatorUsername      *string                `json:"creator_username,omitempty"`
 	UserAuthorizedScopes []string               `json:"user_authorized_scopes,omitempty"`
@@ -91,6 +137,10 @@ func customOAuthAppIntegrationFromWire(w *customOAuthAppIntegrationWire) (*Custo
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CustomOAuthAppIntegration.TokenAccessPolicy", err)
 	}
+	createdByPublicValue, err := int64FromWire(w.CreatedBy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CustomOAuthAppIntegration.CreatedBy", err)
+	}
 	return &CustomOAuthAppIntegration{
 		IntegrationId:        w.IntegrationId,
 		ClientId:             w.ClientId,
@@ -99,7 +149,7 @@ func customOAuthAppIntegrationFromWire(w *customOAuthAppIntegrationWire) (*Custo
 		Confidential:         w.Confidential,
 		TokenAccessPolicy:    tokenAccessPolicyPublicValue,
 		Scopes:               w.Scopes,
-		CreatedBy:            w.CreatedBy,
+		CreatedBy:            createdByPublicValue,
 		CreateTime:           w.CreateTime,
 		CreatorUsername:      w.CreatorUsername,
 		UserAuthorizedScopes: w.UserAuthorizedScopes,
@@ -263,7 +313,7 @@ type publishedOAuthAppIntegrationWire struct {
 	IntegrationId     *string                `json:"integration_id,omitempty"`
 	Name              *string                `json:"name,omitempty"`
 	TokenAccessPolicy *tokenAccessPolicyWire `json:"token_access_policy,omitempty"`
-	CreatedBy         *int64                 `json:"created_by,omitempty"`
+	CreatedBy         *wireInt64             `json:"created_by,omitempty"`
 	CreateTime        *string                `json:"create_time,omitempty"`
 }
 
@@ -275,12 +325,16 @@ func publishedOAuthAppIntegrationFromWire(w *publishedOAuthAppIntegrationWire) (
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "PublishedOAuthAppIntegration.TokenAccessPolicy", err)
 	}
+	createdByPublicValue, err := int64FromWire(w.CreatedBy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PublishedOAuthAppIntegration.CreatedBy", err)
+	}
 	return &PublishedOAuthAppIntegration{
 		AppId:             w.AppId,
 		IntegrationId:     w.IntegrationId,
 		Name:              w.Name,
 		TokenAccessPolicy: tokenAccessPolicyPublicValue,
-		CreatedBy:         w.CreatedBy,
+		CreatedBy:         createdByPublicValue,
 		CreateTime:        w.CreateTime,
 	}, nil
 }

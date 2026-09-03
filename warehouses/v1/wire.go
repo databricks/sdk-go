@@ -3,10 +3,56 @@
 package warehouses
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/databricks/sdk-go/core/types"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	if mask == nil {
@@ -262,7 +308,7 @@ type endpointInfoWire struct {
 	EnableServerlessCompute *bool                      `json:"enable_serverless_compute,omitempty"`
 	WarehouseType           WarehouseType              `json:"warehouse_type,omitempty"`
 	NumClusters             *int                       `json:"num_clusters,omitempty"`
-	NumActiveSessions       *int64                     `json:"num_active_sessions,omitempty"`
+	NumActiveSessions       *wireInt64                 `json:"num_active_sessions,omitempty"`
 	State                   EndpointState              `json:"state,omitempty"`
 	JdbcUrl                 *string                    `json:"jdbc_url,omitempty"`
 	OdbcParams              *odbcParamsWire            `json:"odbc_params,omitempty"`
@@ -280,6 +326,10 @@ func endpointInfoFromWire(w *endpointInfoWire) (*EndpointInfo, error) {
 	channelPublicValue, err := channelFromWire(w.Channel)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "EndpointInfo.Channel", err)
+	}
+	numActiveSessionsPublicValue, err := int64FromWire(w.NumActiveSessions)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EndpointInfo.NumActiveSessions", err)
 	}
 	odbcParamsPublicValue, err := odbcParamsFromWire(w.OdbcParams)
 	if err != nil {
@@ -305,7 +355,7 @@ func endpointInfoFromWire(w *endpointInfoWire) (*EndpointInfo, error) {
 		EnableServerlessCompute: w.EnableServerlessCompute,
 		WarehouseType:           w.WarehouseType,
 		NumClusters:             w.NumClusters,
-		NumActiveSessions:       w.NumActiveSessions,
+		NumActiveSessions:       numActiveSessionsPublicValue,
 		State:                   w.State,
 		JdbcUrl:                 w.JdbcUrl,
 		OdbcParams:              odbcParamsPublicValue,
@@ -384,7 +434,7 @@ type getWarehouseResponseWire struct {
 	EnableServerlessCompute *bool                      `json:"enable_serverless_compute,omitempty"`
 	WarehouseType           WarehouseType              `json:"warehouse_type,omitempty"`
 	NumClusters             *int                       `json:"num_clusters,omitempty"`
-	NumActiveSessions       *int64                     `json:"num_active_sessions,omitempty"`
+	NumActiveSessions       *wireInt64                 `json:"num_active_sessions,omitempty"`
 	State                   EndpointState              `json:"state,omitempty"`
 	JdbcUrl                 *string                    `json:"jdbc_url,omitempty"`
 	OdbcParams              *odbcParamsWire            `json:"odbc_params,omitempty"`
@@ -402,6 +452,10 @@ func getWarehouseResponseFromWire(w *getWarehouseResponseWire) (*GetWarehouseRes
 	channelPublicValue, err := channelFromWire(w.Channel)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "GetWarehouseResponse.Channel", err)
+	}
+	numActiveSessionsPublicValue, err := int64FromWire(w.NumActiveSessions)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetWarehouseResponse.NumActiveSessions", err)
 	}
 	odbcParamsPublicValue, err := odbcParamsFromWire(w.OdbcParams)
 	if err != nil {
@@ -427,7 +481,7 @@ func getWarehouseResponseFromWire(w *getWarehouseResponseWire) (*GetWarehouseRes
 		EnableServerlessCompute: w.EnableServerlessCompute,
 		WarehouseType:           w.WarehouseType,
 		NumClusters:             w.NumClusters,
-		NumActiveSessions:       w.NumActiveSessions,
+		NumActiveSessions:       numActiveSessionsPublicValue,
 		State:                   w.State,
 		JdbcUrl:                 w.JdbcUrl,
 		OdbcParams:              odbcParamsPublicValue,
@@ -722,17 +776,21 @@ func warehouseTypePairFromWire(w *warehouseTypePairWire) (*WarehouseTypePair, er
 }
 
 type listWarehousesRequestWire struct {
-	RunAsUserId *int64  `json:"run_as_user_id,omitempty"`
-	PageSize    *int    `json:"page_size,omitempty"`
-	PageToken   *string `json:"page_token,omitempty"`
+	RunAsUserId *wireInt64 `json:"run_as_user_id,omitempty"`
+	PageSize    *int       `json:"page_size,omitempty"`
+	PageToken   *string    `json:"page_token,omitempty"`
 }
 
 func listWarehousesRequestToWire(v *ListWarehousesRequest) (*listWarehousesRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	runAsUserIdWireValue, err := int64ToWire(v.RunAsUserId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListWarehousesRequest.RunAsUserId", err)
+	}
 	return &listWarehousesRequestWire{
-		RunAsUserId: v.RunAsUserId,
+		RunAsUserId: runAsUserIdWireValue,
 		PageSize:    v.PageSize,
 		PageToken:   v.PageToken,
 	}, nil

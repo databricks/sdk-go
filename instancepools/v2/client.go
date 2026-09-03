@@ -74,8 +74,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Creates a new instance pool using idle and ready-to-use cloud instances.
-func (c *internalClient) CreateInstancePool(ctx context.Context, req *CreateInstancePoolRequest, opts ...call.Option) (*CreateInstancePoolResponse, error) {
-	wireReq, err := createInstancePoolRequestToWire(req)
+func (c *internalClient) CreateInstancePool(ctx context.Context, req CreateInstancePoolRequest, opts ...call.Option) (*CreateInstancePoolResponse, error) {
+	wireReq, err := createInstancePoolRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -141,8 +141,8 @@ func (c *internalClient) CreateInstancePool(ctx context.Context, req *CreateInst
 
 // Deletes the instance pool permanently. The idle instances in the pool are
 // terminated asynchronously.
-func (c *internalClient) DeleteInstancePool(ctx context.Context, req *DeleteInstancePoolRequest, opts ...call.Option) (*DeleteInstancePoolResponse, error) {
-	wireReq, err := deleteInstancePoolRequestToWire(req)
+func (c *internalClient) DeleteInstancePool(ctx context.Context, req DeleteInstancePoolRequest, opts ...call.Option) (*DeleteInstancePoolResponse, error) {
+	wireReq, err := deleteInstancePoolRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -201,8 +201,8 @@ func (c *internalClient) DeleteInstancePool(ctx context.Context, req *DeleteInst
 }
 
 // Modifies the configuration of an existing instance pool.
-func (c *internalClient) EditInstancePool(ctx context.Context, req *EditInstancePoolRequest, opts ...call.Option) (*EditInstancePoolResponse, error) {
-	wireReq, err := editInstancePoolRequestToWire(req)
+func (c *internalClient) EditInstancePool(ctx context.Context, req EditInstancePoolRequest, opts ...call.Option) (*EditInstancePoolResponse, error) {
+	wireReq, err := editInstancePoolRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -261,8 +261,8 @@ func (c *internalClient) EditInstancePool(ctx context.Context, req *EditInstance
 }
 
 // Retrieve the information for an instance pool based on its identifier.
-func (c *internalClient) GetInstancePool(ctx context.Context, req *GetInstancePoolRequest, opts ...call.Option) (*GetInstancePoolResponse, error) {
-	wireReq, err := getInstancePoolRequestToWire(req)
+func (c *internalClient) GetInstancePool(ctx context.Context, req GetInstancePoolRequest, opts ...call.Option) (*GetInstancePoolResponse, error) {
+	wireReq, err := getInstancePoolRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -325,7 +325,7 @@ func (c *internalClient) GetInstancePool(ctx context.Context, req *GetInstancePo
 }
 
 // Gets a list of instance pools with their statistics.
-func (c *internalClient) ListInstancePools(ctx context.Context, req *ListInstancePoolsRequest, opts ...call.Option) (*ListInstancePoolsResponse, error) {
+func (c *internalClient) ListInstancePools(ctx context.Context, req ListInstancePoolsRequest, opts ...call.Option) (*ListInstancePoolsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")

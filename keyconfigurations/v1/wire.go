@@ -3,8 +3,54 @@
 package keyconfigurations
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type awsKeyInfoWire struct {
 	KeyArn                    *string `json:"key_arn,omitempty"`
@@ -174,7 +220,7 @@ func createGcpKeyInfoToWire(v *CreateGcpKeyInfo) (*createGcpKeyInfoWire, error) 
 
 type customerManagedKeyWire struct {
 	CustomerManagedKeyId *string           `json:"customer_managed_key_id,omitempty"`
-	CreationTime         *int64            `json:"creation_time,omitempty"`
+	CreationTime         *wireInt64        `json:"creation_time,omitempty"`
 	AccountId            *string           `json:"account_id,omitempty"`
 	AwsKeyInfo           *awsKeyInfoWire   `json:"aws_key_info,omitempty"`
 	AzureKeyInfo         *azureKeyInfoWire `json:"azure_key_info,omitempty"`
@@ -199,6 +245,10 @@ func customerManagedKeyFromWire(w *customerManagedKeyWire) (*CustomerManagedKey,
 	if keyInfoMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "CustomerManagedKey.KeyInfo")
 	}
+	creationTimePublicValue, err := int64FromWire(w.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CustomerManagedKey.CreationTime", err)
+	}
 	var keyInfoSelection isCustomerManagedKey_KeyInfo
 	switch {
 	case w.AwsKeyInfo != nil:
@@ -222,7 +272,7 @@ func customerManagedKeyFromWire(w *customerManagedKeyWire) (*CustomerManagedKey,
 	}
 	return &CustomerManagedKey{
 		CustomerManagedKeyId: w.CustomerManagedKeyId,
-		CreationTime:         w.CreationTime,
+		CreationTime:         creationTimePublicValue,
 		AccountId:            w.AccountId,
 		UseCases:             w.UseCases,
 		KeyInfo:              keyInfoSelection,

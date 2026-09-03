@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -76,7 +75,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 
 // Get the artifact allowlist of a certain artifact type. The caller must be a
 // metastore admin or have the **MANAGE ALLOWLIST** privilege on the metastore.
-func (c *internalClient) GetArtifactAllowlist(ctx context.Context, req *GetArtifactAllowlistRequest, opts ...call.Option) (*ArtifactAllowlistInfo, error) {
+func (c *internalClient) GetArtifactAllowlist(ctx context.Context, req GetArtifactAllowlistRequest, opts ...call.Option) (*ArtifactAllowlistInfo, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -87,9 +86,6 @@ func (c *internalClient) GetArtifactAllowlist(ctx context.Context, req *GetArtif
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
 		return nil, err
-	}
-	if req.ArtifactType == "" {
-		return nil, fmt.Errorf("path parameter %q is required", "artifact_type")
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/artifact-allowlists/")
@@ -141,8 +137,8 @@ func (c *internalClient) GetArtifactAllowlist(ctx context.Context, req *GetArtif
 // Set the artifact allowlist of a certain artifact type. The whole artifact
 // allowlist is replaced with the new allowlist. The caller must be a metastore
 // admin or have the **MANAGE ALLOWLIST** privilege on the metastore.
-func (c *internalClient) SetArtifactAllowlist(ctx context.Context, req *SetArtifactAllowlistRequest, opts ...call.Option) (*ArtifactAllowlistInfo, error) {
-	wireReq, err := setArtifactAllowlistRequestToWire(req)
+func (c *internalClient) SetArtifactAllowlist(ctx context.Context, req SetArtifactAllowlistRequest, opts ...call.Option) (*ArtifactAllowlistInfo, error) {
+	wireReq, err := setArtifactAllowlistRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -160,9 +156,6 @@ func (c *internalClient) SetArtifactAllowlist(ctx context.Context, req *SetArtif
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
 		return nil, err
-	}
-	if req.ArtifactType == "" {
-		return nil, fmt.Errorf("path parameter %q is required", "artifact_type")
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/artifact-allowlists/")

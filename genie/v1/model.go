@@ -746,10 +746,9 @@ type ColumnMask struct {
 	// column being masked and the types of the rest of the args should match the
 	// types of columns in 'using_column_names'.
 	UsingColumnNames []string
-	// The list of additional table columns or literals to be passed as additional
-	// arguments to a column mask function. This is the replacement of the
-	// deprecated using_column_names field and carries information about the types
-	// (alias or constant) of the arguments to the mask function.
+	// The list of table columns or literals to be passed as additional arguments to
+	// a column mask function, carrying the type (column reference vs constant
+	// literal) of each argument. Deprecated: use using_column_names instead.
 	UsingArguments []PolicyFunctionArgument
 }
 
@@ -854,6 +853,16 @@ type GenieAttachment_Attachment_Viz struct {
 }
 
 func (*GenieAttachment_Attachment_Viz) isGenieAttachment_Attachment() {}
+
+// Request to cancel an in-flight agent-mode response..
+type GenieCancelResponseRequest struct {
+	// The ID of the Genie agent (synonymous with the Genie space ID).
+	AgentId *string
+	// The ID of the conversation containing the response.
+	ConversationId *string
+	// The ID of the response to cancel (the id from the `response.created` event).
+	ResponseId *string
+}
 
 type GenieConversation struct {
 	// Conversation ID. Legacy identifier, use conversation_id instead
@@ -1577,9 +1586,9 @@ type Result struct {
 // Contains the result data of a single chunk when using `INLINE` disposition.
 // When using `EXTERNAL_LINKS` disposition, the array `external_links` is used
 // instead to provide URLs to the result data in cloud storage. Exactly one of
-// these alternatives is used. (While the `external_links` array prepares the
-// API to return multiple links in a single response. Currently only a single
-// link is returned.).
+// these alternatives is used. Calls to `getResultData` return the link for the
+// requested chunk; `executeStatement` and `getStatementResult` responses can
+// contain links for multiple chunks..
 type ResultData struct {
 	ExternalLinks []ExternalLink
 	// The `JSON_ARRAY` format is an array of arrays of values, where each non-null

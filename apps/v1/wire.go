@@ -3,11 +3,56 @@
 package apps
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/databricks/sdk-go/core/types"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	if mask == nil {
@@ -49,7 +94,7 @@ type appWire struct {
 	Updater                     *string                          `json:"updater,omitempty"`
 	PendingDeployment           *appDeploymentWire               `json:"pending_deployment,omitempty"`
 	Resources                   []appResourceWire                `json:"resources,omitempty"`
-	ServicePrincipalId          *int64                           `json:"service_principal_id,omitempty"`
+	ServicePrincipalId          *wireInt64                       `json:"service_principal_id,omitempty"`
 	ServicePrincipalName        *string                          `json:"service_principal_name,omitempty"`
 	DefaultSourceCodePath       *string                          `json:"default_source_code_path,omitempty"`
 	DefaultGitSource            *gitSourceWire                   `json:"default_git_source,omitempty"`
@@ -99,6 +144,10 @@ func appToWire(v *App) (*appWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "App.Resources", err)
 	}
+	servicePrincipalIdWireValue, err := int64ToWire(v.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "App.ServicePrincipalId", err)
+	}
 	defaultGitSourceWireValue, err := gitSourceToWire(v.DefaultGitSource)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "App.DefaultGitSource", err)
@@ -143,7 +192,7 @@ func appToWire(v *App) (*appWire, error) {
 		Updater:                     v.Updater,
 		PendingDeployment:           pendingDeploymentWireValue,
 		Resources:                   resourcesWireValue,
-		ServicePrincipalId:          v.ServicePrincipalId,
+		ServicePrincipalId:          servicePrincipalIdWireValue,
 		ServicePrincipalName:        v.ServicePrincipalName,
 		DefaultSourceCodePath:       v.DefaultSourceCodePath,
 		DefaultGitSource:            defaultGitSourceWireValue,
@@ -204,6 +253,10 @@ func appFromWire(w *appWire) (*App, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "App.Resources", err)
 	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "App.ServicePrincipalId", err)
+	}
 	defaultGitSourcePublicValue, err := gitSourceFromWire(w.DefaultGitSource)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "App.DefaultGitSource", err)
@@ -240,7 +293,7 @@ func appFromWire(w *appWire) (*App, error) {
 		Updater:                     w.Updater,
 		PendingDeployment:           pendingDeploymentPublicValue,
 		Resources:                   resourcesPublicValue,
-		ServicePrincipalId:          w.ServicePrincipalId,
+		ServicePrincipalId:          servicePrincipalIdPublicValue,
 		ServicePrincipalName:        w.ServicePrincipalName,
 		DefaultSourceCodePath:       w.DefaultSourceCodePath,
 		DefaultGitSource:            defaultGitSourcePublicValue,
@@ -1574,21 +1627,25 @@ func envVarFromWire(w *envVarWire) (*EnvVar, error) {
 }
 
 type gitRepositoryWire struct {
-	Url                *string `json:"url,omitempty"`
-	Provider           *string `json:"provider,omitempty"`
-	AutoDeploy         *bool   `json:"auto_deploy,omitempty"`
-	CallerCredentialId *int64  `json:"caller_credential_id,omitempty"`
+	Url                *string    `json:"url,omitempty"`
+	Provider           *string    `json:"provider,omitempty"`
+	AutoDeploy         *bool      `json:"auto_deploy,omitempty"`
+	CallerCredentialId *wireInt64 `json:"caller_credential_id,omitempty"`
 }
 
 func gitRepositoryToWire(v *GitRepository) (*gitRepositoryWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	callerCredentialIdWireValue, err := int64ToWire(v.CallerCredentialId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GitRepository.CallerCredentialId", err)
+	}
 	return &gitRepositoryWire{
 		Url:                v.Url,
 		Provider:           v.Provider,
 		AutoDeploy:         v.AutoDeploy,
-		CallerCredentialId: v.CallerCredentialId,
+		CallerCredentialId: callerCredentialIdWireValue,
 	}, nil
 }
 
@@ -1596,11 +1653,15 @@ func gitRepositoryFromWire(w *gitRepositoryWire) (*GitRepository, error) {
 	if w == nil {
 		return nil, nil
 	}
+	callerCredentialIdPublicValue, err := int64FromWire(w.CallerCredentialId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GitRepository.CallerCredentialId", err)
+	}
 	return &GitRepository{
 		Url:                w.Url,
 		Provider:           w.Provider,
 		AutoDeploy:         w.AutoDeploy,
-		CallerCredentialId: w.CallerCredentialId,
+		CallerCredentialId: callerCredentialIdPublicValue,
 	}, nil
 }
 
@@ -1882,11 +1943,12 @@ type spaceWire struct {
 	Resources                []appResourceWire `json:"resources,omitempty"`
 	UserApiScopes            []string          `json:"user_api_scopes,omitempty"`
 	EffectiveUserApiScopes   []string          `json:"effective_user_api_scopes,omitempty"`
-	ServicePrincipalId       *int64            `json:"service_principal_id,omitempty"`
+	ServicePrincipalId       *wireInt64        `json:"service_principal_id,omitempty"`
 	ServicePrincipalName     *string           `json:"service_principal_name,omitempty"`
 	ServicePrincipalClientId *string           `json:"service_principal_client_id,omitempty"`
 	UsagePolicyId            *string           `json:"usage_policy_id,omitempty"`
 	EffectiveUsagePolicyId   *string           `json:"effective_usage_policy_id,omitempty"`
+	AssumeGroupId            *string           `json:"assume_group_id,omitempty"`
 }
 
 func spaceToWire(v *Space) (*spaceWire, error) {
@@ -1901,6 +1963,10 @@ func spaceToWire(v *Space) (*spaceWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Space.Resources", err)
 	}
+	servicePrincipalIdWireValue, err := int64ToWire(v.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Space.ServicePrincipalId", err)
+	}
 	return &spaceWire{
 		Name:                     v.Name,
 		Description:              v.Description,
@@ -1913,11 +1979,12 @@ func spaceToWire(v *Space) (*spaceWire, error) {
 		Resources:                resourcesWireValue,
 		UserApiScopes:            v.UserApiScopes,
 		EffectiveUserApiScopes:   v.EffectiveUserApiScopes,
-		ServicePrincipalId:       v.ServicePrincipalId,
+		ServicePrincipalId:       servicePrincipalIdWireValue,
 		ServicePrincipalName:     v.ServicePrincipalName,
 		ServicePrincipalClientId: v.ServicePrincipalClientId,
 		UsagePolicyId:            v.UsagePolicyId,
 		EffectiveUsagePolicyId:   v.EffectiveUsagePolicyId,
+		AssumeGroupId:            v.AssumeGroupId,
 	}, nil
 }
 
@@ -1933,6 +2000,10 @@ func spaceFromWire(w *spaceWire) (*Space, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Space.Resources", err)
 	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Space.ServicePrincipalId", err)
+	}
 	return &Space{
 		Name:                     w.Name,
 		Description:              w.Description,
@@ -1945,11 +2016,12 @@ func spaceFromWire(w *spaceWire) (*Space, error) {
 		Resources:                resourcesPublicValue,
 		UserApiScopes:            w.UserApiScopes,
 		EffectiveUserApiScopes:   w.EffectiveUserApiScopes,
-		ServicePrincipalId:       w.ServicePrincipalId,
+		ServicePrincipalId:       servicePrincipalIdPublicValue,
 		ServicePrincipalName:     w.ServicePrincipalName,
 		ServicePrincipalClientId: w.ServicePrincipalClientId,
 		UsagePolicyId:            w.UsagePolicyId,
 		EffectiveUsagePolicyId:   w.EffectiveUsagePolicyId,
+		AssumeGroupId:            w.AssumeGroupId,
 	}, nil
 }
 

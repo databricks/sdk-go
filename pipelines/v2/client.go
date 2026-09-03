@@ -78,8 +78,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 
 // * Applies the current pipeline environment onto the pipeline compute. The
 // environment applied can be used by subsequent dev-mode updates.
-func (c *internalClient) ApplyEnvironment(ctx context.Context, req *ApplyEnvironmentRequest, opts ...call.Option) (*ApplyEnvironmentResponse, error) {
-	wireReq, err := applyEnvironmentRequestToWire(req)
+func (c *internalClient) ApplyEnvironment(ctx context.Context, req ApplyEnvironmentRequest, opts ...call.Option) (*ApplyEnvironmentResponse, error) {
+	wireReq, err := applyEnvironmentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,11 @@ func (c *internalClient) ApplyEnvironment(ctx context.Context, req *ApplyEnviron
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/pipelines/")
-	pb.singleSegment(*req.PipelineId)
+	if req.PipelineId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PipelineId)
+	}
 	pb.literal("/environment/apply")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -144,8 +148,8 @@ func (c *internalClient) ApplyEnvironment(ctx context.Context, req *ApplyEnviron
 // Creates a new pipeline using Unity Catalog from a pipeline using Hive
 // Metastore. This method returns the ID of the newly created clone.
 // Additionally, this method starts an update for the newly created pipeline.
-func (c *internalClient) Clone(ctx context.Context, req *ClonePipelineRequest, opts ...call.Option) (*ClonePipelineResponse, error) {
-	wireReq, err := clonePipelineRequestToWire(req)
+func (c *internalClient) Clone(ctx context.Context, req ClonePipelineRequest, opts ...call.Option) (*ClonePipelineResponse, error) {
+	wireReq, err := clonePipelineRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +170,11 @@ func (c *internalClient) Clone(ctx context.Context, req *ClonePipelineRequest, o
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/pipelines/")
-	pb.singleSegment(*req.PipelineId)
+	if req.PipelineId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PipelineId)
+	}
 	pb.literal("/clone")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -215,8 +223,8 @@ func (c *internalClient) Clone(ctx context.Context, req *ClonePipelineRequest, o
 
 // Creates a new data processing pipeline based on the requested configuration.
 // If successful, this method returns the ID of the new pipeline.
-func (c *internalClient) Create(ctx context.Context, req *CreatePipelineRequest, opts ...call.Option) (*CreatePipelineResponse, error) {
-	wireReq, err := createPipelineRequestToWire(req)
+func (c *internalClient) Create(ctx context.Context, req CreatePipelineRequest, opts ...call.Option) (*CreatePipelineResponse, error) {
+	wireReq, err := createPipelineRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -283,8 +291,8 @@ func (c *internalClient) Create(ctx context.Context, req *CreatePipelineRequest,
 // Deletes a pipeline. If the pipeline publishes to Unity Catalog, pipeline
 // deletion will cascade to all pipeline tables. Please reach out to
 // <Databricks> support for assistance to undo this action.
-func (c *internalClient) Delete(ctx context.Context, req *DeletePipelineRequest, opts ...call.Option) (*DeletePipelineResponse, error) {
-	wireReq, err := deletePipelineRequestToWire(req)
+func (c *internalClient) Delete(ctx context.Context, req DeletePipelineRequest, opts ...call.Option) (*DeletePipelineResponse, error) {
+	wireReq, err := deletePipelineRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -301,7 +309,11 @@ func (c *internalClient) Delete(ctx context.Context, req *DeletePipelineRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/pipelines/")
-	pb.singleSegment(*req.PipelineId)
+	if req.PipelineId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PipelineId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -347,8 +359,8 @@ func (c *internalClient) Delete(ctx context.Context, req *DeletePipelineRequest,
 }
 
 // Updates a pipeline with the supplied configuration.
-func (c *internalClient) Edit(ctx context.Context, req *EditPipelineRequest, opts ...call.Option) (*EditPipelineResponse, error) {
-	wireReq, err := editPipelineRequestToWire(req)
+func (c *internalClient) Edit(ctx context.Context, req EditPipelineRequest, opts ...call.Option) (*EditPipelineResponse, error) {
+	wireReq, err := editPipelineRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -369,7 +381,11 @@ func (c *internalClient) Edit(ctx context.Context, req *EditPipelineRequest, opt
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/pipelines/")
-	pb.singleSegment(*req.PipelineId)
+	if req.PipelineId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PipelineId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -410,8 +426,8 @@ func (c *internalClient) Edit(ctx context.Context, req *EditPipelineRequest, opt
 }
 
 // Retrieves events for a pipeline.
-func (c *internalClient) Events(ctx context.Context, req *ListPipelineEventsRequest, opts ...call.Option) (*ListPipelineEventsResponse, error) {
-	wireReq, err := listPipelineEventsRequestToWire(req)
+func (c *internalClient) Events(ctx context.Context, req ListPipelineEventsRequest, opts ...call.Option) (*ListPipelineEventsResponse, error) {
+	wireReq, err := listPipelineEventsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -428,7 +444,11 @@ func (c *internalClient) Events(ctx context.Context, req *ListPipelineEventsRequ
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/pipelines/")
-	pb.singleSegment(*req.PipelineId)
+	if req.PipelineId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PipelineId)
+	}
 	pb.literal("/events")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -491,7 +511,7 @@ func (c *internalClient) Events(ctx context.Context, req *ListPipelineEventsRequ
 //
 // For example:
 //
-//	for item, err := range c.EventsIter(ctx, &ListPipelineEventsRequest{}) {
+//	for item, err := range c.EventsIter(ctx, ListPipelineEventsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -503,16 +523,13 @@ func (c *internalClient) Events(ctx context.Context, req *ListPipelineEventsRequ
 //
 // Callers who need custom pagination logic should use
 // Events directly.
-func (c *internalClient) EventsIter(ctx context.Context, req *ListPipelineEventsRequest, opts ...call.Option) iter.Seq2[*PipelineEvent, error] {
+func (c *internalClient) EventsIter(ctx context.Context, req ListPipelineEventsRequest, opts ...call.Option) iter.Seq2[*PipelineEvent, error] {
 	return func(yield func(*PipelineEvent, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListPipelineEventsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.Events(ctx, &pageReq, opts...)
+			resp, err := c.Events(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -531,7 +548,7 @@ func (c *internalClient) EventsIter(ctx context.Context, req *ListPipelineEvents
 }
 
 // Get a pipeline.
-func (c *internalClient) Get(ctx context.Context, req *GetPipelineRequest, opts ...call.Option) (*GetPipelineResponse, error) {
+func (c *internalClient) Get(ctx context.Context, req GetPipelineRequest, opts ...call.Option) (*GetPipelineResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -545,7 +562,11 @@ func (c *internalClient) Get(ctx context.Context, req *GetPipelineRequest, opts 
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/pipelines/")
-	pb.singleSegment(*req.PipelineId)
+	if req.PipelineId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PipelineId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -591,7 +612,7 @@ func (c *internalClient) Get(ctx context.Context, req *GetPipelineRequest, opts 
 }
 
 // Gets an update from an active pipeline.
-func (c *internalClient) GetUpdate(ctx context.Context, req *GetUpdateRequest, opts ...call.Option) (*GetUpdateResponse, error) {
+func (c *internalClient) GetUpdate(ctx context.Context, req GetUpdateRequest, opts ...call.Option) (*GetUpdateResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -605,9 +626,17 @@ func (c *internalClient) GetUpdate(ctx context.Context, req *GetUpdateRequest, o
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/pipelines/")
-	pb.singleSegment(*req.PipelineId)
+	if req.PipelineId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PipelineId)
+	}
 	pb.literal("/updates/")
-	pb.singleSegment(*req.UpdateId)
+	if req.UpdateId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.UpdateId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -653,8 +682,8 @@ func (c *internalClient) GetUpdate(ctx context.Context, req *GetUpdateRequest, o
 }
 
 // Lists pipelines defined in the Spark Declarative Pipelines system.
-func (c *internalClient) List(ctx context.Context, req *ListPipelinesRequest, opts ...call.Option) (*ListPipelinesResponse, error) {
-	wireReq, err := listPipelinesRequestToWire(req)
+func (c *internalClient) List(ctx context.Context, req ListPipelinesRequest, opts ...call.Option) (*ListPipelinesResponse, error) {
+	wireReq, err := listPipelinesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -730,7 +759,7 @@ func (c *internalClient) List(ctx context.Context, req *ListPipelinesRequest, op
 //
 // For example:
 //
-//	for item, err := range c.ListIter(ctx, &ListPipelinesRequest{}) {
+//	for item, err := range c.ListIter(ctx, ListPipelinesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -742,16 +771,13 @@ func (c *internalClient) List(ctx context.Context, req *ListPipelinesRequest, op
 //
 // Callers who need custom pagination logic should use
 // List directly.
-func (c *internalClient) ListIter(ctx context.Context, req *ListPipelinesRequest, opts ...call.Option) iter.Seq2[*PipelineStateInfo, error] {
+func (c *internalClient) ListIter(ctx context.Context, req ListPipelinesRequest, opts ...call.Option) iter.Seq2[*PipelineStateInfo, error] {
 	return func(yield func(*PipelineStateInfo, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListPipelinesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.List(ctx, &pageReq, opts...)
+			resp, err := c.List(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -770,8 +796,8 @@ func (c *internalClient) ListIter(ctx context.Context, req *ListPipelinesRequest
 }
 
 // List updates for an active pipeline.
-func (c *internalClient) ListUpdates(ctx context.Context, req *ListUpdatesRequest, opts ...call.Option) (*ListUpdatesResponse, error) {
-	wireReq, err := listUpdatesRequestToWire(req)
+func (c *internalClient) ListUpdates(ctx context.Context, req ListUpdatesRequest, opts ...call.Option) (*ListUpdatesResponse, error) {
+	wireReq, err := listUpdatesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -788,7 +814,11 @@ func (c *internalClient) ListUpdates(ctx context.Context, req *ListUpdatesReques
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/pipelines/")
-	pb.singleSegment(*req.PipelineId)
+	if req.PipelineId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PipelineId)
+	}
 	pb.literal("/updates")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -846,8 +876,8 @@ func (c *internalClient) ListUpdates(ctx context.Context, req *ListUpdatesReques
 // Starts a new update for the pipeline. If there is already an active update
 // for the pipeline, the request will fail and the active update will remain
 // running.
-func (c *internalClient) Start(ctx context.Context, req *StartUpdateRequest, opts ...call.Option) (*StartUpdateResponse, error) {
-	wireReq, err := startUpdateRequestToWire(req)
+func (c *internalClient) Start(ctx context.Context, req StartUpdateRequest, opts ...call.Option) (*StartUpdateResponse, error) {
+	wireReq, err := startUpdateRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -868,7 +898,11 @@ func (c *internalClient) Start(ctx context.Context, req *StartUpdateRequest, opt
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/pipelines/")
-	pb.singleSegment(*req.PipelineId)
+	if req.PipelineId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PipelineId)
+	}
 	pb.literal("/updates")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -917,8 +951,8 @@ func (c *internalClient) Start(ctx context.Context, req *StartUpdateRequest, opt
 
 // Stops the pipeline by canceling the active update. If there is no active
 // update for the pipeline, this request is a no-op.
-func (c *internalClient) stopBase(ctx context.Context, req *StopPipelineRequest, opts ...call.Option) (*StopPipelineResponse, error) {
-	wireReq, err := stopPipelineRequestToWire(req)
+func (c *internalClient) stopBase(ctx context.Context, req StopPipelineRequest, opts ...call.Option) (*StopPipelineResponse, error) {
+	wireReq, err := stopPipelineRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -939,7 +973,11 @@ func (c *internalClient) stopBase(ctx context.Context, req *StopPipelineRequest,
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/pipelines/")
-	pb.singleSegment(*req.PipelineId)
+	if req.PipelineId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PipelineId)
+	}
 	pb.literal("/stop")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -982,7 +1020,7 @@ func (c *internalClient) stopBase(ctx context.Context, req *StopPipelineRequest,
 
 // Stops the pipeline by canceling the active update. If there is no active
 // update for the pipeline, this request is a no-op.
-func (c *internalClient) Stop(ctx context.Context, req *StopPipelineRequest, opts ...call.Option) (*StopWaiter, error) {
+func (c *internalClient) Stop(ctx context.Context, req StopPipelineRequest, opts ...call.Option) (*StopWaiter, error) {
 	if req.PipelineId == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "PipelineId")
 	}
@@ -999,13 +1037,18 @@ func (c *internalClient) Stop(ctx context.Context, req *StopPipelineRequest, opt
 
 // StopWaiter tracks the state of the operation started by Stop.
 type StopWaiter struct {
-	poll       func(context.Context, *GetPipelineRequest, ...call.Option) (*GetPipelineResponse, error)
+	poll       func(context.Context, GetPipelineRequest, ...call.Option) (*GetPipelineResponse, error)
 	pipelineId string
+}
+
+// GetPipelineId returns the PipelineId value used to identify the operation.
+func (w *StopWaiter) GetPipelineId() string {
+	return w.pipelineId
 }
 
 // Done polls once and reports whether the operation has reached a terminal state.
 func (w *StopWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error) {
-	pollResp, err := w.poll(ctx, &GetPipelineRequest{
+	pollResp, err := w.poll(ctx, GetPipelineRequest{
 		PipelineId: &w.pipelineId,
 	}, opts...)
 	if err != nil {
@@ -1030,7 +1073,7 @@ func (w *StopWaiter) Done(ctx context.Context, opts ...call.Option) (bool, error
 func (w *StopWaiter) Wait(ctx context.Context, opts ...lro.Option) (*GetPipelineResponse, error) {
 	var result *GetPipelineResponse
 	poll := func(ctx context.Context) error {
-		pollResp, err := w.poll(ctx, &GetPipelineRequest{
+		pollResp, err := w.poll(ctx, GetPipelineRequest{
 			PipelineId: &w.pipelineId,
 		})
 		if err != nil {

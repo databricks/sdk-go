@@ -49,27 +49,9 @@ const (
 	// inference-table details) and rate-limit principal names.
 	ListModelServicesRequest_View_Full ListModelServicesRequest_View = "FULL"
 	// Envelope only: identifiers, ownership, timestamps, plus the persisted
-	// `config` scalars (`routing_strategy`, `rate_limits` without `principal`);
+	// `config` scalars (`first_token_timeout`, `rate_limits` without `principal`);
 	// `destinations` and the inference-table details are unset.
 	ListModelServicesRequest_View_Basic ListModelServicesRequest_View = "BASIC"
-)
-
-// Which Anthropic subscription tier the relayed OAuth token belongs to.
-// Immutable after Create (switching tiers changes which governance controls the
-// platform enforces). Only MAX and TEAM_ENTERPRISE differ in the governance
-// surface the gateway can enforce, not in how the token is relayed.
-type ModelProviderServiceConfig_AnthropicProviderRelayedConfig_AnthropicRelayedPlanType string
-
-const (
-	ModelProviderServiceConfig_AnthropicProviderRelayedConfig_AnthropicRelayedPlanType_Unspecified ModelProviderServiceConfig_AnthropicProviderRelayedConfig_AnthropicRelayedPlanType = ""
-	// Personal Claude Max/Pro subscription. No gateway-enforced governance: model
-	// selection, per-principal rate limits, and service policies (guard- rails)
-	// cannot be enforced on a personal subscription and are rejected.
-	ModelProviderServiceConfig_AnthropicProviderRelayedConfig_AnthropicRelayedPlanType_AnthropicRelayedPlanTypeMax ModelProviderServiceConfig_AnthropicProviderRelayedConfig_AnthropicRelayedPlanType = "ANTHROPIC_RELAYED_PLAN_TYPE_MAX"
-	// Claude for Teams / Enterprise organization subscription. Supports the full
-	// gateway governance surface: model allowlist (`targets` /
-	// `allow_all_targets`), rate limits, and service policies.
-	ModelProviderServiceConfig_AnthropicProviderRelayedConfig_AnthropicRelayedPlanType_AnthropicRelayedPlanTypeTeamEnterprise ModelProviderServiceConfig_AnthropicProviderRelayedConfig_AnthropicRelayedPlanType = "ANTHROPIC_RELAYED_PLAN_TYPE_TEAM_ENTERPRISE"
 )
 
 // External LLM provider for an EXTERNAL_FOUNDATION_MODEL destination.
@@ -89,7 +71,8 @@ const (
 	// Custom OpenAI-compatible provider (any endpoint that speaks the OpenAI HTTP
 	// API). Configured by `base_url` + API key.
 	ModelProviderServiceConfig_ExternalModelProviderType_ExternalModelProviderTypeCustom ModelProviderServiceConfig_ExternalModelProviderType = "EXTERNAL_MODEL_PROVIDER_TYPE_CUSTOM"
-	// Microsoft AI Foundry. Auth via API key plus Foundry endpoint URL.
+	// Microsoft Foundry. Configure a Foundry endpoint URL and authentication
+	// credentials.
 	ModelProviderServiceConfig_ExternalModelProviderType_ExternalModelProviderTypeMicrosoftFoundry ModelProviderServiceConfig_ExternalModelProviderType = "EXTERNAL_MODEL_PROVIDER_TYPE_MICROSOFT_FOUNDRY"
 	// Google Gemini Enterprise. Auth via API key.
 	ModelProviderServiceConfig_ExternalModelProviderType_ExternalModelProviderTypeGeminiEnterprise ModelProviderServiceConfig_ExternalModelProviderType = "EXTERNAL_MODEL_PROVIDER_TYPE_GEMINI_ENTERPRISE"
@@ -149,7 +132,8 @@ type CreateMcpServiceRequest struct {
 	// Name for the MCP service, e.g. "my_mcp_service".
 	McpServiceId *string
 	// The MCP service to create. The server populates `name` from `parent` +
-	// `mcp_service_id`; clients should leave it unset.
+	// `mcp_service_id`; clients should leave it unset. `source_connection` is
+	// required.
 	McpService *McpService
 }
 
@@ -183,8 +167,10 @@ type DeleteMcpServiceRequest struct {
 	// `mcp-services/{catalog}.{schema}.{mcp_service}`. Each `{...}` component is
 	// capped at 255 characters individually.
 	Name *string
-	// If-match precondition: when set, the delete proceeds only if the current
-	// server-side etag matches. Empty means unconditional delete.
+	// Optimistic concurrency token from the most recent read. When set, the delete
+	// succeeds only if the resource has not changed. Leave unset for an
+	// unconditional delete. For REST requests, URL-encode the base64 string
+	// returned by the API when setting the `etag` query parameter.
 	Etag []byte
 }
 
@@ -194,8 +180,10 @@ type DeleteModelProviderServiceRequest struct {
 	// `model-provider-services/{catalog}.{schema}.{model_provider_service}`. Each
 	// `{...}` component is capped at 255 characters individually.
 	Name *string
-	// If-match precondition: when set, the delete proceeds only if the current
-	// server-side etag matches. Empty means unconditional delete.
+	// Optimistic concurrency token from the most recent read. When set, the delete
+	// succeeds only if the resource has not changed. Leave unset for an
+	// unconditional delete. For REST requests, URL-encode the base64 string
+	// returned by the API when setting the `etag` query parameter.
 	Etag []byte
 }
 
@@ -205,8 +193,10 @@ type DeleteModelServiceRequest struct {
 	// `model-services/{catalog}.{schema}.{model_service}`. Each `{...}` component
 	// is capped at 255 characters individually.
 	Name *string
-	// If-match precondition: when set, the delete proceeds only if the current
-	// server-side etag matches. Empty means unconditional delete.
+	// Optimistic concurrency token from the most recent read. When set, the delete
+	// succeeds only if the resource has not changed. Leave unset for an
+	// unconditional delete. For REST requests, URL-encode the base64 string
+	// returned by the API when setting the `etag` query parameter.
 	Etag []byte
 }
 
@@ -246,20 +236,12 @@ type InferenceTableConfig struct {
 	// `schemas/{catalog}.{schema}`. Set at create time and immutable thereafter;
 	// changing it on an existing service is rejected.
 	Parent *string `fieldmask:"parent"`
-	// Prefix for the inference-table's UC-registered name. The actual leaf name UC
-	// stores is `<table_name_prefix>_payload`; the `_payload` suffix is appended
-	// automatically. To find the actual UC table after Create, read the `table`
-	// field on the response. Defaults to `<model_service_name>_payload` when unset.
-	// Set at create time and immutable thereafter; changing it on an existing
-	// service is rejected.
+	// Prefix used to form the inference table's registered name. AI Gateway appends
+	// `_payload`; for example, `table_name_prefix = "orders"` creates
+	// `orders_payload`. If unset, the prefix defaults to the service name. Read
+	// `table` from the response for the resolved resource name. Set at create time
+	// and immutable thereafter.
 	TableNamePrefix *string `fieldmask:"table_name_prefix"`
-	// Indicates whether payload logging is disabled (opt-out). Unset means that
-	// payload logging is active (the on-by-default state coincides with the proto
-	// zero-value, so the server never fills this field for a client that leaves it
-	// unset). Set `disabled = true` to pause runtime logging while keeping the
-	// sub-message attached (preserving `parent` and `table_name_prefix` for a later
-	// flip back to active). `parent` remains required either way.
-	Disabled *bool `fieldmask:"disabled"`
 	// Resolved UC table for payload logs. Format:
 	// `tables/{catalog}.{schema}.{table}`.
 	Table *string `fieldmask:"table"`
@@ -273,17 +255,18 @@ type InferenceTableConfig struct {
 // Request to list MCP services. Accepts `parent`, `page_size`, and
 // `page_token`..
 type ListMcpServicesRequest struct {
-	// Name of the parent schema to list within, as `schemas/{catalog}.{schema}`.
-	// Each `{...}` component is capped at 255 characters individually.
+	// Parent schema to list within, in the form `schemas/{catalog}.{schema}`.
+	// Required. Each `{...}` component is capped at 255 characters individually.
 	Parent *string
 	// Maximum number of MCP services to return. Defaults to 100 when unset or 0;
 	// the maximum is 100. Use `page_token` to retrieve additional pages.
 	PageSize *int
 	// Opaque pagination token from a previous request.
 	PageToken *string
-	// View selector controlling which fields are populated per row. `FULL` returns
-	// the full representation of the service; `BASIC` returns a more compact
-	// version. Defaults to `BASIC` when unset.
+	// Fields to return for each service. `FULL` includes source-connection details
+	// and rate-limit principal names. `BASIC` omits the source connection and omits
+	// principal names from rate limits. Defaults to `BASIC` when unset or
+	// `VIEW_UNSPECIFIED`.
 	View ListMcpServicesRequest_View
 }
 
@@ -298,17 +281,18 @@ type ListMcpServicesResponse struct {
 // Request to list model provider services. Accepts `parent`, `page_size`, and
 // `page_token`..
 type ListModelProviderServicesRequest struct {
-	// Name of the parent schema to list within, as `schemas/{catalog}.{schema}`.
-	// Each `{...}` component is capped at 255 characters individually.
+	// Parent schema to list within, in the form `schemas/{catalog}.{schema}`.
+	// Required. Each `{...}` component is capped at 255 characters individually.
 	Parent *string
 	// Maximum number of provider services to return. Defaults to 100 when unset or
 	// 0; the maximum is 100. Use `page_token` to retrieve additional pages.
 	PageSize *int
 	// Opaque pagination token from a previous request.
 	PageToken *string
-	// View selector controlling which fields are populated per row. `FULL` returns
-	// the full representation of the service; `BASIC` returns a more compact
-	// version. Defaults to `BASIC` when unset.
+	// Fields to return for each service. `FULL` includes inference-table details
+	// and rate-limit principal names. `BASIC` omits inference-table details and
+	// omits principal names from rate limits. Defaults to `BASIC` when unset or
+	// `VIEW_UNSPECIFIED`.
 	View ListModelProviderServicesRequest_View
 }
 
@@ -323,17 +307,18 @@ type ListModelProviderServicesResponse struct {
 // Request to list model services. Accepts `parent`, `page_size`, and
 // `page_token`..
 type ListModelServicesRequest struct {
-	// Name of the parent schema to list within, as `schemas/{catalog}.{schema}`.
-	// Each `{...}` component is capped at 255 characters individually.
+	// Parent schema to list within, in the form `schemas/{catalog}.{schema}`.
+	// Required. Each `{...}` component is capped at 255 characters individually.
 	Parent *string
 	// Maximum number of model services to return. Defaults to 100 when unset or 0;
 	// the maximum is 100. Use `page_token` to retrieve additional pages.
 	PageSize *int
 	// Opaque pagination token from a previous request.
 	PageToken *string
-	// View selector controlling which fields are populated per row. `FULL` returns
-	// the full representation of the service; `BASIC` returns a more compact
-	// version. Defaults to `BASIC` when unset.
+	// Fields to return for each service. `FULL` includes destinations,
+	// inference-table details, and rate-limit principal names. `BASIC` omits
+	// destinations and inference-table details and omits principal names from rate
+	// limits. Defaults to `BASIC` when unset or `VIEW_UNSPECIFIED`.
 	View ListModelServicesRequest_View
 }
 
@@ -345,47 +330,43 @@ type ListModelServicesResponse struct {
 	NextPageToken *string
 }
 
-// A governed MCP server registration in Unity Catalog. Acts as a container
-// securable that references an MCP server -- customer-external via a UC
-// Connection, or <Databricks>-hosted via an internal server -- and exposes its
-// tools for discovery, authorization, and invocation..
+// A Unity Catalog securable that registers an MCP server through a Unity
+// Catalog connection and exposes its tools for discovery, authorization, and
+// invocation..
 type McpService struct {
 	// Resource name of the MCP service. Format:
 	// `mcp-services/{catalog}.{schema}.{mcp_service}`. Each `{...}` component is
 	// capped at 255 characters individually. Server-derived on Create from `parent`
 	// + `mcp_service_id`; required and immutable on Update/Get/Delete.
 	Name *string `fieldmask:"name"`
-	// The owner of the MCP service. Write-only; read owner via effective_owner.
-	Owner *string `fieldmask:"owner"`
 	// The resolved owner of the MCP service. Falls back to the caller's identity
 	// when `owner` is not explicitly set on creation.
 	EffectiveOwner *string `fieldmask:"effective_owner"`
 	// Metastore hosting the MCP service.
 	MetastoreId *string `fieldmask:"metastore_id"`
-	// When the MCP service was created.
+	// Time the MCP service was created.
 	CreateTime *types.Time `fieldmask:"create_time"`
 	// Creator identity.
 	CreatedBy *string `fieldmask:"created_by"`
-	// When the MCP service was last modified.
+	// Time the MCP service was last modified.
 	UpdateTime *types.Time `fieldmask:"update_time"`
 	// Identity of the last updater.
 	UpdatedBy *string `fieldmask:"updated_by"`
 	// User-provided description.
 	Comment *string `fieldmask:"comment"`
-	// Operational configuration: connection, tool selectors, rate limit. Required
-	// on CreateMcpService; on UpdateMcpService it is required only when `config`
-	// (or a `config.*` subpath) appears in `update_mask`.
+	// Connection, tool selectors, and rate limits. Required on Create. On Update,
+	// provide this field when `update_mask` contains `config` or one of its
+	// subpaths.
 	Config *McpServiceConfig `fieldmask:"config"`
-	// Optimistic concurrency control token. Server-generated from the entity's
-	// state and returned on every read. To use it as an if-match precondition on a
-	// mutation, echo the last-read value back via the dedicated `etag` field on the
-	// Update / Delete request; the server rejects the mutation if the stored etag
-	// differs.
+	// Optimistic concurrency token returned on every read. To make an Update or
+	// Delete conditional, pass the last-read value in that request's `etag` field.
+	// In REST responses, this value is a base64 string; URL-encode it when setting
+	// the `etag` query parameter.
 	Etag []byte `fieldmask:"etag"`
 }
 
 // Operational configuration for an MCP service. Groups the source reference,
-// tool selectors, and rate limit -- the fields that configure how the MCP
+// tool selectors, and rate limits -- the fields that configure how the MCP
 // service behaves at invocation time..
 type McpServiceConfig struct {
 	// Polymorphic reference to where the MCP server lives. MCP_SERVICE is a
@@ -403,15 +384,13 @@ type McpServiceConfig struct {
 	// (-- The oneof shape lets future kinds add type-specific reference shapes
 	// without a wire-format bump. --)
 	Source isMcpServiceConfig_Source
-	// Glob or exact-match patterns selecting which tools from the MCP server to
-	// expose. Prefix match for patterns with `*`, exact match otherwise. An empty
-	// list means all tools are included. Per-element max 256 chars.
+	// Tool names or prefix patterns to expose from the MCP server. Use exact tool
+	// names or prefix patterns such as `read_*`. An empty list exposes all tools.
+	// Each selector can contain at most 256 characters.
 	IncludeToolSelectors []string `fieldmask:"include_tool_selectors"`
-	// Per-principal rate limits applied to tool invocations routed through this MCP
-	// service. Repeated to support per-USER / USER_GROUP / SERVICE_PRINCIPAL /
-	// SERVICE / USER_DEFAULT scopes simultaneously, mirroring the
-	// `ModelServiceConfig.rate_limits` shape. Empty when no rate limit is
-	// configured.
+	// Rate limits for tool invocations, scoped to a user, group, service principal,
+	// the service as a whole, or each user by default. Request-tag rate limits are
+	// not supported for MCP services. Empty when no rate limit is configured.
 	RateLimits []RateLimit                                `fieldmask:"rate_limits"`
 	_          [0]mcpServiceConfigSourceFieldMaskMetadata `fieldmask_oneof:"Source"`
 }
@@ -421,7 +400,7 @@ type isMcpServiceConfig_Source interface {
 }
 
 // McpServiceConfig_Source_SourceConnection selects SourceConnection for McpServiceConfig.Source.
-// UC Connection referencing the MCP server.
+// Unity Catalog connection referencing the MCP server. Required on Create.
 type McpServiceConfig_Source_SourceConnection struct {
 	SourceConnection McpServiceConfig_SourceConnection `fieldmask:"source_connection"`
 }
@@ -432,22 +411,24 @@ type mcpServiceConfigSourceFieldMaskMetadata struct {
 	*McpServiceConfig_Source_SourceConnection
 }
 
-// UC Connection that hosts the MCP server. On create, provide `name` in the
-// schema-scoped form `connections/{catalog}.{schema}.{connection}`. On read,
-// the service populates the resolved connection metadata and preserves a
+// Unity Catalog connection that hosts the MCP server. On Create, provide `name`
+// in the schema-scoped form `connections/{catalog}.{schema}.{connection}`. On
+// read, the service populates the resolved connection metadata and preserves a
 // dangling source so callers can diagnose a deleted backing connection..
 type McpServiceConfig_SourceConnection struct {
-	// Name of the UC connection that hosts the MCP server, as
+	// Name of the Unity Catalog connection that hosts the MCP server, as
 	// `connections/{catalog}.{schema}.{connection}`.
-	Name      *string `fieldmask:"name"`
-	IsDeleted *bool   `fieldmask:"is_deleted"`
+	Name *string `fieldmask:"name"`
+	// Whether the referenced connection has been deleted. The MCP service keeps the
+	// reference so callers can identify the broken dependency; tool invocation
+	// fails until the source connection is updated.
+	IsDeleted *bool `fieldmask:"is_deleted"`
 }
 
-// A governed external model-provider connection stored in Unity Catalog (e.g.
-// an OpenAI API account, an Azure OpenAI deployment, an Amazon Bedrock
-// account). Owns the provider type and the auth/configuration the platform
-// needs to invoke that provider, and is referenced from
-// `ExternalModelConfig.model_provider_service` on a ModelService.
+// A governed connection to an external model provider stored in Unity Catalog,
+// such as an OpenAI account, Azure OpenAI deployment, or Amazon Bedrock
+// account. It stores the provider type, authentication, and connection
+// configuration used by model service destinations.
 //
 // One ModelProviderService can back many ModelServices (e.g. an `openai_prod`
 // provider serving multiple models); a single ModelService can fan out across
@@ -459,34 +440,29 @@ type ModelProviderService struct {
 	// Create from `parent` + `model_provider_service_id`; required and immutable on
 	// Update/Get/Delete.
 	Name *string `fieldmask:"name"`
-	// The owner of the model provider service. Write-only; read owner via
-	// effective_owner.
-	Owner *string `fieldmask:"owner"`
 	// The resolved owner of the model provider service. Falls back to the caller's
 	// identity when `owner` is not explicitly set on creation.
 	EffectiveOwner *string `fieldmask:"effective_owner"`
 	// Metastore hosting the provider service.
 	MetastoreId *string `fieldmask:"metastore_id"`
-	// When the provider service was created.
+	// Time the provider service was created.
 	CreateTime *types.Time `fieldmask:"create_time"`
 	// Creator identity.
 	CreatedBy *string `fieldmask:"created_by"`
-	// When the provider service was last modified.
+	// Time the provider service was last modified.
 	UpdateTime *types.Time `fieldmask:"update_time"`
 	// Identity of the last updater.
 	UpdatedBy *string `fieldmask:"updated_by"`
 	// User-provided description.
 	Comment *string `fieldmask:"comment"`
-	// Optimistic concurrency control token. Server-generated from the entity's
-	// state and returned on every read. To use it as an if-match precondition on a
-	// mutation, echo the last-read value back via the dedicated `etag` field on the
-	// Update / Delete request; the server rejects the mutation if the stored etag
-	// differs.
+	// Optimistic concurrency token returned on every read. To make an Update or
+	// Delete conditional, pass the last-read value in that request's `etag` field.
+	// In REST responses, this value is a base64 string; URL-encode it when setting
+	// the `etag` query parameter.
 	Etag []byte `fieldmask:"etag"`
-	// Behavioral configuration: provider connection, model catalog, and passthrough
-	// policy. See `ModelProviderServiceConfig` for the per-field contract. Required
-	// on CreateModelProviderService; on Update it is required only when `config`
-	// (or a `config.*` subpath) appears in `update_mask`.
+	// Provider connection, exposed models, request-forwarding controls, rate
+	// limits, and payload logging. Required on Create. On Update, it is required
+	// only when `config` or one of its subpaths appears in `update_mask`.
 	Config *ModelProviderServiceConfig `fieldmask:"config"`
 }
 
@@ -506,13 +482,13 @@ type ModelProviderServiceConfig struct {
 	// Provider-specific configuration. Exactly one variant must be set, and it must
 	// match `provider_type`; a request whose active variant disagrees with
 	// `provider_type` is rejected with `INVALID_PARAMETER_VALUE`. Secret-bearing
-	// fields nested inside each *DirectConfig (`api_key`, `aws_secret_access_key`,
+	// fields nested inside each *DirectConfig (`api_key`, `secret_access_key`,
 	// `service_account_key`, ...) wrap a `ProviderSecret`: callers supply the value
 	// as `ProviderSecret.plaintext` on writes, and the platform stores it
 	// encrypted. Reads (Get and List) omit the plaintext; secret-bearing fields
 	// appear in the response only as a presence indicator that a secret is
 	// configured. Non-secret fields (`base_url`, `region`, `organization`,
-	// `aws_access_key_id`, ...) round-trip directly.
+	// `access_key_id`, ...) round-trip directly.
 	//
 	// Declarative tooling (Terraform / DABs): the `plaintext` field is INPUT_ONLY
 	// and never round-trips on reads, so a Terraform config that supplies it will
@@ -542,37 +518,34 @@ type ModelProviderServiceConfig struct {
 	// not required and does not restrict routability. When false, only models
 	// listed in `targets` are routable.
 	AllowAllTargets *bool `fieldmask:"allow_all_targets"`
-	// Routing targets this provider service exposes (provider-side model identifier
-	// + unified API types per entry). Required (>=1) when `allow_all_targets =
-	// false`; optional and additive when `allow_all_targets = true`. References
-	// from `ExternalModelConfig.target` must match an entry here unless
-	// `allow_all_targets = true`.
+	// Models and provider-native API types exposed by this provider service. Each
+	// entry must include at least one `native_api_types` value. When
+	// `allow_all_targets` is false, at least one entry is required and model
+	// service destinations can reference only listed models. When
+	// `allow_all_targets` is true, any upstream model is routable; entries in this
+	// list provide API-type metadata without restricting other models.
 	Targets []ModelProviderServiceConfig_ModelTargetConfig `fieldmask:"targets"`
-	// Whether to forward incoming request headers to the upstream provider. Applies
-	// to managed (multi-model) requests as well as passthrough requests served by
-	// this provider service. Governance-level decision by the provider service
-	// owner; not selectable per inference call.
+	// Whether to forward incoming HTTP headers to the upstream provider. Applies to
+	// translated and passthrough requests and is configured for the entire provider
+	// service, not per request. Upstream authentication is configured separately in
+	// `provider`.
 	ForwardHeaders *bool `fieldmask:"forward_headers"`
-	// Whether to forward incoming request query parameters to the upstream
-	// provider. Same trust-boundary semantics as `forward_headers`.
+	// Whether incoming query parameters are forwarded to the upstream provider.
+	// Applies to translated and passthrough requests and is configured for the
+	// entire provider service, not per request.
 	ForwardQueryParameters *bool `fieldmask:"forward_query_parameters"`
-	// Whether to forward request paths that fall outside this service's managed API
-	// set to the upstream provider as opaque passthrough. When true, requests
-	// addressed to subpaths not recognized by the managed API surface are proxied
-	// to the upstream provider over the same provider connection. When false, only
-	// managed-API paths are served. Governance-level decision by the provider
-	// service owner; expanding this expands the trust boundary that the
-	// ModelProviderService exposes.
+	// Whether to proxy paths that AI Gateway does not recognize as configured
+	// provider-native API types. When true, these paths are forwarded unchanged
+	// over the provider connection. When false, only recognized API paths are
+	// served. Enabling this broadens the upstream API surface exposed through the
+	// provider service.
 	ForwardUnmanagedPaths *bool `fieldmask:"forward_unmanaged_paths"`
-	// Rate limits applied when this provider service is invoked directly. When it
-	// is invoked through a model service, the model service's own `rate_limits`
-	// apply instead. Mirrors `ModelServiceConfig.rate_limits` /
-	// `McpServiceConfig.rate_limits`.
+	// Rate limits for requests sent directly to this provider service. Requests
+	// routed through a model service use that model service's rate limits instead.
 	RateLimits []RateLimit `fieldmask:"rate_limits"`
-	// Inference table configuration for payload logging when this provider service
-	// is invoked directly. When it is invoked through a model service, the model
-	// service's own inference table captures the invocation instead. Mirrors
-	// `ModelServiceConfig.inference_table` / `AgentServiceConfig.inference_table`.
+	// Payload logging configuration for requests sent directly to this provider
+	// service. Requests routed through a model service are captured by that model
+	// service's inference table instead.
 	InferenceTable *InferenceTableConfig                                  `fieldmask:"inference_table"`
 	_              [0]modelProviderServiceConfigProviderFieldMaskMetadata `fieldmask_oneof:"Provider"`
 }
@@ -673,11 +646,11 @@ type modelProviderServiceConfig_AmazonBedrockProviderConfigProviderModeFieldMask
 //
 // Authentication is one of two mutually exclusive modes, exactly one of which
 // must be supplied on Create: - Access keys: set `aws_access_key`, leave
-// `service_credential` unset. - UC service credential: set
-// `service_credential.name` to the AIP-122 resource-name form
-// `credentials/{name}`, leave `aws_access_key` unset. The credential value
-// lives in UC and is referenced by name, not held on this message. Setting more
-// than one mode is rejected..
+// `service_credential` unset. - Unity Catalog service credential: set
+// `service_credential.name` to the resource name `credentials/{name}`, leave
+// `aws_access_key` unset. The credential value lives in Unity Catalog and is
+// referenced by name, not held on this message. Setting more than one mode is
+// rejected..
 type ModelProviderServiceConfig_AmazonBedrockProviderDirectConfig struct {
 	// AWS region where the Bedrock endpoint is hosted (e.g., `us-east-1`). Required
 	// on Create.
@@ -692,14 +665,13 @@ type isModelProviderServiceConfig_AmazonBedrockProviderDirectConfig_AuthMode int
 }
 
 // ModelProviderServiceConfig_AmazonBedrockProviderDirectConfig_AuthMode_ServiceCredential selects ServiceCredential for ModelProviderServiceConfig_AmazonBedrockProviderDirectConfig.AuthMode.
-// Reference to a UC service credential authorizing Bedrock requests. On Create
-// the caller supplies `service_credential.name` in the AIP-122 resource-name
-// form `credentials/{name}`. Required on Create when using
-// UC-service-credential auth; mutually exclusive with `aws_access_key`. The
-// credential is referenced by name; its value is not carried here. On read the
-// resolved `id` and `is_deleted` are also populated. Only supported on
-// AWS-hosted workspaces; Create requests from other clouds are rejected with
-// INVALID_PARAMETER_VALUE.
+// Reference to a Unity Catalog service credential authorizing Bedrock requests.
+// On Create, supply `service_credential.name` in the form `credentials/{name}`.
+// Required on Create when using service-credential authentication; mutually
+// exclusive with `aws_access_key`. The credential is referenced by name; its
+// value is not carried here. On read, the resolved `id` and `is_deleted` are
+// also populated. Only supported on AWS-hosted workspaces; Create requests from
+// other clouds are rejected with INVALID_PARAMETER_VALUE.
 type ModelProviderServiceConfig_AmazonBedrockProviderDirectConfig_AuthMode_ServiceCredential struct {
 	ServiceCredential ModelProviderServiceConfig_ServiceCredential `fieldmask:"service_credential"`
 }
@@ -799,10 +771,6 @@ type modelProviderServiceConfig_AnthropicProviderDirectConfigAuthModeFieldMaskMe
 // is the signal that the provider service uses relayed auth; `plan_type`
 // further distinguishes which Anthropic subscription tier the token belongs to..
 type ModelProviderServiceConfig_AnthropicProviderRelayedConfig struct {
-	// Which Anthropic subscription tier the relayed token belongs to. Optional;
-	// when unset the MPS gets the full governance surface (see TEAM_ENTERPRISE).
-	// Immutable after Create, so the tier cannot be flipped in place.
-	PlanType ModelProviderServiceConfig_AnthropicProviderRelayedConfig_AnthropicRelayedPlanType `fieldmask:"plan_type"`
 }
 
 // AWS access-key-pair auth for Amazon Bedrock: a SigV4-signing key pair..
@@ -848,12 +816,11 @@ type modelProviderServiceConfig_AzureOpenAiProviderConfigProviderModeFieldMaskMe
 // mutually-exclusive auth modes must be supplied on Create: - API key: set
 // `api_key`, leave `entra_service_principal` and `service_credential` unset. -
 // Entra ID (service principal): set `entra_service_principal`, leave `api_key`
-// and `service_credential` unset. - UC service credential: set
-// `service_credential.name` to the AIP-122 resource-name form
-// `credentials/{name}`, leave `api_key` and `entra_service_principal` unset.
-// The credential value lives in UC and is referenced by name, not held on this
-// message. Only supported on Azure-hosted workspaces. Setting more than one
-// mode is rejected..
+// and `service_credential` unset. - Unity Catalog service credential: set
+// `service_credential.name` to the resource name `credentials/{name}`, leave
+// `api_key` and `entra_service_principal` unset. The credential value lives in
+// Unity Catalog and is referenced by name, not held on this message. Only
+// supported on Azure-hosted workspaces. Setting more than one mode is rejected..
 type ModelProviderServiceConfig_AzureOpenAiProviderDirectConfig struct {
 	// Full Azure OpenAI endpoint base URL, e.g.
 	// `https://myresource.openai.azure.com`. Required on Create.
@@ -879,12 +846,12 @@ func (*ModelProviderServiceConfig_AzureOpenAiProviderDirectConfig_AuthMode_ApiKe
 }
 
 // ModelProviderServiceConfig_AzureOpenAiProviderDirectConfig_AuthMode_ServiceCredential selects ServiceCredential for ModelProviderServiceConfig_AzureOpenAiProviderDirectConfig.AuthMode.
-// Reference to a UC service credential authorizing Azure OpenAI requests. On
-// Create the caller supplies `service_credential.name` in the AIP-122
-// resource-name form `credentials/{name}`. Required on Create when using
-// UC-service-credential auth; mutually exclusive with `api_key` and
+// Reference to a Unity Catalog service credential authorizing Azure OpenAI
+// requests. On Create, supply `service_credential.name` in the form
+// `credentials/{name}`. Required on Create when using service-credential
+// authentication; mutually exclusive with `api_key` and
 // `entra_service_principal`. The credential is referenced by name; its value is
-// not carried here. On read the resolved `id` and `is_deleted` are also
+// not carried here. On read, the resolved `id` and `is_deleted` are also
 // populated. Only supported on Azure-hosted workspaces; Create requests from
 // other clouds are rejected with INVALID_PARAMETER_VALUE.
 type ModelProviderServiceConfig_AzureOpenAiProviderDirectConfig_AuthMode_ServiceCredential struct {
@@ -1040,8 +1007,8 @@ type modelProviderServiceConfig_GeminiEnterpriseProviderConfigProviderModeFieldM
 //
 // Authentication is one of two mutually exclusive modes; exactly one must be
 // supplied on Create: - API key: set `api_key`, leave `service_credential`
-// unset. - UC service credential: set `service_credential`, leave `api_key`
-// unset..
+// unset. - Unity Catalog service credential: set `service_credential`, leave
+// `api_key` unset..
 type ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig struct {
 	// Authentication mode. Exactly one variant may be set.
 	AuthMode isModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode
@@ -1074,10 +1041,11 @@ type modelProviderServiceConfig_GeminiEnterpriseProviderDirectConfigAuthModeFiel
 
 // Microsoft Foundry provider configuration..
 type ModelProviderServiceConfig_MicrosoftFoundryProviderConfig struct {
-	// Direct (inline-credentials) form: caller supplies the Foundry endpoint URL +
-	// API key in the request body. Required on Create. Provider configuration mode.
-	// Exactly one variant may be set. (-- Wrapped in a oneof so future non-direct
-	// modes can be added as additional variants without a breaking change. --)
+	// Direct form: caller supplies the Foundry endpoint URL and authentication
+	// configuration in the request body. Required on Create. Provider configuration
+	// mode. Exactly one variant may be set. (-- Wrapped in a oneof so future
+	// non-direct modes can be added as additional variants without a breaking
+	// change. --)
 	ProviderMode isModelProviderServiceConfig_MicrosoftFoundryProviderConfig_ProviderMode
 	_            [0]modelProviderServiceConfig_MicrosoftFoundryProviderConfigProviderModeFieldMaskMetadata `fieldmask_oneof:"ProviderMode"`
 }
@@ -1105,14 +1073,14 @@ type modelProviderServiceConfig_MicrosoftFoundryProviderConfigProviderModeFieldM
 // `entra_service_principal` and `service_credential` unset. - Entra ID (service
 // principal): set `entra_service_principal`, leave `api_key` and
 // `service_credential` unset. AI Gateway exchanges these for an Entra bearer
-// token on outbound requests via the OAuth2 client-credentials grant. - UC
-// service credential: set `service_credential.name` to the AIP-122
-// resource-name form `credentials/{name}`, leave `api_key` and
-// `entra_service_principal` unset. The credential value lives in UC and is
-// referenced by name, not held on this message. Only supported on Azure-hosted
-// workspaces. Setting more than one mode is rejected..
+// token on outbound requests via the OAuth2 client-credentials grant. - Unity
+// Catalog service credential: set `service_credential.name` to the resource
+// name `credentials/{name}`, leave `api_key` and `entra_service_principal`
+// unset. The credential value lives in Unity Catalog and is referenced by name,
+// not held on this message. Only supported on Azure-hosted workspaces. Setting
+// more than one mode is rejected..
 type ModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig struct {
-	// Microsoft AI Foundry endpoint URL. Required on Create.
+	// Microsoft Foundry endpoint URL. Required on Create.
 	BaseUrl *string `fieldmask:"base_url"`
 	// Authentication mode. Exactly one variant may be set.
 	AuthMode isModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig_AuthMode
@@ -1124,7 +1092,7 @@ type isModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig_AuthMode 
 }
 
 // ModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig_AuthMode_ApiKey selects ApiKey for ModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig.AuthMode.
-// Microsoft AI Foundry API key. Mutually exclusive with the Entra and
+// Microsoft Foundry API key. Mutually exclusive with the Entra and
 // service-credential modes. Supplied as inline plaintext via
 // `ProviderSecret.plaintext`.
 type ModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig_AuthMode_ApiKey struct {
@@ -1135,12 +1103,12 @@ func (*ModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig_AuthMode_
 }
 
 // ModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig_AuthMode_ServiceCredential selects ServiceCredential for ModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig.AuthMode.
-// Reference to a UC service credential authorizing Microsoft Foundry requests.
-// On Create the caller supplies `service_credential.name` in the AIP-122
-// resource-name form `credentials/{name}`. Required on Create when using
-// UC-service-credential auth; mutually exclusive with `api_key` and
+// Reference to a Unity Catalog service credential authorizing Microsoft Foundry
+// requests. On Create, supply `service_credential.name` in the form
+// `credentials/{name}`. Required on Create when using service-credential
+// authentication; mutually exclusive with `api_key` and
 // `entra_service_principal`. The credential is referenced by name; its value is
-// not carried here. On read the resolved `id` and `is_deleted` are also
+// not carried here. On read, the resolved `id` and `is_deleted` are also
 // populated. Only supported on Azure-hosted workspaces; Create requests from
 // other clouds are rejected with INVALID_PARAMETER_VALUE.
 type ModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig_AuthMode_ServiceCredential struct {
@@ -1168,16 +1136,14 @@ type modelProviderServiceConfig_MicrosoftFoundryProviderDirectConfigAuthModeFiel
 
 // Model target configuration for an external model destination..
 type ModelProviderServiceConfig_ModelTargetConfig struct {
-	// Provider-side model identifier (e.g. "gpt-5", "claude-opus-4-7"). This is a
-	// string on the LLM provider's side, not a UC entity. The UC governance hook
-	// for external destinations is the ModelProviderService referenced by
-	// `ExternalModelConfig.model_provider_service`, not the model itself.
+	// Provider-side model identifier, such as `gpt-5` or `claude-opus-4-7`. This
+	// identifies a model at the upstream provider; it is not a Unity Catalog model
+	// resource.
 	Model *string
-	// Provider-native API types the model supports (e.g.
-	// "openai/v1/chat/completions"). Used by the platform for request/response
-	// translation from the unified API type. At most 64 entries of at most 256
-	// characters each; the list is persisted into the destination binding's bounded
-	// storage envelope.
+	// Provider-native API types supported by this model, such as
+	// `openai/v1/chat/completions`. AI Gateway uses these values to translate
+	// requests and responses. At most 64 entries of 256 characters each are
+	// allowed.
 	NativeApiTypes []string
 }
 
@@ -1247,9 +1213,9 @@ type modelProviderServiceConfig_OpenAiProviderDirectConfigAuthModeFieldMaskMetad
 // reads..
 type ModelProviderServiceConfig_ProviderSecret struct {
 	// How the credential value is supplied. Exactly one variant may be set. (--
-	// Wrapped in a oneof so a future non-plaintext source (e.g. a Databricks secret
-	// reference `{{secrets/<scope>/<key>}}`, mirroring AIGW v2's ProviderSecret)
-	// can be added as an additional variant without a breaking change. --)
+	// Wrapped in a oneof so a non-plaintext source can be added as an additional
+	// variant without a breaking change; `secret_reference` is that variant, and
+	// further sources can follow the same way. --)
 	Value isModelProviderServiceConfig_ProviderSecret_Value
 	_     [0]modelProviderServiceConfig_ProviderSecretValueFieldMaskMetadata `fieldmask_oneof:"Value"`
 }
@@ -1274,63 +1240,59 @@ type modelProviderServiceConfig_ProviderSecretValueFieldMaskMetadata struct {
 }
 
 // ---- Provider configuration (nested; see the `provider` oneof below) ---- The
-// customer-owned UC service credential a ModelProviderService uses to
-// authenticate to its provider, referenced by name..
+// customer-owned Unity Catalog service credential a ModelProviderService uses
+// to authenticate to its provider, referenced by name..
 type ModelProviderServiceConfig_ServiceCredential struct {
-	// Resource name of the bound UC service credential, in the AIP-122 form
-	// `credentials/{name}` (a metastore-level single-part credential name). On
-	// create the caller supplies the name here. On read it reflects the
-	// credential's current name at read time.
+	// Resource name of the bound Unity Catalog service credential, in the form
+	// `credentials/{name}`. On Create, supply the name here. On read, this field
+	// reflects the credential's current name.
 	Name *string `fieldmask:"name"`
 }
 
 // A governed AI Gateway endpoint in Unity Catalog that routes inference
-// requests to one or more model destinations (for example a foundation model or
-// an external LLM reached through a ModelProviderService). Applies centralized
-// access control, rate limits, guardrails, and auditing to the traffic it
-// serves..
+// requests to one or more destinations, such as a <Databricks> foundation model
+// or an external model reached through a model provider service. Applies
+// centralized access control, rate limits, and auditing to its traffic..
 type ModelService struct {
 	// Resource name of the model service. Format:
 	// `model-services/{catalog}.{schema}.{model_service}`. Each `{...}` component
 	// is capped at 255 characters individually. Server-derived on Create from
 	// `parent` + `model_service_id`; required and immutable on Update/Get/Delete.
 	Name *string `fieldmask:"name"`
-	// The owner of the model service. Write-only; read owner via effective_owner.
-	Owner *string `fieldmask:"owner"`
 	// The resolved owner of the ModelService. Falls back to the caller's identity
 	// when `owner` is not explicitly set on creation.
 	EffectiveOwner *string `fieldmask:"effective_owner"`
 	// Metastore hosting the model service.
 	MetastoreId *string `fieldmask:"metastore_id"`
-	// When the model service was created.
+	// Time the model service was created.
 	CreateTime *types.Time `fieldmask:"create_time"`
 	// Creator identity.
 	CreatedBy *string `fieldmask:"created_by"`
-	// When the model service was last modified.
+	// Time the model service was last modified.
 	UpdateTime *types.Time `fieldmask:"update_time"`
 	// Identity of the last updater.
 	UpdatedBy *string `fieldmask:"updated_by"`
 	// User-provided description.
 	Comment *string `fieldmask:"comment"`
-	// Operational configuration: destinations, routing, rate limits, inference
-	// table. Required on CreateModelService; on UpdateModelService it is required
-	// only when `config` (or a `config.*` subpath) appears in `update_mask`.
+	// Destinations, routing, rate limits, and payload logging configuration.
+	// Required on Create. On Update, provide this field when `update_mask` contains
+	// `config` or one of its subpaths.
 	Config *ModelServiceConfig `fieldmask:"config"`
-	// Optimistic concurrency control token. Server-generated from the entity's
-	// state and returned on every read. To use it as an if-match precondition on a
-	// mutation, echo the last-read value back via the dedicated `etag` field on the
-	// Update / Delete request; the server rejects the mutation if the stored etag
-	// differs.
+	// Optimistic concurrency token returned on every read. To make an Update or
+	// Delete conditional, pass the last-read value in that request's `etag` field.
+	// In REST responses, this value is a base64 string; URL-encode it when setting
+	// the `etag` query parameter.
 	Etag []byte `fieldmask:"etag"`
-	// Unified API types this endpoint supports (e.g. "chat", "embeddings",
-	// "completions"). Derived from the destinations' backing models / providers at
-	// read time.
+	// API types supported across this service's destinations, such as
+	// `openai/v1/chat/completions`, `openai/v1/embeddings`, and
+	// `mlflow/v1/chat/completions`. Derived from the backing models and providers
+	// at read time.
 	SupportedApiTypes []string `fieldmask:"supported_api_types"`
 }
 
 // Operational configuration wrapped around the ModelService resource..
 type ModelServiceConfig struct {
-	// Routing configuration: destinations, routing strategy, and fallback.
+	// Routing configuration: destinations and fallback.
 	Routing *ModelServiceConfig_RoutingConfig `fieldmask:"routing"`
 	// Rate limits applied to requests routed through this model service.
 	RateLimits []RateLimit `fieldmask:"rate_limits"`
@@ -1344,10 +1306,13 @@ type ModelServiceConfig struct {
 type ModelServiceConfig_DestinationConfig struct {
 	// User-facing label for this destination, used in routing references.
 	Name *string
-	// Backing-model category. Determines which oneof variant is populated.
+	// Backing-model category. Provide the matching type-specific configuration and
+	// leave the other type-specific configurations unset.
 	DestinationType ModelServiceConfig_DestinationConfig_DestinationType
-	// Share of traffic sent to this destination, 0-100. Optional on fallback
-	// destinations; see FallbackConfig.
+	// Percentage of primary traffic sent to this destination, from 0 to 100.
+	// Required when there is more than one primary destination, in which case the
+	// primary percentages must sum to 100; a single primary destination receives
+	// all traffic. Fallback destinations are ordered and do not use this field.
 	TrafficPercentage *int
 	// Destination-type-specific configuration.
 	TypeConfig isModelServiceConfig_DestinationConfig_TypeConfig
@@ -1419,7 +1384,8 @@ type ModelServiceConfig_FallbackConfig struct {
 // the foundation model by its UC resource name; the platform resolves it to a
 // Model Serving endpoint at request time..
 type ModelServiceConfig_PayPerTokenConfig struct {
-	// Resource name of the UC model. Format: `models/{catalog}.{schema}.{model}`.
+	// Resource name of the Unity Catalog model. Format:
+	// `models/{catalog}.{schema}.{model}`.
 	Model *string
 }
 
@@ -1429,10 +1395,11 @@ type ModelServiceConfig_PayPerTokenConfig struct {
 // Model Serving endpoint itself, not by this message..
 type ModelServiceConfig_ProvisionedThroughputConfig struct {
 	// Name of the backing Model Serving endpoint serving the provisioned-
-	// throughput foundation model, as the AIP-122 typed resource name
-	// `serving-endpoints/{name}`. The same UC model can be served on multiple Model
-	// Serving endpoints (different throughput / region / config); the caller picks
-	// which one this destination routes to. The endpoint must exist at create time.
+	// throughput foundation model, in the form `serving-endpoints/{name}`. The same
+	// Unity Catalog model can be served on multiple Model Serving endpoints with
+	// different throughput, regions, or configurations. The caller selects the
+	// endpoint to which this destination routes. The endpoint must exist at create
+	// time.
 	ModelServingEndpoint *string
 	// UC model FQN of the model served by the backing endpoint (e.g.,
 	// `system.ai.databricks-claude-opus-4-6`). Resolved from Model Serving at
@@ -1440,56 +1407,31 @@ type ModelServiceConfig_ProvisionedThroughputConfig struct {
 	Model *string
 }
 
-// Routing configuration for a model service, nesting destinations, routing
-// strategy, and fallback under a single sub-message..
+// Routing configuration for a model service, nesting destinations and fallback
+// under a single sub-message..
 type ModelServiceConfig_RoutingConfig struct {
 	// Primary routing destinations. At most 10 are allowed. At least one is
-	// required on CreateModelService; on UpdateModelService it is required only
-	// when `config.routing` (or a `config.routing.*` subpath) appears in
-	// `update_mask`.
+	// required on Create. On Update, provide this list when replacing the full
+	// `config` or updating `config.routing.destinations`; other granular routing
+	// updates do not require resending destinations. The intermediate
+	// `config.routing` mask path is not supported.
 	Destinations []ModelServiceConfig_DestinationConfig `fieldmask:"destinations"`
-	// Selects how requests are distributed across destinations.
-	RoutingStrategy isModelServiceConfig_RoutingConfig_RoutingStrategy
-	// Fallback routing config, applied after primary destinations fail.
+	// Fallback routing applied after a primary destination fails. Fallback
+	// destinations are tried in the listed order.
 	Fallback *ModelServiceConfig_FallbackConfig `fieldmask:"fallback"`
 	// Timeout for the first token of a streaming response. If a destination does
 	// not return its first token within this duration, AI Gateway aborts the
 	// attempt and fails over to the next destination. Applies to streaming requests
 	// only. Leave unset for no first-token timeout.
-	FirstTokenTimeout *types.Duration                                                     `fieldmask:"first_token_timeout"`
-	_                 [0]modelServiceConfig_RoutingConfigRoutingStrategyFieldMaskMetadata `fieldmask_oneof:"RoutingStrategy"`
-}
-
-type isModelServiceConfig_RoutingConfig_RoutingStrategy interface {
-	isModelServiceConfig_RoutingConfig_RoutingStrategy()
-}
-
-// ModelServiceConfig_RoutingConfig_RoutingStrategy_TrafficSplitting selects TrafficSplitting for ModelServiceConfig_RoutingConfig.RoutingStrategy.
-// Marker message selecting request-based traffic splitting. Traffic is
-// distributed according to each destination's traffic_percentage value; no
-// configuration lives on this message itself.
-type ModelServiceConfig_RoutingConfig_RoutingStrategy_TrafficSplitting struct {
-	TrafficSplitting ModelServiceConfig_RoutingConfig_TrafficSplitting `fieldmask:"traffic_splitting"`
-}
-
-func (*ModelServiceConfig_RoutingConfig_RoutingStrategy_TrafficSplitting) isModelServiceConfig_RoutingConfig_RoutingStrategy() {
-}
-
-type modelServiceConfig_RoutingConfigRoutingStrategyFieldMaskMetadata struct {
-	*ModelServiceConfig_RoutingConfig_RoutingStrategy_TrafficSplitting
-}
-
-// Marker message selecting request-based traffic splitting across primary
-// destinations. Split weights are read from each
-// DestinationConfig.traffic_percentage..
-type ModelServiceConfig_RoutingConfig_TrafficSplitting struct {
+	FirstTokenTimeout *types.Duration `fieldmask:"first_token_timeout"`
 }
 
 // A rate limit applied to service requests. Leave `requests` or `tokens` unset
 // to impose no limit on that dimension; set a value to cap that dimension
 // within the renewal period..
 type RateLimit struct {
-	// Scope key. Determines whether `principal` is required.
+	// Scope of the rate limit. Depending on this value, the limit applies to a
+	// principal, the service as a whole, each user by default, or a request tag.
 	Key RateLimit_RateLimitKey
 	// Renewal period.
 	RenewalPeriod RateLimit_RateLimitRenewalPeriod
@@ -1498,10 +1440,11 @@ type RateLimit struct {
 	// `RATE_LIMIT_KEY_USER_DEFAULT`, or `RATE_LIMIT_KEY_REQUEST_TAG` (which must
 	// not set a principal).
 	Principal *string
-	// Max requests allowed within a renewal period. Leave unset for no request
-	// limit.
+	// Maximum requests allowed in one renewal period. Leave unset for no request
+	// limit. Set to `0` to deny all requests.
 	Requests *int64
-	// Max tokens allowed within a renewal period. Leave unset for no token limit.
+	// Maximum tokens allowed in one renewal period. Leave unset for no token limit.
+	// Set to `0` to deny all requests.
 	Tokens *int64
 	// Request tag key this limit applies to. Required when `key` is
 	// `RATE_LIMIT_KEY_REQUEST_TAG`, forbidden otherwise.
@@ -1519,12 +1462,16 @@ type UpdateMcpServiceRequest struct {
 	// (`mcp-services/{catalog}.{schema}.{mcp_service}`); only fields listed in
 	// `update_mask` are applied.
 	McpService *McpService
-	// The list of fields to update. The framework validates each path against the
-	// `mcp_service` field above. Wildcard paths (`paths: ["*"]`) are not supported;
-	// list each field path explicitly.
+	// Fields to update. Use `config` to replace the entire configuration. The
+	// replacement must include every required field; any optional field you omit is
+	// cleared. To preserve sibling fields, use one or more granular paths:
+	// `comment`, `config.source_connection.name`, `config.include_tool_selectors`,
+	// or `config.rate_limits`. Wildcard paths such as `*` are not supported.
 	UpdateMask *types.FieldMask[McpService]
-	// If-match precondition: when set, the update proceeds only if the current
-	// server-side etag matches. Empty means an unconditional update.
+	// Optimistic concurrency token from the most recent read. When set, the update
+	// succeeds only if the resource has not changed. Leave unset for an
+	// unconditional update. For REST requests, URL-encode the base64 string
+	// returned by the API when setting the `etag` query parameter.
 	Etag []byte
 }
 
@@ -1536,12 +1483,19 @@ type UpdateModelProviderServiceRequest struct {
 	// (`model-provider-services/{catalog}.{schema}.{model_provider_service}`); only
 	// fields listed in `update_mask` are applied.
 	ModelProviderService *ModelProviderService
-	// The list of fields to update. The framework validates each path against the
-	// `model_provider_service` field above. Wildcard paths (`paths: ["*"]`) are not
-	// supported; list each field path explicitly.
+	// Fields to update. Use `config` to replace the entire configuration. The
+	// replacement must include every required field; any optional field you omit is
+	// cleared. To preserve sibling fields, use one or more granular paths:
+	// `comment`, `config.provider`, `config.allow_all_targets`, `config.targets`,
+	// `config.forward_headers`, `config.forward_query_parameters`,
+	// `config.forward_unmanaged_paths`, `config.rate_limits`, or
+	// `config.inference_table`. The provider type is immutable, and wildcard paths
+	// such as `*` are not supported.
 	UpdateMask *types.FieldMask[ModelProviderService]
-	// If-match precondition: when set, the update proceeds only if the current
-	// server-side etag matches. Empty means an unconditional update.
+	// Optimistic concurrency token from the most recent read. When set, the update
+	// succeeds only if the resource has not changed. Leave unset for an
+	// unconditional update. For REST requests, URL-encode the base64 string
+	// returned by the API when setting the `etag` query parameter.
 	Etag []byte
 }
 
@@ -1552,11 +1506,18 @@ type UpdateModelServiceRequest struct {
 	// resource (`model-services/{catalog}.{schema}.{model_service}`); only fields
 	// listed in `update_mask` are applied.
 	ModelService *ModelService
-	// The list of fields to update. The framework validates each path against the
-	// `model_service` field above. Wildcard paths (`paths: ["*"]`) are not
-	// supported; list each field path explicitly.
+	// Fields to update. Use `config` to replace the entire configuration. The
+	// replacement must include every required field; any optional field you omit is
+	// cleared. To preserve sibling fields, use one or more granular paths:
+	// `comment`, `config.routing.destinations`,
+	// `config.routing.fallback.destinations`, `config.routing.first_token_timeout`,
+	// `config.rate_limits`, or `config.inference_table`. Intermediate paths such as
+	// `config.routing` and `config.routing.fallback`, and wildcard paths such as
+	// `*`, are not supported.
 	UpdateMask *types.FieldMask[ModelService]
-	// If-match precondition: when set, the update proceeds only if the current
-	// server-side etag matches. Empty means an unconditional update.
+	// Optimistic concurrency token from the most recent read. When set, the update
+	// succeeds only if the resource has not changed. Leave unset for an
+	// unconditional update. For REST requests, URL-encode the base64 string
+	// returned by the API when setting the `etag` query parameter.
 	Etag []byte
 }

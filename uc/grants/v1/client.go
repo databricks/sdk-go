@@ -84,8 +84,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // contain zero results while still providing a next_page_token. Clients must
 // continue reading pages until next_page_token is absent, which is the only
 // indication that the end of results has been reached.
-func (c *internalClient) GetEffectivePermissions(ctx context.Context, req *GetEffectivePermissionsRequest, opts ...call.Option) (*GetEffectivePermissionsResponse, error) {
-	wireReq, err := getEffectivePermissionsRequestToWire(req)
+func (c *internalClient) GetEffectivePermissions(ctx context.Context, req GetEffectivePermissionsRequest, opts ...call.Option) (*GetEffectivePermissionsResponse, error) {
+	wireReq, err := getEffectivePermissionsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -102,9 +102,17 @@ func (c *internalClient) GetEffectivePermissions(ctx context.Context, req *GetEf
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/effective-permissions/")
-	pb.singleSegment(*req.SecurableType)
+	if req.SecurableType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SecurableType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.SecurableFullName)
+	if req.SecurableFullName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SecurableFullName)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "principal", wireReq.Principal); err != nil {
@@ -167,8 +175,8 @@ func (c *internalClient) GetEffectivePermissions(ctx context.Context, req *GetEf
 // contain zero results while still providing a next_page_token. Clients must
 // continue reading pages until next_page_token is absent, which is the only
 // indication that the end of results has been reached.
-func (c *internalClient) GetPermissions(ctx context.Context, req *GetPermissionsRequest, opts ...call.Option) (*GetPermissionsResponse, error) {
-	wireReq, err := getPermissionsRequestToWire(req)
+func (c *internalClient) GetPermissions(ctx context.Context, req GetPermissionsRequest, opts ...call.Option) (*GetPermissionsResponse, error) {
+	wireReq, err := getPermissionsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -185,9 +193,17 @@ func (c *internalClient) GetPermissions(ctx context.Context, req *GetPermissions
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/permissions/")
-	pb.singleSegment(*req.SecurableType)
+	if req.SecurableType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SecurableType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.SecurableFullName)
+	if req.SecurableFullName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SecurableFullName)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "principal", wireReq.Principal); err != nil {
@@ -243,8 +259,8 @@ func (c *internalClient) GetPermissions(ctx context.Context, req *GetPermissions
 
 // Lists the effective privilege assignments for a securable. Includes inherited
 // privileges. Paginated version of Get Effective Permissions API.
-func (c *internalClient) ListEffectivePrivilegeAssignments(ctx context.Context, req *ListEffectivePrivilegeAssignmentsRequest, opts ...call.Option) (*ListEffectivePrivilegeAssignmentsResponse, error) {
-	wireReq, err := listEffectivePrivilegeAssignmentsRequestToWire(req)
+func (c *internalClient) ListEffectivePrivilegeAssignments(ctx context.Context, req ListEffectivePrivilegeAssignmentsRequest, opts ...call.Option) (*ListEffectivePrivilegeAssignmentsResponse, error) {
+	wireReq, err := listEffectivePrivilegeAssignmentsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -261,9 +277,17 @@ func (c *internalClient) ListEffectivePrivilegeAssignments(ctx context.Context, 
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/effective-privilege-assignments/")
-	pb.singleSegment(*req.SecurableType)
+	if req.SecurableType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SecurableType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.FullName)
+	if req.FullName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullName)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "principal", wireReq.Principal); err != nil {
@@ -322,7 +346,7 @@ func (c *internalClient) ListEffectivePrivilegeAssignments(ctx context.Context, 
 //
 // For example:
 //
-//	for item, err := range c.ListEffectivePrivilegeAssignmentsIter(ctx, &ListEffectivePrivilegeAssignmentsRequest{}) {
+//	for item, err := range c.ListEffectivePrivilegeAssignmentsIter(ctx, ListEffectivePrivilegeAssignmentsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -334,16 +358,13 @@ func (c *internalClient) ListEffectivePrivilegeAssignments(ctx context.Context, 
 //
 // Callers who need custom pagination logic should use
 // ListEffectivePrivilegeAssignments directly.
-func (c *internalClient) ListEffectivePrivilegeAssignmentsIter(ctx context.Context, req *ListEffectivePrivilegeAssignmentsRequest, opts ...call.Option) iter.Seq2[*EffectivePrivilegeAssignment, error] {
+func (c *internalClient) ListEffectivePrivilegeAssignmentsIter(ctx context.Context, req ListEffectivePrivilegeAssignmentsRequest, opts ...call.Option) iter.Seq2[*EffectivePrivilegeAssignment, error] {
 	return func(yield func(*EffectivePrivilegeAssignment, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListEffectivePrivilegeAssignmentsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListEffectivePrivilegeAssignments(ctx, &pageReq, opts...)
+			resp, err := c.ListEffectivePrivilegeAssignments(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -363,8 +384,8 @@ func (c *internalClient) ListEffectivePrivilegeAssignmentsIter(ctx context.Conte
 
 // Lists the privilege assignments for a securable. Does not include inherited
 // privileges. Paginated version of Get Permissions API.
-func (c *internalClient) ListPrivilegeAssignments(ctx context.Context, req *ListPrivilegeAssignmentsRequest, opts ...call.Option) (*ListPrivilegeAssignmentsResponse, error) {
-	wireReq, err := listPrivilegeAssignmentsRequestToWire(req)
+func (c *internalClient) ListPrivilegeAssignments(ctx context.Context, req ListPrivilegeAssignmentsRequest, opts ...call.Option) (*ListPrivilegeAssignmentsResponse, error) {
+	wireReq, err := listPrivilegeAssignmentsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -381,9 +402,17 @@ func (c *internalClient) ListPrivilegeAssignments(ctx context.Context, req *List
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/privilege-assignments/")
-	pb.singleSegment(*req.SecurableType)
+	if req.SecurableType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SecurableType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.FullName)
+	if req.FullName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.FullName)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "principal", wireReq.Principal); err != nil {
@@ -442,7 +471,7 @@ func (c *internalClient) ListPrivilegeAssignments(ctx context.Context, req *List
 //
 // For example:
 //
-//	for item, err := range c.ListPrivilegeAssignmentsIter(ctx, &ListPrivilegeAssignmentsRequest{}) {
+//	for item, err := range c.ListPrivilegeAssignmentsIter(ctx, ListPrivilegeAssignmentsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -454,16 +483,13 @@ func (c *internalClient) ListPrivilegeAssignments(ctx context.Context, req *List
 //
 // Callers who need custom pagination logic should use
 // ListPrivilegeAssignments directly.
-func (c *internalClient) ListPrivilegeAssignmentsIter(ctx context.Context, req *ListPrivilegeAssignmentsRequest, opts ...call.Option) iter.Seq2[*PrivilegeAssignment, error] {
+func (c *internalClient) ListPrivilegeAssignmentsIter(ctx context.Context, req ListPrivilegeAssignmentsRequest, opts ...call.Option) iter.Seq2[*PrivilegeAssignment, error] {
 	return func(yield func(*PrivilegeAssignment, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListPrivilegeAssignmentsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListPrivilegeAssignments(ctx, &pageReq, opts...)
+			resp, err := c.ListPrivilegeAssignments(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -482,8 +508,8 @@ func (c *internalClient) ListPrivilegeAssignmentsIter(ctx context.Context, req *
 }
 
 // Updates the permissions for a securable.
-func (c *internalClient) UpdatePermissions(ctx context.Context, req *UpdatePermissionsRequest, opts ...call.Option) (*UpdatePermissionsResponse, error) {
-	wireReq, err := updatePermissionsRequestToWire(req)
+func (c *internalClient) UpdatePermissions(ctx context.Context, req UpdatePermissionsRequest, opts ...call.Option) (*UpdatePermissionsResponse, error) {
+	wireReq, err := updatePermissionsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -504,9 +530,17 @@ func (c *internalClient) UpdatePermissions(ctx context.Context, req *UpdatePermi
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/permissions/")
-	pb.singleSegment(*req.SecurableType)
+	if req.SecurableType == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SecurableType)
+	}
 	pb.literal("/")
-	pb.singleSegment(*req.SecurableFullName)
+	if req.SecurableFullName == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.SecurableFullName)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

@@ -3,16 +3,62 @@
 package cleanrooms
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type cleanRoomWire struct {
 	Name                   *string                     `json:"name,omitempty"`
 	RemoteDetailedInfo     *cleanRoomRemoteDetailWire  `json:"remote_detailed_info,omitempty"`
 	Owner                  *string                     `json:"owner,omitempty"`
 	Comment                *string                     `json:"comment,omitempty"`
-	CreatedAt              *int64                      `json:"created_at,omitempty"`
-	UpdatedAt              *int64                      `json:"updated_at,omitempty"`
+	CreatedAt              *wireInt64                  `json:"created_at,omitempty"`
+	UpdatedAt              *wireInt64                  `json:"updated_at,omitempty"`
 	Status                 CleanRoom_Status_Enum       `json:"status,omitempty"`
 	LocalCollaboratorAlias *string                     `json:"local_collaborator_alias,omitempty"`
 	OutputCatalog          *cleanRoomOutputCatalogWire `json:"output_catalog,omitempty"`
@@ -28,6 +74,14 @@ func cleanRoomToWire(v *CleanRoom) (*cleanRoomWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CleanRoom.RemoteDetailedInfo", err)
 	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoom.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoom.UpdatedAt", err)
+	}
 	outputCatalogWireValue, err := cleanRoomOutputCatalogToWire(v.OutputCatalog)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CleanRoom.OutputCatalog", err)
@@ -37,8 +91,8 @@ func cleanRoomToWire(v *CleanRoom) (*cleanRoomWire, error) {
 		RemoteDetailedInfo:     remoteDetailedInfoWireValue,
 		Owner:                  v.Owner,
 		Comment:                v.Comment,
-		CreatedAt:              v.CreatedAt,
-		UpdatedAt:              v.UpdatedAt,
+		CreatedAt:              createdAtWireValue,
+		UpdatedAt:              updatedAtWireValue,
 		Status:                 v.Status,
 		LocalCollaboratorAlias: v.LocalCollaboratorAlias,
 		OutputCatalog:          outputCatalogWireValue,
@@ -55,6 +109,14 @@ func cleanRoomFromWire(w *cleanRoomWire) (*CleanRoom, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CleanRoom.RemoteDetailedInfo", err)
 	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoom.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoom.UpdatedAt", err)
+	}
 	outputCatalogPublicValue, err := cleanRoomOutputCatalogFromWire(w.OutputCatalog)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CleanRoom.OutputCatalog", err)
@@ -64,8 +126,8 @@ func cleanRoomFromWire(w *cleanRoomWire) (*CleanRoom, error) {
 		RemoteDetailedInfo:     remoteDetailedInfoPublicValue,
 		Owner:                  w.Owner,
 		Comment:                w.Comment,
-		CreatedAt:              w.CreatedAt,
-		UpdatedAt:              w.UpdatedAt,
+		CreatedAt:              createdAtPublicValue,
+		UpdatedAt:              updatedAtPublicValue,
 		Status:                 w.Status,
 		LocalCollaboratorAlias: w.LocalCollaboratorAlias,
 		OutputCatalog:          outputCatalogPublicValue,
@@ -78,7 +140,7 @@ type cleanRoomAssetWire struct {
 	CleanRoomName            *string                                      `json:"clean_room_name,omitempty"`
 	Name                     *string                                      `json:"name,omitempty"`
 	AssetType                CleanRoomAsset_AssetType                     `json:"asset_type,omitempty"`
-	AddedAt                  *int64                                       `json:"added_at,omitempty"`
+	AddedAt                  *wireInt64                                   `json:"added_at,omitempty"`
 	Status                   CleanRoomAsset_Status_Enum                   `json:"status,omitempty"`
 	OwnerCollaboratorAlias   *string                                      `json:"owner_collaborator_alias,omitempty"`
 	TableLocalDetails        *cleanRoomAsset_TableLocalDetailsWire        `json:"table_local_details,omitempty"`
@@ -95,6 +157,10 @@ type cleanRoomAssetWire struct {
 func cleanRoomAssetToWire(v *CleanRoomAsset) (*cleanRoomAssetWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	addedAtWireValue, err := int64ToWire(v.AddedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomAsset.AddedAt", err)
 	}
 	var localDetailsTableLocalDetailsWire *cleanRoomAsset_TableLocalDetailsWire
 	var localDetailsVolumeLocalDetailsWire *cleanRoomAsset_VolumeLocalDetailsWire
@@ -191,7 +257,7 @@ func cleanRoomAssetToWire(v *CleanRoomAsset) (*cleanRoomAssetWire, error) {
 		CleanRoomName:            v.CleanRoomName,
 		Name:                     v.Name,
 		AssetType:                v.AssetType,
-		AddedAt:                  v.AddedAt,
+		AddedAt:                  addedAtWireValue,
 		Status:                   v.Status,
 		OwnerCollaboratorAlias:   v.OwnerCollaboratorAlias,
 		TableLocalDetails:        localDetailsTableLocalDetailsWire,
@@ -244,6 +310,10 @@ func cleanRoomAssetFromWire(w *cleanRoomAssetWire) (*CleanRoomAsset, error) {
 	}
 	if detailsMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "CleanRoomAsset.Details")
+	}
+	addedAtPublicValue, err := int64FromWire(w.AddedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomAsset.AddedAt", err)
 	}
 	var localDetailsSelection isCleanRoomAsset_LocalDetails
 	switch {
@@ -309,7 +379,7 @@ func cleanRoomAssetFromWire(w *cleanRoomAssetWire) (*CleanRoomAsset, error) {
 		CleanRoomName:          w.CleanRoomName,
 		Name:                   w.Name,
 		AssetType:              w.AssetType,
-		AddedAt:                w.AddedAt,
+		AddedAt:                addedAtPublicValue,
 		Status:                 w.Status,
 		OwnerCollaboratorAlias: w.OwnerCollaboratorAlias,
 		LocalDetails:           localDetailsSelection,
@@ -612,12 +682,16 @@ type cleanRoomAutoApprovalRuleWire struct {
 	AuthorCollaboratorAlias    *string                               `json:"author_collaborator_alias,omitempty"`
 	AuthorScope                CleanRoomAutoApprovalRule_AuthorScope `json:"author_scope,omitempty"`
 	RunnerCollaboratorAlias    *string                               `json:"runner_collaborator_alias,omitempty"`
-	CreatedAt                  *int64                                `json:"created_at,omitempty"`
+	CreatedAt                  *wireInt64                            `json:"created_at,omitempty"`
 }
 
 func cleanRoomAutoApprovalRuleToWire(v *CleanRoomAutoApprovalRule) (*cleanRoomAutoApprovalRuleWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomAutoApprovalRule.CreatedAt", err)
 	}
 	var authorsAuthorCollaboratorAliasWire *string
 	var authorsAuthorScopeWire CleanRoomAutoApprovalRule_AuthorScope
@@ -651,7 +725,7 @@ func cleanRoomAutoApprovalRuleToWire(v *CleanRoomAutoApprovalRule) (*cleanRoomAu
 		AuthorCollaboratorAlias:    authorsAuthorCollaboratorAliasWire,
 		AuthorScope:                authorsAuthorScopeWire,
 		RunnerCollaboratorAlias:    runnersRunnerCollaboratorAliasWire,
-		CreatedAt:                  v.CreatedAt,
+		CreatedAt:                  createdAtWireValue,
 	}, nil
 }
 
@@ -676,6 +750,10 @@ func cleanRoomAutoApprovalRuleFromWire(w *cleanRoomAutoApprovalRuleWire) (*Clean
 	if runnersMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "CleanRoomAutoApprovalRule.Runners")
 	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomAutoApprovalRule.CreatedAt", err)
+	}
 	var authorsSelection isCleanRoomAutoApprovalRule_Authors
 	switch {
 	case w.AuthorCollaboratorAlias != nil:
@@ -692,29 +770,33 @@ func cleanRoomAutoApprovalRuleFromWire(w *cleanRoomAutoApprovalRuleWire) (*Clean
 		CleanRoomName:              w.CleanRoomName,
 		RuleId:                     w.RuleId,
 		RuleOwnerCollaboratorAlias: w.RuleOwnerCollaboratorAlias,
-		CreatedAt:                  w.CreatedAt,
+		CreatedAt:                  createdAtPublicValue,
 		Authors:                    authorsSelection,
 		Runners:                    runnersSelection,
 	}, nil
 }
 
 type cleanRoomCollaboratorWire struct {
-	GlobalMetastoreId          *string `json:"global_metastore_id,omitempty"`
-	OrganizationName           *string `json:"organization_name,omitempty"`
-	InviteRecipientWorkspaceId *int64  `json:"invite_recipient_workspace_id,omitempty"`
-	InviteRecipientEmail       *string `json:"invite_recipient_email,omitempty"`
-	CollaboratorAlias          *string `json:"collaborator_alias,omitempty"`
-	DisplayName                *string `json:"display_name,omitempty"`
+	GlobalMetastoreId          *string    `json:"global_metastore_id,omitempty"`
+	OrganizationName           *string    `json:"organization_name,omitempty"`
+	InviteRecipientWorkspaceId *wireInt64 `json:"invite_recipient_workspace_id,omitempty"`
+	InviteRecipientEmail       *string    `json:"invite_recipient_email,omitempty"`
+	CollaboratorAlias          *string    `json:"collaborator_alias,omitempty"`
+	DisplayName                *string    `json:"display_name,omitempty"`
 }
 
 func cleanRoomCollaboratorToWire(v *CleanRoomCollaborator) (*cleanRoomCollaboratorWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	inviteRecipientWorkspaceIdWireValue, err := int64ToWire(v.InviteRecipientWorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomCollaborator.InviteRecipientWorkspaceId", err)
+	}
 	return &cleanRoomCollaboratorWire{
 		GlobalMetastoreId:          v.GlobalMetastoreId,
 		OrganizationName:           v.OrganizationName,
-		InviteRecipientWorkspaceId: v.InviteRecipientWorkspaceId,
+		InviteRecipientWorkspaceId: inviteRecipientWorkspaceIdWireValue,
 		InviteRecipientEmail:       v.InviteRecipientEmail,
 		CollaboratorAlias:          v.CollaboratorAlias,
 		DisplayName:                v.DisplayName,
@@ -725,10 +807,14 @@ func cleanRoomCollaboratorFromWire(w *cleanRoomCollaboratorWire) (*CleanRoomColl
 	if w == nil {
 		return nil, nil
 	}
+	inviteRecipientWorkspaceIdPublicValue, err := int64FromWire(w.InviteRecipientWorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomCollaborator.InviteRecipientWorkspaceId", err)
+	}
 	return &CleanRoomCollaborator{
 		GlobalMetastoreId:          w.GlobalMetastoreId,
 		OrganizationName:           w.OrganizationName,
-		InviteRecipientWorkspaceId: w.InviteRecipientWorkspaceId,
+		InviteRecipientWorkspaceId: inviteRecipientWorkspaceIdPublicValue,
 		InviteRecipientEmail:       w.InviteRecipientEmail,
 		CollaboratorAlias:          w.CollaboratorAlias,
 		DisplayName:                w.DisplayName,
@@ -737,7 +823,7 @@ func cleanRoomCollaboratorFromWire(w *cleanRoomCollaboratorWire) (*CleanRoomColl
 
 type cleanRoomJarAnalysisReviewWire struct {
 	ReviewerCollaboratorAlias *string                                               `json:"reviewer_collaborator_alias,omitempty"`
-	CreatedAtMillis           *int64                                                `json:"created_at_millis,omitempty"`
+	CreatedAtMillis           *wireInt64                                            `json:"created_at_millis,omitempty"`
 	ReviewState               CleanRoomJarAnalysisReview_JarAnalysisReviewState     `json:"review_state,omitempty"`
 	Comment                   *string                                               `json:"comment,omitempty"`
 	ReviewSubReason           CleanRoomJarAnalysisReview_JarAnalysisReviewSubReason `json:"review_sub_reason,omitempty"`
@@ -747,9 +833,13 @@ func cleanRoomJarAnalysisReviewToWire(v *CleanRoomJarAnalysisReview) (*cleanRoom
 	if v == nil {
 		return nil, nil
 	}
+	createdAtMillisWireValue, err := int64ToWire(v.CreatedAtMillis)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomJarAnalysisReview.CreatedAtMillis", err)
+	}
 	return &cleanRoomJarAnalysisReviewWire{
 		ReviewerCollaboratorAlias: v.ReviewerCollaboratorAlias,
-		CreatedAtMillis:           v.CreatedAtMillis,
+		CreatedAtMillis:           createdAtMillisWireValue,
 		ReviewState:               v.ReviewState,
 		Comment:                   v.Comment,
 		ReviewSubReason:           v.ReviewSubReason,
@@ -760,9 +850,13 @@ func cleanRoomJarAnalysisReviewFromWire(w *cleanRoomJarAnalysisReviewWire) (*Cle
 	if w == nil {
 		return nil, nil
 	}
+	createdAtMillisPublicValue, err := int64FromWire(w.CreatedAtMillis)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomJarAnalysisReview.CreatedAtMillis", err)
+	}
 	return &CleanRoomJarAnalysisReview{
 		ReviewerCollaboratorAlias: w.ReviewerCollaboratorAlias,
-		CreatedAtMillis:           w.CreatedAtMillis,
+		CreatedAtMillis:           createdAtMillisPublicValue,
 		ReviewState:               w.ReviewState,
 		Comment:                   w.Comment,
 		ReviewSubReason:           w.ReviewSubReason,
@@ -771,7 +865,7 @@ func cleanRoomJarAnalysisReviewFromWire(w *cleanRoomJarAnalysisReviewWire) (*Cle
 
 type cleanRoomNotebookReviewWire struct {
 	ReviewerCollaboratorAlias *string                                         `json:"reviewer_collaborator_alias,omitempty"`
-	CreatedAtMillis           *int64                                          `json:"created_at_millis,omitempty"`
+	CreatedAtMillis           *wireInt64                                      `json:"created_at_millis,omitempty"`
 	ReviewState               CleanRoomNotebookReview_NotebookReviewState     `json:"review_state,omitempty"`
 	Comment                   *string                                         `json:"comment,omitempty"`
 	ReviewSubReason           CleanRoomNotebookReview_NotebookReviewSubReason `json:"review_sub_reason,omitempty"`
@@ -781,9 +875,13 @@ func cleanRoomNotebookReviewToWire(v *CleanRoomNotebookReview) (*cleanRoomNotebo
 	if v == nil {
 		return nil, nil
 	}
+	createdAtMillisWireValue, err := int64ToWire(v.CreatedAtMillis)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookReview.CreatedAtMillis", err)
+	}
 	return &cleanRoomNotebookReviewWire{
 		ReviewerCollaboratorAlias: v.ReviewerCollaboratorAlias,
-		CreatedAtMillis:           v.CreatedAtMillis,
+		CreatedAtMillis:           createdAtMillisWireValue,
 		ReviewState:               v.ReviewState,
 		Comment:                   v.Comment,
 		ReviewSubReason:           v.ReviewSubReason,
@@ -794,9 +892,13 @@ func cleanRoomNotebookReviewFromWire(w *cleanRoomNotebookReviewWire) (*CleanRoom
 	if w == nil {
 		return nil, nil
 	}
+	createdAtMillisPublicValue, err := int64FromWire(w.CreatedAtMillis)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookReview.CreatedAtMillis", err)
+	}
 	return &CleanRoomNotebookReview{
 		ReviewerCollaboratorAlias: w.ReviewerCollaboratorAlias,
-		CreatedAtMillis:           w.CreatedAtMillis,
+		CreatedAtMillis:           createdAtMillisPublicValue,
 		ReviewState:               w.ReviewState,
 		Comment:                   w.Comment,
 		ReviewSubReason:           w.ReviewSubReason,
@@ -805,21 +907,29 @@ func cleanRoomNotebookReviewFromWire(w *cleanRoomNotebookReviewWire) (*CleanRoom
 
 type cleanRoomNotebookTaskRunWire struct {
 	NotebookName                     *string                     `json:"notebook_name,omitempty"`
-	StartTime                        *int64                      `json:"start_time,omitempty"`
-	RunDuration                      *int64                      `json:"run_duration,omitempty"`
+	StartTime                        *wireInt64                  `json:"start_time,omitempty"`
+	RunDuration                      *wireInt64                  `json:"run_duration,omitempty"`
 	NotebookJobRunState              *cleanRoomTaskRunStateWire  `json:"notebook_job_run_state,omitempty"`
 	CollaboratorJobRunInfo           *collaboratorJobRunInfoWire `json:"collaborator_job_run_info,omitempty"`
 	OutputSchemaName                 *string                     `json:"output_schema_name,omitempty"`
-	OutputSchemaExpirationTime       *int64                      `json:"output_schema_expiration_time,omitempty"`
+	OutputSchemaExpirationTime       *wireInt64                  `json:"output_schema_expiration_time,omitempty"`
 	NotebookEtag                     *string                     `json:"notebook_etag,omitempty"`
-	NotebookUpdatedAt                *int64                      `json:"notebook_updated_at,omitempty"`
+	NotebookUpdatedAt                *wireInt64                  `json:"notebook_updated_at,omitempty"`
 	SharedOutputSchemaName           *string                     `json:"shared_output_schema_name,omitempty"`
-	SharedOutputSchemaExpirationTime *int64                      `json:"shared_output_schema_expiration_time,omitempty"`
+	SharedOutputSchemaExpirationTime *wireInt64                  `json:"shared_output_schema_expiration_time,omitempty"`
 }
 
 func cleanRoomNotebookTaskRunFromWire(w *cleanRoomNotebookTaskRunWire) (*CleanRoomNotebookTaskRun, error) {
 	if w == nil {
 		return nil, nil
+	}
+	startTimePublicValue, err := int64FromWire(w.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookTaskRun.StartTime", err)
+	}
+	runDurationPublicValue, err := int64FromWire(w.RunDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookTaskRun.RunDuration", err)
 	}
 	notebookJobRunStatePublicValue, err := cleanRoomTaskRunStateFromWire(w.NotebookJobRunState)
 	if err != nil {
@@ -829,18 +939,30 @@ func cleanRoomNotebookTaskRunFromWire(w *cleanRoomNotebookTaskRunWire) (*CleanRo
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookTaskRun.CollaboratorJobRunInfo", err)
 	}
+	outputSchemaExpirationTimePublicValue, err := int64FromWire(w.OutputSchemaExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookTaskRun.OutputSchemaExpirationTime", err)
+	}
+	notebookUpdatedAtPublicValue, err := int64FromWire(w.NotebookUpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookTaskRun.NotebookUpdatedAt", err)
+	}
+	sharedOutputSchemaExpirationTimePublicValue, err := int64FromWire(w.SharedOutputSchemaExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookTaskRun.SharedOutputSchemaExpirationTime", err)
+	}
 	return &CleanRoomNotebookTaskRun{
 		NotebookName:                     w.NotebookName,
-		StartTime:                        w.StartTime,
-		RunDuration:                      w.RunDuration,
+		StartTime:                        startTimePublicValue,
+		RunDuration:                      runDurationPublicValue,
 		NotebookJobRunState:              notebookJobRunStatePublicValue,
 		CollaboratorJobRunInfo:           collaboratorJobRunInfoPublicValue,
 		OutputSchemaName:                 w.OutputSchemaName,
-		OutputSchemaExpirationTime:       w.OutputSchemaExpirationTime,
+		OutputSchemaExpirationTime:       outputSchemaExpirationTimePublicValue,
 		NotebookEtag:                     w.NotebookEtag,
-		NotebookUpdatedAt:                w.NotebookUpdatedAt,
+		NotebookUpdatedAt:                notebookUpdatedAtPublicValue,
 		SharedOutputSchemaName:           w.SharedOutputSchemaName,
-		SharedOutputSchemaExpirationTime: w.SharedOutputSchemaExpirationTime,
+		SharedOutputSchemaExpirationTime: sharedOutputSchemaExpirationTimePublicValue,
 	}, nil
 }
 
@@ -950,8 +1072,8 @@ func cleanRoomRemoteDetailFromWire(w *cleanRoomRemoteDetailWire) (*CleanRoomRemo
 type cleanRoomTaskRunWire struct {
 	Name                   *string                                            `json:"name,omitempty"`
 	TaskType               CleanRoomTaskType                                  `json:"task_type,omitempty"`
-	StartTime              *int64                                             `json:"start_time,omitempty"`
-	RunDuration            *int64                                             `json:"run_duration,omitempty"`
+	StartTime              *wireInt64                                         `json:"start_time,omitempty"`
+	RunDuration            *wireInt64                                         `json:"run_duration,omitempty"`
 	TaskRunState           *cleanRoomTaskRunStateWire                         `json:"task_run_state,omitempty"`
 	CollaboratorJobRunInfo *collaboratorJobRunInfoWire                        `json:"collaborator_job_run_info,omitempty"`
 	OutputInfo             *cleanRoomTaskRun_OutputInfoWire                   `json:"output_info,omitempty"`
@@ -962,6 +1084,14 @@ type cleanRoomTaskRunWire struct {
 func cleanRoomTaskRunFromWire(w *cleanRoomTaskRunWire) (*CleanRoomTaskRun, error) {
 	if w == nil {
 		return nil, nil
+	}
+	startTimePublicValue, err := int64FromWire(w.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun.StartTime", err)
+	}
+	runDurationPublicValue, err := int64FromWire(w.RunDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun.RunDuration", err)
 	}
 	taskRunStatePublicValue, err := cleanRoomTaskRunStateFromWire(w.TaskRunState)
 	if err != nil {
@@ -986,8 +1116,8 @@ func cleanRoomTaskRunFromWire(w *cleanRoomTaskRunWire) (*CleanRoomTaskRun, error
 	return &CleanRoomTaskRun{
 		Name:                   w.Name,
 		TaskType:               w.TaskType,
-		StartTime:              w.StartTime,
-		RunDuration:            w.RunDuration,
+		StartTime:              startTimePublicValue,
+		RunDuration:            runDurationPublicValue,
 		TaskRunState:           taskRunStatePublicValue,
 		CollaboratorJobRunInfo: collaboratorJobRunInfoPublicValue,
 		OutputInfo:             outputInfoPublicValue,
@@ -997,32 +1127,40 @@ func cleanRoomTaskRunFromWire(w *cleanRoomTaskRunWire) (*CleanRoomTaskRun, error
 }
 
 type cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsWire struct {
-	Etag      *string `json:"etag,omitempty"`
-	UpdatedAt *int64  `json:"updated_at,omitempty"`
+	Etag      *string    `json:"etag,omitempty"`
+	UpdatedAt *wireInt64 `json:"updated_at,omitempty"`
 }
 
 func cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsFromWire(w *cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsWire) (*CleanRoomTaskRun_CleanRoomTaskAnalysisDetails, error) {
 	if w == nil {
 		return nil, nil
 	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun_CleanRoomTaskAnalysisDetails.UpdatedAt", err)
+	}
 	return &CleanRoomTaskRun_CleanRoomTaskAnalysisDetails{
 		Etag:      w.Etag,
-		UpdatedAt: w.UpdatedAt,
+		UpdatedAt: updatedAtPublicValue,
 	}, nil
 }
 
 type cleanRoomTaskRun_OutputInfoWire struct {
-	OutputSchemaName           *string `json:"output_schema_name,omitempty"`
-	OutputSchemaExpirationTime *int64  `json:"output_schema_expiration_time,omitempty"`
+	OutputSchemaName           *string    `json:"output_schema_name,omitempty"`
+	OutputSchemaExpirationTime *wireInt64 `json:"output_schema_expiration_time,omitempty"`
 }
 
 func cleanRoomTaskRun_OutputInfoFromWire(w *cleanRoomTaskRun_OutputInfoWire) (*CleanRoomTaskRun_OutputInfo, error) {
 	if w == nil {
 		return nil, nil
 	}
+	outputSchemaExpirationTimePublicValue, err := int64FromWire(w.OutputSchemaExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun_OutputInfo.OutputSchemaExpirationTime", err)
+	}
 	return &CleanRoomTaskRun_OutputInfo{
 		OutputSchemaName:           w.OutputSchemaName,
-		OutputSchemaExpirationTime: w.OutputSchemaExpirationTime,
+		OutputSchemaExpirationTime: outputSchemaExpirationTimePublicValue,
 	}, nil
 }
 
@@ -1042,22 +1180,38 @@ func cleanRoomTaskRunStateFromWire(w *cleanRoomTaskRunStateWire) (*CleanRoomTask
 }
 
 type collaboratorJobRunInfoWire struct {
-	CollaboratorJobId       *int64  `json:"collaborator_job_id,omitempty"`
-	CollaboratorJobRunId    *int64  `json:"collaborator_job_run_id,omitempty"`
-	CollaboratorTaskRunId   *int64  `json:"collaborator_task_run_id,omitempty"`
-	CollaboratorWorkspaceId *int64  `json:"collaborator_workspace_id,omitempty"`
-	CollaboratorAlias       *string `json:"collaborator_alias,omitempty"`
+	CollaboratorJobId       *wireInt64 `json:"collaborator_job_id,omitempty"`
+	CollaboratorJobRunId    *wireInt64 `json:"collaborator_job_run_id,omitempty"`
+	CollaboratorTaskRunId   *wireInt64 `json:"collaborator_task_run_id,omitempty"`
+	CollaboratorWorkspaceId *wireInt64 `json:"collaborator_workspace_id,omitempty"`
+	CollaboratorAlias       *string    `json:"collaborator_alias,omitempty"`
 }
 
 func collaboratorJobRunInfoFromWire(w *collaboratorJobRunInfoWire) (*CollaboratorJobRunInfo, error) {
 	if w == nil {
 		return nil, nil
 	}
+	collaboratorJobIdPublicValue, err := int64FromWire(w.CollaboratorJobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CollaboratorJobRunInfo.CollaboratorJobId", err)
+	}
+	collaboratorJobRunIdPublicValue, err := int64FromWire(w.CollaboratorJobRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CollaboratorJobRunInfo.CollaboratorJobRunId", err)
+	}
+	collaboratorTaskRunIdPublicValue, err := int64FromWire(w.CollaboratorTaskRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CollaboratorJobRunInfo.CollaboratorTaskRunId", err)
+	}
+	collaboratorWorkspaceIdPublicValue, err := int64FromWire(w.CollaboratorWorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CollaboratorJobRunInfo.CollaboratorWorkspaceId", err)
+	}
 	return &CollaboratorJobRunInfo{
-		CollaboratorJobId:       w.CollaboratorJobId,
-		CollaboratorJobRunId:    w.CollaboratorJobRunId,
-		CollaboratorTaskRunId:   w.CollaboratorTaskRunId,
-		CollaboratorWorkspaceId: w.CollaboratorWorkspaceId,
+		CollaboratorJobId:       collaboratorJobIdPublicValue,
+		CollaboratorJobRunId:    collaboratorJobRunIdPublicValue,
+		CollaboratorTaskRunId:   collaboratorTaskRunIdPublicValue,
+		CollaboratorWorkspaceId: collaboratorWorkspaceIdPublicValue,
 		CollaboratorAlias:       w.CollaboratorAlias,
 	}, nil
 }

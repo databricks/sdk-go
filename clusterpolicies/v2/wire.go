@@ -3,34 +3,53 @@
 package clusterpolicies
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
-
-	"github.com/databricks/sdk-go/core/types"
+	"strconv"
 )
 
-type clusterPolicyRevisionWire struct {
-	RevisionId *string                  `json:"revision_id,omitempty"`
-	CreateTime *types.Time              `json:"create_time,omitempty"`
-	Settings   *policyOwnAttributesWire `json:"settings,omitempty"`
-	EditUser   *string                  `json:"edit_user,omitempty"`
-	IsCurrent  *bool                    `json:"is_current,omitempty"`
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
 }
 
-func clusterPolicyRevisionFromWire(w *clusterPolicyRevisionWire) (*ClusterPolicyRevision, error) {
-	if w == nil {
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
 		return nil, nil
 	}
-	settingsPublicValue, err := policyOwnAttributesFromWire(w.Settings)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "ClusterPolicyRevision.Settings", err)
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
 	}
-	return &ClusterPolicyRevision{
-		RevisionId: w.RevisionId,
-		CreateTime: w.CreateTime,
-		Settings:   settingsPublicValue,
-		EditUser:   w.EditUser,
-		IsCurrent:  w.IsCurrent,
-	}, nil
+	converted := int64(*v)
+	return &converted, nil
 }
 
 type createPolicyRequestWire struct {
@@ -39,13 +58,17 @@ type createPolicyRequestWire struct {
 	Description                     *string       `json:"description,omitempty"`
 	PolicyFamilyId                  *string       `json:"policy_family_id,omitempty"`
 	PolicyFamilyDefinitionOverrides *string       `json:"policy_family_definition_overrides,omitempty"`
-	MaxClustersPerUser              *int64        `json:"max_clusters_per_user,omitempty"`
+	MaxClustersPerUser              *wireInt64    `json:"max_clusters_per_user,omitempty"`
 	Libraries                       []libraryWire `json:"libraries,omitempty"`
 }
 
 func createPolicyRequestToWire(v *CreatePolicyRequest) (*createPolicyRequestWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	maxClustersPerUserWireValue, err := int64ToWire(v.MaxClustersPerUser)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePolicyRequest.MaxClustersPerUser", err)
 	}
 	librariesWireValue, err := convertSlice(v.Libraries, libraryToWire)
 	if err != nil {
@@ -57,7 +80,7 @@ func createPolicyRequestToWire(v *CreatePolicyRequest) (*createPolicyRequestWire
 		Description:                     v.Description,
 		PolicyFamilyId:                  v.PolicyFamilyId,
 		PolicyFamilyDefinitionOverrides: v.PolicyFamilyDefinitionOverrides,
-		MaxClustersPerUser:              v.MaxClustersPerUser,
+		MaxClustersPerUser:              maxClustersPerUserWireValue,
 		Libraries:                       librariesWireValue,
 	}, nil
 }
@@ -95,13 +118,17 @@ type editPolicyRequestWire struct {
 	Description                     *string       `json:"description,omitempty"`
 	PolicyFamilyId                  *string       `json:"policy_family_id,omitempty"`
 	PolicyFamilyDefinitionOverrides *string       `json:"policy_family_definition_overrides,omitempty"`
-	MaxClustersPerUser              *int64        `json:"max_clusters_per_user,omitempty"`
+	MaxClustersPerUser              *wireInt64    `json:"max_clusters_per_user,omitempty"`
 	Libraries                       []libraryWire `json:"libraries,omitempty"`
 }
 
 func editPolicyRequestToWire(v *EditPolicyRequest) (*editPolicyRequestWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	maxClustersPerUserWireValue, err := int64ToWire(v.MaxClustersPerUser)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditPolicyRequest.MaxClustersPerUser", err)
 	}
 	librariesWireValue, err := convertSlice(v.Libraries, libraryToWire)
 	if err != nil {
@@ -114,7 +141,7 @@ func editPolicyRequestToWire(v *EditPolicyRequest) (*editPolicyRequestWire, erro
 		Description:                     v.Description,
 		PolicyFamilyId:                  v.PolicyFamilyId,
 		PolicyFamilyDefinitionOverrides: v.PolicyFamilyDefinitionOverrides,
-		MaxClustersPerUser:              v.MaxClustersPerUser,
+		MaxClustersPerUser:              maxClustersPerUserWireValue,
 		Libraries:                       librariesWireValue,
 	}, nil
 }
@@ -272,42 +299,6 @@ func libraryFromWire(w *libraryWire) (*Library, error) {
 	}, nil
 }
 
-type listClusterPolicyRevisionsRequestWire struct {
-	Parent    *string `json:"parent,omitempty"`
-	PageSize  *int    `json:"page_size,omitempty"`
-	PageToken *string `json:"page_token,omitempty"`
-}
-
-func listClusterPolicyRevisionsRequestToWire(v *ListClusterPolicyRevisionsRequest) (*listClusterPolicyRevisionsRequestWire, error) {
-	if v == nil {
-		return nil, nil
-	}
-	return &listClusterPolicyRevisionsRequestWire{
-		Parent:    v.Parent,
-		PageSize:  v.PageSize,
-		PageToken: v.PageToken,
-	}, nil
-}
-
-type listClusterPolicyRevisionsResponseWire struct {
-	ClusterPolicyRevisions []clusterPolicyRevisionWire `json:"cluster_policy_revisions,omitempty"`
-	NextPageToken          *string                     `json:"next_page_token,omitempty"`
-}
-
-func listClusterPolicyRevisionsResponseFromWire(w *listClusterPolicyRevisionsResponseWire) (*ListClusterPolicyRevisionsResponse, error) {
-	if w == nil {
-		return nil, nil
-	}
-	clusterPolicyRevisionsPublicValue, err := convertSlice(w.ClusterPolicyRevisions, clusterPolicyRevisionFromWire)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "ListClusterPolicyRevisionsResponse.ClusterPolicyRevisions", err)
-	}
-	return &ListClusterPolicyRevisionsResponse{
-		ClusterPolicyRevisions: clusterPolicyRevisionsPublicValue,
-		NextPageToken:          w.NextPageToken,
-	}, nil
-}
-
 type listPoliciesRequestWire struct {
 	SortOrder  ListOrder        `json:"sort_order,omitempty"`
 	SortColumn PolicySortColumn `json:"sort_column,omitempty"`
@@ -371,20 +362,28 @@ func mavenLibraryFromWire(w *mavenLibraryWire) (*MavenLibrary, error) {
 type policyWire struct {
 	PolicyId                        *string       `json:"policy_id,omitempty"`
 	CreatorUserName                 *string       `json:"creator_user_name,omitempty"`
-	CreatedAtTimestamp              *int64        `json:"created_at_timestamp,omitempty"`
+	CreatedAtTimestamp              *wireInt64    `json:"created_at_timestamp,omitempty"`
 	IsDefault                       *bool         `json:"is_default,omitempty"`
 	Name                            *string       `json:"name,omitempty"`
 	Definition                      *string       `json:"definition,omitempty"`
 	Description                     *string       `json:"description,omitempty"`
 	PolicyFamilyId                  *string       `json:"policy_family_id,omitempty"`
 	PolicyFamilyDefinitionOverrides *string       `json:"policy_family_definition_overrides,omitempty"`
-	MaxClustersPerUser              *int64        `json:"max_clusters_per_user,omitempty"`
+	MaxClustersPerUser              *wireInt64    `json:"max_clusters_per_user,omitempty"`
 	Libraries                       []libraryWire `json:"libraries,omitempty"`
 }
 
 func policyFromWire(w *policyWire) (*Policy, error) {
 	if w == nil {
 		return nil, nil
+	}
+	createdAtTimestampPublicValue, err := int64FromWire(w.CreatedAtTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Policy.CreatedAtTimestamp", err)
+	}
+	maxClustersPerUserPublicValue, err := int64FromWire(w.MaxClustersPerUser)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Policy.MaxClustersPerUser", err)
 	}
 	librariesPublicValue, err := convertSlice(w.Libraries, libraryFromWire)
 	if err != nil {
@@ -393,43 +392,14 @@ func policyFromWire(w *policyWire) (*Policy, error) {
 	return &Policy{
 		PolicyId:                        w.PolicyId,
 		CreatorUserName:                 w.CreatorUserName,
-		CreatedAtTimestamp:              w.CreatedAtTimestamp,
+		CreatedAtTimestamp:              createdAtTimestampPublicValue,
 		IsDefault:                       w.IsDefault,
 		Name:                            w.Name,
 		Definition:                      w.Definition,
 		Description:                     w.Description,
 		PolicyFamilyId:                  w.PolicyFamilyId,
 		PolicyFamilyDefinitionOverrides: w.PolicyFamilyDefinitionOverrides,
-		MaxClustersPerUser:              w.MaxClustersPerUser,
-		Libraries:                       librariesPublicValue,
-	}, nil
-}
-
-type policyOwnAttributesWire struct {
-	Name                            *string       `json:"name,omitempty"`
-	Definition                      *string       `json:"definition,omitempty"`
-	Description                     *string       `json:"description,omitempty"`
-	PolicyFamilyId                  *string       `json:"policy_family_id,omitempty"`
-	PolicyFamilyDefinitionOverrides *string       `json:"policy_family_definition_overrides,omitempty"`
-	MaxClustersPerUser              *int64        `json:"max_clusters_per_user,omitempty"`
-	Libraries                       []libraryWire `json:"libraries,omitempty"`
-}
-
-func policyOwnAttributesFromWire(w *policyOwnAttributesWire) (*PolicyOwnAttributes, error) {
-	if w == nil {
-		return nil, nil
-	}
-	librariesPublicValue, err := convertSlice(w.Libraries, libraryFromWire)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "PolicyOwnAttributes.Libraries", err)
-	}
-	return &PolicyOwnAttributes{
-		Name:                            w.Name,
-		Definition:                      w.Definition,
-		Description:                     w.Description,
-		PolicyFamilyId:                  w.PolicyFamilyId,
-		PolicyFamilyDefinitionOverrides: w.PolicyFamilyDefinitionOverrides,
-		MaxClustersPerUser:              w.MaxClustersPerUser,
+		MaxClustersPerUser:              maxClustersPerUserPublicValue,
 		Libraries:                       librariesPublicValue,
 	}, nil
 }
@@ -481,19 +451,6 @@ func rCranLibraryFromWire(w *rCranLibraryWire) (*RCranLibrary, error) {
 	return &RCranLibrary{
 		Package: w.Package,
 		Repo:    w.Repo,
-	}, nil
-}
-
-type rollbackClusterPolicyRequestWire struct {
-	Name *string `json:"name,omitempty"`
-}
-
-func rollbackClusterPolicyRequestToWire(v *RollbackClusterPolicyRequest) (*rollbackClusterPolicyRequestWire, error) {
-	if v == nil {
-		return nil, nil
-	}
-	return &rollbackClusterPolicyRequestWire{
-		Name: v.Name,
 	}, nil
 }
 

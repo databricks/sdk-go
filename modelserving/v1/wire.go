@@ -3,8 +3,54 @@
 package modelserving
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type ai21LabsConfigWire struct {
 	Ai21labsApiKey          *string `json:"ai21labs_api_key,omitempty"`
@@ -106,23 +152,31 @@ func aiGatewayConfigFromWire(w *aiGatewayConfigWire) (*AiGatewayConfig, error) {
 }
 
 type aiGatewayRateLimitWire struct {
-	Calls         *int64  `json:"calls,omitempty"`
-	Key           *string `json:"key,omitempty"`
-	RenewalPeriod *string `json:"renewal_period,omitempty"`
-	Principal     *string `json:"principal,omitempty"`
-	Tokens        *int64  `json:"tokens,omitempty"`
+	Calls         *wireInt64 `json:"calls,omitempty"`
+	Key           *string    `json:"key,omitempty"`
+	RenewalPeriod *string    `json:"renewal_period,omitempty"`
+	Principal     *string    `json:"principal,omitempty"`
+	Tokens        *wireInt64 `json:"tokens,omitempty"`
 }
 
 func aiGatewayRateLimitToWire(v *AiGatewayRateLimit) (*aiGatewayRateLimitWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	callsWireValue, err := int64ToWire(v.Calls)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiGatewayRateLimit.Calls", err)
+	}
+	tokensWireValue, err := int64ToWire(v.Tokens)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiGatewayRateLimit.Tokens", err)
+	}
 	return &aiGatewayRateLimitWire{
-		Calls:         v.Calls,
+		Calls:         callsWireValue,
 		Key:           v.Key,
 		RenewalPeriod: v.RenewalPeriod,
 		Principal:     v.Principal,
-		Tokens:        v.Tokens,
+		Tokens:        tokensWireValue,
 	}, nil
 }
 
@@ -130,12 +184,20 @@ func aiGatewayRateLimitFromWire(w *aiGatewayRateLimitWire) (*AiGatewayRateLimit,
 	if w == nil {
 		return nil, nil
 	}
+	callsPublicValue, err := int64FromWire(w.Calls)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiGatewayRateLimit.Calls", err)
+	}
+	tokensPublicValue, err := int64FromWire(w.Tokens)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiGatewayRateLimit.Tokens", err)
+	}
 	return &AiGatewayRateLimit{
-		Calls:         w.Calls,
+		Calls:         callsPublicValue,
 		Key:           w.Key,
 		RenewalPeriod: w.RenewalPeriod,
 		Principal:     w.Principal,
-		Tokens:        w.Tokens,
+		Tokens:        tokensPublicValue,
 	}, nil
 }
 
@@ -679,7 +741,7 @@ func endpointCoreConfigToWire(v *EndpointCoreConfig) (*endpointCoreConfigWire, e
 }
 
 type endpointCoreConfigOutputWire struct {
-	ConfigVersion     *int64                 `json:"config_version,omitempty"`
+	ConfigVersion     *wireInt64             `json:"config_version,omitempty"`
 	ServedEntities    []servedModelWire      `json:"served_entities,omitempty"`
 	ServedModels      []servedModelWire      `json:"served_models,omitempty"`
 	TrafficConfig     *trafficConfigWire     `json:"traffic_config,omitempty"`
@@ -689,6 +751,10 @@ type endpointCoreConfigOutputWire struct {
 func endpointCoreConfigOutputFromWire(w *endpointCoreConfigOutputWire) (*EndpointCoreConfigOutput, error) {
 	if w == nil {
 		return nil, nil
+	}
+	configVersionPublicValue, err := int64FromWire(w.ConfigVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EndpointCoreConfigOutput.ConfigVersion", err)
 	}
 	servedEntitiesPublicValue, err := convertSlice(w.ServedEntities, servedModelFromWire)
 	if err != nil {
@@ -707,7 +773,7 @@ func endpointCoreConfigOutputFromWire(w *endpointCoreConfigOutputWire) (*Endpoin
 		return nil, fmt.Errorf("%s: %w", "EndpointCoreConfigOutput.AutoCaptureConfig", err)
 	}
 	return &EndpointCoreConfigOutput{
-		ConfigVersion:     w.ConfigVersion,
+		ConfigVersion:     configVersionPublicValue,
 		ServedEntities:    servedEntitiesPublicValue,
 		ServedModels:      servedModelsPublicValue,
 		TrafficConfig:     trafficConfigPublicValue,
@@ -1122,8 +1188,8 @@ func googleCloudVertexAiConfigFromWire(w *googleCloudVertexAiConfigWire) (*Googl
 type inferenceEndpointWire struct {
 	Name                 *string                        `json:"name,omitempty"`
 	Creator              *string                        `json:"creator,omitempty"`
-	CreationTimestamp    *int64                         `json:"creation_timestamp,omitempty"`
-	LastUpdatedTimestamp *int64                         `json:"last_updated_timestamp,omitempty"`
+	CreationTimestamp    *wireInt64                     `json:"creation_timestamp,omitempty"`
+	LastUpdatedTimestamp *wireInt64                     `json:"last_updated_timestamp,omitempty"`
 	State                *inferenceEndpointStateWire    `json:"state,omitempty"`
 	Config               *endpointCoreConfigSummaryWire `json:"config,omitempty"`
 	Tags                 []endpointTagWire              `json:"tags,omitempty"`
@@ -1139,6 +1205,14 @@ type inferenceEndpointWire struct {
 func inferenceEndpointFromWire(w *inferenceEndpointWire) (*InferenceEndpoint, error) {
 	if w == nil {
 		return nil, nil
+	}
+	creationTimestampPublicValue, err := int64FromWire(w.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InferenceEndpoint.CreationTimestamp", err)
+	}
+	lastUpdatedTimestampPublicValue, err := int64FromWire(w.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InferenceEndpoint.LastUpdatedTimestamp", err)
 	}
 	statePublicValue, err := inferenceEndpointStateFromWire(w.State)
 	if err != nil {
@@ -1163,8 +1237,8 @@ func inferenceEndpointFromWire(w *inferenceEndpointWire) (*InferenceEndpoint, er
 	return &InferenceEndpoint{
 		Name:                 w.Name,
 		Creator:              w.Creator,
-		CreationTimestamp:    w.CreationTimestamp,
-		LastUpdatedTimestamp: w.LastUpdatedTimestamp,
+		CreationTimestamp:    creationTimestampPublicValue,
+		LastUpdatedTimestamp: lastUpdatedTimestampPublicValue,
 		State:                statePublicValue,
 		Config:               configPublicValue,
 		Tags:                 tagsPublicValue,
@@ -1181,8 +1255,8 @@ func inferenceEndpointFromWire(w *inferenceEndpointWire) (*InferenceEndpoint, er
 type inferenceEndpointDetailedWire struct {
 	Name                 *string                                `json:"name,omitempty"`
 	Creator              *string                                `json:"creator,omitempty"`
-	CreationTimestamp    *int64                                 `json:"creation_timestamp,omitempty"`
-	LastUpdatedTimestamp *int64                                 `json:"last_updated_timestamp,omitempty"`
+	CreationTimestamp    *wireInt64                             `json:"creation_timestamp,omitempty"`
+	LastUpdatedTimestamp *wireInt64                             `json:"last_updated_timestamp,omitempty"`
 	State                *inferenceEndpointStateWire            `json:"state,omitempty"`
 	Config               *endpointCoreConfigOutputWire          `json:"config,omitempty"`
 	PendingConfig        *pendingConfigWire                     `json:"pending_config,omitempty"`
@@ -1203,6 +1277,14 @@ type inferenceEndpointDetailedWire struct {
 func inferenceEndpointDetailedFromWire(w *inferenceEndpointDetailedWire) (*InferenceEndpointDetailed, error) {
 	if w == nil {
 		return nil, nil
+	}
+	creationTimestampPublicValue, err := int64FromWire(w.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InferenceEndpointDetailed.CreationTimestamp", err)
+	}
+	lastUpdatedTimestampPublicValue, err := int64FromWire(w.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InferenceEndpointDetailed.LastUpdatedTimestamp", err)
 	}
 	statePublicValue, err := inferenceEndpointStateFromWire(w.State)
 	if err != nil {
@@ -1239,8 +1321,8 @@ func inferenceEndpointDetailedFromWire(w *inferenceEndpointDetailedWire) (*Infer
 	return &InferenceEndpointDetailed{
 		Name:                 w.Name,
 		Creator:              w.Creator,
-		CreationTimestamp:    w.CreationTimestamp,
-		LastUpdatedTimestamp: w.LastUpdatedTimestamp,
+		CreationTimestamp:    creationTimestampPublicValue,
+		LastUpdatedTimestamp: lastUpdatedTimestampPublicValue,
 		State:                statePublicValue,
 		Config:               configPublicValue,
 		PendingConfig:        pendingConfigPublicValue,
@@ -1506,7 +1588,7 @@ type pendingConfigWire struct {
 	ServedModels      []servedModelWire      `json:"served_models,omitempty"`
 	TrafficConfig     *trafficConfigWire     `json:"traffic_config,omitempty"`
 	ConfigVersion     *int                   `json:"config_version,omitempty"`
-	StartTime         *int64                 `json:"start_time,omitempty"`
+	StartTime         *wireInt64             `json:"start_time,omitempty"`
 	AutoCaptureConfig *autoCaptureConfigWire `json:"auto_capture_config,omitempty"`
 }
 
@@ -1526,6 +1608,10 @@ func pendingConfigFromWire(w *pendingConfigWire) (*PendingConfig, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "PendingConfig.TrafficConfig", err)
 	}
+	startTimePublicValue, err := int64FromWire(w.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PendingConfig.StartTime", err)
+	}
 	autoCaptureConfigPublicValue, err := autoCaptureConfigFromWire(w.AutoCaptureConfig)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "PendingConfig.AutoCaptureConfig", err)
@@ -1535,7 +1621,7 @@ func pendingConfigFromWire(w *pendingConfigWire) (*PendingConfig, error) {
 		ServedModels:      servedModelsPublicValue,
 		TrafficConfig:     trafficConfigPublicValue,
 		ConfigVersion:     w.ConfigVersion,
-		StartTime:         w.StartTime,
+		StartTime:         startTimePublicValue,
 		AutoCaptureConfig: autoCaptureConfigPublicValue,
 	}, nil
 }
@@ -1586,22 +1672,26 @@ func ptEndpointCoreConfigToWire(v *PtEndpointCoreConfig) (*ptEndpointCoreConfigW
 }
 
 type ptServedModelWire struct {
-	Name                  *string `json:"name,omitempty"`
-	EntityName            *string `json:"entity_name,omitempty"`
-	EntityVersion         *string `json:"entity_version,omitempty"`
-	ProvisionedModelUnits *int64  `json:"provisioned_model_units,omitempty"`
-	BurstScalingEnabled   *bool   `json:"burst_scaling_enabled,omitempty"`
+	Name                  *string    `json:"name,omitempty"`
+	EntityName            *string    `json:"entity_name,omitempty"`
+	EntityVersion         *string    `json:"entity_version,omitempty"`
+	ProvisionedModelUnits *wireInt64 `json:"provisioned_model_units,omitempty"`
+	BurstScalingEnabled   *bool      `json:"burst_scaling_enabled,omitempty"`
 }
 
 func ptServedModelToWire(v *PtServedModel) (*ptServedModelWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	provisionedModelUnitsWireValue, err := int64ToWire(v.ProvisionedModelUnits)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PtServedModel.ProvisionedModelUnits", err)
+	}
 	return &ptServedModelWire{
 		Name:                  v.Name,
 		EntityName:            v.EntityName,
 		EntityVersion:         v.EntityVersion,
-		ProvisionedModelUnits: v.ProvisionedModelUnits,
+		ProvisionedModelUnits: provisionedModelUnitsWireValue,
 		BurstScalingEnabled:   v.BurstScalingEnabled,
 	}, nil
 }
@@ -1783,17 +1873,21 @@ func putPtEndpointConfigRequestToWire(v *PutPtEndpointConfigRequest) (*putPtEndp
 }
 
 type rateLimitWire struct {
-	Calls         *int64  `json:"calls,omitempty"`
-	Key           *string `json:"key,omitempty"`
-	RenewalPeriod *string `json:"renewal_period,omitempty"`
+	Calls         *wireInt64 `json:"calls,omitempty"`
+	Key           *string    `json:"key,omitempty"`
+	RenewalPeriod *string    `json:"renewal_period,omitempty"`
 }
 
 func rateLimitToWire(v *RateLimit) (*rateLimitWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	callsWireValue, err := int64ToWire(v.Calls)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RateLimit.Calls", err)
+	}
 	return &rateLimitWire{
-		Calls:         v.Calls,
+		Calls:         callsWireValue,
 		Key:           v.Key,
 		RenewalPeriod: v.RenewalPeriod,
 	}, nil
@@ -1803,8 +1897,12 @@ func rateLimitFromWire(w *rateLimitWire) (*RateLimit, error) {
 	if w == nil {
 		return nil, nil
 	}
+	callsPublicValue, err := int64FromWire(w.Calls)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RateLimit.Calls", err)
+	}
 	return &RateLimit{
-		Calls:         w.Calls,
+		Calls:         callsPublicValue,
 		Key:           w.Key,
 		RenewalPeriod: w.RenewalPeriod,
 	}, nil
@@ -1848,7 +1946,7 @@ type servedModelWire struct {
 	MinProvisionedConcurrency *int                  `json:"min_provisioned_concurrency,omitempty"`
 	MaxProvisionedConcurrency *int                  `json:"max_provisioned_concurrency,omitempty"`
 	WorkloadSize              *string               `json:"workload_size,omitempty"`
-	ProvisionedModelUnits     *int64                `json:"provisioned_model_units,omitempty"`
+	ProvisionedModelUnits     *wireInt64            `json:"provisioned_model_units,omitempty"`
 	BurstScalingEnabled       *bool                 `json:"burst_scaling_enabled,omitempty"`
 	ScaleToZeroEnabled        *bool                 `json:"scale_to_zero_enabled,omitempty"`
 	ModelName                 *string               `json:"model_name,omitempty"`
@@ -1858,7 +1956,7 @@ type servedModelWire struct {
 	FoundationModel           *foundationModelWire  `json:"foundation_model,omitempty"`
 	State                     *servedModelStateWire `json:"state,omitempty"`
 	Creator                   *string               `json:"creator,omitempty"`
-	CreationTimestamp         *int64                `json:"creation_timestamp,omitempty"`
+	CreationTimestamp         *wireInt64            `json:"creation_timestamp,omitempty"`
 }
 
 func servedModelToWire(v *ServedModel) (*servedModelWire, error) {
@@ -1869,6 +1967,10 @@ func servedModelToWire(v *ServedModel) (*servedModelWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ServedModel.ExternalModel", err)
 	}
+	provisionedModelUnitsWireValue, err := int64ToWire(v.ProvisionedModelUnits)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ServedModel.ProvisionedModelUnits", err)
+	}
 	foundationModelWireValue, err := foundationModelToWire(v.FoundationModel)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ServedModel.FoundationModel", err)
@@ -1876,6 +1978,10 @@ func servedModelToWire(v *ServedModel) (*servedModelWire, error) {
 	stateWireValue, err := servedModelStateToWire(v.State)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ServedModel.State", err)
+	}
+	creationTimestampWireValue, err := int64ToWire(v.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ServedModel.CreationTimestamp", err)
 	}
 	return &servedModelWire{
 		Name:                      v.Name,
@@ -1887,7 +1993,7 @@ func servedModelToWire(v *ServedModel) (*servedModelWire, error) {
 		MinProvisionedConcurrency: v.MinProvisionedConcurrency,
 		MaxProvisionedConcurrency: v.MaxProvisionedConcurrency,
 		WorkloadSize:              v.WorkloadSize,
-		ProvisionedModelUnits:     v.ProvisionedModelUnits,
+		ProvisionedModelUnits:     provisionedModelUnitsWireValue,
 		BurstScalingEnabled:       v.BurstScalingEnabled,
 		ScaleToZeroEnabled:        v.ScaleToZeroEnabled,
 		ModelName:                 v.ModelName,
@@ -1897,7 +2003,7 @@ func servedModelToWire(v *ServedModel) (*servedModelWire, error) {
 		FoundationModel:           foundationModelWireValue,
 		State:                     stateWireValue,
 		Creator:                   v.Creator,
-		CreationTimestamp:         v.CreationTimestamp,
+		CreationTimestamp:         creationTimestampWireValue,
 	}, nil
 }
 
@@ -1909,6 +2015,10 @@ func servedModelFromWire(w *servedModelWire) (*ServedModel, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ServedModel.ExternalModel", err)
 	}
+	provisionedModelUnitsPublicValue, err := int64FromWire(w.ProvisionedModelUnits)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ServedModel.ProvisionedModelUnits", err)
+	}
 	foundationModelPublicValue, err := foundationModelFromWire(w.FoundationModel)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ServedModel.FoundationModel", err)
@@ -1916,6 +2026,10 @@ func servedModelFromWire(w *servedModelWire) (*ServedModel, error) {
 	statePublicValue, err := servedModelStateFromWire(w.State)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ServedModel.State", err)
+	}
+	creationTimestampPublicValue, err := int64FromWire(w.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ServedModel.CreationTimestamp", err)
 	}
 	return &ServedModel{
 		Name:                      w.Name,
@@ -1927,7 +2041,7 @@ func servedModelFromWire(w *servedModelWire) (*ServedModel, error) {
 		MinProvisionedConcurrency: w.MinProvisionedConcurrency,
 		MaxProvisionedConcurrency: w.MaxProvisionedConcurrency,
 		WorkloadSize:              w.WorkloadSize,
-		ProvisionedModelUnits:     w.ProvisionedModelUnits,
+		ProvisionedModelUnits:     provisionedModelUnitsPublicValue,
 		BurstScalingEnabled:       w.BurstScalingEnabled,
 		ScaleToZeroEnabled:        w.ScaleToZeroEnabled,
 		ModelName:                 w.ModelName,
@@ -1937,7 +2051,7 @@ func servedModelFromWire(w *servedModelWire) (*ServedModel, error) {
 		FoundationModel:           foundationModelPublicValue,
 		State:                     statePublicValue,
 		Creator:                   w.Creator,
-		CreationTimestamp:         w.CreationTimestamp,
+		CreationTimestamp:         creationTimestampPublicValue,
 	}, nil
 }
 

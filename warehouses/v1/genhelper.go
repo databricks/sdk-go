@@ -199,11 +199,12 @@ func flattenQueryValue(params url.Values, key string, value any) {
 	}
 }
 
-// pathBuilder assembles a request path from static literals and parameter
-// values. It tracks the decoded path and its percent-escaped wire form in
-// lockstep so build() can assign both url.URL.Path and url.URL.RawPath; because
-// RawPath is a valid escaping of Path, url.URL.String() emits it verbatim
-// instead of re-escaping (which would double-encode "%").
+// pathBuilder assembles request paths so "/" in parameter values remains a
+// path separator while characters that cannot appear literally in a URL path
+// are percent-encoded when the request URL is serialized.
+//
+// It builds url.URL.Path and url.URL.RawPath together. net/url uses RawPath only
+// when it is a valid encoding of Path; otherwise it escapes Path.
 type pathBuilder struct {
 	path strings.Builder
 	raw  strings.Builder
@@ -216,13 +217,14 @@ func (b *pathBuilder) literal(s string) {
 	b.raw.WriteString(s)
 }
 
-// singleSegment appends a single-segment path parameter: the value occupies one
-// path segment, so everything is escaped, including "/". The value is formatted
-// with %v so strings, enums, and numbers all work.
+// singleSegment appends the value unchanged to Path and RawPath. When the URL
+// is serialized, net/url keeps "/" literal and percent-encodes characters such
+// as spaces, "?", and "#".
+// The value is formatted with %v so strings, enums, and numbers all work.
 func (b *pathBuilder) singleSegment(v any) {
 	s := fmt.Sprintf("%v", v)
 	b.path.WriteString(s)
-	b.raw.WriteString(url.PathEscape(s))
+	b.raw.WriteString(s)
 }
 
 // multiSegments appends a multi-segment path parameter: the value spans several

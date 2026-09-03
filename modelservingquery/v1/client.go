@@ -74,8 +74,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Query a serving endpoint
-func (c *internalClient) Query(ctx context.Context, req *QueryEndpointRequest, opts ...call.Option) (*QueryEndpointResponse, error) {
-	wireReq, err := queryEndpointRequestToWire(req)
+func (c *internalClient) Query(ctx context.Context, req QueryEndpointRequest, opts ...call.Option) (*QueryEndpointResponse, error) {
+	wireReq, err := queryEndpointRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,11 @@ func (c *internalClient) Query(ctx context.Context, req *QueryEndpointRequest, o
 	}
 	pb := pathBuilder{}
 	pb.literal("/serving-endpoints/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	pb.literal("/invocations")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}

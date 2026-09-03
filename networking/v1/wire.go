@@ -3,10 +3,56 @@
 package networking
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/databricks/sdk-go/core/types"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	if mask == nil {
@@ -22,10 +68,10 @@ type accountIpAccessListWire struct {
 	IpAddresses  []string                                 `json:"ip_addresses,omitempty"`
 	AddressCount *int                                     `json:"address_count,omitempty"`
 	ListType     AccountIpAccessListType_IpAccessListType `json:"list_type,omitempty"`
-	CreatedAt    *int64                                   `json:"created_at,omitempty"`
-	CreatedBy    *int64                                   `json:"created_by,omitempty"`
-	UpdatedAt    *int64                                   `json:"updated_at,omitempty"`
-	UpdatedBy    *int64                                   `json:"updated_by,omitempty"`
+	CreatedAt    *wireInt64                               `json:"created_at,omitempty"`
+	CreatedBy    *wireInt64                               `json:"created_by,omitempty"`
+	UpdatedAt    *wireInt64                               `json:"updated_at,omitempty"`
+	UpdatedBy    *wireInt64                               `json:"updated_by,omitempty"`
 	Enabled      *bool                                    `json:"enabled,omitempty"`
 }
 
@@ -33,16 +79,32 @@ func accountIpAccessListFromWire(w *accountIpAccessListWire) (*AccountIpAccessLi
 	if w == nil {
 		return nil, nil
 	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountIpAccessList.CreatedAt", err)
+	}
+	createdByPublicValue, err := int64FromWire(w.CreatedBy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountIpAccessList.CreatedBy", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountIpAccessList.UpdatedAt", err)
+	}
+	updatedByPublicValue, err := int64FromWire(w.UpdatedBy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountIpAccessList.UpdatedBy", err)
+	}
 	return &AccountIpAccessList{
 		ListId:       w.ListId,
 		Label:        w.Label,
 		IpAddresses:  w.IpAddresses,
 		AddressCount: w.AddressCount,
 		ListType:     w.ListType,
-		CreatedAt:    w.CreatedAt,
-		CreatedBy:    w.CreatedBy,
-		UpdatedAt:    w.UpdatedAt,
-		UpdatedBy:    w.UpdatedBy,
+		CreatedAt:    createdAtPublicValue,
+		CreatedBy:    createdByPublicValue,
+		UpdatedAt:    updatedAtPublicValue,
+		UpdatedBy:    updatedByPublicValue,
 		Enabled:      w.Enabled,
 	}, nil
 }
@@ -299,8 +361,8 @@ type createNetworkConnectivityConfigurationWire struct {
 	Name                        *string                                                  `json:"name,omitempty"`
 	Region                      *string                                                  `json:"region,omitempty"`
 	EgressConfig                *customerFacingNetworkConnectivityConfigEgressConfigWire `json:"egress_config,omitempty"`
-	UpdatedTime                 *int64                                                   `json:"updated_time,omitempty"`
-	CreationTime                *int64                                                   `json:"creation_time,omitempty"`
+	UpdatedTime                 *wireInt64                                               `json:"updated_time,omitempty"`
+	CreationTime                *wireInt64                                               `json:"creation_time,omitempty"`
 }
 
 func createNetworkConnectivityConfigurationToWire(v *CreateNetworkConnectivityConfiguration) (*createNetworkConnectivityConfigurationWire, error) {
@@ -311,14 +373,22 @@ func createNetworkConnectivityConfigurationToWire(v *CreateNetworkConnectivityCo
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreateNetworkConnectivityConfiguration.EgressConfig", err)
 	}
+	updatedTimeWireValue, err := int64ToWire(v.UpdatedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateNetworkConnectivityConfiguration.UpdatedTime", err)
+	}
+	creationTimeWireValue, err := int64ToWire(v.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateNetworkConnectivityConfiguration.CreationTime", err)
+	}
 	return &createNetworkConnectivityConfigurationWire{
 		NetworkConnectivityConfigId: v.NetworkConnectivityConfigId,
 		AccountId:                   v.AccountId,
 		Name:                        v.Name,
 		Region:                      v.Region,
 		EgressConfig:                egressConfigWireValue,
-		UpdatedTime:                 v.UpdatedTime,
-		CreationTime:                v.CreationTime,
+		UpdatedTime:                 updatedTimeWireValue,
+		CreationTime:                creationTimeWireValue,
 	}, nil
 }
 
@@ -402,10 +472,10 @@ type createPrivateEndpointRuleWire struct {
 	NetworkConnectivityConfigId *string                                           `json:"network_connectivity_config_id,omitempty"`
 	ConnectionState             NccPrivateEndpointRule_PrivateLinkConnectionState `json:"connection_state,omitempty"`
 	DomainNames                 []string                                          `json:"domain_names,omitempty"`
-	CreationTime                *int64                                            `json:"creation_time,omitempty"`
-	UpdatedTime                 *int64                                            `json:"updated_time,omitempty"`
+	CreationTime                *wireInt64                                        `json:"creation_time,omitempty"`
+	UpdatedTime                 *wireInt64                                        `json:"updated_time,omitempty"`
 	Deactivated                 *bool                                             `json:"deactivated,omitempty"`
-	DeactivatedAt               *int64                                            `json:"deactivated_at,omitempty"`
+	DeactivatedAt               *wireInt64                                        `json:"deactivated_at,omitempty"`
 	ErrorMessage                *string                                           `json:"error_message,omitempty"`
 	ResourceId                  *string                                           `json:"resource_id,omitempty"`
 	GroupId                     *string                                           `json:"group_id,omitempty"`
@@ -421,6 +491,18 @@ type createPrivateEndpointRuleWire struct {
 func createPrivateEndpointRuleToWire(v *CreatePrivateEndpointRule) (*createPrivateEndpointRuleWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	creationTimeWireValue, err := int64ToWire(v.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePrivateEndpointRule.CreationTime", err)
+	}
+	updatedTimeWireValue, err := int64ToWire(v.UpdatedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePrivateEndpointRule.UpdatedTime", err)
+	}
+	deactivatedAtWireValue, err := int64ToWire(v.DeactivatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePrivateEndpointRule.DeactivatedAt", err)
 	}
 	var endpointGcpEndpointWire *gcpEndpointWire
 	switch value := v.Endpoint.(type) {
@@ -441,10 +523,10 @@ func createPrivateEndpointRuleToWire(v *CreatePrivateEndpointRule) (*createPriva
 		NetworkConnectivityConfigId: v.NetworkConnectivityConfigId,
 		ConnectionState:             v.ConnectionState,
 		DomainNames:                 v.DomainNames,
-		CreationTime:                v.CreationTime,
-		UpdatedTime:                 v.UpdatedTime,
+		CreationTime:                creationTimeWireValue,
+		UpdatedTime:                 updatedTimeWireValue,
 		Deactivated:                 v.Deactivated,
-		DeactivatedAt:               v.DeactivatedAt,
+		DeactivatedAt:               deactivatedAtWireValue,
 		ErrorMessage:                v.ErrorMessage,
 		ResourceId:                  v.ResourceId,
 		GroupId:                     v.GroupId,
@@ -683,15 +765,19 @@ func egressNetworkPolicy_NetworkAccessPolicyFromWire(w *egressNetworkPolicy_Netw
 }
 
 type egressNetworkPolicy_NetworkAccessPolicy_DatabricksDestinationWire struct {
-	WorkspaceIds []int64 `json:"workspace_ids,omitempty"`
+	WorkspaceIds []wireInt64 `json:"workspace_ids,omitempty"`
 }
 
 func egressNetworkPolicy_NetworkAccessPolicy_DatabricksDestinationToWire(v *EgressNetworkPolicy_NetworkAccessPolicy_DatabricksDestination) (*egressNetworkPolicy_NetworkAccessPolicy_DatabricksDestinationWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	workspaceIdsWireValue, err := convertSlice(v.WorkspaceIds, int64ToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EgressNetworkPolicy_NetworkAccessPolicy_DatabricksDestination.WorkspaceIds", err)
+	}
 	return &egressNetworkPolicy_NetworkAccessPolicy_DatabricksDestinationWire{
-		WorkspaceIds: v.WorkspaceIds,
+		WorkspaceIds: workspaceIdsWireValue,
 	}, nil
 }
 
@@ -699,8 +785,12 @@ func egressNetworkPolicy_NetworkAccessPolicy_DatabricksDestinationFromWire(w *eg
 	if w == nil {
 		return nil, nil
 	}
+	workspaceIdsPublicValue, err := convertSlice(w.WorkspaceIds, int64FromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EgressNetworkPolicy_NetworkAccessPolicy_DatabricksDestination.WorkspaceIds", err)
+	}
 	return &EgressNetworkPolicy_NetworkAccessPolicy_DatabricksDestination{
-		WorkspaceIds: w.WorkspaceIds,
+		WorkspaceIds: workspaceIdsPublicValue,
 	}, nil
 }
 
@@ -1322,16 +1412,20 @@ func ingressNetworkPolicy_AuthenticationFromWire(w *ingressNetworkPolicy_Authent
 
 type ingressNetworkPolicy_AuthenticationIdentityWire struct {
 	PrincipalType IngressNetworkPolicy_AuthenticationIdentity_PrincipalType `json:"principal_type,omitempty"`
-	PrincipalId   *int64                                                    `json:"principal_id,omitempty"`
+	PrincipalId   *wireInt64                                                `json:"principal_id,omitempty"`
 }
 
 func ingressNetworkPolicy_AuthenticationIdentityToWire(v *IngressNetworkPolicy_AuthenticationIdentity) (*ingressNetworkPolicy_AuthenticationIdentityWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	principalIdWireValue, err := int64ToWire(v.PrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "IngressNetworkPolicy_AuthenticationIdentity.PrincipalId", err)
+	}
 	return &ingressNetworkPolicy_AuthenticationIdentityWire{
 		PrincipalType: v.PrincipalType,
-		PrincipalId:   v.PrincipalId,
+		PrincipalId:   principalIdWireValue,
 	}, nil
 }
 
@@ -1339,9 +1433,13 @@ func ingressNetworkPolicy_AuthenticationIdentityFromWire(w *ingressNetworkPolicy
 	if w == nil {
 		return nil, nil
 	}
+	principalIdPublicValue, err := int64FromWire(w.PrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "IngressNetworkPolicy_AuthenticationIdentity.PrincipalId", err)
+	}
 	return &IngressNetworkPolicy_AuthenticationIdentity{
 		PrincipalType: w.PrincipalType,
-		PrincipalId:   w.PrincipalId,
+		PrincipalId:   principalIdPublicValue,
 	}, nil
 }
 
@@ -2069,15 +2167,19 @@ func ingressNetworkPolicy_WorkspaceApiDestinationFromWire(w *ingressNetworkPolic
 }
 
 type ingressNetworkPolicy_WorkspaceIdListWire struct {
-	WorkspaceIds []int64 `json:"workspace_ids,omitempty"`
+	WorkspaceIds []wireInt64 `json:"workspace_ids,omitempty"`
 }
 
 func ingressNetworkPolicy_WorkspaceIdListToWire(v *IngressNetworkPolicy_WorkspaceIdList) (*ingressNetworkPolicy_WorkspaceIdListWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	workspaceIdsWireValue, err := convertSlice(v.WorkspaceIds, int64ToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "IngressNetworkPolicy_WorkspaceIdList.WorkspaceIds", err)
+	}
 	return &ingressNetworkPolicy_WorkspaceIdListWire{
-		WorkspaceIds: v.WorkspaceIds,
+		WorkspaceIds: workspaceIdsWireValue,
 	}, nil
 }
 
@@ -2085,8 +2187,12 @@ func ingressNetworkPolicy_WorkspaceIdListFromWire(w *ingressNetworkPolicy_Worksp
 	if w == nil {
 		return nil, nil
 	}
+	workspaceIdsPublicValue, err := convertSlice(w.WorkspaceIds, int64FromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "IngressNetworkPolicy_WorkspaceIdList.WorkspaceIds", err)
+	}
 	return &IngressNetworkPolicy_WorkspaceIdList{
-		WorkspaceIds: w.WorkspaceIds,
+		WorkspaceIds: workspaceIdsPublicValue,
 	}, nil
 }
 
@@ -2118,10 +2224,10 @@ type ipAccessListWire struct {
 	IpAddresses  []string         `json:"ip_addresses,omitempty"`
 	AddressCount *int             `json:"address_count,omitempty"`
 	ListType     IpAccessListType `json:"list_type,omitempty"`
-	CreatedAt    *int64           `json:"created_at,omitempty"`
-	CreatedBy    *int64           `json:"created_by,omitempty"`
-	UpdatedAt    *int64           `json:"updated_at,omitempty"`
-	UpdatedBy    *int64           `json:"updated_by,omitempty"`
+	CreatedAt    *wireInt64       `json:"created_at,omitempty"`
+	CreatedBy    *wireInt64       `json:"created_by,omitempty"`
+	UpdatedAt    *wireInt64       `json:"updated_at,omitempty"`
+	UpdatedBy    *wireInt64       `json:"updated_by,omitempty"`
 	Enabled      *bool            `json:"enabled,omitempty"`
 }
 
@@ -2129,16 +2235,32 @@ func ipAccessListFromWire(w *ipAccessListWire) (*IpAccessList, error) {
 	if w == nil {
 		return nil, nil
 	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "IpAccessList.CreatedAt", err)
+	}
+	createdByPublicValue, err := int64FromWire(w.CreatedBy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "IpAccessList.CreatedBy", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "IpAccessList.UpdatedAt", err)
+	}
+	updatedByPublicValue, err := int64FromWire(w.UpdatedBy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "IpAccessList.UpdatedBy", err)
+	}
 	return &IpAccessList{
 		ListId:       w.ListId,
 		Label:        w.Label,
 		IpAddresses:  w.IpAddresses,
 		AddressCount: w.AddressCount,
 		ListType:     w.ListType,
-		CreatedAt:    w.CreatedAt,
-		CreatedBy:    w.CreatedBy,
-		UpdatedAt:    w.UpdatedAt,
-		UpdatedBy:    w.UpdatedBy,
+		CreatedAt:    createdAtPublicValue,
+		CreatedBy:    createdByPublicValue,
+		UpdatedAt:    updatedAtPublicValue,
+		UpdatedBy:    updatedByPublicValue,
 		Enabled:      w.Enabled,
 	}, nil
 }
@@ -2322,10 +2444,10 @@ type nccPrivateEndpointRuleWire struct {
 	NetworkConnectivityConfigId *string                                           `json:"network_connectivity_config_id,omitempty"`
 	ConnectionState             NccPrivateEndpointRule_PrivateLinkConnectionState `json:"connection_state,omitempty"`
 	DomainNames                 []string                                          `json:"domain_names,omitempty"`
-	CreationTime                *int64                                            `json:"creation_time,omitempty"`
-	UpdatedTime                 *int64                                            `json:"updated_time,omitempty"`
+	CreationTime                *wireInt64                                        `json:"creation_time,omitempty"`
+	UpdatedTime                 *wireInt64                                        `json:"updated_time,omitempty"`
 	Deactivated                 *bool                                             `json:"deactivated,omitempty"`
-	DeactivatedAt               *int64                                            `json:"deactivated_at,omitempty"`
+	DeactivatedAt               *wireInt64                                        `json:"deactivated_at,omitempty"`
 	ErrorMessage                *string                                           `json:"error_message,omitempty"`
 	ResourceId                  *string                                           `json:"resource_id,omitempty"`
 	GroupId                     *string                                           `json:"group_id,omitempty"`
@@ -2349,6 +2471,18 @@ func nccPrivateEndpointRuleFromWire(w *nccPrivateEndpointRuleWire) (*NccPrivateE
 	if endpointMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "NccPrivateEndpointRule.Endpoint")
 	}
+	creationTimePublicValue, err := int64FromWire(w.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NccPrivateEndpointRule.CreationTime", err)
+	}
+	updatedTimePublicValue, err := int64FromWire(w.UpdatedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NccPrivateEndpointRule.UpdatedTime", err)
+	}
+	deactivatedAtPublicValue, err := int64FromWire(w.DeactivatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NccPrivateEndpointRule.DeactivatedAt", err)
+	}
 	var endpointSelection isNccPrivateEndpointRule_Endpoint
 	switch {
 	case w.GcpEndpoint != nil:
@@ -2363,10 +2497,10 @@ func nccPrivateEndpointRuleFromWire(w *nccPrivateEndpointRuleWire) (*NccPrivateE
 		NetworkConnectivityConfigId: w.NetworkConnectivityConfigId,
 		ConnectionState:             w.ConnectionState,
 		DomainNames:                 w.DomainNames,
-		CreationTime:                w.CreationTime,
-		UpdatedTime:                 w.UpdatedTime,
+		CreationTime:                creationTimePublicValue,
+		UpdatedTime:                 updatedTimePublicValue,
 		Deactivated:                 w.Deactivated,
-		DeactivatedAt:               w.DeactivatedAt,
+		DeactivatedAt:               deactivatedAtPublicValue,
 		ErrorMessage:                w.ErrorMessage,
 		ResourceId:                  w.ResourceId,
 		GroupId:                     w.GroupId,
@@ -2383,14 +2517,14 @@ func nccPrivateEndpointRuleFromWire(w *nccPrivateEndpointRuleWire) (*NccPrivateE
 type networkWire struct {
 	NetworkId        *string                  `json:"network_id,omitempty"`
 	AccountId        *string                  `json:"account_id,omitempty"`
-	WorkspaceId      *int64                   `json:"workspace_id,omitempty"`
+	WorkspaceId      *wireInt64               `json:"workspace_id,omitempty"`
 	VpcId            *string                  `json:"vpc_id,omitempty"`
 	SubnetIds        []string                 `json:"subnet_ids,omitempty"`
 	SecurityGroupIds []string                 `json:"security_group_ids,omitempty"`
 	VpcStatus        VpcStatus                `json:"vpc_status,omitempty"`
 	ErrorMessages    []networkHealthWire      `json:"error_messages,omitempty"`
 	NetworkName      *string                  `json:"network_name,omitempty"`
-	CreationTime     *int64                   `json:"creation_time,omitempty"`
+	CreationTime     *wireInt64               `json:"creation_time,omitempty"`
 	WarningMessages  []networkWarningWire     `json:"warning_messages,omitempty"`
 	VpcEndpoints     *networkVpcEndpointsWire `json:"vpc_endpoints,omitempty"`
 	GcpNetworkInfo   *gcpNetworkInfoWire      `json:"gcp_network_info,omitempty"`
@@ -2407,9 +2541,17 @@ func networkFromWire(w *networkWire) (*Network, error) {
 	if networkInfoMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "Network.NetworkInfo")
 	}
+	workspaceIdPublicValue, err := int64FromWire(w.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Network.WorkspaceId", err)
+	}
 	errorMessagesPublicValue, err := convertSlice(w.ErrorMessages, networkHealthFromWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Network.ErrorMessages", err)
+	}
+	creationTimePublicValue, err := int64FromWire(w.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Network.CreationTime", err)
 	}
 	warningMessagesPublicValue, err := convertSlice(w.WarningMessages, networkWarningFromWire)
 	if err != nil {
@@ -2431,14 +2573,14 @@ func networkFromWire(w *networkWire) (*Network, error) {
 	return &Network{
 		NetworkId:        w.NetworkId,
 		AccountId:        w.AccountId,
-		WorkspaceId:      w.WorkspaceId,
+		WorkspaceId:      workspaceIdPublicValue,
 		VpcId:            w.VpcId,
 		SubnetIds:        w.SubnetIds,
 		SecurityGroupIds: w.SecurityGroupIds,
 		VpcStatus:        w.VpcStatus,
 		ErrorMessages:    errorMessagesPublicValue,
 		NetworkName:      w.NetworkName,
-		CreationTime:     w.CreationTime,
+		CreationTime:     creationTimePublicValue,
 		WarningMessages:  warningMessagesPublicValue,
 		VpcEndpoints:     vpcEndpointsPublicValue,
 		NetworkInfo:      networkInfoSelection,
@@ -2451,8 +2593,8 @@ type networkConnectivityConfigWire struct {
 	Name                        *string                                                  `json:"name,omitempty"`
 	Region                      *string                                                  `json:"region,omitempty"`
 	EgressConfig                *customerFacingNetworkConnectivityConfigEgressConfigWire `json:"egress_config,omitempty"`
-	UpdatedTime                 *int64                                                   `json:"updated_time,omitempty"`
-	CreationTime                *int64                                                   `json:"creation_time,omitempty"`
+	UpdatedTime                 *wireInt64                                               `json:"updated_time,omitempty"`
+	CreationTime                *wireInt64                                               `json:"creation_time,omitempty"`
 }
 
 func networkConnectivityConfigFromWire(w *networkConnectivityConfigWire) (*NetworkConnectivityConfig, error) {
@@ -2463,14 +2605,22 @@ func networkConnectivityConfigFromWire(w *networkConnectivityConfigWire) (*Netwo
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfig.EgressConfig", err)
 	}
+	updatedTimePublicValue, err := int64FromWire(w.UpdatedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfig.UpdatedTime", err)
+	}
+	creationTimePublicValue, err := int64FromWire(w.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfig.CreationTime", err)
+	}
 	return &NetworkConnectivityConfig{
 		NetworkConnectivityConfigId: w.NetworkConnectivityConfigId,
 		AccountId:                   w.AccountId,
 		Name:                        w.Name,
 		Region:                      w.Region,
 		EgressConfig:                egressConfigPublicValue,
-		UpdatedTime:                 w.UpdatedTime,
-		CreationTime:                w.CreationTime,
+		UpdatedTime:                 updatedTimePublicValue,
+		CreationTime:                creationTimePublicValue,
 	}, nil
 }
 
@@ -2483,10 +2633,10 @@ type networkConnectivityConfigAwsPrivateEndpointRuleWire struct {
 	ResourceNames               []string                                                                   `json:"resource_names,omitempty"`
 	VpcEndpointId               *string                                                                    `json:"vpc_endpoint_id,omitempty"`
 	ConnectionState             NetworkConnectivityConfigAwsPrivateEndpointRule_PrivateLinkConnectionState `json:"connection_state,omitempty"`
-	CreationTime                *int64                                                                     `json:"creation_time,omitempty"`
-	UpdatedTime                 *int64                                                                     `json:"updated_time,omitempty"`
+	CreationTime                *wireInt64                                                                 `json:"creation_time,omitempty"`
+	UpdatedTime                 *wireInt64                                                                 `json:"updated_time,omitempty"`
 	Deactivated                 *bool                                                                      `json:"deactivated,omitempty"`
-	DeactivatedAt               *int64                                                                     `json:"deactivated_at,omitempty"`
+	DeactivatedAt               *wireInt64                                                                 `json:"deactivated_at,omitempty"`
 	Enabled                     *bool                                                                      `json:"enabled,omitempty"`
 	ErrorMessage                *string                                                                    `json:"error_message,omitempty"`
 }
@@ -2494,6 +2644,18 @@ type networkConnectivityConfigAwsPrivateEndpointRuleWire struct {
 func networkConnectivityConfigAwsPrivateEndpointRuleToWire(v *NetworkConnectivityConfigAwsPrivateEndpointRule) (*networkConnectivityConfigAwsPrivateEndpointRuleWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	creationTimeWireValue, err := int64ToWire(v.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfigAwsPrivateEndpointRule.CreationTime", err)
+	}
+	updatedTimeWireValue, err := int64ToWire(v.UpdatedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfigAwsPrivateEndpointRule.UpdatedTime", err)
+	}
+	deactivatedAtWireValue, err := int64ToWire(v.DeactivatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfigAwsPrivateEndpointRule.DeactivatedAt", err)
 	}
 	return &networkConnectivityConfigAwsPrivateEndpointRuleWire{
 		RuleId:                      v.RuleId,
@@ -2504,10 +2666,10 @@ func networkConnectivityConfigAwsPrivateEndpointRuleToWire(v *NetworkConnectivit
 		ResourceNames:               v.ResourceNames,
 		VpcEndpointId:               v.VpcEndpointId,
 		ConnectionState:             v.ConnectionState,
-		CreationTime:                v.CreationTime,
-		UpdatedTime:                 v.UpdatedTime,
+		CreationTime:                creationTimeWireValue,
+		UpdatedTime:                 updatedTimeWireValue,
 		Deactivated:                 v.Deactivated,
-		DeactivatedAt:               v.DeactivatedAt,
+		DeactivatedAt:               deactivatedAtWireValue,
 		Enabled:                     v.Enabled,
 		ErrorMessage:                v.ErrorMessage,
 	}, nil
@@ -2516,6 +2678,18 @@ func networkConnectivityConfigAwsPrivateEndpointRuleToWire(v *NetworkConnectivit
 func networkConnectivityConfigAwsPrivateEndpointRuleFromWire(w *networkConnectivityConfigAwsPrivateEndpointRuleWire) (*NetworkConnectivityConfigAwsPrivateEndpointRule, error) {
 	if w == nil {
 		return nil, nil
+	}
+	creationTimePublicValue, err := int64FromWire(w.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfigAwsPrivateEndpointRule.CreationTime", err)
+	}
+	updatedTimePublicValue, err := int64FromWire(w.UpdatedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfigAwsPrivateEndpointRule.UpdatedTime", err)
+	}
+	deactivatedAtPublicValue, err := int64FromWire(w.DeactivatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfigAwsPrivateEndpointRule.DeactivatedAt", err)
 	}
 	return &NetworkConnectivityConfigAwsPrivateEndpointRule{
 		RuleId:                      w.RuleId,
@@ -2526,10 +2700,10 @@ func networkConnectivityConfigAwsPrivateEndpointRuleFromWire(w *networkConnectiv
 		ResourceNames:               w.ResourceNames,
 		VpcEndpointId:               w.VpcEndpointId,
 		ConnectionState:             w.ConnectionState,
-		CreationTime:                w.CreationTime,
-		UpdatedTime:                 w.UpdatedTime,
+		CreationTime:                creationTimePublicValue,
+		UpdatedTime:                 updatedTimePublicValue,
 		Deactivated:                 w.Deactivated,
-		DeactivatedAt:               w.DeactivatedAt,
+		DeactivatedAt:               deactivatedAtPublicValue,
 		Enabled:                     w.Enabled,
 		ErrorMessage:                w.ErrorMessage,
 	}, nil
@@ -2542,10 +2716,10 @@ type networkConnectivityConfigAzurePrivateEndpointRuleWire struct {
 	GroupId                     *string                                                                      `json:"group_id,omitempty"`
 	EndpointName                *string                                                                      `json:"endpoint_name,omitempty"`
 	ConnectionState             NetworkConnectivityConfigAzurePrivateEndpointRule_PrivateLinkConnectionState `json:"connection_state,omitempty"`
-	CreationTime                *int64                                                                       `json:"creation_time,omitempty"`
-	UpdatedTime                 *int64                                                                       `json:"updated_time,omitempty"`
+	CreationTime                *wireInt64                                                                   `json:"creation_time,omitempty"`
+	UpdatedTime                 *wireInt64                                                                   `json:"updated_time,omitempty"`
 	Deactivated                 *bool                                                                        `json:"deactivated,omitempty"`
-	DeactivatedAt               *int64                                                                       `json:"deactivated_at,omitempty"`
+	DeactivatedAt               *wireInt64                                                                   `json:"deactivated_at,omitempty"`
 	DomainNames                 []string                                                                     `json:"domain_names,omitempty"`
 	ErrorMessage                *string                                                                      `json:"error_message,omitempty"`
 }
@@ -2554,6 +2728,18 @@ func networkConnectivityConfigAzurePrivateEndpointRuleToWire(v *NetworkConnectiv
 	if v == nil {
 		return nil, nil
 	}
+	creationTimeWireValue, err := int64ToWire(v.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfigAzurePrivateEndpointRule.CreationTime", err)
+	}
+	updatedTimeWireValue, err := int64ToWire(v.UpdatedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfigAzurePrivateEndpointRule.UpdatedTime", err)
+	}
+	deactivatedAtWireValue, err := int64ToWire(v.DeactivatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfigAzurePrivateEndpointRule.DeactivatedAt", err)
+	}
 	return &networkConnectivityConfigAzurePrivateEndpointRuleWire{
 		RuleId:                      v.RuleId,
 		NetworkConnectivityConfigId: v.NetworkConnectivityConfigId,
@@ -2561,10 +2747,10 @@ func networkConnectivityConfigAzurePrivateEndpointRuleToWire(v *NetworkConnectiv
 		GroupId:                     v.GroupId,
 		EndpointName:                v.EndpointName,
 		ConnectionState:             v.ConnectionState,
-		CreationTime:                v.CreationTime,
-		UpdatedTime:                 v.UpdatedTime,
+		CreationTime:                creationTimeWireValue,
+		UpdatedTime:                 updatedTimeWireValue,
 		Deactivated:                 v.Deactivated,
-		DeactivatedAt:               v.DeactivatedAt,
+		DeactivatedAt:               deactivatedAtWireValue,
 		DomainNames:                 v.DomainNames,
 		ErrorMessage:                v.ErrorMessage,
 	}, nil
@@ -2574,6 +2760,18 @@ func networkConnectivityConfigAzurePrivateEndpointRuleFromWire(w *networkConnect
 	if w == nil {
 		return nil, nil
 	}
+	creationTimePublicValue, err := int64FromWire(w.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfigAzurePrivateEndpointRule.CreationTime", err)
+	}
+	updatedTimePublicValue, err := int64FromWire(w.UpdatedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfigAzurePrivateEndpointRule.UpdatedTime", err)
+	}
+	deactivatedAtPublicValue, err := int64FromWire(w.DeactivatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfigAzurePrivateEndpointRule.DeactivatedAt", err)
+	}
 	return &NetworkConnectivityConfigAzurePrivateEndpointRule{
 		RuleId:                      w.RuleId,
 		NetworkConnectivityConfigId: w.NetworkConnectivityConfigId,
@@ -2581,10 +2779,10 @@ func networkConnectivityConfigAzurePrivateEndpointRuleFromWire(w *networkConnect
 		GroupId:                     w.GroupId,
 		EndpointName:                w.EndpointName,
 		ConnectionState:             w.ConnectionState,
-		CreationTime:                w.CreationTime,
-		UpdatedTime:                 w.UpdatedTime,
+		CreationTime:                creationTimePublicValue,
+		UpdatedTime:                 updatedTimePublicValue,
 		Deactivated:                 w.Deactivated,
-		DeactivatedAt:               w.DeactivatedAt,
+		DeactivatedAt:               deactivatedAtPublicValue,
 		DomainNames:                 w.DomainNames,
 		ErrorMessage:                w.ErrorMessage,
 	}, nil
@@ -3000,10 +3198,10 @@ type updatePrivateEndpointRuleWire struct {
 	NetworkConnectivityConfigId *string                                           `json:"network_connectivity_config_id,omitempty"`
 	ConnectionState             NccPrivateEndpointRule_PrivateLinkConnectionState `json:"connection_state,omitempty"`
 	DomainNames                 []string                                          `json:"domain_names,omitempty"`
-	CreationTime                *int64                                            `json:"creation_time,omitempty"`
-	UpdatedTime                 *int64                                            `json:"updated_time,omitempty"`
+	CreationTime                *wireInt64                                        `json:"creation_time,omitempty"`
+	UpdatedTime                 *wireInt64                                        `json:"updated_time,omitempty"`
 	Deactivated                 *bool                                             `json:"deactivated,omitempty"`
-	DeactivatedAt               *int64                                            `json:"deactivated_at,omitempty"`
+	DeactivatedAt               *wireInt64                                        `json:"deactivated_at,omitempty"`
 	ErrorMessage                *string                                           `json:"error_message,omitempty"`
 	ResourceId                  *string                                           `json:"resource_id,omitempty"`
 	GroupId                     *string                                           `json:"group_id,omitempty"`
@@ -3019,6 +3217,18 @@ type updatePrivateEndpointRuleWire struct {
 func updatePrivateEndpointRuleToWire(v *UpdatePrivateEndpointRule) (*updatePrivateEndpointRuleWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	creationTimeWireValue, err := int64ToWire(v.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdatePrivateEndpointRule.CreationTime", err)
+	}
+	updatedTimeWireValue, err := int64ToWire(v.UpdatedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdatePrivateEndpointRule.UpdatedTime", err)
+	}
+	deactivatedAtWireValue, err := int64ToWire(v.DeactivatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdatePrivateEndpointRule.DeactivatedAt", err)
 	}
 	var endpointGcpEndpointWire *gcpEndpointWire
 	switch value := v.Endpoint.(type) {
@@ -3039,10 +3249,10 @@ func updatePrivateEndpointRuleToWire(v *UpdatePrivateEndpointRule) (*updatePriva
 		NetworkConnectivityConfigId: v.NetworkConnectivityConfigId,
 		ConnectionState:             v.ConnectionState,
 		DomainNames:                 v.DomainNames,
-		CreationTime:                v.CreationTime,
-		UpdatedTime:                 v.UpdatedTime,
+		CreationTime:                creationTimeWireValue,
+		UpdatedTime:                 updatedTimeWireValue,
 		Deactivated:                 v.Deactivated,
-		DeactivatedAt:               v.DeactivatedAt,
+		DeactivatedAt:               deactivatedAtWireValue,
 		ErrorMessage:                v.ErrorMessage,
 		ResourceId:                  v.ResourceId,
 		GroupId:                     v.GroupId,
@@ -3058,7 +3268,7 @@ func updatePrivateEndpointRuleToWire(v *UpdatePrivateEndpointRule) (*updatePriva
 
 type updateWorkspaceNetworkOptionRequestWire struct {
 	AccountId              *string                     `json:"account_id,omitempty"`
-	WorkspaceId            *int64                      `json:"workspace_id,omitempty"`
+	WorkspaceId            *wireInt64                  `json:"workspace_id,omitempty"`
 	WorkspaceNetworkOption *workspaceNetworkOptionWire `json:"workspace_network_option,omitempty"`
 }
 
@@ -3066,13 +3276,17 @@ func updateWorkspaceNetworkOptionRequestToWire(v *UpdateWorkspaceNetworkOptionRe
 	if v == nil {
 		return nil, nil
 	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateWorkspaceNetworkOptionRequest.WorkspaceId", err)
+	}
 	workspaceNetworkOptionWireValue, err := workspaceNetworkOptionToWire(v.WorkspaceNetworkOption)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "UpdateWorkspaceNetworkOptionRequest.WorkspaceNetworkOption", err)
 	}
 	return &updateWorkspaceNetworkOptionRequestWire{
 		AccountId:              v.AccountId,
-		WorkspaceId:            v.WorkspaceId,
+		WorkspaceId:            workspaceIdWireValue,
 		WorkspaceNetworkOption: workspaceNetworkOptionWireValue,
 	}, nil
 }
@@ -3125,17 +3339,21 @@ func vpcEndpointFromWire(w *vpcEndpointWire) (*VpcEndpoint, error) {
 }
 
 type workspaceNetworkOptionWire struct {
-	NetworkPolicyId *string `json:"network_policy_id,omitempty"`
-	WorkspaceId     *int64  `json:"workspace_id,omitempty"`
+	NetworkPolicyId *string    `json:"network_policy_id,omitempty"`
+	WorkspaceId     *wireInt64 `json:"workspace_id,omitempty"`
 }
 
 func workspaceNetworkOptionToWire(v *WorkspaceNetworkOption) (*workspaceNetworkOptionWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "WorkspaceNetworkOption.WorkspaceId", err)
+	}
 	return &workspaceNetworkOptionWire{
 		NetworkPolicyId: v.NetworkPolicyId,
-		WorkspaceId:     v.WorkspaceId,
+		WorkspaceId:     workspaceIdWireValue,
 	}, nil
 }
 
@@ -3143,9 +3361,13 @@ func workspaceNetworkOptionFromWire(w *workspaceNetworkOptionWire) (*WorkspaceNe
 	if w == nil {
 		return nil, nil
 	}
+	workspaceIdPublicValue, err := int64FromWire(w.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "WorkspaceNetworkOption.WorkspaceId", err)
+	}
 	return &WorkspaceNetworkOption{
 		NetworkPolicyId: w.NetworkPolicyId,
-		WorkspaceId:     w.WorkspaceId,
+		WorkspaceId:     workspaceIdPublicValue,
 	}, nil
 }
 

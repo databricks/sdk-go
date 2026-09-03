@@ -3,8 +3,54 @@
 package queryhistory
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type channelInfoWire struct {
 	Name         ChannelName `json:"name,omitempty"`
@@ -113,7 +159,7 @@ func listQueriesResponseFromWire(w *listQueriesResponseWire) (*ListQueriesRespon
 
 type queryFilterWire struct {
 	QueryStartTimeRange *timeRangeWire `json:"query_start_time_range,omitempty"`
-	UserIds             []int64        `json:"user_ids,omitempty"`
+	UserIds             []wireInt64    `json:"user_ids,omitempty"`
 	Statuses            []QueryStatus  `json:"statuses,omitempty"`
 	WarehouseIds        []string       `json:"warehouse_ids,omitempty"`
 	StatementIds        []string       `json:"statement_ids,omitempty"`
@@ -127,9 +173,13 @@ func queryFilterToWire(v *QueryFilter) (*queryFilterWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "QueryFilter.QueryStartTimeRange", err)
 	}
+	userIdsWireValue, err := convertSlice(v.UserIds, int64ToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryFilter.UserIds", err)
+	}
 	return &queryFilterWire{
 		QueryStartTimeRange: queryStartTimeRangeWireValue,
-		UserIds:             v.UserIds,
+		UserIds:             userIdsWireValue,
 		Statuses:            v.Statuses,
 		WarehouseIds:        v.WarehouseIds,
 		StatementIds:        v.StatementIds,
@@ -140,18 +190,18 @@ type queryInfoWire struct {
 	QueryId            *string                  `json:"query_id,omitempty"`
 	Status             QueryStatus              `json:"status,omitempty"`
 	QueryText          *string                  `json:"query_text,omitempty"`
-	QueryStartTimeMs   *int64                   `json:"query_start_time_ms,omitempty"`
-	ExecutionEndTimeMs *int64                   `json:"execution_end_time_ms,omitempty"`
-	QueryEndTimeMs     *int64                   `json:"query_end_time_ms,omitempty"`
-	UserId             *int64                   `json:"user_id,omitempty"`
+	QueryStartTimeMs   *wireInt64               `json:"query_start_time_ms,omitempty"`
+	ExecutionEndTimeMs *wireInt64               `json:"execution_end_time_ms,omitempty"`
+	QueryEndTimeMs     *wireInt64               `json:"query_end_time_ms,omitempty"`
+	UserId             *wireInt64               `json:"user_id,omitempty"`
 	UserName           *string                  `json:"user_name,omitempty"`
 	SparkUiUrl         *string                  `json:"spark_ui_url,omitempty"`
 	EndpointId         *string                  `json:"endpoint_id,omitempty"`
-	RowsProduced       *int64                   `json:"rows_produced,omitempty"`
+	RowsProduced       *wireInt64               `json:"rows_produced,omitempty"`
 	ErrorMessage       *string                  `json:"error_message,omitempty"`
 	LookupKey          *string                  `json:"lookup_key,omitempty"`
 	Metrics            *queryMetricsWire        `json:"metrics,omitempty"`
-	ExecutedAsUserId   *int64                   `json:"executed_as_user_id,omitempty"`
+	ExecutedAsUserId   *wireInt64               `json:"executed_as_user_id,omitempty"`
 	ExecutedAsUserName *string                  `json:"executed_as_user_name,omitempty"`
 	SessionId          *string                  `json:"session_id,omitempty"`
 	IsFinal            *bool                    `json:"is_final,omitempty"`
@@ -159,7 +209,7 @@ type queryInfoWire struct {
 	PlansState         PlansState               `json:"plans_state,omitempty"`
 	StatementType      QueryStatementType       `json:"statement_type,omitempty"`
 	WarehouseId        *string                  `json:"warehouse_id,omitempty"`
-	Duration           *int64                   `json:"duration,omitempty"`
+	Duration           *wireInt64               `json:"duration,omitempty"`
 	ClientApplication  *string                  `json:"client_application,omitempty"`
 	QuerySource        *externalQuerySourceWire `json:"query_source,omitempty"`
 	CacheQueryId       *string                  `json:"cache_query_id,omitempty"`
@@ -170,13 +220,41 @@ func queryInfoFromWire(w *queryInfoWire) (*QueryInfo, error) {
 	if w == nil {
 		return nil, nil
 	}
+	queryStartTimeMsPublicValue, err := int64FromWire(w.QueryStartTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryInfo.QueryStartTimeMs", err)
+	}
+	executionEndTimeMsPublicValue, err := int64FromWire(w.ExecutionEndTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryInfo.ExecutionEndTimeMs", err)
+	}
+	queryEndTimeMsPublicValue, err := int64FromWire(w.QueryEndTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryInfo.QueryEndTimeMs", err)
+	}
+	userIdPublicValue, err := int64FromWire(w.UserId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryInfo.UserId", err)
+	}
+	rowsProducedPublicValue, err := int64FromWire(w.RowsProduced)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryInfo.RowsProduced", err)
+	}
 	metricsPublicValue, err := queryMetricsFromWire(w.Metrics)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "QueryInfo.Metrics", err)
 	}
+	executedAsUserIdPublicValue, err := int64FromWire(w.ExecutedAsUserId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryInfo.ExecutedAsUserId", err)
+	}
 	channelUsedPublicValue, err := channelInfoFromWire(w.ChannelUsed)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "QueryInfo.ChannelUsed", err)
+	}
+	durationPublicValue, err := int64FromWire(w.Duration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryInfo.Duration", err)
 	}
 	querySourcePublicValue, err := externalQuerySourceFromWire(w.QuerySource)
 	if err != nil {
@@ -190,18 +268,18 @@ func queryInfoFromWire(w *queryInfoWire) (*QueryInfo, error) {
 		QueryId:            w.QueryId,
 		Status:             w.Status,
 		QueryText:          w.QueryText,
-		QueryStartTimeMs:   w.QueryStartTimeMs,
-		ExecutionEndTimeMs: w.ExecutionEndTimeMs,
-		QueryEndTimeMs:     w.QueryEndTimeMs,
-		UserId:             w.UserId,
+		QueryStartTimeMs:   queryStartTimeMsPublicValue,
+		ExecutionEndTimeMs: executionEndTimeMsPublicValue,
+		QueryEndTimeMs:     queryEndTimeMsPublicValue,
+		UserId:             userIdPublicValue,
 		UserName:           w.UserName,
 		SparkUiUrl:         w.SparkUiUrl,
 		EndpointId:         w.EndpointId,
-		RowsProduced:       w.RowsProduced,
+		RowsProduced:       rowsProducedPublicValue,
 		ErrorMessage:       w.ErrorMessage,
 		LookupKey:          w.LookupKey,
 		Metrics:            metricsPublicValue,
-		ExecutedAsUserId:   w.ExecutedAsUserId,
+		ExecutedAsUserId:   executedAsUserIdPublicValue,
 		ExecutedAsUserName: w.ExecutedAsUserName,
 		SessionId:          w.SessionId,
 		IsFinal:            w.IsFinal,
@@ -209,7 +287,7 @@ func queryInfoFromWire(w *queryInfoWire) (*QueryInfo, error) {
 		PlansState:         w.PlansState,
 		StatementType:      w.StatementType,
 		WarehouseId:        w.WarehouseId,
-		Duration:           w.Duration,
+		Duration:           durationPublicValue,
 		ClientApplication:  w.ClientApplication,
 		QuerySource:        querySourcePublicValue,
 		CacheQueryId:       w.CacheQueryId,
@@ -218,75 +296,183 @@ func queryInfoFromWire(w *queryInfoWire) (*QueryInfo, error) {
 }
 
 type queryMetricsWire struct {
-	TotalTimeMs                       *int64                 `json:"total_time_ms,omitempty"`
-	ReadBytes                         *int64                 `json:"read_bytes,omitempty"`
-	RowsProducedCount                 *int64                 `json:"rows_produced_count,omitempty"`
-	CompilationTimeMs                 *int64                 `json:"compilation_time_ms,omitempty"`
-	ExecutionTimeMs                   *int64                 `json:"execution_time_ms,omitempty"`
-	ReadRemoteBytes                   *int64                 `json:"read_remote_bytes,omitempty"`
-	WriteRemoteBytes                  *int64                 `json:"write_remote_bytes,omitempty"`
-	ReadCacheBytes                    *int64                 `json:"read_cache_bytes,omitempty"`
-	SpillToDiskBytes                  *int64                 `json:"spill_to_disk_bytes,omitempty"`
-	TaskTotalTimeMs                   *int64                 `json:"task_total_time_ms,omitempty"`
-	ReadFilesCount                    *int64                 `json:"read_files_count,omitempty"`
-	ReadPartitionsCount               *int64                 `json:"read_partitions_count,omitempty"`
-	PhotonTotalTimeMs                 *int64                 `json:"photon_total_time_ms,omitempty"`
-	RowsReadCount                     *int64                 `json:"rows_read_count,omitempty"`
-	ResultFetchTimeMs                 *int64                 `json:"result_fetch_time_ms,omitempty"`
-	NetworkSentBytes                  *int64                 `json:"network_sent_bytes,omitempty"`
+	TotalTimeMs                       *wireInt64             `json:"total_time_ms,omitempty"`
+	ReadBytes                         *wireInt64             `json:"read_bytes,omitempty"`
+	RowsProducedCount                 *wireInt64             `json:"rows_produced_count,omitempty"`
+	CompilationTimeMs                 *wireInt64             `json:"compilation_time_ms,omitempty"`
+	ExecutionTimeMs                   *wireInt64             `json:"execution_time_ms,omitempty"`
+	ReadRemoteBytes                   *wireInt64             `json:"read_remote_bytes,omitempty"`
+	WriteRemoteBytes                  *wireInt64             `json:"write_remote_bytes,omitempty"`
+	ReadCacheBytes                    *wireInt64             `json:"read_cache_bytes,omitempty"`
+	SpillToDiskBytes                  *wireInt64             `json:"spill_to_disk_bytes,omitempty"`
+	TaskTotalTimeMs                   *wireInt64             `json:"task_total_time_ms,omitempty"`
+	ReadFilesCount                    *wireInt64             `json:"read_files_count,omitempty"`
+	ReadPartitionsCount               *wireInt64             `json:"read_partitions_count,omitempty"`
+	PhotonTotalTimeMs                 *wireInt64             `json:"photon_total_time_ms,omitempty"`
+	RowsReadCount                     *wireInt64             `json:"rows_read_count,omitempty"`
+	ResultFetchTimeMs                 *wireInt64             `json:"result_fetch_time_ms,omitempty"`
+	NetworkSentBytes                  *wireInt64             `json:"network_sent_bytes,omitempty"`
 	ResultFromCache                   *bool                  `json:"result_from_cache,omitempty"`
-	PrunedBytes                       *int64                 `json:"pruned_bytes,omitempty"`
-	PrunedFilesCount                  *int64                 `json:"pruned_files_count,omitempty"`
-	ProvisioningQueueStartTimestamp   *int64                 `json:"provisioning_queue_start_timestamp,omitempty"`
-	OverloadingQueueStartTimestamp    *int64                 `json:"overloading_queue_start_timestamp,omitempty"`
-	QueryCompilationStartTimestamp    *int64                 `json:"query_compilation_start_timestamp,omitempty"`
+	PrunedBytes                       *wireInt64             `json:"pruned_bytes,omitempty"`
+	PrunedFilesCount                  *wireInt64             `json:"pruned_files_count,omitempty"`
+	ProvisioningQueueStartTimestamp   *wireInt64             `json:"provisioning_queue_start_timestamp,omitempty"`
+	OverloadingQueueStartTimestamp    *wireInt64             `json:"overloading_queue_start_timestamp,omitempty"`
+	QueryCompilationStartTimestamp    *wireInt64             `json:"query_compilation_start_timestamp,omitempty"`
 	TaskTimeOverTimeRange             *taskTimeOverRangeWire `json:"task_time_over_time_range,omitempty"`
-	WorkToBeDone                      *int64                 `json:"work_to_be_done,omitempty"`
-	RunnableTasks                     *int64                 `json:"runnable_tasks,omitempty"`
-	ProjectedRemainingTaskTotalTimeMs *int64                 `json:"projected_remaining_task_total_time_ms,omitempty"`
-	RemainingTaskCount                *int64                 `json:"remaining_task_count,omitempty"`
-	ProjectedRemainingWallclockTimeMs *int64                 `json:"projected_remaining_wallclock_time_ms,omitempty"`
-	ReadFilesBytes                    *int64                 `json:"read_files_bytes,omitempty"`
+	WorkToBeDone                      *wireInt64             `json:"work_to_be_done,omitempty"`
+	RunnableTasks                     *wireInt64             `json:"runnable_tasks,omitempty"`
+	ProjectedRemainingTaskTotalTimeMs *wireInt64             `json:"projected_remaining_task_total_time_ms,omitempty"`
+	RemainingTaskCount                *wireInt64             `json:"remaining_task_count,omitempty"`
+	ProjectedRemainingWallclockTimeMs *wireInt64             `json:"projected_remaining_wallclock_time_ms,omitempty"`
+	ReadFilesBytes                    *wireInt64             `json:"read_files_bytes,omitempty"`
 }
 
 func queryMetricsFromWire(w *queryMetricsWire) (*QueryMetrics, error) {
 	if w == nil {
 		return nil, nil
 	}
+	totalTimeMsPublicValue, err := int64FromWire(w.TotalTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.TotalTimeMs", err)
+	}
+	readBytesPublicValue, err := int64FromWire(w.ReadBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ReadBytes", err)
+	}
+	rowsProducedCountPublicValue, err := int64FromWire(w.RowsProducedCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.RowsProducedCount", err)
+	}
+	compilationTimeMsPublicValue, err := int64FromWire(w.CompilationTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.CompilationTimeMs", err)
+	}
+	executionTimeMsPublicValue, err := int64FromWire(w.ExecutionTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ExecutionTimeMs", err)
+	}
+	readRemoteBytesPublicValue, err := int64FromWire(w.ReadRemoteBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ReadRemoteBytes", err)
+	}
+	writeRemoteBytesPublicValue, err := int64FromWire(w.WriteRemoteBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.WriteRemoteBytes", err)
+	}
+	readCacheBytesPublicValue, err := int64FromWire(w.ReadCacheBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ReadCacheBytes", err)
+	}
+	spillToDiskBytesPublicValue, err := int64FromWire(w.SpillToDiskBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.SpillToDiskBytes", err)
+	}
+	taskTotalTimeMsPublicValue, err := int64FromWire(w.TaskTotalTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.TaskTotalTimeMs", err)
+	}
+	readFilesCountPublicValue, err := int64FromWire(w.ReadFilesCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ReadFilesCount", err)
+	}
+	readPartitionsCountPublicValue, err := int64FromWire(w.ReadPartitionsCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ReadPartitionsCount", err)
+	}
+	photonTotalTimeMsPublicValue, err := int64FromWire(w.PhotonTotalTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.PhotonTotalTimeMs", err)
+	}
+	rowsReadCountPublicValue, err := int64FromWire(w.RowsReadCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.RowsReadCount", err)
+	}
+	resultFetchTimeMsPublicValue, err := int64FromWire(w.ResultFetchTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ResultFetchTimeMs", err)
+	}
+	networkSentBytesPublicValue, err := int64FromWire(w.NetworkSentBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.NetworkSentBytes", err)
+	}
+	prunedBytesPublicValue, err := int64FromWire(w.PrunedBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.PrunedBytes", err)
+	}
+	prunedFilesCountPublicValue, err := int64FromWire(w.PrunedFilesCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.PrunedFilesCount", err)
+	}
+	provisioningQueueStartTimestampPublicValue, err := int64FromWire(w.ProvisioningQueueStartTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ProvisioningQueueStartTimestamp", err)
+	}
+	overloadingQueueStartTimestampPublicValue, err := int64FromWire(w.OverloadingQueueStartTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.OverloadingQueueStartTimestamp", err)
+	}
+	queryCompilationStartTimestampPublicValue, err := int64FromWire(w.QueryCompilationStartTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.QueryCompilationStartTimestamp", err)
+	}
 	taskTimeOverTimeRangePublicValue, err := taskTimeOverRangeFromWire(w.TaskTimeOverTimeRange)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "QueryMetrics.TaskTimeOverTimeRange", err)
 	}
+	workToBeDonePublicValue, err := int64FromWire(w.WorkToBeDone)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.WorkToBeDone", err)
+	}
+	runnableTasksPublicValue, err := int64FromWire(w.RunnableTasks)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.RunnableTasks", err)
+	}
+	projectedRemainingTaskTotalTimeMsPublicValue, err := int64FromWire(w.ProjectedRemainingTaskTotalTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ProjectedRemainingTaskTotalTimeMs", err)
+	}
+	remainingTaskCountPublicValue, err := int64FromWire(w.RemainingTaskCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.RemainingTaskCount", err)
+	}
+	projectedRemainingWallclockTimeMsPublicValue, err := int64FromWire(w.ProjectedRemainingWallclockTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ProjectedRemainingWallclockTimeMs", err)
+	}
+	readFilesBytesPublicValue, err := int64FromWire(w.ReadFilesBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ReadFilesBytes", err)
+	}
 	return &QueryMetrics{
-		TotalTimeMs:                       w.TotalTimeMs,
-		ReadBytes:                         w.ReadBytes,
-		RowsProducedCount:                 w.RowsProducedCount,
-		CompilationTimeMs:                 w.CompilationTimeMs,
-		ExecutionTimeMs:                   w.ExecutionTimeMs,
-		ReadRemoteBytes:                   w.ReadRemoteBytes,
-		WriteRemoteBytes:                  w.WriteRemoteBytes,
-		ReadCacheBytes:                    w.ReadCacheBytes,
-		SpillToDiskBytes:                  w.SpillToDiskBytes,
-		TaskTotalTimeMs:                   w.TaskTotalTimeMs,
-		ReadFilesCount:                    w.ReadFilesCount,
-		ReadPartitionsCount:               w.ReadPartitionsCount,
-		PhotonTotalTimeMs:                 w.PhotonTotalTimeMs,
-		RowsReadCount:                     w.RowsReadCount,
-		ResultFetchTimeMs:                 w.ResultFetchTimeMs,
-		NetworkSentBytes:                  w.NetworkSentBytes,
+		TotalTimeMs:                       totalTimeMsPublicValue,
+		ReadBytes:                         readBytesPublicValue,
+		RowsProducedCount:                 rowsProducedCountPublicValue,
+		CompilationTimeMs:                 compilationTimeMsPublicValue,
+		ExecutionTimeMs:                   executionTimeMsPublicValue,
+		ReadRemoteBytes:                   readRemoteBytesPublicValue,
+		WriteRemoteBytes:                  writeRemoteBytesPublicValue,
+		ReadCacheBytes:                    readCacheBytesPublicValue,
+		SpillToDiskBytes:                  spillToDiskBytesPublicValue,
+		TaskTotalTimeMs:                   taskTotalTimeMsPublicValue,
+		ReadFilesCount:                    readFilesCountPublicValue,
+		ReadPartitionsCount:               readPartitionsCountPublicValue,
+		PhotonTotalTimeMs:                 photonTotalTimeMsPublicValue,
+		RowsReadCount:                     rowsReadCountPublicValue,
+		ResultFetchTimeMs:                 resultFetchTimeMsPublicValue,
+		NetworkSentBytes:                  networkSentBytesPublicValue,
 		ResultFromCache:                   w.ResultFromCache,
-		PrunedBytes:                       w.PrunedBytes,
-		PrunedFilesCount:                  w.PrunedFilesCount,
-		ProvisioningQueueStartTimestamp:   w.ProvisioningQueueStartTimestamp,
-		OverloadingQueueStartTimestamp:    w.OverloadingQueueStartTimestamp,
-		QueryCompilationStartTimestamp:    w.QueryCompilationStartTimestamp,
+		PrunedBytes:                       prunedBytesPublicValue,
+		PrunedFilesCount:                  prunedFilesCountPublicValue,
+		ProvisioningQueueStartTimestamp:   provisioningQueueStartTimestampPublicValue,
+		OverloadingQueueStartTimestamp:    overloadingQueueStartTimestampPublicValue,
+		QueryCompilationStartTimestamp:    queryCompilationStartTimestampPublicValue,
 		TaskTimeOverTimeRange:             taskTimeOverTimeRangePublicValue,
-		WorkToBeDone:                      w.WorkToBeDone,
-		RunnableTasks:                     w.RunnableTasks,
-		ProjectedRemainingTaskTotalTimeMs: w.ProjectedRemainingTaskTotalTimeMs,
-		RemainingTaskCount:                w.RemainingTaskCount,
-		ProjectedRemainingWallclockTimeMs: w.ProjectedRemainingWallclockTimeMs,
-		ReadFilesBytes:                    w.ReadFilesBytes,
+		WorkToBeDone:                      workToBeDonePublicValue,
+		RunnableTasks:                     runnableTasksPublicValue,
+		ProjectedRemainingTaskTotalTimeMs: projectedRemainingTaskTotalTimeMsPublicValue,
+		RemainingTaskCount:                remainingTaskCountPublicValue,
+		ProjectedRemainingWallclockTimeMs: projectedRemainingWallclockTimeMsPublicValue,
+		ReadFilesBytes:                    readFilesBytesPublicValue,
 	}, nil
 }
 
@@ -307,7 +493,7 @@ func queryTagFromWire(w *queryTagWire) (*QueryTag, error) {
 
 type taskTimeOverRangeWire struct {
 	Entries  []taskTimeOverRangeEntryWire `json:"entries,omitempty"`
-	Interval *int64                       `json:"interval,omitempty"`
+	Interval *wireInt64                   `json:"interval,omitempty"`
 }
 
 func taskTimeOverRangeFromWire(w *taskTimeOverRangeWire) (*TaskTimeOverRange, error) {
@@ -318,37 +504,53 @@ func taskTimeOverRangeFromWire(w *taskTimeOverRangeWire) (*TaskTimeOverRange, er
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "TaskTimeOverRange.Entries", err)
 	}
+	intervalPublicValue, err := int64FromWire(w.Interval)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TaskTimeOverRange.Interval", err)
+	}
 	return &TaskTimeOverRange{
 		Entries:  entriesPublicValue,
-		Interval: w.Interval,
+		Interval: intervalPublicValue,
 	}, nil
 }
 
 type taskTimeOverRangeEntryWire struct {
-	TaskCompletedTimeMs *int64 `json:"task_completed_time_ms,omitempty"`
+	TaskCompletedTimeMs *wireInt64 `json:"task_completed_time_ms,omitempty"`
 }
 
 func taskTimeOverRangeEntryFromWire(w *taskTimeOverRangeEntryWire) (*TaskTimeOverRangeEntry, error) {
 	if w == nil {
 		return nil, nil
 	}
+	taskCompletedTimeMsPublicValue, err := int64FromWire(w.TaskCompletedTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TaskTimeOverRangeEntry.TaskCompletedTimeMs", err)
+	}
 	return &TaskTimeOverRangeEntry{
-		TaskCompletedTimeMs: w.TaskCompletedTimeMs,
+		TaskCompletedTimeMs: taskCompletedTimeMsPublicValue,
 	}, nil
 }
 
 type timeRangeWire struct {
-	StartTimeMs *int64 `json:"start_time_ms,omitempty"`
-	EndTimeMs   *int64 `json:"end_time_ms,omitempty"`
+	StartTimeMs *wireInt64 `json:"start_time_ms,omitempty"`
+	EndTimeMs   *wireInt64 `json:"end_time_ms,omitempty"`
 }
 
 func timeRangeToWire(v *TimeRange) (*timeRangeWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	startTimeMsWireValue, err := int64ToWire(v.StartTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TimeRange.StartTimeMs", err)
+	}
+	endTimeMsWireValue, err := int64ToWire(v.EndTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TimeRange.EndTimeMs", err)
+	}
 	return &timeRangeWire{
-		StartTimeMs: v.StartTimeMs,
-		EndTimeMs:   v.EndTimeMs,
+		StartTimeMs: startTimeMsWireValue,
+		EndTimeMs:   endTimeMsWireValue,
 	}, nil
 }
 

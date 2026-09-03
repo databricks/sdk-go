@@ -102,8 +102,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 //
 // [Authenticate with Google ID tokens]: https://docs.databricks.com/gcp/en/dev-tools/auth/authentication-google-id.html
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) CreateCustomerManagedKeyPublic(ctx context.Context, req *CreateCustomerManagedKeyRequest, opts ...call.Option) (*CustomerManagedKey, error) {
-	wireReq, err := createCustomerManagedKeyRequestToWire(req)
+func (c *internalClient) CreateCustomerManagedKeyPublic(ctx context.Context, req CreateCustomerManagedKeyRequest, opts ...call.Option) (*CustomerManagedKey, error) {
+	wireReq, err := createCustomerManagedKeyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (c *internalClient) CreateCustomerManagedKeyPublic(ctx context.Context, req
 // Deletes a customer-managed key configuration object for an account. You
 // cannot delete a configuration that is associated with a running workspace.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) DeleteCustomerManagedKeyPublic(ctx context.Context, req *DeleteCustomerManagedKeyRequest, opts ...call.Option) (*CustomerManagedKey, error) {
+func (c *internalClient) DeleteCustomerManagedKeyPublic(ctx context.Context, req DeleteCustomerManagedKeyRequest, opts ...call.Option) (*CustomerManagedKey, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -192,7 +192,11 @@ func (c *internalClient) DeleteCustomerManagedKeyPublic(ctx context.Context, req
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/customer-managed-keys/")
-	pb.singleSegment(*req.CustomerManagedKeyId)
+	if req.CustomerManagedKeyId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CustomerManagedKeyId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -253,7 +257,7 @@ func (c *internalClient) DeleteCustomerManagedKeyPublic(ctx context.Context, req
 // This operation is available only if your account is on the E2 version of the
 // platform.",
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) GetCustomerManagedKeyPublic(ctx context.Context, req *GetCustomerManagedKeyRequest, opts ...call.Option) (*CustomerManagedKey, error) {
+func (c *internalClient) GetCustomerManagedKeyPublic(ctx context.Context, req GetCustomerManagedKeyRequest, opts ...call.Option) (*CustomerManagedKey, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -270,7 +274,11 @@ func (c *internalClient) GetCustomerManagedKeyPublic(ctx context.Context, req *G
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
 	pb.literal("/customer-managed-keys/")
-	pb.singleSegment(*req.CustomerManagedKeyId)
+	if req.CustomerManagedKeyId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CustomerManagedKeyId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -317,7 +325,7 @@ func (c *internalClient) GetCustomerManagedKeyPublic(ctx context.Context, req *G
 
 // Lists <Databricks> customer-managed key configurations for an account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
-func (c *internalClient) ListCustomerManagedKeyPublic(ctx context.Context, req *ListCustomerManagedKeyRequest, opts ...call.Option) (*ListCustomerManagedKeyResponse, error) {
+func (c *internalClient) ListCustomerManagedKeyPublic(ctx context.Context, req ListCustomerManagedKeyRequest, opts ...call.Option) (*ListCustomerManagedKeyResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")

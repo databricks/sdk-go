@@ -3,8 +3,54 @@
 package connections
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type connectionInfoWire struct {
 	Name                *string                  `json:"name,omitempty"`
@@ -18,9 +64,9 @@ type connectionInfoWire struct {
 	CredentialType      CredentialType           `json:"credential_type,omitempty"`
 	ConnectionId        *string                  `json:"connection_id,omitempty"`
 	MetastoreId         *string                  `json:"metastore_id,omitempty"`
-	CreatedAt           *int64                   `json:"created_at,omitempty"`
+	CreatedAt           *wireInt64               `json:"created_at,omitempty"`
 	CreatedBy           *string                  `json:"created_by,omitempty"`
-	UpdatedAt           *int64                   `json:"updated_at,omitempty"`
+	UpdatedAt           *wireInt64               `json:"updated_at,omitempty"`
 	UpdatedBy           *string                  `json:"updated_by,omitempty"`
 	SecurableType       SecurableType            `json:"securable_type,omitempty"`
 	ProvisioningInfo    *provisioningInfoWire    `json:"provisioning_info,omitempty"`
@@ -35,6 +81,14 @@ func connectionInfoFromWire(w *connectionInfoWire) (*ConnectionInfo, error) {
 	environmentSettingsPublicValue, err := environmentSettingsFromWire(w.EnvironmentSettings)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ConnectionInfo.EnvironmentSettings", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ConnectionInfo.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ConnectionInfo.UpdatedAt", err)
 	}
 	provisioningInfoPublicValue, err := provisioningInfoFromWire(w.ProvisioningInfo)
 	if err != nil {
@@ -52,9 +106,9 @@ func connectionInfoFromWire(w *connectionInfoWire) (*ConnectionInfo, error) {
 		CredentialType:      w.CredentialType,
 		ConnectionId:        w.ConnectionId,
 		MetastoreId:         w.MetastoreId,
-		CreatedAt:           w.CreatedAt,
+		CreatedAt:           createdAtPublicValue,
 		CreatedBy:           w.CreatedBy,
-		UpdatedAt:           w.UpdatedAt,
+		UpdatedAt:           updatedAtPublicValue,
 		UpdatedBy:           w.UpdatedBy,
 		SecurableType:       w.SecurableType,
 		ProvisioningInfo:    provisioningInfoPublicValue,
@@ -76,9 +130,9 @@ type createConnectionRequestWire struct {
 	CredentialType      CredentialType           `json:"credential_type,omitempty"`
 	ConnectionId        *string                  `json:"connection_id,omitempty"`
 	MetastoreId         *string                  `json:"metastore_id,omitempty"`
-	CreatedAt           *int64                   `json:"created_at,omitempty"`
+	CreatedAt           *wireInt64               `json:"created_at,omitempty"`
 	CreatedBy           *string                  `json:"created_by,omitempty"`
-	UpdatedAt           *int64                   `json:"updated_at,omitempty"`
+	UpdatedAt           *wireInt64               `json:"updated_at,omitempty"`
 	UpdatedBy           *string                  `json:"updated_by,omitempty"`
 	SecurableType       SecurableType            `json:"securable_type,omitempty"`
 	ProvisioningInfo    *provisioningInfoWire    `json:"provisioning_info,omitempty"`
@@ -93,6 +147,14 @@ func createConnectionRequestToWire(v *CreateConnectionRequest) (*createConnectio
 	environmentSettingsWireValue, err := environmentSettingsToWire(v.EnvironmentSettings)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreateConnectionRequest.EnvironmentSettings", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateConnectionRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateConnectionRequest.UpdatedAt", err)
 	}
 	provisioningInfoWireValue, err := provisioningInfoToWire(v.ProvisioningInfo)
 	if err != nil {
@@ -111,9 +173,9 @@ func createConnectionRequestToWire(v *CreateConnectionRequest) (*createConnectio
 		CredentialType:      v.CredentialType,
 		ConnectionId:        v.ConnectionId,
 		MetastoreId:         v.MetastoreId,
-		CreatedAt:           v.CreatedAt,
+		CreatedAt:           createdAtWireValue,
 		CreatedBy:           v.CreatedBy,
-		UpdatedAt:           v.UpdatedAt,
+		UpdatedAt:           updatedAtWireValue,
 		UpdatedBy:           v.UpdatedBy,
 		SecurableType:       v.SecurableType,
 		ProvisioningInfo:    provisioningInfoWireValue,
@@ -219,9 +281,9 @@ type updateConnectionRequestWire struct {
 	CredentialType      CredentialType           `json:"credential_type,omitempty"`
 	ConnectionId        *string                  `json:"connection_id,omitempty"`
 	MetastoreId         *string                  `json:"metastore_id,omitempty"`
-	CreatedAt           *int64                   `json:"created_at,omitempty"`
+	CreatedAt           *wireInt64               `json:"created_at,omitempty"`
 	CreatedBy           *string                  `json:"created_by,omitempty"`
-	UpdatedAt           *int64                   `json:"updated_at,omitempty"`
+	UpdatedAt           *wireInt64               `json:"updated_at,omitempty"`
 	UpdatedBy           *string                  `json:"updated_by,omitempty"`
 	SecurableType       SecurableType            `json:"securable_type,omitempty"`
 	ProvisioningInfo    *provisioningInfoWire    `json:"provisioning_info,omitempty"`
@@ -236,6 +298,14 @@ func updateConnectionRequestToWire(v *UpdateConnectionRequest) (*updateConnectio
 	environmentSettingsWireValue, err := environmentSettingsToWire(v.EnvironmentSettings)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "UpdateConnectionRequest.EnvironmentSettings", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateConnectionRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateConnectionRequest.UpdatedAt", err)
 	}
 	provisioningInfoWireValue, err := provisioningInfoToWire(v.ProvisioningInfo)
 	if err != nil {
@@ -255,9 +325,9 @@ func updateConnectionRequestToWire(v *UpdateConnectionRequest) (*updateConnectio
 		CredentialType:      v.CredentialType,
 		ConnectionId:        v.ConnectionId,
 		MetastoreId:         v.MetastoreId,
-		CreatedAt:           v.CreatedAt,
+		CreatedAt:           createdAtWireValue,
 		CreatedBy:           v.CreatedBy,
-		UpdatedAt:           v.UpdatedAt,
+		UpdatedAt:           updatedAtWireValue,
 		UpdatedBy:           v.UpdatedBy,
 		SecurableType:       v.SecurableType,
 		ProvisioningInfo:    provisioningInfoWireValue,

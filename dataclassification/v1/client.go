@@ -77,8 +77,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 //
 // Creates a new config resource, which enables Data Classification for the
 // specified catalog. - The config must not already exist for the catalog.
-func (c *internalClient) CreateCatalogConfig(ctx context.Context, req *CreateCatalogConfigRequest, opts ...call.Option) (*CatalogConfig, error) {
-	wireReq, err := createCatalogConfigRequestToWire(req)
+func (c *internalClient) CreateCatalogConfig(ctx context.Context, req CreateCatalogConfigRequest, opts ...call.Option) (*CatalogConfig, error) {
+	wireReq, err := createCatalogConfigRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,11 @@ func (c *internalClient) CreateCatalogConfig(ctx context.Context, req *CreateCat
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/data-classification/v1/")
-	pb.singleSegment(*req.Parent)
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
 	pb.literal("/config")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -147,7 +151,7 @@ func (c *internalClient) CreateCatalogConfig(ctx context.Context, req *CreateCat
 }
 
 // Delete Data Classification configuration for a catalog.
-func (c *internalClient) DeleteCatalogConfig(ctx context.Context, req *DeleteCatalogConfigRequest, opts ...call.Option) error {
+func (c *internalClient) DeleteCatalogConfig(ctx context.Context, req DeleteCatalogConfigRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -161,7 +165,11 @@ func (c *internalClient) DeleteCatalogConfig(ctx context.Context, req *DeleteCat
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/data-classification/v1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -198,7 +206,7 @@ func (c *internalClient) DeleteCatalogConfig(ctx context.Context, req *DeleteCat
 }
 
 // Get the Data Classification configuration for a catalog.
-func (c *internalClient) GetCatalogConfig(ctx context.Context, req *GetCatalogConfigRequest, opts ...call.Option) (*CatalogConfig, error) {
+func (c *internalClient) GetCatalogConfig(ctx context.Context, req GetCatalogConfigRequest, opts ...call.Option) (*CatalogConfig, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -212,7 +220,11 @@ func (c *internalClient) GetCatalogConfig(ctx context.Context, req *GetCatalogCo
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/data-classification/v1/")
-	pb.singleSegment(*req.Name)
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -260,8 +272,8 @@ func (c *internalClient) GetCatalogConfig(ctx context.Context, req *GetCatalogCo
 // Update the Data Classification configuration for a catalog. - The config must
 // already exist for the catalog. - Updates fields specified in the update_mask.
 // Use update_mask field to perform partial updates of the configuration.
-func (c *internalClient) UpdateCatalogConfig(ctx context.Context, req *UpdateCatalogConfigRequest, opts ...call.Option) (*CatalogConfig, error) {
-	wireReq, err := updateCatalogConfigRequestToWire(req)
+func (c *internalClient) UpdateCatalogConfig(ctx context.Context, req UpdateCatalogConfigRequest, opts ...call.Option) (*CatalogConfig, error) {
+	wireReq, err := updateCatalogConfigRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -282,7 +294,11 @@ func (c *internalClient) UpdateCatalogConfig(ctx context.Context, req *UpdateCat
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/data-classification/v1/")
-	pb.singleSegment(*req.CatalogConfig.Name)
+	if req.CatalogConfig == nil || req.CatalogConfig.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.CatalogConfig.Name)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

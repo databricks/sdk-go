@@ -75,8 +75,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 
 // Retrieve the information for an policy family based on its identifier and
 // version
-func (c *internalClient) GetPolicyFamily(ctx context.Context, req *GetPolicyFamilyRequest, opts ...call.Option) (*PolicyFamily, error) {
-	wireReq, err := getPolicyFamilyRequestToWire(req)
+func (c *internalClient) GetPolicyFamily(ctx context.Context, req GetPolicyFamilyRequest, opts ...call.Option) (*PolicyFamily, error) {
+	wireReq, err := getPolicyFamilyRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,11 @@ func (c *internalClient) GetPolicyFamily(ctx context.Context, req *GetPolicyFami
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/policy-families/")
-	pb.singleSegment(*req.PolicyFamilyId)
+	if req.PolicyFamilyId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PolicyFamilyId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "version", wireReq.Version); err != nil {
@@ -143,8 +147,8 @@ func (c *internalClient) GetPolicyFamily(ctx context.Context, req *GetPolicyFami
 
 // Returns the list of policy definition types available to use at their latest
 // version. This API is paginated.
-func (c *internalClient) ListPolicyFamilies(ctx context.Context, req *ListPolicyFamiliesRequest, opts ...call.Option) (*ListPolicyFamiliesResponse, error) {
-	wireReq, err := listPolicyFamiliesRequestToWire(req)
+func (c *internalClient) ListPolicyFamilies(ctx context.Context, req ListPolicyFamiliesRequest, opts ...call.Option) (*ListPolicyFamiliesResponse, error) {
+	wireReq, err := listPolicyFamiliesRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +218,7 @@ func (c *internalClient) ListPolicyFamilies(ctx context.Context, req *ListPolicy
 //
 // For example:
 //
-//	for item, err := range c.ListPolicyFamiliesIter(ctx, &ListPolicyFamiliesRequest{}) {
+//	for item, err := range c.ListPolicyFamiliesIter(ctx, ListPolicyFamiliesRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -226,16 +230,13 @@ func (c *internalClient) ListPolicyFamilies(ctx context.Context, req *ListPolicy
 //
 // Callers who need custom pagination logic should use
 // ListPolicyFamilies directly.
-func (c *internalClient) ListPolicyFamiliesIter(ctx context.Context, req *ListPolicyFamiliesRequest, opts ...call.Option) iter.Seq2[*PolicyFamily, error] {
+func (c *internalClient) ListPolicyFamiliesIter(ctx context.Context, req ListPolicyFamiliesRequest, opts ...call.Option) iter.Seq2[*PolicyFamily, error] {
 	return func(yield func(*PolicyFamily, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListPolicyFamiliesRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListPolicyFamilies(ctx, &pageReq, opts...)
+			resp, err := c.ListPolicyFamilies(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return

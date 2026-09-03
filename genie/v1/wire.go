@@ -3,29 +3,87 @@
 package genie
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/databricks/sdk-go/core/types"
 )
 
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
+
 type chunkInfoWire struct {
-	ChunkIndex            *int    `json:"chunk_index,omitempty"`
-	RowOffset             *int64  `json:"row_offset,omitempty"`
-	RowCount              *int64  `json:"row_count,omitempty"`
-	ByteCount             *int64  `json:"byte_count,omitempty"`
-	NextChunkIndex        *int    `json:"next_chunk_index,omitempty"`
-	NextChunkInternalLink *string `json:"next_chunk_internal_link,omitempty"`
+	ChunkIndex            *int       `json:"chunk_index,omitempty"`
+	RowOffset             *wireInt64 `json:"row_offset,omitempty"`
+	RowCount              *wireInt64 `json:"row_count,omitempty"`
+	ByteCount             *wireInt64 `json:"byte_count,omitempty"`
+	NextChunkIndex        *int       `json:"next_chunk_index,omitempty"`
+	NextChunkInternalLink *string    `json:"next_chunk_internal_link,omitempty"`
 }
 
 func chunkInfoFromWire(w *chunkInfoWire) (*ChunkInfo, error) {
 	if w == nil {
 		return nil, nil
 	}
+	rowOffsetPublicValue, err := int64FromWire(w.RowOffset)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ChunkInfo.RowOffset", err)
+	}
+	rowCountPublicValue, err := int64FromWire(w.RowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ChunkInfo.RowCount", err)
+	}
+	byteCountPublicValue, err := int64FromWire(w.ByteCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ChunkInfo.ByteCount", err)
+	}
 	return &ChunkInfo{
 		ChunkIndex:            w.ChunkIndex,
-		RowOffset:             w.RowOffset,
-		RowCount:              w.RowCount,
-		ByteCount:             w.ByteCount,
+		RowOffset:             rowOffsetPublicValue,
+		RowCount:              rowCountPublicValue,
+		ByteCount:             byteCountPublicValue,
 		NextChunkIndex:        w.NextChunkIndex,
 		NextChunkInternalLink: w.NextChunkInternalLink,
 	}, nil
@@ -113,9 +171,9 @@ type externalLinkWire struct {
 	Expiration            *string           `json:"expiration,omitempty"`
 	HttpHeaders           map[string]string `json:"http_headers,omitempty"`
 	ChunkIndex            *int              `json:"chunk_index,omitempty"`
-	RowOffset             *int64            `json:"row_offset,omitempty"`
-	RowCount              *int64            `json:"row_count,omitempty"`
-	ByteCount             *int64            `json:"byte_count,omitempty"`
+	RowOffset             *wireInt64        `json:"row_offset,omitempty"`
+	RowCount              *wireInt64        `json:"row_count,omitempty"`
+	ByteCount             *wireInt64        `json:"byte_count,omitempty"`
 	NextChunkIndex        *int              `json:"next_chunk_index,omitempty"`
 	NextChunkInternalLink *string           `json:"next_chunk_internal_link,omitempty"`
 }
@@ -124,14 +182,26 @@ func externalLinkFromWire(w *externalLinkWire) (*ExternalLink, error) {
 	if w == nil {
 		return nil, nil
 	}
+	rowOffsetPublicValue, err := int64FromWire(w.RowOffset)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLink.RowOffset", err)
+	}
+	rowCountPublicValue, err := int64FromWire(w.RowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLink.RowCount", err)
+	}
+	byteCountPublicValue, err := int64FromWire(w.ByteCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLink.ByteCount", err)
+	}
 	return &ExternalLink{
 		ExternalLink:          w.ExternalLink,
 		Expiration:            w.Expiration,
 		HttpHeaders:           w.HttpHeaders,
 		ChunkIndex:            w.ChunkIndex,
-		RowOffset:             w.RowOffset,
-		RowCount:              w.RowCount,
-		ByteCount:             w.ByteCount,
+		RowOffset:             rowOffsetPublicValue,
+		RowCount:              rowCountPublicValue,
+		ByteCount:             byteCountPublicValue,
 		NextChunkIndex:        w.NextChunkIndex,
 		NextChunkInternalLink: w.NextChunkInternalLink,
 	}, nil
@@ -198,26 +268,55 @@ func genieAttachmentFromWire(w *genieAttachmentWire) (*GenieAttachment, error) {
 	}, nil
 }
 
+type genieCancelResponseRequestWire struct {
+	AgentId        *string `json:"agent_id,omitempty"`
+	ConversationId *string `json:"conversation_id,omitempty"`
+	ResponseId     *string `json:"response_id,omitempty"`
+}
+
+func genieCancelResponseRequestToWire(v *GenieCancelResponseRequest) (*genieCancelResponseRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &genieCancelResponseRequestWire{
+		AgentId:        v.AgentId,
+		ConversationId: v.ConversationId,
+		ResponseId:     v.ResponseId,
+	}, nil
+}
+
 type genieConversationWire struct {
-	Id                   *string `json:"id,omitempty"`
-	SpaceId              *string `json:"space_id,omitempty"`
-	UserId               *int64  `json:"user_id,omitempty"`
-	CreatedTimestamp     *int64  `json:"created_timestamp,omitempty"`
-	LastUpdatedTimestamp *int64  `json:"last_updated_timestamp,omitempty"`
-	Title                *string `json:"title,omitempty"`
-	ConversationId       *string `json:"conversation_id,omitempty"`
+	Id                   *string    `json:"id,omitempty"`
+	SpaceId              *string    `json:"space_id,omitempty"`
+	UserId               *wireInt64 `json:"user_id,omitempty"`
+	CreatedTimestamp     *wireInt64 `json:"created_timestamp,omitempty"`
+	LastUpdatedTimestamp *wireInt64 `json:"last_updated_timestamp,omitempty"`
+	Title                *string    `json:"title,omitempty"`
+	ConversationId       *string    `json:"conversation_id,omitempty"`
 }
 
 func genieConversationFromWire(w *genieConversationWire) (*GenieConversation, error) {
 	if w == nil {
 		return nil, nil
 	}
+	userIdPublicValue, err := int64FromWire(w.UserId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieConversation.UserId", err)
+	}
+	createdTimestampPublicValue, err := int64FromWire(w.CreatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieConversation.CreatedTimestamp", err)
+	}
+	lastUpdatedTimestampPublicValue, err := int64FromWire(w.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieConversation.LastUpdatedTimestamp", err)
+	}
 	return &GenieConversation{
 		Id:                   w.Id,
 		SpaceId:              w.SpaceId,
-		UserId:               w.UserId,
-		CreatedTimestamp:     w.CreatedTimestamp,
-		LastUpdatedTimestamp: w.LastUpdatedTimestamp,
+		UserId:               userIdPublicValue,
+		CreatedTimestamp:     createdTimestampPublicValue,
+		LastUpdatedTimestamp: lastUpdatedTimestampPublicValue,
 		Title:                w.Title,
 		ConversationId:       w.ConversationId,
 	}, nil
@@ -226,7 +325,7 @@ func genieConversationFromWire(w *genieConversationWire) (*GenieConversation, er
 type genieConversationSummaryWire struct {
 	ConversationId   *string               `json:"conversation_id,omitempty"`
 	Title            *string               `json:"title,omitempty"`
-	CreatedTimestamp *int64                `json:"created_timestamp,omitempty"`
+	CreatedTimestamp *wireInt64            `json:"created_timestamp,omitempty"`
 	AgentType        GenieConversationType `json:"agent_type,omitempty"`
 }
 
@@ -234,10 +333,14 @@ func genieConversationSummaryFromWire(w *genieConversationSummaryWire) (*GenieCo
 	if w == nil {
 		return nil, nil
 	}
+	createdTimestampPublicValue, err := int64FromWire(w.CreatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieConversationSummary.CreatedTimestamp", err)
+	}
 	return &GenieConversationSummary{
 		ConversationId:   w.ConversationId,
 		Title:            w.Title,
-		CreatedTimestamp: w.CreatedTimestamp,
+		CreatedTimestamp: createdTimestampPublicValue,
 		AgentType:        w.AgentType,
 	}, nil
 }
@@ -344,12 +447,16 @@ type genieEvalResultWire struct {
 	Status              EvaluationStatusType `json:"status,omitempty"`
 	Question            *string              `json:"question,omitempty"`
 	BenchmarkAnswer     *string              `json:"benchmark_answer,omitempty"`
-	CreatedByUser       *int64               `json:"created_by_user,omitempty"`
+	CreatedByUser       *wireInt64           `json:"created_by_user,omitempty"`
 }
 
 func genieEvalResultFromWire(w *genieEvalResultWire) (*GenieEvalResult, error) {
 	if w == nil {
 		return nil, nil
+	}
+	createdByUserPublicValue, err := int64FromWire(w.CreatedByUser)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieEvalResult.CreatedByUser", err)
 	}
 	return &GenieEvalResult{
 		ResultId:            w.ResultId,
@@ -358,7 +465,7 @@ func genieEvalResultFromWire(w *genieEvalResultWire) (*GenieEvalResult, error) {
 		Status:              w.Status,
 		Question:            w.Question,
 		BenchmarkAnswer:     w.BenchmarkAnswer,
-		CreatedByUser:       w.CreatedByUser,
+		CreatedByUser:       createdByUserPublicValue,
 	}, nil
 }
 
@@ -402,29 +509,57 @@ func genieEvalResultDetailsFromWire(w *genieEvalResultDetailsWire) (*GenieEvalRe
 type genieEvalRunResponseWire struct {
 	EvalRunId            *string              `json:"eval_run_id,omitempty"`
 	EvalRunStatus        EvaluationStatusType `json:"eval_run_status,omitempty"`
-	RunByUser            *int64               `json:"run_by_user,omitempty"`
-	CreatedTimestamp     *int64               `json:"created_timestamp,omitempty"`
-	NumQuestions         *int64               `json:"num_questions,omitempty"`
-	NumCorrect           *int64               `json:"num_correct,omitempty"`
-	NumNeedsReview       *int64               `json:"num_needs_review,omitempty"`
-	NumDone              *int64               `json:"num_done,omitempty"`
-	LastUpdatedTimestamp *int64               `json:"last_updated_timestamp,omitempty"`
+	RunByUser            *wireInt64           `json:"run_by_user,omitempty"`
+	CreatedTimestamp     *wireInt64           `json:"created_timestamp,omitempty"`
+	NumQuestions         *wireInt64           `json:"num_questions,omitempty"`
+	NumCorrect           *wireInt64           `json:"num_correct,omitempty"`
+	NumNeedsReview       *wireInt64           `json:"num_needs_review,omitempty"`
+	NumDone              *wireInt64           `json:"num_done,omitempty"`
+	LastUpdatedTimestamp *wireInt64           `json:"last_updated_timestamp,omitempty"`
 }
 
 func genieEvalRunResponseFromWire(w *genieEvalRunResponseWire) (*GenieEvalRunResponse, error) {
 	if w == nil {
 		return nil, nil
 	}
+	runByUserPublicValue, err := int64FromWire(w.RunByUser)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieEvalRunResponse.RunByUser", err)
+	}
+	createdTimestampPublicValue, err := int64FromWire(w.CreatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieEvalRunResponse.CreatedTimestamp", err)
+	}
+	numQuestionsPublicValue, err := int64FromWire(w.NumQuestions)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieEvalRunResponse.NumQuestions", err)
+	}
+	numCorrectPublicValue, err := int64FromWire(w.NumCorrect)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieEvalRunResponse.NumCorrect", err)
+	}
+	numNeedsReviewPublicValue, err := int64FromWire(w.NumNeedsReview)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieEvalRunResponse.NumNeedsReview", err)
+	}
+	numDonePublicValue, err := int64FromWire(w.NumDone)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieEvalRunResponse.NumDone", err)
+	}
+	lastUpdatedTimestampPublicValue, err := int64FromWire(w.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieEvalRunResponse.LastUpdatedTimestamp", err)
+	}
 	return &GenieEvalRunResponse{
 		EvalRunId:            w.EvalRunId,
 		EvalRunStatus:        w.EvalRunStatus,
-		RunByUser:            w.RunByUser,
-		CreatedTimestamp:     w.CreatedTimestamp,
-		NumQuestions:         w.NumQuestions,
-		NumCorrect:           w.NumCorrect,
-		NumNeedsReview:       w.NumNeedsReview,
-		NumDone:              w.NumDone,
-		LastUpdatedTimestamp: w.LastUpdatedTimestamp,
+		RunByUser:            runByUserPublicValue,
+		CreatedTimestamp:     createdTimestampPublicValue,
+		NumQuestions:         numQuestionsPublicValue,
+		NumCorrect:           numCorrectPublicValue,
+		NumNeedsReview:       numNeedsReviewPublicValue,
+		NumDone:              numDonePublicValue,
+		LastUpdatedTimestamp: lastUpdatedTimestampPublicValue,
 	}, nil
 }
 
@@ -851,9 +986,9 @@ type genieMessageWire struct {
 	Id                   *string                     `json:"id,omitempty"`
 	SpaceId              *string                     `json:"space_id,omitempty"`
 	ConversationId       *string                     `json:"conversation_id,omitempty"`
-	UserId               *int64                      `json:"user_id,omitempty"`
-	CreatedTimestamp     *int64                      `json:"created_timestamp,omitempty"`
-	LastUpdatedTimestamp *int64                      `json:"last_updated_timestamp,omitempty"`
+	UserId               *wireInt64                  `json:"user_id,omitempty"`
+	CreatedTimestamp     *wireInt64                  `json:"created_timestamp,omitempty"`
+	LastUpdatedTimestamp *wireInt64                  `json:"last_updated_timestamp,omitempty"`
 	Status               MessageStatus_MessageStatus `json:"status,omitempty"`
 	Content              *string                     `json:"content,omitempty"`
 	Attachments          []genieAttachmentWire       `json:"attachments,omitempty"`
@@ -866,6 +1001,18 @@ type genieMessageWire struct {
 func genieMessageFromWire(w *genieMessageWire) (*GenieMessage, error) {
 	if w == nil {
 		return nil, nil
+	}
+	userIdPublicValue, err := int64FromWire(w.UserId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieMessage.UserId", err)
+	}
+	createdTimestampPublicValue, err := int64FromWire(w.CreatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieMessage.CreatedTimestamp", err)
+	}
+	lastUpdatedTimestampPublicValue, err := int64FromWire(w.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieMessage.LastUpdatedTimestamp", err)
 	}
 	attachmentsPublicValue, err := convertSlice(w.Attachments, genieAttachmentFromWire)
 	if err != nil {
@@ -887,9 +1034,9 @@ func genieMessageFromWire(w *genieMessageWire) (*GenieMessage, error) {
 		Id:                   w.Id,
 		SpaceId:              w.SpaceId,
 		ConversationId:       w.ConversationId,
-		UserId:               w.UserId,
-		CreatedTimestamp:     w.CreatedTimestamp,
-		LastUpdatedTimestamp: w.LastUpdatedTimestamp,
+		UserId:               userIdPublicValue,
+		CreatedTimestamp:     createdTimestampPublicValue,
+		LastUpdatedTimestamp: lastUpdatedTimestampPublicValue,
 		Status:               w.Status,
 		Content:              w.Content,
 		Attachments:          attachmentsPublicValue,
@@ -901,27 +1048,35 @@ func genieMessageFromWire(w *genieMessageWire) (*GenieMessage, error) {
 }
 
 type genieMessageCommentWire struct {
-	SpaceId          *string `json:"space_id,omitempty"`
-	ConversationId   *string `json:"conversation_id,omitempty"`
-	MessageId        *string `json:"message_id,omitempty"`
-	MessageCommentId *string `json:"message_comment_id,omitempty"`
-	UserId           *int64  `json:"user_id,omitempty"`
-	Content          *string `json:"content,omitempty"`
-	CreatedTimestamp *int64  `json:"created_timestamp,omitempty"`
+	SpaceId          *string    `json:"space_id,omitempty"`
+	ConversationId   *string    `json:"conversation_id,omitempty"`
+	MessageId        *string    `json:"message_id,omitempty"`
+	MessageCommentId *string    `json:"message_comment_id,omitempty"`
+	UserId           *wireInt64 `json:"user_id,omitempty"`
+	Content          *string    `json:"content,omitempty"`
+	CreatedTimestamp *wireInt64 `json:"created_timestamp,omitempty"`
 }
 
 func genieMessageCommentFromWire(w *genieMessageCommentWire) (*GenieMessageComment, error) {
 	if w == nil {
 		return nil, nil
 	}
+	userIdPublicValue, err := int64FromWire(w.UserId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieMessageComment.UserId", err)
+	}
+	createdTimestampPublicValue, err := int64FromWire(w.CreatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieMessageComment.CreatedTimestamp", err)
+	}
 	return &GenieMessageComment{
 		SpaceId:          w.SpaceId,
 		ConversationId:   w.ConversationId,
 		MessageId:        w.MessageId,
 		MessageCommentId: w.MessageCommentId,
-		UserId:           w.UserId,
+		UserId:           userIdPublicValue,
 		Content:          w.Content,
-		CreatedTimestamp: w.CreatedTimestamp,
+		CreatedTimestamp: createdTimestampPublicValue,
 	}, nil
 }
 
@@ -929,7 +1084,7 @@ type genieQueryAttachmentWire struct {
 	Title                *string                        `json:"title,omitempty"`
 	Query                *string                        `json:"query,omitempty"`
 	Description          *string                        `json:"description,omitempty"`
-	LastUpdatedTimestamp *int64                         `json:"last_updated_timestamp,omitempty"`
+	LastUpdatedTimestamp *wireInt64                     `json:"last_updated_timestamp,omitempty"`
 	Parameters           []queryAttachmentParameterWire `json:"parameters,omitempty"`
 	Id                   *string                        `json:"id,omitempty"`
 	StatementId          *string                        `json:"statement_id,omitempty"`
@@ -940,6 +1095,10 @@ type genieQueryAttachmentWire struct {
 func genieQueryAttachmentFromWire(w *genieQueryAttachmentWire) (*GenieQueryAttachment, error) {
 	if w == nil {
 		return nil, nil
+	}
+	lastUpdatedTimestampPublicValue, err := int64FromWire(w.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieQueryAttachment.LastUpdatedTimestamp", err)
 	}
 	parametersPublicValue, err := convertSlice(w.Parameters, queryAttachmentParameterFromWire)
 	if err != nil {
@@ -957,7 +1116,7 @@ func genieQueryAttachmentFromWire(w *genieQueryAttachmentWire) (*GenieQueryAttac
 		Title:                w.Title,
 		Query:                w.Query,
 		Description:          w.Description,
-		LastUpdatedTimestamp: w.LastUpdatedTimestamp,
+		LastUpdatedTimestamp: lastUpdatedTimestampPublicValue,
 		Parameters:           parametersPublicValue,
 		Id:                   w.Id,
 		StatementId:          w.StatementId,
@@ -967,16 +1126,20 @@ func genieQueryAttachmentFromWire(w *genieQueryAttachmentWire) (*GenieQueryAttac
 }
 
 type genieResultMetadataWire struct {
-	RowCount    *int64 `json:"row_count,omitempty"`
-	IsTruncated *bool  `json:"is_truncated,omitempty"`
+	RowCount    *wireInt64 `json:"row_count,omitempty"`
+	IsTruncated *bool      `json:"is_truncated,omitempty"`
 }
 
 func genieResultMetadataFromWire(w *genieResultMetadataWire) (*GenieResultMetadata, error) {
 	if w == nil {
 		return nil, nil
 	}
+	rowCountPublicValue, err := int64FromWire(w.RowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieResultMetadata.RowCount", err)
+	}
 	return &GenieResultMetadata{
-		RowCount:    w.RowCount,
+		RowCount:    rowCountPublicValue,
 		IsTruncated: w.IsTruncated,
 	}, nil
 }
@@ -1228,19 +1391,23 @@ func queryAttachmentParameterFromWire(w *queryAttachmentParameterWire) (*QueryAt
 }
 
 type resultWire struct {
-	StatementId          *string `json:"statement_id,omitempty"`
-	RowCount             *int64  `json:"row_count,omitempty"`
-	IsTruncated          *bool   `json:"is_truncated,omitempty"`
-	StatementIdSignature *string `json:"statement_id_signature,omitempty"`
+	StatementId          *string    `json:"statement_id,omitempty"`
+	RowCount             *wireInt64 `json:"row_count,omitempty"`
+	IsTruncated          *bool      `json:"is_truncated,omitempty"`
+	StatementIdSignature *string    `json:"statement_id_signature,omitempty"`
 }
 
 func resultFromWire(w *resultWire) (*Result, error) {
 	if w == nil {
 		return nil, nil
 	}
+	rowCountPublicValue, err := int64FromWire(w.RowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Result.RowCount", err)
+	}
 	return &Result{
 		StatementId:          w.StatementId,
-		RowCount:             w.RowCount,
+		RowCount:             rowCountPublicValue,
 		IsTruncated:          w.IsTruncated,
 		StatementIdSignature: w.StatementIdSignature,
 	}, nil
@@ -1250,9 +1417,9 @@ type resultDataWire struct {
 	ExternalLinks         []externalLinkWire `json:"external_links,omitempty"`
 	DataArray             []listValueWire    `json:"data_array,omitempty"`
 	ChunkIndex            *int               `json:"chunk_index,omitempty"`
-	RowOffset             *int64             `json:"row_offset,omitempty"`
-	RowCount              *int64             `json:"row_count,omitempty"`
-	ByteCount             *int64             `json:"byte_count,omitempty"`
+	RowOffset             *wireInt64         `json:"row_offset,omitempty"`
+	RowCount              *wireInt64         `json:"row_count,omitempty"`
+	ByteCount             *wireInt64         `json:"byte_count,omitempty"`
 	NextChunkIndex        *int               `json:"next_chunk_index,omitempty"`
 	NextChunkInternalLink *string            `json:"next_chunk_internal_link,omitempty"`
 }
@@ -1269,13 +1436,25 @@ func resultDataFromWire(w *resultDataWire) (*ResultData, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ResultData.DataArray", err)
 	}
+	rowOffsetPublicValue, err := int64FromWire(w.RowOffset)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ResultData.RowOffset", err)
+	}
+	rowCountPublicValue, err := int64FromWire(w.RowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ResultData.RowCount", err)
+	}
+	byteCountPublicValue, err := int64FromWire(w.ByteCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ResultData.ByteCount", err)
+	}
 	return &ResultData{
 		ExternalLinks:         externalLinksPublicValue,
 		DataArray:             dataArrayPublicValue,
 		ChunkIndex:            w.ChunkIndex,
-		RowOffset:             w.RowOffset,
-		RowCount:              w.RowCount,
-		ByteCount:             w.ByteCount,
+		RowOffset:             rowOffsetPublicValue,
+		RowCount:              rowCountPublicValue,
+		ByteCount:             byteCountPublicValue,
 		NextChunkIndex:        w.NextChunkIndex,
 		NextChunkInternalLink: w.NextChunkInternalLink,
 	}, nil
@@ -1286,8 +1465,8 @@ type resultManifestWire struct {
 	Schema          *schemaWire     `json:"schema,omitempty"`
 	TotalChunkCount *int            `json:"total_chunk_count,omitempty"`
 	Chunks          []chunkInfoWire `json:"chunks,omitempty"`
-	TotalRowCount   *int64          `json:"total_row_count,omitempty"`
-	TotalByteCount  *int64          `json:"total_byte_count,omitempty"`
+	TotalRowCount   *wireInt64      `json:"total_row_count,omitempty"`
+	TotalByteCount  *wireInt64      `json:"total_byte_count,omitempty"`
 	Truncated       *bool           `json:"truncated,omitempty"`
 }
 
@@ -1303,13 +1482,21 @@ func resultManifestFromWire(w *resultManifestWire) (*ResultManifest, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ResultManifest.Chunks", err)
 	}
+	totalRowCountPublicValue, err := int64FromWire(w.TotalRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ResultManifest.TotalRowCount", err)
+	}
+	totalByteCountPublicValue, err := int64FromWire(w.TotalByteCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ResultManifest.TotalByteCount", err)
+	}
 	return &ResultManifest{
 		Format:          w.Format,
 		Schema:          schemaPublicValue,
 		TotalChunkCount: w.TotalChunkCount,
 		Chunks:          chunksPublicValue,
-		TotalRowCount:   w.TotalRowCount,
-		TotalByteCount:  w.TotalByteCount,
+		TotalRowCount:   totalRowCountPublicValue,
+		TotalByteCount:  totalByteCountPublicValue,
 		Truncated:       w.Truncated,
 	}, nil
 }

@@ -3,8 +3,54 @@
 package pipelines
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type apiSourceConnectorConfigWire struct {
 	Configs map[string]string `json:"configs,omitempty"`
@@ -90,7 +136,7 @@ func autoFullRefreshPolicyFromWire(w *autoFullRefreshPolicyWire) (*AutoFullRefre
 
 type clonePipelineRequestWire struct {
 	PipelineId           *string                                 `json:"pipeline_id,omitempty"`
-	ExpectedLastModified *int64                                  `json:"expected_last_modified,omitempty"`
+	ExpectedLastModified *wireInt64                              `json:"expected_last_modified,omitempty"`
 	AllowDuplicateNames  *bool                                   `json:"allow_duplicate_names,omitempty"`
 	Id                   *string                                 `json:"id,omitempty"`
 	Name                 *string                                 `json:"name,omitempty"`
@@ -127,6 +173,10 @@ type clonePipelineRequestWire struct {
 func clonePipelineRequestToWire(v *ClonePipelineRequest) (*clonePipelineRequestWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	expectedLastModifiedWireValue, err := int64ToWire(v.ExpectedLastModified)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClonePipelineRequest.ExpectedLastModified", err)
 	}
 	clustersWireValue, err := convertSlice(v.Clusters, pipelineClusterToWire)
 	if err != nil {
@@ -174,7 +224,7 @@ func clonePipelineRequestToWire(v *ClonePipelineRequest) (*clonePipelineRequestW
 	}
 	return &clonePipelineRequestWire{
 		PipelineId:           v.PipelineId,
-		ExpectedLastModified: v.ExpectedLastModified,
+		ExpectedLastModified: expectedLastModifiedWireValue,
 		AllowDuplicateNames:  v.AllowDuplicateNames,
 		Id:                   v.Id,
 		Name:                 v.Name,
@@ -278,6 +328,7 @@ type connectorOptionsWire struct {
 	MetaAdsOptions            *metaMarketingOptionsWire       `json:"meta_ads_options,omitempty"`
 	ZendeskSupportOptions     *zendeskSupportOptionsWire      `json:"zendesk_support_options,omitempty"`
 	KafkaOptions              *kafkaOptionsWire               `json:"kafka_options,omitempty"`
+	RabbitmqOptions           *rabbitmqOptionsWire            `json:"rabbitmq_options,omitempty"`
 	MarketoOptions            *marketoOptionsWire             `json:"marketo_options,omitempty"`
 	LinkedinAdsOptions        *linkedInAdsOptionsWire         `json:"linkedin_ads_options,omitempty"`
 	RedditAdsOptions          *redditAdsOptionsWire           `json:"reddit_ads_options,omitempty"`
@@ -299,6 +350,7 @@ func connectorOptionsToWire(v *ConnectorOptions) (*connectorOptionsWire, error) 
 	var connectorOptionsMetaAdsOptionsWire *metaMarketingOptionsWire
 	var connectorOptionsZendeskSupportOptionsWire *zendeskSupportOptionsWire
 	var connectorOptionsKafkaOptionsWire *kafkaOptionsWire
+	var connectorOptionsRabbitmqOptionsWire *rabbitmqOptionsWire
 	var connectorOptionsMarketoOptionsWire *marketoOptionsWire
 	var connectorOptionsLinkedinAdsOptionsWire *linkedInAdsOptionsWire
 	var connectorOptionsRedditAdsOptionsWire *redditAdsOptionsWire
@@ -393,6 +445,14 @@ func connectorOptionsToWire(v *ConnectorOptions) (*connectorOptionsWire, error) 
 			}
 			connectorOptionsKafkaOptionsWire = connectorOptionsKafkaOptionsConverted
 		}
+	case *ConnectorOptions_ConnectorOptions_RabbitmqOptions:
+		if value != nil {
+			connectorOptionsRabbitmqOptionsConverted, err := rabbitmqOptionsToWire(&value.RabbitmqOptions)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ConnectorOptions.ConnectorOptions.RabbitmqOptions", err)
+			}
+			connectorOptionsRabbitmqOptionsWire = connectorOptionsRabbitmqOptionsConverted
+		}
 	case *ConnectorOptions_ConnectorOptions_MarketoOptions:
 		if value != nil {
 			connectorOptionsMarketoOptionsConverted, err := marketoOptionsToWire(&value.MarketoOptions)
@@ -440,6 +500,7 @@ func connectorOptionsToWire(v *ConnectorOptions) (*connectorOptionsWire, error) 
 		MetaAdsOptions:            connectorOptionsMetaAdsOptionsWire,
 		ZendeskSupportOptions:     connectorOptionsZendeskSupportOptionsWire,
 		KafkaOptions:              connectorOptionsKafkaOptionsWire,
+		RabbitmqOptions:           connectorOptionsRabbitmqOptionsWire,
 		MarketoOptions:            connectorOptionsMarketoOptionsWire,
 		LinkedinAdsOptions:        connectorOptionsLinkedinAdsOptionsWire,
 		RedditAdsOptions:          connectorOptionsRedditAdsOptionsWire,
@@ -483,6 +544,9 @@ func connectorOptionsFromWire(w *connectorOptionsWire) (*ConnectorOptions, error
 		connectorOptionsMembers++
 	}
 	if w.KafkaOptions != nil {
+		connectorOptionsMembers++
+	}
+	if w.RabbitmqOptions != nil {
 		connectorOptionsMembers++
 	}
 	if w.MarketoOptions != nil {
@@ -568,6 +632,12 @@ func connectorOptionsFromWire(w *connectorOptionsWire) (*ConnectorOptions, error
 			return nil, fmt.Errorf("%s: %w", "ConnectorOptions.ConnectorOptions.KafkaOptions", err)
 		}
 		connectorOptionsSelection = &ConnectorOptions_ConnectorOptions_KafkaOptions{KafkaOptions: *connectorOptionsKafkaOptionsConverted}
+	case w.RabbitmqOptions != nil:
+		connectorOptionsRabbitmqOptionsConverted, err := rabbitmqOptionsFromWire(w.RabbitmqOptions)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "ConnectorOptions.ConnectorOptions.RabbitmqOptions", err)
+		}
+		connectorOptionsSelection = &ConnectorOptions_ConnectorOptions_RabbitmqOptions{RabbitmqOptions: *connectorOptionsRabbitmqOptionsConverted}
 	case w.MarketoOptions != nil:
 		connectorOptionsMarketoOptionsConverted, err := marketoOptionsFromWire(w.MarketoOptions)
 		if err != nil {
@@ -768,17 +838,21 @@ func cronTriggerFromWire(w *cronTriggerWire) (*CronTrigger, error) {
 }
 
 type dataPlaneIdWire struct {
-	Instance *string `json:"instance,omitempty"`
-	SeqNo    *int64  `json:"seq_no,omitempty"`
+	Instance *string    `json:"instance,omitempty"`
+	SeqNo    *wireInt64 `json:"seq_no,omitempty"`
 }
 
 func dataPlaneIdFromWire(w *dataPlaneIdWire) (*DataPlaneId, error) {
 	if w == nil {
 		return nil, nil
 	}
+	seqNoPublicValue, err := int64FromWire(w.SeqNo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DataPlaneId.SeqNo", err)
+	}
 	return &DataPlaneId{
 		Instance: w.Instance,
-		SeqNo:    w.SeqNo,
+		SeqNo:    seqNoPublicValue,
 	}, nil
 }
 
@@ -830,7 +904,7 @@ func deletePipelineRequestToWire(v *DeletePipelineRequest) (*deletePipelineReque
 type editPipelineRequestWire struct {
 	PipelineId           *string                                 `json:"pipeline_id,omitempty"`
 	AllowDuplicateNames  *bool                                   `json:"allow_duplicate_names,omitempty"`
-	ExpectedLastModified *int64                                  `json:"expected_last_modified,omitempty"`
+	ExpectedLastModified *wireInt64                              `json:"expected_last_modified,omitempty"`
 	RunAs                *pipelinesJobRunAsWire                  `json:"run_as,omitempty"`
 	Parameters           map[string]string                       `json:"parameters,omitempty"`
 	Id                   *string                                 `json:"id,omitempty"`
@@ -867,6 +941,10 @@ type editPipelineRequestWire struct {
 func editPipelineRequestToWire(v *EditPipelineRequest) (*editPipelineRequestWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	expectedLastModifiedWireValue, err := int64ToWire(v.ExpectedLastModified)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditPipelineRequest.ExpectedLastModified", err)
 	}
 	runAsWireValue, err := pipelinesJobRunAsToWire(v.RunAs)
 	if err != nil {
@@ -919,7 +997,7 @@ func editPipelineRequestToWire(v *EditPipelineRequest) (*editPipelineRequestWire
 	return &editPipelineRequestWire{
 		PipelineId:           v.PipelineId,
 		AllowDuplicateNames:  v.AllowDuplicateNames,
-		ExpectedLastModified: v.ExpectedLastModified,
+		ExpectedLastModified: expectedLastModifiedWireValue,
 		RunAs:                runAsWireValue,
 		Parameters:           v.Parameters,
 		Id:                   v.Id,
@@ -1164,7 +1242,7 @@ type getPipelineResponseWire struct {
 	Health                       PipelineHealthStatus        `json:"health,omitempty"`
 	CreatorUserName              *string                     `json:"creator_user_name,omitempty"`
 	LatestUpdates                []updateStateInfoWire       `json:"latest_updates,omitempty"`
-	LastModified                 *int64                      `json:"last_modified,omitempty"`
+	LastModified                 *wireInt64                  `json:"last_modified,omitempty"`
 	RunAsUserName                *string                     `json:"run_as_user_name,omitempty"`
 	EffectiveBudgetPolicyId      *string                     `json:"effective_budget_policy_id,omitempty"`
 	EffectivePublishingMode      PublishingMode              `json:"effective_publishing_mode,omitempty"`
@@ -1185,6 +1263,10 @@ func getPipelineResponseFromWire(w *getPipelineResponseWire) (*GetPipelineRespon
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "GetPipelineResponse.LatestUpdates", err)
 	}
+	lastModifiedPublicValue, err := int64FromWire(w.LastModified)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetPipelineResponse.LastModified", err)
+	}
 	runAsPublicValue, err := pipelinesJobRunAsFromWire(w.RunAs)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "GetPipelineResponse.RunAs", err)
@@ -1199,7 +1281,7 @@ func getPipelineResponseFromWire(w *getPipelineResponseWire) (*GetPipelineRespon
 		Health:                       w.Health,
 		CreatorUserName:              w.CreatorUserName,
 		LatestUpdates:                latestUpdatesPublicValue,
-		LastModified:                 w.LastModified,
+		LastModified:                 lastModifiedPublicValue,
 		RunAsUserName:                w.RunAsUserName,
 		EffectiveBudgetPolicyId:      w.EffectiveBudgetPolicyId,
 		EffectivePublishingMode:      w.EffectivePublishingMode,
@@ -1907,19 +1989,23 @@ func ingestionPipelineDefinition_TableSpecificConfigFromWire(w *ingestionPipelin
 }
 
 type ingestionPipelineDefinition_TableSpecificConfig_QueryBasedConnectorConfigWire struct {
-	CursorColumns                        []string `json:"cursor_columns,omitempty"`
-	DeletionCondition                    *string  `json:"deletion_condition,omitempty"`
-	HardDeletionSyncMinIntervalInSeconds *int64   `json:"hard_deletion_sync_min_interval_in_seconds,omitempty"`
+	CursorColumns                        []string   `json:"cursor_columns,omitempty"`
+	DeletionCondition                    *string    `json:"deletion_condition,omitempty"`
+	HardDeletionSyncMinIntervalInSeconds *wireInt64 `json:"hard_deletion_sync_min_interval_in_seconds,omitempty"`
 }
 
 func ingestionPipelineDefinition_TableSpecificConfig_QueryBasedConnectorConfigToWire(v *IngestionPipelineDefinition_TableSpecificConfig_QueryBasedConnectorConfig) (*ingestionPipelineDefinition_TableSpecificConfig_QueryBasedConnectorConfigWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	hardDeletionSyncMinIntervalInSecondsWireValue, err := int64ToWire(v.HardDeletionSyncMinIntervalInSeconds)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "IngestionPipelineDefinition_TableSpecificConfig_QueryBasedConnectorConfig.HardDeletionSyncMinIntervalInSeconds", err)
+	}
 	return &ingestionPipelineDefinition_TableSpecificConfig_QueryBasedConnectorConfigWire{
 		CursorColumns:                        v.CursorColumns,
 		DeletionCondition:                    v.DeletionCondition,
-		HardDeletionSyncMinIntervalInSeconds: v.HardDeletionSyncMinIntervalInSeconds,
+		HardDeletionSyncMinIntervalInSeconds: hardDeletionSyncMinIntervalInSecondsWireValue,
 	}, nil
 }
 
@@ -1927,10 +2013,14 @@ func ingestionPipelineDefinition_TableSpecificConfig_QueryBasedConnectorConfigFr
 	if w == nil {
 		return nil, nil
 	}
+	hardDeletionSyncMinIntervalInSecondsPublicValue, err := int64FromWire(w.HardDeletionSyncMinIntervalInSeconds)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "IngestionPipelineDefinition_TableSpecificConfig_QueryBasedConnectorConfig.HardDeletionSyncMinIntervalInSeconds", err)
+	}
 	return &IngestionPipelineDefinition_TableSpecificConfig_QueryBasedConnectorConfig{
 		CursorColumns:                        w.CursorColumns,
 		DeletionCondition:                    w.DeletionCondition,
-		HardDeletionSyncMinIntervalInSeconds: w.HardDeletionSyncMinIntervalInSeconds,
+		HardDeletionSyncMinIntervalInSeconds: hardDeletionSyncMinIntervalInSecondsPublicValue,
 	}, nil
 }
 
@@ -2057,7 +2147,7 @@ type kafkaOptionsWire struct {
 	KeyTransformer       *transformerWire  `json:"key_transformer,omitempty"`
 	ValueTransformer     *transformerWire  `json:"value_transformer,omitempty"`
 	StartingOffset       *string           `json:"starting_offset,omitempty"`
-	MaxOffsetsPerTrigger *int64            `json:"max_offsets_per_trigger,omitempty"`
+	MaxOffsetsPerTrigger *wireInt64        `json:"max_offsets_per_trigger,omitempty"`
 	ClientConfig         map[string]string `json:"client_config,omitempty"`
 }
 
@@ -2073,13 +2163,17 @@ func kafkaOptionsToWire(v *KafkaOptions) (*kafkaOptionsWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "KafkaOptions.ValueTransformer", err)
 	}
+	maxOffsetsPerTriggerWireValue, err := int64ToWire(v.MaxOffsetsPerTrigger)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "KafkaOptions.MaxOffsetsPerTrigger", err)
+	}
 	return &kafkaOptionsWire{
 		Topics:               v.Topics,
 		TopicPattern:         v.TopicPattern,
 		KeyTransformer:       keyTransformerWireValue,
 		ValueTransformer:     valueTransformerWireValue,
 		StartingOffset:       v.StartingOffset,
-		MaxOffsetsPerTrigger: v.MaxOffsetsPerTrigger,
+		MaxOffsetsPerTrigger: maxOffsetsPerTriggerWireValue,
 		ClientConfig:         v.ClientConfig,
 	}, nil
 }
@@ -2096,13 +2190,17 @@ func kafkaOptionsFromWire(w *kafkaOptionsWire) (*KafkaOptions, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "KafkaOptions.ValueTransformer", err)
 	}
+	maxOffsetsPerTriggerPublicValue, err := int64FromWire(w.MaxOffsetsPerTrigger)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "KafkaOptions.MaxOffsetsPerTrigger", err)
+	}
 	return &KafkaOptions{
 		Topics:               w.Topics,
 		TopicPattern:         w.TopicPattern,
 		KeyTransformer:       keyTransformerPublicValue,
 		ValueTransformer:     valueTransformerPublicValue,
 		StartingOffset:       w.StartingOffset,
-		MaxOffsetsPerTrigger: w.MaxOffsetsPerTrigger,
+		MaxOffsetsPerTrigger: maxOffsetsPerTriggerPublicValue,
 		ClientConfig:         w.ClientConfig,
 	}, nil
 }
@@ -2500,38 +2598,46 @@ func operationTimeWindowFromWire(w *operationTimeWindowWire) (*OperationTimeWind
 }
 
 type originWire struct {
-	Cloud                         *string `json:"cloud,omitempty"`
-	Region                        *string `json:"region,omitempty"`
-	OrgId                         *int64  `json:"org_id,omitempty"`
-	PipelineId                    *string `json:"pipeline_id,omitempty"`
-	PipelineName                  *string `json:"pipeline_name,omitempty"`
-	ClusterId                     *string `json:"cluster_id,omitempty"`
-	UpdateId                      *string `json:"update_id,omitempty"`
-	MaintenanceId                 *string `json:"maintenance_id,omitempty"`
-	TableId                       *string `json:"table_id,omitempty"`
-	DatasetName                   *string `json:"dataset_name,omitempty"`
-	FlowId                        *string `json:"flow_id,omitempty"`
-	FlowName                      *string `json:"flow_name,omitempty"`
-	BatchId                       *int64  `json:"batch_id,omitempty"`
-	RequestId                     *string `json:"request_id,omitempty"`
-	UcResourceId                  *string `json:"uc_resource_id,omitempty"`
-	Host                          *string `json:"host,omitempty"`
-	MaterializationName           *string `json:"materialization_name,omitempty"`
-	IngestionSourceConnectionName *string `json:"ingestion_source_connection_name,omitempty"`
-	IngestionSourceCatalogName    *string `json:"ingestion_source_catalog_name,omitempty"`
-	IngestionSourceSchemaName     *string `json:"ingestion_source_schema_name,omitempty"`
-	IngestionSourceTableName      *string `json:"ingestion_source_table_name,omitempty"`
-	IngestionSourceTableVersion   *string `json:"ingestion_source_table_version,omitempty"`
+	Cloud                         *string    `json:"cloud,omitempty"`
+	Region                        *string    `json:"region,omitempty"`
+	OrgId                         *wireInt64 `json:"org_id,omitempty"`
+	PipelineId                    *string    `json:"pipeline_id,omitempty"`
+	PipelineName                  *string    `json:"pipeline_name,omitempty"`
+	ClusterId                     *string    `json:"cluster_id,omitempty"`
+	UpdateId                      *string    `json:"update_id,omitempty"`
+	MaintenanceId                 *string    `json:"maintenance_id,omitempty"`
+	TableId                       *string    `json:"table_id,omitempty"`
+	DatasetName                   *string    `json:"dataset_name,omitempty"`
+	FlowId                        *string    `json:"flow_id,omitempty"`
+	FlowName                      *string    `json:"flow_name,omitempty"`
+	BatchId                       *wireInt64 `json:"batch_id,omitempty"`
+	RequestId                     *string    `json:"request_id,omitempty"`
+	UcResourceId                  *string    `json:"uc_resource_id,omitempty"`
+	Host                          *string    `json:"host,omitempty"`
+	MaterializationName           *string    `json:"materialization_name,omitempty"`
+	IngestionSourceConnectionName *string    `json:"ingestion_source_connection_name,omitempty"`
+	IngestionSourceCatalogName    *string    `json:"ingestion_source_catalog_name,omitempty"`
+	IngestionSourceSchemaName     *string    `json:"ingestion_source_schema_name,omitempty"`
+	IngestionSourceTableName      *string    `json:"ingestion_source_table_name,omitempty"`
+	IngestionSourceTableVersion   *string    `json:"ingestion_source_table_version,omitempty"`
 }
 
 func originFromWire(w *originWire) (*Origin, error) {
 	if w == nil {
 		return nil, nil
 	}
+	orgIdPublicValue, err := int64FromWire(w.OrgId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Origin.OrgId", err)
+	}
+	batchIdPublicValue, err := int64FromWire(w.BatchId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Origin.BatchId", err)
+	}
 	return &Origin{
 		Cloud:                         w.Cloud,
 		Region:                        w.Region,
-		OrgId:                         w.OrgId,
+		OrgId:                         orgIdPublicValue,
 		PipelineId:                    w.PipelineId,
 		PipelineName:                  w.PipelineName,
 		ClusterId:                     w.ClusterId,
@@ -2541,7 +2647,7 @@ func originFromWire(w *originWire) (*Origin, error) {
 		DatasetName:                   w.DatasetName,
 		FlowId:                        w.FlowId,
 		FlowName:                      w.FlowName,
-		BatchId:                       w.BatchId,
+		BatchId:                       batchIdPublicValue,
 		RequestId:                     w.RequestId,
 		UcResourceId:                  w.UcResourceId,
 		Host:                          w.Host,
@@ -3699,6 +3805,28 @@ func postgresSlotConfigFromWire(w *postgresSlotConfigWire) (*PostgresSlotConfig,
 	}, nil
 }
 
+type rabbitmqOptionsWire struct {
+	Queue *string `json:"queue,omitempty"`
+}
+
+func rabbitmqOptionsToWire(v *RabbitmqOptions) (*rabbitmqOptionsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &rabbitmqOptionsWire{
+		Queue: v.Queue,
+	}, nil
+}
+
+func rabbitmqOptionsFromWire(w *rabbitmqOptionsWire) (*RabbitmqOptions, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RabbitmqOptions{
+		Queue: w.Queue,
+	}, nil
+}
+
 type redditAdsOptionsWire struct {
 	SyncStartDate       *string                                            `json:"sync_start_date,omitempty"`
 	LookbackWindowDays  *int                                               `json:"lookback_window_days,omitempty"`
@@ -3843,7 +3971,7 @@ func rewindSpecToWire(v *RewindSpec) (*rewindSpecWire, error) {
 
 type sequencingWire struct {
 	DataPlaneId       *dataPlaneIdWire `json:"data_plane_id,omitempty"`
-	ControlPlaneSeqNo *int64           `json:"control_plane_seq_no,omitempty"`
+	ControlPlaneSeqNo *wireInt64       `json:"control_plane_seq_no,omitempty"`
 }
 
 func sequencingFromWire(w *sequencingWire) (*Sequencing, error) {
@@ -3854,9 +3982,13 @@ func sequencingFromWire(w *sequencingWire) (*Sequencing, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Sequencing.DataPlaneId", err)
 	}
+	controlPlaneSeqNoPublicValue, err := int64FromWire(w.ControlPlaneSeqNo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Sequencing.ControlPlaneSeqNo", err)
+	}
 	return &Sequencing{
 		DataPlaneId:       dataPlaneIdPublicValue,
-		ControlPlaneSeqNo: w.ControlPlaneSeqNo,
+		ControlPlaneSeqNo: controlPlaneSeqNoPublicValue,
 	}, nil
 }
 
@@ -4344,7 +4476,7 @@ type updateInfoWire struct {
 	Cause                UpdateCause       `json:"cause,omitempty"`
 	State                UpdateState       `json:"state,omitempty"`
 	ClusterId            *string           `json:"cluster_id,omitempty"`
-	CreationTime         *int64            `json:"creation_time,omitempty"`
+	CreationTime         *wireInt64        `json:"creation_time,omitempty"`
 	FullRefresh          *bool             `json:"full_refresh,omitempty"`
 	RefreshSelection     []string          `json:"refresh_selection,omitempty"`
 	FullRefreshSelection []string          `json:"full_refresh_selection,omitempty"`
@@ -4361,6 +4493,10 @@ func updateInfoFromWire(w *updateInfoWire) (*UpdateInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "UpdateInfo.Config", err)
 	}
+	creationTimePublicValue, err := int64FromWire(w.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateInfo.CreationTime", err)
+	}
 	return &UpdateInfo{
 		PipelineId:           w.PipelineId,
 		UpdateId:             w.UpdateId,
@@ -4368,7 +4504,7 @@ func updateInfoFromWire(w *updateInfoWire) (*UpdateInfo, error) {
 		Cause:                w.Cause,
 		State:                w.State,
 		ClusterId:            w.ClusterId,
-		CreationTime:         w.CreationTime,
+		CreationTime:         creationTimePublicValue,
 		FullRefresh:          w.FullRefresh,
 		RefreshSelection:     w.RefreshSelection,
 		FullRefreshSelection: w.FullRefreshSelection,

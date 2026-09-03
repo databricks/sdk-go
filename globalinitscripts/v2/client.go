@@ -74,8 +74,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Creates a new global init script in this workspace.
-func (c *internalClient) CreateGlobalInitScript(ctx context.Context, req *CreateGlobalInitScriptRequest, opts ...call.Option) (*CreateGlobalInitScriptResponse, error) {
-	wireReq, err := createGlobalInitScriptRequestToWire(req)
+func (c *internalClient) CreateGlobalInitScript(ctx context.Context, req CreateGlobalInitScriptRequest, opts ...call.Option) (*CreateGlobalInitScriptResponse, error) {
+	wireReq, err := createGlobalInitScriptRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +140,7 @@ func (c *internalClient) CreateGlobalInitScript(ctx context.Context, req *Create
 }
 
 // Deletes a global init script.
-func (c *internalClient) DeleteGlobalInitScript(ctx context.Context, req *DeleteGlobalInitScriptRequest, opts ...call.Option) (*DeleteGlobalInitScriptResponse, error) {
+func (c *internalClient) DeleteGlobalInitScript(ctx context.Context, req DeleteGlobalInitScriptRequest, opts ...call.Option) (*DeleteGlobalInitScriptResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -154,7 +154,11 @@ func (c *internalClient) DeleteGlobalInitScript(ctx context.Context, req *Delete
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/global-init-scripts/")
-	pb.singleSegment(*req.ScriptId)
+	if req.ScriptId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ScriptId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -194,7 +198,7 @@ func (c *internalClient) DeleteGlobalInitScript(ctx context.Context, req *Delete
 }
 
 // Gets all the details of a script, including its Base64-encoded contents.
-func (c *internalClient) GetGlobalInitScript(ctx context.Context, req *GetGlobalInitScriptRequest, opts ...call.Option) (*GlobalInitScriptDetails, error) {
+func (c *internalClient) GetGlobalInitScript(ctx context.Context, req GetGlobalInitScriptRequest, opts ...call.Option) (*GlobalInitScriptDetails, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -208,7 +212,11 @@ func (c *internalClient) GetGlobalInitScript(ctx context.Context, req *GetGlobal
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/global-init-scripts/")
-	pb.singleSegment(*req.ScriptId)
+	if req.ScriptId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ScriptId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -257,7 +265,7 @@ func (c *internalClient) GetGlobalInitScript(ctx context.Context, req *GetGlobal
 // properties for each script but **not** the script contents. To retrieve the
 // contents of a script, use the [get a global init
 // script](:method:globalinitscripts/get) operation.
-func (c *internalClient) ListGlobalInitScripts(ctx context.Context, req *ListGlobalInitScriptsRequest, opts ...call.Option) (*ListGlobalInitScriptsResponse, error) {
+func (c *internalClient) ListGlobalInitScripts(ctx context.Context, req ListGlobalInitScriptsRequest, opts ...call.Option) (*ListGlobalInitScriptsResponse, error) {
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -315,8 +323,8 @@ func (c *internalClient) ListGlobalInitScripts(ctx context.Context, req *ListGlo
 
 // Updates a global init script, specifying only the fields to change. All
 // fields are optional. Unspecified fields retain their current value.
-func (c *internalClient) UpdateGlobalInitScript(ctx context.Context, req *UpdateGlobalInitScriptRequest, opts ...call.Option) (*UpdateGlobalInitScriptResponse, error) {
-	wireReq, err := updateGlobalInitScriptRequestToWire(req)
+func (c *internalClient) UpdateGlobalInitScript(ctx context.Context, req UpdateGlobalInitScriptRequest, opts ...call.Option) (*UpdateGlobalInitScriptResponse, error) {
+	wireReq, err := updateGlobalInitScriptRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -337,7 +345,11 @@ func (c *internalClient) UpdateGlobalInitScript(ctx context.Context, req *Update
 	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/global-init-scripts/")
-	pb.singleSegment(*req.ScriptId)
+	if req.ScriptId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.ScriptId)
+	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

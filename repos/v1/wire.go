@@ -3,15 +3,61 @@
 package repos
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 type createRepoRequestWire struct {
 	Url             *string             `json:"url,omitempty"`
 	Provider        *string             `json:"provider,omitempty"`
 	Path            *string             `json:"path,omitempty"`
 	SparseCheckout  *sparseCheckoutWire `json:"sparse_checkout,omitempty"`
-	GitCredentialId *int64              `json:"git_credential_id,omitempty"`
+	GitCredentialId *wireInt64          `json:"git_credential_id,omitempty"`
 }
 
 func createRepoRequestToWire(v *CreateRepoRequest) (*createRepoRequestWire, error) {
@@ -22,17 +68,21 @@ func createRepoRequestToWire(v *CreateRepoRequest) (*createRepoRequestWire, erro
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreateRepoRequest.SparseCheckout", err)
 	}
+	gitCredentialIdWireValue, err := int64ToWire(v.GitCredentialId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRepoRequest.GitCredentialId", err)
+	}
 	return &createRepoRequestWire{
 		Url:             v.Url,
 		Provider:        v.Provider,
 		Path:            v.Path,
 		SparseCheckout:  sparseCheckoutWireValue,
-		GitCredentialId: v.GitCredentialId,
+		GitCredentialId: gitCredentialIdWireValue,
 	}, nil
 }
 
 type createRepoResponseWire struct {
-	Id             *int64              `json:"id,omitempty"`
+	Id             *wireInt64          `json:"id,omitempty"`
 	Path           *string             `json:"path,omitempty"`
 	Url            *string             `json:"url,omitempty"`
 	Provider       *string             `json:"provider,omitempty"`
@@ -45,12 +95,16 @@ func createRepoResponseFromWire(w *createRepoResponseWire) (*CreateRepoResponse,
 	if w == nil {
 		return nil, nil
 	}
+	idPublicValue, err := int64FromWire(w.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRepoResponse.Id", err)
+	}
 	sparseCheckoutPublicValue, err := sparseCheckoutFromWire(w.SparseCheckout)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreateRepoResponse.SparseCheckout", err)
 	}
 	return &CreateRepoResponse{
-		Id:             w.Id,
+		Id:             idPublicValue,
 		Path:           w.Path,
 		Url:            w.Url,
 		Provider:       w.Provider,
@@ -61,7 +115,7 @@ func createRepoResponseFromWire(w *createRepoResponseWire) (*CreateRepoResponse,
 }
 
 type getRepoResponseWire struct {
-	Id             *int64              `json:"id,omitempty"`
+	Id             *wireInt64          `json:"id,omitempty"`
 	Path           *string             `json:"path,omitempty"`
 	Url            *string             `json:"url,omitempty"`
 	Provider       *string             `json:"provider,omitempty"`
@@ -75,12 +129,16 @@ func getRepoResponseFromWire(w *getRepoResponseWire) (*GetRepoResponse, error) {
 	if w == nil {
 		return nil, nil
 	}
+	idPublicValue, err := int64FromWire(w.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRepoResponse.Id", err)
+	}
 	sparseCheckoutPublicValue, err := sparseCheckoutFromWire(w.SparseCheckout)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "GetRepoResponse.SparseCheckout", err)
 	}
 	return &GetRepoResponse{
-		Id:             w.Id,
+		Id:             idPublicValue,
 		Path:           w.Path,
 		Url:            w.Url,
 		Provider:       w.Provider,
@@ -126,7 +184,7 @@ func listReposResponseFromWire(w *listReposResponseWire) (*ListReposResponse, er
 }
 
 type repoInfoWire struct {
-	Id             *int64              `json:"id,omitempty"`
+	Id             *wireInt64          `json:"id,omitempty"`
 	Path           *string             `json:"path,omitempty"`
 	Url            *string             `json:"url,omitempty"`
 	Provider       *string             `json:"provider,omitempty"`
@@ -139,12 +197,16 @@ func repoInfoFromWire(w *repoInfoWire) (*RepoInfo, error) {
 	if w == nil {
 		return nil, nil
 	}
+	idPublicValue, err := int64FromWire(w.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RepoInfo.Id", err)
+	}
 	sparseCheckoutPublicValue, err := sparseCheckoutFromWire(w.SparseCheckout)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "RepoInfo.SparseCheckout", err)
 	}
 	return &RepoInfo{
-		Id:             w.Id,
+		Id:             idPublicValue,
 		Path:           w.Path,
 		Url:            w.Url,
 		Provider:       w.Provider,
@@ -190,29 +252,37 @@ func sparseCheckoutUpdateToWire(v *SparseCheckoutUpdate) (*sparseCheckoutUpdateW
 }
 
 type updateRepoRequestWire struct {
-	Id                         *int64                    `json:"id,omitempty"`
+	Id                         *wireInt64                `json:"id,omitempty"`
 	Branch                     *string                   `json:"branch,omitempty"`
 	Tag                        *string                   `json:"tag,omitempty"`
 	SparseCheckout             *sparseCheckoutUpdateWire `json:"sparse_checkout,omitempty"`
 	DangerouslyForceDiscardAll *bool                     `json:"dangerously_force_discard_all,omitempty"`
-	GitCredentialId            *int64                    `json:"git_credential_id,omitempty"`
+	GitCredentialId            *wireInt64                `json:"git_credential_id,omitempty"`
 }
 
 func updateRepoRequestToWire(v *UpdateRepoRequest) (*updateRepoRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	idWireValue, err := int64ToWire(v.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRepoRequest.Id", err)
+	}
 	sparseCheckoutWireValue, err := sparseCheckoutUpdateToWire(v.SparseCheckout)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "UpdateRepoRequest.SparseCheckout", err)
 	}
+	gitCredentialIdWireValue, err := int64ToWire(v.GitCredentialId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRepoRequest.GitCredentialId", err)
+	}
 	return &updateRepoRequestWire{
-		Id:                         v.Id,
+		Id:                         idWireValue,
 		Branch:                     v.Branch,
 		Tag:                        v.Tag,
 		SparseCheckout:             sparseCheckoutWireValue,
 		DangerouslyForceDiscardAll: v.DangerouslyForceDiscardAll,
-		GitCredentialId:            v.GitCredentialId,
+		GitCredentialId:            gitCredentialIdWireValue,
 	}, nil
 }
 

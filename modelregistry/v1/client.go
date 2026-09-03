@@ -75,8 +75,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Approves a model version stage transition request.
-func (c *internalClient) ApproveTransitionRequest(ctx context.Context, req *ApproveTransitionRequest, opts ...call.Option) (*ApproveTransitionResponse, error) {
-	wireReq, err := approveTransitionRequestToWire(req)
+func (c *internalClient) ApproveTransitionRequest(ctx context.Context, req ApproveTransitionRequest, opts ...call.Option) (*ApproveTransitionResponse, error) {
+	wireReq, err := approveTransitionRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -143,8 +143,8 @@ func (c *internalClient) ApproveTransitionRequest(ctx context.Context, req *Appr
 // Posts a comment on a model version. A comment can be submitted either by a
 // user or programmatically to display relevant information about the model. For
 // example, test results or deployment errors.
-func (c *internalClient) CreateComment(ctx context.Context, req *CreateCommentRequest, opts ...call.Option) (*CreateCommentResponse, error) {
-	wireReq, err := createCommentRequestToWire(req)
+func (c *internalClient) CreateComment(ctx context.Context, req CreateCommentRequest, opts ...call.Option) (*CreateCommentResponse, error) {
+	wireReq, err := createCommentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -209,8 +209,8 @@ func (c *internalClient) CreateComment(ctx context.Context, req *CreateCommentRe
 }
 
 // **NOTE:** This endpoint is in Public Preview. Creates a registry webhook.
-func (c *internalClient) CreateRegistryWebhook(ctx context.Context, req *CreateRegistryWebhookRequest, opts ...call.Option) (*CreateRegistryWebhookResponse, error) {
-	wireReq, err := createRegistryWebhookRequestToWire(req)
+func (c *internalClient) CreateRegistryWebhook(ctx context.Context, req CreateRegistryWebhookRequest, opts ...call.Option) (*CreateRegistryWebhookResponse, error) {
+	wireReq, err := createRegistryWebhookRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -275,8 +275,8 @@ func (c *internalClient) CreateRegistryWebhook(ctx context.Context, req *CreateR
 }
 
 // Creates a model version stage transition request.
-func (c *internalClient) CreateTransitionRequest(ctx context.Context, req *CreateTransitionRequest, opts ...call.Option) (*CreateTransitionResponse, error) {
-	wireReq, err := createTransitionRequestToWire(req)
+func (c *internalClient) CreateTransitionRequest(ctx context.Context, req CreateTransitionRequest, opts ...call.Option) (*CreateTransitionResponse, error) {
+	wireReq, err := createTransitionRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -341,8 +341,8 @@ func (c *internalClient) CreateTransitionRequest(ctx context.Context, req *Creat
 }
 
 // Deletes a comment on a model version.
-func (c *internalClient) DeleteComment(ctx context.Context, req *DeleteCommentRequest, opts ...call.Option) (*DeleteCommentResponse, error) {
-	wireReq, err := deleteCommentRequestToWire(req)
+func (c *internalClient) DeleteComment(ctx context.Context, req DeleteCommentRequest, opts ...call.Option) (*DeleteCommentResponse, error) {
+	wireReq, err := deleteCommentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -399,8 +399,8 @@ func (c *internalClient) DeleteComment(ctx context.Context, req *DeleteCommentRe
 }
 
 // **NOTE:** This endpoint is in Public Preview. Deletes a registry webhook.
-func (c *internalClient) DeleteRegistryWebhook(ctx context.Context, req *DeleteRegistryWebhookRequest, opts ...call.Option) (*DeleteRegistryWebhookResponse, error) {
-	wireReq, err := deleteRegistryWebhookRequestToWire(req)
+func (c *internalClient) DeleteRegistryWebhook(ctx context.Context, req DeleteRegistryWebhookRequest, opts ...call.Option) (*DeleteRegistryWebhookResponse, error) {
+	wireReq, err := deleteRegistryWebhookRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -457,8 +457,8 @@ func (c *internalClient) DeleteRegistryWebhook(ctx context.Context, req *DeleteR
 }
 
 // Cancels a model version stage transition request.
-func (c *internalClient) DeleteTransitionRequest(ctx context.Context, req *DeleteTransitionRequest, opts ...call.Option) (*DeleteTransitionResponse, error) {
-	wireReq, err := deleteTransitionRequestToWire(req)
+func (c *internalClient) DeleteTransitionRequest(ctx context.Context, req DeleteTransitionRequest, opts ...call.Option) (*DeleteTransitionResponse, error) {
+	wireReq, err := deleteTransitionRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -537,8 +537,8 @@ func (c *internalClient) DeleteTransitionRequest(ctx context.Context, req *Delet
 // the permission level of the requesting user on the model.
 //
 // [MLflow endpoint]: https://www.mlflow.org/docs/latest/rest-api.html#get-registeredmodel
-func (c *internalClient) GetRegisteredModelDatabricks(ctx context.Context, req *GetRegisteredModelDatabricksRequest, opts ...call.Option) (*GetRegisteredModelDatabricksResponse, error) {
-	wireReq, err := getRegisteredModelDatabricksRequestToWire(req)
+func (c *internalClient) GetRegisteredModelDatabricks(ctx context.Context, req GetRegisteredModelDatabricksRequest, opts ...call.Option) (*GetRegisteredModelDatabricksResponse, error) {
+	wireReq, err := getRegisteredModelDatabricksRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -601,8 +601,8 @@ func (c *internalClient) GetRegisteredModelDatabricks(ctx context.Context, req *
 }
 
 // **NOTE:** This endpoint is in Public Preview. Lists all registry webhooks.
-func (c *internalClient) ListRegistryWebhooks(ctx context.Context, req *ListRegistryWebhooksRequest, opts ...call.Option) (*ListRegistryWebhooksResponse, error) {
-	wireReq, err := listRegistryWebhooksRequestToWire(req)
+func (c *internalClient) ListRegistryWebhooks(ctx context.Context, req ListRegistryWebhooksRequest, opts ...call.Option) (*ListRegistryWebhooksResponse, error) {
+	wireReq, err := listRegistryWebhooksRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -678,7 +678,7 @@ func (c *internalClient) ListRegistryWebhooks(ctx context.Context, req *ListRegi
 //
 // For example:
 //
-//	for item, err := range c.ListRegistryWebhooksIter(ctx, &ListRegistryWebhooksRequest{}) {
+//	for item, err := range c.ListRegistryWebhooksIter(ctx, ListRegistryWebhooksRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -690,16 +690,13 @@ func (c *internalClient) ListRegistryWebhooks(ctx context.Context, req *ListRegi
 //
 // Callers who need custom pagination logic should use
 // ListRegistryWebhooks directly.
-func (c *internalClient) ListRegistryWebhooksIter(ctx context.Context, req *ListRegistryWebhooksRequest, opts ...call.Option) iter.Seq2[*RegistryWebhook, error] {
+func (c *internalClient) ListRegistryWebhooksIter(ctx context.Context, req ListRegistryWebhooksRequest, opts ...call.Option) iter.Seq2[*RegistryWebhook, error] {
 	return func(yield func(*RegistryWebhook, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListRegistryWebhooksRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListRegistryWebhooks(ctx, &pageReq, opts...)
+			resp, err := c.ListRegistryWebhooks(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -718,8 +715,8 @@ func (c *internalClient) ListRegistryWebhooksIter(ctx context.Context, req *List
 }
 
 // Gets a list of all open stage transition requests for the model version.
-func (c *internalClient) ListTransitionRequests(ctx context.Context, req *ListTransitionRequest, opts ...call.Option) (*ListTransitionResponse, error) {
-	wireReq, err := listTransitionRequestToWire(req)
+func (c *internalClient) ListTransitionRequests(ctx context.Context, req ListTransitionRequest, opts ...call.Option) (*ListTransitionResponse, error) {
+	wireReq, err := listTransitionRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -785,8 +782,8 @@ func (c *internalClient) ListTransitionRequests(ctx context.Context, req *ListTr
 }
 
 // Rejects a model version stage transition request.
-func (c *internalClient) RejectTransitionRequest(ctx context.Context, req *RejectTransitionRequest, opts ...call.Option) (*RejectTransitionResponse, error) {
-	wireReq, err := rejectTransitionRequestToWire(req)
+func (c *internalClient) RejectTransitionRequest(ctx context.Context, req RejectTransitionRequest, opts ...call.Option) (*RejectTransitionResponse, error) {
+	wireReq, err := rejectTransitionRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -851,8 +848,8 @@ func (c *internalClient) RejectTransitionRequest(ctx context.Context, req *Rejec
 }
 
 // **NOTE:** This endpoint is in Public Preview. Tests a registry webhook.
-func (c *internalClient) TestRegistryWebhook(ctx context.Context, req *TestRegistryWebhookRequest, opts ...call.Option) (*TestRegistryWebhookResponse, error) {
-	wireReq, err := testRegistryWebhookRequestToWire(req)
+func (c *internalClient) TestRegistryWebhook(ctx context.Context, req TestRegistryWebhookRequest, opts ...call.Option) (*TestRegistryWebhookResponse, error) {
+	wireReq, err := testRegistryWebhookRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -921,8 +918,8 @@ func (c *internalClient) TestRegistryWebhook(ctx context.Context, req *TestRegis
 // transition to be recorded.
 //
 // [MLflow endpoint]: https://www.mlflow.org/docs/latest/rest-api.html#transition-modelversion-stage
-func (c *internalClient) TransitionModelVersionStageDatabricks(ctx context.Context, req *TransitionModelVersionStageDatabricksRequest, opts ...call.Option) (*TransitionModelVersionStageDatabricksResponse, error) {
-	wireReq, err := transitionModelVersionStageDatabricksRequestToWire(req)
+func (c *internalClient) TransitionModelVersionStageDatabricks(ctx context.Context, req TransitionModelVersionStageDatabricksRequest, opts ...call.Option) (*TransitionModelVersionStageDatabricksResponse, error) {
+	wireReq, err := transitionModelVersionStageDatabricksRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -987,8 +984,8 @@ func (c *internalClient) TransitionModelVersionStageDatabricks(ctx context.Conte
 }
 
 // Post an edit to a comment on a model version.
-func (c *internalClient) UpdateComment(ctx context.Context, req *UpdateCommentRequest, opts ...call.Option) (*UpdateCommentResponse, error) {
-	wireReq, err := updateCommentRequestToWire(req)
+func (c *internalClient) UpdateComment(ctx context.Context, req UpdateCommentRequest, opts ...call.Option) (*UpdateCommentResponse, error) {
+	wireReq, err := updateCommentRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1053,8 +1050,8 @@ func (c *internalClient) UpdateComment(ctx context.Context, req *UpdateCommentRe
 }
 
 // **NOTE:** This endpoint is in Public Preview. Updates a registry webhook.
-func (c *internalClient) UpdateRegistryWebhook(ctx context.Context, req *UpdateRegistryWebhookRequest, opts ...call.Option) (*UpdateRegistryWebhookResponse, error) {
-	wireReq, err := updateRegistryWebhookRequestToWire(req)
+func (c *internalClient) UpdateRegistryWebhook(ctx context.Context, req UpdateRegistryWebhookRequest, opts ...call.Option) (*UpdateRegistryWebhookResponse, error) {
+	wireReq, err := updateRegistryWebhookRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1119,8 +1116,8 @@ func (c *internalClient) UpdateRegistryWebhook(ctx context.Context, req *UpdateR
 }
 
 // Creates a model version.
-func (c *internalClient) CreateModelVersion(ctx context.Context, req *CreateModelVersionRequest, opts ...call.Option) (*CreateModelVersionResponse, error) {
-	wireReq, err := createModelVersionRequestToWire(req)
+func (c *internalClient) CreateModelVersion(ctx context.Context, req CreateModelVersionRequest, opts ...call.Option) (*CreateModelVersionResponse, error) {
+	wireReq, err := createModelVersionRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1187,8 +1184,8 @@ func (c *internalClient) CreateModelVersion(ctx context.Context, req *CreateMode
 // Creates a new registered model with the name specified in the request body.
 // Throws `RESOURCE_ALREADY_EXISTS` if a registered model with the given name
 // exists.
-func (c *internalClient) CreateRegisteredModel(ctx context.Context, req *CreateRegisteredModelRequest, opts ...call.Option) (*CreateRegisteredModelResponse, error) {
-	wireReq, err := createRegisteredModelRequestToWire(req)
+func (c *internalClient) CreateRegisteredModel(ctx context.Context, req CreateRegisteredModelRequest, opts ...call.Option) (*CreateRegisteredModelResponse, error) {
+	wireReq, err := createRegisteredModelRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1253,8 +1250,8 @@ func (c *internalClient) CreateRegisteredModel(ctx context.Context, req *CreateR
 }
 
 // Deletes a model version.
-func (c *internalClient) DeleteModelVersion(ctx context.Context, req *DeleteModelVersionRequest, opts ...call.Option) (*DeleteModelVersionResponse, error) {
-	wireReq, err := deleteModelVersionRequestToWire(req)
+func (c *internalClient) DeleteModelVersion(ctx context.Context, req DeleteModelVersionRequest, opts ...call.Option) (*DeleteModelVersionResponse, error) {
+	wireReq, err := deleteModelVersionRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1314,8 +1311,8 @@ func (c *internalClient) DeleteModelVersion(ctx context.Context, req *DeleteMode
 }
 
 // Deletes a model version tag.
-func (c *internalClient) DeleteModelVersionTag(ctx context.Context, req *DeleteModelVersionTagRequest, opts ...call.Option) (*DeleteModelVersionTagResponse, error) {
-	wireReq, err := deleteModelVersionTagRequestToWire(req)
+func (c *internalClient) DeleteModelVersionTag(ctx context.Context, req DeleteModelVersionTagRequest, opts ...call.Option) (*DeleteModelVersionTagResponse, error) {
+	wireReq, err := deleteModelVersionTagRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1378,8 +1375,8 @@ func (c *internalClient) DeleteModelVersionTag(ctx context.Context, req *DeleteM
 }
 
 // Deletes a registered model.
-func (c *internalClient) DeleteRegisteredModel(ctx context.Context, req *DeleteRegisteredModelRequest, opts ...call.Option) (*DeleteRegisteredModelResponse, error) {
-	wireReq, err := deleteRegisteredModelRequestToWire(req)
+func (c *internalClient) DeleteRegisteredModel(ctx context.Context, req DeleteRegisteredModelRequest, opts ...call.Option) (*DeleteRegisteredModelResponse, error) {
+	wireReq, err := deleteRegisteredModelRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1436,8 +1433,8 @@ func (c *internalClient) DeleteRegisteredModel(ctx context.Context, req *DeleteR
 }
 
 // Deletes the tag for a registered model.
-func (c *internalClient) DeleteRegisteredModelTag(ctx context.Context, req *DeleteRegisteredModelTagRequest, opts ...call.Option) (*DeleteRegisteredModelTagResponse, error) {
-	wireReq, err := deleteRegisteredModelTagRequestToWire(req)
+func (c *internalClient) DeleteRegisteredModelTag(ctx context.Context, req DeleteRegisteredModelTagRequest, opts ...call.Option) (*DeleteRegisteredModelTagResponse, error) {
+	wireReq, err := deleteRegisteredModelTagRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1497,8 +1494,8 @@ func (c *internalClient) DeleteRegisteredModelTag(ctx context.Context, req *Dele
 }
 
 // Get a model version.
-func (c *internalClient) GetModelVersion(ctx context.Context, req *GetModelVersionRequest, opts ...call.Option) (*GetModelVersionResponse, error) {
-	wireReq, err := getModelVersionRequestToWire(req)
+func (c *internalClient) GetModelVersion(ctx context.Context, req GetModelVersionRequest, opts ...call.Option) (*GetModelVersionResponse, error) {
+	wireReq, err := getModelVersionRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1564,8 +1561,8 @@ func (c *internalClient) GetModelVersion(ctx context.Context, req *GetModelVersi
 }
 
 // Gets a URI to download the model version.
-func (c *internalClient) GetModelVersionDownloadUri(ctx context.Context, req *GetModelVersionDownloadUriRequest, opts ...call.Option) (*GetModelVersionDownloadUriResponse, error) {
-	wireReq, err := getModelVersionDownloadUriRequestToWire(req)
+func (c *internalClient) GetModelVersionDownloadUri(ctx context.Context, req GetModelVersionDownloadUriRequest, opts ...call.Option) (*GetModelVersionDownloadUriResponse, error) {
+	wireReq, err := getModelVersionDownloadUriRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1631,8 +1628,8 @@ func (c *internalClient) GetModelVersionDownloadUri(ctx context.Context, req *Ge
 }
 
 // Gets the latest version of a registered model.
-func (c *internalClient) ListLatestVersions(ctx context.Context, req *ListLatestVersionsRequest, opts ...call.Option) (*GetLatestVersionsResponse, error) {
-	wireReq, err := listLatestVersionsRequestToWire(req)
+func (c *internalClient) ListLatestVersions(ctx context.Context, req ListLatestVersionsRequest, opts ...call.Option) (*GetLatestVersionsResponse, error) {
+	wireReq, err := listLatestVersionsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1698,8 +1695,8 @@ func (c *internalClient) ListLatestVersions(ctx context.Context, req *ListLatest
 
 // Lists all available registered models, up to the limit specified in
 // __max_results__.
-func (c *internalClient) ListRegisteredModels(ctx context.Context, req *ListRegisteredModelsRequest, opts ...call.Option) (*ListRegisteredModelsResponse, error) {
-	wireReq, err := listRegisteredModelsRequestToWire(req)
+func (c *internalClient) ListRegisteredModels(ctx context.Context, req ListRegisteredModelsRequest, opts ...call.Option) (*ListRegisteredModelsResponse, error) {
+	wireReq, err := listRegisteredModelsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1769,7 +1766,7 @@ func (c *internalClient) ListRegisteredModels(ctx context.Context, req *ListRegi
 //
 // For example:
 //
-//	for item, err := range c.ListRegisteredModelsIter(ctx, &ListRegisteredModelsRequest{}) {
+//	for item, err := range c.ListRegisteredModelsIter(ctx, ListRegisteredModelsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1781,16 +1778,13 @@ func (c *internalClient) ListRegisteredModels(ctx context.Context, req *ListRegi
 //
 // Callers who need custom pagination logic should use
 // ListRegisteredModels directly.
-func (c *internalClient) ListRegisteredModelsIter(ctx context.Context, req *ListRegisteredModelsRequest, opts ...call.Option) iter.Seq2[*RegisteredModel, error] {
+func (c *internalClient) ListRegisteredModelsIter(ctx context.Context, req ListRegisteredModelsRequest, opts ...call.Option) iter.Seq2[*RegisteredModel, error] {
 	return func(yield func(*RegisteredModel, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := ListRegisteredModelsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.ListRegisteredModels(ctx, &pageReq, opts...)
+			resp, err := c.ListRegisteredModels(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1809,8 +1803,8 @@ func (c *internalClient) ListRegisteredModelsIter(ctx context.Context, req *List
 }
 
 // Renames a registered model.
-func (c *internalClient) RenameRegisteredModel(ctx context.Context, req *RenameRegisteredModelRequest, opts ...call.Option) (*RenameRegisteredModelResponse, error) {
-	wireReq, err := renameRegisteredModelRequestToWire(req)
+func (c *internalClient) RenameRegisteredModel(ctx context.Context, req RenameRegisteredModelRequest, opts ...call.Option) (*RenameRegisteredModelResponse, error) {
+	wireReq, err := renameRegisteredModelRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1875,8 +1869,8 @@ func (c *internalClient) RenameRegisteredModel(ctx context.Context, req *RenameR
 }
 
 // Searches for specific model versions based on the supplied __filter__.
-func (c *internalClient) SearchModelVersions(ctx context.Context, req *SearchModelVersionsRequest, opts ...call.Option) (*SearchModelVersionsResponse, error) {
-	wireReq, err := searchModelVersionsRequestToWire(req)
+func (c *internalClient) SearchModelVersions(ctx context.Context, req SearchModelVersionsRequest, opts ...call.Option) (*SearchModelVersionsResponse, error) {
+	wireReq, err := searchModelVersionsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -1952,7 +1946,7 @@ func (c *internalClient) SearchModelVersions(ctx context.Context, req *SearchMod
 //
 // For example:
 //
-//	for item, err := range c.SearchModelVersionsIter(ctx, &SearchModelVersionsRequest{}) {
+//	for item, err := range c.SearchModelVersionsIter(ctx, SearchModelVersionsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -1964,16 +1958,13 @@ func (c *internalClient) SearchModelVersions(ctx context.Context, req *SearchMod
 //
 // Callers who need custom pagination logic should use
 // SearchModelVersions directly.
-func (c *internalClient) SearchModelVersionsIter(ctx context.Context, req *SearchModelVersionsRequest, opts ...call.Option) iter.Seq2[*ModelVersion, error] {
+func (c *internalClient) SearchModelVersionsIter(ctx context.Context, req SearchModelVersionsRequest, opts ...call.Option) iter.Seq2[*ModelVersion, error] {
 	return func(yield func(*ModelVersion, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := SearchModelVersionsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.SearchModelVersions(ctx, &pageReq, opts...)
+			resp, err := c.SearchModelVersions(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -1992,8 +1983,8 @@ func (c *internalClient) SearchModelVersionsIter(ctx context.Context, req *Searc
 }
 
 // Search for registered models based on the specified __filter__.
-func (c *internalClient) SearchRegisteredModels(ctx context.Context, req *SearchRegisteredModelsRequest, opts ...call.Option) (*SearchRegisteredModelsResponse, error) {
-	wireReq, err := searchRegisteredModelsRequestToWire(req)
+func (c *internalClient) SearchRegisteredModels(ctx context.Context, req SearchRegisteredModelsRequest, opts ...call.Option) (*SearchRegisteredModelsResponse, error) {
+	wireReq, err := searchRegisteredModelsRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2069,7 +2060,7 @@ func (c *internalClient) SearchRegisteredModels(ctx context.Context, req *Search
 //
 // For example:
 //
-//	for item, err := range c.SearchRegisteredModelsIter(ctx, &SearchRegisteredModelsRequest{}) {
+//	for item, err := range c.SearchRegisteredModelsIter(ctx, SearchRegisteredModelsRequest{}) {
 //	  if err != nil {
 //	    return err
 //	  }
@@ -2081,16 +2072,13 @@ func (c *internalClient) SearchRegisteredModels(ctx context.Context, req *Search
 //
 // Callers who need custom pagination logic should use
 // SearchRegisteredModels directly.
-func (c *internalClient) SearchRegisteredModelsIter(ctx context.Context, req *SearchRegisteredModelsRequest, opts ...call.Option) iter.Seq2[*RegisteredModel, error] {
+func (c *internalClient) SearchRegisteredModelsIter(ctx context.Context, req SearchRegisteredModelsRequest, opts ...call.Option) iter.Seq2[*RegisteredModel, error] {
 	return func(yield func(*RegisteredModel, error) bool) {
-		// Copy the request so advancing the pagination field does not mutate the
-		// caller's struct. Other reference-bearing fields are shared and must remain read-only.
-		pageReq := SearchRegisteredModelsRequest{}
-		if req != nil {
-			pageReq = *req
-		}
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
 		for {
-			resp, err := c.SearchRegisteredModels(ctx, &pageReq, opts...)
+			resp, err := c.SearchRegisteredModels(ctx, pageReq, opts...)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -2109,8 +2097,8 @@ func (c *internalClient) SearchRegisteredModelsIter(ctx context.Context, req *Se
 }
 
 // Sets a model version tag.
-func (c *internalClient) SetModelVersionTag(ctx context.Context, req *SetModelVersionTagRequest, opts ...call.Option) (*SetModelVersionTagResponse, error) {
-	wireReq, err := setModelVersionTagRequestToWire(req)
+func (c *internalClient) SetModelVersionTag(ctx context.Context, req SetModelVersionTagRequest, opts ...call.Option) (*SetModelVersionTagResponse, error) {
+	wireReq, err := setModelVersionTagRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2169,8 +2157,8 @@ func (c *internalClient) SetModelVersionTag(ctx context.Context, req *SetModelVe
 }
 
 // Sets a tag on a registered model.
-func (c *internalClient) SetRegisteredModelTag(ctx context.Context, req *SetRegisteredModelTagRequest, opts ...call.Option) (*SetRegisteredModelTagResponse, error) {
-	wireReq, err := setRegisteredModelTagRequestToWire(req)
+func (c *internalClient) SetRegisteredModelTag(ctx context.Context, req SetRegisteredModelTagRequest, opts ...call.Option) (*SetRegisteredModelTagResponse, error) {
+	wireReq, err := setRegisteredModelTagRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2229,8 +2217,8 @@ func (c *internalClient) SetRegisteredModelTag(ctx context.Context, req *SetRegi
 }
 
 // Updates the model version.
-func (c *internalClient) UpdateModelVersion(ctx context.Context, req *UpdateModelVersionRequest, opts ...call.Option) (*UpdateModelVersionResponse, error) {
-	wireReq, err := updateModelVersionRequestToWire(req)
+func (c *internalClient) UpdateModelVersion(ctx context.Context, req UpdateModelVersionRequest, opts ...call.Option) (*UpdateModelVersionResponse, error) {
+	wireReq, err := updateModelVersionRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -2295,8 +2283,8 @@ func (c *internalClient) UpdateModelVersion(ctx context.Context, req *UpdateMode
 }
 
 // Updates a registered model.
-func (c *internalClient) UpdateRegisteredModel(ctx context.Context, req *UpdateRegisteredModelRequest, opts ...call.Option) (*UpdateRegisteredModelResponse, error) {
-	wireReq, err := updateRegisteredModelRequestToWire(req)
+func (c *internalClient) UpdateRegisteredModel(ctx context.Context, req UpdateRegisteredModelRequest, opts ...call.Option) (*UpdateRegisteredModelResponse, error) {
+	wireReq, err := updateRegisteredModelRequestToWire(&req)
 	if err != nil {
 		return nil, err
 	}

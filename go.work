@@ -21,6 +21,7 @@ use (
 	./dataquality
 	./disasterrecovery
 	./environments
+	./examples
 	./experiments
 	./features
 	./featurestore

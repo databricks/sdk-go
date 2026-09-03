@@ -3,10 +3,56 @@
 package database
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/databricks/sdk-go/core/types"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	if mask == nil {
@@ -503,7 +549,7 @@ func deleteSyncedDatabaseTableRequestToWire(v *DeleteSyncedDatabaseTableRequest)
 }
 
 type deltaTableSyncInfoWire struct {
-	DeltaCommitVersion   *int64      `json:"delta_commit_version,omitempty"`
+	DeltaCommitVersion   *wireInt64  `json:"delta_commit_version,omitempty"`
 	DeltaCommitTimestamp *types.Time `json:"delta_commit_timestamp,omitempty"`
 }
 
@@ -511,8 +557,12 @@ func deltaTableSyncInfoToWire(v *DeltaTableSyncInfo) (*deltaTableSyncInfoWire, e
 	if v == nil {
 		return nil, nil
 	}
+	deltaCommitVersionWireValue, err := int64ToWire(v.DeltaCommitVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeltaTableSyncInfo.DeltaCommitVersion", err)
+	}
 	return &deltaTableSyncInfoWire{
-		DeltaCommitVersion:   v.DeltaCommitVersion,
+		DeltaCommitVersion:   deltaCommitVersionWireValue,
 		DeltaCommitTimestamp: v.DeltaCommitTimestamp,
 	}, nil
 }
@@ -521,8 +571,12 @@ func deltaTableSyncInfoFromWire(w *deltaTableSyncInfoWire) (*DeltaTableSyncInfo,
 	if w == nil {
 		return nil, nil
 	}
+	deltaCommitVersionPublicValue, err := int64FromWire(w.DeltaCommitVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeltaTableSyncInfo.DeltaCommitVersion", err)
+	}
 	return &DeltaTableSyncInfo{
-		DeltaCommitVersion:   w.DeltaCommitVersion,
+		DeltaCommitVersion:   deltaCommitVersionPublicValue,
 		DeltaCommitTimestamp: w.DeltaCommitTimestamp,
 	}, nil
 }
@@ -840,7 +894,7 @@ func syncedDatabaseTableFromWire(w *syncedDatabaseTableWire) (*SyncedDatabaseTab
 }
 
 type syncedTableContinuousUpdateStatusWire struct {
-	LastProcessedCommitVersion  *int64                           `json:"last_processed_commit_version,omitempty"`
+	LastProcessedCommitVersion  *wireInt64                       `json:"last_processed_commit_version,omitempty"`
 	Timestamp                   *types.Time                      `json:"timestamp,omitempty"`
 	InitialPipelineSyncProgress *syncedTablePipelineProgressWire `json:"initial_pipeline_sync_progress,omitempty"`
 }
@@ -849,12 +903,16 @@ func syncedTableContinuousUpdateStatusToWire(v *SyncedTableContinuousUpdateStatu
 	if v == nil {
 		return nil, nil
 	}
+	lastProcessedCommitVersionWireValue, err := int64ToWire(v.LastProcessedCommitVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SyncedTableContinuousUpdateStatus.LastProcessedCommitVersion", err)
+	}
 	initialPipelineSyncProgressWireValue, err := syncedTablePipelineProgressToWire(v.InitialPipelineSyncProgress)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "SyncedTableContinuousUpdateStatus.InitialPipelineSyncProgress", err)
 	}
 	return &syncedTableContinuousUpdateStatusWire{
-		LastProcessedCommitVersion:  v.LastProcessedCommitVersion,
+		LastProcessedCommitVersion:  lastProcessedCommitVersionWireValue,
 		Timestamp:                   v.Timestamp,
 		InitialPipelineSyncProgress: initialPipelineSyncProgressWireValue,
 	}, nil
@@ -864,19 +922,23 @@ func syncedTableContinuousUpdateStatusFromWire(w *syncedTableContinuousUpdateSta
 	if w == nil {
 		return nil, nil
 	}
+	lastProcessedCommitVersionPublicValue, err := int64FromWire(w.LastProcessedCommitVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SyncedTableContinuousUpdateStatus.LastProcessedCommitVersion", err)
+	}
 	initialPipelineSyncProgressPublicValue, err := syncedTablePipelineProgressFromWire(w.InitialPipelineSyncProgress)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "SyncedTableContinuousUpdateStatus.InitialPipelineSyncProgress", err)
 	}
 	return &SyncedTableContinuousUpdateStatus{
-		LastProcessedCommitVersion:  w.LastProcessedCommitVersion,
+		LastProcessedCommitVersion:  lastProcessedCommitVersionPublicValue,
 		Timestamp:                   w.Timestamp,
 		InitialPipelineSyncProgress: initialPipelineSyncProgressPublicValue,
 	}, nil
 }
 
 type syncedTableFailedStatusWire struct {
-	LastProcessedCommitVersion *int64      `json:"last_processed_commit_version,omitempty"`
+	LastProcessedCommitVersion *wireInt64  `json:"last_processed_commit_version,omitempty"`
 	Timestamp                  *types.Time `json:"timestamp,omitempty"`
 }
 
@@ -884,8 +946,12 @@ func syncedTableFailedStatusToWire(v *SyncedTableFailedStatus) (*syncedTableFail
 	if v == nil {
 		return nil, nil
 	}
+	lastProcessedCommitVersionWireValue, err := int64ToWire(v.LastProcessedCommitVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SyncedTableFailedStatus.LastProcessedCommitVersion", err)
+	}
 	return &syncedTableFailedStatusWire{
-		LastProcessedCommitVersion: v.LastProcessedCommitVersion,
+		LastProcessedCommitVersion: lastProcessedCommitVersionWireValue,
 		Timestamp:                  v.Timestamp,
 	}, nil
 }
@@ -894,16 +960,20 @@ func syncedTableFailedStatusFromWire(w *syncedTableFailedStatusWire) (*SyncedTab
 	if w == nil {
 		return nil, nil
 	}
+	lastProcessedCommitVersionPublicValue, err := int64FromWire(w.LastProcessedCommitVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SyncedTableFailedStatus.LastProcessedCommitVersion", err)
+	}
 	return &SyncedTableFailedStatus{
-		LastProcessedCommitVersion: w.LastProcessedCommitVersion,
+		LastProcessedCommitVersion: lastProcessedCommitVersionPublicValue,
 		Timestamp:                  w.Timestamp,
 	}, nil
 }
 
 type syncedTablePipelineProgressWire struct {
-	LatestVersionCurrentlyProcessing *int64            `json:"latest_version_currently_processing,omitempty"`
-	SyncedRowCount                   *int64            `json:"synced_row_count,omitempty"`
-	TotalRowCount                    *int64            `json:"total_row_count,omitempty"`
+	LatestVersionCurrentlyProcessing *wireInt64        `json:"latest_version_currently_processing,omitempty"`
+	SyncedRowCount                   *wireInt64        `json:"synced_row_count,omitempty"`
+	TotalRowCount                    *wireInt64        `json:"total_row_count,omitempty"`
 	SyncProgressCompletion           *float64          `json:"sync_progress_completion,omitempty"`
 	EstimatedCompletionTimeSeconds   *float64          `json:"estimated_completion_time_seconds,omitempty"`
 	ProvisioningPhase                ProvisioningPhase `json:"provisioning_phase,omitempty"`
@@ -913,10 +983,22 @@ func syncedTablePipelineProgressToWire(v *SyncedTablePipelineProgress) (*syncedT
 	if v == nil {
 		return nil, nil
 	}
+	latestVersionCurrentlyProcessingWireValue, err := int64ToWire(v.LatestVersionCurrentlyProcessing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SyncedTablePipelineProgress.LatestVersionCurrentlyProcessing", err)
+	}
+	syncedRowCountWireValue, err := int64ToWire(v.SyncedRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SyncedTablePipelineProgress.SyncedRowCount", err)
+	}
+	totalRowCountWireValue, err := int64ToWire(v.TotalRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SyncedTablePipelineProgress.TotalRowCount", err)
+	}
 	return &syncedTablePipelineProgressWire{
-		LatestVersionCurrentlyProcessing: v.LatestVersionCurrentlyProcessing,
-		SyncedRowCount:                   v.SyncedRowCount,
-		TotalRowCount:                    v.TotalRowCount,
+		LatestVersionCurrentlyProcessing: latestVersionCurrentlyProcessingWireValue,
+		SyncedRowCount:                   syncedRowCountWireValue,
+		TotalRowCount:                    totalRowCountWireValue,
 		SyncProgressCompletion:           v.SyncProgressCompletion,
 		EstimatedCompletionTimeSeconds:   v.EstimatedCompletionTimeSeconds,
 		ProvisioningPhase:                v.ProvisioningPhase,
@@ -927,10 +1009,22 @@ func syncedTablePipelineProgressFromWire(w *syncedTablePipelineProgressWire) (*S
 	if w == nil {
 		return nil, nil
 	}
+	latestVersionCurrentlyProcessingPublicValue, err := int64FromWire(w.LatestVersionCurrentlyProcessing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SyncedTablePipelineProgress.LatestVersionCurrentlyProcessing", err)
+	}
+	syncedRowCountPublicValue, err := int64FromWire(w.SyncedRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SyncedTablePipelineProgress.SyncedRowCount", err)
+	}
+	totalRowCountPublicValue, err := int64FromWire(w.TotalRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SyncedTablePipelineProgress.TotalRowCount", err)
+	}
 	return &SyncedTablePipelineProgress{
-		LatestVersionCurrentlyProcessing: w.LatestVersionCurrentlyProcessing,
-		SyncedRowCount:                   w.SyncedRowCount,
-		TotalRowCount:                    w.TotalRowCount,
+		LatestVersionCurrentlyProcessing: latestVersionCurrentlyProcessingPublicValue,
+		SyncedRowCount:                   syncedRowCountPublicValue,
+		TotalRowCount:                    totalRowCountPublicValue,
 		SyncProgressCompletion:           w.SyncProgressCompletion,
 		EstimatedCompletionTimeSeconds:   w.EstimatedCompletionTimeSeconds,
 		ProvisioningPhase:                w.ProvisioningPhase,
@@ -1248,7 +1342,7 @@ func syncedTableStatusFromWire(w *syncedTableStatusWire) (*SyncedTableStatus, er
 }
 
 type syncedTableTriggeredUpdateStatusWire struct {
-	LastProcessedCommitVersion *int64                           `json:"last_processed_commit_version,omitempty"`
+	LastProcessedCommitVersion *wireInt64                       `json:"last_processed_commit_version,omitempty"`
 	Timestamp                  *types.Time                      `json:"timestamp,omitempty"`
 	TriggeredUpdateProgress    *syncedTablePipelineProgressWire `json:"triggered_update_progress,omitempty"`
 }
@@ -1257,12 +1351,16 @@ func syncedTableTriggeredUpdateStatusToWire(v *SyncedTableTriggeredUpdateStatus)
 	if v == nil {
 		return nil, nil
 	}
+	lastProcessedCommitVersionWireValue, err := int64ToWire(v.LastProcessedCommitVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SyncedTableTriggeredUpdateStatus.LastProcessedCommitVersion", err)
+	}
 	triggeredUpdateProgressWireValue, err := syncedTablePipelineProgressToWire(v.TriggeredUpdateProgress)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "SyncedTableTriggeredUpdateStatus.TriggeredUpdateProgress", err)
 	}
 	return &syncedTableTriggeredUpdateStatusWire{
-		LastProcessedCommitVersion: v.LastProcessedCommitVersion,
+		LastProcessedCommitVersion: lastProcessedCommitVersionWireValue,
 		Timestamp:                  v.Timestamp,
 		TriggeredUpdateProgress:    triggeredUpdateProgressWireValue,
 	}, nil
@@ -1272,12 +1370,16 @@ func syncedTableTriggeredUpdateStatusFromWire(w *syncedTableTriggeredUpdateStatu
 	if w == nil {
 		return nil, nil
 	}
+	lastProcessedCommitVersionPublicValue, err := int64FromWire(w.LastProcessedCommitVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SyncedTableTriggeredUpdateStatus.LastProcessedCommitVersion", err)
+	}
 	triggeredUpdateProgressPublicValue, err := syncedTablePipelineProgressFromWire(w.TriggeredUpdateProgress)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "SyncedTableTriggeredUpdateStatus.TriggeredUpdateProgress", err)
 	}
 	return &SyncedTableTriggeredUpdateStatus{
-		LastProcessedCommitVersion: w.LastProcessedCommitVersion,
+		LastProcessedCommitVersion: lastProcessedCommitVersionPublicValue,
 		Timestamp:                  w.Timestamp,
 		TriggeredUpdateProgress:    triggeredUpdateProgressPublicValue,
 	}, nil
