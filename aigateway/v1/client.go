@@ -76,8 +76,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 
 // Creates an MCP service in a Unity Catalog schema. An MCP (Model Context
 // Protocol) service is a governed securable that registers an MCP server and
-// exposes its tools for discovery, access control, and invocation. The caller
-// supplies the leaf name in `mcp_service_id`.
+// exposes its tools for discovery, access control, and invocation. Specify its
+// name in `mcp_service_id`.
 //
 // You must be the owner of the parent schema or have the `CREATE_SERVICE` and
 // `USE_SCHEMA` privileges on the parent schema and `USE_CATALOG` on the parent
@@ -155,14 +155,16 @@ func (c *internalClient) CreateMcpService(ctx context.Context, req CreateMcpServ
 }
 
 // Creates a model provider service in a Unity Catalog schema. A model provider
-// service is a governed connection to an external model provider (for example
-// OpenAI, Azure OpenAI, or Amazon Bedrock) that model services reference to
-// invoke that provider. The caller supplies the leaf name in
+// service stores authentication and request configuration for an external model
+// provider, such as OpenAI, Azure OpenAI, or Amazon Bedrock. Model services
+// reference it to invoke the provider. Specify its name in
 // `model_provider_service_id`.
 //
 // You must be the owner of the parent schema or have the `CREATE_SERVICE` and
 // `USE_SCHEMA` privileges on the parent schema and `USE_CATALOG` on the parent
-// catalog.
+// catalog. Inline credentials additionally require `CREATE_CONNECTION` on the
+// parent schema. When using a Unity Catalog service credential, you must have
+// `ACCESS` on that credential.
 func (c *internalClient) CreateModelProviderService(ctx context.Context, req CreateModelProviderServiceRequest, opts ...call.Option) (*ModelProviderService, error) {
 	wireReq, err := createModelProviderServiceRequestToWire(&req)
 	if err != nil {
@@ -236,11 +238,15 @@ func (c *internalClient) CreateModelProviderService(ctx context.Context, req Cre
 
 // Creates a model service in a Unity Catalog schema. A model service is a
 // governed AI Gateway endpoint that routes inference requests to one or more
-// model destinations. The caller supplies the leaf name in `model_service_id`.
+// model destinations. Specify its name in `model_service_id`.
 //
 // You must be the owner of the parent schema or have the `CREATE_SERVICE` and
 // `USE_SCHEMA` privileges on the parent schema and `USE_CATALOG` on the parent
-// catalog.
+// catalog. For every destination, you also need `USE_CATALOG` and `USE_SCHEMA`
+// on its parent and `EXECUTE` on the referenced Unity Catalog model or model
+// provider service. A provisioned-throughput destination additionally requires
+// `CAN_MANAGE` on its Model Serving endpoint. Configuring an inference table
+// additionally requires `CREATE_TABLE`.
 func (c *internalClient) CreateModelService(ctx context.Context, req CreateModelServiceRequest, opts ...call.Option) (*ModelService, error) {
 	wireReq, err := createModelServiceRequestToWire(&req)
 	if err != nil {
@@ -1090,6 +1096,8 @@ func (c *internalClient) ListModelServicesIter(ctx context.Context, req ListMode
 //
 // You must be the owner of the MCP service or have `MANAGE` on it, plus
 // `USE_CATALOG` on the parent catalog and `USE_SCHEMA` on the parent schema.
+// When changing `config.source_connection.name`, the MCP service owner must
+// also have `USE_CONNECTION` on the new connection.
 func (c *internalClient) UpdateMcpService(ctx context.Context, req UpdateMcpServiceRequest, opts ...call.Option) (*McpService, error) {
 	wireReq, err := updateMcpServiceRequestToWire(&req)
 	if err != nil {
@@ -1176,6 +1184,9 @@ func (c *internalClient) UpdateMcpService(ctx context.Context, req UpdateMcpServ
 // You must be the owner of the model provider service or have `MANAGE` on it,
 // plus `USE_CATALOG` on the parent catalog and `USE_SCHEMA` on the parent
 // schema.
+//
+// Updating `config.provider` cannot change the provider type or switch between
+// Unity Catalog service-credential authentication and inline authentication.
 func (c *internalClient) UpdateModelProviderService(ctx context.Context, req UpdateModelProviderServiceRequest, opts ...call.Option) (*ModelProviderService, error) {
 	wireReq, err := updateModelProviderServiceRequestToWire(&req)
 	if err != nil {
@@ -1260,6 +1271,12 @@ func (c *internalClient) UpdateModelProviderService(ctx context.Context, req Upd
 //
 // You must be the owner of the model service or have `MANAGE` on it, plus
 // `USE_CATALOG` on the parent catalog and `USE_SCHEMA` on the parent schema.
+// When changing destinations, both you and the model service owner need
+// `USE_CATALOG` and `USE_SCHEMA` on each destination's parent and `EXECUTE` on
+// the referenced Unity Catalog model or model provider service. A
+// provisioned-throughput destination additionally requires `CAN_MANAGE` for you
+// and `CAN_QUERY` for the model service owner. Adding an inference table
+// additionally requires `CREATE_TABLE`.
 func (c *internalClient) UpdateModelService(ctx context.Context, req UpdateModelServiceRequest, opts ...call.Option) (*ModelService, error) {
 	wireReq, err := updateModelServiceRequestToWire(&req)
 	if err != nil {

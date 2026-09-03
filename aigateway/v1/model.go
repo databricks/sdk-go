@@ -29,12 +29,12 @@ type ListModelProviderServicesRequest_View string
 
 const (
 	ListModelProviderServicesRequest_View_Unspecified ListModelProviderServicesRequest_View = ""
-	// All fields populated, including the fully resolved `config` (inference-table
-	// details) and rate-limit principal names.
+	// All fields populated, including resolved service-credential and
+	// inference-table details and rate-limit principal names.
 	ListModelProviderServicesRequest_View_Full ListModelProviderServicesRequest_View = "FULL"
 	// Envelope only: identifiers, ownership, timestamps, plus the persisted
 	// `config` scalars (`targets`, `allow_all_targets`, `rate_limits` without
-	// `principal`); the inference-table details are unset.
+	// `principal`); service-credential and inference-table details are unset.
 	ListModelProviderServicesRequest_View_Basic ListModelProviderServicesRequest_View = "BASIC"
 )
 
@@ -61,12 +61,14 @@ const (
 	ModelProviderServiceConfig_ExternalModelProviderType_Unspecified ModelProviderServiceConfig_ExternalModelProviderType = ""
 	// OpenAI (api.openai.com). Auth via API key.
 	ModelProviderServiceConfig_ExternalModelProviderType_ExternalModelProviderTypeOpenai ModelProviderServiceConfig_ExternalModelProviderType = "EXTERNAL_MODEL_PROVIDER_TYPE_OPENAI"
-	// Azure OpenAI Service. Auth via API key or Entra ID service principal.
+	// Azure OpenAI Service. Authentication uses an API key, an Entra ID service
+	// principal, or a Unity Catalog service credential.
 	ModelProviderServiceConfig_ExternalModelProviderType_ExternalModelProviderTypeAzureOpenai ModelProviderServiceConfig_ExternalModelProviderType = "EXTERNAL_MODEL_PROVIDER_TYPE_AZURE_OPENAI"
-	// Anthropic (api.anthropic.com). Auth via API key.
+	// Anthropic (api.anthropic.com). Authentication uses an API key or the caller's
+	// relayed OAuth token.
 	ModelProviderServiceConfig_ExternalModelProviderType_ExternalModelProviderTypeAnthropic ModelProviderServiceConfig_ExternalModelProviderType = "EXTERNAL_MODEL_PROVIDER_TYPE_ANTHROPIC"
-	// Amazon Bedrock. Auth via AWS credentials (access key + secret) or assumed
-	// role.
+	// Amazon Bedrock. Authentication uses an AWS access-key pair or a Unity Catalog
+	// service credential.
 	ModelProviderServiceConfig_ExternalModelProviderType_ExternalModelProviderTypeAmazonBedrock ModelProviderServiceConfig_ExternalModelProviderType = "EXTERNAL_MODEL_PROVIDER_TYPE_AMAZON_BEDROCK"
 	// Custom OpenAI-compatible provider (any endpoint that speaks the OpenAI HTTP
 	// API). Configured by `base_url` + API key.
@@ -131,9 +133,8 @@ type CreateMcpServiceRequest struct {
 	Parent *string
 	// Name for the MCP service, e.g. "my_mcp_service".
 	McpServiceId *string
-	// The MCP service to create. The server populates `name` from `parent` +
-	// `mcp_service_id`; clients should leave it unset. `source_connection` is
-	// required.
+	// The MCP service to create. Do not set `name`; the server derives it from
+	// `parent` and `mcp_service_id`. `source_connection` is required.
 	McpService *McpService
 }
 
@@ -144,8 +145,8 @@ type CreateModelProviderServiceRequest struct {
 	Parent *string
 	// Name for the model provider service, e.g. "openai_prod".
 	ModelProviderServiceId *string
-	// The model provider service to create. The server populates `name` from
-	// `parent` + `model_provider_service_id`; clients should leave it unset.
+	// The model provider service to create. Do not set `name`; the server derives
+	// it from `parent` and `model_provider_service_id`.
 	ModelProviderService *ModelProviderService
 }
 
@@ -156,8 +157,8 @@ type CreateModelServiceRequest struct {
 	Parent *string
 	// Name for the model service, e.g. "my_model_service".
 	ModelServiceId *string
-	// The model service to create. The server populates `name` from `parent` +
-	// `model_service_id`; clients should leave it unset.
+	// The model service to create. Do not set `name`; the server derives it from
+	// `parent` and `model_service_id`.
 	ModelService *ModelService
 }
 
@@ -232,23 +233,22 @@ type GetModelServiceRequest struct {
 // default; set `disabled = true` to pause runtime logging without dropping the
 // table or the binding..
 type InferenceTableConfig struct {
-	// Parent UC schema where the inference table is created. Format:
-	// `schemas/{catalog}.{schema}`. Set at create time and immutable thereafter;
-	// changing it on an existing service is rejected.
+	// Parent Unity Catalog schema where the inference table is created, in the form
+	// `schemas/{catalog}.{schema}`. Required when configuring an inference table.
+	// After the inference table is created, this field cannot be changed.
 	Parent *string `fieldmask:"parent"`
 	// Prefix used to form the inference table's registered name. AI Gateway appends
 	// `_payload`; for example, `table_name_prefix = "orders"` creates
 	// `orders_payload`. If unset, the prefix defaults to the service name. Read
-	// `table` from the response for the resolved resource name. Set at create time
-	// and immutable thereafter.
+	// `table` from the response for the resulting resource name. After the
+	// inference table is created, this field cannot be changed.
 	TableNamePrefix *string `fieldmask:"table_name_prefix"`
 	// Resolved UC table for payload logs. Format:
 	// `tables/{catalog}.{schema}.{table}`.
 	Table *string `fieldmask:"table"`
-	// True when the bound inference TABLE has been deleted but the parent service
-	// still references it. The dangling reference is surfaced (not silently
-	// dropped) so callers can see the broken dependency. AI Gateway payload logging
-	// fails closed in this state.
+	// Whether the referenced inference table has been deleted. The configuration
+	// remains visible so you can identify the broken dependency. Payload logging
+	// cannot continue until the table is restored or the configuration is updated.
 	IsDeleted *bool `fieldmask:"is_deleted"`
 }
 
@@ -261,7 +261,7 @@ type ListMcpServicesRequest struct {
 	// Maximum number of MCP services to return. Defaults to 100 when unset or 0;
 	// the maximum is 100. Use `page_token` to retrieve additional pages.
 	PageSize *int
-	// Opaque pagination token from a previous request.
+	// Opaque pagination token from the previous response.
 	PageToken *string
 	// Fields to return for each service. `FULL` includes source-connection details
 	// and rate-limit principal names. `BASIC` omits the source connection and omits
@@ -274,7 +274,8 @@ type ListMcpServicesRequest struct {
 type ListMcpServicesResponse struct {
 	// The list of MCP services.
 	McpServices []McpService
-	// Pagination token for retrieving the next page of results.
+	// Pagination token for retrieving the next page. Empty when there are no more
+	// results.
 	NextPageToken *string
 }
 
@@ -287,12 +288,12 @@ type ListModelProviderServicesRequest struct {
 	// Maximum number of provider services to return. Defaults to 100 when unset or
 	// 0; the maximum is 100. Use `page_token` to retrieve additional pages.
 	PageSize *int
-	// Opaque pagination token from a previous request.
+	// Opaque pagination token from the previous response.
 	PageToken *string
-	// Fields to return for each service. `FULL` includes inference-table details
-	// and rate-limit principal names. `BASIC` omits inference-table details and
-	// omits principal names from rate limits. Defaults to `BASIC` when unset or
-	// `VIEW_UNSPECIFIED`.
+	// Fields to return for each service. `FULL` includes resolved
+	// service-credential and inference-table details and rate-limit principal
+	// names. `BASIC` omits those details and principal names from rate limits.
+	// Defaults to `BASIC` when unset or `VIEW_UNSPECIFIED`.
 	View ListModelProviderServicesRequest_View
 }
 
@@ -300,7 +301,8 @@ type ListModelProviderServicesRequest struct {
 type ListModelProviderServicesResponse struct {
 	// The list of model provider services.
 	ModelProviderServices []ModelProviderService
-	// Pagination token for retrieving the next page of results.
+	// Pagination token for retrieving the next page. Empty when there are no more
+	// results.
 	NextPageToken *string
 }
 
@@ -313,7 +315,7 @@ type ListModelServicesRequest struct {
 	// Maximum number of model services to return. Defaults to 100 when unset or 0;
 	// the maximum is 100. Use `page_token` to retrieve additional pages.
 	PageSize *int
-	// Opaque pagination token from a previous request.
+	// Opaque pagination token from the previous response.
 	PageToken *string
 	// Fields to return for each service. `FULL` includes destinations,
 	// inference-table details, and rate-limit principal names. `BASIC` omits
@@ -326,7 +328,8 @@ type ListModelServicesRequest struct {
 type ListModelServicesResponse struct {
 	// The list of model services.
 	ModelServices []ModelService
-	// Pagination token for retrieving the next page of results.
+	// Pagination token for retrieving the next page. Empty when there are no more
+	// results.
 	NextPageToken *string
 }
 
@@ -386,11 +389,13 @@ type McpServiceConfig struct {
 	Source isMcpServiceConfig_Source
 	// Tool names or prefix patterns to expose from the MCP server. Use exact tool
 	// names or prefix patterns such as `read_*`. An empty list exposes all tools.
-	// Each selector can contain at most 256 characters.
+	// At most 1,024 selectors are allowed, and each selector can contain at most
+	// 256 characters.
 	IncludeToolSelectors []string `fieldmask:"include_tool_selectors"`
-	// Rate limits for tool invocations, scoped to a user, group, service principal,
-	// the service as a whole, or each user by default. Request-tag rate limits are
-	// not supported for MCP services. Empty when no rate limit is configured.
+	// Rate limits for tool invocations. Supported scopes are user, group, service
+	// principal, the service as a whole, and each user by default. Request and
+	// token limits are supported; request-tag rate limits are not. Empty when no
+	// rate limit is configured.
 	RateLimits []RateLimit                                `fieldmask:"rate_limits"`
 	_          [0]mcpServiceConfigSourceFieldMaskMetadata `fieldmask_oneof:"Source"`
 }
@@ -411,13 +416,14 @@ type mcpServiceConfigSourceFieldMaskMetadata struct {
 	*McpServiceConfig_Source_SourceConnection
 }
 
-// Unity Catalog connection that hosts the MCP server. On Create, provide `name`
-// in the schema-scoped form `connections/{catalog}.{schema}.{connection}`. On
-// read, the service populates the resolved connection metadata and preserves a
-// dangling source so callers can diagnose a deleted backing connection..
+// Unity Catalog connection that points to the MCP server. On Create, provide
+// `name` in the schema-scoped form
+// `connections/{catalog}.{schema}.{connection}`. On read, the service populates
+// the resolved connection metadata. If the connection is deleted, its reference
+// remains visible so you can identify the broken dependency..
 type McpServiceConfig_SourceConnection struct {
-	// Name of the Unity Catalog connection that hosts the MCP server, as
-	// `connections/{catalog}.{schema}.{connection}`.
+	// Resource name of the Unity Catalog connection used to access the MCP server,
+	// in the form `connections/{catalog}.{schema}.{connection}`.
 	Name *string `fieldmask:"name"`
 	// Whether the referenced connection has been deleted. The MCP service keeps the
 	// reference so callers can identify the broken dependency; tool invocation
@@ -425,14 +431,14 @@ type McpServiceConfig_SourceConnection struct {
 	IsDeleted *bool `fieldmask:"is_deleted"`
 }
 
-// A governed connection to an external model provider stored in Unity Catalog,
-// such as an OpenAI account, Azure OpenAI deployment, or Amazon Bedrock
-// account. It stores the provider type, authentication, and connection
-// configuration used by model service destinations.
+// A Unity Catalog securable that stores authentication and request
+// configuration for an external model provider, such as OpenAI, Azure OpenAI,
+// or Amazon Bedrock. Model service destinations reference it to send requests
+// to that provider.
 //
-// One ModelProviderService can back many ModelServices (e.g. an `openai_prod`
-// provider serving multiple models); a single ModelService can fan out across
-// multiple ModelProviderServices for traffic split or failover..
+// A model provider service can be referenced by multiple model services. A
+// model service can route across multiple model provider services for traffic
+// splitting or failover..
 type ModelProviderService struct {
 	// Resource name of the provider service. Format:
 	// `model-provider-services/{catalog}.{schema}.{model_provider_service}`. Each
@@ -460,44 +466,29 @@ type ModelProviderService struct {
 	// In REST responses, this value is a base64 string; URL-encode it when setting
 	// the `etag` query parameter.
 	Etag []byte `fieldmask:"etag"`
-	// Provider connection, exposed models, request-forwarding controls, rate
+	// Provider authentication, exposed models, request-forwarding controls, rate
 	// limits, and payload logging. Required on Create. On Update, it is required
 	// only when `config` or one of its subpaths appears in `update_mask`.
 	Config *ModelProviderServiceConfig `fieldmask:"config"`
 }
 
-// Behavioral configuration for a ModelProviderService: provider connection
-// (auth + provider-specific fields), the catalog of models this provider
-// service can route to, and the passthrough policy that governs how request
-// headers, query parameters, and unmanaged subpaths cross the trust boundary to
-// the upstream provider..
+// Behavioral configuration for a ModelProviderService: provider authentication
+// and provider-specific fields, the catalog of models this provider service can
+// route to, and the passthrough policy that governs how request headers, query
+// parameters, and unmanaged subpaths cross the trust boundary to the upstream
+// provider..
 type ModelProviderServiceConfig struct {
-	// Provider type discriminator. Required at create time; immutable after.
-	// Determines which variant of the `provider` oneof must be set. May not be
-	// changed via Update; attempts to include `config.provider_type` in
-	// `UpdateModelProviderServiceRequest.update_mask` are rejected.
-	//
-	// Required on CreateModelProviderService and immutable thereafter.
+	// External model provider. Required on Create and immutable thereafter. Set the
+	// matching provider-specific configuration, such as `openai`, `azure_openai`,
+	// or `amazon_bedrock`.
 	ProviderType ModelProviderServiceConfig_ExternalModelProviderType `fieldmask:"provider_type"`
 	// Provider-specific configuration. Exactly one variant must be set, and it must
-	// match `provider_type`; a request whose active variant disagrees with
-	// `provider_type` is rejected with `INVALID_PARAMETER_VALUE`. Secret-bearing
-	// fields nested inside each *DirectConfig (`api_key`, `secret_access_key`,
-	// `service_account_key`, ...) wrap a `ProviderSecret`: callers supply the value
-	// as `ProviderSecret.plaintext` on writes, and the platform stores it
-	// encrypted. Reads (Get and List) omit the plaintext; secret-bearing fields
-	// appear in the response only as a presence indicator that a secret is
-	// configured. Non-secret fields (`base_url`, `region`, `organization`,
-	// `access_key_id`, ...) round-trip directly.
+	// match `provider_type`. Supply secret values in the nested `plaintext` field.
+	// Secret values are stored encrypted and omitted from responses; non-secret
+	// configuration fields are returned as stored.
 	//
-	// Declarative tooling (Terraform / DABs): the `plaintext` field is INPUT_ONLY
-	// and never round-trips on reads, so a Terraform config that supplies it will
-	// see a structural diff against the read state on every `terraform plan` unless
-	// mitigated. Mitigations, in order of preference: (a) use Terraform 1.11+
-	// `WriteOnly` attribute on `plaintext` in the <Databricks> provider schema; (b)
-	// add provider `DiffSuppressFunc` for the secret field; (c) document
-	// `lifecycle.ignore_changes = [<secret_field>]` for callers. The stored secret
-	// is normally changed through `UpdateModelProviderService`.
+	// (-- Declarative tooling must treat `plaintext` as write-only because it never
+	// round-trips on reads. --)
 	//
 	// (-- Secrets are persisted as the encrypted credential of a per-MPS UC
 	// SchemaConnection (`CONNECTION_HTTP_BEARER`). The auto-minted SchemaConnection
@@ -516,7 +507,7 @@ type ModelProviderServiceConfig struct {
 	Provider isModelProviderServiceConfig_Provider
 	// When true, accepts any model exposed by the upstream provider; `targets` is
 	// not required and does not restrict routability. When false, only models
-	// listed in `targets` are routable.
+	// listed in `targets` are routable. Defaults to false.
 	AllowAllTargets *bool `fieldmask:"allow_all_targets"`
 	// Models and provider-native API types exposed by this provider service. Each
 	// entry must include at least one `native_api_types` value. When
@@ -525,20 +516,20 @@ type ModelProviderServiceConfig struct {
 	// `allow_all_targets` is true, any upstream model is routable; entries in this
 	// list provide API-type metadata without restricting other models.
 	Targets []ModelProviderServiceConfig_ModelTargetConfig `fieldmask:"targets"`
-	// Whether to forward incoming HTTP headers to the upstream provider. Applies to
-	// translated and passthrough requests and is configured for the entire provider
-	// service, not per request. Upstream authentication is configured separately in
-	// `provider`.
+	// Whether to forward incoming HTTP headers to the upstream provider. Defaults
+	// to false and is configured for the entire provider service, not per request.
+	// Upstream authentication is configured separately in the provider-specific
+	// configuration.
 	ForwardHeaders *bool `fieldmask:"forward_headers"`
-	// Whether incoming query parameters are forwarded to the upstream provider.
-	// Applies to translated and passthrough requests and is configured for the
-	// entire provider service, not per request.
+	// Whether to forward incoming query parameters to the upstream provider.
+	// Defaults to false and is configured for the entire provider service, not per
+	// request.
 	ForwardQueryParameters *bool `fieldmask:"forward_query_parameters"`
 	// Whether to proxy paths that AI Gateway does not recognize as configured
-	// provider-native API types. When true, these paths are forwarded unchanged
-	// over the provider connection. When false, only recognized API paths are
-	// served. Enabling this broadens the upstream API surface exposed through the
-	// provider service.
+	// provider-native API types. Defaults to false. When true, these paths are
+	// forwarded unchanged to the upstream provider. When false, only recognized API
+	// paths are served. Enabling this broadens the upstream API surface exposed
+	// through the provider service.
 	ForwardUnmanagedPaths *bool `fieldmask:"forward_unmanaged_paths"`
 	// Rate limits for requests sent directly to this provider service. Requests
 	// routed through a model service use that model service's rate limits instead.
@@ -617,11 +608,9 @@ type modelProviderServiceConfigProviderFieldMaskMetadata struct {
 
 // Amazon Bedrock provider configuration..
 type ModelProviderServiceConfig_AmazonBedrockProviderConfig struct {
-	// Direct (inline-credentials) form: caller supplies AWS region + auth
-	// (access-key pair) in the request body. Required on Create. Provider
-	// configuration mode. Exactly one variant may be set. (-- Wrapped in a oneof so
-	// future non-direct modes can be added as additional variants without a
-	// breaking change. --)
+	// Provider configuration mode. Exactly one variant may be set. (-- Wrapped in a
+	// oneof so future non-direct modes can be added as additional variants without
+	// a breaking change. --)
 	ProviderMode isModelProviderServiceConfig_AmazonBedrockProviderConfig_ProviderMode
 	_            [0]modelProviderServiceConfig_AmazonBedrockProviderConfigProviderModeFieldMaskMetadata `fieldmask_oneof:"ProviderMode"`
 }
@@ -631,6 +620,7 @@ type isModelProviderServiceConfig_AmazonBedrockProviderConfig_ProviderMode inter
 }
 
 // ModelProviderServiceConfig_AmazonBedrockProviderConfig_ProviderMode_Direct selects Direct for ModelProviderServiceConfig_AmazonBedrockProviderConfig.ProviderMode.
+// Amazon Bedrock region and authentication configuration.
 type ModelProviderServiceConfig_AmazonBedrockProviderConfig_ProviderMode_Direct struct {
 	Direct ModelProviderServiceConfig_AmazonBedrockProviderDirectConfig `fieldmask:"direct"`
 }
@@ -669,9 +659,7 @@ type isModelProviderServiceConfig_AmazonBedrockProviderDirectConfig_AuthMode int
 // On Create, supply `service_credential.name` in the form `credentials/{name}`.
 // Required on Create when using service-credential authentication; mutually
 // exclusive with `aws_access_key`. The credential is referenced by name; its
-// value is not carried here. On read, the resolved `id` and `is_deleted` are
-// also populated. Only supported on AWS-hosted workspaces; Create requests from
-// other clouds are rejected with INVALID_PARAMETER_VALUE.
+// value is not carried here. Only supported on AWS-hosted workspaces.
 type ModelProviderServiceConfig_AmazonBedrockProviderDirectConfig_AuthMode_ServiceCredential struct {
 	ServiceCredential ModelProviderServiceConfig_ServiceCredential `fieldmask:"service_credential"`
 }
@@ -680,7 +668,8 @@ func (*ModelProviderServiceConfig_AmazonBedrockProviderDirectConfig_AuthMode_Ser
 }
 
 // ModelProviderServiceConfig_AmazonBedrockProviderDirectConfig_AuthMode_AwsAccessKey selects AwsAccessKey for ModelProviderServiceConfig_AmazonBedrockProviderDirectConfig.AuthMode.
-// AWS access-key-pair auth. Mutually exclusive with `service_credential`.
+// AWS access-key-pair authentication. Set `access_key_id` and
+// `secret_access_key.plaintext`. Mutually exclusive with `service_credential`.
 type ModelProviderServiceConfig_AmazonBedrockProviderDirectConfig_AuthMode_AwsAccessKey struct {
 	AwsAccessKey ModelProviderServiceConfig_AwsAccessKey `fieldmask:"aws_access_key"`
 }
@@ -711,8 +700,8 @@ type isModelProviderServiceConfig_AnthropicProviderConfig_ProviderMode interface
 }
 
 // ModelProviderServiceConfig_AnthropicProviderConfig_ProviderMode_Direct selects Direct for ModelProviderServiceConfig_AnthropicProviderConfig.ProviderMode.
-// Direct (inline-credentials) form: caller supplies the API key in the request
-// body. Required on Create unless `relayed` is set.
+// Direct authentication with an API key supplied in `direct.api_key.plaintext`.
+// Required unless `relayed` is set.
 type ModelProviderServiceConfig_AnthropicProviderConfig_ProviderMode_Direct struct {
 	Direct ModelProviderServiceConfig_AnthropicProviderDirectConfig `fieldmask:"direct"`
 }
@@ -721,10 +710,9 @@ func (*ModelProviderServiceConfig_AnthropicProviderConfig_ProviderMode_Direct) i
 }
 
 // ModelProviderServiceConfig_AnthropicProviderConfig_ProviderMode_Relayed selects Relayed for ModelProviderServiceConfig_AnthropicProviderConfig.ProviderMode.
-// Relayed (credential-less) form: no Anthropic credential is stored. Each
-// inference request instead carries the caller's own OAuth token, which the
-// platform forwards to Anthropic on outbound requests. Mutually exclusive with
-// `direct`; no `api_key` is required or persisted.
+// Relayed authentication. Each inference request supplies the caller's OAuth
+// token, which is forwarded to Anthropic. No Anthropic credential is stored.
+// Mutually exclusive with `direct`.
 type ModelProviderServiceConfig_AnthropicProviderConfig_ProviderMode_Relayed struct {
 	Relayed ModelProviderServiceConfig_AnthropicProviderRelayedConfig `fieldmask:"relayed"`
 }
@@ -751,9 +739,8 @@ type isModelProviderServiceConfig_AnthropicProviderDirectConfig_AuthMode interfa
 }
 
 // ModelProviderServiceConfig_AnthropicProviderDirectConfig_AuthMode_ApiKey selects ApiKey for ModelProviderServiceConfig_AnthropicProviderDirectConfig.AuthMode.
-// Anthropic API key. Required on Create. Sent as the `x-api-key` header on
-// outbound requests. Supplied as inline plaintext via
-// `ProviderSecret.plaintext`.
+// Anthropic API key. Required when creating the service. Supply the value in
+// `api_key.plaintext`.
 type ModelProviderServiceConfig_AnthropicProviderDirectConfig_AuthMode_ApiKey struct {
 	ApiKey ModelProviderServiceConfig_ProviderSecret `fieldmask:"api_key"`
 }
@@ -779,19 +766,17 @@ type ModelProviderServiceConfig_AwsAccessKey struct {
 	// username-equivalent (not a secret value): round-trips on reads and is
 	// scrubbed from audit logs.
 	AccessKeyId *string `fieldmask:"access_key_id"`
-	// AWS secret access key paired with `access_key_id`. Required on Create when
-	// using access-key auth. Supplied as inline plaintext via
-	// `ProviderSecret.plaintext`.
+	// AWS secret access key paired with `access_key_id`. Required when creating a
+	// service with access-key authentication. Supply the value in
+	// `secret_access_key.plaintext`.
 	SecretAccessKey *ModelProviderServiceConfig_ProviderSecret `fieldmask:"secret_access_key"`
 }
 
 // Azure OpenAI provider configuration..
 type ModelProviderServiceConfig_AzureOpenAiProviderConfig struct {
-	// Direct (inline-credentials) form: caller supplies the auth secrets and the
-	// Azure endpoint base URL in the request body. Required on Create. Provider
-	// configuration mode. Exactly one variant may be set. (-- Wrapped in a oneof so
-	// future non-direct modes can be added as additional variants without a
-	// breaking change. --)
+	// Provider configuration mode. Exactly one variant may be set. (-- Wrapped in a
+	// oneof so future non-direct modes can be added as additional variants without
+	// a breaking change. --)
 	ProviderMode isModelProviderServiceConfig_AzureOpenAiProviderConfig_ProviderMode
 	_            [0]modelProviderServiceConfig_AzureOpenAiProviderConfigProviderModeFieldMaskMetadata `fieldmask_oneof:"ProviderMode"`
 }
@@ -801,6 +786,7 @@ type isModelProviderServiceConfig_AzureOpenAiProviderConfig_ProviderMode interfa
 }
 
 // ModelProviderServiceConfig_AzureOpenAiProviderConfig_ProviderMode_Direct selects Direct for ModelProviderServiceConfig_AzureOpenAiProviderConfig.ProviderMode.
+// Azure OpenAI endpoint and authentication configuration.
 type ModelProviderServiceConfig_AzureOpenAiProviderConfig_ProviderMode_Direct struct {
 	Direct ModelProviderServiceConfig_AzureOpenAiProviderDirectConfig `fieldmask:"direct"`
 }
@@ -835,9 +821,8 @@ type isModelProviderServiceConfig_AzureOpenAiProviderDirectConfig_AuthMode inter
 }
 
 // ModelProviderServiceConfig_AzureOpenAiProviderDirectConfig_AuthMode_ApiKey selects ApiKey for ModelProviderServiceConfig_AzureOpenAiProviderDirectConfig.AuthMode.
-// Azure OpenAI API key. Mutually exclusive with the Entra and
-// service-credential modes. Supplied as inline plaintext via
-// `ProviderSecret.plaintext`.
+// Azure OpenAI API key. Supply the value in `api_key.plaintext`. Mutually
+// exclusive with Entra ID and Unity Catalog service credential authentication.
 type ModelProviderServiceConfig_AzureOpenAiProviderDirectConfig_AuthMode_ApiKey struct {
 	ApiKey ModelProviderServiceConfig_ProviderSecret `fieldmask:"api_key"`
 }
@@ -851,9 +836,7 @@ func (*ModelProviderServiceConfig_AzureOpenAiProviderDirectConfig_AuthMode_ApiKe
 // `credentials/{name}`. Required on Create when using service-credential
 // authentication; mutually exclusive with `api_key` and
 // `entra_service_principal`. The credential is referenced by name; its value is
-// not carried here. On read, the resolved `id` and `is_deleted` are also
-// populated. Only supported on Azure-hosted workspaces; Create requests from
-// other clouds are rejected with INVALID_PARAMETER_VALUE.
+// not carried here. Only supported on Azure-hosted workspaces.
 type ModelProviderServiceConfig_AzureOpenAiProviderDirectConfig_AuthMode_ServiceCredential struct {
 	ServiceCredential ModelProviderServiceConfig_ServiceCredential `fieldmask:"service_credential"`
 }
@@ -862,7 +845,8 @@ func (*ModelProviderServiceConfig_AzureOpenAiProviderDirectConfig_AuthMode_Servi
 }
 
 // ModelProviderServiceConfig_AzureOpenAiProviderDirectConfig_AuthMode_EntraServicePrincipal selects EntraServicePrincipal for ModelProviderServiceConfig_AzureOpenAiProviderDirectConfig.AuthMode.
-// Entra ID (service principal) auth. Mutually exclusive with `api_key` and
+// Entra ID service-principal authentication. Set `tenant_id`, `client_id`, and
+// `client_secret.plaintext`. Mutually exclusive with `api_key` and
 // `service_credential`.
 type ModelProviderServiceConfig_AzureOpenAiProviderDirectConfig_AuthMode_EntraServicePrincipal struct {
 	EntraServicePrincipal ModelProviderServiceConfig_EntraServicePrincipal `fieldmask:"entra_service_principal"`
@@ -877,13 +861,12 @@ type modelProviderServiceConfig_AzureOpenAiProviderDirectConfigAuthModeFieldMask
 	*ModelProviderServiceConfig_AzureOpenAiProviderDirectConfig_AuthMode_EntraServicePrincipal
 }
 
-// Custom provider configuration: arbitrary HTTP endpoint with bearer-token
-// auth..
+// Custom OpenAI-compatible provider configuration with bearer-token
+// authentication..
 type ModelProviderServiceConfig_CustomProviderConfig struct {
-	// Direct (inline-credentials) form: caller supplies the endpoint URL + bearer
-	// token in the request body. Required on Create. Provider configuration mode.
-	// Exactly one variant may be set. (-- Wrapped in a oneof so future non-direct
-	// modes can be added as additional variants without a breaking change. --)
+	// Provider configuration mode. Exactly one variant may be set. (-- Wrapped in a
+	// oneof so future non-direct modes can be added as additional variants without
+	// a breaking change. --)
 	ProviderMode isModelProviderServiceConfig_CustomProviderConfig_ProviderMode
 	_            [0]modelProviderServiceConfig_CustomProviderConfigProviderModeFieldMaskMetadata `fieldmask_oneof:"ProviderMode"`
 }
@@ -893,6 +876,7 @@ type isModelProviderServiceConfig_CustomProviderConfig_ProviderMode interface {
 }
 
 // ModelProviderServiceConfig_CustomProviderConfig_ProviderMode_Direct selects Direct for ModelProviderServiceConfig_CustomProviderConfig.ProviderMode.
+// Endpoint and authentication configuration for the custom provider.
 type ModelProviderServiceConfig_CustomProviderConfig_ProviderMode_Direct struct {
 	Direct ModelProviderServiceConfig_CustomProviderDirectConfig `fieldmask:"direct"`
 }
@@ -904,20 +888,14 @@ type modelProviderServiceConfig_CustomProviderConfigProviderModeFieldMaskMetadat
 	*ModelProviderServiceConfig_CustomProviderConfig_ProviderMode_Direct
 }
 
-// Direct form of custom provider config.
-//
-// Authentication is one of two mutually exclusive modes, exactly one of which
-// must be supplied on Create: - Bearer: set `api_key`, leave `header_auth`
-// unset. The secret is forwarded as `Authorization: Bearer <secret>`. - Header:
-// set `header_auth`, leave `api_key` unset. The secret is forwarded as
-// `<api_key_name>: <api_key_value>`. Setting both modes or neither mode is
-// rejected..
+// Direct form of a custom provider configuration. Set `api_key` to the bearer
+// token sent in the `Authorization` header..
 type ModelProviderServiceConfig_CustomProviderDirectConfig struct {
 	// Endpoint URL of the OpenAI-compatible service (e.g.,
 	// `https://api.example.com/v1`). Required on Create.
 	BaseUrl *string `fieldmask:"base_url"`
-	// Authentication mode. Exactly one variant may be set. (-- Mutual exclusivity
-	// is enforced by the oneof on the wire. --)
+	// Authentication configuration. (-- Mutual exclusivity is enforced by the oneof
+	// on the wire. --)
 	AuthMode isModelProviderServiceConfig_CustomProviderDirectConfig_AuthMode
 	_        [0]modelProviderServiceConfig_CustomProviderDirectConfigAuthModeFieldMaskMetadata `fieldmask_oneof:"AuthMode"`
 }
@@ -927,9 +905,8 @@ type isModelProviderServiceConfig_CustomProviderDirectConfig_AuthMode interface 
 }
 
 // ModelProviderServiceConfig_CustomProviderDirectConfig_AuthMode_ApiKey selects ApiKey for ModelProviderServiceConfig_CustomProviderDirectConfig.AuthMode.
-// Bearer token forwarded as the `Authorization: Bearer ...` header on outbound
-// requests. Supplied as inline plaintext via `ProviderSecret.plaintext`. Set
-// this for bearer-token auth.
+// Bearer token forwarded in the `Authorization` header. Supply the value in
+// `api_key.plaintext`.
 type ModelProviderServiceConfig_CustomProviderDirectConfig_AuthMode_ApiKey struct {
 	ApiKey ModelProviderServiceConfig_ProviderSecret `fieldmask:"api_key"`
 }
@@ -941,11 +918,10 @@ type modelProviderServiceConfig_CustomProviderDirectConfigAuthModeFieldMaskMetad
 	*ModelProviderServiceConfig_CustomProviderDirectConfig_AuthMode_ApiKey
 }
 
-// Entra ID (Azure AD) service-principal auth: AI Gateway exchanges the
-// `tenant_id` + `client_id` identify the service principal, and the
-// `credential` oneof proves that identity, exchanged for an Entra bearer token
-// on outbound requests via the OAuth2 client-credentials grant. Shared by the
-// Azure OpenAI and Microsoft Foundry provider configs..
+// Entra ID (Azure AD) service-principal authentication. The `tenant_id` and
+// `client_id` identify the service principal, and `client_secret` authenticates
+// it. AI Gateway exchanges these credentials for an Entra bearer token for
+// requests to Azure OpenAI or Microsoft Foundry..
 type ModelProviderServiceConfig_EntraServicePrincipal struct {
 	// Entra ID (Azure AD) tenant ID. Required on Create.
 	TenantId *string `fieldmask:"tenant_id"`
@@ -964,8 +940,7 @@ type isModelProviderServiceConfig_EntraServicePrincipal_Credential interface {
 }
 
 // ModelProviderServiceConfig_EntraServicePrincipal_Credential_ClientSecret selects ClientSecret for ModelProviderServiceConfig_EntraServicePrincipal.Credential.
-// Entra ID client secret. Supplied as inline plaintext via
-// `ProviderSecret.plaintext`.
+// Entra ID client secret. Supply the value in `client_secret.plaintext`.
 type ModelProviderServiceConfig_EntraServicePrincipal_Credential_ClientSecret struct {
 	ClientSecret ModelProviderServiceConfig_ProviderSecret `fieldmask:"client_secret"`
 }
@@ -979,10 +954,9 @@ type modelProviderServiceConfig_EntraServicePrincipalCredentialFieldMaskMetadata
 
 // Gemini Enterprise provider configuration..
 type ModelProviderServiceConfig_GeminiEnterpriseProviderConfig struct {
-	// Direct (inline-credentials) form: caller supplies the API key in the request
-	// body. Required on Create. Provider configuration mode. Exactly one variant
-	// may be set. (-- Wrapped in a oneof so future non-direct modes can be added as
-	// additional variants without a breaking change. --)
+	// Provider configuration mode. Exactly one variant may be set. (-- Wrapped in a
+	// oneof so future non-direct modes can be added as additional variants without
+	// a breaking change. --)
 	ProviderMode isModelProviderServiceConfig_GeminiEnterpriseProviderConfig_ProviderMode
 	_            [0]modelProviderServiceConfig_GeminiEnterpriseProviderConfigProviderModeFieldMaskMetadata `fieldmask_oneof:"ProviderMode"`
 }
@@ -992,6 +966,7 @@ type isModelProviderServiceConfig_GeminiEnterpriseProviderConfig_ProviderMode in
 }
 
 // ModelProviderServiceConfig_GeminiEnterpriseProviderConfig_ProviderMode_Direct selects Direct for ModelProviderServiceConfig_GeminiEnterpriseProviderConfig.ProviderMode.
+// Gemini Enterprise project, region, and authentication configuration.
 type ModelProviderServiceConfig_GeminiEnterpriseProviderConfig_ProviderMode_Direct struct {
 	Direct ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig `fieldmask:"direct"`
 }
@@ -1025,9 +1000,9 @@ type isModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode 
 }
 
 // ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode_ApiKey selects ApiKey for ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig.AuthMode.
-// Google Gemini Enterprise API key. Required on Create when using API-key auth;
-// mutually exclusive with `service_credential`. Supplied as inline plaintext
-// via `ProviderSecret.plaintext`.
+// Google Gemini Enterprise API key. Required when creating a service with
+// API-key authentication; mutually exclusive with `service_credential`. Supply
+// the value in `api_key.plaintext`.
 type ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode_ApiKey struct {
 	ApiKey ModelProviderServiceConfig_ProviderSecret `fieldmask:"api_key"`
 }
@@ -1041,11 +1016,9 @@ type modelProviderServiceConfig_GeminiEnterpriseProviderDirectConfigAuthModeFiel
 
 // Microsoft Foundry provider configuration..
 type ModelProviderServiceConfig_MicrosoftFoundryProviderConfig struct {
-	// Direct form: caller supplies the Foundry endpoint URL and authentication
-	// configuration in the request body. Required on Create. Provider configuration
-	// mode. Exactly one variant may be set. (-- Wrapped in a oneof so future
-	// non-direct modes can be added as additional variants without a breaking
-	// change. --)
+	// Provider configuration mode. Exactly one variant may be set. (-- Wrapped in a
+	// oneof so future non-direct modes can be added as additional variants without
+	// a breaking change. --)
 	ProviderMode isModelProviderServiceConfig_MicrosoftFoundryProviderConfig_ProviderMode
 	_            [0]modelProviderServiceConfig_MicrosoftFoundryProviderConfigProviderModeFieldMaskMetadata `fieldmask_oneof:"ProviderMode"`
 }
@@ -1055,6 +1028,7 @@ type isModelProviderServiceConfig_MicrosoftFoundryProviderConfig_ProviderMode in
 }
 
 // ModelProviderServiceConfig_MicrosoftFoundryProviderConfig_ProviderMode_Direct selects Direct for ModelProviderServiceConfig_MicrosoftFoundryProviderConfig.ProviderMode.
+// Microsoft Foundry endpoint and authentication configuration.
 type ModelProviderServiceConfig_MicrosoftFoundryProviderConfig_ProviderMode_Direct struct {
 	Direct ModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig `fieldmask:"direct"`
 }
@@ -1092,9 +1066,8 @@ type isModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig_AuthMode 
 }
 
 // ModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig_AuthMode_ApiKey selects ApiKey for ModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig.AuthMode.
-// Microsoft Foundry API key. Mutually exclusive with the Entra and
-// service-credential modes. Supplied as inline plaintext via
-// `ProviderSecret.plaintext`.
+// Microsoft Foundry API key. Supply the value in `api_key.plaintext`. Mutually
+// exclusive with Entra ID and Unity Catalog service credential authentication.
 type ModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig_AuthMode_ApiKey struct {
 	ApiKey ModelProviderServiceConfig_ProviderSecret `fieldmask:"api_key"`
 }
@@ -1108,9 +1081,7 @@ func (*ModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig_AuthMode_
 // `credentials/{name}`. Required on Create when using service-credential
 // authentication; mutually exclusive with `api_key` and
 // `entra_service_principal`. The credential is referenced by name; its value is
-// not carried here. On read, the resolved `id` and `is_deleted` are also
-// populated. Only supported on Azure-hosted workspaces; Create requests from
-// other clouds are rejected with INVALID_PARAMETER_VALUE.
+// not carried here. Only supported on Azure-hosted workspaces.
 type ModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig_AuthMode_ServiceCredential struct {
 	ServiceCredential ModelProviderServiceConfig_ServiceCredential `fieldmask:"service_credential"`
 }
@@ -1119,7 +1090,8 @@ func (*ModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig_AuthMode_
 }
 
 // ModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig_AuthMode_EntraServicePrincipal selects EntraServicePrincipal for ModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig.AuthMode.
-// Entra ID (service principal) auth. Mutually exclusive with `api_key` and
+// Entra ID service-principal authentication. Set `tenant_id`, `client_id`, and
+// `client_secret.plaintext`. Mutually exclusive with `api_key` and
 // `service_credential`.
 type ModelProviderServiceConfig_MicrosoftFoundryProviderDirectConfig_AuthMode_EntraServicePrincipal struct {
 	EntraServicePrincipal ModelProviderServiceConfig_EntraServicePrincipal `fieldmask:"entra_service_principal"`
@@ -1141,19 +1113,17 @@ type ModelProviderServiceConfig_ModelTargetConfig struct {
 	// resource.
 	Model *string
 	// Provider-native API types supported by this model, such as
-	// `openai/v1/chat/completions`. AI Gateway uses these values to translate
-	// requests and responses. At most 64 entries of 256 characters each are
-	// allowed.
+	// `openai/v1/chat/completions`. At least one value is required. AI Gateway uses
+	// these values to translate requests and responses. At most 64 entries of 256
+	// characters each are allowed.
 	NativeApiTypes []string
 }
 
 // OpenAI provider configuration..
 type ModelProviderServiceConfig_OpenAiProviderConfig struct {
-	// Direct (inline-credentials) form: caller supplies the auth secrets in the
-	// request body. Required on Create. Secret values are stored encrypted and
-	// omitted from reads. Provider configuration mode. Exactly one variant may be
-	// set. (-- Wrapped in a oneof so future non-direct modes can be added as
-	// additional variants without a breaking change. --)
+	// Provider configuration mode. Exactly one variant may be set. (-- Wrapped in a
+	// oneof so future non-direct modes can be added as additional variants without
+	// a breaking change. --)
 	ProviderMode isModelProviderServiceConfig_OpenAiProviderConfig_ProviderMode
 	_            [0]modelProviderServiceConfig_OpenAiProviderConfigProviderModeFieldMaskMetadata `fieldmask_oneof:"ProviderMode"`
 }
@@ -1163,6 +1133,7 @@ type isModelProviderServiceConfig_OpenAiProviderConfig_ProviderMode interface {
 }
 
 // ModelProviderServiceConfig_OpenAiProviderConfig_ProviderMode_Direct selects Direct for ModelProviderServiceConfig_OpenAiProviderConfig.ProviderMode.
+// OpenAI configuration with an API key supplied in the request.
 type ModelProviderServiceConfig_OpenAiProviderConfig_ProviderMode_Direct struct {
 	Direct ModelProviderServiceConfig_OpenAiProviderDirectConfig `fieldmask:"direct"`
 }
@@ -1194,8 +1165,8 @@ type isModelProviderServiceConfig_OpenAiProviderDirectConfig_AuthMode interface 
 }
 
 // ModelProviderServiceConfig_OpenAiProviderDirectConfig_AuthMode_ApiKey selects ApiKey for ModelProviderServiceConfig_OpenAiProviderDirectConfig.AuthMode.
-// OpenAI API key. Required on Create. Supplied as inline plaintext via
-// `ProviderSecret.plaintext`.
+// OpenAI API key. Required when creating the service. Supply the value in
+// `api_key.plaintext`.
 type ModelProviderServiceConfig_OpenAiProviderDirectConfig_AuthMode_ApiKey struct {
 	ApiKey ModelProviderServiceConfig_ProviderSecret `fieldmask:"api_key"`
 }
@@ -1226,8 +1197,8 @@ type isModelProviderServiceConfig_ProviderSecret_Value interface {
 
 // ModelProviderServiceConfig_ProviderSecret_Value_Plaintext selects Plaintext for ModelProviderServiceConfig_ProviderSecret.Value.
 // Inline plaintext credential. INPUT_ONLY: the value never round-trips on
-// reads. Get and List responses omit `plaintext`; the field's presence in the
-// read shape only indicates that a secret is configured.
+// reads. Get and List responses omit `plaintext`; the enclosing secret object
+// remains present to indicate that a secret is configured.
 type ModelProviderServiceConfig_ProviderSecret_Value_Plaintext struct {
 	Plaintext string `fieldmask:"plaintext"`
 }
@@ -1244,8 +1215,8 @@ type modelProviderServiceConfig_ProviderSecretValueFieldMaskMetadata struct {
 // to authenticate to its provider, referenced by name..
 type ModelProviderServiceConfig_ServiceCredential struct {
 	// Resource name of the bound Unity Catalog service credential, in the form
-	// `credentials/{name}`. On Create, supply the name here. On read, this field
-	// reflects the credential's current name.
+	// `credentials/{name}`. Supply this field when creating the service or
+	// rebinding its credential. On read, it reflects the credential's current name.
 	Name *string `fieldmask:"name"`
 }
 
@@ -1296,7 +1267,7 @@ type ModelServiceConfig struct {
 	Routing *ModelServiceConfig_RoutingConfig `fieldmask:"routing"`
 	// Rate limits applied to requests routed through this model service.
 	RateLimits []RateLimit `fieldmask:"rate_limits"`
-	// Inference table config for payload logging.
+	// Inference table configuration for payload logging.
 	InferenceTable *InferenceTableConfig `fieldmask:"inference_table"`
 }
 
@@ -1316,12 +1287,10 @@ type ModelServiceConfig_DestinationConfig struct {
 	TrafficPercentage *int
 	// Destination-type-specific configuration.
 	TypeConfig isModelServiceConfig_DestinationConfig_TypeConfig
-	// True when the destination's backing UC entity (MODEL for foundation-model
-	// destinations, MODEL_PROVIDER_SERVICE for external destinations) has been
-	// deleted but the destination row still references it. The dangling destination
-	// is surfaced (not silently dropped) so callers can see the broken routing.
-	// Inference traffic through this destination fails closed (BAD_REQUEST /
-	// FAILED_PRECONDITION).
+	// Whether the destination's backing model or model provider service has been
+	// deleted. The destination remains visible so you can identify the broken
+	// dependency. Requests cannot use this destination until the backing resource
+	// is restored or the destination is replaced.
 	IsDeleted *bool
 }
 
@@ -1330,6 +1299,7 @@ type isModelServiceConfig_DestinationConfig_TypeConfig interface {
 }
 
 // ModelServiceConfig_DestinationConfig_TypeConfig_PayPerTokenConfig selects PayPerTokenConfig for ModelServiceConfig_DestinationConfig.TypeConfig.
+// Configuration for a pay-per-token <Databricks> foundation model.
 type ModelServiceConfig_DestinationConfig_TypeConfig_PayPerTokenConfig struct {
 	PayPerTokenConfig ModelServiceConfig_PayPerTokenConfig
 }
@@ -1338,6 +1308,7 @@ func (*ModelServiceConfig_DestinationConfig_TypeConfig_PayPerTokenConfig) isMode
 }
 
 // ModelServiceConfig_DestinationConfig_TypeConfig_ProvisionedThroughputConfig selects ProvisionedThroughputConfig for ModelServiceConfig_DestinationConfig.TypeConfig.
+// Configuration for a provisioned-throughput <Databricks> foundation model.
 type ModelServiceConfig_DestinationConfig_TypeConfig_ProvisionedThroughputConfig struct {
 	ProvisionedThroughputConfig ModelServiceConfig_ProvisionedThroughputConfig
 }
@@ -1346,6 +1317,7 @@ func (*ModelServiceConfig_DestinationConfig_TypeConfig_ProvisionedThroughputConf
 }
 
 // ModelServiceConfig_DestinationConfig_TypeConfig_ExternalModelConfig selects ExternalModelConfig for ModelServiceConfig_DestinationConfig.TypeConfig.
+// Configuration for an external model reached through a model provider service.
 type ModelServiceConfig_DestinationConfig_TypeConfig_ExternalModelConfig struct {
 	ExternalModelConfig ModelServiceConfig_ExternalModelConfig
 }
@@ -1371,12 +1343,10 @@ type ModelServiceConfig_ExternalModelConfig struct {
 	Target *ModelProviderServiceConfig_ModelTargetConfig
 }
 
-// Fallback routing, applied after the primary destination returns a retryable
-// error. Traversal is in list order; the attempt count is the length of the
-// list..
+// Fallback routing applied after a primary destination fails. Fallback
+// destinations are tried in the listed order..
 type ModelServiceConfig_FallbackConfig struct {
-	// Ordered list of fallback destinations. Traversal is in list order; the
-	// attempt count is the length of the list. At most 5 are allowed.
+	// Fallback destinations, tried in the listed order. At most 5 are allowed.
 	Destinations []ModelServiceConfig_DestinationConfig `fieldmask:"destinations"`
 }
 
@@ -1486,11 +1456,12 @@ type UpdateModelProviderServiceRequest struct {
 	// Fields to update. Use `config` to replace the entire configuration. The
 	// replacement must include every required field; any optional field you omit is
 	// cleared. To preserve sibling fields, use one or more granular paths:
-	// `comment`, `config.provider`, `config.allow_all_targets`, `config.targets`,
-	// `config.forward_headers`, `config.forward_query_parameters`,
-	// `config.forward_unmanaged_paths`, `config.rate_limits`, or
-	// `config.inference_table`. The provider type is immutable, and wildcard paths
-	// such as `*` are not supported.
+	// `comment`; `config.provider` to replace the active provider-specific value
+	// (for example, `config.openai`; the mask path remains `config.provider`);
+	// `config.allow_all_targets`, `config.targets`, `config.forward_headers`,
+	// `config.forward_query_parameters`, `config.forward_unmanaged_paths`,
+	// `config.rate_limits`, or `config.inference_table`. The provider type is
+	// immutable, and wildcard paths such as `*` are not supported.
 	UpdateMask *types.FieldMask[ModelProviderService]
 	// Optimistic concurrency token from the most recent read. When set, the update
 	// succeeds only if the resource has not changed. Leave unset for an

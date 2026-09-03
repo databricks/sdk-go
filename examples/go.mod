@@ -13,11 +13,11 @@ replace github.com/databricks/sdk-go/jobs => ../jobs
 replace github.com/databricks/sdk-go/options => ../options
 
 require (
-	github.com/databricks/sdk-go/auth v0.0.1-dev.2
-	github.com/databricks/sdk-go/core v0.0.1-dev.2
+	github.com/databricks/sdk-go/auth v0.0.1-dev.3
+	github.com/databricks/sdk-go/core v0.0.1-dev.3
 	github.com/databricks/sdk-go/dataquality v0.0.0-00010101000000-000000000000
 	github.com/databricks/sdk-go/jobs v0.0.0-00010101000000-000000000000
-	github.com/databricks/sdk-go/options v0.0.1-dev.2
+	github.com/databricks/sdk-go/options v0.0.1-dev.3
 )
 
 require (

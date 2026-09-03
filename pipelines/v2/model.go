@@ -124,6 +124,17 @@ const (
 	OutlookBodyFormat_TextPlain   OutlookBodyFormat = "TEXT_PLAIN"
 )
 
+// Determines how errors encountered while deserializing records are handled.
+type ParseMode string
+
+const (
+	ParseMode_Unspecified ParseMode = ""
+	// Fails the pipeline when a record cannot be deserialized.
+	ParseMode_Failfast ParseMode = "FAILFAST"
+	// Skips malformed records and continues processing remaining data.
+	ParseMode_Permissive ParseMode = "PERMISSIVE"
+)
+
 // The health of a pipeline.
 type PipelineHealthStatus string
 
@@ -406,6 +417,8 @@ const (
 	Transformer_Format_Unspecified Transformer_Format = ""
 	Transformer_Format_String      Transformer_Format = "STRING"
 	Transformer_Format_Json        Transformer_Format = "JSON"
+	Transformer_Format_Avro        Transformer_Format = "AVRO"
+	Transformer_Format_Protobuf    Transformer_Format = "PROTOBUF"
 )
 
 // Top-level configuration for API Source connectors with arbitrary
@@ -437,6 +450,19 @@ type AutoFullRefreshPolicy struct {
 	// for triggering auto full If unspecified and autoFullRefresh is enabled then
 	// by default min_interval_hours is 24 hours.
 	MinIntervalHours *int
+}
+
+type AvroTransformerOptions struct {
+	// Inline Avro JSON schema string.
+	Schema *string
+	// Path to a schema file (.avsc).
+	SchemaFilePath *string
+	// (Optional) Parse mode for Avro data. Valid values: FAILFAST, PERMISSIVE.
+	// Defaults to FAILFAST.
+	ParseMode ParseMode
+	// (Optional) Schema registry to resolve the Avro schema at runtime instead of
+	// providing it inline or via a file path.
+	SchemaRegistry *SchemaRegistryConfig
 }
 
 type ClonePipelineRequest struct {
@@ -536,6 +562,11 @@ type ClonePipelineResponse struct {
 type ConfluenceConnectorOptions struct {
 	// (Optional) Spaces to filter Confluence data on
 	IncludeConfluenceSpaces []string
+}
+
+type ConfluentSchemaRegistryOptions struct {
+	// Required: subject name to resolve in the registry.
+	Subject *string
 }
 
 type ConnectionParameters struct {
@@ -2480,6 +2511,24 @@ type PostgresSlotConfig struct {
 	PublicationName *string
 }
 
+type ProtobufTransformerOptions struct {
+	// Required: path to the .desc file (dbfs:/... or /Volumes/...).
+	DescFilePath *string
+	// Required: fully-qualified message type name.
+	MessageName *string
+	// (Optional) Maximum expansion depth for recursive protobuf fields. Spark SQL
+	// does not natively support recursive types, so recursive fields are expanded
+	// up to this depth and truncated beyond it. Valid values: -1 (disallow
+	// recursive fields), 0 (drop), 1-10.
+	RecursiveFieldsMaxDepth *int
+	// (Optional) Parse mode for Protobuf data. Valid values: FAILFAST, PERMISSIVE.
+	// Defaults to FAILFAST.
+	ParseMode ParseMode
+	// (Optional) Schema registry to resolve the Protobuf schema at runtime instead
+	// of providing it via desc_file_path.
+	SchemaRegistry *SchemaRegistryConfig
+}
+
 // RabbitMQ specific options for ingestion. Performance tuning options
 // (consumers_per_task, max_messages_per_fetch, etc.) are intentionally not
 // exposed in the public API. The managed connector uses sensible defaults
@@ -2567,6 +2616,18 @@ type RewindSpec struct {
 }
 
 type ScdType struct {
+}
+
+type SchemaRegistryConfig struct {
+	// Required: Confluent-compatible schema registry options.
+	ConfluentOptions *ConfluentSchemaRegistryOptions
+	// (Optional, Protobuf only) Selects a specific message from a schema that
+	// defines multiple Protobuf messages. Simple ("Location") or fully-qualified
+	// ("com.example.protos.Location"). Defaults to the first message.
+	ProtobufMessageName *string
+	// (Optional) UC connection for registry authentication. Specify if different
+	// from the top-level source connection.
+	ConnectionName *string
 }
 
 type Sequencing struct {
@@ -2781,6 +2842,20 @@ type Transformer_Config_JsonOptions struct {
 }
 
 func (*Transformer_Config_JsonOptions) isTransformer_Config() {}
+
+// Transformer_Config_AvroOptions selects AvroOptions for Transformer.Config.
+type Transformer_Config_AvroOptions struct {
+	AvroOptions AvroTransformerOptions
+}
+
+func (*Transformer_Config_AvroOptions) isTransformer_Config() {}
+
+// Transformer_Config_ProtobufOptions selects ProtobufOptions for Transformer.Config.
+type Transformer_Config_ProtobufOptions struct {
+	ProtobufOptions ProtobufTransformerOptions
+}
+
+func (*Transformer_Config_ProtobufOptions) isTransformer_Config() {}
 
 // Information about truncations applied to this event..
 type Truncation struct {

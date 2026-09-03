@@ -391,23 +391,6 @@ func createBudgetConfigurationResponseFromWire(w *createBudgetConfigurationRespo
 	}, nil
 }
 
-type getBudgetConfigurationRequestWire struct {
-	BudgetId           *string `json:"budget_id,omitempty"`
-	AccountId          *string `json:"account_id,omitempty"`
-	IncludeSpendStatus *bool   `json:"include_spend_status,omitempty"`
-}
-
-func getBudgetConfigurationRequestToWire(v *GetBudgetConfigurationRequest) (*getBudgetConfigurationRequestWire, error) {
-	if v == nil {
-		return nil, nil
-	}
-	return &getBudgetConfigurationRequestWire{
-		BudgetId:           v.BudgetId,
-		AccountId:          v.AccountId,
-		IncludeSpendStatus: v.IncludeSpendStatus,
-	}, nil
-}
-
 type getBudgetConfigurationResponseWire struct {
 	Budget *budgetConfigurationWire `json:"budget,omitempty"`
 }
@@ -426,10 +409,8 @@ func getBudgetConfigurationResponseFromWire(w *getBudgetConfigurationResponseWir
 }
 
 type listBudgetConfigurationsRequestWire struct {
-	AccountId               *string `json:"account_id,omitempty"`
-	PageToken               *string `json:"page_token,omitempty"`
-	IncludeSpendStatus      *bool   `json:"include_spend_status,omitempty"`
-	IncludeWorkspaceBudgets *bool   `json:"include_workspace_budgets,omitempty"`
+	AccountId *string `json:"account_id,omitempty"`
+	PageToken *string `json:"page_token,omitempty"`
 }
 
 func listBudgetConfigurationsRequestToWire(v *ListBudgetConfigurationsRequest) (*listBudgetConfigurationsRequestWire, error) {
@@ -437,10 +418,8 @@ func listBudgetConfigurationsRequestToWire(v *ListBudgetConfigurationsRequest) (
 		return nil, nil
 	}
 	return &listBudgetConfigurationsRequestWire{
-		AccountId:               v.AccountId,
-		PageToken:               v.PageToken,
-		IncludeSpendStatus:      v.IncludeSpendStatus,
-		IncludeWorkspaceBudgets: v.IncludeWorkspaceBudgets,
+		AccountId: v.AccountId,
+		PageToken: v.PageToken,
 	}, nil
 }
 
