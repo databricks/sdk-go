@@ -417,7 +417,8 @@ const (
 // `TABLE`: Indicates a run that is triggered by a table update. *
 // `CONTINUOUS_RESTART`: Indicates a run created by user to manually restart a
 // continuous job run. * `MODEL`: Indicates a run that is triggered by a model
-// update.
+// update. * `JOB_COMPLETION`: Indicates a run that is triggered by an upstream
+// job completion.
 type TriggerType string
 
 const (

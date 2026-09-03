@@ -8,8 +8,8 @@ replace (
 )
 
 require (
-	github.com/databricks/sdk-go/auth v0.0.1-dev.2
-	github.com/databricks/sdk-go/core v0.0.1-dev.2
+	github.com/databricks/sdk-go/auth v0.0.1-dev.3
+	github.com/databricks/sdk-go/core v0.0.1-dev.3
 )
 
 require (

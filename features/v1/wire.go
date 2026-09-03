@@ -912,7 +912,8 @@ func createStreamRequestToWire(v *CreateStreamRequest) (*createStreamRequestWire
 }
 
 type cronScheduleWire struct {
-	CronExpression *string `json:"cron_expression,omitempty"`
+	CronExpression *string           `json:"cron_expression,omitempty"`
+	Mode           CronSchedule_Mode `json:"mode,omitempty"`
 }
 
 func cronScheduleToWire(v *CronSchedule) (*cronScheduleWire, error) {
@@ -921,6 +922,7 @@ func cronScheduleToWire(v *CronSchedule) (*cronScheduleWire, error) {
 	}
 	return &cronScheduleWire{
 		CronExpression: v.CronExpression,
+		Mode:           v.Mode,
 	}, nil
 }
 
@@ -930,6 +932,7 @@ func cronScheduleFromWire(w *cronScheduleWire) (*CronSchedule, error) {
 	}
 	return &CronSchedule{
 		CronExpression: w.CronExpression,
+		Mode:           w.Mode,
 	}, nil
 }
 
@@ -2305,6 +2308,7 @@ type materializedFeatureWire struct {
 	CronScheduleTrigger     *cronScheduleWire                         `json:"cron_schedule_trigger,omitempty"`
 	TableTrigger            *tableTriggerWire                         `json:"table_trigger,omitempty"`
 	StreamingMode           *streamingModeWire                        `json:"streaming_mode,omitempty"`
+	LatestBackfillOperation *string                                   `json:"latest_backfill_operation,omitempty"`
 }
 
 func materializedFeatureToWire(v *MaterializedFeature) (*materializedFeatureWire, error) {
@@ -2378,6 +2382,7 @@ func materializedFeatureToWire(v *MaterializedFeature) (*materializedFeatureWire
 		CronScheduleTrigger:     triggerCronScheduleTriggerWire,
 		TableTrigger:            triggerTableTriggerWire,
 		StreamingMode:           triggerStreamingModeWire,
+		LatestBackfillOperation: v.LatestBackfillOperation,
 	}, nil
 }
 
@@ -2451,6 +2456,7 @@ func materializedFeatureFromWire(w *materializedFeatureWire) (*MaterializedFeatu
 		PipelineScheduleState:   w.PipelineScheduleState,
 		LastMaterializationTime: w.LastMaterializationTime,
 		IsOnline:                w.IsOnline,
+		LatestBackfillOperation: w.LatestBackfillOperation,
 		Destination:             destinationSelection,
 		Trigger:                 triggerSelection,
 	}, nil

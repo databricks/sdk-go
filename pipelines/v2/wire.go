@@ -134,6 +134,45 @@ func autoFullRefreshPolicyFromWire(w *autoFullRefreshPolicyWire) (*AutoFullRefre
 	}, nil
 }
 
+type avroTransformerOptionsWire struct {
+	Schema         *string                   `json:"schema,omitempty"`
+	SchemaFilePath *string                   `json:"schema_file_path,omitempty"`
+	ParseMode      ParseMode                 `json:"parse_mode,omitempty"`
+	SchemaRegistry *schemaRegistryConfigWire `json:"schema_registry,omitempty"`
+}
+
+func avroTransformerOptionsToWire(v *AvroTransformerOptions) (*avroTransformerOptionsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	schemaRegistryWireValue, err := schemaRegistryConfigToWire(v.SchemaRegistry)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AvroTransformerOptions.SchemaRegistry", err)
+	}
+	return &avroTransformerOptionsWire{
+		Schema:         v.Schema,
+		SchemaFilePath: v.SchemaFilePath,
+		ParseMode:      v.ParseMode,
+		SchemaRegistry: schemaRegistryWireValue,
+	}, nil
+}
+
+func avroTransformerOptionsFromWire(w *avroTransformerOptionsWire) (*AvroTransformerOptions, error) {
+	if w == nil {
+		return nil, nil
+	}
+	schemaRegistryPublicValue, err := schemaRegistryConfigFromWire(w.SchemaRegistry)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AvroTransformerOptions.SchemaRegistry", err)
+	}
+	return &AvroTransformerOptions{
+		Schema:         w.Schema,
+		SchemaFilePath: w.SchemaFilePath,
+		ParseMode:      w.ParseMode,
+		SchemaRegistry: schemaRegistryPublicValue,
+	}, nil
+}
+
 type clonePipelineRequestWire struct {
 	PipelineId           *string                                 `json:"pipeline_id,omitempty"`
 	ExpectedLastModified *wireInt64                              `json:"expected_last_modified,omitempty"`
@@ -291,6 +330,28 @@ func confluenceConnectorOptionsFromWire(w *confluenceConnectorOptionsWire) (*Con
 	}
 	return &ConfluenceConnectorOptions{
 		IncludeConfluenceSpaces: w.IncludeConfluenceSpaces,
+	}, nil
+}
+
+type confluentSchemaRegistryOptionsWire struct {
+	Subject *string `json:"subject,omitempty"`
+}
+
+func confluentSchemaRegistryOptionsToWire(v *ConfluentSchemaRegistryOptions) (*confluentSchemaRegistryOptionsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &confluentSchemaRegistryOptionsWire{
+		Subject: v.Subject,
+	}, nil
+}
+
+func confluentSchemaRegistryOptionsFromWire(w *confluentSchemaRegistryOptionsWire) (*ConfluentSchemaRegistryOptions, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ConfluentSchemaRegistryOptions{
+		Subject: w.Subject,
 	}, nil
 }
 
@@ -3805,6 +3866,48 @@ func postgresSlotConfigFromWire(w *postgresSlotConfigWire) (*PostgresSlotConfig,
 	}, nil
 }
 
+type protobufTransformerOptionsWire struct {
+	DescFilePath            *string                   `json:"desc_file_path,omitempty"`
+	MessageName             *string                   `json:"message_name,omitempty"`
+	RecursiveFieldsMaxDepth *int                      `json:"recursive_fields_max_depth,omitempty"`
+	ParseMode               ParseMode                 `json:"parse_mode,omitempty"`
+	SchemaRegistry          *schemaRegistryConfigWire `json:"schema_registry,omitempty"`
+}
+
+func protobufTransformerOptionsToWire(v *ProtobufTransformerOptions) (*protobufTransformerOptionsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	schemaRegistryWireValue, err := schemaRegistryConfigToWire(v.SchemaRegistry)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ProtobufTransformerOptions.SchemaRegistry", err)
+	}
+	return &protobufTransformerOptionsWire{
+		DescFilePath:            v.DescFilePath,
+		MessageName:             v.MessageName,
+		RecursiveFieldsMaxDepth: v.RecursiveFieldsMaxDepth,
+		ParseMode:               v.ParseMode,
+		SchemaRegistry:          schemaRegistryWireValue,
+	}, nil
+}
+
+func protobufTransformerOptionsFromWire(w *protobufTransformerOptionsWire) (*ProtobufTransformerOptions, error) {
+	if w == nil {
+		return nil, nil
+	}
+	schemaRegistryPublicValue, err := schemaRegistryConfigFromWire(w.SchemaRegistry)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ProtobufTransformerOptions.SchemaRegistry", err)
+	}
+	return &ProtobufTransformerOptions{
+		DescFilePath:            w.DescFilePath,
+		MessageName:             w.MessageName,
+		RecursiveFieldsMaxDepth: w.RecursiveFieldsMaxDepth,
+		ParseMode:               w.ParseMode,
+		SchemaRegistry:          schemaRegistryPublicValue,
+	}, nil
+}
+
 type rabbitmqOptionsWire struct {
 	Queue *string `json:"queue,omitempty"`
 }
@@ -3966,6 +4069,42 @@ func rewindSpecToWire(v *RewindSpec) (*rewindSpecWire, error) {
 		RewindTimestamp: v.RewindTimestamp,
 		DryRun:          v.DryRun,
 		Datasets:        datasetsWireValue,
+	}, nil
+}
+
+type schemaRegistryConfigWire struct {
+	ConfluentOptions    *confluentSchemaRegistryOptionsWire `json:"confluent_options,omitempty"`
+	ProtobufMessageName *string                             `json:"protobuf_message_name,omitempty"`
+	ConnectionName      *string                             `json:"connection_name,omitempty"`
+}
+
+func schemaRegistryConfigToWire(v *SchemaRegistryConfig) (*schemaRegistryConfigWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	confluentOptionsWireValue, err := confluentSchemaRegistryOptionsToWire(v.ConfluentOptions)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SchemaRegistryConfig.ConfluentOptions", err)
+	}
+	return &schemaRegistryConfigWire{
+		ConfluentOptions:    confluentOptionsWireValue,
+		ProtobufMessageName: v.ProtobufMessageName,
+		ConnectionName:      v.ConnectionName,
+	}, nil
+}
+
+func schemaRegistryConfigFromWire(w *schemaRegistryConfigWire) (*SchemaRegistryConfig, error) {
+	if w == nil {
+		return nil, nil
+	}
+	confluentOptionsPublicValue, err := confluentSchemaRegistryOptionsFromWire(w.ConfluentOptions)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SchemaRegistryConfig.ConfluentOptions", err)
+	}
+	return &SchemaRegistryConfig{
+		ConfluentOptions:    confluentOptionsPublicValue,
+		ProtobufMessageName: w.ProtobufMessageName,
+		ConnectionName:      w.ConnectionName,
 	}, nil
 }
 
@@ -4379,10 +4518,12 @@ func tikTokAdsOptions_TikTokAdsCustomReportOptionsFromWire(w *tikTokAdsOptions_T
 }
 
 type transformerWire struct {
-	Format       Transformer_Format          `json:"format,omitempty"`
-	JsonOptions  *jsonTransformerOptionsWire `json:"json_options,omitempty"`
-	InputColumn  *string                     `json:"input_column,omitempty"`
-	OutputColumn *string                     `json:"output_column,omitempty"`
+	Format          Transformer_Format              `json:"format,omitempty"`
+	JsonOptions     *jsonTransformerOptionsWire     `json:"json_options,omitempty"`
+	AvroOptions     *avroTransformerOptionsWire     `json:"avro_options,omitempty"`
+	ProtobufOptions *protobufTransformerOptionsWire `json:"protobuf_options,omitempty"`
+	InputColumn     *string                         `json:"input_column,omitempty"`
+	OutputColumn    *string                         `json:"output_column,omitempty"`
 }
 
 func transformerToWire(v *Transformer) (*transformerWire, error) {
@@ -4390,6 +4531,8 @@ func transformerToWire(v *Transformer) (*transformerWire, error) {
 		return nil, nil
 	}
 	var configJsonOptionsWire *jsonTransformerOptionsWire
+	var configAvroOptionsWire *avroTransformerOptionsWire
+	var configProtobufOptionsWire *protobufTransformerOptionsWire
 	switch value := v.Config.(type) {
 	case nil:
 	case *Transformer_Config_JsonOptions:
@@ -4400,14 +4543,32 @@ func transformerToWire(v *Transformer) (*transformerWire, error) {
 			}
 			configJsonOptionsWire = configJsonOptionsConverted
 		}
+	case *Transformer_Config_AvroOptions:
+		if value != nil {
+			configAvroOptionsConverted, err := avroTransformerOptionsToWire(&value.AvroOptions)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Transformer.Config.AvroOptions", err)
+			}
+			configAvroOptionsWire = configAvroOptionsConverted
+		}
+	case *Transformer_Config_ProtobufOptions:
+		if value != nil {
+			configProtobufOptionsConverted, err := protobufTransformerOptionsToWire(&value.ProtobufOptions)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Transformer.Config.ProtobufOptions", err)
+			}
+			configProtobufOptionsWire = configProtobufOptionsConverted
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Transformer.Config", value)
 	}
 	return &transformerWire{
-		Format:       v.Format,
-		JsonOptions:  configJsonOptionsWire,
-		InputColumn:  v.InputColumn,
-		OutputColumn: v.OutputColumn,
+		Format:          v.Format,
+		JsonOptions:     configJsonOptionsWire,
+		AvroOptions:     configAvroOptionsWire,
+		ProtobufOptions: configProtobufOptionsWire,
+		InputColumn:     v.InputColumn,
+		OutputColumn:    v.OutputColumn,
 	}, nil
 }
 
@@ -4417,6 +4578,12 @@ func transformerFromWire(w *transformerWire) (*Transformer, error) {
 	}
 	configMembers := 0
 	if w.JsonOptions != nil {
+		configMembers++
+	}
+	if w.AvroOptions != nil {
+		configMembers++
+	}
+	if w.ProtobufOptions != nil {
 		configMembers++
 	}
 	if configMembers > 1 {
@@ -4430,6 +4597,18 @@ func transformerFromWire(w *transformerWire) (*Transformer, error) {
 			return nil, fmt.Errorf("%s: %w", "Transformer.Config.JsonOptions", err)
 		}
 		configSelection = &Transformer_Config_JsonOptions{JsonOptions: *configJsonOptionsConverted}
+	case w.AvroOptions != nil:
+		configAvroOptionsConverted, err := avroTransformerOptionsFromWire(w.AvroOptions)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "Transformer.Config.AvroOptions", err)
+		}
+		configSelection = &Transformer_Config_AvroOptions{AvroOptions: *configAvroOptionsConverted}
+	case w.ProtobufOptions != nil:
+		configProtobufOptionsConverted, err := protobufTransformerOptionsFromWire(w.ProtobufOptions)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "Transformer.Config.ProtobufOptions", err)
+		}
+		configSelection = &Transformer_Config_ProtobufOptions{ProtobufOptions: *configProtobufOptionsConverted}
 	}
 	return &Transformer{
 		Format:       w.Format,

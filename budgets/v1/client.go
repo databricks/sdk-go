@@ -211,10 +211,6 @@ func (c *internalClient) DeleteBudgetConfiguration(ctx context.Context, req Dele
 // configuration are specified by ID.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
 func (c *internalClient) GetBudgetConfiguration(ctx context.Context, req GetBudgetConfigurationRequest, opts ...call.Option) (*GetBudgetConfigurationResponse, error) {
-	wireReq, err := getBudgetConfigurationRequestToWire(&req)
-	if err != nil {
-		return nil, err
-	}
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -238,9 +234,6 @@ func (c *internalClient) GetBudgetConfiguration(ctx context.Context, req GetBudg
 	}
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
-	if err := addQueryValue(queryParams, "include_spend_status", wireReq.IncludeSpendStatus); err != nil {
-		return nil, err
-	}
 	baseURL.RawQuery = queryParams.Encode()
 	urlStr := baseURL.String()
 
@@ -309,12 +302,6 @@ func (c *internalClient) ListBudgetConfigurations(ctx context.Context, req ListB
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "page_token", wireReq.PageToken); err != nil {
-		return nil, err
-	}
-	if err := addQueryValue(queryParams, "include_spend_status", wireReq.IncludeSpendStatus); err != nil {
-		return nil, err
-	}
-	if err := addQueryValue(queryParams, "include_workspace_budgets", wireReq.IncludeWorkspaceBudgets); err != nil {
 		return nil, err
 	}
 	baseURL.RawQuery = queryParams.Encode()

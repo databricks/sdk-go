@@ -441,6 +441,20 @@ const (
 	BackfillOperationMetadata_State_Cancelled BackfillOperationMetadata_State = "CANCELLED"
 )
 
+// The way a materialization schedule is arrived at.
+type CronSchedule_Mode string
+
+const (
+	CronSchedule_Mode_Unspecified CronSchedule_Mode = ""
+	// The schedule is the hand-written cron_expression on this message.
+	CronSchedule_Mode_Manual CronSchedule_Mode = "MANUAL"
+	// The schedule is derived from the time settings of the features being
+	// materialized, so the pipeline runs as soon as the data each window needs is
+	// expected to have all arrived. The caller leaves cron_expression empty; the
+	// derived expression is filled in on the response.
+	CronSchedule_Mode_Derived CronSchedule_Mode = "DERIVED"
+)
+
 type MaterializedFeature_PipelineScheduleState string
 
 const (
@@ -821,8 +835,13 @@ type CreateStreamRequest struct {
 // A cron-based schedule trigger for the materialization pipeline..
 type CronSchedule struct {
 	// The cron expression defining the schedule (e.g., "0 0 * * *" for daily at
-	// midnight).
+	// midnight). The schedule is interpreted in the UTC time zone. Required when
+	// mode is MANUAL (or unset). Left empty when mode is DERIVED, where the service
+	// computes it (aligned to UTC) from the features' window timing and fills it in
+	// on the response.
 	CronExpression *string `fieldmask:"cron_expression"`
+	// How the schedule is determined. Defaults to MANUAL when unset.
+	Mode CronSchedule_Mode `fieldmask:"mode"`
 }
 
 // A CustomUdf function applies a registered Unity Catalog function row-wise to
@@ -1464,8 +1483,11 @@ type MaterializedFeature struct {
 	IsOnline *bool `fieldmask:"is_online"`
 	// The trigger configuration for the materialization pipeline.
 	Trigger isMaterializedFeature_Trigger
-	_       [0]materializedFeatureDestinationFieldMaskMetadata `fieldmask_oneof:"Destination"`
-	_       [0]materializedFeatureTriggerFieldMaskMetadata     `fieldmask_oneof:"Trigger"`
+	// Name of the latest backfill operation on this materialized feature. Format:
+	// operations/{operation_id}.
+	LatestBackfillOperation *string                                            `fieldmask:"latest_backfill_operation"`
+	_                       [0]materializedFeatureDestinationFieldMaskMetadata `fieldmask_oneof:"Destination"`
+	_                       [0]materializedFeatureTriggerFieldMaskMetadata     `fieldmask_oneof:"Trigger"`
 }
 
 type isMaterializedFeature_Destination interface {
@@ -2129,7 +2151,8 @@ type TimeWindow struct {
 	// window produces no output before start_time. If unset, tumbling and
 	// fixed-duration sliding windows first emit at an offset-aligned boundary after
 	// a full window can be formed. If unset, lifetime sliding windows and rolling
-	// windows emit as soon as eligible source data exists.
+	// windows emit as soon as eligible source data exists. Not currently supported
+	// for sawtooth windows or for Features with a stream source.
 	StartTime *types.Time                              `fieldmask:"start_time"`
 	_         [0]timeWindowWindowTypeFieldMaskMetadata `fieldmask_oneof:"WindowType"`
 }

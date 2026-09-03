@@ -196,8 +196,7 @@ type GetBudgetConfigurationRequest struct {
 	// The budget configuration ID
 	BudgetId *string
 	// <Databricks> account ID.
-	AccountId          *string
-	IncludeSpendStatus *bool
+	AccountId *string
 }
 
 type GetBudgetConfigurationResponse struct {
@@ -210,9 +209,7 @@ type ListBudgetConfigurationsRequest struct {
 	// A page token received from a previous get all budget configurations call.
 	// This token can be used to retrieve the subsequent page. Requests first page
 	// if absent.
-	PageToken               *string
-	IncludeSpendStatus      *bool
-	IncludeWorkspaceBudgets *bool
+	PageToken *string
 }
 
 type ListBudgetConfigurationsResponse struct {

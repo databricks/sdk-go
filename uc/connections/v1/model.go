@@ -32,6 +32,8 @@ const (
 	ConnectionType_MetaMarketing       ConnectionType = "META_MARKETING"
 	ConnectionType_Hubspot             ConnectionType = "HUBSPOT"
 	ConnectionType_Zendesk             ConnectionType = "ZENDESK"
+	ConnectionType_AwsSecretsManager   ConnectionType = "AWS_SECRETS_MANAGER"
+	ConnectionType_AzureKeyVault       ConnectionType = "AZURE_KEY_VAULT"
 	ConnectionType_Github              ConnectionType = "GITHUB"
 	ConnectionType_Outlook             ConnectionType = "OUTLOOK"
 	ConnectionType_Smartsheet          ConnectionType = "SMARTSHEET"
