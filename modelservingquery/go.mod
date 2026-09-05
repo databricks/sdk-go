@@ -9,9 +9,9 @@ replace github.com/databricks/sdk-go/core => ../core
 replace github.com/databricks/sdk-go/options => ../options
 
 require (
-	github.com/databricks/sdk-go/auth v0.0.1-dev.3
-	github.com/databricks/sdk-go/core v0.0.1-dev.3
-	github.com/databricks/sdk-go/options v0.0.1-dev.3
+	github.com/databricks/sdk-go/auth v0.0.1-dev.4
+	github.com/databricks/sdk-go/core v0.0.1-dev.4
+	github.com/databricks/sdk-go/options v0.0.1-dev.4
 	github.com/google/go-cmp v0.7.0
 )
 

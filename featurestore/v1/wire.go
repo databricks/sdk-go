@@ -111,6 +111,7 @@ type publishSpecWire struct {
 	OnlineStore     *string                 `json:"online_store,omitempty"`
 	OnlineTableName *string                 `json:"online_table_name,omitempty"`
 	PublishMode     PublishSpec_PublishMode `json:"publish_mode,omitempty"`
+	FullFeatureName *string                 `json:"full_feature_name,omitempty"`
 }
 
 func publishSpecToWire(v *PublishSpec) (*publishSpecWire, error) {
@@ -121,6 +122,7 @@ func publishSpecToWire(v *PublishSpec) (*publishSpecWire, error) {
 		OnlineStore:     v.OnlineStore,
 		OnlineTableName: v.OnlineTableName,
 		PublishMode:     v.PublishMode,
+		FullFeatureName: v.FullFeatureName,
 	}, nil
 }
 

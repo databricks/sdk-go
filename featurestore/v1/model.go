@@ -105,6 +105,11 @@ type PublishSpec struct {
 	// The publish mode of the pipeline that syncs the online table with the source
 	// table.
 	PublishMode PublishSpec_PublishMode
+	// Full Unity Catalog name of one of the features materialized in the source
+	// table, used to derive the synced online table's entity and timeseries
+	// columns. Required for view sources without a UC PrimaryKeyConstraint; ignored
+	// when the source already has one.
+	FullFeatureName *string
 }
 
 type PublishTableRequest struct {

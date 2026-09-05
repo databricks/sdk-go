@@ -148,17 +148,11 @@ type BudgetConfigurationFilter_WorkspaceIdClause struct {
 }
 
 type CreateBudgetConfigurationBudget struct {
-	// <Databricks> budget configuration ID.
-	BudgetConfigurationId *string
 	// <Databricks> account ID.
 	AccountId *string
-	// Creation time of this budget configuration.
-	CreateTime *int64
-	// Update time of this budget configuration.
-	UpdateTime *int64
 	// Alerts to configure when this budget is in a triggered state. Budgets must
 	// have exactly one alert configuration.
-	AlertConfigurations []AlertConfiguration
+	AlertConfigurations []CreateBudgetConfigurationBudgetAlertConfigurations
 	// Configured filters for this budget. These are applied to your account's usage
 	// to limit the scope of what is considered for this budget. Leave empty to
 	// include all usage for this account. All provided filters must be matched for
@@ -169,6 +163,37 @@ type CreateBudgetConfigurationBudget struct {
 	// The resource scope for this budget. Determines whether the budget tracks all
 	// resources or a specific resource.
 	ResourceType BudgetResourceType
+}
+
+type CreateBudgetConfigurationBudgetActionConfigurations struct {
+	// The type of the action.
+	ActionType ActionConfigurationType
+	// Target for the action. For example, an email address.
+	Target *string
+}
+
+type CreateBudgetConfigurationBudgetAlertConfigurations struct {
+	// The time window of usage data for the budget.
+	TimePeriod AlertConfigurationTimePeriod
+	// The evaluation method to determine when this budget alert is in a triggered
+	// state.
+	TriggerType AlertConfigurationTriggerType
+	// The way to calculate cost for this budget alert. This is what
+	// `quantity_threshold` is measured in.
+	QuantityType AlertConfigurationQuantityType
+	// The threshold for the budget alert to determine if it is in a triggered
+	// state. The number is evaluated based on `quantity_type`.
+	QuantityThreshold *string
+	// Configured actions for this alert. These define what happens when an alert
+	// enters a triggered state.
+	ActionConfigurations []CreateBudgetConfigurationBudgetActionConfigurations
+	// How the alert threshold is evaluated. Determines whether spend is tracked in
+	// aggregate or per individual user.
+	ScopeType AlertConfigurationScopeType
+	// Per-principal threshold overrides for this alert. Only applies to per-user
+	// alerts (`scope_type` = `ALERT_CONFIGURATION_SCOPE_TYPE_PER_USER`); ignored
+	// for shared alerts.
+	PrincipalOverrides []PrincipalOverride
 }
 
 type CreateBudgetConfigurationRequest struct {
@@ -234,10 +259,6 @@ type UpdateBudgetConfigurationBudget struct {
 	BudgetConfigurationId *string
 	// <Databricks> account ID.
 	AccountId *string
-	// Creation time of this budget configuration.
-	CreateTime *int64
-	// Update time of this budget configuration.
-	UpdateTime *int64
 	// Alerts to configure when this budget is in a triggered state. Budgets must
 	// have exactly one alert configuration.
 	AlertConfigurations []AlertConfiguration

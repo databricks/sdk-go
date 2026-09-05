@@ -799,6 +799,28 @@ func cancelOperationRequestToWire(v *CancelOperationRequest) (*cancelOperationRe
 	}, nil
 }
 
+type columnIdentifierWire struct {
+	VariantExprPath *string `json:"variant_expr_path,omitempty"`
+}
+
+func columnIdentifierToWire(v *ColumnIdentifier) (*columnIdentifierWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &columnIdentifierWire{
+		VariantExprPath: v.VariantExprPath,
+	}, nil
+}
+
+func columnIdentifierFromWire(w *columnIdentifierWire) (*ColumnIdentifier, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ColumnIdentifier{
+		VariantExprPath: w.VariantExprPath,
+	}, nil
+}
+
 type columnSelectionWire struct {
 	Column *string `json:"column,omitempty"`
 }
@@ -818,6 +840,31 @@ func columnSelectionFromWire(w *columnSelectionWire) (*ColumnSelection, error) {
 	}
 	return &ColumnSelection{
 		Column: w.Column,
+	}, nil
+}
+
+type continuousWindowWire struct {
+	WindowDuration *types.Duration `json:"window_duration,omitempty"`
+	Offset         *types.Duration `json:"offset,omitempty"`
+}
+
+func continuousWindowToWire(v *ContinuousWindow) (*continuousWindowWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &continuousWindowWire{
+		WindowDuration: v.WindowDuration,
+		Offset:         v.Offset,
+	}, nil
+}
+
+func continuousWindowFromWire(w *continuousWindowWire) (*ContinuousWindow, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ContinuousWindow{
+		WindowDuration: w.WindowDuration,
+		Offset:         w.Offset,
 	}, nil
 }
 
@@ -1093,10 +1140,12 @@ func dataSourceFromWire(w *dataSourceWire) (*DataSource, error) {
 }
 
 type deltaTableSourceWire struct {
-	FullName          *string `json:"full_name,omitempty"`
-	FilterCondition   *string `json:"filter_condition,omitempty"`
-	TransformationSql *string `json:"transformation_sql,omitempty"`
-	DataframeSchema   *string `json:"dataframe_schema,omitempty"`
+	FullName          *string  `json:"full_name,omitempty"`
+	EntityColumns     []string `json:"entity_columns,omitempty"`
+	TimeseriesColumn  *string  `json:"timeseries_column,omitempty"`
+	FilterCondition   *string  `json:"filter_condition,omitempty"`
+	TransformationSql *string  `json:"transformation_sql,omitempty"`
+	DataframeSchema   *string  `json:"dataframe_schema,omitempty"`
 }
 
 func deltaTableSourceToWire(v *DeltaTableSource) (*deltaTableSourceWire, error) {
@@ -1105,6 +1154,8 @@ func deltaTableSourceToWire(v *DeltaTableSource) (*deltaTableSourceWire, error) 
 	}
 	return &deltaTableSourceWire{
 		FullName:          v.FullName,
+		EntityColumns:     v.EntityColumns,
+		TimeseriesColumn:  v.TimeseriesColumn,
 		FilterCondition:   v.FilterCondition,
 		TransformationSql: v.TransformationSql,
 		DataframeSchema:   v.DataframeSchema,
@@ -1117,6 +1168,8 @@ func deltaTableSourceFromWire(w *deltaTableSourceWire) (*DeltaTableSource, error
 	}
 	return &DeltaTableSource{
 		FullName:          w.FullName,
+		EntityColumns:     w.EntityColumns,
+		TimeseriesColumn:  w.TimeseriesColumn,
 		FilterCondition:   w.FilterCondition,
 		TransformationSql: w.TransformationSql,
 		DataframeSchema:   w.DataframeSchema,
@@ -1222,8 +1275,11 @@ func entityColumnFromWire(w *entityColumnWire) (*EntityColumn, error) {
 type featureWire struct {
 	FullName         *string               `json:"full_name,omitempty"`
 	Source           *dataSourceWire       `json:"source,omitempty"`
+	Inputs           []string              `json:"inputs,omitempty"`
 	Function         *functionWire         `json:"function,omitempty"`
+	TimeWindow       *timeWindowWire       `json:"time_window,omitempty"`
 	Description      *string               `json:"description,omitempty"`
+	FilterCondition  *string               `json:"filter_condition,omitempty"`
 	LineageContext   *lineageContextWire   `json:"lineage_context,omitempty"`
 	Entities         []entityColumnWire    `json:"entities,omitempty"`
 	TimeseriesColumn *timeseriesColumnWire `json:"timeseries_column,omitempty"`
@@ -1246,6 +1302,10 @@ func featureToWire(v *Feature) (*featureWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Feature.Function", err)
 	}
+	timeWindowWireValue, err := timeWindowToWire(v.TimeWindow)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Feature.TimeWindow", err)
+	}
 	lineageContextWireValue, err := lineageContextToWire(v.LineageContext)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Feature.LineageContext", err)
@@ -1261,8 +1321,11 @@ func featureToWire(v *Feature) (*featureWire, error) {
 	return &featureWire{
 		FullName:         v.FullName,
 		Source:           sourceWireValue,
+		Inputs:           v.Inputs,
 		Function:         functionWireValue,
+		TimeWindow:       timeWindowWireValue,
 		Description:      v.Description,
+		FilterCondition:  v.FilterCondition,
 		LineageContext:   lineageContextWireValue,
 		Entities:         entitiesWireValue,
 		TimeseriesColumn: timeseriesColumnWireValue,
@@ -1286,6 +1349,10 @@ func featureFromWire(w *featureWire) (*Feature, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Feature.Function", err)
 	}
+	timeWindowPublicValue, err := timeWindowFromWire(w.TimeWindow)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Feature.TimeWindow", err)
+	}
 	lineageContextPublicValue, err := lineageContextFromWire(w.LineageContext)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Feature.LineageContext", err)
@@ -1301,8 +1368,11 @@ func featureFromWire(w *featureWire) (*Feature, error) {
 	return &Feature{
 		FullName:         w.FullName,
 		Source:           sourcePublicValue,
+		Inputs:           w.Inputs,
 		Function:         functionPublicValue,
+		TimeWindow:       timeWindowPublicValue,
 		Description:      w.Description,
+		FilterCondition:  w.FilterCondition,
 		LineageContext:   lineageContextPublicValue,
 		Entities:         entitiesPublicValue,
 		TimeseriesColumn: timeseriesColumnPublicValue,
@@ -1458,14 +1528,20 @@ func flatSchemaFromWire(w *flatSchemaWire) (*FlatSchema, error) {
 }
 
 type functionWire struct {
-	AggregationFunction *aggregationFunctionWire `json:"aggregation_function,omitempty"`
-	ColumnSelection     *columnSelectionWire     `json:"column_selection,omitempty"`
-	CustomUdf           *customUdfWire           `json:"custom_udf,omitempty"`
+	FunctionType        FunctionFunctionType         `json:"function_type,omitempty"`
+	ExtraParameters     []functionExtraParameterWire `json:"extra_parameters,omitempty"`
+	AggregationFunction *aggregationFunctionWire     `json:"aggregation_function,omitempty"`
+	ColumnSelection     *columnSelectionWire         `json:"column_selection,omitempty"`
+	CustomUdf           *customUdfWire               `json:"custom_udf,omitempty"`
 }
 
 func functionToWire(v *Function) (*functionWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	extraParametersWireValue, err := convertSlice(v.ExtraParameters, functionExtraParameterToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Function.ExtraParameters", err)
 	}
 	var functionAggregationFunctionWire *aggregationFunctionWire
 	var functionColumnSelectionWire *columnSelectionWire
@@ -1500,6 +1576,8 @@ func functionToWire(v *Function) (*functionWire, error) {
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Function.Function", value)
 	}
 	return &functionWire{
+		FunctionType:        v.FunctionType,
+		ExtraParameters:     extraParametersWireValue,
 		AggregationFunction: functionAggregationFunctionWire,
 		ColumnSelection:     functionColumnSelectionWire,
 		CustomUdf:           functionCustomUdfWire,
@@ -1523,6 +1601,10 @@ func functionFromWire(w *functionWire) (*Function, error) {
 	if functionMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "Function.Function")
 	}
+	extraParametersPublicValue, err := convertSlice(w.ExtraParameters, functionExtraParameterFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Function.ExtraParameters", err)
+	}
 	var functionSelection isFunction_Function
 	switch {
 	case w.AggregationFunction != nil:
@@ -1545,7 +1627,34 @@ func functionFromWire(w *functionWire) (*Function, error) {
 		functionSelection = &Function_Function_CustomUdf{CustomUdf: *functionCustomUdfConverted}
 	}
 	return &Function{
-		Function: functionSelection,
+		FunctionType:    w.FunctionType,
+		ExtraParameters: extraParametersPublicValue,
+		Function:        functionSelection,
+	}, nil
+}
+
+type functionExtraParameterWire struct {
+	Key   *string `json:"key,omitempty"`
+	Value *string `json:"value,omitempty"`
+}
+
+func functionExtraParameterToWire(v *FunctionExtraParameter) (*functionExtraParameterWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &functionExtraParameterWire{
+		Key:   v.Key,
+		Value: v.Value,
+	}, nil
+}
+
+func functionExtraParameterFromWire(w *functionExtraParameterWire) (*FunctionExtraParameter, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &FunctionExtraParameter{
+		Key:   w.Key,
+		Value: w.Value,
 	}, nil
 }
 
@@ -1823,17 +1932,29 @@ func kafkaConfigFromWire(w *kafkaConfigWire) (*KafkaConfig, error) {
 }
 
 type kafkaSourceWire struct {
-	Name            *string `json:"name,omitempty"`
-	FilterCondition *string `json:"filter_condition,omitempty"`
+	Name                       *string                `json:"name,omitempty"`
+	EntityColumnIdentifiers    []columnIdentifierWire `json:"entity_column_identifiers,omitempty"`
+	TimeseriesColumnIdentifier *columnIdentifierWire  `json:"timeseries_column_identifier,omitempty"`
+	FilterCondition            *string                `json:"filter_condition,omitempty"`
 }
 
 func kafkaSourceToWire(v *KafkaSource) (*kafkaSourceWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	entityColumnIdentifiersWireValue, err := convertSlice(v.EntityColumnIdentifiers, columnIdentifierToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "KafkaSource.EntityColumnIdentifiers", err)
+	}
+	timeseriesColumnIdentifierWireValue, err := columnIdentifierToWire(v.TimeseriesColumnIdentifier)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "KafkaSource.TimeseriesColumnIdentifier", err)
+	}
 	return &kafkaSourceWire{
-		Name:            v.Name,
-		FilterCondition: v.FilterCondition,
+		Name:                       v.Name,
+		EntityColumnIdentifiers:    entityColumnIdentifiersWireValue,
+		TimeseriesColumnIdentifier: timeseriesColumnIdentifierWireValue,
+		FilterCondition:            v.FilterCondition,
 	}, nil
 }
 
@@ -1841,9 +1962,19 @@ func kafkaSourceFromWire(w *kafkaSourceWire) (*KafkaSource, error) {
 	if w == nil {
 		return nil, nil
 	}
+	entityColumnIdentifiersPublicValue, err := convertSlice(w.EntityColumnIdentifiers, columnIdentifierFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "KafkaSource.EntityColumnIdentifiers", err)
+	}
+	timeseriesColumnIdentifierPublicValue, err := columnIdentifierFromWire(w.TimeseriesColumnIdentifier)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "KafkaSource.TimeseriesColumnIdentifier", err)
+	}
 	return &KafkaSource{
-		Name:            w.Name,
-		FilterCondition: w.FilterCondition,
+		Name:                       w.Name,
+		EntityColumnIdentifiers:    entityColumnIdentifiersPublicValue,
+		TimeseriesColumnIdentifier: timeseriesColumnIdentifierPublicValue,
+		FilterCondition:            w.FilterCondition,
 	}, nil
 }
 
@@ -2304,6 +2435,7 @@ type materializedFeatureWire struct {
 	TableName               *string                                   `json:"table_name,omitempty"`
 	PipelineScheduleState   MaterializedFeature_PipelineScheduleState `json:"pipeline_schedule_state,omitempty"`
 	LastMaterializationTime *types.Time                               `json:"last_materialization_time,omitempty"`
+	CronSchedule            *string                                   `json:"cron_schedule,omitempty"`
 	IsOnline                *bool                                     `json:"is_online,omitempty"`
 	CronScheduleTrigger     *cronScheduleWire                         `json:"cron_schedule_trigger,omitempty"`
 	TableTrigger            *tableTriggerWire                         `json:"table_trigger,omitempty"`
@@ -2378,6 +2510,7 @@ func materializedFeatureToWire(v *MaterializedFeature) (*materializedFeatureWire
 		TableName:               v.TableName,
 		PipelineScheduleState:   v.PipelineScheduleState,
 		LastMaterializationTime: v.LastMaterializationTime,
+		CronSchedule:            v.CronSchedule,
 		IsOnline:                v.IsOnline,
 		CronScheduleTrigger:     triggerCronScheduleTriggerWire,
 		TableTrigger:            triggerTableTriggerWire,
@@ -2455,6 +2588,7 @@ func materializedFeatureFromWire(w *materializedFeatureWire) (*MaterializedFeatu
 		TableName:               w.TableName,
 		PipelineScheduleState:   w.PipelineScheduleState,
 		LastMaterializationTime: w.LastMaterializationTime,
+		CronSchedule:            w.CronSchedule,
 		IsOnline:                w.IsOnline,
 		LatestBackfillOperation: w.LatestBackfillOperation,
 		Destination:             destinationSelection,
@@ -3630,23 +3764,33 @@ func tableTriggerFromWire(w *tableTriggerWire) (*TableTrigger, error) {
 }
 
 type timeWindowWire struct {
-	Tumbling  *tumblingWindowWire `json:"tumbling,omitempty"`
-	Sliding   *slidingWindowWire  `json:"sliding,omitempty"`
-	Rolling   *rollingWindowWire  `json:"rolling,omitempty"`
-	Sawtooth  *sawtoothWindowWire `json:"sawtooth,omitempty"`
-	StartTime *types.Time         `json:"start_time,omitempty"`
+	Continuous *continuousWindowWire `json:"continuous,omitempty"`
+	Tumbling   *tumblingWindowWire   `json:"tumbling,omitempty"`
+	Sliding    *slidingWindowWire    `json:"sliding,omitempty"`
+	Rolling    *rollingWindowWire    `json:"rolling,omitempty"`
+	Sawtooth   *sawtoothWindowWire   `json:"sawtooth,omitempty"`
+	StartTime  *types.Time           `json:"start_time,omitempty"`
 }
 
 func timeWindowToWire(v *TimeWindow) (*timeWindowWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	var windowTypeContinuousWire *continuousWindowWire
 	var windowTypeTumblingWire *tumblingWindowWire
 	var windowTypeSlidingWire *slidingWindowWire
 	var windowTypeRollingWire *rollingWindowWire
 	var windowTypeSawtoothWire *sawtoothWindowWire
 	switch value := v.WindowType.(type) {
 	case nil:
+	case *TimeWindow_WindowType_Continuous:
+		if value != nil {
+			windowTypeContinuousConverted, err := continuousWindowToWire(&value.Continuous)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "TimeWindow.WindowType.Continuous", err)
+			}
+			windowTypeContinuousWire = windowTypeContinuousConverted
+		}
 	case *TimeWindow_WindowType_Tumbling:
 		if value != nil {
 			windowTypeTumblingConverted, err := tumblingWindowToWire(&value.Tumbling)
@@ -3683,11 +3827,12 @@ func timeWindowToWire(v *TimeWindow) (*timeWindowWire, error) {
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "TimeWindow.WindowType", value)
 	}
 	return &timeWindowWire{
-		Tumbling:  windowTypeTumblingWire,
-		Sliding:   windowTypeSlidingWire,
-		Rolling:   windowTypeRollingWire,
-		Sawtooth:  windowTypeSawtoothWire,
-		StartTime: v.StartTime,
+		Continuous: windowTypeContinuousWire,
+		Tumbling:   windowTypeTumblingWire,
+		Sliding:    windowTypeSlidingWire,
+		Rolling:    windowTypeRollingWire,
+		Sawtooth:   windowTypeSawtoothWire,
+		StartTime:  v.StartTime,
 	}, nil
 }
 
@@ -3696,6 +3841,9 @@ func timeWindowFromWire(w *timeWindowWire) (*TimeWindow, error) {
 		return nil, nil
 	}
 	windowTypeMembers := 0
+	if w.Continuous != nil {
+		windowTypeMembers++
+	}
 	if w.Tumbling != nil {
 		windowTypeMembers++
 	}
@@ -3713,6 +3861,12 @@ func timeWindowFromWire(w *timeWindowWire) (*TimeWindow, error) {
 	}
 	var windowTypeSelection isTimeWindow_WindowType
 	switch {
+	case w.Continuous != nil:
+		windowTypeContinuousConverted, err := continuousWindowFromWire(w.Continuous)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "TimeWindow.WindowType.Continuous", err)
+		}
+		windowTypeSelection = &TimeWindow_WindowType_Continuous{Continuous: *windowTypeContinuousConverted}
 	case w.Tumbling != nil:
 		windowTypeTumblingConverted, err := tumblingWindowFromWire(w.Tumbling)
 		if err != nil {

@@ -2,4 +2,4 @@ package internal
 
 const ModuleName = "sdk-go-uc-artifactallowlists"
 
-const Version = "0.0.1-dev.3"
+const Version = "0.0.1-dev.4"

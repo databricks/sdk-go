@@ -405,6 +405,25 @@ const (
 	ErrorCode_ProviderShareNotAccessible ErrorCode = "PROVIDER_SHARE_NOT_ACCESSIBLE"
 )
 
+type FunctionFunctionType string
+
+const (
+	FunctionFunctionType_Unspecified         FunctionFunctionType = ""
+	FunctionFunctionType_Avg                 FunctionFunctionType = "AVG"
+	FunctionFunctionType_Count               FunctionFunctionType = "COUNT"
+	FunctionFunctionType_Sum                 FunctionFunctionType = "SUM"
+	FunctionFunctionType_Min                 FunctionFunctionType = "MIN"
+	FunctionFunctionType_Max                 FunctionFunctionType = "MAX"
+	FunctionFunctionType_First               FunctionFunctionType = "FIRST"
+	FunctionFunctionType_Last                FunctionFunctionType = "LAST"
+	FunctionFunctionType_ApproxCountDistinct FunctionFunctionType = "APPROX_COUNT_DISTINCT"
+	FunctionFunctionType_ApproxPercentile    FunctionFunctionType = "APPROX_PERCENTILE"
+	FunctionFunctionType_StddevPop           FunctionFunctionType = "STDDEV_POP"
+	FunctionFunctionType_StddevSamp          FunctionFunctionType = "STDDEV_SAMP"
+	FunctionFunctionType_VarPop              FunctionFunctionType = "VAR_POP"
+	FunctionFunctionType_VarSamp             FunctionFunctionType = "VAR_SAMP"
+)
+
 // Scalar data types for request-time field definitions. Only flat (non-nested)
 // types are supported.
 type ScalarDataType string
@@ -794,11 +813,23 @@ type CancelOperationRequest struct {
 	Name *string
 }
 
+type ColumnIdentifier struct {
+	// String representation of the column name using dot-prefixed path notation.
+	VariantExprPath *string `fieldmask:"variant_expr_path"`
+}
+
 // A ColumnSelection function, equivalent to the LAST() record of an entity over
 // a lifetime window.
 type ColumnSelection struct {
 	// Column name from source to select as the feature value.
 	Column *string `fieldmask:"column"`
+}
+
+type ContinuousWindow struct {
+	// The duration of the continuous window (must be positive).
+	WindowDuration *types.Duration `fieldmask:"window_duration"`
+	// The offset of the continuous window (must be non-positive).
+	Offset *types.Duration `fieldmask:"offset"`
 }
 
 // Computes the count of values..
@@ -931,7 +962,9 @@ type DeleteStreamRequest struct {
 
 type DeltaTableSource struct {
 	// The full three-part (catalog, schema, table) name of the Delta table.
-	FullName *string `fieldmask:"full_name"`
+	FullName         *string  `fieldmask:"full_name"`
+	EntityColumns    []string `fieldmask:"entity_columns"`
+	TimeseriesColumn *string  `fieldmask:"timeseries_column"`
 	// Single WHERE clause to filter delta table before applying transformations.
 	// Will be row-wise evaluated, so should only include conditionals and
 	// projections.
@@ -989,10 +1022,13 @@ type Feature struct {
 	FullName *string `fieldmask:"full_name"`
 	// The data source of the feature.
 	Source *DataSource `fieldmask:"source"`
+	Inputs []string    `fieldmask:"inputs"`
 	// The function by which the feature is computed.
-	Function *Function `fieldmask:"function"`
+	Function   *Function   `fieldmask:"function"`
+	TimeWindow *TimeWindow `fieldmask:"time_window"`
 	// The description of the feature.
-	Description *string `fieldmask:"description"`
+	Description     *string `fieldmask:"description"`
+	FilterCondition *string `fieldmask:"filter_condition"`
 	// Lineage context information for this feature. WARNING: This field is
 	// primarily intended for internal use by <Databricks> systems and is
 	// automatically populated when features are created through <Databricks>
@@ -1061,8 +1097,10 @@ type FlatSchema struct {
 }
 
 type Function struct {
-	Function isFunction_Function
-	_        [0]functionFunctionFieldMaskMetadata `fieldmask_oneof:"Function"`
+	FunctionType    FunctionFunctionType     `fieldmask:"function_type"`
+	ExtraParameters []FunctionExtraParameter `fieldmask:"extra_parameters"`
+	Function        isFunction_Function
+	_               [0]functionFunctionFieldMaskMetadata `fieldmask_oneof:"Function"`
 }
 
 type isFunction_Function interface {
@@ -1097,6 +1135,13 @@ type functionFunctionFieldMaskMetadata struct {
 	*Function_Function_AggregationFunction
 	*Function_Function_ColumnSelection
 	*Function_Function_CustomUdf
+}
+
+type FunctionExtraParameter struct {
+	// The name of the parameter.
+	Key *string
+	// The value of the parameter.
+	Value *string
 }
 
 type GetFeatureRequest struct {
@@ -1230,7 +1275,9 @@ type KafkaConfig struct {
 type KafkaSource struct {
 	// Name of the Kafka source, used to identify it. This is used to look up the
 	// corresponding KafkaConfig object. Can be distinct from topic name.
-	Name *string `fieldmask:"name"`
+	Name                       *string            `fieldmask:"name"`
+	EntityColumnIdentifiers    []ColumnIdentifier `fieldmask:"entity_column_identifiers"`
+	TimeseriesColumnIdentifier *ColumnIdentifier  `fieldmask:"timeseries_column_identifier"`
 	// The filter condition applied to the source data before aggregation.
 	FilterCondition *string `fieldmask:"filter_condition"`
 }
@@ -1478,6 +1525,7 @@ type MaterializedFeature struct {
 	// The timestamp when the pipeline last ran and updated the materialized feature
 	// values. If the pipeline has not run yet, this field will be null.
 	LastMaterializationTime *types.Time `fieldmask:"last_materialization_time"`
+	CronSchedule            *string     `fieldmask:"cron_schedule"`
 	// True if this is an online materialized feature. False if it is an offline
 	// materialized feature.
 	IsOnline *bool `fieldmask:"is_online"`
@@ -2161,6 +2209,13 @@ type isTimeWindow_WindowType interface {
 	isTimeWindow_WindowType()
 }
 
+// TimeWindow_WindowType_Continuous selects Continuous for TimeWindow.WindowType.
+type TimeWindow_WindowType_Continuous struct {
+	Continuous ContinuousWindow `fieldmask:"continuous"`
+}
+
+func (*TimeWindow_WindowType_Continuous) isTimeWindow_WindowType() {}
+
 // TimeWindow_WindowType_Tumbling selects Tumbling for TimeWindow.WindowType.
 type TimeWindow_WindowType_Tumbling struct {
 	Tumbling TumblingWindow `fieldmask:"tumbling"`
@@ -2191,6 +2246,7 @@ type TimeWindow_WindowType_Sawtooth struct {
 func (*TimeWindow_WindowType_Sawtooth) isTimeWindow_WindowType() {}
 
 type timeWindowWindowTypeFieldMaskMetadata struct {
+	*TimeWindow_WindowType_Continuous
 	*TimeWindow_WindowType_Tumbling
 	*TimeWindow_WindowType_Sliding
 	*TimeWindow_WindowType_Rolling
