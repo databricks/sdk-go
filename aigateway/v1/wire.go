@@ -2138,9 +2138,8 @@ func modelServiceConfig_ProvisionedThroughputConfigFromWire(w *modelServiceConfi
 }
 
 type modelServiceConfig_RoutingConfigWire struct {
-	Destinations      []modelServiceConfig_DestinationConfigWire `json:"destinations,omitempty"`
-	Fallback          *modelServiceConfig_FallbackConfigWire     `json:"fallback,omitempty"`
-	FirstTokenTimeout *types.Duration                            `json:"first_token_timeout,omitempty"`
+	Destinations []modelServiceConfig_DestinationConfigWire `json:"destinations,omitempty"`
+	Fallback     *modelServiceConfig_FallbackConfigWire     `json:"fallback,omitempty"`
 }
 
 func modelServiceConfig_RoutingConfigToWire(v *ModelServiceConfig_RoutingConfig) (*modelServiceConfig_RoutingConfigWire, error) {
@@ -2156,9 +2155,8 @@ func modelServiceConfig_RoutingConfigToWire(v *ModelServiceConfig_RoutingConfig)
 		return nil, fmt.Errorf("%s: %w", "ModelServiceConfig_RoutingConfig.Fallback", err)
 	}
 	return &modelServiceConfig_RoutingConfigWire{
-		Destinations:      destinationsWireValue,
-		Fallback:          fallbackWireValue,
-		FirstTokenTimeout: v.FirstTokenTimeout,
+		Destinations: destinationsWireValue,
+		Fallback:     fallbackWireValue,
 	}, nil
 }
 
@@ -2175,20 +2173,17 @@ func modelServiceConfig_RoutingConfigFromWire(w *modelServiceConfig_RoutingConfi
 		return nil, fmt.Errorf("%s: %w", "ModelServiceConfig_RoutingConfig.Fallback", err)
 	}
 	return &ModelServiceConfig_RoutingConfig{
-		Destinations:      destinationsPublicValue,
-		Fallback:          fallbackPublicValue,
-		FirstTokenTimeout: w.FirstTokenTimeout,
+		Destinations: destinationsPublicValue,
+		Fallback:     fallbackPublicValue,
 	}, nil
 }
 
 type rateLimitWire struct {
-	Key             RateLimit_RateLimitKey           `json:"key,omitempty"`
-	RenewalPeriod   RateLimit_RateLimitRenewalPeriod `json:"renewal_period,omitempty"`
-	Principal       *string                          `json:"principal,omitempty"`
-	Requests        *wireInt64                       `json:"requests,omitempty"`
-	Tokens          *wireInt64                       `json:"tokens,omitempty"`
-	RequestTagKey   *string                          `json:"request_tag_key,omitempty"`
-	RequestTagValue *string                          `json:"request_tag_value,omitempty"`
+	Key           RateLimit_RateLimitKey           `json:"key,omitempty"`
+	RenewalPeriod RateLimit_RateLimitRenewalPeriod `json:"renewal_period,omitempty"`
+	Principal     *string                          `json:"principal,omitempty"`
+	Requests      *wireInt64                       `json:"requests,omitempty"`
+	Tokens        *wireInt64                       `json:"tokens,omitempty"`
 }
 
 func rateLimitToWire(v *RateLimit) (*rateLimitWire, error) {
@@ -2204,13 +2199,11 @@ func rateLimitToWire(v *RateLimit) (*rateLimitWire, error) {
 		return nil, fmt.Errorf("%s: %w", "RateLimit.Tokens", err)
 	}
 	return &rateLimitWire{
-		Key:             v.Key,
-		RenewalPeriod:   v.RenewalPeriod,
-		Principal:       v.Principal,
-		Requests:        requestsWireValue,
-		Tokens:          tokensWireValue,
-		RequestTagKey:   v.RequestTagKey,
-		RequestTagValue: v.RequestTagValue,
+		Key:           v.Key,
+		RenewalPeriod: v.RenewalPeriod,
+		Principal:     v.Principal,
+		Requests:      requestsWireValue,
+		Tokens:        tokensWireValue,
 	}, nil
 }
 
@@ -2227,13 +2220,11 @@ func rateLimitFromWire(w *rateLimitWire) (*RateLimit, error) {
 		return nil, fmt.Errorf("%s: %w", "RateLimit.Tokens", err)
 	}
 	return &RateLimit{
-		Key:             w.Key,
-		RenewalPeriod:   w.RenewalPeriod,
-		Principal:       w.Principal,
-		Requests:        requestsPublicValue,
-		Tokens:          tokensPublicValue,
-		RequestTagKey:   w.RequestTagKey,
-		RequestTagValue: w.RequestTagValue,
+		Key:           w.Key,
+		RenewalPeriod: w.RenewalPeriod,
+		Principal:     w.Principal,
+		Requests:      requestsPublicValue,
+		Tokens:        tokensPublicValue,
 	}, nil
 }
 

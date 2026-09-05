@@ -7,7 +7,7 @@ import (
 )
 
 // Controls which fields are populated on each McpService in the response. The
-// server treats unset / VIEW_UNSPECIFIED as BASIC. Callers needing the full
+// server uses `BASIC` when `view` is unset. Callers needing the full
 // configuration must request it explicitly with `view = FULL`.
 type ListMcpServicesRequest_View string
 
@@ -16,15 +16,14 @@ const (
 	// All fields populated, including the fully resolved `config` (connection
 	// details) and rate-limit principal names.
 	ListMcpServicesRequest_View_Full ListMcpServicesRequest_View = "FULL"
-	// Envelope only: identifiers, ownership, timestamps, plus the persisted
-	// `config` scalars (`include_tool_selectors`, `rate_limits` without
-	// `principal`); `config.source_connection` is unset.
+	// Basic resource metadata and selected configuration fields. Source connection
+	// details and rate-limit principal names are unset.
 	ListMcpServicesRequest_View_Basic ListMcpServicesRequest_View = "BASIC"
 )
 
 // Controls which fields are populated on each ModelProviderService in the
-// response. The server treats unset / VIEW_UNSPECIFIED as BASIC. Callers
-// needing the full configuration must request it explicitly with `view = FULL`.
+// response. The server uses `BASIC` when `view` is unset. Callers needing the
+// full configuration must request it explicitly with `view = FULL`.
 type ListModelProviderServicesRequest_View string
 
 const (
@@ -32,14 +31,13 @@ const (
 	// All fields populated, including resolved service-credential and
 	// inference-table details and rate-limit principal names.
 	ListModelProviderServicesRequest_View_Full ListModelProviderServicesRequest_View = "FULL"
-	// Envelope only: identifiers, ownership, timestamps, plus the persisted
-	// `config` scalars (`targets`, `allow_all_targets`, `rate_limits` without
-	// `principal`); service-credential and inference-table details are unset.
+	// Basic resource metadata and selected configuration fields. Service-credential
+	// and inference-table details and rate-limit principal names are unset.
 	ListModelProviderServicesRequest_View_Basic ListModelProviderServicesRequest_View = "BASIC"
 )
 
 // Controls which fields are populated on each ModelService in the response. The
-// server treats unset / VIEW_UNSPECIFIED as BASIC. Callers needing the full
+// server uses `BASIC` when `view` is unset. Callers needing the full
 // configuration must request it explicitly with `view = FULL`.
 type ListModelServicesRequest_View string
 
@@ -48,9 +46,8 @@ const (
 	// All fields populated, including the fully resolved `config` (destinations and
 	// inference-table details) and rate-limit principal names.
 	ListModelServicesRequest_View_Full ListModelServicesRequest_View = "FULL"
-	// Envelope only: identifiers, ownership, timestamps, plus the persisted
-	// `config` scalars (`first_token_timeout`, `rate_limits` without `principal`);
-	// `destinations` and the inference-table details are unset.
+	// Basic resource metadata and selected configuration fields. Destinations and
+	// inference-table details are unset.
 	ListModelServicesRequest_View_Basic ListModelServicesRequest_View = "BASIC"
 )
 
@@ -110,9 +107,6 @@ const (
 	RateLimit_RateLimitKey_RateLimitKeyService RateLimit_RateLimitKey = "RATE_LIMIT_KEY_SERVICE"
 	// Default per-user rate limit applied when no more-specific rule matches.
 	RateLimit_RateLimitKey_RateLimitKeyUserDefault RateLimit_RateLimitKey = "RATE_LIMIT_KEY_USER_DEFAULT"
-	// Rate limit scoped to a request tag (matched on `request_tag_key` and
-	// optionally `request_tag_value`), independent of the caller principal.
-	RateLimit_RateLimitKey_RateLimitKeyRequestTag RateLimit_RateLimitKey = "RATE_LIMIT_KEY_REQUEST_TAG"
 )
 
 // Renewal period for a rate limit.
@@ -225,13 +219,9 @@ type GetModelServiceRequest struct {
 	Name *string
 }
 
-// Inference table configuration for payload logging on a model service.
-//
-// `parent` is always REQUIRED when the sub-message is set; the destination UC
-// schema is needed to construct or rebind the payload TABLE regardless of
-// whether payload logging is currently active. Payload logging is active by
-// default; set `disabled = true` to pause runtime logging without dropping the
-// table or the binding..
+// Configuration for logging request and response payloads to a Unity Catalog
+// inference table. When this configuration is present, payload logging is
+// enabled by default..
 type InferenceTableConfig struct {
 	// Parent Unity Catalog schema where the inference table is created, in the form
 	// `schemas/{catalog}.{schema}`. Required when configuring an inference table.
@@ -252,8 +242,8 @@ type InferenceTableConfig struct {
 	IsDeleted *bool `fieldmask:"is_deleted"`
 }
 
-// Request to list MCP services. Accepts `parent`, `page_size`, and
-// `page_token`..
+// Request to list MCP services. Accepts `parent`, `page_size`, `page_token`,
+// and `view`..
 type ListMcpServicesRequest struct {
 	// Parent schema to list within, in the form `schemas/{catalog}.{schema}`.
 	// Required. Each `{...}` component is capped at 255 characters individually.
@@ -265,8 +255,7 @@ type ListMcpServicesRequest struct {
 	PageToken *string
 	// Fields to return for each service. `FULL` includes source-connection details
 	// and rate-limit principal names. `BASIC` omits the source connection and omits
-	// principal names from rate limits. Defaults to `BASIC` when unset or
-	// `VIEW_UNSPECIFIED`.
+	// principal names from rate limits. Defaults to `BASIC` when unset.
 	View ListMcpServicesRequest_View
 }
 
@@ -279,8 +268,8 @@ type ListMcpServicesResponse struct {
 	NextPageToken *string
 }
 
-// Request to list model provider services. Accepts `parent`, `page_size`, and
-// `page_token`..
+// Request to list model provider services. Accepts `parent`, `page_size`,
+// `page_token`, and `view`..
 type ListModelProviderServicesRequest struct {
 	// Parent schema to list within, in the form `schemas/{catalog}.{schema}`.
 	// Required. Each `{...}` component is capped at 255 characters individually.
@@ -293,7 +282,7 @@ type ListModelProviderServicesRequest struct {
 	// Fields to return for each service. `FULL` includes resolved
 	// service-credential and inference-table details and rate-limit principal
 	// names. `BASIC` omits those details and principal names from rate limits.
-	// Defaults to `BASIC` when unset or `VIEW_UNSPECIFIED`.
+	// Defaults to `BASIC` when unset.
 	View ListModelProviderServicesRequest_View
 }
 
@@ -306,8 +295,8 @@ type ListModelProviderServicesResponse struct {
 	NextPageToken *string
 }
 
-// Request to list model services. Accepts `parent`, `page_size`, and
-// `page_token`..
+// Request to list model services. Accepts `parent`, `page_size`, `page_token`,
+// and `view`..
 type ListModelServicesRequest struct {
 	// Parent schema to list within, in the form `schemas/{catalog}.{schema}`.
 	// Required. Each `{...}` component is capped at 255 characters individually.
@@ -320,7 +309,7 @@ type ListModelServicesRequest struct {
 	// Fields to return for each service. `FULL` includes destinations,
 	// inference-table details, and rate-limit principal names. `BASIC` omits
 	// destinations and inference-table details and omits principal names from rate
-	// limits. Defaults to `BASIC` when unset or `VIEW_UNSPECIFIED`.
+	// limits. Defaults to `BASIC` when unset.
 	View ListModelServicesRequest_View
 }
 
@@ -342,8 +331,7 @@ type McpService struct {
 	// capped at 255 characters individually. Server-derived on Create from `parent`
 	// + `mcp_service_id`; required and immutable on Update/Get/Delete.
 	Name *string `fieldmask:"name"`
-	// The resolved owner of the MCP service. Falls back to the caller's identity
-	// when `owner` is not explicitly set on creation.
+	// Owner of the MCP service.
 	EffectiveOwner *string `fieldmask:"effective_owner"`
 	// Metastore hosting the MCP service.
 	MetastoreId *string `fieldmask:"metastore_id"`
@@ -394,8 +382,7 @@ type McpServiceConfig struct {
 	IncludeToolSelectors []string `fieldmask:"include_tool_selectors"`
 	// Rate limits for tool invocations. Supported scopes are user, group, service
 	// principal, the service as a whole, and each user by default. Request and
-	// token limits are supported; request-tag rate limits are not. Empty when no
-	// rate limit is configured.
+	// token limits are supported. Empty when no rate limit is configured.
 	RateLimits []RateLimit                                `fieldmask:"rate_limits"`
 	_          [0]mcpServiceConfigSourceFieldMaskMetadata `fieldmask_oneof:"Source"`
 }
@@ -446,8 +433,7 @@ type ModelProviderService struct {
 	// Create from `parent` + `model_provider_service_id`; required and immutable on
 	// Update/Get/Delete.
 	Name *string `fieldmask:"name"`
-	// The resolved owner of the model provider service. Falls back to the caller's
-	// identity when `owner` is not explicitly set on creation.
+	// Owner of the model provider service.
 	EffectiveOwner *string `fieldmask:"effective_owner"`
 	// Metastore hosting the provider service.
 	MetastoreId *string `fieldmask:"metastore_id"`
@@ -752,11 +738,9 @@ type modelProviderServiceConfig_AnthropicProviderDirectConfigAuthModeFieldMaskMe
 	*ModelProviderServiceConfig_AnthropicProviderDirectConfig_AuthMode_ApiKey
 }
 
-// Relayed form of Anthropic provider config: no credential is stored.
-// Authentication is the caller's own OAuth token, forwarded to Anthropic on
-// outbound requests, so there is no persisted secret. Presence of this variant
-// is the signal that the provider service uses relayed auth; `plan_type`
-// further distinguishes which Anthropic subscription tier the token belongs to..
+// Relayed Anthropic provider configuration. Each inference request supplies the
+// caller's OAuth token, which is forwarded to Anthropic. No Anthropic
+// credential is stored..
 type ModelProviderServiceConfig_AnthropicProviderRelayedConfig struct {
 }
 
@@ -978,12 +962,8 @@ type modelProviderServiceConfig_GeminiEnterpriseProviderConfigProviderModeFieldM
 	*ModelProviderServiceConfig_GeminiEnterpriseProviderConfig_ProviderMode_Direct
 }
 
-// Direct form of Gemini Enterprise provider config.
-//
-// Authentication is one of two mutually exclusive modes; exactly one must be
-// supplied on Create: - API key: set `api_key`, leave `service_credential`
-// unset. - Unity Catalog service credential: set `service_credential`, leave
-// `api_key` unset..
+// Direct Gemini Enterprise provider configuration. An API key is required when
+// creating the service..
 type ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig struct {
 	// Authentication mode. Exactly one variant may be set.
 	AuthMode isModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode
@@ -1000,8 +980,7 @@ type isModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode 
 }
 
 // ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode_ApiKey selects ApiKey for ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig.AuthMode.
-// Google Gemini Enterprise API key. Required when creating a service with
-// API-key authentication; mutually exclusive with `service_credential`. Supply
+// Google Gemini Enterprise API key. Required when creating the service. Supply
 // the value in `api_key.plaintext`.
 type ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode_ApiKey struct {
 	ApiKey ModelProviderServiceConfig_ProviderSecret `fieldmask:"api_key"`
@@ -1210,9 +1189,8 @@ type modelProviderServiceConfig_ProviderSecretValueFieldMaskMetadata struct {
 	*ModelProviderServiceConfig_ProviderSecret_Value_Plaintext
 }
 
-// ---- Provider configuration (nested; see the `provider` oneof below) ---- The
-// customer-owned Unity Catalog service credential a ModelProviderService uses
-// to authenticate to its provider, referenced by name..
+// The customer-owned Unity Catalog service credential a model provider service
+// uses to authenticate to its provider, referenced by name..
 type ModelProviderServiceConfig_ServiceCredential struct {
 	// Resource name of the bound Unity Catalog service credential, in the form
 	// `credentials/{name}`. Supply this field when creating the service or
@@ -1230,8 +1208,7 @@ type ModelService struct {
 	// is capped at 255 characters individually. Server-derived on Create from
 	// `parent` + `model_service_id`; required and immutable on Update/Get/Delete.
 	Name *string `fieldmask:"name"`
-	// The resolved owner of the ModelService. Falls back to the caller's identity
-	// when `owner` is not explicitly set on creation.
+	// Owner of the model service.
 	EffectiveOwner *string `fieldmask:"effective_owner"`
 	// Metastore hosting the model service.
 	MetastoreId *string `fieldmask:"metastore_id"`
@@ -1389,11 +1366,6 @@ type ModelServiceConfig_RoutingConfig struct {
 	// Fallback routing applied after a primary destination fails. Fallback
 	// destinations are tried in the listed order.
 	Fallback *ModelServiceConfig_FallbackConfig `fieldmask:"fallback"`
-	// Timeout for the first token of a streaming response. If a destination does
-	// not return its first token within this duration, AI Gateway aborts the
-	// attempt and fails over to the next destination. Applies to streaming requests
-	// only. Leave unset for no first-token timeout.
-	FirstTokenTimeout *types.Duration `fieldmask:"first_token_timeout"`
 }
 
 // A rate limit applied to service requests. Leave `requests` or `tokens` unset
@@ -1401,14 +1373,13 @@ type ModelServiceConfig_RoutingConfig struct {
 // within the renewal period..
 type RateLimit struct {
 	// Scope of the rate limit. Depending on this value, the limit applies to a
-	// principal, the service as a whole, each user by default, or a request tag.
+	// principal, the service as a whole, or each user by default.
 	Key RateLimit_RateLimitKey
 	// Renewal period.
 	RenewalPeriod RateLimit_RateLimitRenewalPeriod
 	// Principal this limit applies to: user email, group name, or service principal
-	// application ID. Required unless `key` is `RATE_LIMIT_KEY_SERVICE`,
-	// `RATE_LIMIT_KEY_USER_DEFAULT`, or `RATE_LIMIT_KEY_REQUEST_TAG` (which must
-	// not set a principal).
+	// application ID. Required when `key` applies to a user, group, or service
+	// principal; otherwise it must be unset.
 	Principal *string
 	// Maximum requests allowed in one renewal period. Leave unset for no request
 	// limit. Set to `0` to deny all requests.
@@ -1416,14 +1387,6 @@ type RateLimit struct {
 	// Maximum tokens allowed in one renewal period. Leave unset for no token limit.
 	// Set to `0` to deny all requests.
 	Tokens *int64
-	// Request tag key this limit applies to. Required when `key` is
-	// `RATE_LIMIT_KEY_REQUEST_TAG`, forbidden otherwise.
-	RequestTagKey *string
-	// Request tag value this limit applies to. Only valid when `key` is
-	// `RATE_LIMIT_KEY_REQUEST_TAG`. Leave unset to apply the limit to every value
-	// of `request_tag_key` (an any-value default); a set value is a specific
-	// override for that value.
-	RequestTagValue *string
 }
 
 // Request to update an MCP service. `name` cannot appear in `update_mask`..
@@ -1445,8 +1408,8 @@ type UpdateMcpServiceRequest struct {
 	Etag []byte
 }
 
-// Request to update a model provider service. `name` and `provider_type` cannot
-// appear in `update_mask`..
+// Request to update a model provider service. `name` and `config.provider_type`
+// cannot appear in `update_mask`..
 type UpdateModelProviderServiceRequest struct {
 	// The model provider service with the updated field values. `name` identifies
 	// the resource
@@ -1481,10 +1444,9 @@ type UpdateModelServiceRequest struct {
 	// replacement must include every required field; any optional field you omit is
 	// cleared. To preserve sibling fields, use one or more granular paths:
 	// `comment`, `config.routing.destinations`,
-	// `config.routing.fallback.destinations`, `config.routing.first_token_timeout`,
-	// `config.rate_limits`, or `config.inference_table`. Intermediate paths such as
-	// `config.routing` and `config.routing.fallback`, and wildcard paths such as
-	// `*`, are not supported.
+	// `config.routing.fallback.destinations`, `config.rate_limits`, or
+	// `config.inference_table`. Intermediate paths such as `config.routing` and
+	// `config.routing.fallback`, and wildcard paths such as `*`, are not supported.
 	UpdateMask *types.FieldMask[ModelService]
 	// Optimistic concurrency token from the most recent read. When set, the update
 	// succeeds only if the resource has not changed. Leave unset for an

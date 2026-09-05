@@ -315,29 +315,18 @@ func budgetConfigurationFilter_WorkspaceIdClauseFromWire(w *budgetConfigurationF
 }
 
 type createBudgetConfigurationBudgetWire struct {
-	BudgetConfigurationId *string                        `json:"budget_configuration_id,omitempty"`
-	AccountId             *string                        `json:"account_id,omitempty"`
-	CreateTime            *wireInt64                     `json:"create_time,omitempty"`
-	UpdateTime            *wireInt64                     `json:"update_time,omitempty"`
-	AlertConfigurations   []alertConfigurationWire       `json:"alert_configurations,omitempty"`
-	Filter                *budgetConfigurationFilterWire `json:"filter,omitempty"`
-	DisplayName           *string                        `json:"display_name,omitempty"`
-	ResourceType          BudgetResourceType             `json:"resource_type,omitempty"`
+	AccountId           *string                                                  `json:"account_id,omitempty"`
+	AlertConfigurations []createBudgetConfigurationBudgetAlertConfigurationsWire `json:"alert_configurations,omitempty"`
+	Filter              *budgetConfigurationFilterWire                           `json:"filter,omitempty"`
+	DisplayName         *string                                                  `json:"display_name,omitempty"`
+	ResourceType        BudgetResourceType                                       `json:"resource_type,omitempty"`
 }
 
 func createBudgetConfigurationBudgetToWire(v *CreateBudgetConfigurationBudget) (*createBudgetConfigurationBudgetWire, error) {
 	if v == nil {
 		return nil, nil
 	}
-	createTimeWireValue, err := int64ToWire(v.CreateTime)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationBudget.CreateTime", err)
-	}
-	updateTimeWireValue, err := int64ToWire(v.UpdateTime)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationBudget.UpdateTime", err)
-	}
-	alertConfigurationsWireValue, err := convertSlice(v.AlertConfigurations, alertConfigurationToWire)
+	alertConfigurationsWireValue, err := convertSlice(v.AlertConfigurations, createBudgetConfigurationBudgetAlertConfigurationsToWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationBudget.AlertConfigurations", err)
 	}
@@ -346,14 +335,59 @@ func createBudgetConfigurationBudgetToWire(v *CreateBudgetConfigurationBudget) (
 		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationBudget.Filter", err)
 	}
 	return &createBudgetConfigurationBudgetWire{
-		BudgetConfigurationId: v.BudgetConfigurationId,
-		AccountId:             v.AccountId,
-		CreateTime:            createTimeWireValue,
-		UpdateTime:            updateTimeWireValue,
-		AlertConfigurations:   alertConfigurationsWireValue,
-		Filter:                filterWireValue,
-		DisplayName:           v.DisplayName,
-		ResourceType:          v.ResourceType,
+		AccountId:           v.AccountId,
+		AlertConfigurations: alertConfigurationsWireValue,
+		Filter:              filterWireValue,
+		DisplayName:         v.DisplayName,
+		ResourceType:        v.ResourceType,
+	}, nil
+}
+
+type createBudgetConfigurationBudgetActionConfigurationsWire struct {
+	ActionType ActionConfigurationType `json:"action_type,omitempty"`
+	Target     *string                 `json:"target,omitempty"`
+}
+
+func createBudgetConfigurationBudgetActionConfigurationsToWire(v *CreateBudgetConfigurationBudgetActionConfigurations) (*createBudgetConfigurationBudgetActionConfigurationsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createBudgetConfigurationBudgetActionConfigurationsWire{
+		ActionType: v.ActionType,
+		Target:     v.Target,
+	}, nil
+}
+
+type createBudgetConfigurationBudgetAlertConfigurationsWire struct {
+	TimePeriod           AlertConfigurationTimePeriod                              `json:"time_period,omitempty"`
+	TriggerType          AlertConfigurationTriggerType                             `json:"trigger_type,omitempty"`
+	QuantityType         AlertConfigurationQuantityType                            `json:"quantity_type,omitempty"`
+	QuantityThreshold    *string                                                   `json:"quantity_threshold,omitempty"`
+	ActionConfigurations []createBudgetConfigurationBudgetActionConfigurationsWire `json:"action_configurations,omitempty"`
+	ScopeType            AlertConfigurationScopeType                               `json:"scope_type,omitempty"`
+	PrincipalOverrides   []principalOverrideWire                                   `json:"principal_overrides,omitempty"`
+}
+
+func createBudgetConfigurationBudgetAlertConfigurationsToWire(v *CreateBudgetConfigurationBudgetAlertConfigurations) (*createBudgetConfigurationBudgetAlertConfigurationsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	actionConfigurationsWireValue, err := convertSlice(v.ActionConfigurations, createBudgetConfigurationBudgetActionConfigurationsToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationBudgetAlertConfigurations.ActionConfigurations", err)
+	}
+	principalOverridesWireValue, err := convertSlice(v.PrincipalOverrides, principalOverrideToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationBudgetAlertConfigurations.PrincipalOverrides", err)
+	}
+	return &createBudgetConfigurationBudgetAlertConfigurationsWire{
+		TimePeriod:           v.TimePeriod,
+		TriggerType:          v.TriggerType,
+		QuantityType:         v.QuantityType,
+		QuantityThreshold:    v.QuantityThreshold,
+		ActionConfigurations: actionConfigurationsWireValue,
+		ScopeType:            v.ScopeType,
+		PrincipalOverrides:   principalOverridesWireValue,
 	}, nil
 }
 
@@ -478,8 +512,6 @@ func principalOverrideFromWire(w *principalOverrideWire) (*PrincipalOverride, er
 type updateBudgetConfigurationBudgetWire struct {
 	BudgetConfigurationId *string                        `json:"budget_configuration_id,omitempty"`
 	AccountId             *string                        `json:"account_id,omitempty"`
-	CreateTime            *wireInt64                     `json:"create_time,omitempty"`
-	UpdateTime            *wireInt64                     `json:"update_time,omitempty"`
 	AlertConfigurations   []alertConfigurationWire       `json:"alert_configurations,omitempty"`
 	Filter                *budgetConfigurationFilterWire `json:"filter,omitempty"`
 	DisplayName           *string                        `json:"display_name,omitempty"`
@@ -489,14 +521,6 @@ type updateBudgetConfigurationBudgetWire struct {
 func updateBudgetConfigurationBudgetToWire(v *UpdateBudgetConfigurationBudget) (*updateBudgetConfigurationBudgetWire, error) {
 	if v == nil {
 		return nil, nil
-	}
-	createTimeWireValue, err := int64ToWire(v.CreateTime)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "UpdateBudgetConfigurationBudget.CreateTime", err)
-	}
-	updateTimeWireValue, err := int64ToWire(v.UpdateTime)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "UpdateBudgetConfigurationBudget.UpdateTime", err)
 	}
 	alertConfigurationsWireValue, err := convertSlice(v.AlertConfigurations, alertConfigurationToWire)
 	if err != nil {
@@ -509,8 +533,6 @@ func updateBudgetConfigurationBudgetToWire(v *UpdateBudgetConfigurationBudget) (
 	return &updateBudgetConfigurationBudgetWire{
 		BudgetConfigurationId: v.BudgetConfigurationId,
 		AccountId:             v.AccountId,
-		CreateTime:            createTimeWireValue,
-		UpdateTime:            updateTimeWireValue,
 		AlertConfigurations:   alertConfigurationsWireValue,
 		Filter:                filterWireValue,
 		DisplayName:           v.DisplayName,
