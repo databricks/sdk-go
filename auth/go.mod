@@ -6,7 +6,7 @@ replace github.com/databricks/sdk-go/core => ../core
 
 require (
 	github.com/databricks/databricks-sdk-go v0.92.0
-	github.com/databricks/sdk-go/core v0.0.1-dev.4
+	github.com/databricks/sdk-go/core v0.0.1-dev.5
 	github.com/google/go-cmp v0.7.0
 	golang.org/x/oauth2 v0.33.0
 )
