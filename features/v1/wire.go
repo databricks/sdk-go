@@ -1665,6 +1665,8 @@ type ingestionConfigWire struct {
 	IngestionPipelineId  *string                   `json:"ingestion_pipeline_id,omitempty"`
 	IngestionJobId       *wireInt64                `json:"ingestion_job_id,omitempty"`
 	BackfillJobId        *wireInt64                `json:"backfill_job_id,omitempty"`
+	Tags                 map[string]string         `json:"tags,omitempty"`
+	BudgetPolicyId       *string                   `json:"budget_policy_id,omitempty"`
 }
 
 func ingestionConfigToWire(v *IngestionConfig) (*ingestionConfigWire, error) {
@@ -1694,6 +1696,8 @@ func ingestionConfigToWire(v *IngestionConfig) (*ingestionConfigWire, error) {
 		IngestionPipelineId:  v.IngestionPipelineId,
 		IngestionJobId:       ingestionJobIdWireValue,
 		BackfillJobId:        backfillJobIdWireValue,
+		Tags:                 v.Tags,
+		BudgetPolicyId:       v.BudgetPolicyId,
 	}, nil
 }
 
@@ -1724,6 +1728,8 @@ func ingestionConfigFromWire(w *ingestionConfigWire) (*IngestionConfig, error) {
 		IngestionPipelineId:  w.IngestionPipelineId,
 		IngestionJobId:       ingestionJobIdPublicValue,
 		BackfillJobId:        backfillJobIdPublicValue,
+		Tags:                 w.Tags,
+		BudgetPolicyId:       w.BudgetPolicyId,
 	}, nil
 }
 
@@ -2441,6 +2447,8 @@ type materializedFeatureWire struct {
 	TableTrigger            *tableTriggerWire                         `json:"table_trigger,omitempty"`
 	StreamingMode           *streamingModeWire                        `json:"streaming_mode,omitempty"`
 	LatestBackfillOperation *string                                   `json:"latest_backfill_operation,omitempty"`
+	Tags                    map[string]string                         `json:"tags,omitempty"`
+	BudgetPolicyId          *string                                   `json:"budget_policy_id,omitempty"`
 }
 
 func materializedFeatureToWire(v *MaterializedFeature) (*materializedFeatureWire, error) {
@@ -2516,6 +2524,8 @@ func materializedFeatureToWire(v *MaterializedFeature) (*materializedFeatureWire
 		TableTrigger:            triggerTableTriggerWire,
 		StreamingMode:           triggerStreamingModeWire,
 		LatestBackfillOperation: v.LatestBackfillOperation,
+		Tags:                    v.Tags,
+		BudgetPolicyId:          v.BudgetPolicyId,
 	}, nil
 }
 
@@ -2591,6 +2601,8 @@ func materializedFeatureFromWire(w *materializedFeatureWire) (*MaterializedFeatu
 		CronSchedule:            w.CronSchedule,
 		IsOnline:                w.IsOnline,
 		LatestBackfillOperation: w.LatestBackfillOperation,
+		Tags:                    w.Tags,
+		BudgetPolicyId:          w.BudgetPolicyId,
 		Destination:             destinationSelection,
 		Trigger:                 triggerSelection,
 	}, nil
@@ -2823,6 +2835,108 @@ func protoSchemaSpecFromWire(w *protoSchemaSpecWire) (*ProtoSchemaSpec, error) {
 	return &ProtoSchemaSpec{
 		SchemaText:  w.SchemaText,
 		MessageName: w.MessageName,
+	}, nil
+}
+
+type purgeFeatureEntitiesMetadataWire struct {
+	Features             []string                           `json:"features,omitempty"`
+	EntitiesTable        *string                            `json:"entities_table,omitempty"`
+	EntitiesTableVersion *string                            `json:"entities_table_version,omitempty"`
+	CreateTime           *types.Time                        `json:"create_time,omitempty"`
+	State                PurgeFeatureEntitiesMetadata_State `json:"state,omitempty"`
+	JobId                *wireInt64                         `json:"job_id,omitempty"`
+}
+
+func purgeFeatureEntitiesMetadataFromWire(w *purgeFeatureEntitiesMetadataWire) (*PurgeFeatureEntitiesMetadata, error) {
+	if w == nil {
+		return nil, nil
+	}
+	jobIdPublicValue, err := int64FromWire(w.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PurgeFeatureEntitiesMetadata.JobId", err)
+	}
+	return &PurgeFeatureEntitiesMetadata{
+		Features:             w.Features,
+		EntitiesTable:        w.EntitiesTable,
+		EntitiesTableVersion: w.EntitiesTableVersion,
+		CreateTime:           w.CreateTime,
+		State:                w.State,
+		JobId:                jobIdPublicValue,
+	}, nil
+}
+
+type purgeFeatureEntitiesRequestWire struct {
+	Features      []string `json:"features,omitempty"`
+	EntitiesTable *string  `json:"entities_table,omitempty"`
+	RequestId     *string  `json:"request_id,omitempty"`
+}
+
+func purgeFeatureEntitiesRequestToWire(v *PurgeFeatureEntitiesRequest) (*purgeFeatureEntitiesRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var entitiesEntitiesTableWire *string
+	switch value := v.Entities.(type) {
+	case nil:
+	case *PurgeFeatureEntitiesRequest_Entities_EntitiesTable:
+		if value != nil {
+			entitiesEntitiesTableWire = new(value.EntitiesTable)
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "PurgeFeatureEntitiesRequest.Entities", value)
+	}
+	return &purgeFeatureEntitiesRequestWire{
+		Features:      v.Features,
+		EntitiesTable: entitiesEntitiesTableWire,
+		RequestId:     v.RequestId,
+	}, nil
+}
+
+type purgeFeatureEntitiesResponseWire struct {
+	Metadata *purgeFeatureEntitiesMetadataWire  `json:"metadata,omitempty"`
+	Results  []purgeFeatureEntitiesResultWire   `json:"results,omitempty"`
+	State    PurgeFeatureEntitiesMetadata_State `json:"state,omitempty"`
+}
+
+func purgeFeatureEntitiesResponseFromWire(w *purgeFeatureEntitiesResponseWire) (*PurgeFeatureEntitiesResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	metadataPublicValue, err := purgeFeatureEntitiesMetadataFromWire(w.Metadata)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PurgeFeatureEntitiesResponse.Metadata", err)
+	}
+	resultsPublicValue, err := convertSlice(w.Results, purgeFeatureEntitiesResultFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PurgeFeatureEntitiesResponse.Results", err)
+	}
+	return &PurgeFeatureEntitiesResponse{
+		Metadata: metadataPublicValue,
+		Results:  resultsPublicValue,
+		State:    w.State,
+	}, nil
+}
+
+type purgeFeatureEntitiesResultWire struct {
+	Feature      *string                          `json:"feature,omitempty"`
+	OfflineState PurgeFeatureEntitiesResult_State `json:"offline_state,omitempty"`
+	OnlineState  PurgeFeatureEntitiesResult_State `json:"online_state,omitempty"`
+	Error        *apiErrorWire                    `json:"error,omitempty"`
+}
+
+func purgeFeatureEntitiesResultFromWire(w *purgeFeatureEntitiesResultWire) (*PurgeFeatureEntitiesResult, error) {
+	if w == nil {
+		return nil, nil
+	}
+	errorPublicValue, err := apiErrorFromWire(w.Error)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PurgeFeatureEntitiesResult.Error", err)
+	}
+	return &PurgeFeatureEntitiesResult{
+		Feature:      w.Feature,
+		OfflineState: w.OfflineState,
+		OnlineState:  w.OnlineState,
+		Error:        errorPublicValue,
 	}, nil
 }
 

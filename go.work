@@ -4,6 +4,7 @@ use (
 	./accessmanagement
 	./aifunctions
 	./aigateway
+	./aisearch
 	./alerts
 	./apps
 	./auth

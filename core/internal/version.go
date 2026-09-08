@@ -2,4 +2,4 @@ package internal
 
 const ModuleName = "sdk-go-core"
 
-const Version = "0.0.1-dev.6"
+const Version = "0.0.1-dev.7"

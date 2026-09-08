@@ -1639,6 +1639,174 @@ func (c *internalClient) ListStreamsIter(ctx context.Context, req ListStreamsReq
 	}
 }
 
+// Purge materialized feature values for specified entities.
+func (c *internalClient) purgeFeatureEntitiesBase(ctx context.Context, req PurgeFeatureEntitiesRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := purgeFeatureEntitiesRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	if wireReq.RequestId == nil || *wireReq.RequestId == "" {
+		wireReq.RequestId = new(generateRequestID())
+	}
+	body, err := json.Marshal(wireReq)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = "/api/2.0/feature-engineering/features:purgeFeatureEntities"
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Operation
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp operationWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = operationFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Purge materialized feature values for specified entities.
+func (c *internalClient) PurgeFeatureEntities(ctx context.Context, req PurgeFeatureEntitiesRequest, opts ...call.Option) (*PurgeFeatureEntitiesOperation, error) {
+	operation, err := c.purgeFeatureEntitiesBase(ctx, req, opts...)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateOperationName(operation.Name); err != nil {
+		return nil, err
+	}
+	return &PurgeFeatureEntitiesOperation{
+		operation:    operation,
+		getOperation: c.getOperation,
+	}, nil
+}
+
+// PurgeFeatureEntitiesOperation tracks the state of the long-running operation started by PurgeFeatureEntities.
+type PurgeFeatureEntitiesOperation struct {
+	operation    *Operation
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
+}
+
+// Name returns the server-assigned operation name.
+func (o *PurgeFeatureEntitiesOperation) Name() *string {
+	return o.operation.Name
+}
+
+// Metadata returns metadata associated with the operation.
+func (o *PurgeFeatureEntitiesOperation) Metadata() (*PurgeFeatureEntitiesMetadata, error) {
+	if len(o.operation.Metadata) == 0 || bytes.Equal(bytes.TrimSpace(o.operation.Metadata), []byte("null")) {
+		return nil, nil
+	}
+	var metadata purgeFeatureEntitiesMetadataWire
+	if err := json.Unmarshal(o.operation.Metadata, &metadata); err != nil {
+		return nil, fmt.Errorf("decode operation metadata: %w", err)
+	}
+	converted, err := purgeFeatureEntitiesMetadataFromWire(&metadata)
+	if err != nil {
+		return nil, err
+	}
+	return converted, nil
+}
+
+// Done refreshes the operation and reports whether it has completed.
+func (o *PurgeFeatureEntitiesOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
+	if err != nil {
+		return false, err
+	}
+	if err := validateOperationName(operation.Name); err != nil {
+		return false, err
+	}
+	o.operation = operation
+	if operation.Done == nil {
+		return false, fmt.Errorf("invalid operation response: missing done field")
+	}
+	return *operation.Done, nil
+}
+
+// Wait polls the operation until it completes.
+func (o *PurgeFeatureEntitiesOperation) Wait(ctx context.Context, opts ...lro.Option) (*PurgeFeatureEntitiesResponse, error) {
+	var result *PurgeFeatureEntitiesResponse
+	poll := func(ctx context.Context) error {
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
+		if err != nil {
+			return err
+		}
+		if err := validateOperationName(operation.Name); err != nil {
+			return err
+		}
+		o.operation = operation
+		if operation.Done == nil {
+			return fmt.Errorf("invalid operation response: missing done field")
+		}
+		if !*operation.Done {
+			return errOperationStillRunning
+		}
+		if operationError, ok := operation.Result.(*Operation_Result_Error); ok && operationError != nil {
+			return fmt.Errorf("operation failed: %w", &operationError.Error)
+		}
+		operationResponse, ok := operation.Result.(*Operation_Result_Response)
+		if !ok || operationResponse == nil || len(operationResponse.Response) == 0 || bytes.Equal(bytes.TrimSpace(operationResponse.Response), []byte("null")) {
+			return fmt.Errorf("operation completed without a response")
+		}
+		var response purgeFeatureEntitiesResponseWire
+		if err := json.Unmarshal(operationResponse.Response, &response); err != nil {
+			return fmt.Errorf("decode operation response: %w", err)
+		}
+		result, err = purgeFeatureEntitiesResponseFromWire(&response)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	if err := executeWait(ctx, poll, opts...); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 // Update a Feature.
 func (c *internalClient) UpdateFeature(ctx context.Context, req UpdateFeatureRequest, opts ...call.Option) (*Feature, error) {
 	wireReq, err := updateFeatureRequestToWire(&req)
