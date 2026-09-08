@@ -329,7 +329,8 @@ type CleanRoomAsset struct {
 	// *shared_catalog*.*shared_schema*.*asset_name*
 	//
 	// For notebooks, the name is the notebook file name. For jar analyses, the name
-	// is the jar analysis name.
+	// is the jar analysis name. For Genie spaces, the name is derived from the
+	// clean room; the caller does not choose it.
 	Name *string
 	// The type of the asset.
 	AssetType CleanRoomAsset_AssetType

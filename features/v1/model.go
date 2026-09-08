@@ -486,6 +486,36 @@ const (
 	MaterializedFeature_PipelineScheduleState_Paused MaterializedFeature_PipelineScheduleState = "PAUSED"
 )
 
+// Lifecycle state of a feature entity purge.
+type PurgeFeatureEntitiesMetadata_State string
+
+const (
+	PurgeFeatureEntitiesMetadata_State_Unspecified PurgeFeatureEntitiesMetadata_State = ""
+	// The feature entity purge is pending.
+	PurgeFeatureEntitiesMetadata_State_Pending PurgeFeatureEntitiesMetadata_State = "PENDING"
+	// The feature entity purge is running.
+	PurgeFeatureEntitiesMetadata_State_Running PurgeFeatureEntitiesMetadata_State = "RUNNING"
+	// The feature entity purge succeeded.
+	PurgeFeatureEntitiesMetadata_State_Succeeded PurgeFeatureEntitiesMetadata_State = "SUCCEEDED"
+	// The feature entity purge failed.
+	PurgeFeatureEntitiesMetadata_State_Failed PurgeFeatureEntitiesMetadata_State = "FAILED"
+	// The feature entity purge was cancelled.
+	PurgeFeatureEntitiesMetadata_State_Cancelled PurgeFeatureEntitiesMetadata_State = "CANCELLED"
+)
+
+// Terminal state of a purge for one store type.
+type PurgeFeatureEntitiesResult_State string
+
+const (
+	PurgeFeatureEntitiesResult_State_Unspecified PurgeFeatureEntitiesResult_State = ""
+	// The purge succeeded.
+	PurgeFeatureEntitiesResult_State_Succeeded PurgeFeatureEntitiesResult_State = "SUCCEEDED"
+	// The purge failed.
+	PurgeFeatureEntitiesResult_State_Failed PurgeFeatureEntitiesResult_State = "FAILED"
+	// The purge did not apply to this store type for this feature.
+	PurgeFeatureEntitiesResult_State_NotApplicable PurgeFeatureEntitiesResult_State = "NOT_APPLICABLE"
+)
+
 // Supported serialization formats for a schema registry schema.
 type SchemaLocator_Format string
 
@@ -1199,6 +1229,19 @@ type IngestionConfig struct {
 	// The ID of the Databricks Job that performs the historical backfill of the
 	// ingestion Delta table.
 	BackfillJobId *int64 `fieldmask:"backfill_job_id"`
+	// Custom tags to associate with this stream's managed ingestion. They are
+	// applied to the ingestion pipeline and its forward-fill and backfill jobs, and
+	// forwarded to the underlying compute as cluster tags, so ingestion cost can be
+	// attributed in the billing system tables. These tags apply only to the managed
+	// ingestion compute; they are not applied to the Stream entity itself, and are
+	// distinct from any Unity Catalog tags on the Stream. A maximum of 25 tags is
+	// supported; keys and values are subject to the same limitations as cluster
+	// tags.
+	Tags map[string]string `fieldmask:"tags"`
+	// The ID of the budget policy used to attribute the serverless compute cost of
+	// this stream's managed ingestion. If not specified, a default budget policy
+	// may be applied.
+	BudgetPolicyId *string `fieldmask:"budget_policy_id"`
 }
 
 // Destination for the <Databricks>-managed Delta table that holds an offline
@@ -1533,9 +1576,22 @@ type MaterializedFeature struct {
 	Trigger isMaterializedFeature_Trigger
 	// Name of the latest backfill operation on this materialized feature. Format:
 	// operations/{operation_id}.
-	LatestBackfillOperation *string                                            `fieldmask:"latest_backfill_operation"`
-	_                       [0]materializedFeatureDestinationFieldMaskMetadata `fieldmask_oneof:"Destination"`
-	_                       [0]materializedFeatureTriggerFieldMaskMetadata     `fieldmask_oneof:"Trigger"`
+	LatestBackfillOperation *string `fieldmask:"latest_backfill_operation"`
+	// Custom tags to associate with this materialization. They are applied to the
+	// materialization job (for batch features) or pipeline (for streaming features)
+	// and forwarded to the underlying compute as cluster tags, so materialization
+	// cost can be attributed in the billing system tables. These tags apply only to
+	// the materialization compute; they are not applied to the Unity Catalog
+	// Feature resource itself, whose tags are managed separately through the Unity
+	// Catalog tagging API. A maximum of 25 tags is supported; keys and values are
+	// subject to the same limitations as cluster tags.
+	Tags map[string]string `fieldmask:"tags"`
+	// The ID of the budget policy used to attribute the serverless compute cost of
+	// this materialization. If not specified, a default budget policy may be
+	// applied.
+	BudgetPolicyId *string                                            `fieldmask:"budget_policy_id"`
+	_              [0]materializedFeatureDestinationFieldMaskMetadata `fieldmask_oneof:"Destination"`
+	_              [0]materializedFeatureTriggerFieldMaskMetadata     `fieldmask_oneof:"Trigger"`
 }
 
 type isMaterializedFeature_Destination interface {
@@ -1739,6 +1795,73 @@ type ProtoSchemaSpec struct {
 	// .proto file may declare multiple messages but only one represents the
 	// payload. Must not be empty.
 	MessageName *string `fieldmask:"message_name"`
+}
+
+// Progress and configuration for a feature entity purge..
+type PurgeFeatureEntitiesMetadata struct {
+	// Fully qualified names of the features targeted by the purge.
+	Features []string
+	// Fully qualified name of the Unity Catalog Delta table containing the entity
+	// keys to purge.
+	EntitiesTable *string
+	// Version of the entities table used by the purge.
+	EntitiesTableVersion *string
+	// Time at which the purge operation was created.
+	CreateTime *types.Time
+	// Current state of the purge operation.
+	State PurgeFeatureEntitiesMetadata_State
+	// ID of the job that executes this purge.
+	JobId *int64
+}
+
+// Request to purge materialized feature values for entities listed in a Unity
+// Catalog Delta table..
+type PurgeFeatureEntitiesRequest struct {
+	// Fully qualified names of the features to purge. At least one nonempty feature
+	// name is required. A request may contain at most 10000 features; submit
+	// additional features in separate requests. Duplicate features are rejected.
+	Features []string
+	// Source of the entity keys to purge.
+	Entities isPurgeFeatureEntitiesRequest_Entities
+	// Optional UUID4 idempotency token for the request.
+	RequestId *string
+}
+
+type isPurgeFeatureEntitiesRequest_Entities interface {
+	isPurgeFeatureEntitiesRequest_Entities()
+}
+
+// PurgeFeatureEntitiesRequest_Entities_EntitiesTable selects EntitiesTable for PurgeFeatureEntitiesRequest.Entities.
+// Fully qualified name of the Unity Catalog Delta table containing the entity
+// keys to purge. The table may contain a subset of each feature's entity-key
+// columns. A partial key match deletes all feature rows matching the provided
+// key values. Non-key columns are rejected; null key values are allowed.
+type PurgeFeatureEntitiesRequest_Entities_EntitiesTable struct {
+	EntitiesTable string
+}
+
+func (*PurgeFeatureEntitiesRequest_Entities_EntitiesTable) isPurgeFeatureEntitiesRequest_Entities() {}
+
+// Result of a completed feature entity purge..
+type PurgeFeatureEntitiesResponse struct {
+	// Metadata about the purge operation.
+	Metadata *PurgeFeatureEntitiesMetadata
+	// Per-feature purge results.
+	Results []PurgeFeatureEntitiesResult
+	// State of the purge operation.
+	State PurgeFeatureEntitiesMetadata_State
+}
+
+// Result of purging one feature..
+type PurgeFeatureEntitiesResult struct {
+	// Fully qualified name of the feature that was purged.
+	Feature *string
+	// State of the offline purge for this feature.
+	OfflineState PurgeFeatureEntitiesResult_State
+	// State of the online purge for this feature.
+	OnlineState PurgeFeatureEntitiesResult_State
+	// Error encountered while purging this feature, if any.
+	Error *ApiError
 }
 
 // A request-time data source whose value is provided at inference time: offline
