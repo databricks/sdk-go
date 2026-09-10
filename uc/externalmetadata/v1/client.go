@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -405,10 +406,9 @@ func (c *internalClient) UpdateExternalMetadataV2(ctx context.Context, req Updat
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lineage-tracking/external-metadata/")
 	if req.ExternalMetadata == nil || req.ExternalMetadata.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ExternalMetadata.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.ExternalMetadata.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

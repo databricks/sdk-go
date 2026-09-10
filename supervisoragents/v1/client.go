@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -98,10 +99,9 @@ func (c *internalClient) CreateExample(ctx context.Context, req CreateExampleReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/examples")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -245,10 +245,9 @@ func (c *internalClient) CreateTool(ctx context.Context, req CreateToolRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/tools")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -314,10 +313,9 @@ func (c *internalClient) DeleteExample(ctx context.Context, req DeleteExampleReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -369,10 +367,9 @@ func (c *internalClient) DeleteSupervisorAgent(ctx context.Context, req DeleteSu
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -424,10 +421,9 @@ func (c *internalClient) DeleteTool(ctx context.Context, req DeleteToolRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -479,10 +475,9 @@ func (c *internalClient) GetExample(ctx context.Context, req GetExampleRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -543,10 +538,9 @@ func (c *internalClient) GetSupervisorAgent(ctx context.Context, req GetSupervis
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -607,10 +601,9 @@ func (c *internalClient) GetTool(ctx context.Context, req GetToolRequest, opts .
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -675,10 +668,9 @@ func (c *internalClient) ListExamples(ctx context.Context, req ListExamplesReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/examples")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -899,10 +891,9 @@ func (c *internalClient) ListTools(ctx context.Context, req ListToolsRequest, op
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/tools")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1019,10 +1010,9 @@ func (c *internalClient) UpdateExample(ctx context.Context, req UpdateExampleReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

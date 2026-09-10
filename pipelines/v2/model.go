@@ -1571,8 +1571,8 @@ type ListPipelinesRequest struct {
 	// Page token returned by previous call
 	PageToken *string
 	// The maximum number of entries to return in a single page. The system may
-	// return fewer than max_results events in a response, even if there are more
-	// events available. This field is optional. The default value is 25. The
+	// return fewer than max_results pipelines in a response, even if there are more
+	// pipelines available. This field is optional. The default value is 25. The
 	// maximum value is 100. An error is returned if the value of max_results is
 	// greater than 100.
 	MaxResults *int
@@ -1592,9 +1592,9 @@ type ListPipelinesRequest struct {
 }
 
 type ListPipelinesResponse struct {
-	// The list of events matching the request criteria.
+	// The list of pipelines matching the request criteria.
 	Statuses []PipelineStateInfo
-	// If present, a token to fetch the next page of events.
+	// If present, a token to fetch the next page of pipelines.
 	NextPageToken *string
 }
 
@@ -2195,9 +2195,9 @@ type PipelinesAwsAttributes struct {
 	// the "us-east-1" region. This is an optional field at cluster creation, and if
 	// not specified, a default zone will be used. If the zone specified is "auto",
 	// will try to place cluster in a zone with high availability, and will retry
-	// placement in a different AZ if there is not enough capacity. See
-	// [[AutoAZHelper.scala]] for more details. The list of available zones as well
-	// as the default value can be found by using the `List Zones`_ method.
+	// placement in a different AZ if there is not enough capacity. The list of
+	// available zones as well as the default value can be found by using the `List
+	// Zones` method.
 	ZoneId *string
 	// Nodes for this cluster will only be placed on AWS instances with this
 	// instance profile. If omitted, nodes will be placed on instances without an
@@ -2205,9 +2205,6 @@ type PipelinesAwsAttributes struct {
 	// the <Databricks> environment by an account administrator.
 	//
 	// This feature may only be available to certain customer plans.
-	//
-	// ***internal If this field is ommitted, we will pull in the default from the
-	// conf if it exists.
 	InstanceProfileArn *string
 	// The bid price for AWS spot instances, as a percentage of the corresponding
 	// instance type's on-demand price. For example, if this field is set to 50, and
@@ -2218,10 +2215,6 @@ type PipelinesAwsAttributes struct {
 	// spot instances are requested for this cluster, only spot instances whose bid
 	// price percentage matches this field will be considered. Note that, for
 	// safety, we enforce this field to be no more than 10000.
-	//
-	// ***internal The default value and documentation here should be kept
-	// consistent with CommonConf.defaultSpotBidPricePercent and
-	// CommonConf.maxSpotBidPricePercent.
 	SpotBidPricePercent *int
 	// The type of EBS volumes that will be launched with this cluster.
 	EbsVolumeType PipelinesEbsVolumeType
@@ -2686,6 +2679,10 @@ type StartUpdateRequest struct {
 	// If true, this update only validates the correctness of pipeline source code
 	// but does not materialize or publish any datasets.
 	ValidateOnly *bool
+	// Whether the update is started in the development mode. This is recommended
+	// for interactive development and testing. Reuses compute for faster iteration
+	// and disables automatic retries. Not recommended for production.
+	Development *bool
 	// The information about the requested rewind operation. If specified this is a
 	// rewind mode update.
 	RewindSpec *RewindSpec

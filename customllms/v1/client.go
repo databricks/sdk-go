@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -97,10 +98,9 @@ func (c *internalClient) CancelCustomLlmOptimizationRun(ctx context.Context, req
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/custom-llms/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	pb.literal("/optimize/cancel")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -220,10 +220,9 @@ func (c *internalClient) DeleteCustomLlm(ctx context.Context, req DeleteCustomLl
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/custom-llms/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -275,10 +274,9 @@ func (c *internalClient) GetCustomLlm(ctx context.Context, req GetCustomLlmReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/custom-llms/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -347,10 +345,9 @@ func (c *internalClient) StartCustomLlmOptimizationRun(ctx context.Context, req 
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/custom-llms/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	pb.literal("/optimize")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}

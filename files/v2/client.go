@@ -789,10 +789,9 @@ func (c *internalClient) CreateDirectory(ctx context.Context, req CreateDirector
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/fs/directories")
 	if req.DirectoryPath == nil {
-		pb.multiSegments("")
-	} else {
-		pb.multiSegments(*req.DirectoryPath)
+		return nil, fmt.Errorf("path parameter %q is required", "directory_path")
 	}
+	pb.multiSegments(*req.DirectoryPath)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -851,10 +850,9 @@ func (c *internalClient) DeleteDirectory(ctx context.Context, req DeleteDirector
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/fs/directories")
 	if req.DirectoryPath == nil {
-		pb.multiSegments("")
-	} else {
-		pb.multiSegments(*req.DirectoryPath)
+		return nil, fmt.Errorf("path parameter %q is required", "directory_path")
 	}
+	pb.multiSegments(*req.DirectoryPath)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -909,10 +907,9 @@ func (c *internalClient) DeleteFile(ctx context.Context, req DeleteFileRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/fs/files")
 	if req.FilePath == nil {
-		pb.multiSegments("")
-	} else {
-		pb.multiSegments(*req.FilePath)
+		return nil, fmt.Errorf("path parameter %q is required", "file_path")
 	}
+	pb.multiSegments(*req.FilePath)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -976,10 +973,9 @@ func (c *internalClient) DownloadFile(ctx context.Context, req DownloadFileReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/fs/files")
 	if req.FilePath == nil {
-		pb.multiSegments("")
-	} else {
-		pb.multiSegments(*req.FilePath)
+		return nil, fmt.Errorf("path parameter %q is required", "file_path")
 	}
+	pb.multiSegments(*req.FilePath)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1058,10 +1054,9 @@ func (c *internalClient) GetDirectoryMetadata(ctx context.Context, req GetDirect
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/fs/directories")
 	if req.DirectoryPath == nil {
-		pb.multiSegments("")
-	} else {
-		pb.multiSegments(*req.DirectoryPath)
+		return nil, fmt.Errorf("path parameter %q is required", "directory_path")
 	}
+	pb.multiSegments(*req.DirectoryPath)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1123,10 +1118,9 @@ func (c *internalClient) GetFileMetadata(ctx context.Context, req GetFileMetadat
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/fs/files")
 	if req.FilePath == nil {
-		pb.multiSegments("")
-	} else {
-		pb.multiSegments(*req.FilePath)
+		return nil, fmt.Errorf("path parameter %q is required", "file_path")
 	}
+	pb.multiSegments(*req.FilePath)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1201,10 +1195,9 @@ func (c *internalClient) ListDirectoryContents(ctx context.Context, req ListDire
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/fs/directories")
 	if req.DirectoryPath == nil {
-		pb.multiSegments("")
-	} else {
-		pb.multiSegments(*req.DirectoryPath)
+		return nil, fmt.Errorf("path parameter %q is required", "directory_path")
 	}
+	pb.multiSegments(*req.DirectoryPath)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "page_size", wireReq.PageSize); err != nil {
@@ -1320,10 +1313,9 @@ func (c *internalClient) UploadFile(ctx context.Context, req UploadFileRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/fs/files")
 	if req.FilePath == nil {
-		pb.multiSegments("")
-	} else {
-		pb.multiSegments(*req.FilePath)
+		return nil, fmt.Errorf("path parameter %q is required", "file_path")
 	}
+	pb.multiSegments(*req.FilePath)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "overwrite", wireReq.Overwrite); err != nil {

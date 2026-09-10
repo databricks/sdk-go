@@ -161,10 +161,9 @@ func (c *internalClient) DownloadMessageAttachmentVisualization(ctx context.Cont
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/download-visualization")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -230,22 +229,19 @@ func (c *internalClient) GenieCancelResponse(ctx context.Context, req GenieCance
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/agents/")
 	if req.AgentId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.AgentId)
+		return nil, fmt.Errorf("path parameter %q is required", "agent_id")
 	}
+	pb.singleSegment(*req.AgentId)
 	pb.literal("/conversations/")
 	if req.ConversationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ConversationId)
+		return nil, fmt.Errorf("path parameter %q is required", "conversation_id")
 	}
+	pb.singleSegment(*req.ConversationId)
 	pb.literal("/responses/")
 	if req.ResponseId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ResponseId)
+		return nil, fmt.Errorf("path parameter %q is required", "response_id")
 	}
+	pb.singleSegment(*req.ResponseId)
 	pb.literal("/cancel")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -318,16 +314,14 @@ func (c *internalClient) genieCreateConversationMessageBase(ctx context.Context,
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/conversations/")
 	if req.ConversationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ConversationId)
+		return nil, fmt.Errorf("path parameter %q is required", "conversation_id")
 	}
+	pb.singleSegment(*req.ConversationId)
 	pb.literal("/messages")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -509,10 +503,9 @@ func (c *internalClient) GenieCreateEvalRun(ctx context.Context, req GenieCreate
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/eval-runs")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -583,22 +576,19 @@ func (c *internalClient) GenieCreateMessageComment(ctx context.Context, req Geni
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/conversations/")
 	if req.ConversationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ConversationId)
+		return nil, fmt.Errorf("path parameter %q is required", "conversation_id")
 	}
+	pb.singleSegment(*req.ConversationId)
 	pb.literal("/messages/")
 	if req.MessageId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MessageId)
+		return nil, fmt.Errorf("path parameter %q is required", "message_id")
 	}
+	pb.singleSegment(*req.MessageId)
 	pb.literal("/comments")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -661,16 +651,14 @@ func (c *internalClient) GenieDeleteConversation(ctx context.Context, req GenieD
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/conversations/")
 	if req.ConversationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ConversationId)
+		return fmt.Errorf("path parameter %q is required", "conversation_id")
 	}
+	pb.singleSegment(*req.ConversationId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -722,22 +710,19 @@ func (c *internalClient) GenieDeleteConversationMessage(ctx context.Context, req
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/conversations/")
 	if req.ConversationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ConversationId)
+		return fmt.Errorf("path parameter %q is required", "conversation_id")
 	}
+	pb.singleSegment(*req.ConversationId)
 	pb.literal("/messages/")
 	if req.MessageId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MessageId)
+		return fmt.Errorf("path parameter %q is required", "message_id")
 	}
+	pb.singleSegment(*req.MessageId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -798,28 +783,24 @@ func (c *internalClient) GenieExecuteMessageAttachmentQuery(ctx context.Context,
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/conversations/")
 	if req.ConversationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ConversationId)
+		return nil, fmt.Errorf("path parameter %q is required", "conversation_id")
 	}
+	pb.singleSegment(*req.ConversationId)
 	pb.literal("/messages/")
 	if req.MessageId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MessageId)
+		return nil, fmt.Errorf("path parameter %q is required", "message_id")
 	}
+	pb.singleSegment(*req.MessageId)
 	pb.literal("/attachments/")
 	if req.AttachmentId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.AttachmentId)
+		return nil, fmt.Errorf("path parameter %q is required", "attachment_id")
 	}
+	pb.singleSegment(*req.AttachmentId)
 	pb.literal("/execute-query")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -891,22 +872,19 @@ func (c *internalClient) GenieExecuteMessageQuery(ctx context.Context, req Genie
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/conversations/")
 	if req.ConversationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ConversationId)
+		return nil, fmt.Errorf("path parameter %q is required", "conversation_id")
 	}
+	pb.singleSegment(*req.ConversationId)
 	pb.literal("/messages/")
 	if req.MessageId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MessageId)
+		return nil, fmt.Errorf("path parameter %q is required", "message_id")
 	}
+	pb.singleSegment(*req.MessageId)
 	pb.literal("/execute-query")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -999,28 +977,24 @@ func (c *internalClient) GenieGenerateDownloadFullQueryResult(ctx context.Contex
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/conversations/")
 	if req.ConversationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ConversationId)
+		return nil, fmt.Errorf("path parameter %q is required", "conversation_id")
 	}
+	pb.singleSegment(*req.ConversationId)
 	pb.literal("/messages/")
 	if req.MessageId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MessageId)
+		return nil, fmt.Errorf("path parameter %q is required", "message_id")
 	}
+	pb.singleSegment(*req.MessageId)
 	pb.literal("/attachments/")
 	if req.AttachmentId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.AttachmentId)
+		return nil, fmt.Errorf("path parameter %q is required", "attachment_id")
 	}
+	pb.singleSegment(*req.AttachmentId)
 	pb.literal("/downloads")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1083,22 +1057,19 @@ func (c *internalClient) GenieGetConversationMessage(ctx context.Context, req Ge
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/conversations/")
 	if req.ConversationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ConversationId)
+		return nil, fmt.Errorf("path parameter %q is required", "conversation_id")
 	}
+	pb.singleSegment(*req.ConversationId)
 	pb.literal("/messages/")
 	if req.MessageId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MessageId)
+		return nil, fmt.Errorf("path parameter %q is required", "message_id")
 	}
+	pb.singleSegment(*req.MessageId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1186,34 +1157,29 @@ func (c *internalClient) GenieGetDownloadFullQueryResult(ctx context.Context, re
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/conversations/")
 	if req.ConversationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ConversationId)
+		return nil, fmt.Errorf("path parameter %q is required", "conversation_id")
 	}
+	pb.singleSegment(*req.ConversationId)
 	pb.literal("/messages/")
 	if req.MessageId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MessageId)
+		return nil, fmt.Errorf("path parameter %q is required", "message_id")
 	}
+	pb.singleSegment(*req.MessageId)
 	pb.literal("/attachments/")
 	if req.AttachmentId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.AttachmentId)
+		return nil, fmt.Errorf("path parameter %q is required", "attachment_id")
 	}
+	pb.singleSegment(*req.AttachmentId)
 	pb.literal("/downloads/")
 	if req.DownloadId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.DownloadId)
+		return nil, fmt.Errorf("path parameter %q is required", "download_id")
 	}
+	pb.singleSegment(*req.DownloadId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "download_id_signature", wireReq.DownloadIdSignature); err != nil {
@@ -1277,22 +1243,19 @@ func (c *internalClient) GenieGetEvalResultDetails(ctx context.Context, req Geni
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/eval-runs/")
 	if req.EvalRunId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.EvalRunId)
+		return nil, fmt.Errorf("path parameter %q is required", "eval_run_id")
 	}
+	pb.singleSegment(*req.EvalRunId)
 	pb.literal("/results/")
 	if req.ResultId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ResultId)
+		return nil, fmt.Errorf("path parameter %q is required", "result_id")
 	}
+	pb.singleSegment(*req.ResultId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1353,16 +1316,14 @@ func (c *internalClient) GenieGetEvalRun(ctx context.Context, req GenieGetEvalRu
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/eval-runs/")
 	if req.EvalRunId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.EvalRunId)
+		return nil, fmt.Errorf("path parameter %q is required", "eval_run_id")
 	}
+	pb.singleSegment(*req.EvalRunId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1425,28 +1386,24 @@ func (c *internalClient) GenieGetMessageAttachmentQueryResult(ctx context.Contex
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/conversations/")
 	if req.ConversationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ConversationId)
+		return nil, fmt.Errorf("path parameter %q is required", "conversation_id")
 	}
+	pb.singleSegment(*req.ConversationId)
 	pb.literal("/messages/")
 	if req.MessageId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MessageId)
+		return nil, fmt.Errorf("path parameter %q is required", "message_id")
 	}
+	pb.singleSegment(*req.MessageId)
 	pb.literal("/attachments/")
 	if req.AttachmentId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.AttachmentId)
+		return nil, fmt.Errorf("path parameter %q is required", "attachment_id")
 	}
+	pb.singleSegment(*req.AttachmentId)
 	pb.literal("/query-result")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1509,22 +1466,19 @@ func (c *internalClient) GenieGetMessageQueryResult(ctx context.Context, req Gen
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/conversations/")
 	if req.ConversationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ConversationId)
+		return nil, fmt.Errorf("path parameter %q is required", "conversation_id")
 	}
+	pb.singleSegment(*req.ConversationId)
 	pb.literal("/messages/")
 	if req.MessageId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MessageId)
+		return nil, fmt.Errorf("path parameter %q is required", "message_id")
 	}
+	pb.singleSegment(*req.MessageId)
 	pb.literal("/query-result")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1587,28 +1541,24 @@ func (c *internalClient) GenieGetQueryResultByAttachment(ctx context.Context, re
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/conversations/")
 	if req.ConversationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ConversationId)
+		return nil, fmt.Errorf("path parameter %q is required", "conversation_id")
 	}
+	pb.singleSegment(*req.ConversationId)
 	pb.literal("/messages/")
 	if req.MessageId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MessageId)
+		return nil, fmt.Errorf("path parameter %q is required", "message_id")
 	}
+	pb.singleSegment(*req.MessageId)
 	pb.literal("/query-result/")
 	if req.AttachmentId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.AttachmentId)
+		return nil, fmt.Errorf("path parameter %q is required", "attachment_id")
 	}
+	pb.singleSegment(*req.AttachmentId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1673,10 +1623,9 @@ func (c *internalClient) GenieGetSpace(ctx context.Context, req GenieGetSpaceReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_serialized_space", wireReq.IncludeSerializedSpace); err != nil {
@@ -1744,16 +1693,14 @@ func (c *internalClient) GenieListConversationComments(ctx context.Context, req 
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/conversations/")
 	if req.ConversationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ConversationId)
+		return nil, fmt.Errorf("path parameter %q is required", "conversation_id")
 	}
+	pb.singleSegment(*req.ConversationId)
 	pb.literal("/list-comments")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1825,16 +1772,14 @@ func (c *internalClient) GenieListConversationMessages(ctx context.Context, req 
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/conversations/")
 	if req.ConversationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ConversationId)
+		return nil, fmt.Errorf("path parameter %q is required", "conversation_id")
 	}
+	pb.singleSegment(*req.ConversationId)
 	pb.literal("/messages")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1906,10 +1851,9 @@ func (c *internalClient) GenieListConversations(ctx context.Context, req GenieLi
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/conversations")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1984,16 +1928,14 @@ func (c *internalClient) GenieListEvalResults(ctx context.Context, req GenieList
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/eval-runs/")
 	if req.EvalRunId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.EvalRunId)
+		return nil, fmt.Errorf("path parameter %q is required", "eval_run_id")
 	}
+	pb.singleSegment(*req.EvalRunId)
 	pb.literal("/results")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -2065,10 +2007,9 @@ func (c *internalClient) GenieListEvalRuns(ctx context.Context, req GenieListEva
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/eval-runs")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -2140,22 +2081,19 @@ func (c *internalClient) GenieListMessageComments(ctx context.Context, req Genie
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/conversations/")
 	if req.ConversationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ConversationId)
+		return nil, fmt.Errorf("path parameter %q is required", "conversation_id")
 	}
+	pb.singleSegment(*req.ConversationId)
 	pb.literal("/messages/")
 	if req.MessageId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MessageId)
+		return nil, fmt.Errorf("path parameter %q is required", "message_id")
 	}
+	pb.singleSegment(*req.MessageId)
 	pb.literal("/comments")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -2298,22 +2236,19 @@ func (c *internalClient) GenieSendMessageFeedback(ctx context.Context, req Genie
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/conversations/")
 	if req.ConversationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ConversationId)
+		return fmt.Errorf("path parameter %q is required", "conversation_id")
 	}
+	pb.singleSegment(*req.ConversationId)
 	pb.literal("/messages/")
 	if req.MessageId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MessageId)
+		return fmt.Errorf("path parameter %q is required", "message_id")
 	}
+	pb.singleSegment(*req.MessageId)
 	pb.literal("/feedback")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -2375,10 +2310,9 @@ func (c *internalClient) genieStartConversationBase(ctx context.Context, req Gen
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	pb.literal("/start-conversation")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -2549,10 +2483,9 @@ func (c *internalClient) GenieTrashSpace(ctx context.Context, req GenieTrashSpac
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2612,10 +2545,9 @@ func (c *internalClient) UpdateSpace(ctx context.Context, req GenieUpdateSpaceRe
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/genie/spaces/")
 	if req.SpaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SpaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "space_id")
 	}
+	pb.singleSegment(*req.SpaceId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

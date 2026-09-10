@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -165,10 +166,9 @@ func (c *internalClient) DeleteTagPolicy(ctx context.Context, req DeleteTagPolic
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/tag-policies/")
 	if req.TagKey == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.TagKey)
+		return fmt.Errorf("path parameter %q is required", "tag_key")
 	}
+	pb.singleSegment(*req.TagKey)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -225,10 +225,9 @@ func (c *internalClient) GetTagPolicy(ctx context.Context, req GetTagPolicyReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/tag-policies/")
 	if req.TagKey == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.TagKey)
+		return nil, fmt.Errorf("path parameter %q is required", "tag_key")
 	}
+	pb.singleSegment(*req.TagKey)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -415,10 +414,9 @@ func (c *internalClient) UpdateTagPolicy(ctx context.Context, req UpdateTagPolic
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/tag-policies/")
 	if req.TagPolicy == nil || req.TagPolicy.TagKey == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.TagPolicy.TagKey)
+		return nil, fmt.Errorf("path parameter %q is required", "tag_key")
 	}
+	pb.singleSegment(*req.TagPolicy.TagKey)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

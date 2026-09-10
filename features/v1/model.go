@@ -962,11 +962,20 @@ type DataSource_DataSource_StreamSource struct {
 
 func (*DataSource_DataSource_StreamSource) isDataSource_DataSource() {}
 
+// DataSource_DataSource_FeatureViewSource selects FeatureViewSource for DataSource.DataSource.
+// A data source composed from registered upstream Features.
+type DataSource_DataSource_FeatureViewSource struct {
+	FeatureViewSource FeatureViewSource `fieldmask:"feature_view_source"`
+}
+
+func (*DataSource_DataSource_FeatureViewSource) isDataSource_DataSource() {}
+
 type dataSourceDataSourceFieldMaskMetadata struct {
 	*DataSource_DataSource_DeltaTableSource
 	*DataSource_DataSource_KafkaSource
 	*DataSource_DataSource_RequestSource
 	*DataSource_DataSource_StreamSource
+	*DataSource_DataSource_FeatureViewSource
 }
 
 type DeleteFeatureRequest struct {
@@ -1084,6 +1093,20 @@ type Feature struct {
 	CreatedAt *types.Time `fieldmask:"created_at"`
 	// Username of the feature creator.
 	CreatedBy *string `fieldmask:"created_by"`
+}
+
+// A reference to one registered upstream Feature. A message rather than a bare
+// name so an upstream can later be pinned more precisely (e.g. by version)
+// without a breaking type change..
+type FeatureReference struct {
+	// The three-part full name of the upstream Feature.
+	Feature *string
+}
+
+// A data source composed from registered upstream Features..
+type FeatureViewSource struct {
+	// The upstream Features this source reads. Must include at least one feature.
+	FeatureReferences []FeatureReference `fieldmask:"feature_references"`
 }
 
 // A single field definition within a FlatSchema, specifying the field name and
@@ -1850,6 +1873,9 @@ type PurgeFeatureEntitiesResponse struct {
 	Results []PurgeFeatureEntitiesResult
 	// State of the purge operation.
 	State PurgeFeatureEntitiesMetadata_State
+	// Operation-level error, if the purge failed outside an individual feature
+	// target.
+	Error *ApiError
 }
 
 // Result of purging one feature..

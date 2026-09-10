@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -180,10 +181,9 @@ func (c *internalClient) CreateServicePrincipalFederationPolicy(ctx context.Cont
 	pb.singleSegment(accountID)
 	pb.literal("/servicePrincipals/")
 	if req.ServicePrincipalId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ServicePrincipalId)
+		return nil, fmt.Errorf("path parameter %q is required", "service_principal_id")
 	}
+	pb.singleSegment(*req.ServicePrincipalId)
 	pb.literal("/federationPolicies")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -257,10 +257,9 @@ func (c *internalClient) DeleteAccountFederationPolicy(ctx context.Context, req 
 	pb.singleSegment(accountID)
 	pb.literal("/federationPolicies/")
 	if req.PolicyId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.PolicyId)
+		return fmt.Errorf("path parameter %q is required", "policy_id")
 	}
+	pb.singleSegment(*req.PolicyId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "service_principal_id", wireReq.ServicePrincipalId); err != nil {
@@ -319,16 +318,14 @@ func (c *internalClient) DeleteServicePrincipalFederationPolicy(ctx context.Cont
 	pb.singleSegment(accountID)
 	pb.literal("/servicePrincipals/")
 	if req.ServicePrincipalId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ServicePrincipalId)
+		return fmt.Errorf("path parameter %q is required", "service_principal_id")
 	}
+	pb.singleSegment(*req.ServicePrincipalId)
 	pb.literal("/federationPolicies/")
 	if req.PolicyId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.PolicyId)
+		return fmt.Errorf("path parameter %q is required", "policy_id")
 	}
+	pb.singleSegment(*req.PolicyId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -388,10 +385,9 @@ func (c *internalClient) GetAccountFederationPolicy(ctx context.Context, req Get
 	pb.singleSegment(accountID)
 	pb.literal("/federationPolicies/")
 	if req.PolicyId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.PolicyId)
+		return nil, fmt.Errorf("path parameter %q is required", "policy_id")
 	}
+	pb.singleSegment(*req.PolicyId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "service_principal_id", wireReq.ServicePrincipalId); err != nil {
@@ -459,16 +455,14 @@ func (c *internalClient) GetServicePrincipalFederationPolicy(ctx context.Context
 	pb.singleSegment(accountID)
 	pb.literal("/servicePrincipals/")
 	if req.ServicePrincipalId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ServicePrincipalId)
+		return nil, fmt.Errorf("path parameter %q is required", "service_principal_id")
 	}
+	pb.singleSegment(*req.ServicePrincipalId)
 	pb.literal("/federationPolicies/")
 	if req.PolicyId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.PolicyId)
+		return nil, fmt.Errorf("path parameter %q is required", "policy_id")
 	}
+	pb.singleSegment(*req.PolicyId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -654,10 +648,9 @@ func (c *internalClient) ListServicePrincipalFederationPolicies(ctx context.Cont
 	pb.singleSegment(accountID)
 	pb.literal("/servicePrincipals/")
 	if req.ServicePrincipalId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ServicePrincipalId)
+		return nil, fmt.Errorf("path parameter %q is required", "service_principal_id")
 	}
+	pb.singleSegment(*req.ServicePrincipalId)
 	pb.literal("/federationPolicies")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -778,10 +771,9 @@ func (c *internalClient) UpdateAccountFederationPolicy(ctx context.Context, req 
 	pb.singleSegment(accountID)
 	pb.literal("/federationPolicies/")
 	if req.PolicyId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.PolicyId)
+		return nil, fmt.Errorf("path parameter %q is required", "policy_id")
 	}
+	pb.singleSegment(*req.PolicyId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "service_principal_id", wireReq.ServicePrincipalId); err != nil {
@@ -861,16 +853,14 @@ func (c *internalClient) UpdateServicePrincipalFederationPolicy(ctx context.Cont
 	pb.singleSegment(accountID)
 	pb.literal("/servicePrincipals/")
 	if req.ServicePrincipalId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ServicePrincipalId)
+		return nil, fmt.Errorf("path parameter %q is required", "service_principal_id")
 	}
+	pb.singleSegment(*req.ServicePrincipalId)
 	pb.literal("/federationPolicies/")
 	if req.PolicyId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.PolicyId)
+		return nil, fmt.Errorf("path parameter %q is required", "policy_id")
 	}
+	pb.singleSegment(*req.PolicyId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

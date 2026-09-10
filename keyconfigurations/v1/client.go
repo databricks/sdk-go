@@ -193,10 +193,9 @@ func (c *internalClient) DeleteCustomerManagedKeyPublic(ctx context.Context, req
 	pb.singleSegment(accountID)
 	pb.literal("/customer-managed-keys/")
 	if req.CustomerManagedKeyId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.CustomerManagedKeyId)
+		return nil, fmt.Errorf("path parameter %q is required", "customer_managed_key_id")
 	}
+	pb.singleSegment(*req.CustomerManagedKeyId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -275,10 +274,9 @@ func (c *internalClient) GetCustomerManagedKeyPublic(ctx context.Context, req Ge
 	pb.singleSegment(accountID)
 	pb.literal("/customer-managed-keys/")
 	if req.CustomerManagedKeyId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.CustomerManagedKeyId)
+		return nil, fmt.Errorf("path parameter %q is required", "customer_managed_key_id")
 	}
+	pb.singleSegment(*req.CustomerManagedKeyId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

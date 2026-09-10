@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -167,10 +168,9 @@ func (c *internalClient) DeleteAccountGroup(ctx context.Context, req DeleteAccou
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/Groups/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -226,10 +226,9 @@ func (c *internalClient) GetAccountGroup(ctx context.Context, req GetAccountGrou
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/Groups/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -442,10 +441,9 @@ func (c *internalClient) PatchAccountGroup(ctx context.Context, req PatchAccount
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/Groups/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -642,10 +640,9 @@ func (c *internalClient) DeleteAccountServicePrincipal(ctx context.Context, req 
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/ServicePrincipals/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -702,10 +699,9 @@ func (c *internalClient) GetAccountServicePrincipal(ctx context.Context, req Get
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/ServicePrincipals/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -915,10 +911,9 @@ func (c *internalClient) PatchAccountServicePrincipal(ctx context.Context, req P
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/ServicePrincipals/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1119,10 +1114,9 @@ func (c *internalClient) DeleteAccountUser(ctx context.Context, req DeleteAccoun
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/Users/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1182,10 +1176,9 @@ func (c *internalClient) GetAccountUser(ctx context.Context, req GetAccountUserR
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/Users/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "attributes", wireReq.Attributes); err != nil {
@@ -1419,10 +1412,9 @@ func (c *internalClient) PatchAccountUser(ctx context.Context, req PatchAccountU
 	pb.singleSegment(accountID)
 	pb.literal("/scim/v2/Users/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1679,10 +1671,9 @@ func (c *internalClient) DeleteGroup(ctx context.Context, req DeleteGroupRequest
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/Groups/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1734,10 +1725,9 @@ func (c *internalClient) GetGroup(ctx context.Context, req GetGroupRequest, opts
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/Groups/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1936,10 +1926,9 @@ func (c *internalClient) PatchGroup(ctx context.Context, req PatchGroupRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/Groups/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2122,10 +2111,9 @@ func (c *internalClient) DeleteServicePrincipal(ctx context.Context, req DeleteS
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/ServicePrincipals/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2178,10 +2166,9 @@ func (c *internalClient) GetServicePrincipal(ctx context.Context, req GetService
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/ServicePrincipals/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2381,10 +2368,9 @@ func (c *internalClient) PatchServicePrincipal(ctx context.Context, req PatchSer
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/ServicePrincipals/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2571,10 +2557,9 @@ func (c *internalClient) DeleteUser(ctx context.Context, req DeleteUserRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/Users/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2745,10 +2730,9 @@ func (c *internalClient) GetUser(ctx context.Context, req GetUserRequest, opts .
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/Users/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "attributes", wireReq.Attributes); err != nil {
@@ -2972,10 +2956,9 @@ func (c *internalClient) PatchUser(ctx context.Context, req PatchUserRequest, op
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/preview/scim/v2/Users/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

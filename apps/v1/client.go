@@ -954,10 +954,9 @@ func (c *internalClient) DeleteCustomTemplate(ctx context.Context, req DeleteCus
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/apps-settings/templates/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1018,10 +1017,9 @@ func (c *internalClient) deleteSpaceBase(ctx context.Context, req DeleteSpaceReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/app-spaces/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1372,10 +1370,9 @@ func (c *internalClient) GetCustomTemplate(ctx context.Context, req GetCustomTem
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/apps-settings/templates/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2350,10 +2347,9 @@ func (c *internalClient) UpdateApp(ctx context.Context, req UpdateAppRequest, op
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/apps/")
 	if req.App == nil || req.App.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.App.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.App.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2498,10 +2494,9 @@ func (c *internalClient) UpdateCustomTemplate(ctx context.Context, req UpdateCus
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/apps-settings/templates/")
 	if req.Template == nil || req.Template.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Template.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Template.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2572,10 +2567,9 @@ func (c *internalClient) updateSpaceBase(ctx context.Context, req UpdateSpaceReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/app-spaces/")
 	if req.Space == nil || req.Space.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Space.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Space.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -165,10 +166,9 @@ func (c *internalClient) DeleteBudgetConfiguration(ctx context.Context, req Dele
 	pb.singleSegment(accountID)
 	pb.literal("/budgets/")
 	if req.BudgetId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.BudgetId)
+		return nil, fmt.Errorf("path parameter %q is required", "budget_id")
 	}
+	pb.singleSegment(*req.BudgetId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -228,10 +228,9 @@ func (c *internalClient) GetBudgetConfiguration(ctx context.Context, req GetBudg
 	pb.singleSegment(accountID)
 	pb.literal("/budgets/")
 	if req.BudgetId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.BudgetId)
+		return nil, fmt.Errorf("path parameter %q is required", "budget_id")
 	}
+	pb.singleSegment(*req.BudgetId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -413,10 +412,9 @@ func (c *internalClient) UpdateBudgetConfiguration(ctx context.Context, req Upda
 	pb.singleSegment(accountID)
 	pb.literal("/budgets/")
 	if req.BudgetId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.BudgetId)
+		return nil, fmt.Errorf("path parameter %q is required", "budget_id")
 	}
+	pb.singleSegment(*req.BudgetId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

@@ -331,10 +331,9 @@ func (c *internalClient) DeleteWorkspacePublic(ctx context.Context, req DeleteWo
 	pb.singleSegment(accountID)
 	pb.literal("/workspaces/")
 	if req.WorkspaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.WorkspaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "workspace_id")
 	}
+	pb.singleSegment(*req.WorkspaceId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -407,10 +406,9 @@ func (c *internalClient) GetWorkspacePublic(ctx context.Context, req GetWorkspac
 	pb.singleSegment(accountID)
 	pb.literal("/workspaces/")
 	if req.WorkspaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.WorkspaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "workspace_id")
 	}
+	pb.singleSegment(*req.WorkspaceId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

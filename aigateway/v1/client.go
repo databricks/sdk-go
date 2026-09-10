@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -343,10 +344,9 @@ func (c *internalClient) DeleteMcpService(ctx context.Context, req DeleteMcpServ
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "etag", wireReq.Etag); err != nil {
@@ -411,10 +411,9 @@ func (c *internalClient) DeleteModelProviderService(ctx context.Context, req Del
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "etag", wireReq.Etag); err != nil {
@@ -478,10 +477,9 @@ func (c *internalClient) DeleteModelService(ctx context.Context, req DeleteModel
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "etag", wireReq.Etag); err != nil {
@@ -540,10 +538,9 @@ func (c *internalClient) GetMcpService(ctx context.Context, req GetMcpServiceReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -608,10 +605,9 @@ func (c *internalClient) GetModelProviderService(ctx context.Context, req GetMod
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -676,10 +672,9 @@ func (c *internalClient) GetModelService(ctx context.Context, req GetModelServic
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -91,16 +92,14 @@ func (c *internalClient) DisableSystemSchema(ctx context.Context, req DisableSys
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/metastores/")
 	if req.MetastoreId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MetastoreId)
+		return nil, fmt.Errorf("path parameter %q is required", "metastore_id")
 	}
+	pb.singleSegment(*req.MetastoreId)
 	pb.literal("/systemschemas/")
 	if req.Schema == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Schema)
+		return nil, fmt.Errorf("path parameter %q is required", "schema")
 	}
+	pb.singleSegment(*req.Schema)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -164,16 +163,14 @@ func (c *internalClient) EnableSystemSchema(ctx context.Context, req EnableSyste
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/metastores/")
 	if req.MetastoreId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MetastoreId)
+		return nil, fmt.Errorf("path parameter %q is required", "metastore_id")
 	}
+	pb.singleSegment(*req.MetastoreId)
 	pb.literal("/systemschemas/")
 	if req.Schema == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Schema)
+		return nil, fmt.Errorf("path parameter %q is required", "schema")
 	}
+	pb.singleSegment(*req.Schema)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -242,10 +239,9 @@ func (c *internalClient) ListSystemSchemas(ctx context.Context, req ListSystemSc
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/metastores/")
 	if req.MetastoreId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MetastoreId)
+		return nil, fmt.Errorf("path parameter %q is required", "metastore_id")
 	}
+	pb.singleSegment(*req.MetastoreId)
 	pb.literal("/systemschemas")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}

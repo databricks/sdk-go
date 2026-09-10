@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -393,16 +394,14 @@ func (c *internalClient) DeleteFederationPolicy(ctx context.Context, req DeleteF
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/data-sharing/recipients/")
 	if req.RecipientName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.RecipientName)
+		return fmt.Errorf("path parameter %q is required", "recipient_name")
 	}
+	pb.singleSegment(*req.RecipientName)
 	pb.literal("/federation-policies/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -455,10 +454,9 @@ func (c *internalClient) DeleteProvider(ctx context.Context, req DeleteProviderR
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/providers/")
 	if req.NameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "name_arg")
 	}
+	pb.singleSegment(*req.NameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -514,10 +512,9 @@ func (c *internalClient) DeleteRecipient(ctx context.Context, req DeleteRecipien
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/recipients/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -573,10 +570,9 @@ func (c *internalClient) DeleteShare(ctx context.Context, req DeleteShareRequest
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/shares/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -631,10 +627,9 @@ func (c *internalClient) GetActivationUrlInfo(ctx context.Context, req GetActiva
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/public/data_sharing_activation_info/")
 	if req.ActivationUrl == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ActivationUrl)
+		return nil, fmt.Errorf("path parameter %q is required", "activation_url")
 	}
+	pb.singleSegment(*req.ActivationUrl)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -691,16 +686,14 @@ func (c *internalClient) GetFederationPolicy(ctx context.Context, req GetFederat
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/data-sharing/recipients/")
 	if req.RecipientName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.RecipientName)
+		return nil, fmt.Errorf("path parameter %q is required", "recipient_name")
 	}
+	pb.singleSegment(*req.RecipientName)
 	pb.literal("/federation-policies/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -763,10 +756,9 @@ func (c *internalClient) GetProvider(ctx context.Context, req GetProviderRequest
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/providers/")
 	if req.NameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "name_arg")
 	}
+	pb.singleSegment(*req.NameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -829,10 +821,9 @@ func (c *internalClient) GetRecipient(ctx context.Context, req GetRecipientReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/recipients/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -898,10 +889,9 @@ func (c *internalClient) GetShare(ctx context.Context, req GetShareRequest, opts
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/shares/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_shared_data", wireReq.IncludeSharedData); err != nil {
@@ -971,10 +961,9 @@ func (c *internalClient) ListFederationPolicies(ctx context.Context, req ListFed
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/data-sharing/recipients/")
 	if req.RecipientName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.RecipientName)
+		return nil, fmt.Errorf("path parameter %q is required", "recipient_name")
 	}
+	pb.singleSegment(*req.RecipientName)
 	pb.literal("/federation-policies")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1088,16 +1077,14 @@ func (c *internalClient) ListProviderShareAssets(ctx context.Context, req ListPr
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/data-sharing/providers/")
 	if req.ProviderNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ProviderNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "provider_name_arg")
 	}
+	pb.singleSegment(*req.ProviderNameArg)
 	pb.literal("/shares/")
 	if req.ShareNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ShareNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "share_name_arg")
 	}
+	pb.singleSegment(*req.ShareNameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "table_max_results", wireReq.TableMaxResults); err != nil {
@@ -1175,10 +1162,9 @@ func (c *internalClient) ListProviderShares(ctx context.Context, req ListProvide
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/providers/")
 	if req.ProviderNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ProviderNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "provider_name_arg")
 	}
+	pb.singleSegment(*req.ProviderNameArg)
 	pb.literal("/shares")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1409,10 +1395,9 @@ func (c *internalClient) ListRecipientSharePermissions(ctx context.Context, req 
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/recipients/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/share-permissions")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1598,10 +1583,9 @@ func (c *internalClient) ListSharePermissions(ctx context.Context, req ListShare
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/shares/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/permissions")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1781,10 +1765,9 @@ func (c *internalClient) RetrieveAccessToken(ctx context.Context, req RetrieveTo
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/public/data_sharing_activation/")
 	if req.ActivationUrl == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ActivationUrl)
+		return nil, fmt.Errorf("path parameter %q is required", "activation_url")
 	}
+	pb.singleSegment(*req.ActivationUrl)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1854,10 +1837,9 @@ func (c *internalClient) RotateRecipientToken(ctx context.Context, req RotateRec
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/recipients/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/rotate-token")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1931,10 +1913,9 @@ func (c *internalClient) UpdateProvider(ctx context.Context, req UpdateProviderR
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/providers/")
 	if req.NameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "name_arg")
 	}
+	pb.singleSegment(*req.NameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2007,10 +1988,9 @@ func (c *internalClient) UpdateRecipient(ctx context.Context, req UpdateRecipien
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/recipients/")
 	if req.NameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "name_arg")
 	}
+	pb.singleSegment(*req.NameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2091,10 +2071,9 @@ func (c *internalClient) UpdateShare(ctx context.Context, req UpdateShareRequest
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/shares/")
 	if req.NameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "name_arg")
 	}
+	pb.singleSegment(*req.NameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2169,10 +2148,9 @@ func (c *internalClient) UpdateSharePermissions(ctx context.Context, req UpdateS
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/shares/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/permissions")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}

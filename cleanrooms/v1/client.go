@@ -344,18 +344,16 @@ func (c *internalClient) CreateCleanRoomAssetReview(ctx context.Context, req Cre
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
 	if req.CleanRoomName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.CleanRoomName)
+		return nil, fmt.Errorf("path parameter %q is required", "clean_room_name")
 	}
+	pb.singleSegment(*req.CleanRoomName)
 	pb.literal("/assets/")
 	pb.singleSegment(req.AssetType)
 	pb.literal("/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/reviews")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -500,10 +498,9 @@ func (c *internalClient) CreateCleanRoomOutputCatalog(ctx context.Context, req C
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
 	if req.CleanRoomName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.CleanRoomName)
+		return nil, fmt.Errorf("path parameter %q is required", "clean_room_name")
 	}
+	pb.singleSegment(*req.CleanRoomName)
 	pb.literal("/output-catalogs")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -569,10 +566,9 @@ func (c *internalClient) DeleteCleanRoom(ctx context.Context, req DeleteCleanRoo
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -624,18 +620,16 @@ func (c *internalClient) DeleteCleanRoomAsset(ctx context.Context, req DeleteCle
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
 	if req.CleanRoomName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.CleanRoomName)
+		return nil, fmt.Errorf("path parameter %q is required", "clean_room_name")
 	}
+	pb.singleSegment(*req.CleanRoomName)
 	pb.literal("/assets/")
 	pb.singleSegment(req.AssetType)
 	pb.literal("/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -690,16 +684,14 @@ func (c *internalClient) DeleteCleanRoomAutoApprovalRule(ctx context.Context, re
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
 	if req.CleanRoomName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.CleanRoomName)
+		return fmt.Errorf("path parameter %q is required", "clean_room_name")
 	}
+	pb.singleSegment(*req.CleanRoomName)
 	pb.literal("/auto-approval-rules/")
 	if req.RuleId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.RuleId)
+		return fmt.Errorf("path parameter %q is required", "rule_id")
 	}
+	pb.singleSegment(*req.RuleId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -751,10 +743,9 @@ func (c *internalClient) GetCleanRoom(ctx context.Context, req GetCleanRoomReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -815,18 +806,16 @@ func (c *internalClient) GetCleanRoomAsset(ctx context.Context, req GetCleanRoom
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
 	if req.CleanRoomName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.CleanRoomName)
+		return nil, fmt.Errorf("path parameter %q is required", "clean_room_name")
 	}
+	pb.singleSegment(*req.CleanRoomName)
 	pb.literal("/assets/")
 	pb.singleSegment(req.AssetType)
 	pb.literal("/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -887,18 +876,16 @@ func (c *internalClient) GetCleanRoomAssetRevision(ctx context.Context, req GetC
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
 	if req.CleanRoomName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.CleanRoomName)
+		return nil, fmt.Errorf("path parameter %q is required", "clean_room_name")
 	}
+	pb.singleSegment(*req.CleanRoomName)
 	pb.literal("/assets/")
 	pb.singleSegment(req.AssetType)
 	pb.literal("/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/revisions/")
 	if req.Etag == nil {
 		pb.singleSegment("")
@@ -965,16 +952,14 @@ func (c *internalClient) GetCleanRoomAutoApprovalRule(ctx context.Context, req G
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
 	if req.CleanRoomName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.CleanRoomName)
+		return nil, fmt.Errorf("path parameter %q is required", "clean_room_name")
 	}
+	pb.singleSegment(*req.CleanRoomName)
 	pb.literal("/auto-approval-rules/")
 	if req.RuleId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.RuleId)
+		return nil, fmt.Errorf("path parameter %q is required", "rule_id")
 	}
+	pb.singleSegment(*req.RuleId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1039,18 +1024,16 @@ func (c *internalClient) ListCleanRoomAssetRevisions(ctx context.Context, req Li
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
 	if req.CleanRoomName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.CleanRoomName)
+		return nil, fmt.Errorf("path parameter %q is required", "clean_room_name")
 	}
+	pb.singleSegment(*req.CleanRoomName)
 	pb.literal("/assets/")
 	pb.singleSegment(req.AssetType)
 	pb.literal("/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/revisions")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1163,10 +1146,9 @@ func (c *internalClient) ListCleanRoomAssets(ctx context.Context, req ListCleanR
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
 	if req.CleanRoomName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.CleanRoomName)
+		return nil, fmt.Errorf("path parameter %q is required", "clean_room_name")
 	}
+	pb.singleSegment(*req.CleanRoomName)
 	pb.literal("/assets")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1276,10 +1258,9 @@ func (c *internalClient) ListCleanRoomAutoApprovalRules(ctx context.Context, req
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
 	if req.CleanRoomName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.CleanRoomName)
+		return nil, fmt.Errorf("path parameter %q is required", "clean_room_name")
 	}
+	pb.singleSegment(*req.CleanRoomName)
 	pb.literal("/auto-approval-rules")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1392,10 +1373,9 @@ func (c *internalClient) ListCleanRoomNotebookTaskRuns(ctx context.Context, req 
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
 	if req.CleanRoomName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.CleanRoomName)
+		return nil, fmt.Errorf("path parameter %q is required", "clean_room_name")
 	}
+	pb.singleSegment(*req.CleanRoomName)
 	pb.literal("/runs")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1511,10 +1491,9 @@ func (c *internalClient) ListCleanRoomTaskRunsHandler(ctx context.Context, req L
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
 	if req.CleanRoomName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.CleanRoomName)
+		return nil, fmt.Errorf("path parameter %q is required", "clean_room_name")
 	}
+	pb.singleSegment(*req.CleanRoomName)
 	pb.literal("/task-runs")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1752,10 +1731,9 @@ func (c *internalClient) UpdateCleanRoom(ctx context.Context, req UpdateCleanRoo
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/clean-rooms/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1832,16 +1810,14 @@ func (c *internalClient) UpdateCleanRoomAsset(ctx context.Context, req UpdateCle
 	}
 	pb.literal("/assets/")
 	if req.Asset == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(req.Asset.AssetType)
+		return nil, fmt.Errorf("path parameter %q is required", "asset_type")
 	}
+	pb.singleSegment(req.Asset.AssetType)
 	pb.literal("/")
 	if req.Asset == nil || req.Asset.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Asset.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Asset.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

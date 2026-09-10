@@ -316,10 +316,9 @@ func (c *internalClient) DeleteDefaultWarehouseOverride(ctx context.Context, req
 	pb := pathBuilder{}
 	pb.literal("/api/warehouses/v1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -371,10 +370,9 @@ func (c *internalClient) DeleteWarehouse(ctx context.Context, req DeleteWarehous
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/warehouses/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -437,10 +435,9 @@ func (c *internalClient) editWarehouseBase(ctx context.Context, req EditWarehous
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/warehouses/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	pb.literal("/edit")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -586,10 +583,9 @@ func (c *internalClient) GetDefaultWarehouseOverride(ctx context.Context, req Ge
 	pb := pathBuilder{}
 	pb.literal("/api/warehouses/v1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -650,10 +646,9 @@ func (c *internalClient) GetWarehouse(ctx context.Context, req GetWarehouseReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/warehouses/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1061,10 +1056,9 @@ func (c *internalClient) startWarehouseBase(ctx context.Context, req StartReques
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/warehouses/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	pb.literal("/start")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1216,10 +1210,9 @@ func (c *internalClient) stopWarehouseBase(ctx context.Context, req StopRequest,
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/warehouses/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	pb.literal("/stop")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}

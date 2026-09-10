@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -360,10 +361,9 @@ func (c *internalClient) DeleteLoggedModel(ctx context.Context, req DeleteLogged
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/mlflow/logged-models/")
 	if req.ModelId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ModelId)
+		return nil, fmt.Errorf("path parameter %q is required", "model_id")
 	}
+	pb.singleSegment(*req.ModelId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -418,16 +418,14 @@ func (c *internalClient) DeleteLoggedModelTag(ctx context.Context, req DeleteLog
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/mlflow/logged-models/")
 	if req.ModelId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ModelId)
+		return nil, fmt.Errorf("path parameter %q is required", "model_id")
 	}
+	pb.singleSegment(*req.ModelId)
 	pb.literal("/tags/")
 	if req.TagKey == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.TagKey)
+		return nil, fmt.Errorf("path parameter %q is required", "tag_key")
 	}
+	pb.singleSegment(*req.TagKey)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -679,10 +677,9 @@ func (c *internalClient) FinalizeLoggedModel(ctx context.Context, req FinalizeLo
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/mlflow/logged-models/")
 	if req.ModelId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ModelId)
+		return nil, fmt.Errorf("path parameter %q is required", "model_id")
 	}
+	pb.singleSegment(*req.ModelId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -880,10 +877,9 @@ func (c *internalClient) GetLoggedModel(ctx context.Context, req GetLoggedModelR
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/mlflow/logged-models/")
 	if req.ModelId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ModelId)
+		return nil, fmt.Errorf("path parameter %q is required", "model_id")
 	}
+	pb.singleSegment(*req.ModelId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1538,10 +1534,9 @@ func (c *internalClient) LogLoggedModelParams(ctx context.Context, req LogLogged
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/mlflow/logged-models/")
 	if req.ModelId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ModelId)
+		return nil, fmt.Errorf("path parameter %q is required", "model_id")
 	}
+	pb.singleSegment(*req.ModelId)
 	pb.literal("/params")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -2395,10 +2390,9 @@ func (c *internalClient) SetLoggedModelTags(ctx context.Context, req SetLoggedMo
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/mlflow/logged-models/")
 	if req.ModelId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ModelId)
+		return nil, fmt.Errorf("path parameter %q is required", "model_id")
 	}
+	pb.singleSegment(*req.ModelId)
 	pb.literal("/tags")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}

@@ -91,16 +91,16 @@ func authorizationDetails_GrantRuleFromWire(w *authorizationDetails_GrantRuleWir
 }
 
 type createDashboardRequestWire struct {
-	Dashboard      *dashboardWire `json:"dashboard,omitempty"`
-	DatasetCatalog *string        `json:"dataset_catalog,omitempty"`
-	DatasetSchema  *string        `json:"dataset_schema,omitempty"`
+	Dashboard      *dashboardCreateWire `json:"dashboard,omitempty"`
+	DatasetCatalog *string              `json:"dataset_catalog,omitempty"`
+	DatasetSchema  *string              `json:"dataset_schema,omitempty"`
 }
 
 func createDashboardRequestToWire(v *CreateDashboardRequest) (*createDashboardRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
-	dashboardWireValue, err := dashboardToWire(v.Dashboard)
+	dashboardWireValue, err := dashboardCreateToWire(v.Dashboard)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreateDashboardRequest.Dashboard", err)
 	}
@@ -112,14 +112,14 @@ func createDashboardRequestToWire(v *CreateDashboardRequest) (*createDashboardRe
 }
 
 type createScheduleRequestWire struct {
-	Schedule *scheduleWire `json:"schedule,omitempty"`
+	Schedule *scheduleCreateWire `json:"schedule,omitempty"`
 }
 
 func createScheduleRequestToWire(v *CreateScheduleRequest) (*createScheduleRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
-	scheduleWireValue, err := scheduleToWire(v.Schedule)
+	scheduleWireValue, err := scheduleCreateToWire(v.Schedule)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreateScheduleRequest.Schedule", err)
 	}
@@ -129,14 +129,14 @@ func createScheduleRequestToWire(v *CreateScheduleRequest) (*createScheduleReque
 }
 
 type createSubscriptionRequestWire struct {
-	Subscription *subscriptionWire `json:"subscription,omitempty"`
+	Subscription *subscriptionCreateWire `json:"subscription,omitempty"`
 }
 
 func createSubscriptionRequestToWire(v *CreateSubscriptionRequest) (*createSubscriptionRequestWire, error) {
 	if v == nil {
 		return nil, nil
 	}
-	subscriptionWireValue, err := subscriptionToWire(v.Subscription)
+	subscriptionWireValue, err := subscriptionCreateToWire(v.Subscription)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreateSubscriptionRequest.Subscription", err)
 	}
@@ -216,6 +216,35 @@ func dashboardFromWire(w *dashboardWire) (*Dashboard, error) {
 		SerializedDashboard: w.SerializedDashboard,
 		LifecycleState:      w.LifecycleState,
 		ParentPath:          w.ParentPath,
+	}, nil
+}
+
+type dashboardCreateWire struct {
+	DashboardId         *string        `json:"dashboard_id,omitempty"`
+	DisplayName         *string        `json:"display_name,omitempty"`
+	Path                *string        `json:"path,omitempty"`
+	CreateTime          *types.Time    `json:"create_time,omitempty"`
+	UpdateTime          *types.Time    `json:"update_time,omitempty"`
+	WarehouseId         *string        `json:"warehouse_id,omitempty"`
+	SerializedDashboard *string        `json:"serialized_dashboard,omitempty"`
+	LifecycleState      LifecycleState `json:"lifecycle_state,omitempty"`
+	ParentPath          *string        `json:"parent_path,omitempty"`
+}
+
+func dashboardCreateToWire(v *DashboardCreate) (*dashboardCreateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &dashboardCreateWire{
+		DashboardId:         v.DashboardId,
+		DisplayName:         v.DisplayName,
+		Path:                v.Path,
+		CreateTime:          v.CreateTime,
+		UpdateTime:          v.UpdateTime,
+		WarehouseId:         v.WarehouseId,
+		SerializedDashboard: v.SerializedDashboard,
+		LifecycleState:      v.LifecycleState,
+		ParentPath:          v.ParentPath,
 	}, nil
 }
 
@@ -546,6 +575,37 @@ func scheduleFromWire(w *scheduleWire) (*Schedule, error) {
 	}, nil
 }
 
+type scheduleCreateWire struct {
+	ScheduleId   *string             `json:"schedule_id,omitempty"`
+	DashboardId  *string             `json:"dashboard_id,omitempty"`
+	CronSchedule *cronScheduleWire   `json:"cron_schedule,omitempty"`
+	PauseStatus  SchedulePauseStatus `json:"pause_status,omitempty"`
+	DisplayName  *string             `json:"display_name,omitempty"`
+	CreateTime   *types.Time         `json:"create_time,omitempty"`
+	UpdateTime   *types.Time         `json:"update_time,omitempty"`
+	WarehouseId  *string             `json:"warehouse_id,omitempty"`
+}
+
+func scheduleCreateToWire(v *ScheduleCreate) (*scheduleCreateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	cronScheduleWireValue, err := cronScheduleToWire(v.CronSchedule)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ScheduleCreate.CronSchedule", err)
+	}
+	return &scheduleCreateWire{
+		ScheduleId:   v.ScheduleId,
+		DashboardId:  v.DashboardId,
+		CronSchedule: cronScheduleWireValue,
+		PauseStatus:  v.PauseStatus,
+		DisplayName:  v.DisplayName,
+		CreateTime:   v.CreateTime,
+		UpdateTime:   v.UpdateTime,
+		WarehouseId:  v.WarehouseId,
+	}, nil
+}
+
 type subscriptionWire struct {
 	SubscriptionId  *string                      `json:"subscription_id,omitempty"`
 	ScheduleId      *string                      `json:"schedule_id,omitempty"`
@@ -556,31 +616,6 @@ type subscriptionWire struct {
 	CreateTime      *types.Time                  `json:"create_time,omitempty"`
 	UpdateTime      *types.Time                  `json:"update_time,omitempty"`
 	SkipNotify      *bool                        `json:"skip_notify,omitempty"`
-}
-
-func subscriptionToWire(v *Subscription) (*subscriptionWire, error) {
-	if v == nil {
-		return nil, nil
-	}
-	subscriberWireValue, err := subscription_SubscriberToWire(v.Subscriber)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "Subscription.Subscriber", err)
-	}
-	createdByUserIdWireValue, err := int64ToWire(v.CreatedByUserId)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "Subscription.CreatedByUserId", err)
-	}
-	return &subscriptionWire{
-		SubscriptionId:  v.SubscriptionId,
-		ScheduleId:      v.ScheduleId,
-		DashboardId:     v.DashboardId,
-		Subscriber:      subscriberWireValue,
-		CreatedByUserId: createdByUserIdWireValue,
-		Etag:            v.Etag,
-		CreateTime:      v.CreateTime,
-		UpdateTime:      v.UpdateTime,
-		SkipNotify:      v.SkipNotify,
-	}, nil
 }
 
 func subscriptionFromWire(w *subscriptionWire) (*Subscription, error) {
@@ -698,6 +733,41 @@ func subscription_Subscriber_UserFromWire(w *subscription_Subscriber_UserWire) (
 	}
 	return &Subscription_Subscriber_User{
 		UserId: userIdPublicValue,
+	}, nil
+}
+
+type subscriptionCreateWire struct {
+	SubscriptionId  *string                      `json:"subscription_id,omitempty"`
+	ScheduleId      *string                      `json:"schedule_id,omitempty"`
+	DashboardId     *string                      `json:"dashboard_id,omitempty"`
+	Subscriber      *subscription_SubscriberWire `json:"subscriber,omitempty"`
+	CreatedByUserId *wireInt64                   `json:"created_by_user_id,omitempty"`
+	CreateTime      *types.Time                  `json:"create_time,omitempty"`
+	UpdateTime      *types.Time                  `json:"update_time,omitempty"`
+	SkipNotify      *bool                        `json:"skip_notify,omitempty"`
+}
+
+func subscriptionCreateToWire(v *SubscriptionCreate) (*subscriptionCreateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	subscriberWireValue, err := subscription_SubscriberToWire(v.Subscriber)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SubscriptionCreate.Subscriber", err)
+	}
+	createdByUserIdWireValue, err := int64ToWire(v.CreatedByUserId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SubscriptionCreate.CreatedByUserId", err)
+	}
+	return &subscriptionCreateWire{
+		SubscriptionId:  v.SubscriptionId,
+		ScheduleId:      v.ScheduleId,
+		DashboardId:     v.DashboardId,
+		Subscriber:      subscriberWireValue,
+		CreatedByUserId: createdByUserIdWireValue,
+		CreateTime:      v.CreateTime,
+		UpdateTime:      v.UpdateTime,
+		SkipNotify:      v.SkipNotify,
 	}, nil
 }
 

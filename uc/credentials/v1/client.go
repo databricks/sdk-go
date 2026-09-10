@@ -108,10 +108,9 @@ func (c *internalClient) CreateAccountsStorageCredential(ctx context.Context, re
 	pb.singleSegment(accountID)
 	pb.literal("/metastores/")
 	if req.MetastoreId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MetastoreId)
+		return nil, fmt.Errorf("path parameter %q is required", "metastore_id")
 	}
+	pb.singleSegment(*req.MetastoreId)
 	pb.literal("/storage-credentials")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -183,16 +182,14 @@ func (c *internalClient) DeleteAccountsStorageCredential(ctx context.Context, re
 	pb.singleSegment(accountID)
 	pb.literal("/metastores/")
 	if req.MetastoreId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MetastoreId)
+		return nil, fmt.Errorf("path parameter %q is required", "metastore_id")
 	}
+	pb.singleSegment(*req.MetastoreId)
 	pb.literal("/storage-credentials/")
 	if req.NameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "name_arg")
 	}
+	pb.singleSegment(*req.NameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -256,16 +253,14 @@ func (c *internalClient) GetAccountsStorageCredential(ctx context.Context, req A
 	pb.singleSegment(accountID)
 	pb.literal("/metastores/")
 	if req.MetastoreId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MetastoreId)
+		return nil, fmt.Errorf("path parameter %q is required", "metastore_id")
 	}
+	pb.singleSegment(*req.MetastoreId)
 	pb.literal("/storage-credentials/")
 	if req.NameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "name_arg")
 	}
+	pb.singleSegment(*req.NameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -331,10 +326,9 @@ func (c *internalClient) ListAccountsStorageCredentials(ctx context.Context, req
 	pb.singleSegment(accountID)
 	pb.literal("/metastores/")
 	if req.MetastoreId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MetastoreId)
+		return nil, fmt.Errorf("path parameter %q is required", "metastore_id")
 	}
+	pb.singleSegment(*req.MetastoreId)
 	pb.literal("/storage-credentials")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -410,16 +404,14 @@ func (c *internalClient) UpdateAccountsStorageCredential(ctx context.Context, re
 	pb.singleSegment(accountID)
 	pb.literal("/metastores/")
 	if req.MetastoreId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MetastoreId)
+		return nil, fmt.Errorf("path parameter %q is required", "metastore_id")
 	}
+	pb.singleSegment(*req.MetastoreId)
 	pb.literal("/storage-credentials/")
 	if req.NameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "name_arg")
 	}
+	pb.singleSegment(*req.NameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -626,10 +618,9 @@ func (c *internalClient) DeleteCredential(ctx context.Context, req DeleteCredent
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/credentials/")
 	if req.NameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "name_arg")
 	}
+	pb.singleSegment(*req.NameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -692,10 +683,9 @@ func (c *internalClient) DeleteStorageCredential(ctx context.Context, req Delete
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/storage-credentials/")
 	if req.NameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "name_arg")
 	}
+	pb.singleSegment(*req.NameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -1038,10 +1028,9 @@ func (c *internalClient) GetCredential(ctx context.Context, req GetCredentialReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/credentials/")
 	if req.NameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "name_arg")
 	}
+	pb.singleSegment(*req.NameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1104,10 +1093,9 @@ func (c *internalClient) GetStorageCredential(ctx context.Context, req GetStorag
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/storage-credentials/")
 	if req.NameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "name_arg")
 	}
+	pb.singleSegment(*req.NameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1424,10 +1412,9 @@ func (c *internalClient) UpdateCredential(ctx context.Context, req UpdateCredent
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/credentials/")
 	if req.NameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "name_arg")
 	}
+	pb.singleSegment(*req.NameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1500,10 +1487,9 @@ func (c *internalClient) UpdateStorageCredential(ctx context.Context, req Update
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/storage-credentials/")
 	if req.NameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "name_arg")
 	}
+	pb.singleSegment(*req.NameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1813,10 +1799,9 @@ func (c *internalClient) DeleteCredentialsPublic(ctx context.Context, req Delete
 	pb.singleSegment(accountID)
 	pb.literal("/credentials/")
 	if req.CredentialsId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.CredentialsId)
+		return nil, fmt.Errorf("path parameter %q is required", "credentials_id")
 	}
+	pb.singleSegment(*req.CredentialsId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1882,10 +1867,9 @@ func (c *internalClient) GetCredentialsPublic(ctx context.Context, req GetCreden
 	pb.singleSegment(accountID)
 	pb.literal("/credentials/")
 	if req.CredentialsId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.CredentialsId)
+		return nil, fmt.Errorf("path parameter %q is required", "credentials_id")
 	}
+	pb.singleSegment(*req.CredentialsId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

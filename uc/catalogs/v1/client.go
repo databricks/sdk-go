@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -162,10 +163,9 @@ func (c *internalClient) DeleteCatalog(ctx context.Context, req DeleteCatalogReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/catalogs/")
 	if req.NameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "name_arg")
 	}
+	pb.singleSegment(*req.NameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -229,10 +229,9 @@ func (c *internalClient) GetCatalog(ctx context.Context, req GetCatalogRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/catalogs/")
 	if req.NameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "name_arg")
 	}
+	pb.singleSegment(*req.NameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_browse", wireReq.IncludeBrowse); err != nil {
@@ -432,10 +431,9 @@ func (c *internalClient) UpdateCatalog(ctx context.Context, req UpdateCatalogReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/catalogs/")
 	if req.NameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "name_arg")
 	}
+	pb.singleSegment(*req.NameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

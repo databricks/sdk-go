@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -165,10 +166,9 @@ func (c *internalClient) DeleteSecret(ctx context.Context, req DeleteSecretReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/secrets/")
 	if req.FullName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullName)
+		return fmt.Errorf("path parameter %q is required", "full_name")
 	}
+	pb.singleSegment(*req.FullName)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -231,10 +231,9 @@ func (c *internalClient) GetSecret(ctx context.Context, req GetSecretRequest, op
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/secrets/")
 	if req.FullName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullName)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name")
 	}
+	pb.singleSegment(*req.FullName)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_value", wireReq.IncludeValue); err != nil {
@@ -434,10 +433,9 @@ func (c *internalClient) UpdateSecret(ctx context.Context, req UpdateSecretReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/secrets/")
 	if req.FullName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullName)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name")
 	}
+	pb.singleSegment(*req.FullName)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

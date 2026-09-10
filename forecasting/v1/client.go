@@ -240,10 +240,9 @@ func (c *internalClient) GetForecastingExperiment(ctx context.Context, req GetFo
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/automl/get-forecasting-experiment/")
 	if req.ExperimentId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ExperimentId)
+		return nil, fmt.Errorf("path parameter %q is required", "experiment_id")
 	}
+	pb.singleSegment(*req.ExperimentId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

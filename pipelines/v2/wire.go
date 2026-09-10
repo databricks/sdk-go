@@ -4236,6 +4236,7 @@ type startUpdateRequestWire struct {
 	FullRefreshSelection     []string                   `json:"full_refresh_selection,omitempty"`
 	ResetCheckpointSelection []string                   `json:"reset_checkpoint_selection,omitempty"`
 	ValidateOnly             *bool                      `json:"validate_only,omitempty"`
+	Development              *bool                      `json:"development,omitempty"`
 	RewindSpec               *rewindSpecWire            `json:"rewind_spec,omitempty"`
 	Parameters               map[string]string          `json:"parameters,omitempty"`
 	ReplaceWhereOverrides    []replaceWhereOverrideWire `json:"replace_where_overrides,omitempty"`
@@ -4261,6 +4262,7 @@ func startUpdateRequestToWire(v *StartUpdateRequest) (*startUpdateRequestWire, e
 		FullRefreshSelection:     v.FullRefreshSelection,
 		ResetCheckpointSelection: v.ResetCheckpointSelection,
 		ValidateOnly:             v.ValidateOnly,
+		Development:              v.Development,
 		RewindSpec:               rewindSpecWireValue,
 		Parameters:               v.Parameters,
 		ReplaceWhereOverrides:    replaceWhereOverridesWireValue,

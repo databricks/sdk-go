@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -107,22 +108,19 @@ func (c *internalClient) CancelRefresh(ctx context.Context, req CancelRefreshReq
 	pb := pathBuilder{}
 	pb.literal("/api/data-quality/v1/monitors/")
 	if req.ObjectType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ObjectType)
+		return nil, fmt.Errorf("path parameter %q is required", "object_type")
 	}
+	pb.singleSegment(*req.ObjectType)
 	pb.literal("/")
 	if req.ObjectId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ObjectId)
+		return nil, fmt.Errorf("path parameter %q is required", "object_id")
 	}
+	pb.singleSegment(*req.ObjectId)
 	pb.literal("/refreshes/")
 	if req.RefreshId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.RefreshId)
+		return nil, fmt.Errorf("path parameter %q is required", "refresh_id")
 	}
+	pb.singleSegment(*req.RefreshId)
 	pb.literal("/cancel")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -285,16 +283,14 @@ func (c *internalClient) CreateRefresh(ctx context.Context, req CreateRefreshReq
 	pb := pathBuilder{}
 	pb.literal("/api/data-quality/v1/monitors/")
 	if req.Refresh == nil || req.Refresh.ObjectType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Refresh.ObjectType)
+		return nil, fmt.Errorf("path parameter %q is required", "object_type")
 	}
+	pb.singleSegment(*req.Refresh.ObjectType)
 	pb.literal("/")
 	if req.Refresh == nil || req.Refresh.ObjectId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Refresh.ObjectId)
+		return nil, fmt.Errorf("path parameter %q is required", "object_id")
 	}
+	pb.singleSegment(*req.Refresh.ObjectId)
 	pb.literal("/refreshes")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -372,16 +368,14 @@ func (c *internalClient) DeleteMonitor(ctx context.Context, req DeleteMonitorReq
 	pb := pathBuilder{}
 	pb.literal("/api/data-quality/v1/monitors/")
 	if req.ObjectType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ObjectType)
+		return fmt.Errorf("path parameter %q is required", "object_type")
 	}
+	pb.singleSegment(*req.ObjectType)
 	pb.literal("/")
 	if req.ObjectId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ObjectId)
+		return fmt.Errorf("path parameter %q is required", "object_id")
 	}
+	pb.singleSegment(*req.ObjectId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -433,22 +427,19 @@ func (c *internalClient) DeleteRefresh(ctx context.Context, req DeleteRefreshReq
 	pb := pathBuilder{}
 	pb.literal("/api/data-quality/v1/monitors/")
 	if req.ObjectType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ObjectType)
+		return fmt.Errorf("path parameter %q is required", "object_type")
 	}
+	pb.singleSegment(*req.ObjectType)
 	pb.literal("/")
 	if req.ObjectId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ObjectId)
+		return fmt.Errorf("path parameter %q is required", "object_id")
 	}
+	pb.singleSegment(*req.ObjectId)
 	pb.literal("/refreshes/")
 	if req.RefreshId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.RefreshId)
+		return fmt.Errorf("path parameter %q is required", "refresh_id")
 	}
+	pb.singleSegment(*req.RefreshId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -517,16 +508,14 @@ func (c *internalClient) GetMonitor(ctx context.Context, req GetMonitorRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/data-quality/v1/monitors/")
 	if req.ObjectType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ObjectType)
+		return nil, fmt.Errorf("path parameter %q is required", "object_type")
 	}
+	pb.singleSegment(*req.ObjectType)
 	pb.literal("/")
 	if req.ObjectId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ObjectId)
+		return nil, fmt.Errorf("path parameter %q is required", "object_id")
 	}
+	pb.singleSegment(*req.ObjectId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -600,22 +589,19 @@ func (c *internalClient) GetRefresh(ctx context.Context, req GetRefreshRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/data-quality/v1/monitors/")
 	if req.ObjectType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ObjectType)
+		return nil, fmt.Errorf("path parameter %q is required", "object_type")
 	}
+	pb.singleSegment(*req.ObjectType)
 	pb.literal("/")
 	if req.ObjectId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ObjectId)
+		return nil, fmt.Errorf("path parameter %q is required", "object_id")
 	}
+	pb.singleSegment(*req.ObjectId)
 	pb.literal("/refreshes/")
 	if req.RefreshId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.RefreshId)
+		return nil, fmt.Errorf("path parameter %q is required", "refresh_id")
 	}
+	pb.singleSegment(*req.RefreshId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -801,16 +787,14 @@ func (c *internalClient) ListRefresh(ctx context.Context, req ListRefreshRequest
 	pb := pathBuilder{}
 	pb.literal("/api/data-quality/v1/monitors/")
 	if req.ObjectType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ObjectType)
+		return nil, fmt.Errorf("path parameter %q is required", "object_type")
 	}
+	pb.singleSegment(*req.ObjectType)
 	pb.literal("/")
 	if req.ObjectId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ObjectId)
+		return nil, fmt.Errorf("path parameter %q is required", "object_id")
 	}
+	pb.singleSegment(*req.ObjectId)
 	pb.literal("/refreshes")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -939,16 +923,14 @@ func (c *internalClient) UpdateMonitor(ctx context.Context, req UpdateMonitorReq
 	pb := pathBuilder{}
 	pb.literal("/api/data-quality/v1/monitors/")
 	if req.ObjectType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ObjectType)
+		return nil, fmt.Errorf("path parameter %q is required", "object_type")
 	}
+	pb.singleSegment(*req.ObjectType)
 	pb.literal("/")
 	if req.ObjectId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ObjectId)
+		return nil, fmt.Errorf("path parameter %q is required", "object_id")
 	}
+	pb.singleSegment(*req.ObjectId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -1021,22 +1003,19 @@ func (c *internalClient) UpdateRefresh(ctx context.Context, req UpdateRefreshReq
 	pb := pathBuilder{}
 	pb.literal("/api/data-quality/v1/monitors/")
 	if req.ObjectType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ObjectType)
+		return nil, fmt.Errorf("path parameter %q is required", "object_type")
 	}
+	pb.singleSegment(*req.ObjectType)
 	pb.literal("/")
 	if req.ObjectId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ObjectId)
+		return nil, fmt.Errorf("path parameter %q is required", "object_id")
 	}
+	pb.singleSegment(*req.ObjectId)
 	pb.literal("/refreshes/")
 	if req.RefreshId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.RefreshId)
+		return nil, fmt.Errorf("path parameter %q is required", "refresh_id")
 	}
+	pb.singleSegment(*req.RefreshId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

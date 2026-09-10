@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -97,10 +98,9 @@ func (c *internalClient) Query(ctx context.Context, req QueryEndpointRequest, op
 	pb := pathBuilder{}
 	pb.literal("/serving-endpoints/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/invocations")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}

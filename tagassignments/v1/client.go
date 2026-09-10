@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -156,22 +157,19 @@ func (c *internalClient) DeleteTagAssignment(ctx context.Context, req DeleteTagA
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/entity-tag-assignments/")
 	if req.EntityType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.EntityType)
+		return fmt.Errorf("path parameter %q is required", "entity_type")
 	}
+	pb.singleSegment(*req.EntityType)
 	pb.literal("/")
 	if req.EntityId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.EntityId)
+		return fmt.Errorf("path parameter %q is required", "entity_id")
 	}
+	pb.singleSegment(*req.EntityId)
 	pb.literal("/tags/")
 	if req.TagKey == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.TagKey)
+		return fmt.Errorf("path parameter %q is required", "tag_key")
 	}
+	pb.singleSegment(*req.TagKey)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -223,22 +221,19 @@ func (c *internalClient) GetTagAssignment(ctx context.Context, req GetTagAssignm
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/entity-tag-assignments/")
 	if req.EntityType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.EntityType)
+		return nil, fmt.Errorf("path parameter %q is required", "entity_type")
 	}
+	pb.singleSegment(*req.EntityType)
 	pb.literal("/")
 	if req.EntityId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.EntityId)
+		return nil, fmt.Errorf("path parameter %q is required", "entity_id")
 	}
+	pb.singleSegment(*req.EntityId)
 	pb.literal("/tags/")
 	if req.TagKey == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.TagKey)
+		return nil, fmt.Errorf("path parameter %q is required", "tag_key")
 	}
+	pb.singleSegment(*req.TagKey)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -303,16 +298,14 @@ func (c *internalClient) ListTagAssignments(ctx context.Context, req ListTagAssi
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/entity-tag-assignments/")
 	if req.EntityType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.EntityType)
+		return nil, fmt.Errorf("path parameter %q is required", "entity_type")
 	}
+	pb.singleSegment(*req.EntityType)
 	pb.literal("/")
 	if req.EntityId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.EntityId)
+		return nil, fmt.Errorf("path parameter %q is required", "entity_id")
 	}
+	pb.singleSegment(*req.EntityId)
 	pb.literal("/tags")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -429,22 +422,19 @@ func (c *internalClient) UpdateTagAssignment(ctx context.Context, req UpdateTagA
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/entity-tag-assignments/")
 	if req.TagAssignment == nil || req.TagAssignment.EntityType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.TagAssignment.EntityType)
+		return nil, fmt.Errorf("path parameter %q is required", "entity_type")
 	}
+	pb.singleSegment(*req.TagAssignment.EntityType)
 	pb.literal("/")
 	if req.TagAssignment == nil || req.TagAssignment.EntityId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.TagAssignment.EntityId)
+		return nil, fmt.Errorf("path parameter %q is required", "entity_id")
 	}
+	pb.singleSegment(*req.TagAssignment.EntityId)
 	pb.literal("/tags/")
 	if req.TagAssignment == nil || req.TagAssignment.TagKey == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.TagAssignment.TagKey)
+		return nil, fmt.Errorf("path parameter %q is required", "tag_key")
 	}
+	pb.singleSegment(*req.TagAssignment.TagKey)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

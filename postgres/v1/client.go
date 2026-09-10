@@ -100,10 +100,9 @@ func (c *internalClient) createBranchBase(ctx context.Context, req CreateBranchR
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/branches")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -450,10 +449,9 @@ func (c *internalClient) createCdfConfigBase(ctx context.Context, req CreateCdfC
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/cdf-configs")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -629,10 +627,9 @@ func (c *internalClient) createDataApiBase(ctx context.Context, req CreateDataAp
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/data-api")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -805,10 +802,9 @@ func (c *internalClient) createDatabaseBase(ctx context.Context, req CreateDatab
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/databases")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -987,10 +983,9 @@ func (c *internalClient) createEndpointBase(ctx context.Context, req CreateEndpo
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/endpoints")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1336,10 +1331,9 @@ func (c *internalClient) createRoleBase(ctx context.Context, req CreateRoleReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/roles")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1516,10 +1510,9 @@ func (c *internalClient) createSnapshotBase(ctx context.Context, req CreateSnaps
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/snapshots")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1857,10 +1850,9 @@ func (c *internalClient) deleteBranchBase(ctx context.Context, req DeleteBranchR
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "purge", wireReq.Purge); err != nil {
@@ -2014,10 +2006,9 @@ func (c *internalClient) deleteCatalogBase(ctx context.Context, req DeleteCatalo
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2174,10 +2165,9 @@ func (c *internalClient) deleteCdfConfigBase(ctx context.Context, req DeleteCdfC
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -2333,10 +2323,9 @@ func (c *internalClient) deleteDataApiBase(ctx context.Context, req DeleteDataAp
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2487,10 +2476,9 @@ func (c *internalClient) deleteDatabaseBase(ctx context.Context, req DeleteDatab
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2641,10 +2629,9 @@ func (c *internalClient) deleteEndpointBase(ctx context.Context, req DeleteEndpo
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2960,10 +2947,9 @@ func (c *internalClient) deleteRoleBase(ctx context.Context, req DeleteRoleReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "reassign_owned_to", wireReq.ReassignOwnedTo); err != nil {
@@ -3117,10 +3103,9 @@ func (c *internalClient) deleteSnapshotBase(ctx context.Context, req DeleteSnaps
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3271,10 +3256,9 @@ func (c *internalClient) deleteSyncedTableBase(ctx context.Context, req DeleteSy
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3491,10 +3475,9 @@ func (c *internalClient) GetBranch(ctx context.Context, req GetBranchRequest, op
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3555,10 +3538,9 @@ func (c *internalClient) GetCatalog(ctx context.Context, req GetCatalogRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3621,10 +3603,9 @@ func (c *internalClient) GetCdfConfig(ctx context.Context, req GetCdfConfigReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3686,10 +3667,9 @@ func (c *internalClient) GetCdfStatus(ctx context.Context, req GetCdfStatusReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3750,10 +3730,9 @@ func (c *internalClient) GetDataApi(ctx context.Context, req GetDataApiRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3814,10 +3793,9 @@ func (c *internalClient) GetDatabase(ctx context.Context, req GetDatabaseRequest
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3879,10 +3857,9 @@ func (c *internalClient) GetEndpoint(ctx context.Context, req GetEndpointRequest
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -4072,10 +4049,9 @@ func (c *internalClient) GetRole(ctx context.Context, req GetRoleRequest, opts .
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -4136,10 +4112,9 @@ func (c *internalClient) GetSnapshot(ctx context.Context, req GetSnapshotRequest
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -4201,10 +4176,9 @@ func (c *internalClient) GetSnapshotSchedule(ctx context.Context, req GetSnapsho
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -4265,10 +4239,9 @@ func (c *internalClient) GetSyncedTable(ctx context.Context, req GetSyncedTableR
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -4333,10 +4306,9 @@ func (c *internalClient) ListBranches(ctx context.Context, req ListBranchesReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/branches")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -4454,10 +4426,9 @@ func (c *internalClient) ListCdfConfigs(ctx context.Context, req ListCdfConfigsR
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/cdf-configs")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -4572,10 +4543,9 @@ func (c *internalClient) ListCdfStatuses(ctx context.Context, req ListCdfStatuse
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/cdf-statuses")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -4688,10 +4658,9 @@ func (c *internalClient) ListDatabases(ctx context.Context, req ListDatabasesReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/databases")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -4804,10 +4773,9 @@ func (c *internalClient) ListEndpoints(ctx context.Context, req ListEndpointsReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/endpoints")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -5032,10 +5000,9 @@ func (c *internalClient) ListRoles(ctx context.Context, req ListRolesRequest, op
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/roles")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -5148,10 +5115,9 @@ func (c *internalClient) ListSnapshots(ctx context.Context, req ListSnapshotsReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/snapshots")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -5268,10 +5234,9 @@ func (c *internalClient) undeleteBranchBase(ctx context.Context, req UndeleteBra
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/undelete")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -5432,10 +5397,9 @@ func (c *internalClient) undeleteProjectBase(ctx context.Context, req UndeletePr
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/postgres/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/undelete")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}

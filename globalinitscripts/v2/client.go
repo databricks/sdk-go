@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -155,10 +156,9 @@ func (c *internalClient) DeleteGlobalInitScript(ctx context.Context, req DeleteG
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/global-init-scripts/")
 	if req.ScriptId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ScriptId)
+		return nil, fmt.Errorf("path parameter %q is required", "script_id")
 	}
+	pb.singleSegment(*req.ScriptId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -213,10 +213,9 @@ func (c *internalClient) GetGlobalInitScript(ctx context.Context, req GetGlobalI
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/global-init-scripts/")
 	if req.ScriptId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ScriptId)
+		return nil, fmt.Errorf("path parameter %q is required", "script_id")
 	}
+	pb.singleSegment(*req.ScriptId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -346,10 +345,9 @@ func (c *internalClient) UpdateGlobalInitScript(ctx context.Context, req UpdateG
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/global-init-scripts/")
 	if req.ScriptId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ScriptId)
+		return nil, fmt.Errorf("path parameter %q is required", "script_id")
 	}
+	pb.singleSegment(*req.ScriptId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

@@ -12,7 +12,7 @@ type CreateTagAssignmentRequest struct {
 
 type DeleteTagAssignmentRequest struct {
 	// The type of entity to which the tag is assigned. Allowed values are apps,
-	// dashboards, geniespaces, notebooks
+	// dashboards, designerfiles, geniespaces, notebooks
 	EntityType *string
 	// The identifier of the entity to which the tag is assigned. For apps, the
 	// entity_id is the app name
@@ -24,7 +24,7 @@ type DeleteTagAssignmentRequest struct {
 
 type GetTagAssignmentRequest struct {
 	// The type of entity to which the tag is assigned. Allowed values are apps,
-	// dashboards, geniespaces, notebooks
+	// dashboards, designerfiles, geniespaces, notebooks
 	EntityType *string
 	// The identifier of the entity to which the tag is assigned. For apps, the
 	// entity_id is the app name
@@ -36,7 +36,7 @@ type GetTagAssignmentRequest struct {
 
 type ListTagAssignmentsRequest struct {
 	// The type of entity to which the tag is assigned. Allowed values are apps,
-	// dashboards, geniespaces, notebooks
+	// dashboards, designerfiles, geniespaces, notebooks
 	EntityType *string
 	// The identifier of the entity to which the tag is assigned. For apps, the
 	// entity_id is the app name
@@ -56,7 +56,7 @@ type ListTagAssignmentsResponse struct {
 
 type TagAssignment struct {
 	// The type of entity to which the tag is assigned. Allowed values are apps,
-	// dashboards, geniespaces, notebooks
+	// dashboards, designerfiles, geniespaces, notebooks
 	EntityType *string `fieldmask:"entity_type"`
 	// The identifier of the entity to which the tag is assigned. For apps, the
 	// entity_id is the app name
