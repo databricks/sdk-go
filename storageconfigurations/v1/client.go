@@ -167,10 +167,9 @@ func (c *internalClient) DeleteStorageConfigurationPublic(ctx context.Context, r
 	pb.singleSegment(accountID)
 	pb.literal("/storage-configurations/")
 	if req.StorageConfigurationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.StorageConfigurationId)
+		return nil, fmt.Errorf("path parameter %q is required", "storage_configuration_id")
 	}
+	pb.singleSegment(*req.StorageConfigurationId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -236,10 +235,9 @@ func (c *internalClient) GetStorageConfigurationPublic(ctx context.Context, req 
 	pb.singleSegment(accountID)
 	pb.literal("/storage-configurations/")
 	if req.StorageConfigurationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.StorageConfigurationId)
+		return nil, fmt.Errorf("path parameter %q is required", "storage_configuration_id")
 	}
+	pb.singleSegment(*req.StorageConfigurationId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

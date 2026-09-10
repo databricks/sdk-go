@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -99,10 +100,9 @@ func (c *internalClient) CancelStatement(ctx context.Context, req CancelStatemen
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/statements/")
 	if req.StatementId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.StatementId)
+		return nil, fmt.Errorf("path parameter %q is required", "statement_id")
 	}
+	pb.singleSegment(*req.StatementId)
 	pb.literal("/cancel")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -284,16 +284,14 @@ func (c *internalClient) GetResultData(ctx context.Context, req GetResultDataReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/statements/")
 	if req.StatementId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.StatementId)
+		return nil, fmt.Errorf("path parameter %q is required", "statement_id")
 	}
+	pb.singleSegment(*req.StatementId)
 	pb.literal("/result/chunks/")
 	if req.ChunkIndex == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ChunkIndex)
+		return nil, fmt.Errorf("path parameter %q is required", "chunk_index")
 	}
+	pb.singleSegment(*req.ChunkIndex)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -364,10 +362,9 @@ func (c *internalClient) GetStatementResult(ctx context.Context, req GetStatemen
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/sql/statements/")
 	if req.StatementId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.StatementId)
+		return nil, fmt.Errorf("path parameter %q is required", "statement_id")
 	}
+	pb.singleSegment(*req.StatementId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -173,16 +174,14 @@ func (c *internalClient) DeleteModelVersion(ctx context.Context, req DeleteModel
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/models/")
 	if req.FullNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name_arg")
 	}
+	pb.singleSegment(*req.FullNameArg)
 	pb.literal("/versions/")
 	if req.VersionArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.VersionArg)
+		return nil, fmt.Errorf("path parameter %q is required", "version_arg")
 	}
+	pb.singleSegment(*req.VersionArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -243,10 +242,9 @@ func (c *internalClient) DeleteRegisteredModel(ctx context.Context, req DeleteRe
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/models/")
 	if req.FullNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name_arg")
 	}
+	pb.singleSegment(*req.FullNameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -306,16 +304,14 @@ func (c *internalClient) DeleteRegisteredModelAlias(ctx context.Context, req Del
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/models/")
 	if req.FullNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name_arg")
 	}
+	pb.singleSegment(*req.FullNameArg)
 	pb.literal("/aliases/")
 	if req.AliasArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.AliasArg)
+		return nil, fmt.Errorf("path parameter %q is required", "alias_arg")
 	}
+	pb.singleSegment(*req.AliasArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -379,16 +375,14 @@ func (c *internalClient) GetModelVersion(ctx context.Context, req GetModelVersio
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/models/")
 	if req.FullNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name_arg")
 	}
+	pb.singleSegment(*req.FullNameArg)
 	pb.literal("/versions/")
 	if req.VersionArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.VersionArg)
+		return nil, fmt.Errorf("path parameter %q is required", "version_arg")
 	}
+	pb.singleSegment(*req.VersionArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_aliases", wireReq.IncludeAliases); err != nil {
@@ -464,16 +458,14 @@ func (c *internalClient) GetModelVersionByAlias(ctx context.Context, req GetMode
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/models/")
 	if req.FullNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name_arg")
 	}
+	pb.singleSegment(*req.FullNameArg)
 	pb.literal("/aliases/")
 	if req.AliasArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.AliasArg)
+		return nil, fmt.Errorf("path parameter %q is required", "alias_arg")
 	}
+	pb.singleSegment(*req.AliasArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_aliases", wireReq.IncludeAliases); err != nil {
@@ -546,10 +538,9 @@ func (c *internalClient) GetRegisteredModel(ctx context.Context, req GetRegister
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/models/")
 	if req.FullNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name_arg")
 	}
+	pb.singleSegment(*req.FullNameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_aliases", wireReq.IncludeAliases); err != nil {
@@ -600,8 +591,8 @@ func (c *internalClient) GetRegisteredModel(ctx context.Context, req GetRegister
 	return resp, nil
 }
 
-// List model versions. You can list model versions under a particular schema,
-// or list all model versions in the current metastore.
+// List the model versions of the specified registered model, identified by its
+// full three-level name (catalog.schema.model).
 //
 // The returned models are filtered based on the privileges of the calling user.
 // For example, the metastore admin is able to list all the model versions. A
@@ -637,10 +628,9 @@ func (c *internalClient) ListModelVersions(ctx context.Context, req ListModelVer
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/models/")
 	if req.FullNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name_arg")
 	}
+	pb.singleSegment(*req.FullNameArg)
 	pb.literal("/versions")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -898,16 +888,14 @@ func (c *internalClient) SetRegisteredModelAlias(ctx context.Context, req SetReg
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/models/")
 	if req.FullNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name_arg")
 	}
+	pb.singleSegment(*req.FullNameArg)
 	pb.literal("/aliases/")
 	if req.AliasArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.AliasArg)
+		return nil, fmt.Errorf("path parameter %q is required", "alias_arg")
 	}
+	pb.singleSegment(*req.AliasArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -984,16 +972,14 @@ func (c *internalClient) UpdateModelVersion(ctx context.Context, req UpdateModel
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/models/")
 	if req.FullNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name_arg")
 	}
+	pb.singleSegment(*req.FullNameArg)
 	pb.literal("/versions/")
 	if req.VersionArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.VersionArg)
+		return nil, fmt.Errorf("path parameter %q is required", "version_arg")
 	}
+	pb.singleSegment(*req.VersionArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1071,10 +1057,9 @@ func (c *internalClient) UpdateRegisteredModel(ctx context.Context, req UpdateRe
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/models/")
 	if req.FullNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name_arg")
 	}
+	pb.singleSegment(*req.FullNameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

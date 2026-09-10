@@ -403,10 +403,9 @@ func (c *internalClient) DeleteInferenceEndpoint(ctx context.Context, req Delete
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -451,7 +450,7 @@ func (c *internalClient) GetExportEndpointMetrics(ctx context.Context, req GetEx
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
-	headers.Set("Accept", "application/octet-stream")
+	headers.Set("Accept", "text/plain")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -463,10 +462,9 @@ func (c *internalClient) GetExportEndpointMetrics(ctx context.Context, req GetEx
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/metrics")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -522,10 +520,9 @@ func (c *internalClient) GetInferenceEndpoint(ctx context.Context, req GetInfere
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -577,7 +574,7 @@ func (c *internalClient) GetInferenceEndpointSchema(ctx context.Context, req Get
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
-	headers.Set("Accept", "application/octet-stream")
+	headers.Set("Accept", "text/plain")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -589,10 +586,9 @@ func (c *internalClient) GetInferenceEndpointSchema(ctx context.Context, req Get
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/openapi")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -648,10 +644,9 @@ func (c *internalClient) GetServedModelBuildLogs(ctx context.Context, req GetSer
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/served-models/")
 	if req.ServedModelName == nil {
 		pb.singleSegment("")
@@ -719,10 +714,9 @@ func (c *internalClient) GetServedModelLogs(ctx context.Context, req GetServedMo
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/served-models/")
 	if req.ServedModelName == nil {
 		pb.singleSegment("")
@@ -856,10 +850,9 @@ func (c *internalClient) PatchInferenceEndpointTags(ctx context.Context, req Pat
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/tags")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -930,10 +923,9 @@ func (c *internalClient) PatchInferenceEndpointTelemetryConfig(ctx context.Conte
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/telemetry-config")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1006,10 +998,9 @@ func (c *internalClient) PutInferenceEndpointAiGateway(ctx context.Context, req 
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/ai-gateway")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1083,10 +1074,9 @@ func (c *internalClient) putInferenceEndpointConfigBase(ctx context.Context, req
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/config")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1250,10 +1240,9 @@ func (c *internalClient) PutInferenceEndpointRateLimits(ctx context.Context, req
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/rate-limits")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1326,10 +1315,9 @@ func (c *internalClient) putProvisionedThroughputInferenceEndpointConfigBase(ctx
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/pt/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/config")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1492,10 +1480,9 @@ func (c *internalClient) UpdateInferenceEndpointNotifications(ctx context.Contex
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/serving-endpoints/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/notifications")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1555,7 +1542,7 @@ func (c *internalClient) HttpRequest(ctx context.Context, req ExternalFunctionRe
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
-	headers.Set("Accept", "application/octet-stream")
+	headers.Set("Accept", "text/plain")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -160,10 +161,9 @@ func (c *internalClient) DeleteCredentials(ctx context.Context, req DeleteCreden
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/git-credentials/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "principal_id", wireReq.PrincipalId); err != nil {
@@ -225,10 +225,9 @@ func (c *internalClient) GetCredentials(ctx context.Context, req GetCredentialsR
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/git-credentials/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "principal_id", wireReq.PrincipalId); err != nil {
@@ -364,10 +363,9 @@ func (c *internalClient) UpdateCredentials(ctx context.Context, req UpdateCreden
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/git-credentials/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -160,10 +161,9 @@ func (c *internalClient) DeleteConnection(ctx context.Context, req DeleteConnect
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/connections/")
 	if req.NameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "name_arg")
 	}
+	pb.singleSegment(*req.NameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -218,10 +218,9 @@ func (c *internalClient) GetConnection(ctx context.Context, req GetConnectionReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/connections/")
 	if req.NameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "name_arg")
 	}
+	pb.singleSegment(*req.NameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -409,10 +408,9 @@ func (c *internalClient) UpdateConnection(ctx context.Context, req UpdateConnect
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/connections/")
 	if req.NameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "name_arg")
 	}
+	pb.singleSegment(*req.NameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

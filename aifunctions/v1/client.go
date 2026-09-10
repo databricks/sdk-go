@@ -73,7 +73,9 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	}, nil
 }
 
-// Classifies content according to a set of provided labels.
+// Classifies content according to a set of provided labels. For REST API
+// requests, the default rate limit is 1,200 requests per minute per workspace.
+// Contact your <Databricks> account team to request a higher limit.
 func (c *internalClient) AiClassify(ctx context.Context, req AiClassifyRequest, opts ...call.Option) (*AiClassifyResponse, error) {
 	wireReq, err := aiClassifyRequestToWire(&req)
 	if err != nil {
@@ -140,7 +142,9 @@ func (c *internalClient) AiClassify(ctx context.Context, req AiClassifyRequest, 
 }
 
 // Extracts structured data from text and documents according to a provided
-// schema.
+// schema. For REST API requests, the default rate limit is 120 requests per
+// minute per workspace. Contact your <Databricks> account team to request a
+// higher limit.
 func (c *internalClient) AiExtract(ctx context.Context, req AiExtractRequest, opts ...call.Option) (*AiExtractResponse, error) {
 	wireReq, err := aiExtractRequestToWire(&req)
 	if err != nil {
@@ -206,7 +210,9 @@ func (c *internalClient) AiExtract(ctx context.Context, req AiExtractRequest, op
 	return resp, nil
 }
 
-// Parse structured content from unstructured documents.
+// Parse structured content from unstructured documents. For REST API requests,
+// the default rate limit is 120 pages per minute per workspace. Contact your
+// <Databricks> account team to request a higher limit.
 func (c *internalClient) AiParseDocument(ctx context.Context, req AiParseDocumentRequest, opts ...call.Option) (*AiParseDocumentResponse, error) {
 	wireReq, err := aiParseDocumentRequestToWire(&req)
 	if err != nil {

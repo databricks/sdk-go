@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -157,22 +158,19 @@ func (c *internalClient) DeletePolicy(ctx context.Context, req DeletePolicyReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/policies/")
 	if req.OnSecurableType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.OnSecurableType)
+		return nil, fmt.Errorf("path parameter %q is required", "on_securable_type")
 	}
+	pb.singleSegment(*req.OnSecurableType)
 	pb.literal("/")
 	if req.OnSecurableFullname == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.OnSecurableFullname)
+		return nil, fmt.Errorf("path parameter %q is required", "on_securable_fullname")
 	}
+	pb.singleSegment(*req.OnSecurableFullname)
 	pb.literal("/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -227,22 +225,19 @@ func (c *internalClient) GetPolicy(ctx context.Context, req GetPolicyRequest, op
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/policies/")
 	if req.OnSecurableType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.OnSecurableType)
+		return nil, fmt.Errorf("path parameter %q is required", "on_securable_type")
 	}
+	pb.singleSegment(*req.OnSecurableType)
 	pb.literal("/")
 	if req.OnSecurableFullname == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.OnSecurableFullname)
+		return nil, fmt.Errorf("path parameter %q is required", "on_securable_fullname")
 	}
+	pb.singleSegment(*req.OnSecurableFullname)
 	pb.literal("/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -313,16 +308,14 @@ func (c *internalClient) ListPolicies(ctx context.Context, req ListPoliciesReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/policies/")
 	if req.OnSecurableType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.OnSecurableType)
+		return nil, fmt.Errorf("path parameter %q is required", "on_securable_type")
 	}
+	pb.singleSegment(*req.OnSecurableType)
 	pb.literal("/")
 	if req.OnSecurableFullname == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.OnSecurableFullname)
+		return nil, fmt.Errorf("path parameter %q is required", "on_securable_fullname")
 	}
+	pb.singleSegment(*req.OnSecurableFullname)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_inherited", wireReq.IncludeInherited); err != nil {
@@ -441,22 +434,19 @@ func (c *internalClient) UpdatePolicy(ctx context.Context, req UpdatePolicyReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/policies/")
 	if req.OnSecurableType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.OnSecurableType)
+		return nil, fmt.Errorf("path parameter %q is required", "on_securable_type")
 	}
+	pb.singleSegment(*req.OnSecurableType)
 	pb.literal("/")
 	if req.OnSecurableFullname == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.OnSecurableFullname)
+		return nil, fmt.Errorf("path parameter %q is required", "on_securable_fullname")
 	}
+	pb.singleSegment(*req.OnSecurableFullname)
 	pb.literal("/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

@@ -5,6 +5,7 @@ package resourcequotas
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -92,22 +93,19 @@ func (c *internalClient) GetQuota(ctx context.Context, req GetQuotaRequest, opts
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/resource-quotas/")
 	if req.ParentSecurableType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ParentSecurableType)
+		return nil, fmt.Errorf("path parameter %q is required", "parent_securable_type")
 	}
+	pb.singleSegment(*req.ParentSecurableType)
 	pb.literal("/")
 	if req.ParentFullName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ParentFullName)
+		return nil, fmt.Errorf("path parameter %q is required", "parent_full_name")
 	}
+	pb.singleSegment(*req.ParentFullName)
 	pb.literal("/")
 	if req.QuotaName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.QuotaName)
+		return nil, fmt.Errorf("path parameter %q is required", "quota_name")
 	}
+	pb.singleSegment(*req.QuotaName)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

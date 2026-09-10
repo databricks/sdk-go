@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -98,10 +99,9 @@ func (c *internalClient) CreateFailoverGroup(ctx context.Context, req CreateFail
 	pb := pathBuilder{}
 	pb.literal("/api/disaster-recovery/v1/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/failover-groups")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -178,10 +178,9 @@ func (c *internalClient) CreateStableUrl(ctx context.Context, req CreateStableUr
 	pb := pathBuilder{}
 	pb.literal("/api/disaster-recovery/v1/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/stable-urls")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -254,10 +253,9 @@ func (c *internalClient) DeleteFailoverGroup(ctx context.Context, req DeleteFail
 	pb := pathBuilder{}
 	pb.literal("/api/disaster-recovery/v1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "etag", wireReq.Etag); err != nil {
@@ -312,10 +310,9 @@ func (c *internalClient) DeleteStableUrl(ctx context.Context, req DeleteStableUr
 	pb := pathBuilder{}
 	pb.literal("/api/disaster-recovery/v1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -375,10 +372,9 @@ func (c *internalClient) FailoverFailoverGroup(ctx context.Context, req Failover
 	pb := pathBuilder{}
 	pb.literal("/api/disaster-recovery/v1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/failover")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -441,10 +437,9 @@ func (c *internalClient) GetFailoverGroup(ctx context.Context, req GetFailoverGr
 	pb := pathBuilder{}
 	pb.literal("/api/disaster-recovery/v1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -505,10 +500,9 @@ func (c *internalClient) GetStableUrl(ctx context.Context, req GetStableUrlReque
 	pb := pathBuilder{}
 	pb.literal("/api/disaster-recovery/v1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -576,10 +570,9 @@ func (c *internalClient) ListFailoverGroups(ctx context.Context, req ListFailove
 	pb := pathBuilder{}
 	pb.literal("/api/disaster-recovery/v1/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/failover-groups")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -692,10 +685,9 @@ func (c *internalClient) ListStableUrls(ctx context.Context, req ListStableUrlsR
 	pb := pathBuilder{}
 	pb.literal("/api/disaster-recovery/v1/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/stable-urls")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}

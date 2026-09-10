@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -98,10 +99,9 @@ func (c *internalClient) CreateExample(ctx context.Context, req CreateExampleReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/examples")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -238,10 +238,9 @@ func (c *internalClient) CreateKnowledgeSource(ctx context.Context, req CreateKn
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/knowledge-sources")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -304,10 +303,9 @@ func (c *internalClient) DeleteExample(ctx context.Context, req DeleteExampleReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -359,10 +357,9 @@ func (c *internalClient) DeleteKnowledgeAssistant(ctx context.Context, req Delet
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -414,10 +411,9 @@ func (c *internalClient) DeleteKnowledgeSource(ctx context.Context, req DeleteKn
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -469,10 +465,9 @@ func (c *internalClient) GetExample(ctx context.Context, req GetExampleRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -533,10 +528,9 @@ func (c *internalClient) GetKnowledgeAssistant(ctx context.Context, req GetKnowl
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -597,10 +591,9 @@ func (c *internalClient) GetKnowledgeSource(ctx context.Context, req GetKnowledg
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -665,10 +658,9 @@ func (c *internalClient) ListExamples(ctx context.Context, req ListExamplesReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/examples")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -889,10 +881,9 @@ func (c *internalClient) ListKnowledgeSources(ctx context.Context, req ListKnowl
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/knowledge-sources")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1010,10 +1001,9 @@ func (c *internalClient) SyncKnowledgeSources(ctx context.Context, req SyncKnowl
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/knowledge-sources:sync")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1075,10 +1065,9 @@ func (c *internalClient) UpdateExample(ctx context.Context, req UpdateExampleReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -1227,10 +1216,9 @@ func (c *internalClient) UpdateKnowledgeSource(ctx context.Context, req UpdateKn
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

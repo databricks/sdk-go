@@ -55,7 +55,7 @@ type AuthorizationDetails_GrantRule struct {
 }
 
 type CreateDashboardRequest struct {
-	Dashboard *Dashboard
+	Dashboard *DashboardCreate
 	// Sets the default catalog for all datasets in this dashboard. Does not impact
 	// table references that use fully qualified catalog names (ex:
 	// samples.nyctaxi.trips). Leave blank to keep each dataset’s existing
@@ -69,12 +69,12 @@ type CreateDashboardRequest struct {
 
 type CreateScheduleRequest struct {
 	// The schedule to create. A dashboard is limited to 10 schedules.
-	Schedule *Schedule
+	Schedule *ScheduleCreate
 }
 
 type CreateSubscriptionRequest struct {
 	// The subscription to create. A schedule is limited to 100 subscriptions.
-	Subscription *Subscription
+	Subscription *SubscriptionCreate
 }
 
 type CronSchedule struct {
@@ -110,6 +110,38 @@ type Dashboard struct {
 	// that the dashboard has not been modified since the last read. This field is
 	// excluded in List Dashboards responses.
 	Etag *string
+	// The contents of the dashboard in serialized string form. This field is
+	// excluded in List Dashboards responses. Use the [get dashboard API] to
+	// retrieve an example response, which includes the `serialized_dashboard`
+	// field. This field provides the structure of the JSON string that represents
+	// the dashboard's layout and components.
+	//
+	// [get dashboard API]: https://docs.databricks.com/api/workspace/lakeview/get
+	SerializedDashboard *string
+	// The state of the dashboard resource. Used for tracking trashed status.
+	LifecycleState LifecycleState
+	// The workspace path of the folder containing the dashboard. Includes leading
+	// slash and no trailing slash. This field is excluded in List Dashboards
+	// responses.
+	ParentPath *string
+}
+
+type DashboardCreate struct {
+	// UUID identifying the dashboard.
+	DashboardId *string
+	// The display name of the dashboard.
+	DisplayName *string
+	// The workspace path of the dashboard asset, including the file name. Exported
+	// dashboards always have the file extension `.lvdash.json`. This field is
+	// excluded in List Dashboards responses.
+	Path *string
+	// The timestamp of when the dashboard was created.
+	CreateTime *types.Time
+	// The timestamp of when the dashboard was last updated by the user. This field
+	// is excluded in List Dashboards responses.
+	UpdateTime *types.Time
+	// The warehouse ID used to run the dashboard.
+	WarehouseId *string
 	// The contents of the dashboard in serialized string form. This field is
 	// excluded in List Dashboards responses. Use the [get dashboard API] to
 	// retrieve an example response, which includes the `serialized_dashboard`
@@ -328,6 +360,26 @@ type Schedule struct {
 	WarehouseId *string
 }
 
+type ScheduleCreate struct {
+	// UUID identifying the schedule.
+	ScheduleId *string
+	// UUID identifying the dashboard to which the schedule belongs.
+	DashboardId *string
+	// The cron expression describing the frequency of the periodic refresh for this
+	// schedule.
+	CronSchedule *CronSchedule
+	// The status indicates whether this schedule is paused or not.
+	PauseStatus SchedulePauseStatus
+	// The display name for schedule.
+	DisplayName *string
+	// A timestamp indicating when the schedule was created.
+	CreateTime *types.Time
+	// A timestamp indicating when the schedule was last updated.
+	UpdateTime *types.Time
+	// The warehouse id to run the dashboard with for the schedule.
+	WarehouseId *string
+}
+
 type Subscription struct {
 	// UUID identifying the subscription.
 	SubscriptionId *string
@@ -372,6 +424,29 @@ type Subscription_Subscriber_Destination struct {
 type Subscription_Subscriber_User struct {
 	// UserId of the subscriber.
 	UserId *int64
+}
+
+type SubscriptionCreate struct {
+	// UUID identifying the subscription.
+	SubscriptionId *string
+	// UUID identifying the schedule to which the subscription belongs.
+	ScheduleId *string
+	// UUID identifying the dashboard to which the subscription belongs.
+	DashboardId *string
+	// Subscriber details for users and destinations to be added as subscribers to
+	// the schedule.
+	Subscriber *Subscription_Subscriber
+	// UserId of the user who adds subscribers (users or notification destinations)
+	// to the dashboard's schedule.
+	CreatedByUserId *int64
+	// A timestamp indicating when the subscription was created.
+	CreateTime *types.Time
+	// A timestamp indicating when the subscription was last updated.
+	UpdateTime *types.Time
+	// Controls whether notifications are sent to the subscriber for scheduled
+	// dashboard refreshes. If not defined, defaults to false in the backend to
+	// match the current behavior (refresh and notify)
+	SkipNotify *bool
 }
 
 type TrashDashboardRequest struct {

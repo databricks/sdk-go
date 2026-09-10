@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -258,10 +259,9 @@ func (c *internalClient) DeleteTable(ctx context.Context, req DeleteTableRequest
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/tables/")
 	if req.FullNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name_arg")
 	}
+	pb.singleSegment(*req.FullNameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -328,10 +328,9 @@ func (c *internalClient) DeleteTableConstraint(ctx context.Context, req DeleteTa
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/constraints/")
 	if req.FullNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name_arg")
 	}
+	pb.singleSegment(*req.FullNameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "constraint_name", wireReq.ConstraintName); err != nil {
@@ -402,10 +401,9 @@ func (c *internalClient) GetTable(ctx context.Context, req GetTableRequest, opts
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/tables/")
 	if req.FullNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name_arg")
 	}
+	pb.singleSegment(*req.FullNameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_delta_metadata", wireReq.IncludeDeltaMetadata); err != nil {
@@ -762,10 +760,9 @@ func (c *internalClient) TableExists(ctx context.Context, req TableExistsRequest
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/tables/")
 	if req.FullNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name_arg")
 	}
+	pb.singleSegment(*req.FullNameArg)
 	pb.literal("/exists")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -839,10 +836,9 @@ func (c *internalClient) UpdateTable(ctx context.Context, req UpdateTableRequest
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/tables/")
 	if req.FullNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name_arg")
 	}
+	pb.singleSegment(*req.FullNameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

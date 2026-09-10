@@ -939,6 +939,10 @@ type AiRuntimeTask struct {
 	// `dbfs:/Volumes/<catalog>/<schema>/<volume>/...` The location should be unique
 	// for each experiment.
 	MlflowArtifactLocation *string
+	// Optional Unity Catalog path for a custom container image. When set, the task
+	// runs on the specified container image instead of the default <Databricks>
+	// client image. Format: `{catalog}.{schema}.{image_name}:{tag}`
+	UnityCatalogImagePath *string
 }
 
 // AiRuntimeTaskOutput: output identifiers for an AiRuntimeTask run — the

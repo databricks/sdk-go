@@ -1017,11 +1017,12 @@ func customUdfFromWire(w *customUdfWire) (*CustomUdf, error) {
 }
 
 type dataSourceWire struct {
-	DeltaTableSource *deltaTableSourceWire `json:"delta_table_source,omitempty"`
-	KafkaSource      *kafkaSourceWire      `json:"kafka_source,omitempty"`
-	RequestSource    *requestSourceWire    `json:"request_source,omitempty"`
-	StreamSource     *streamSourceWire     `json:"stream_source,omitempty"`
-	Lateness         *sourceLatenessWire   `json:"lateness,omitempty"`
+	DeltaTableSource  *deltaTableSourceWire  `json:"delta_table_source,omitempty"`
+	KafkaSource       *kafkaSourceWire       `json:"kafka_source,omitempty"`
+	RequestSource     *requestSourceWire     `json:"request_source,omitempty"`
+	StreamSource      *streamSourceWire      `json:"stream_source,omitempty"`
+	FeatureViewSource *featureViewSourceWire `json:"feature_view_source,omitempty"`
+	Lateness          *sourceLatenessWire    `json:"lateness,omitempty"`
 }
 
 func dataSourceToWire(v *DataSource) (*dataSourceWire, error) {
@@ -1036,6 +1037,7 @@ func dataSourceToWire(v *DataSource) (*dataSourceWire, error) {
 	var dataSourceKafkaSourceWire *kafkaSourceWire
 	var dataSourceRequestSourceWire *requestSourceWire
 	var dataSourceStreamSourceWire *streamSourceWire
+	var dataSourceFeatureViewSourceWire *featureViewSourceWire
 	switch value := v.DataSource.(type) {
 	case nil:
 	case *DataSource_DataSource_DeltaTableSource:
@@ -1070,15 +1072,24 @@ func dataSourceToWire(v *DataSource) (*dataSourceWire, error) {
 			}
 			dataSourceStreamSourceWire = dataSourceStreamSourceConverted
 		}
+	case *DataSource_DataSource_FeatureViewSource:
+		if value != nil {
+			dataSourceFeatureViewSourceConverted, err := featureViewSourceToWire(&value.FeatureViewSource)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "DataSource.DataSource.FeatureViewSource", err)
+			}
+			dataSourceFeatureViewSourceWire = dataSourceFeatureViewSourceConverted
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "DataSource.DataSource", value)
 	}
 	return &dataSourceWire{
-		DeltaTableSource: dataSourceDeltaTableSourceWire,
-		KafkaSource:      dataSourceKafkaSourceWire,
-		RequestSource:    dataSourceRequestSourceWire,
-		StreamSource:     dataSourceStreamSourceWire,
-		Lateness:         latenessWireValue,
+		DeltaTableSource:  dataSourceDeltaTableSourceWire,
+		KafkaSource:       dataSourceKafkaSourceWire,
+		RequestSource:     dataSourceRequestSourceWire,
+		StreamSource:      dataSourceStreamSourceWire,
+		FeatureViewSource: dataSourceFeatureViewSourceWire,
+		Lateness:          latenessWireValue,
 	}, nil
 }
 
@@ -1097,6 +1108,9 @@ func dataSourceFromWire(w *dataSourceWire) (*DataSource, error) {
 		dataSourceMembers++
 	}
 	if w.StreamSource != nil {
+		dataSourceMembers++
+	}
+	if w.FeatureViewSource != nil {
 		dataSourceMembers++
 	}
 	if dataSourceMembers > 1 {
@@ -1132,6 +1146,12 @@ func dataSourceFromWire(w *dataSourceWire) (*DataSource, error) {
 			return nil, fmt.Errorf("%s: %w", "DataSource.DataSource.StreamSource", err)
 		}
 		dataSourceSelection = &DataSource_DataSource_StreamSource{StreamSource: *dataSourceStreamSourceConverted}
+	case w.FeatureViewSource != nil:
+		dataSourceFeatureViewSourceConverted, err := featureViewSourceFromWire(w.FeatureViewSource)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "DataSource.DataSource.FeatureViewSource", err)
+		}
+		dataSourceSelection = &DataSource_DataSource_FeatureViewSource{FeatureViewSource: *dataSourceFeatureViewSourceConverted}
 	}
 	return &DataSource{
 		Lateness:   latenessPublicValue,
@@ -1381,6 +1401,58 @@ func featureFromWire(w *featureWire) (*Feature, error) {
 		Name:             w.Name,
 		CreatedAt:        w.CreatedAt,
 		CreatedBy:        w.CreatedBy,
+	}, nil
+}
+
+type featureReferenceWire struct {
+	Feature *string `json:"feature,omitempty"`
+}
+
+func featureReferenceToWire(v *FeatureReference) (*featureReferenceWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &featureReferenceWire{
+		Feature: v.Feature,
+	}, nil
+}
+
+func featureReferenceFromWire(w *featureReferenceWire) (*FeatureReference, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &FeatureReference{
+		Feature: w.Feature,
+	}, nil
+}
+
+type featureViewSourceWire struct {
+	FeatureReferences []featureReferenceWire `json:"feature_references,omitempty"`
+}
+
+func featureViewSourceToWire(v *FeatureViewSource) (*featureViewSourceWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	featureReferencesWireValue, err := convertSlice(v.FeatureReferences, featureReferenceToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FeatureViewSource.FeatureReferences", err)
+	}
+	return &featureViewSourceWire{
+		FeatureReferences: featureReferencesWireValue,
+	}, nil
+}
+
+func featureViewSourceFromWire(w *featureViewSourceWire) (*FeatureViewSource, error) {
+	if w == nil {
+		return nil, nil
+	}
+	featureReferencesPublicValue, err := convertSlice(w.FeatureReferences, featureReferenceFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FeatureViewSource.FeatureReferences", err)
+	}
+	return &FeatureViewSource{
+		FeatureReferences: featureReferencesPublicValue,
 	}, nil
 }
 
@@ -2896,6 +2968,7 @@ type purgeFeatureEntitiesResponseWire struct {
 	Metadata *purgeFeatureEntitiesMetadataWire  `json:"metadata,omitempty"`
 	Results  []purgeFeatureEntitiesResultWire   `json:"results,omitempty"`
 	State    PurgeFeatureEntitiesMetadata_State `json:"state,omitempty"`
+	Error    *apiErrorWire                      `json:"error,omitempty"`
 }
 
 func purgeFeatureEntitiesResponseFromWire(w *purgeFeatureEntitiesResponseWire) (*PurgeFeatureEntitiesResponse, error) {
@@ -2910,10 +2983,15 @@ func purgeFeatureEntitiesResponseFromWire(w *purgeFeatureEntitiesResponseWire) (
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "PurgeFeatureEntitiesResponse.Results", err)
 	}
+	errorPublicValue, err := apiErrorFromWire(w.Error)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PurgeFeatureEntitiesResponse.Error", err)
+	}
 	return &PurgeFeatureEntitiesResponse{
 		Metadata: metadataPublicValue,
 		Results:  resultsPublicValue,
 		State:    w.State,
+		Error:    errorPublicValue,
 	}, nil
 }
 

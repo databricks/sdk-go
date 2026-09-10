@@ -724,8 +724,6 @@ type BranchSpec struct {
 	IsProtected *bool `fieldmask:"is_protected"`
 	// Expiration configuration for the branch. One of expire_time, ttl, or
 	// no_expiry must be provided. To disable expiration, set no_expiry to true.
-	//
-	// When updating this field, use "spec.expiration" in the update_mask.
 	Expiration isBranchSpec_Expiration
 	// The snapshot this branch was created from. When set, the branch's data comes
 	// from the snapshot rather than a source branch, so source_branch,
@@ -742,8 +740,7 @@ type isBranchSpec_Expiration interface {
 
 // BranchSpec_Expiration_ExpireTime selects ExpireTime for BranchSpec.Expiration.
 // Absolute expiration timestamp. When set, the branch will expire at this time.
-// Mutually exclusive with `ttl` and `no_expiry`. When updating, use
-// `spec.expiration` in the update_mask.
+// Mutually exclusive with `ttl` and `no_expiry`.
 type BranchSpec_Expiration_ExpireTime struct {
 	ExpireTime types.Time `fieldmask:"expire_time"`
 }
@@ -753,7 +750,6 @@ func (*BranchSpec_Expiration_ExpireTime) isBranchSpec_Expiration() {}
 // BranchSpec_Expiration_Ttl selects Ttl for BranchSpec.Expiration.
 // Relative time-to-live duration. When set, the branch will expire at
 // creation_time + ttl. Mutually exclusive with `expire_time` and `no_expiry`.
-// When updating, use `spec.expiration` in the update_mask.
 type BranchSpec_Expiration_Ttl struct {
 	Ttl types.Duration `fieldmask:"ttl"`
 }
@@ -763,8 +759,7 @@ func (*BranchSpec_Expiration_Ttl) isBranchSpec_Expiration() {}
 // BranchSpec_Expiration_NoExpiry selects NoExpiry for BranchSpec.Expiration.
 // Explicitly disable expiration. When set to true, the branch will not expire.
 // If set to false, the request is invalid; provide either ttl or expire_time
-// instead. Mutually exclusive with `expire_time` and `ttl`. When updating, use
-// `spec.expiration` in the update_mask.
+// instead. Mutually exclusive with `expire_time` and `ttl`.
 type BranchSpec_Expiration_NoExpiry struct {
 	NoExpiry bool `fieldmask:"no_expiry"`
 }
@@ -1408,8 +1403,6 @@ type EndpointSpec struct {
 	// suspended. One of suspend_timeout_duration or no_suspension can be provided.
 	// When not specified default suspension behavior will be used (consult with
 	// documentation).
-	//
-	// When updating this field, use "spec.suspension" in the update_mask.
 	Suspension isEndpointSpec_Suspension
 	Settings   *EndpointSettings `fieldmask:"settings"`
 	// Settings for optional HA configuration of the endpoint. If unspecified, the
@@ -1426,8 +1419,7 @@ type isEndpointSpec_Suspension interface {
 // EndpointSpec_Suspension_SuspendTimeoutDuration selects SuspendTimeoutDuration for EndpointSpec.Suspension.
 // Duration of inactivity after which the compute endpoint is automatically
 // suspended. If specified should be between 60s and 604800s (1 minute to 1
-// week). Mutually exclusive with `no_suspension`. When updating, use
-// `spec.suspension` in the update_mask.
+// week). Mutually exclusive with `no_suspension`.
 type EndpointSpec_Suspension_SuspendTimeoutDuration struct {
 	SuspendTimeoutDuration types.Duration `fieldmask:"suspend_timeout_duration"`
 }
@@ -1437,8 +1429,7 @@ func (*EndpointSpec_Suspension_SuspendTimeoutDuration) isEndpointSpec_Suspension
 // EndpointSpec_Suspension_NoSuspension selects NoSuspension for EndpointSpec.Suspension.
 // When set to true, explicitly disables automatic suspension (never suspend).
 // Should be set to true when provided. Mutually exclusive with
-// `suspend_timeout_duration`. When updating, use `spec.suspension` in the
-// update_mask.
+// `suspend_timeout_duration`.
 type EndpointSpec_Suspension_NoSuspension struct {
 	NoSuspension bool `fieldmask:"no_suspension"`
 }
@@ -1932,8 +1923,7 @@ type isProjectDefaultEndpointSettings_Suspension interface {
 // ProjectDefaultEndpointSettings_Suspension_SuspendTimeoutDuration selects SuspendTimeoutDuration for ProjectDefaultEndpointSettings.Suspension.
 // Duration of inactivity after which the compute endpoint is automatically
 // suspended. If specified should be between 60s and 604800s (1 minute to 1
-// week). Mutually exclusive with `no_suspension`. When updating, use
-// `spec.project_default_settings.suspension` in the update_mask.
+// week). Mutually exclusive with `no_suspension`.
 type ProjectDefaultEndpointSettings_Suspension_SuspendTimeoutDuration struct {
 	SuspendTimeoutDuration types.Duration `fieldmask:"suspend_timeout_duration"`
 }
@@ -1944,8 +1934,7 @@ func (*ProjectDefaultEndpointSettings_Suspension_SuspendTimeoutDuration) isProje
 // ProjectDefaultEndpointSettings_Suspension_NoSuspension selects NoSuspension for ProjectDefaultEndpointSettings.Suspension.
 // When set to true, explicitly disables automatic suspension (never suspend).
 // Should be set to true when provided. Mutually exclusive with
-// `suspend_timeout_duration`. When updating, use
-// `spec.project_default_settings.suspension` in the update_mask.
+// `suspend_timeout_duration`.
 type ProjectDefaultEndpointSettings_Suspension_NoSuspension struct {
 	NoSuspension bool `fieldmask:"no_suspension"`
 }

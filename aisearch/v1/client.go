@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -98,10 +99,9 @@ func (c *internalClient) CreateIndex(ctx context.Context, req CreateIndexRequest
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/ai-search/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/indexes")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -167,10 +167,9 @@ func (c *internalClient) DeleteIndex(ctx context.Context, req DeleteIndexRequest
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/ai-search/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -222,10 +221,9 @@ func (c *internalClient) GetIndex(ctx context.Context, req GetIndexRequest, opts
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/ai-search/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -290,10 +288,9 @@ func (c *internalClient) ListIndexes(ctx context.Context, req ListIndexesRequest
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/ai-search/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/indexes")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -411,10 +408,9 @@ func (c *internalClient) QueryIndex(ctx context.Context, req QueryIndexRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/ai-search/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal(":query")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -485,10 +481,9 @@ func (c *internalClient) RemoveData(ctx context.Context, req RemoveDataRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/ai-search/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal(":removeData")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -559,10 +554,9 @@ func (c *internalClient) ScanIndex(ctx context.Context, req ScanIndexRequest, op
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/ai-search/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal(":scan")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -635,10 +629,9 @@ func (c *internalClient) SyncIndex(ctx context.Context, req SyncIndexRequest, op
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/ai-search/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal(":sync")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -703,10 +696,9 @@ func (c *internalClient) UpsertData(ctx context.Context, req UpsertDataRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/ai-search/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal(":upsertData")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -777,10 +769,9 @@ func (c *internalClient) CreateEndpoint(ctx context.Context, req CreateEndpointR
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/ai-search/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/endpoints")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -846,10 +837,9 @@ func (c *internalClient) DeleteEndpoint(ctx context.Context, req DeleteEndpointR
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/ai-search/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -901,10 +891,9 @@ func (c *internalClient) GetEndpoint(ctx context.Context, req GetEndpointRequest
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/ai-search/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -969,10 +958,9 @@ func (c *internalClient) ListEndpoints(ctx context.Context, req ListEndpointsReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/ai-search/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/endpoints")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}

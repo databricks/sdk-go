@@ -515,10 +515,9 @@ func (c *internalClient) DeleteDatabaseCatalog(ctx context.Context, req DeleteDa
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/catalogs/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -639,16 +638,14 @@ func (c *internalClient) DeleteDatabaseInstanceRole(ctx context.Context, req Del
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/instances/")
 	if req.InstanceName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.InstanceName)
+		return fmt.Errorf("path parameter %q is required", "instance_name")
 	}
+	pb.singleSegment(*req.InstanceName)
 	pb.literal("/roles/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "reassign_owned_to", wireReq.ReassignOwnedTo); err != nil {
@@ -706,10 +703,9 @@ func (c *internalClient) DeleteDatabaseTable(ctx context.Context, req DeleteData
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/tables/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -765,10 +761,9 @@ func (c *internalClient) DeleteSyncedDatabaseTable(ctx context.Context, req Dele
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/synced_tables/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "purge_data", wireReq.PurgeData); err != nil {
@@ -956,10 +951,9 @@ func (c *internalClient) GetDatabaseCatalog(ctx context.Context, req GetDatabase
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/catalogs/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1154,10 +1148,9 @@ func (c *internalClient) GetDatabaseTable(ctx context.Context, req GetDatabaseTa
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/tables/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1218,10 +1211,9 @@ func (c *internalClient) GetSyncedDatabaseTable(ctx context.Context, req GetSync
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/synced_tables/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1750,10 +1742,9 @@ func (c *internalClient) UpdateDatabaseCatalog(ctx context.Context, req UpdateDa
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/catalogs/")
 	if req.DatabaseCatalog == nil || req.DatabaseCatalog.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.DatabaseCatalog.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.DatabaseCatalog.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -1826,10 +1817,9 @@ func (c *internalClient) UpdateDatabaseInstance(ctx context.Context, req UpdateD
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/instances/")
 	if req.DatabaseInstance == nil || req.DatabaseInstance.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.DatabaseInstance.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.DatabaseInstance.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -1902,10 +1892,9 @@ func (c *internalClient) UpdateSyncedDatabaseTable(ctx context.Context, req Upda
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/database/synced_tables/")
 	if req.SyncedTable == nil || req.SyncedTable.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SyncedTable.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.SyncedTable.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

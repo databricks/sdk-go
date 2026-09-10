@@ -5,6 +5,7 @@ package policyfamilies
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -94,10 +95,9 @@ func (c *internalClient) GetPolicyFamily(ctx context.Context, req GetPolicyFamil
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/policy-families/")
 	if req.PolicyFamilyId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.PolicyFamilyId)
+		return nil, fmt.Errorf("path parameter %q is required", "policy_family_id")
 	}
+	pb.singleSegment(*req.PolicyFamilyId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "version", wireReq.Version); err != nil {

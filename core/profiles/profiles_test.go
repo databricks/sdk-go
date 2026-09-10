@@ -1,6 +1,7 @@
 package profiles
 
 import (
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -21,6 +22,49 @@ func resetEnv(t *testing.T) {
 	t.Setenv("DATABRICKS_CONFIG_PROFILE", "")
 	for _, prop := range properties {
 		t.Setenv(prop.envVar, "")
+	}
+}
+
+func TestSecret_MarshalJSON(t *testing.T) {
+	testCases := []struct {
+		name  string
+		value Secret
+	}{
+		{name: "empty"},
+		{name: "with value", value: "sensitive"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			encoded, err := json.Marshal(tc.value)
+			if err != nil {
+				t.Fatalf("Marshal() error = %v", err)
+			}
+			if got, want := string(encoded), `"********"`; got != want {
+				t.Errorf("Marshal() = %q, want %q", got, want)
+			}
+		})
+	}
+}
+
+func TestProfile_MarshalJSON(t *testing.T) {
+	const token = "sensitive-token"
+	profile := Profile{Token: Secret(token)}
+
+	encoded, err := json.Marshal(profile)
+	if err != nil {
+		t.Fatalf("Marshal() error = %v", err)
+	}
+	if strings.Contains(string(encoded), token) {
+		t.Errorf("Marshal() exposed secret in %s", encoded)
+	}
+
+	var got map[string]any
+	if err := json.Unmarshal(encoded, &got); err != nil {
+		t.Fatalf("Unmarshal() error = %v", err)
+	}
+	if got["Token"] != obfuscatedSecret {
+		t.Errorf("Marshal() Token = %q, want %q", got["Token"], obfuscatedSecret)
 	}
 }
 

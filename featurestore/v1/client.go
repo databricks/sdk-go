@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -156,10 +157,9 @@ func (c *internalClient) DeleteOnlineStore(ctx context.Context, req DeleteOnline
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-store/online-stores/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -211,10 +211,9 @@ func (c *internalClient) DeleteOnlineTable(ctx context.Context, req DeleteOnline
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-store/online-tables/")
 	if req.OnlineTableName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.OnlineTableName)
+		return fmt.Errorf("path parameter %q is required", "online_table_name")
 	}
+	pb.singleSegment(*req.OnlineTableName)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -266,10 +265,9 @@ func (c *internalClient) GetOnlineStore(ctx context.Context, req GetOnlineStoreR
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-store/online-stores/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -446,10 +444,9 @@ func (c *internalClient) PublishTable(ctx context.Context, req PublishTableReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-store/tables/")
 	if req.SourceTableName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SourceTableName)
+		return nil, fmt.Errorf("path parameter %q is required", "source_table_name")
 	}
+	pb.singleSegment(*req.SourceTableName)
 	pb.literal("/publish")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -520,10 +517,9 @@ func (c *internalClient) UpdateOnlineStore(ctx context.Context, req UpdateOnline
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-store/online-stores/")
 	if req.OnlineStore == nil || req.OnlineStore.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.OnlineStore.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.OnlineStore.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

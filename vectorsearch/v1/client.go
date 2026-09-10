@@ -320,10 +320,9 @@ func (c *internalClient) DeleteDataVectorIndex(ctx context.Context, req DeleteDa
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/indexes/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/delete-data")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -388,10 +387,9 @@ func (c *internalClient) DeleteEndpoint(ctx context.Context, req DeleteEndpointR
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/endpoints/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -446,10 +444,9 @@ func (c *internalClient) DeleteVectorIndex(ctx context.Context, req DeleteVector
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/indexes/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -504,10 +501,9 @@ func (c *internalClient) GetEndpoint(ctx context.Context, req GetEndpointRequest
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/endpoints/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -572,10 +568,9 @@ func (c *internalClient) GetVectorIndex(ctx context.Context, req GetVectorIndexR
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/indexes/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "ensure_reranker_compatible", wireReq.EnsureRerankerCompatible); err != nil {
@@ -860,10 +855,9 @@ func (c *internalClient) PatchEndpoint(ctx context.Context, req PatchEndpointReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/endpoints/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -933,10 +927,9 @@ func (c *internalClient) PatchEndpointBudgetPolicy(ctx context.Context, req Patc
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/endpoints/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/budget-policy")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1007,10 +1000,9 @@ func (c *internalClient) QueryVectorIndex(ctx context.Context, req QueryVectorIn
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/indexes/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/query")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1082,10 +1074,9 @@ func (c *internalClient) QueryVectorIndexNextPage(ctx context.Context, req Query
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/indexes/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/query-next-page")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1156,10 +1147,9 @@ func (c *internalClient) RetrieveUserVisibleMetrics(ctx context.Context, req Ret
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/endpoints/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/metrics")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1231,10 +1221,9 @@ func (c *internalClient) ScanVectorIndex(ctx context.Context, req ScanVectorInde
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/indexes/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/scan")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1305,10 +1294,9 @@ func (c *internalClient) SyncVectorIndex(ctx context.Context, req SyncVectorInde
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/indexes/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/sync")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1373,10 +1361,9 @@ func (c *internalClient) UpdateEndpointCustomTags(ctx context.Context, req Updat
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/endpoints/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/tags")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1447,10 +1434,9 @@ func (c *internalClient) UpsertDataVectorIndex(ctx context.Context, req UpsertDa
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/vector-search/indexes/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/upsert-data")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}

@@ -28,6 +28,7 @@ package profiles
 
 import (
 	"cmp"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -66,7 +67,11 @@ var (
 // determines which profile to load when no profile is explicitly requested.
 const settingsSection = "__settings__"
 
-// Secret is a string that is obfuscated in all string representations.
+// Secret holds a sensitive string. It is redacted when formatted, logged, or
+// serialized. Convert it to string to access the original value.
+//
+// Do not use Secret as a map key when converting a map to JSON. Its original
+// value will be exposed.
 type Secret string
 
 const obfuscatedSecret = "********"
@@ -74,7 +79,7 @@ const obfuscatedSecret = "********"
 func (s Secret) String() string               { return obfuscatedSecret }
 func (s Secret) GoString() string             { return obfuscatedSecret }
 func (s Secret) MarshalText() ([]byte, error) { return []byte(obfuscatedSecret), nil }
-func (s Secret) MarshalJSON() ([]byte, error) { return []byte(obfuscatedSecret), nil }
+func (s Secret) MarshalJSON() ([]byte, error) { return json.Marshal(obfuscatedSecret) }
 func (s Secret) LogValue() slog.Value         { return slog.StringValue(obfuscatedSecret) }
 
 // Profile holds configuration values resolved from a databrickscfg file and/or

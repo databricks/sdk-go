@@ -213,7 +213,7 @@ const (
 	RuntimeEngine_Photon RuntimeEngine = "PHOTON"
 )
 
-// The status code indicating why the cluster was terminated
+// The status code indicating why the cluster was terminated.
 type TerminationCode string
 
 const (

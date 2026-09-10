@@ -12,6 +12,7 @@ const (
 	PolicyType_Unspecified          PolicyType = ""
 	PolicyType_PolicyTypeRowFilter  PolicyType = "POLICY_TYPE_ROW_FILTER"
 	PolicyType_PolicyTypeColumnMask PolicyType = "POLICY_TYPE_COLUMN_MASK"
+	PolicyType_PolicyTypeDeny       PolicyType = "POLICY_TYPE_DENY"
 	PolicyType_PolicyTypeGrant      PolicyType = "POLICY_TYPE_GRANT"
 )
 
@@ -85,6 +86,13 @@ type DeletePolicyRequest struct {
 }
 
 type DeletePolicyResponse struct {
+}
+
+type DenyOptions struct {
+	// List of privileges to deny. When any of these privileges are requested, the
+	// policy will deny access if the principal and condition match. Required on
+	// create and update.
+	Privileges []string `fieldmask:"privileges"`
 }
 
 // An expression that is evaluated at query time against per-request context.
@@ -260,6 +268,16 @@ type PolicyInfo_Options_ColumnMask struct {
 
 func (*PolicyInfo_Options_ColumnMask) isPolicyInfo_Options() {}
 
+// PolicyInfo_Options_Deny selects Deny for PolicyInfo.Options.
+// Options for deny policies. Valid only if `policy_type` is `POLICY_TYPE_DENY`.
+// Required on create and optional on update. When specified on update, the new
+// options will replace the existing options as a whole.
+type PolicyInfo_Options_Deny struct {
+	Deny DenyOptions `fieldmask:"deny"`
+}
+
+func (*PolicyInfo_Options_Deny) isPolicyInfo_Options() {}
+
 // PolicyInfo_Options_Grant selects Grant for PolicyInfo.Options.
 // Options for grant policies. Valid only if `policy_type` is
 // `POLICY_TYPE_GRANT`. Required on create and optional on update. When
@@ -274,6 +292,7 @@ func (*PolicyInfo_Options_Grant) isPolicyInfo_Options() {}
 type policyInfoOptionsFieldMaskMetadata struct {
 	*PolicyInfo_Options_RowFilter
 	*PolicyInfo_Options_ColumnMask
+	*PolicyInfo_Options_Deny
 	*PolicyInfo_Options_Grant
 }
 

@@ -274,10 +274,9 @@ func (c *internalClient) DeleteWorkspaceBaseEnvironment(ctx context.Context, req
 	pb := pathBuilder{}
 	pb.literal("/api/environments/v1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -331,10 +330,9 @@ func (c *internalClient) GetDefaultWorkspaceBaseEnvironment(ctx context.Context,
 	pb := pathBuilder{}
 	pb.literal("/api/environments/v1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -460,10 +458,9 @@ func (c *internalClient) GetWorkspaceBaseEnvironment(ctx context.Context, req Ge
 	pb := pathBuilder{}
 	pb.literal("/api/environments/v1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -655,10 +652,9 @@ func (c *internalClient) refreshWorkspaceBaseEnvironmentBase(ctx context.Context
 	pb := pathBuilder{}
 	pb.literal("/api/environments/v1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	pb.literal("/refresh")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -914,10 +910,9 @@ func (c *internalClient) updateWorkspaceBaseEnvironmentBase(ctx context.Context,
 	pb := pathBuilder{}
 	pb.literal("/api/environments/v1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

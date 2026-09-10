@@ -1399,7 +1399,7 @@ type UpdateMcpServiceRequest struct {
 	// replacement must include every required field; any optional field you omit is
 	// cleared. To preserve sibling fields, use one or more granular paths:
 	// `comment`, `config.source_connection.name`, `config.include_tool_selectors`,
-	// or `config.rate_limits`. Wildcard paths such as `*` are not supported.
+	// or `config.rate_limits`.
 	UpdateMask *types.FieldMask[McpService]
 	// Optimistic concurrency token from the most recent read. When set, the update
 	// succeeds only if the resource has not changed. Leave unset for an
@@ -1424,7 +1424,7 @@ type UpdateModelProviderServiceRequest struct {
 	// `config.allow_all_targets`, `config.targets`, `config.forward_headers`,
 	// `config.forward_query_parameters`, `config.forward_unmanaged_paths`,
 	// `config.rate_limits`, or `config.inference_table`. The provider type is
-	// immutable, and wildcard paths such as `*` are not supported.
+	// immutable.
 	UpdateMask *types.FieldMask[ModelProviderService]
 	// Optimistic concurrency token from the most recent read. When set, the update
 	// succeeds only if the resource has not changed. Leave unset for an
@@ -1446,7 +1446,7 @@ type UpdateModelServiceRequest struct {
 	// `comment`, `config.routing.destinations`,
 	// `config.routing.fallback.destinations`, `config.rate_limits`, or
 	// `config.inference_table`. Intermediate paths such as `config.routing` and
-	// `config.routing.fallback`, and wildcard paths such as `*`, are not supported.
+	// `config.routing.fallback` are not supported.
 	UpdateMask *types.FieldMask[ModelService]
 	// Optimistic concurrency token from the most recent read. When set, the update
 	// succeeds only if the resource has not changed. Leave unset for an

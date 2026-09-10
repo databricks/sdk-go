@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -91,10 +92,9 @@ func (c *internalClient) GetCatalogWorkspaceBindings(ctx context.Context, req Ge
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/workspace-bindings/catalogs/")
 	if req.CatalogName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.CatalogName)
+		return nil, fmt.Errorf("path parameter %q is required", "catalog_name")
 	}
+	pb.singleSegment(*req.CatalogName)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -168,16 +168,14 @@ func (c *internalClient) GetWorkspaceBindings(ctx context.Context, req GetWorksp
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/bindings/")
 	if req.SecurableType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SecurableType)
+		return nil, fmt.Errorf("path parameter %q is required", "securable_type")
 	}
+	pb.singleSegment(*req.SecurableType)
 	pb.literal("/")
 	if req.SecurableFullName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SecurableFullName)
+		return nil, fmt.Errorf("path parameter %q is required", "securable_full_name")
 	}
+	pb.singleSegment(*req.SecurableFullName)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "max_results", wireReq.MaxResults); err != nil {
@@ -294,10 +292,9 @@ func (c *internalClient) UpdateCatalogWorkspaceBindings(ctx context.Context, req
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/workspace-bindings/catalogs/")
 	if req.CatalogName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.CatalogName)
+		return nil, fmt.Errorf("path parameter %q is required", "catalog_name")
 	}
+	pb.singleSegment(*req.CatalogName)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -368,16 +365,14 @@ func (c *internalClient) UpdateWorkspaceBindings(ctx context.Context, req Update
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/bindings/")
 	if req.SecurableType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SecurableType)
+		return nil, fmt.Errorf("path parameter %q is required", "securable_type")
 	}
+	pb.singleSegment(*req.SecurableType)
 	pb.literal("/")
 	if req.SecurableFullName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SecurableFullName)
+		return nil, fmt.Errorf("path parameter %q is required", "securable_full_name")
 	}
+	pb.singleSegment(*req.SecurableFullName)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

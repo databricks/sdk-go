@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -96,10 +97,9 @@ func (c *internalClient) GetPublicAccountSetting(ctx context.Context, req GetPub
 	pb.singleSegment(accountID)
 	pb.literal("/settings/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -167,16 +167,14 @@ func (c *internalClient) GetPublicAccountUserPreference(ctx context.Context, req
 	pb.singleSegment(accountID)
 	pb.literal("/users/")
 	if req.UserId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.UserId)
+		return nil, fmt.Errorf("path parameter %q is required", "user_id")
 	}
+	pb.singleSegment(*req.UserId)
 	pb.literal("/settings/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -239,10 +237,9 @@ func (c *internalClient) GetPublicWorkspaceSetting(ctx context.Context, req GetP
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/settings/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -431,10 +428,9 @@ func (c *internalClient) ListAccountUserPreferencesMetadata(ctx context.Context,
 	pb.singleSegment(accountID)
 	pb.literal("/users/")
 	if req.UserId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.UserId)
+		return nil, fmt.Errorf("path parameter %q is required", "user_id")
 	}
+	pb.singleSegment(*req.UserId)
 	pb.literal("/settings-metadata")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -671,10 +667,9 @@ func (c *internalClient) PatchPublicAccountSetting(ctx context.Context, req Patc
 	pb.singleSegment(accountID)
 	pb.literal("/settings/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -753,16 +748,14 @@ func (c *internalClient) PatchPublicAccountUserPreference(ctx context.Context, r
 	pb.singleSegment(accountID)
 	pb.literal("/users/")
 	if req.UserId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.UserId)
+		return nil, fmt.Errorf("path parameter %q is required", "user_id")
 	}
+	pb.singleSegment(*req.UserId)
 	pb.literal("/settings/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -838,10 +831,9 @@ func (c *internalClient) PatchPublicWorkspaceSetting(ctx context.Context, req Pa
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/settings/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

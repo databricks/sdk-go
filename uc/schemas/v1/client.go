@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -163,10 +164,9 @@ func (c *internalClient) DeleteSchema(ctx context.Context, req DeleteSchemaReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/schemas/")
 	if req.FullNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name_arg")
 	}
+	pb.singleSegment(*req.FullNameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -230,10 +230,9 @@ func (c *internalClient) GetSchema(ctx context.Context, req GetSchemaRequest, op
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/schemas/")
 	if req.FullNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name_arg")
 	}
+	pb.singleSegment(*req.FullNameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "include_browse", wireReq.IncludeBrowse); err != nil {
@@ -435,10 +434,9 @@ func (c *internalClient) UpdateSchema(ctx context.Context, req UpdateSchemaReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/schemas/")
 	if req.FullNameArg == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullNameArg)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name_arg")
 	}
+	pb.singleSegment(*req.FullNameArg)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

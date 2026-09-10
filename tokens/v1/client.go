@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -289,10 +290,9 @@ func (c *internalClient) UpdateToken(ctx context.Context, req UpdateTokenRequest
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/token/")
 	if req.TokenId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.TokenId)
+		return nil, fmt.Errorf("path parameter %q is required", "token_id")
 	}
+	pb.singleSegment(*req.TokenId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

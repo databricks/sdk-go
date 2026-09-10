@@ -481,10 +481,9 @@ func (c *internalClient) UpdateAccountIpAccessList(ctx context.Context, req Upda
 	pb.singleSegment(accountID)
 	pb.literal("/ip-access-lists/")
 	if req.ListId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ListId)
+		return nil, fmt.Errorf("path parameter %q is required", "list_id")
 	}
+	pb.singleSegment(*req.ListId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -562,10 +561,9 @@ func (c *internalClient) CreateEndpoint(ctx context.Context, req CreateEndpointR
 	pb := pathBuilder{}
 	pb.literal("/api/networking/v1/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/endpoints")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -630,10 +628,9 @@ func (c *internalClient) DeleteEndpoint(ctx context.Context, req DeleteEndpointR
 	pb := pathBuilder{}
 	pb.literal("/api/networking/v1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -685,10 +682,9 @@ func (c *internalClient) GetEndpoint(ctx context.Context, req GetEndpointRequest
 	pb := pathBuilder{}
 	pb.literal("/api/networking/v1/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -753,10 +749,9 @@ func (c *internalClient) ListEndpoints(ctx context.Context, req ListEndpointsReq
 	pb := pathBuilder{}
 	pb.literal("/api/networking/v1/")
 	if req.Parent == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Parent)
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
 	}
+	pb.singleSegment(*req.Parent)
 	pb.literal("/endpoints")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1239,10 +1234,9 @@ func (c *internalClient) UpdateIpAccessList(ctx context.Context, req UpdateIpAcc
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/ip-access-lists/")
 	if req.ListId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ListId)
+		return nil, fmt.Errorf("path parameter %q is required", "list_id")
 	}
+	pb.singleSegment(*req.ListId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2147,10 +2141,9 @@ func (c *internalClient) DeleteNetworkPolicyRpc(ctx context.Context, req DeleteN
 	pb.singleSegment(accountID)
 	pb.literal("/network-policies/")
 	if req.NetworkPolicyId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NetworkPolicyId)
+		return fmt.Errorf("path parameter %q is required", "network_policy_id")
 	}
+	pb.singleSegment(*req.NetworkPolicyId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2206,10 +2199,9 @@ func (c *internalClient) GetNetworkPolicyRpc(ctx context.Context, req GetNetwork
 	pb.singleSegment(accountID)
 	pb.literal("/network-policies/")
 	if req.NetworkPolicyId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NetworkPolicyId)
+		return nil, fmt.Errorf("path parameter %q is required", "network_policy_id")
 	}
+	pb.singleSegment(*req.NetworkPolicyId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2394,10 +2386,9 @@ func (c *internalClient) UpdateNetworkPolicyRpc(ctx context.Context, req UpdateN
 	pb.singleSegment(accountID)
 	pb.literal("/network-policies/")
 	if req.NetworkPolicyId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NetworkPolicyId)
+		return nil, fmt.Errorf("path parameter %q is required", "network_policy_id")
 	}
+	pb.singleSegment(*req.NetworkPolicyId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2702,10 +2693,9 @@ func (c *internalClient) DeleteNetworkPublic(ctx context.Context, req DeleteNetw
 	pb.singleSegment(accountID)
 	pb.literal("/networks/")
 	if req.NetworkId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NetworkId)
+		return nil, fmt.Errorf("path parameter %q is required", "network_id")
 	}
+	pb.singleSegment(*req.NetworkId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2771,10 +2761,9 @@ func (c *internalClient) DeletePrivateAccessSettingsPublic(ctx context.Context, 
 	pb.singleSegment(accountID)
 	pb.literal("/private-access-settings/")
 	if req.PrivateAccessSettingsId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.PrivateAccessSettingsId)
+		return nil, fmt.Errorf("path parameter %q is required", "private_access_settings_id")
 	}
+	pb.singleSegment(*req.PrivateAccessSettingsId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2840,10 +2829,9 @@ func (c *internalClient) DeleteVpcEndpointPublic(ctx context.Context, req Delete
 	pb.singleSegment(accountID)
 	pb.literal("/vpc-endpoints/")
 	if req.VpcEndpointId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.VpcEndpointId)
+		return nil, fmt.Errorf("path parameter %q is required", "vpc_endpoint_id")
 	}
+	pb.singleSegment(*req.VpcEndpointId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2909,10 +2897,9 @@ func (c *internalClient) GetNetworkPublic(ctx context.Context, req GetNetworkReq
 	pb.singleSegment(accountID)
 	pb.literal("/networks/")
 	if req.NetworkId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.NetworkId)
+		return nil, fmt.Errorf("path parameter %q is required", "network_id")
 	}
+	pb.singleSegment(*req.NetworkId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2978,10 +2965,9 @@ func (c *internalClient) GetPrivateAccessSettingsPublic(ctx context.Context, req
 	pb.singleSegment(accountID)
 	pb.literal("/private-access-settings/")
 	if req.PrivateAccessSettingsId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.PrivateAccessSettingsId)
+		return nil, fmt.Errorf("path parameter %q is required", "private_access_settings_id")
 	}
+	pb.singleSegment(*req.PrivateAccessSettingsId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3051,10 +3037,9 @@ func (c *internalClient) GetVpcEndpointPublic(ctx context.Context, req GetVpcEnd
 	pb.singleSegment(accountID)
 	pb.literal("/vpc-endpoints/")
 	if req.VpcEndpointId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.VpcEndpointId)
+		return nil, fmt.Errorf("path parameter %q is required", "vpc_endpoint_id")
 	}
+	pb.singleSegment(*req.VpcEndpointId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

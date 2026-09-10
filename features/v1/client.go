@@ -665,10 +665,9 @@ func (c *internalClient) DeleteFeature(ctx context.Context, req DeleteFeatureReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/features/")
 	if req.FullName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullName)
+		return fmt.Errorf("path parameter %q is required", "full_name")
 	}
+	pb.singleSegment(*req.FullName)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -722,10 +721,9 @@ func (c *internalClient) DeleteKafkaConfig(ctx context.Context, req DeleteKafkaC
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/features/kafka-configs/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -777,10 +775,9 @@ func (c *internalClient) DeleteMaterializedFeature(ctx context.Context, req Dele
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/materialized-features/")
 	if req.MaterializedFeatureId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MaterializedFeatureId)
+		return fmt.Errorf("path parameter %q is required", "materialized_feature_id")
 	}
+	pb.singleSegment(*req.MaterializedFeatureId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -832,10 +829,9 @@ func (c *internalClient) DeleteStream(ctx context.Context, req DeleteStreamReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/streams/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -887,10 +883,9 @@ func (c *internalClient) GetFeature(ctx context.Context, req GetFeatureRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/features/")
 	if req.FullName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullName)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name")
 	}
+	pb.singleSegment(*req.FullName)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -953,10 +948,9 @@ func (c *internalClient) GetKafkaConfig(ctx context.Context, req GetKafkaConfigR
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/features/kafka-configs/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1017,10 +1011,9 @@ func (c *internalClient) GetMaterializedFeature(ctx context.Context, req GetMate
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/materialized-features/")
 	if req.MaterializedFeatureId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MaterializedFeatureId)
+		return nil, fmt.Errorf("path parameter %q is required", "materialized_feature_id")
 	}
+	pb.singleSegment(*req.MaterializedFeatureId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1145,10 +1138,9 @@ func (c *internalClient) GetStream(ctx context.Context, req GetStreamRequest, op
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/streams/")
 	if req.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1831,10 +1823,9 @@ func (c *internalClient) UpdateFeature(ctx context.Context, req UpdateFeatureReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/features/")
 	if req.Feature == nil || req.Feature.FullName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Feature.FullName)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name")
 	}
+	pb.singleSegment(*req.Feature.FullName)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -1909,10 +1900,9 @@ func (c *internalClient) UpdateKafkaConfig(ctx context.Context, req UpdateKafkaC
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/features/kafka-configs/")
 	if req.KafkaConfig == nil || req.KafkaConfig.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.KafkaConfig.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.KafkaConfig.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
@@ -2061,10 +2051,9 @@ func (c *internalClient) UpdateStream(ctx context.Context, req UpdateStreamReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/feature-engineering/streams/")
 	if req.Stream == nil || req.Stream.Name == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Stream.Name)
+		return nil, fmt.Errorf("path parameter %q is required", "name")
 	}
+	pb.singleSegment(*req.Stream.Name)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {

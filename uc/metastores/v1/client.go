@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -180,10 +181,9 @@ func (c *internalClient) CreateAccountsMetastoreAssignment(ctx context.Context, 
 	}
 	pb.literal("/metastores/")
 	if req.MetastoreId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MetastoreId)
+		return nil, fmt.Errorf("path parameter %q is required", "metastore_id")
 	}
+	pb.singleSegment(*req.MetastoreId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -247,10 +247,9 @@ func (c *internalClient) DeleteAccountsMetastore(ctx context.Context, req Accoun
 	pb.singleSegment(accountID)
 	pb.literal("/metastores/")
 	if req.MetastoreId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MetastoreId)
+		return nil, fmt.Errorf("path parameter %q is required", "metastore_id")
 	}
+	pb.singleSegment(*req.MetastoreId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -319,10 +318,9 @@ func (c *internalClient) DeleteAccountsMetastoreAssignment(ctx context.Context, 
 	}
 	pb.literal("/metastores/")
 	if req.MetastoreId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MetastoreId)
+		return nil, fmt.Errorf("path parameter %q is required", "metastore_id")
 	}
+	pb.singleSegment(*req.MetastoreId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -381,10 +379,9 @@ func (c *internalClient) GetAccountsMetastore(ctx context.Context, req AccountsG
 	pb.singleSegment(accountID)
 	pb.literal("/metastores/")
 	if req.MetastoreId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MetastoreId)
+		return nil, fmt.Errorf("path parameter %q is required", "metastore_id")
 	}
+	pb.singleSegment(*req.MetastoreId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -452,10 +449,9 @@ func (c *internalClient) GetMetastoreAssignment(ctx context.Context, req Account
 	pb.singleSegment(accountID)
 	pb.literal("/workspaces/")
 	if req.WorkspaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.WorkspaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "workspace_id")
 	}
+	pb.singleSegment(*req.WorkspaceId)
 	pb.literal("/metastore")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -585,10 +581,9 @@ func (c *internalClient) ListMetastoreAssignments(ctx context.Context, req Accou
 	pb.singleSegment(accountID)
 	pb.literal("/metastores/")
 	if req.MetastoreId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MetastoreId)
+		return nil, fmt.Errorf("path parameter %q is required", "metastore_id")
 	}
+	pb.singleSegment(*req.MetastoreId)
 	pb.literal("/workspaces")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -662,10 +657,9 @@ func (c *internalClient) UpdateAccountsMetastore(ctx context.Context, req Accoun
 	pb.singleSegment(accountID)
 	pb.literal("/metastores/")
 	if req.MetastoreId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MetastoreId)
+		return nil, fmt.Errorf("path parameter %q is required", "metastore_id")
 	}
+	pb.singleSegment(*req.MetastoreId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -746,10 +740,9 @@ func (c *internalClient) UpdateAccountsMetastoreAssignment(ctx context.Context, 
 	}
 	pb.literal("/metastores/")
 	if req.MetastoreId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.MetastoreId)
+		return nil, fmt.Errorf("path parameter %q is required", "metastore_id")
 	}
+	pb.singleSegment(*req.MetastoreId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -885,10 +878,9 @@ func (c *internalClient) CreateMetastoreAssignment(ctx context.Context, req Crea
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/workspaces/")
 	if req.WorkspaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.WorkspaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "workspace_id")
 	}
+	pb.singleSegment(*req.WorkspaceId)
 	pb.literal("/metastore")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -949,10 +941,9 @@ func (c *internalClient) DeleteMetastore(ctx context.Context, req DeleteMetastor
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/metastores/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -1014,10 +1005,9 @@ func (c *internalClient) DeleteMetastoreAssignment(ctx context.Context, req Dele
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/workspaces/")
 	if req.WorkspaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.WorkspaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "workspace_id")
 	}
+	pb.singleSegment(*req.WorkspaceId)
 	pb.literal("/metastore")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1134,10 +1124,9 @@ func (c *internalClient) GetMetastore(ctx context.Context, req GetMetastoreReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/metastores/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1384,10 +1373,9 @@ func (c *internalClient) UpdateMetastore(ctx context.Context, req UpdateMetastor
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/metastores/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1461,10 +1449,9 @@ func (c *internalClient) UpdateMetastoreAssignment(ctx context.Context, req Upda
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/workspaces/")
 	if req.WorkspaceId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.WorkspaceId)
+		return nil, fmt.Errorf("path parameter %q is required", "workspace_id")
 	}
+	pb.singleSegment(*req.WorkspaceId)
 	pb.literal("/metastore")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}

@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -103,10 +104,9 @@ func (c *internalClient) GetEffectivePermissions(ctx context.Context, req GetEff
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/effective-permissions/")
 	if req.SecurableType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SecurableType)
+		return nil, fmt.Errorf("path parameter %q is required", "securable_type")
 	}
+	pb.singleSegment(*req.SecurableType)
 	pb.literal("/")
 	if req.SecurableFullName == nil {
 		pb.singleSegment("")
@@ -194,10 +194,9 @@ func (c *internalClient) GetPermissions(ctx context.Context, req GetPermissionsR
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/permissions/")
 	if req.SecurableType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SecurableType)
+		return nil, fmt.Errorf("path parameter %q is required", "securable_type")
 	}
+	pb.singleSegment(*req.SecurableType)
 	pb.literal("/")
 	if req.SecurableFullName == nil {
 		pb.singleSegment("")
@@ -278,16 +277,14 @@ func (c *internalClient) ListEffectivePrivilegeAssignments(ctx context.Context, 
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/effective-privilege-assignments/")
 	if req.SecurableType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SecurableType)
+		return nil, fmt.Errorf("path parameter %q is required", "securable_type")
 	}
+	pb.singleSegment(*req.SecurableType)
 	pb.literal("/")
 	if req.FullName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullName)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name")
 	}
+	pb.singleSegment(*req.FullName)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "principal", wireReq.Principal); err != nil {
@@ -403,16 +400,14 @@ func (c *internalClient) ListPrivilegeAssignments(ctx context.Context, req ListP
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/privilege-assignments/")
 	if req.SecurableType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SecurableType)
+		return nil, fmt.Errorf("path parameter %q is required", "securable_type")
 	}
+	pb.singleSegment(*req.SecurableType)
 	pb.literal("/")
 	if req.FullName == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FullName)
+		return nil, fmt.Errorf("path parameter %q is required", "full_name")
 	}
+	pb.singleSegment(*req.FullName)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "principal", wireReq.Principal); err != nil {
@@ -531,10 +526,9 @@ func (c *internalClient) UpdatePermissions(ctx context.Context, req UpdatePermis
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/unity-catalog/permissions/")
 	if req.SecurableType == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SecurableType)
+		return nil, fmt.Errorf("path parameter %q is required", "securable_type")
 	}
+	pb.singleSegment(*req.SecurableType)
 	pb.literal("/")
 	if req.SecurableFullName == nil {
 		pb.singleSegment("")

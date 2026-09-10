@@ -76,7 +76,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	}, nil
 }
 
-// * Applies the current pipeline environment onto the pipeline compute. The
+// Applies the current pipeline environment onto the pipeline compute. The
 // environment applied can be used by subsequent dev-mode updates.
 func (c *internalClient) ApplyEnvironment(ctx context.Context, req ApplyEnvironmentRequest, opts ...call.Option) (*ApplyEnvironmentResponse, error) {
 	wireReq, err := applyEnvironmentRequestToWire(&req)
@@ -310,10 +310,9 @@ func (c *internalClient) Delete(ctx context.Context, req DeletePipelineRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/pipelines/")
 	if req.PipelineId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.PipelineId)
+		return nil, fmt.Errorf("path parameter %q is required", "pipeline_id")
 	}
+	pb.singleSegment(*req.PipelineId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "force", wireReq.Force); err != nil {
@@ -382,10 +381,9 @@ func (c *internalClient) Edit(ctx context.Context, req EditPipelineRequest, opts
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/pipelines/")
 	if req.PipelineId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.PipelineId)
+		return nil, fmt.Errorf("path parameter %q is required", "pipeline_id")
 	}
+	pb.singleSegment(*req.PipelineId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -563,10 +561,9 @@ func (c *internalClient) Get(ctx context.Context, req GetPipelineRequest, opts .
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/pipelines/")
 	if req.PipelineId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.PipelineId)
+		return nil, fmt.Errorf("path parameter %q is required", "pipeline_id")
 	}
+	pb.singleSegment(*req.PipelineId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -627,16 +624,14 @@ func (c *internalClient) GetUpdate(ctx context.Context, req GetUpdateRequest, op
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/pipelines/")
 	if req.PipelineId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.PipelineId)
+		return nil, fmt.Errorf("path parameter %q is required", "pipeline_id")
 	}
+	pb.singleSegment(*req.PipelineId)
 	pb.literal("/updates/")
 	if req.UpdateId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.UpdateId)
+		return nil, fmt.Errorf("path parameter %q is required", "update_id")
 	}
+	pb.singleSegment(*req.UpdateId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -815,10 +810,9 @@ func (c *internalClient) ListUpdates(ctx context.Context, req ListUpdatesRequest
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/pipelines/")
 	if req.PipelineId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.PipelineId)
+		return nil, fmt.Errorf("path parameter %q is required", "pipeline_id")
 	}
+	pb.singleSegment(*req.PipelineId)
 	pb.literal("/updates")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -899,10 +893,9 @@ func (c *internalClient) Start(ctx context.Context, req StartUpdateRequest, opts
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/pipelines/")
 	if req.PipelineId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.PipelineId)
+		return nil, fmt.Errorf("path parameter %q is required", "pipeline_id")
 	}
+	pb.singleSegment(*req.PipelineId)
 	pb.literal("/updates")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -974,10 +967,9 @@ func (c *internalClient) stopBase(ctx context.Context, req StopPipelineRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/pipelines/")
 	if req.PipelineId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.PipelineId)
+		return nil, fmt.Errorf("path parameter %q is required", "pipeline_id")
 	}
+	pb.singleSegment(*req.PipelineId)
 	pb.literal("/stop")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}

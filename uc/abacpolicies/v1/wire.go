@@ -140,6 +140,28 @@ func createPolicyRequestToWire(v *CreatePolicyRequest) (*createPolicyRequestWire
 	}, nil
 }
 
+type denyOptionsWire struct {
+	Privileges []string `json:"privileges,omitempty"`
+}
+
+func denyOptionsToWire(v *DenyOptions) (*denyOptionsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &denyOptionsWire{
+		Privileges: v.Privileges,
+	}, nil
+}
+
+func denyOptionsFromWire(w *denyOptionsWire) (*DenyOptions, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DenyOptions{
+		Privileges: w.Privileges,
+	}, nil
+}
+
 type functionArgExpressionWire struct {
 	TagIntrospection *tagIntrospectionExpressionWire `json:"tag_introspection,omitempty"`
 }
@@ -368,6 +390,7 @@ type policyInfoWire struct {
 	PolicyType          PolicyType             `json:"policy_type,omitempty"`
 	RowFilter           *rowFilterOptionsWire  `json:"row_filter,omitempty"`
 	ColumnMask          *columnMaskOptionsWire `json:"column_mask,omitempty"`
+	Deny                *denyOptionsWire       `json:"deny,omitempty"`
 	Grant               *grantOptionsWire      `json:"grant,omitempty"`
 	MatchColumns        []matchColumnWire      `json:"match_columns,omitempty"`
 	CreatedAt           *wireInt64             `json:"created_at,omitempty"`
@@ -394,6 +417,7 @@ func policyInfoToWire(v *PolicyInfo) (*policyInfoWire, error) {
 	}
 	var optionsRowFilterWire *rowFilterOptionsWire
 	var optionsColumnMaskWire *columnMaskOptionsWire
+	var optionsDenyWire *denyOptionsWire
 	var optionsGrantWire *grantOptionsWire
 	switch value := v.Options.(type) {
 	case nil:
@@ -412,6 +436,14 @@ func policyInfoToWire(v *PolicyInfo) (*policyInfoWire, error) {
 				return nil, fmt.Errorf("%s: %w", "PolicyInfo.Options.ColumnMask", err)
 			}
 			optionsColumnMaskWire = optionsColumnMaskConverted
+		}
+	case *PolicyInfo_Options_Deny:
+		if value != nil {
+			optionsDenyConverted, err := denyOptionsToWire(&value.Deny)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "PolicyInfo.Options.Deny", err)
+			}
+			optionsDenyWire = optionsDenyConverted
 		}
 	case *PolicyInfo_Options_Grant:
 		if value != nil {
@@ -437,6 +469,7 @@ func policyInfoToWire(v *PolicyInfo) (*policyInfoWire, error) {
 		PolicyType:          v.PolicyType,
 		RowFilter:           optionsRowFilterWire,
 		ColumnMask:          optionsColumnMaskWire,
+		Deny:                optionsDenyWire,
 		Grant:               optionsGrantWire,
 		MatchColumns:        matchColumnsWireValue,
 		CreatedAt:           createdAtWireValue,
@@ -455,6 +488,9 @@ func policyInfoFromWire(w *policyInfoWire) (*PolicyInfo, error) {
 		optionsMembers++
 	}
 	if w.ColumnMask != nil {
+		optionsMembers++
+	}
+	if w.Deny != nil {
 		optionsMembers++
 	}
 	if w.Grant != nil {
@@ -489,6 +525,12 @@ func policyInfoFromWire(w *policyInfoWire) (*PolicyInfo, error) {
 			return nil, fmt.Errorf("%s: %w", "PolicyInfo.Options.ColumnMask", err)
 		}
 		optionsSelection = &PolicyInfo_Options_ColumnMask{ColumnMask: *optionsColumnMaskConverted}
+	case w.Deny != nil:
+		optionsDenyConverted, err := denyOptionsFromWire(w.Deny)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "PolicyInfo.Options.Deny", err)
+		}
+		optionsSelection = &PolicyInfo_Options_Deny{Deny: *optionsDenyConverted}
 	case w.Grant != nil:
 		optionsGrantConverted, err := grantOptionsFromWire(w.Grant)
 		if err != nil {

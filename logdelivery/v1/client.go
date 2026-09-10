@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -188,10 +189,9 @@ func (c *internalClient) GetLogDeliveryConfiguration(ctx context.Context, req Ge
 	pb.singleSegment(accountID)
 	pb.literal("/log-delivery/")
 	if req.ConfigId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ConfigId)
+		return nil, fmt.Errorf("path parameter %q is required", "config_id")
 	}
+	pb.singleSegment(*req.ConfigId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -391,10 +391,9 @@ func (c *internalClient) UpdateLogDeliveryConfiguration(ctx context.Context, req
 	pb.singleSegment(accountID)
 	pb.literal("/log-delivery/")
 	if req.ConfigId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ConfigId)
+		return nil, fmt.Errorf("path parameter %q is required", "config_id")
 	}
+	pb.singleSegment(*req.ConfigId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

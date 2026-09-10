@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -322,16 +323,14 @@ func (c *internalClient) DeleteSchedule(ctx context.Context, req DeleteScheduleR
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
 	if req.DashboardId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.DashboardId)
+		return fmt.Errorf("path parameter %q is required", "dashboard_id")
 	}
+	pb.singleSegment(*req.DashboardId)
 	pb.literal("/schedules/")
 	if req.ScheduleId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ScheduleId)
+		return fmt.Errorf("path parameter %q is required", "schedule_id")
 	}
+	pb.singleSegment(*req.ScheduleId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "etag", wireReq.Etag); err != nil {
@@ -390,22 +389,19 @@ func (c *internalClient) DeleteSubscription(ctx context.Context, req DeleteSubsc
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
 	if req.DashboardId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.DashboardId)
+		return fmt.Errorf("path parameter %q is required", "dashboard_id")
 	}
+	pb.singleSegment(*req.DashboardId)
 	pb.literal("/schedules/")
 	if req.ScheduleId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ScheduleId)
+		return fmt.Errorf("path parameter %q is required", "schedule_id")
 	}
+	pb.singleSegment(*req.ScheduleId)
 	pb.literal("/subscriptions/")
 	if req.SubscriptionId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SubscriptionId)
+		return fmt.Errorf("path parameter %q is required", "subscription_id")
 	}
+	pb.singleSegment(*req.SubscriptionId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "etag", wireReq.Etag); err != nil {
@@ -462,10 +458,9 @@ func (c *internalClient) GetDashboard(ctx context.Context, req GetDashboardReque
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
 	if req.DashboardId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.DashboardId)
+		return nil, fmt.Errorf("path parameter %q is required", "dashboard_id")
 	}
+	pb.singleSegment(*req.DashboardId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -532,10 +527,9 @@ func (c *internalClient) GetPublishedDashboard(ctx context.Context, req GetPubli
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
 	if req.DashboardId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.DashboardId)
+		return nil, fmt.Errorf("path parameter %q is required", "dashboard_id")
 	}
+	pb.singleSegment(*req.DashboardId)
 	pb.literal("/published")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -608,10 +602,9 @@ func (c *internalClient) GetPublishedDashboardTokenInfo(ctx context.Context, req
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
 	if req.DashboardId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.DashboardId)
+		return nil, fmt.Errorf("path parameter %q is required", "dashboard_id")
 	}
+	pb.singleSegment(*req.DashboardId)
 	pb.literal("/published/tokeninfo")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -679,16 +672,14 @@ func (c *internalClient) GetSchedule(ctx context.Context, req GetScheduleRequest
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
 	if req.DashboardId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.DashboardId)
+		return nil, fmt.Errorf("path parameter %q is required", "dashboard_id")
 	}
+	pb.singleSegment(*req.DashboardId)
 	pb.literal("/schedules/")
 	if req.ScheduleId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ScheduleId)
+		return nil, fmt.Errorf("path parameter %q is required", "schedule_id")
 	}
+	pb.singleSegment(*req.ScheduleId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -749,22 +740,19 @@ func (c *internalClient) GetSubscription(ctx context.Context, req GetSubscriptio
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
 	if req.DashboardId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.DashboardId)
+		return nil, fmt.Errorf("path parameter %q is required", "dashboard_id")
 	}
+	pb.singleSegment(*req.DashboardId)
 	pb.literal("/schedules/")
 	if req.ScheduleId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ScheduleId)
+		return nil, fmt.Errorf("path parameter %q is required", "schedule_id")
 	}
+	pb.singleSegment(*req.ScheduleId)
 	pb.literal("/subscriptions/")
 	if req.SubscriptionId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.SubscriptionId)
+		return nil, fmt.Errorf("path parameter %q is required", "subscription_id")
 	}
+	pb.singleSegment(*req.SubscriptionId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -947,10 +935,9 @@ func (c *internalClient) ListSchedules(ctx context.Context, req ListSchedulesReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
 	if req.DashboardId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.DashboardId)
+		return nil, fmt.Errorf("path parameter %q is required", "dashboard_id")
 	}
+	pb.singleSegment(*req.DashboardId)
 	pb.literal("/schedules")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1063,16 +1050,14 @@ func (c *internalClient) ListSubscriptions(ctx context.Context, req ListSubscrip
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
 	if req.DashboardId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.DashboardId)
+		return nil, fmt.Errorf("path parameter %q is required", "dashboard_id")
 	}
+	pb.singleSegment(*req.DashboardId)
 	pb.literal("/schedules/")
 	if req.ScheduleId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ScheduleId)
+		return nil, fmt.Errorf("path parameter %q is required", "schedule_id")
 	}
+	pb.singleSegment(*req.ScheduleId)
 	pb.literal("/subscriptions")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1258,10 +1243,9 @@ func (c *internalClient) PublishDashboard(ctx context.Context, req PublishDashbo
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
 	if req.DashboardId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.DashboardId)
+		return nil, fmt.Errorf("path parameter %q is required", "dashboard_id")
 	}
+	pb.singleSegment(*req.DashboardId)
 	pb.literal("/published")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1334,10 +1318,9 @@ func (c *internalClient) RevertDashboard(ctx context.Context, req RevertDashboar
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
 	if req.DashboardId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.DashboardId)
+		return nil, fmt.Errorf("path parameter %q is required", "dashboard_id")
 	}
+	pb.singleSegment(*req.DashboardId)
 	pb.literal("/revert")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1402,10 +1385,9 @@ func (c *internalClient) TrashDashboard(ctx context.Context, req TrashDashboardR
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
 	if req.DashboardId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.DashboardId)
+		return nil, fmt.Errorf("path parameter %q is required", "dashboard_id")
 	}
+	pb.singleSegment(*req.DashboardId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1462,10 +1444,9 @@ func (c *internalClient) UnpublishDashboard(ctx context.Context, req UnpublishDa
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/lakeview/dashboards/")
 	if req.DashboardId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.DashboardId)
+		return nil, fmt.Errorf("path parameter %q is required", "dashboard_id")
 	}
+	pb.singleSegment(*req.DashboardId)
 	pb.literal("/published")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}

@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -169,10 +170,9 @@ func (c *internalClient) DeleteBudgetPolicy(ctx context.Context, req DeleteBudge
 	pb.singleSegment(accountID)
 	pb.literal("/budget-policies/")
 	if req.PolicyId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.PolicyId)
+		return fmt.Errorf("path parameter %q is required", "policy_id")
 	}
+	pb.singleSegment(*req.PolicyId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -228,10 +228,9 @@ func (c *internalClient) GetBudgetPolicy(ctx context.Context, req GetBudgetPolic
 	pb.singleSegment(accountID)
 	pb.literal("/budget-policies/")
 	if req.PolicyId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.PolicyId)
+		return nil, fmt.Errorf("path parameter %q is required", "policy_id")
 	}
+	pb.singleSegment(*req.PolicyId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

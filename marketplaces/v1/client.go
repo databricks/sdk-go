@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"iter"
 	"log/slog"
 	"net/http"
@@ -228,10 +229,9 @@ func (c *internalClient) CreatePersonalizationRequest(ctx context.Context, req C
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/marketplace-consumer/listings/")
 	if req.ListingId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ListingId)
+		return nil, fmt.Errorf("path parameter %q is required", "listing_id")
 	}
+	pb.singleSegment(*req.ListingId)
 	pb.literal("/personalization-requests")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -298,10 +298,9 @@ func (c *internalClient) GetInstallationDetails(ctx context.Context, req GetInst
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/marketplace-consumer/listings/")
 	if req.ListingId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ListingId)
+		return nil, fmt.Errorf("path parameter %q is required", "listing_id")
 	}
+	pb.singleSegment(*req.ListingId)
 	pb.literal("/installations")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -414,10 +413,9 @@ func (c *internalClient) GetListingContent(ctx context.Context, req GetListingCo
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/marketplace-consumer/listings/")
 	if req.ListingId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ListingId)
+		return nil, fmt.Errorf("path parameter %q is required", "listing_id")
 	}
+	pb.singleSegment(*req.ListingId)
 	pb.literal("/content")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -527,10 +525,9 @@ func (c *internalClient) GetPersonalizationRequestsForConsumer(ctx context.Conte
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/marketplace-consumer/listings/")
 	if req.ListingId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ListingId)
+		return nil, fmt.Errorf("path parameter %q is required", "listing_id")
 	}
+	pb.singleSegment(*req.ListingId)
 	pb.literal("/personalization-requests")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -593,10 +590,9 @@ func (c *internalClient) GetPublishedListingForConsumer(ctx context.Context, req
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/marketplace-consumer/listings/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -658,10 +654,9 @@ func (c *internalClient) GetPublishedProviderForConsumer(ctx context.Context, re
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/marketplace-consumer/providers/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -730,10 +725,9 @@ func (c *internalClient) InstallListing(ctx context.Context, req CreateInstallat
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/marketplace-consumer/listings/")
 	if req.ListingId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ListingId)
+		return nil, fmt.Errorf("path parameter %q is required", "listing_id")
 	}
+	pb.singleSegment(*req.ListingId)
 	pb.literal("/installations")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -912,10 +906,9 @@ func (c *internalClient) ListListingFulfillments(ctx context.Context, req ListLi
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/marketplace-consumer/listings/")
 	if req.ListingId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ListingId)
+		return nil, fmt.Errorf("path parameter %q is required", "listing_id")
 	}
+	pb.singleSegment(*req.ListingId)
 	pb.literal("/fulfillments")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -1502,16 +1495,14 @@ func (c *internalClient) UninstallListing(ctx context.Context, req DeleteInstall
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/marketplace-consumer/listings/")
 	if req.ListingId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ListingId)
+		return nil, fmt.Errorf("path parameter %q is required", "listing_id")
 	}
+	pb.singleSegment(*req.ListingId)
 	pb.literal("/installations/")
 	if req.InstallationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.InstallationId)
+		return nil, fmt.Errorf("path parameter %q is required", "installation_id")
 	}
+	pb.singleSegment(*req.InstallationId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -1578,16 +1569,14 @@ func (c *internalClient) UpdateInstallationDetail(ctx context.Context, req Updat
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/marketplace-consumer/listings/")
 	if req.ListingId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ListingId)
+		return nil, fmt.Errorf("path parameter %q is required", "listing_id")
 	}
+	pb.singleSegment(*req.ListingId)
 	pb.literal("/installations/")
 	if req.InstallationId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.InstallationId)
+		return nil, fmt.Errorf("path parameter %q is required", "installation_id")
 	}
+	pb.singleSegment(*req.InstallationId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2113,10 +2102,9 @@ func (c *internalClient) DeleteExchange(ctx context.Context, req DeleteExchangeR
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-exchange/exchanges/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2171,10 +2159,9 @@ func (c *internalClient) DeleteExchangeFilter(ctx context.Context, req DeleteExc
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-exchange/filters/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2229,10 +2216,9 @@ func (c *internalClient) DeleteFile(ctx context.Context, req DeleteFileRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-provider/files/")
 	if req.FileId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FileId)
+		return nil, fmt.Errorf("path parameter %q is required", "file_id")
 	}
+	pb.singleSegment(*req.FileId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2287,10 +2273,9 @@ func (c *internalClient) DeleteListing(ctx context.Context, req DeleteListingReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-provider/listings/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2345,10 +2330,9 @@ func (c *internalClient) DeleteProvider(ctx context.Context, req DeleteProviderR
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-provider/providers/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2403,10 +2387,9 @@ func (c *internalClient) GetExchange(ctx context.Context, req GetExchangeRequest
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-exchange/exchanges/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2467,10 +2450,9 @@ func (c *internalClient) GetFile(ctx context.Context, req GetFileRequest, opts .
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-provider/files/")
 	if req.FileId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.FileId)
+		return nil, fmt.Errorf("path parameter %q is required", "file_id")
 	}
+	pb.singleSegment(*req.FileId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2588,10 +2570,9 @@ func (c *internalClient) GetListing(ctx context.Context, req GetListingRequest, 
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-provider/listings/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -2761,10 +2742,9 @@ func (c *internalClient) GetProvider(ctx context.Context, req GetProviderRequest
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-provider/providers/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3650,10 +3630,9 @@ func (c *internalClient) RemoveExchangeForListing(ctx context.Context, req Remov
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-exchange/exchanges-for-listing/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3716,10 +3695,9 @@ func (c *internalClient) UpdateExchange(ctx context.Context, req UpdateExchangeR
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-exchange/exchanges/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3789,10 +3767,9 @@ func (c *internalClient) UpdateExchangeFilter(ctx context.Context, req UpdateExc
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-exchange/filters/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3862,10 +3839,9 @@ func (c *internalClient) UpdateListing(ctx context.Context, req UpdateListingReq
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-provider/listings/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -3936,16 +3912,14 @@ func (c *internalClient) UpdatePersonalizationRequestStatus(ctx context.Context,
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-provider/listings/")
 	if req.ListingId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.ListingId)
+		return nil, fmt.Errorf("path parameter %q is required", "listing_id")
 	}
+	pb.singleSegment(*req.ListingId)
 	pb.literal("/personalization-requests/")
 	if req.RequestId == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.RequestId)
+		return nil, fmt.Errorf("path parameter %q is required", "request_id")
 	}
+	pb.singleSegment(*req.RequestId)
 	pb.literal("/request-status")
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
@@ -4016,10 +3990,9 @@ func (c *internalClient) UpdateProvider(ctx context.Context, req UpdateProviderR
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-provider/providers/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()
@@ -4089,10 +4062,9 @@ func (c *internalClient) UpdateProviderAnalyticsDashboard(ctx context.Context, r
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/marketplace-provider/analytics_dashboard/")
 	if req.Id == nil {
-		pb.singleSegment("")
-	} else {
-		pb.singleSegment(*req.Id)
+		return nil, fmt.Errorf("path parameter %q is required", "id")
 	}
+	pb.singleSegment(*req.Id)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	baseURL.RawQuery = queryParams.Encode()

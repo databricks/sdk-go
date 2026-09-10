@@ -110,6 +110,17 @@ type PublishSpec struct {
 	// columns. Required for view sources without a UC PrimaryKeyConstraint; ignored
 	// when the source already has one.
 	FullFeatureName *string
+	// Custom tags to apply to the synced online-table sync pipeline created for
+	// this publish. They are forwarded to the pipeline's compute as cluster tags so
+	// its cost can be attributed in the billing system tables. Applied only when
+	// the sync pipeline is first created (the initial publish of a new online
+	// table); republishing to an existing online table does not update them.
+	Tags map[string]string
+	// Budget policy id used to attribute the serverless compute cost of the synced
+	// online-table sync pipeline. Applied only when the sync pipeline is first
+	// created (the initial publish of a new online table); republishing to an
+	// existing online table does not update it.
+	BudgetPolicyId *string
 }
 
 type PublishTableRequest struct {
