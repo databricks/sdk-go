@@ -288,9 +288,9 @@ func (c *internalClient) GenieCancelResponse(ctx context.Context, req GenieCance
 	return resp, nil
 }
 
-// Create new message in a [conversation](:method:genie/startconversation). The
-// AI response uses all previously created messages in the conversation to
-// respond.
+// Sends a new message in a chat-mode
+// [conversation](:method:genie/startconversation). The AI response uses all
+// previously created messages in the conversation to respond.
 func (c *internalClient) genieCreateConversationMessageBase(ctx context.Context, req GenieCreateConversationMessageRequest, opts ...call.Option) (*GenieMessage, error) {
 	wireReq, err := genieCreateConversationMessageRequestToWire(&req)
 	if err != nil {
@@ -368,9 +368,9 @@ func (c *internalClient) genieCreateConversationMessageBase(ctx context.Context,
 	return resp, nil
 }
 
-// Create new message in a [conversation](:method:genie/startconversation). The
-// AI response uses all previously created messages in the conversation to
-// respond.
+// Sends a new message in a chat-mode
+// [conversation](:method:genie/startconversation). The AI response uses all
+// previously created messages in the conversation to respond.
 func (c *internalClient) GenieCreateConversationMessage(ctx context.Context, req GenieCreateConversationMessageRequest, opts ...call.Option) (*GenieCreateConversationMessageWaiter, error) {
 	if req.ConversationId == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "ConversationId")
@@ -479,7 +479,8 @@ func (w *GenieCreateConversationMessageWaiter) Wait(ctx context.Context, opts ..
 	return result, nil
 }
 
-// Create and run evaluations for multiple benchmark questions in a Genie space.
+// Creates and runs chat-mode evaluations for multiple benchmark questions in a
+// Genie space.
 func (c *internalClient) GenieCreateEvalRun(ctx context.Context, req GenieCreateEvalRunRequest, opts ...call.Option) (*GenieEvalRunResponse, error) {
 	wireReq, err := genieCreateEvalRunRequestToWire(&req)
 	if err != nil {
@@ -1041,7 +1042,8 @@ func (c *internalClient) GenieGenerateDownloadFullQueryResult(ctx context.Contex
 	return resp, nil
 }
 
-// Get message from conversation.
+// Gets a message from a chat-mode or agent-mode conversation. For a complete
+// agent-mode transcript, use the List conversation items endpoint.
 func (c *internalClient) GenieGetConversationMessage(ctx context.Context, req GenieGetConversationMessageRequest, opts ...call.Option) (*GenieMessage, error) {
 
 	headers := http.Header{}
@@ -1752,7 +1754,9 @@ func (c *internalClient) GenieListConversationComments(ctx context.Context, req 
 	return resp, nil
 }
 
-// List messages in a conversation
+// Lists messages in a chat-mode or agent-mode conversation. Agent-mode messages
+// are returned as GenieMessage projections. Use the List conversation items
+// endpoint for the complete reasoning and tool-call history.
 func (c *internalClient) GenieListConversationMessages(ctx context.Context, req GenieListConversationMessagesRequest, opts ...call.Option) (*GenieListConversationMessagesResponse, error) {
 	wireReq, err := genieListConversationMessagesRequestToWire(&req)
 	if err != nil {
@@ -2212,7 +2216,7 @@ func (c *internalClient) GenieListSpaces(ctx context.Context, req GenieListSpace
 	return resp, nil
 }
 
-// Send feedback for a message.
+// Sends feedback for a message in a chat-mode or agent-mode conversation.
 func (c *internalClient) GenieSendMessageFeedback(ctx context.Context, req GenieSendMessageFeedbackRequest, opts ...call.Option) error {
 	wireReq, err := genieSendMessageFeedbackRequestToWire(&req)
 	if err != nil {
@@ -2286,7 +2290,7 @@ func (c *internalClient) GenieSendMessageFeedback(ctx context.Context, req Genie
 	return nil
 }
 
-// Start a new conversation.
+// Starts a new chat-mode conversation and sends its first message.
 func (c *internalClient) genieStartConversationBase(ctx context.Context, req GenieStartConversationRequest, opts ...call.Option) (*GenieStartConversationResponse, error) {
 	wireReq, err := genieStartConversationRequestToWire(&req)
 	if err != nil {
@@ -2359,7 +2363,7 @@ func (c *internalClient) genieStartConversationBase(ctx context.Context, req Gen
 	return resp, nil
 }
 
-// Start a new conversation.
+// Starts a new chat-mode conversation and sends its first message.
 func (c *internalClient) GenieStartConversation(ctx context.Context, req GenieStartConversationRequest, opts ...call.Option) (*GenieStartConversationWaiter, error) {
 	if req.SpaceId == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "SpaceId")
