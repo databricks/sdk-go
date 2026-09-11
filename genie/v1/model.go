@@ -864,6 +864,9 @@ type GenieCancelResponseRequest struct {
 	ResponseId *string
 }
 
+// A Genie conversation. Use chat-mode message endpoints for classic chats and
+// agent-mode response and item endpoints for agent conversations. Conversation
+// management, feedback, comments, and attachment operations support both modes..
 type GenieConversation struct {
 	// Conversation ID. Legacy identifier, use conversation_id instead
 	Id *string
@@ -1052,6 +1055,8 @@ type GenieEvalResultDetails struct {
 	ExpectedResponse []GenieEvalResponse
 }
 
+// A benchmark evaluation run. The public benchmark API currently evaluates
+// chat-mode responses..
 type GenieEvalRunResponse struct {
 	// The unique identifier for the evaluation run.
 	EvalRunId *string

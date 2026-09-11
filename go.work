@@ -53,6 +53,7 @@ use (
 	./queries
 	./queryhistory
 	./repos
+	./sandbox
 	./scim
 	./secrets
 	./settings
