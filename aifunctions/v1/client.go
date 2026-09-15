@@ -210,9 +210,7 @@ func (c *internalClient) AiExtract(ctx context.Context, req AiExtractRequest, op
 	return resp, nil
 }
 
-// Parse structured content from unstructured documents. For REST API requests,
-// the default rate limit is 120 pages per minute per workspace. Contact your
-// <Databricks> account team to request a higher limit.
+// Parse structured content from unstructured documents.
 func (c *internalClient) AiParseDocument(ctx context.Context, req AiParseDocumentRequest, opts ...call.Option) (*AiParseDocumentResponse, error) {
 	wireReq, err := aiParseDocumentRequestToWire(&req)
 	if err != nil {

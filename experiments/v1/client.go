@@ -525,8 +525,8 @@ func (c *internalClient) DeleteRun(ctx context.Context, req DeleteRunRequest, op
 }
 
 // Bulk delete runs in an experiment that were created prior to or at the
-// specified timestamp. Deletes at most max_runs per request. To call this API
-// from a Databricks Notebook in Python, you can use the client code snippet on
+// specified timestamp. Deletes at most max_runs per request. See the
+// cloud-specific MLflow runs documentation for a Python client example.
 func (c *internalClient) DeleteRuns(ctx context.Context, req DeleteRunsRequest, opts ...call.Option) (*DeleteRunsResponse, error) {
 	wireReq, err := deleteRunsRequestToWire(&req)
 	if err != nil {
@@ -1956,8 +1956,8 @@ func (c *internalClient) RestoreRun(ctx context.Context, req RestoreRunRequest, 
 }
 
 // Bulk restore runs in an experiment that were deleted no earlier than the
-// specified timestamp. Restores at most max_runs per request. To call this API
-// from a Databricks Notebook in Python, you can use the client code snippet on
+// specified timestamp. Restores at most max_runs per request. See the
+// cloud-specific MLflow runs documentation for a Python client example.
 func (c *internalClient) RestoreRuns(ctx context.Context, req RestoreRunsRequest, opts ...call.Option) (*RestoreRunsResponse, error) {
 	wireReq, err := restoreRunsRequestToWire(&req)
 	if err != nil {

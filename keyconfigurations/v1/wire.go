@@ -52,18 +52,18 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
-type awsKeyInfoWire struct {
+type awsKeyInfoOutputWire struct {
 	KeyArn                    *string `json:"key_arn,omitempty"`
 	KeyAlias                  *string `json:"key_alias,omitempty"`
 	KeyRegion                 *string `json:"key_region,omitempty"`
 	ReuseKeyForClusterVolumes *bool   `json:"reuse_key_for_cluster_volumes,omitempty"`
 }
 
-func awsKeyInfoFromWire(w *awsKeyInfoWire) (*AwsKeyInfo, error) {
+func awsKeyInfoOutputFromWire(w *awsKeyInfoOutputWire) (*AwsKeyInfoOutput, error) {
 	if w == nil {
 		return nil, nil
 	}
-	return &AwsKeyInfo{
+	return &AwsKeyInfoOutput{
 		KeyArn:                    w.KeyArn,
 		KeyAlias:                  w.KeyAlias,
 		KeyRegion:                 w.KeyRegion,
@@ -219,13 +219,13 @@ func createGcpKeyInfoToWire(v *CreateGcpKeyInfo) (*createGcpKeyInfoWire, error) 
 }
 
 type customerManagedKeyWire struct {
-	CustomerManagedKeyId *string           `json:"customer_managed_key_id,omitempty"`
-	CreationTime         *wireInt64        `json:"creation_time,omitempty"`
-	AccountId            *string           `json:"account_id,omitempty"`
-	AwsKeyInfo           *awsKeyInfoWire   `json:"aws_key_info,omitempty"`
-	AzureKeyInfo         *azureKeyInfoWire `json:"azure_key_info,omitempty"`
-	GcpKeyInfo           *gcpKeyInfoWire   `json:"gcp_key_info,omitempty"`
-	UseCases             []CmkUseCase      `json:"use_cases,omitempty"`
+	CustomerManagedKeyId *string               `json:"customer_managed_key_id,omitempty"`
+	CreationTime         *wireInt64            `json:"creation_time,omitempty"`
+	AccountId            *string               `json:"account_id,omitempty"`
+	AwsKeyInfo           *awsKeyInfoOutputWire `json:"aws_key_info,omitempty"`
+	AzureKeyInfo         *azureKeyInfoWire     `json:"azure_key_info,omitempty"`
+	GcpKeyInfo           *gcpKeyInfoWire       `json:"gcp_key_info,omitempty"`
+	UseCases             []CmkUseCase          `json:"use_cases,omitempty"`
 }
 
 func customerManagedKeyFromWire(w *customerManagedKeyWire) (*CustomerManagedKey, error) {
@@ -252,7 +252,7 @@ func customerManagedKeyFromWire(w *customerManagedKeyWire) (*CustomerManagedKey,
 	var keyInfoSelection isCustomerManagedKey_KeyInfo
 	switch {
 	case w.AwsKeyInfo != nil:
-		keyInfoAwsKeyInfoConverted, err := awsKeyInfoFromWire(w.AwsKeyInfo)
+		keyInfoAwsKeyInfoConverted, err := awsKeyInfoOutputFromWire(w.AwsKeyInfo)
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", "CustomerManagedKey.KeyInfo.AwsKeyInfo", err)
 		}

@@ -1282,6 +1282,10 @@ type IngressNetworkPolicy_WorkspaceApiDestination struct {
 	// Qualifies the breadth of API access for the listed scopes. See
 	// ApiScopeQualifier.
 	ScopeQualifier IngressNetworkPolicy_ApiScopeQualifier
+	// Inverse of `scopes`: matches every API scope EXCEPT those listed here ("allow
+	// all except"). Mutually exclusive with `scopes` — a single destination may
+	// set at most one of the two.
+	ExcludedScopes []string
 }
 
 type IngressNetworkPolicy_WorkspaceIdList struct {
