@@ -10,7 +10,7 @@ const (
 	CmkUseCase_Storage CmkUseCase = "STORAGE"
 )
 
-type AwsKeyInfo struct {
+type AwsKeyInfoOutput struct {
 	// The AWS KMS key's Amazon Resource Name (ARN).
 	KeyArn *string
 	// The AWS KMS key alias.
@@ -143,7 +143,7 @@ type isCustomerManagedKey_KeyInfo interface {
 
 // CustomerManagedKey_KeyInfo_AwsKeyInfo selects AwsKeyInfo for CustomerManagedKey.KeyInfo.
 type CustomerManagedKey_KeyInfo_AwsKeyInfo struct {
-	AwsKeyInfo AwsKeyInfo
+	AwsKeyInfo AwsKeyInfoOutput
 }
 
 func (*CustomerManagedKey_KeyInfo_AwsKeyInfo) isCustomerManagedKey_KeyInfo() {}

@@ -383,6 +383,15 @@ type Setting_Value_PersonalCompute struct {
 
 func (*Setting_Value_PersonalCompute) isSetting_Value() {}
 
+// Setting_Value_WorkspaceLabel selects WorkspaceLabel for Setting.Value.
+// Setting value for workspace_label setting. This is the setting value set by
+// consumers, check effective_workspace_label for final setting value.
+type Setting_Value_WorkspaceLabel struct {
+	WorkspaceLabel WorkspaceLabelMessage
+}
+
+func (*Setting_Value_WorkspaceLabel) isSetting_Value() {}
+
 // Setting_Value_AllowedAppsUserApiScopes selects AllowedAppsUserApiScopes for Setting.Value.
 // Setting value for allowed_apps_user_api_scopes setting. This is the setting
 // value set by consumers, check effective_allowed_apps_user_api_scopes for
@@ -495,6 +504,15 @@ type Setting_EffectiveValue_EffectivePersonalCompute struct {
 
 func (*Setting_EffectiveValue_EffectivePersonalCompute) isSetting_EffectiveValue() {}
 
+// Setting_EffectiveValue_EffectiveWorkspaceLabel selects EffectiveWorkspaceLabel for Setting.EffectiveValue.
+// Effective setting value for workspace_label setting. This is the final
+// effective value of setting. To set a value use workspace_label.
+type Setting_EffectiveValue_EffectiveWorkspaceLabel struct {
+	EffectiveWorkspaceLabel WorkspaceLabelMessage
+}
+
+func (*Setting_EffectiveValue_EffectiveWorkspaceLabel) isSetting_EffectiveValue() {}
+
 // Setting_EffectiveValue_EffectiveAllowedAppsUserApiScopes selects EffectiveAllowedAppsUserApiScopes for Setting.EffectiveValue.
 // Effective setting value for allowed_apps_user_api_scopes setting. This is the
 // final effective value of setting. To set a value use
@@ -603,3 +621,9 @@ type UserPreference_EffectiveValue_EffectiveStringVal struct {
 }
 
 func (*UserPreference_EffectiveValue_EffectiveStringVal) isUserPreference_EffectiveValue() {}
+
+// Workspace label and color for display (e.g. in account console)..
+type WorkspaceLabelMessage struct {
+	Label *string
+	Color *string
+}

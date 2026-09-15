@@ -232,8 +232,9 @@ type ExecuteStatementRequest struct {
 	// any associated authentication information (typically a personal access token,
 	// OAuth token, or similar) _must be removed_ when fetching from these links.
 	//
-	// 2. These are URLs with a specific expiration, indicated in the response. The
-	// behavior when attempting to use an expired link is cloud specific.
+	// 2. These are short-lived cloud-storage URLs with a specific expiration,
+	// indicated in the response. The behavior when attempting to use an expired
+	// link is cloud specific.
 	Disposition Disposition
 	// The time in seconds the call will wait for the statement's result set as
 	// `Ns`, where `N` can be set to 0 or to a value between 5 and 50.
@@ -303,10 +304,10 @@ type ExecuteStatementRequest struct {
 }
 
 type ExternalLink struct {
-	// A URL pointing to a chunk of result data, hosted by an external service, with
-	// a short expiration time (<= 15 minutes). As this URL contains a temporary
-	// credential, it should be considered sensitive and the client should not
-	// expose this URL in a log.
+	// A short-lived cloud-storage URL pointing to a chunk of result data, hosted by
+	// an external service, with a short expiration time (<= 15 minutes). As this
+	// URL contains a temporary credential, it should be considered sensitive and
+	// the client should not expose this URL in a log.
 	ExternalLink *string
 	// Indicates the date-time that the given external link will expire and becomes
 	// invalid, after which point a new `external_link` must be requested.
@@ -360,10 +361,10 @@ type QueryTag struct {
 
 // Contains the result data of a single chunk when using `INLINE` disposition.
 // When using `EXTERNAL_LINKS` disposition, the array `external_links` is used
-// instead to provide URLs to the result data in cloud storage. Exactly one of
-// these alternatives is used. (While the `external_links` array prepares the
-// API to return multiple links in a single response. Currently only a single
-// link is returned.).
+// instead to provide short-lived cloud-storage URLs to the result data in cloud
+// storage. Exactly one of these alternatives is used. (While the
+// `external_links` array prepares the API to return multiple links in a single
+// response. Currently only a single link is returned.).
 type ResultData struct {
 	ExternalLinks []ExternalLink
 	// The `JSON_ARRAY` format is an array of arrays of values, where each non-null

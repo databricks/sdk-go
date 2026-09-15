@@ -114,14 +114,15 @@ func adlsgen2InfoFromWire(w *adlsgen2InfoWire) (*Adlsgen2Info, error) {
 }
 
 type aiRuntimeTaskWire struct {
-	Experiment                *string              `json:"experiment,omitempty"`
-	Deployments               []deploymentSpecWire `json:"deployments,omitempty"`
-	CodeSourcePath            *string              `json:"code_source_path,omitempty"`
-	MlflowRun                 *string              `json:"mlflow_run,omitempty"`
-	MlflowExperimentDirectory *string              `json:"mlflow_experiment_directory,omitempty"`
-	DockerImageUrl            *string              `json:"docker_image_url,omitempty"`
-	MlflowArtifactLocation    *string              `json:"mlflow_artifact_location,omitempty"`
-	UnityCatalogImagePath     *string              `json:"unity_catalog_image_path,omitempty"`
+	Experiment                *string                     `json:"experiment,omitempty"`
+	Deployments               []deploymentSpecWire        `json:"deployments,omitempty"`
+	CodeSourcePath            *string                     `json:"code_source_path,omitempty"`
+	MlflowRun                 *string                     `json:"mlflow_run,omitempty"`
+	MlflowExperimentDirectory *string                     `json:"mlflow_experiment_directory,omitempty"`
+	DockerImageUrl            *string                     `json:"docker_image_url,omitempty"`
+	MlflowArtifactLocation    *string                     `json:"mlflow_artifact_location,omitempty"`
+	PriorityClass             AiRuntimeTask_PriorityClass `json:"priority_class,omitempty"`
+	UnityCatalogImagePath     *string                     `json:"unity_catalog_image_path,omitempty"`
 }
 
 func aiRuntimeTaskToWire(v *AiRuntimeTask) (*aiRuntimeTaskWire, error) {
@@ -140,6 +141,7 @@ func aiRuntimeTaskToWire(v *AiRuntimeTask) (*aiRuntimeTaskWire, error) {
 		MlflowExperimentDirectory: v.MlflowExperimentDirectory,
 		DockerImageUrl:            v.DockerImageUrl,
 		MlflowArtifactLocation:    v.MlflowArtifactLocation,
+		PriorityClass:             v.PriorityClass,
 		UnityCatalogImagePath:     v.UnityCatalogImagePath,
 	}, nil
 }
@@ -160,6 +162,7 @@ func aiRuntimeTaskFromWire(w *aiRuntimeTaskWire) (*AiRuntimeTask, error) {
 		MlflowExperimentDirectory: w.MlflowExperimentDirectory,
 		DockerImageUrl:            w.DockerImageUrl,
 		MlflowArtifactLocation:    w.MlflowArtifactLocation,
+		PriorityClass:             w.PriorityClass,
 		UnityCatalogImagePath:     w.UnityCatalogImagePath,
 	}, nil
 }
