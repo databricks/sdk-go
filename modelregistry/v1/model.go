@@ -74,7 +74,9 @@ const (
 )
 
 // Permission level of the requesting user on the object. For what is allowed at
-// each level, see [MLflow Model permissions](..).
+// each level, see [MLflow Model permissions].
+//
+// [MLflow Model permissions]: https://docs.databricks.com/aws/en/machine-learning/manage-model-lifecycle/workspace-model-registry#permissions
 type PermissionLevel string
 
 const (

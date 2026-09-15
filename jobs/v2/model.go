@@ -463,6 +463,20 @@ const (
 	AccessControlRequest_JobPermission_CanManage    AccessControlRequest_JobPermission = "CAN_MANAGE"
 )
 
+// Scheduling priority class for a workload — its priority and preemptability
+// when the scheduler ranks pending work.
+type AiRuntimeTask_PriorityClass string
+
+const (
+	AiRuntimeTask_PriorityClass_Unspecified AiRuntimeTask_PriorityClass = ""
+	// Lowest priority; preemptable by higher-priority workloads.
+	AiRuntimeTask_PriorityClass_BestEffort AiRuntimeTask_PriorityClass = "BEST_EFFORT"
+	// Medium priority; not preemptable.
+	AiRuntimeTask_PriorityClass_Normal AiRuntimeTask_PriorityClass = "NORMAL"
+	// Highest priority; not preemptable.
+	AiRuntimeTask_PriorityClass_Critical AiRuntimeTask_PriorityClass = "CRITICAL"
+)
+
 // Same alert evaluation state as in redash-v2/api/proto/alertsv2/alerts.proto
 type AlertEvaluationState_AlertEvaluationState string
 
@@ -525,6 +539,8 @@ const (
 	ComputeSpec_AcceleratorType_Gpu1xH100 ComputeSpec_AcceleratorType = "GPU_1xH100"
 	// Eight H100 GPUs per node. Typical for distributed training.
 	ComputeSpec_AcceleratorType_Gpu8xH100 ComputeSpec_AcceleratorType = "GPU_8xH100"
+	// Eight B300 GPUs per node.
+	ComputeSpec_AcceleratorType_Gpu8xB300 ComputeSpec_AcceleratorType = "GPU_8xB300"
 )
 
 // * `EQUAL_TO`, `NOT_EQUAL` operators perform string comparison of their
@@ -939,6 +955,11 @@ type AiRuntimeTask struct {
 	// `dbfs:/Volumes/<catalog>/<schema>/<volume>/...` The location should be unique
 	// for each experiment.
 	MlflowArtifactLocation *string
+	// Scheduling priority class for the workload. May only be set together with a
+	// pre-provisioned capacity reservation (a deployment's
+	// `compute.provisioned_capacity_id`); it is rejected on a workload that runs on
+	// on-demand capacity.
+	PriorityClass AiRuntimeTask_PriorityClass
 	// Optional Unity Catalog path for a custom container image. When set, the task
 	// runs on the specified container image instead of the default <Databricks>
 	// client image. Format: `{catalog}.{schema}.{image_name}:{tag}`
@@ -1834,11 +1855,14 @@ type CreateJobRequest struct {
 	// Deployment information for jobs managed by external sources.
 	Deployment *JobDeployment
 	// A list of task execution environment specifications that can be referenced by
-	// serverless tasks of this job. For serverless notebook tasks, if the
-	// environment_key is not specified, the notebook environment will be used if
-	// present. If a jobs environment is specified, it will override the notebook
-	// environment. For other serverless tasks, the task environment is required to
-	// be specified using environment_key in the task settings.
+	// tasks that use serverless compute or a compute resource that uses
+	// Environments mode. For notebook tasks that use serverless compute or a
+	// compute resource that uses Environments mode, if the environment_key is not
+	// specified, the notebook environment will be used if present. If a jobs
+	// environment is specified, it will override the notebook environment. For
+	// other tasks that use serverless compute or a compute resource that uses
+	// Environments mode, the task environment is required to be specified using
+	// environment_key in the task settings.
 	Environments []JobEnvironment
 	// The id of the user specified budget policy to use for this job. If not
 	// specified, a default budget policy may be applied when creating or modifying
@@ -3066,11 +3090,14 @@ type JobSettings struct {
 	// Deployment information for jobs managed by external sources.
 	Deployment *JobDeployment
 	// A list of task execution environment specifications that can be referenced by
-	// serverless tasks of this job. For serverless notebook tasks, if the
-	// environment_key is not specified, the notebook environment will be used if
-	// present. If a jobs environment is specified, it will override the notebook
-	// environment. For other serverless tasks, the task environment is required to
-	// be specified using environment_key in the task settings.
+	// tasks that use serverless compute or a compute resource that uses
+	// Environments mode. For notebook tasks that use serverless compute or a
+	// compute resource that uses Environments mode, if the environment_key is not
+	// specified, the notebook environment will be used if present. If a jobs
+	// environment is specified, it will override the notebook environment. For
+	// other tasks that use serverless compute or a compute resource that uses
+	// Environments mode, the task environment is required to be specified using
+	// environment_key in the task settings.
 	Environments []JobEnvironment
 	// The id of the user specified budget policy to use for this job. If not
 	// specified, a default budget policy may be applied when creating or modifying
@@ -4678,7 +4705,8 @@ type isRunTask_EnvironmentRef interface {
 
 // RunTask_EnvironmentRef_EnvironmentKey selects EnvironmentKey for RunTask.EnvironmentRef.
 // The key that references an environment spec in a job. This field is required
-// for Python script, Python wheel and dbt tasks when using serverless compute.
+// for Python script, Python wheel and dbt tasks when using serverless compute
+// or a compute resource that uses Environments mode.
 type RunTask_EnvironmentRef_EnvironmentKey struct {
 	EnvironmentKey string
 }
@@ -4963,7 +4991,8 @@ type isRunTaskSettings_EnvironmentRef interface {
 
 // RunTaskSettings_EnvironmentRef_EnvironmentKey selects EnvironmentKey for RunTaskSettings.EnvironmentRef.
 // The key that references an environment spec in a job. This field is required
-// for Python script, Python wheel and dbt tasks when using serverless compute.
+// for Python script, Python wheel and dbt tasks when using serverless compute
+// or a compute resource that uses Environments mode.
 type RunTaskSettings_EnvironmentRef_EnvironmentKey struct {
 	EnvironmentKey string
 }
@@ -5770,7 +5799,8 @@ type isTaskSettings_EnvironmentRef interface {
 
 // TaskSettings_EnvironmentRef_EnvironmentKey selects EnvironmentKey for TaskSettings.EnvironmentRef.
 // The key that references an environment spec in a job. This field is required
-// for Python script, Python wheel and dbt tasks when using serverless compute.
+// for Python script, Python wheel and dbt tasks when using serverless compute
+// or a compute resource that uses Environments mode.
 type TaskSettings_EnvironmentRef_EnvironmentKey struct {
 	EnvironmentKey string
 }

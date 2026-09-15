@@ -2144,6 +2144,7 @@ func ingressNetworkPolicy_RequestDestinationFromWire(w *ingressNetworkPolicy_Req
 type ingressNetworkPolicy_WorkspaceApiDestinationWire struct {
 	Scopes         []string                               `json:"scopes,omitempty"`
 	ScopeQualifier IngressNetworkPolicy_ApiScopeQualifier `json:"scope_qualifier,omitempty"`
+	ExcludedScopes []string                               `json:"excluded_scopes,omitempty"`
 }
 
 func ingressNetworkPolicy_WorkspaceApiDestinationToWire(v *IngressNetworkPolicy_WorkspaceApiDestination) (*ingressNetworkPolicy_WorkspaceApiDestinationWire, error) {
@@ -2153,6 +2154,7 @@ func ingressNetworkPolicy_WorkspaceApiDestinationToWire(v *IngressNetworkPolicy_
 	return &ingressNetworkPolicy_WorkspaceApiDestinationWire{
 		Scopes:         v.Scopes,
 		ScopeQualifier: v.ScopeQualifier,
+		ExcludedScopes: v.ExcludedScopes,
 	}, nil
 }
 
@@ -2163,6 +2165,7 @@ func ingressNetworkPolicy_WorkspaceApiDestinationFromWire(w *ingressNetworkPolic
 	return &IngressNetworkPolicy_WorkspaceApiDestination{
 		Scopes:         w.Scopes,
 		ScopeQualifier: w.ScopeQualifier,
+		ExcludedScopes: w.ExcludedScopes,
 	}, nil
 }
 

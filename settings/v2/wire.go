@@ -557,6 +557,7 @@ type settingWire struct {
 	AibiDashboardEmbeddingAccessPolicy             *aibiDashboardEmbeddingAccessPolicyWire       `json:"aibi_dashboard_embedding_access_policy,omitempty"`
 	RestrictWorkspaceAdmins                        *restrictWorkspaceAdminsMessageWire           `json:"restrict_workspace_admins,omitempty"`
 	PersonalCompute                                *personalComputeMessageWire                   `json:"personal_compute,omitempty"`
+	WorkspaceLabel                                 *workspaceLabelMessageWire                    `json:"workspace_label,omitempty"`
 	AllowedAppsUserApiScopes                       *allowedAppsUserApiScopesMessageWire          `json:"allowed_apps_user_api_scopes,omitempty"`
 	OperationalEmailCustomRecipient                *operationalEmailCustomRecipientMessageWire   `json:"operational_email_custom_recipient,omitempty"`
 	CollaborationPlatformConnectivity              *collaborationPlatformConnectivityMessageWire `json:"collaboration_platform_connectivity,omitempty"`
@@ -568,6 +569,7 @@ type settingWire struct {
 	EffectiveAibiDashboardEmbeddingAccessPolicy    *aibiDashboardEmbeddingAccessPolicyWire       `json:"effective_aibi_dashboard_embedding_access_policy,omitempty"`
 	EffectiveRestrictWorkspaceAdmins               *restrictWorkspaceAdminsMessageWire           `json:"effective_restrict_workspace_admins,omitempty"`
 	EffectivePersonalCompute                       *personalComputeMessageWire                   `json:"effective_personal_compute,omitempty"`
+	EffectiveWorkspaceLabel                        *workspaceLabelMessageWire                    `json:"effective_workspace_label,omitempty"`
 	EffectiveAllowedAppsUserApiScopes              *allowedAppsUserApiScopesMessageWire          `json:"effective_allowed_apps_user_api_scopes,omitempty"`
 	EffectiveOperationalEmailCustomRecipient       *operationalEmailCustomRecipientMessageWire   `json:"effective_operational_email_custom_recipient,omitempty"`
 	EffectiveCollaborationPlatformConnectivity     *collaborationPlatformConnectivityMessageWire `json:"effective_collaboration_platform_connectivity,omitempty"`
@@ -585,6 +587,7 @@ func settingToWire(v *Setting) (*settingWire, error) {
 	var valueAibiDashboardEmbeddingAccessPolicyWire *aibiDashboardEmbeddingAccessPolicyWire
 	var valueRestrictWorkspaceAdminsWire *restrictWorkspaceAdminsMessageWire
 	var valuePersonalComputeWire *personalComputeMessageWire
+	var valueWorkspaceLabelWire *workspaceLabelMessageWire
 	var valueAllowedAppsUserApiScopesWire *allowedAppsUserApiScopesMessageWire
 	var valueOperationalEmailCustomRecipientWire *operationalEmailCustomRecipientMessageWire
 	var valueCollaborationPlatformConnectivityWire *collaborationPlatformConnectivityMessageWire
@@ -654,6 +657,14 @@ func settingToWire(v *Setting) (*settingWire, error) {
 			}
 			valuePersonalComputeWire = valuePersonalComputeConverted
 		}
+	case *Setting_Value_WorkspaceLabel:
+		if value != nil {
+			valueWorkspaceLabelConverted, err := workspaceLabelMessageToWire(&value.WorkspaceLabel)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Setting.Value.WorkspaceLabel", err)
+			}
+			valueWorkspaceLabelWire = valueWorkspaceLabelConverted
+		}
 	case *Setting_Value_AllowedAppsUserApiScopes:
 		if value != nil {
 			valueAllowedAppsUserApiScopesConverted, err := allowedAppsUserApiScopesMessageToWire(&value.AllowedAppsUserApiScopes)
@@ -689,6 +700,7 @@ func settingToWire(v *Setting) (*settingWire, error) {
 	var effectiveValueEffectiveAibiDashboardEmbeddingAccessPolicyWire *aibiDashboardEmbeddingAccessPolicyWire
 	var effectiveValueEffectiveRestrictWorkspaceAdminsWire *restrictWorkspaceAdminsMessageWire
 	var effectiveValueEffectivePersonalComputeWire *personalComputeMessageWire
+	var effectiveValueEffectiveWorkspaceLabelWire *workspaceLabelMessageWire
 	var effectiveValueEffectiveAllowedAppsUserApiScopesWire *allowedAppsUserApiScopesMessageWire
 	var effectiveValueEffectiveOperationalEmailCustomRecipientWire *operationalEmailCustomRecipientMessageWire
 	var effectiveValueEffectiveCollaborationPlatformConnectivityWire *collaborationPlatformConnectivityMessageWire
@@ -758,6 +770,14 @@ func settingToWire(v *Setting) (*settingWire, error) {
 			}
 			effectiveValueEffectivePersonalComputeWire = effectiveValueEffectivePersonalComputeConverted
 		}
+	case *Setting_EffectiveValue_EffectiveWorkspaceLabel:
+		if value != nil {
+			effectiveValueEffectiveWorkspaceLabelConverted, err := workspaceLabelMessageToWire(&value.EffectiveWorkspaceLabel)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Setting.EffectiveValue.EffectiveWorkspaceLabel", err)
+			}
+			effectiveValueEffectiveWorkspaceLabelWire = effectiveValueEffectiveWorkspaceLabelConverted
+		}
 	case *Setting_EffectiveValue_EffectiveAllowedAppsUserApiScopes:
 		if value != nil {
 			effectiveValueEffectiveAllowedAppsUserApiScopesConverted, err := allowedAppsUserApiScopesMessageToWire(&value.EffectiveAllowedAppsUserApiScopes)
@@ -795,6 +815,7 @@ func settingToWire(v *Setting) (*settingWire, error) {
 		AibiDashboardEmbeddingAccessPolicy:             valueAibiDashboardEmbeddingAccessPolicyWire,
 		RestrictWorkspaceAdmins:                        valueRestrictWorkspaceAdminsWire,
 		PersonalCompute:                                valuePersonalComputeWire,
+		WorkspaceLabel:                                 valueWorkspaceLabelWire,
 		AllowedAppsUserApiScopes:                       valueAllowedAppsUserApiScopesWire,
 		OperationalEmailCustomRecipient:                valueOperationalEmailCustomRecipientWire,
 		CollaborationPlatformConnectivity:              valueCollaborationPlatformConnectivityWire,
@@ -806,6 +827,7 @@ func settingToWire(v *Setting) (*settingWire, error) {
 		EffectiveAibiDashboardEmbeddingAccessPolicy:    effectiveValueEffectiveAibiDashboardEmbeddingAccessPolicyWire,
 		EffectiveRestrictWorkspaceAdmins:               effectiveValueEffectiveRestrictWorkspaceAdminsWire,
 		EffectivePersonalCompute:                       effectiveValueEffectivePersonalComputeWire,
+		EffectiveWorkspaceLabel:                        effectiveValueEffectiveWorkspaceLabelWire,
 		EffectiveAllowedAppsUserApiScopes:              effectiveValueEffectiveAllowedAppsUserApiScopesWire,
 		EffectiveOperationalEmailCustomRecipient:       effectiveValueEffectiveOperationalEmailCustomRecipientWire,
 		EffectiveCollaborationPlatformConnectivity:     effectiveValueEffectiveCollaborationPlatformConnectivityWire,
@@ -839,6 +861,9 @@ func settingFromWire(w *settingWire) (*Setting, error) {
 		valueMembers++
 	}
 	if w.PersonalCompute != nil {
+		valueMembers++
+	}
+	if w.WorkspaceLabel != nil {
 		valueMembers++
 	}
 	if w.AllowedAppsUserApiScopes != nil {
@@ -876,6 +901,9 @@ func settingFromWire(w *settingWire) (*Setting, error) {
 		effectiveValueMembers++
 	}
 	if w.EffectivePersonalCompute != nil {
+		effectiveValueMembers++
+	}
+	if w.EffectiveWorkspaceLabel != nil {
 		effectiveValueMembers++
 	}
 	if w.EffectiveAllowedAppsUserApiScopes != nil {
@@ -940,6 +968,12 @@ func settingFromWire(w *settingWire) (*Setting, error) {
 			return nil, fmt.Errorf("%s: %w", "Setting.Value.PersonalCompute", err)
 		}
 		valueSelection = &Setting_Value_PersonalCompute{PersonalCompute: *valuePersonalComputeConverted}
+	case w.WorkspaceLabel != nil:
+		valueWorkspaceLabelConverted, err := workspaceLabelMessageFromWire(w.WorkspaceLabel)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "Setting.Value.WorkspaceLabel", err)
+		}
+		valueSelection = &Setting_Value_WorkspaceLabel{WorkspaceLabel: *valueWorkspaceLabelConverted}
 	case w.AllowedAppsUserApiScopes != nil:
 		valueAllowedAppsUserApiScopesConverted, err := allowedAppsUserApiScopesMessageFromWire(w.AllowedAppsUserApiScopes)
 		if err != nil {
@@ -1009,6 +1043,12 @@ func settingFromWire(w *settingWire) (*Setting, error) {
 			return nil, fmt.Errorf("%s: %w", "Setting.EffectiveValue.EffectivePersonalCompute", err)
 		}
 		effectiveValueSelection = &Setting_EffectiveValue_EffectivePersonalCompute{EffectivePersonalCompute: *effectiveValueEffectivePersonalComputeConverted}
+	case w.EffectiveWorkspaceLabel != nil:
+		effectiveValueEffectiveWorkspaceLabelConverted, err := workspaceLabelMessageFromWire(w.EffectiveWorkspaceLabel)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "Setting.EffectiveValue.EffectiveWorkspaceLabel", err)
+		}
+		effectiveValueSelection = &Setting_EffectiveValue_EffectiveWorkspaceLabel{EffectiveWorkspaceLabel: *effectiveValueEffectiveWorkspaceLabelConverted}
 	case w.EffectiveAllowedAppsUserApiScopes != nil:
 		effectiveValueEffectiveAllowedAppsUserApiScopesConverted, err := allowedAppsUserApiScopesMessageFromWire(w.EffectiveAllowedAppsUserApiScopes)
 		if err != nil {
@@ -1208,6 +1248,31 @@ func userPreferenceFromWire(w *userPreferenceWire) (*UserPreference, error) {
 		UserId:         w.UserId,
 		Value:          valueSelection,
 		EffectiveValue: effectiveValueSelection,
+	}, nil
+}
+
+type workspaceLabelMessageWire struct {
+	Label *string `json:"label,omitempty"`
+	Color *string `json:"color,omitempty"`
+}
+
+func workspaceLabelMessageToWire(v *WorkspaceLabelMessage) (*workspaceLabelMessageWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &workspaceLabelMessageWire{
+		Label: v.Label,
+		Color: v.Color,
+	}, nil
+}
+
+func workspaceLabelMessageFromWire(w *workspaceLabelMessageWire) (*WorkspaceLabelMessage, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &WorkspaceLabelMessage{
+		Label: w.Label,
+		Color: w.Color,
 	}, nil
 }
 

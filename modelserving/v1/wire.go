@@ -289,6 +289,7 @@ type amazonBedrockConfigWire struct {
 	AwsAccessKeyIdPlaintext     *string `json:"aws_access_key_id_plaintext,omitempty"`
 	AwsSecretAccessKeyPlaintext *string `json:"aws_secret_access_key_plaintext,omitempty"`
 	InstanceProfileArn          *string `json:"instance_profile_arn,omitempty"`
+	UcServiceCredentialName     *string `json:"uc_service_credential_name,omitempty"`
 }
 
 func amazonBedrockConfigToWire(v *AmazonBedrockConfig) (*amazonBedrockConfigWire, error) {
@@ -303,6 +304,7 @@ func amazonBedrockConfigToWire(v *AmazonBedrockConfig) (*amazonBedrockConfigWire
 		AwsAccessKeyIdPlaintext:     v.AwsAccessKeyIdPlaintext,
 		AwsSecretAccessKeyPlaintext: v.AwsSecretAccessKeyPlaintext,
 		InstanceProfileArn:          v.InstanceProfileArn,
+		UcServiceCredentialName:     v.UcServiceCredentialName,
 	}, nil
 }
 
@@ -318,6 +320,7 @@ func amazonBedrockConfigFromWire(w *amazonBedrockConfigWire) (*AmazonBedrockConf
 		AwsAccessKeyIdPlaintext:     w.AwsAccessKeyIdPlaintext,
 		AwsSecretAccessKeyPlaintext: w.AwsSecretAccessKeyPlaintext,
 		InstanceProfileArn:          w.InstanceProfileArn,
+		UcServiceCredentialName:     w.UcServiceCredentialName,
 	}, nil
 }
 

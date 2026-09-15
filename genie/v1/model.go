@@ -776,10 +776,10 @@ type DownloadMessageAttachmentVisualizationResponse struct {
 }
 
 type ExternalLink struct {
-	// A URL pointing to a chunk of result data, hosted by an external service, with
-	// a short expiration time (<= 15 minutes). As this URL contains a temporary
-	// credential, it should be considered sensitive and the client should not
-	// expose this URL in a log.
+	// A short-lived cloud-storage URL pointing to a chunk of result data, hosted by
+	// an external service, with a short expiration time (<= 15 minutes). As this
+	// URL contains a temporary credential, it should be considered sensitive and
+	// the client should not expose this URL in a log.
 	ExternalLink *string
 	// Indicates the date-time that the given external link will expire and becomes
 	// invalid, after which point a new `external_link` must be requested.
@@ -1590,10 +1590,10 @@ type Result struct {
 
 // Contains the result data of a single chunk when using `INLINE` disposition.
 // When using `EXTERNAL_LINKS` disposition, the array `external_links` is used
-// instead to provide URLs to the result data in cloud storage. Exactly one of
-// these alternatives is used. Calls to `getResultData` return the link for the
-// requested chunk; `executeStatement` and `getStatementResult` responses can
-// contain links for multiple chunks..
+// instead to provide short-lived cloud-storage URLs to the result data in cloud
+// storage. Exactly one of these alternatives is used. Calls to `getResultData`
+// return the link for the requested chunk; `executeStatement` and
+// `getStatementResult` responses can contain links for multiple chunks..
 type ResultData struct {
 	ExternalLinks []ExternalLink
 	// The `JSON_ARRAY` format is an array of arrays of values, where each non-null
