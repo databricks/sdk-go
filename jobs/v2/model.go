@@ -2956,11 +2956,11 @@ type JobLevelParameter struct {
 	Default *string
 }
 
-// Write-only setting. Specifies the user or service principal that the job runs
-// as. If not specified, the job runs as the user who created the job.
+// Write-only setting. Specifies the user, service principal, or group that the
+// job runs as. If not specified, the job runs as the user who created the job.
 //
-// Either `user_name` or `service_principal_name` should be specified. If not,
-// an error is thrown..
+// One of `user_name`, `service_principal_name`, or `group_name` should be
+// specified. If not, an error is thrown..
 type JobRunAs struct {
 	Identity isJobRunAs_Identity
 }
@@ -2988,8 +2988,10 @@ type JobRunAs_Identity_ServicePrincipalName struct {
 func (*JobRunAs_Identity_ServicePrincipalName) isJobRunAs_Identity() {}
 
 // JobRunAs_Identity_GroupName selects GroupName for JobRunAs.Identity.
-// Group name of an account group assigned to the workspace. Setting this field
-// requires being a member of the group.
+// Group name of an account group assigned to the workspace. When set, all tasks
+// run as the group and the group's permissions are used for data access.
+// Setting this field requires being a member of the group, or having the
+// `Assume` permission on the group.
 type JobRunAs_Identity_GroupName struct {
 	GroupName string
 }

@@ -494,6 +494,10 @@ func (c *internalClient) PublishTable(ctx context.Context, req PublishTableReque
 }
 
 // Update an Online Feature Store.
+//
+// This update is not guaranteed to be atomic: when a request changes multiple
+// fields, some may be applied while others fail. On a failed response, treat
+// the update as partially applied and retry until it succeeds.
 func (c *internalClient) UpdateOnlineStore(ctx context.Context, req UpdateOnlineStoreRequest, opts ...call.Option) (*OnlineStore, error) {
 	wireReq, err := updateOnlineStoreRequestToWire(&req)
 	if err != nil {
