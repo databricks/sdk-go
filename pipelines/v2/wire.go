@@ -3629,6 +3629,7 @@ func pipelinesInitScriptInfoFromWire(w *pipelinesInitScriptInfoWire) (*Pipelines
 type pipelinesJobRunAsWire struct {
 	UserName             *string `json:"user_name,omitempty"`
 	ServicePrincipalName *string `json:"service_principal_name,omitempty"`
+	GroupName            *string `json:"group_name,omitempty"`
 }
 
 func pipelinesJobRunAsToWire(v *PipelinesJobRunAs) (*pipelinesJobRunAsWire, error) {
@@ -3637,6 +3638,7 @@ func pipelinesJobRunAsToWire(v *PipelinesJobRunAs) (*pipelinesJobRunAsWire, erro
 	}
 	var identityUserNameWire *string
 	var identityServicePrincipalNameWire *string
+	var identityGroupNameWire *string
 	switch value := v.Identity.(type) {
 	case nil:
 	case *PipelinesJobRunAs_Identity_UserName:
@@ -3647,12 +3649,17 @@ func pipelinesJobRunAsToWire(v *PipelinesJobRunAs) (*pipelinesJobRunAsWire, erro
 		if value != nil {
 			identityServicePrincipalNameWire = new(value.ServicePrincipalName)
 		}
+	case *PipelinesJobRunAs_Identity_GroupName:
+		if value != nil {
+			identityGroupNameWire = new(value.GroupName)
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "PipelinesJobRunAs.Identity", value)
 	}
 	return &pipelinesJobRunAsWire{
 		UserName:             identityUserNameWire,
 		ServicePrincipalName: identityServicePrincipalNameWire,
+		GroupName:            identityGroupNameWire,
 	}, nil
 }
 
@@ -3667,6 +3674,9 @@ func pipelinesJobRunAsFromWire(w *pipelinesJobRunAsWire) (*PipelinesJobRunAs, er
 	if w.ServicePrincipalName != nil {
 		identityMembers++
 	}
+	if w.GroupName != nil {
+		identityMembers++
+	}
 	if identityMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "PipelinesJobRunAs.Identity")
 	}
@@ -3676,6 +3686,8 @@ func pipelinesJobRunAsFromWire(w *pipelinesJobRunAsWire) (*PipelinesJobRunAs, er
 		identitySelection = &PipelinesJobRunAs_Identity_UserName{UserName: *w.UserName}
 	case w.ServicePrincipalName != nil:
 		identitySelection = &PipelinesJobRunAs_Identity_ServicePrincipalName{ServicePrincipalName: *w.ServicePrincipalName}
+	case w.GroupName != nil:
+		identitySelection = &PipelinesJobRunAs_Identity_GroupName{GroupName: *w.GroupName}
 	}
 	return &PipelinesJobRunAs{
 		Identity: identitySelection,
