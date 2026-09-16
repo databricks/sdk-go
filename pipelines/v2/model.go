@@ -2412,6 +2412,17 @@ type PipelinesJobRunAs_Identity_ServicePrincipalName struct {
 
 func (*PipelinesJobRunAs_Identity_ServicePrincipalName) isPipelinesJobRunAs_Identity() {}
 
+// PipelinesJobRunAs_Identity_GroupName selects GroupName for PipelinesJobRunAs.Identity.
+// Group name of an account group assigned to the workspace. When set, the
+// pipeline runs as the group and the group's permissions are used for data
+// access. Setting this field requires being a member of the group, or having
+// the `Assume` permission on the group.
+type PipelinesJobRunAs_Identity_GroupName struct {
+	GroupName string
+}
+
+func (*PipelinesJobRunAs_Identity_GroupName) isPipelinesJobRunAs_Identity() {}
+
 type PipelinesMavenLibrary struct {
 	// Gradle-style maven coordinates. For example: "org.jsoup:jsoup:1.7.2".
 	Coordinates *string

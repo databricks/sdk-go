@@ -1117,9 +1117,7 @@ type ComputeStatus struct {
 	State ComputeStatus_ComputeState `fieldmask:"state"`
 	// Compute status message
 	Message *string `fieldmask:"message"`
-	// The number of compute instances currently serving requests for this
-	// application. An instance is considered active if it is reachable and ready to
-	// handle requests.
+	// The number of compute instances used and billed for this application.
 	ActiveInstances *int `fieldmask:"active_instances"`
 }
 
