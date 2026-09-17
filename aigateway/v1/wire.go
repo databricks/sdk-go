@@ -83,6 +83,25 @@ func createMcpServiceRequestToWire(v *CreateMcpServiceRequest) (*createMcpServic
 	}, nil
 }
 
+type createMcpServiceUserMappedCredentialRequestWire struct {
+	Name  *string                                  `json:"name,omitempty"`
+	Login *mcpServiceUserMappedCredentialLoginWire `json:"login,omitempty"`
+}
+
+func createMcpServiceUserMappedCredentialRequestToWire(v *CreateMcpServiceUserMappedCredentialRequest) (*createMcpServiceUserMappedCredentialRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	loginWireValue, err := mcpServiceUserMappedCredentialLoginToWire(v.Login)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateMcpServiceUserMappedCredentialRequest.Login", err)
+	}
+	return &createMcpServiceUserMappedCredentialRequestWire{
+		Name:  v.Name,
+		Login: loginWireValue,
+	}, nil
+}
+
 type createModelProviderServiceRequestWire struct {
 	Parent                 *string                   `json:"parent,omitempty"`
 	ModelProviderServiceId *string                   `json:"model_provider_service_id,omitempty"`
@@ -460,6 +479,38 @@ func mcpServiceConfig_SourceConnectionFromWire(w *mcpServiceConfig_SourceConnect
 	return &McpServiceConfig_SourceConnection{
 		Name:      w.Name,
 		IsDeleted: w.IsDeleted,
+	}, nil
+}
+
+type mcpServiceUserMappedCredentialWire struct {
+	Options          map[string]string     `json:"options,omitempty"`
+	ProvisioningInfo *provisioningInfoWire `json:"provisioning_info,omitempty"`
+}
+
+func mcpServiceUserMappedCredentialFromWire(w *mcpServiceUserMappedCredentialWire) (*McpServiceUserMappedCredential, error) {
+	if w == nil {
+		return nil, nil
+	}
+	provisioningInfoPublicValue, err := provisioningInfoFromWire(w.ProvisioningInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "McpServiceUserMappedCredential.ProvisioningInfo", err)
+	}
+	return &McpServiceUserMappedCredential{
+		Options:          w.Options,
+		ProvisioningInfo: provisioningInfoPublicValue,
+	}, nil
+}
+
+type mcpServiceUserMappedCredentialLoginWire struct {
+	Options map[string]string `json:"options,omitempty"`
+}
+
+func mcpServiceUserMappedCredentialLoginToWire(v *McpServiceUserMappedCredentialLogin) (*mcpServiceUserMappedCredentialLoginWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &mcpServiceUserMappedCredentialLoginWire{
+		Options: v.Options,
 	}, nil
 }
 
@@ -2175,6 +2226,19 @@ func modelServiceConfig_RoutingConfigFromWire(w *modelServiceConfig_RoutingConfi
 	return &ModelServiceConfig_RoutingConfig{
 		Destinations: destinationsPublicValue,
 		Fallback:     fallbackPublicValue,
+	}, nil
+}
+
+type provisioningInfoWire struct {
+	State ProvisioningInfo_State `json:"state,omitempty"`
+}
+
+func provisioningInfoFromWire(w *provisioningInfoWire) (*ProvisioningInfo, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ProvisioningInfo{
+		State: w.State,
 	}, nil
 }
 

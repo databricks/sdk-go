@@ -155,6 +155,84 @@ func (c *internalClient) CreateMcpService(ctx context.Context, req CreateMcpServ
 	return resp, nil
 }
 
+// Logs the caller in to an MCP service: creates their per-user OAuth
+// credential, or re-authenticates it if one already exists. The request body
+// carries the OAuth exchange fields.
+//
+// You must be the owner of the MCP service or have `EXECUTE` on it, plus
+// `USE_CATALOG` on the parent catalog and `USE_SCHEMA` on the parent schema.
+func (c *internalClient) CreateMcpServiceUserMappedCredential(ctx context.Context, req CreateMcpServiceUserMappedCredentialRequest, opts ...call.Option) (*McpServiceUserMappedCredential, error) {
+	wireReq, err := createMcpServiceUserMappedCredentialRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq.Login)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.1/unity-catalog/")
+	if req.Name == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	pb.literal("/user-credentials")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *McpServiceUserMappedCredential
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp mcpServiceUserMappedCredentialWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = mcpServiceUserMappedCredentialFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Creates a model provider service in a Unity Catalog schema. A model provider
 // service stores authentication and request configuration for an external model
 // provider, such as OpenAI, Azure OpenAI, or Amazon Bedrock. Model services
@@ -385,6 +463,68 @@ func (c *internalClient) DeleteMcpService(ctx context.Context, req DeleteMcpServ
 	return nil
 }
 
+// Revokes (deletes) the caller's per-user OAuth credential for an MCP service
+// (logout).
+//
+// You must be the owner of the MCP service or have `EXECUTE` on it, plus
+// `USE_CATALOG` on the parent catalog and `USE_SCHEMA` on the parent schema.
+func (c *internalClient) DeleteMcpServiceUserMappedCredential(ctx context.Context, req DeleteMcpServiceUserMappedCredentialRequest, opts ...call.Option) (*DeleteMcpServiceUserMappedCredentialResponse, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.1/unity-catalog/")
+	if req.Name == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	pb.literal("/user-credentials")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *DeleteMcpServiceUserMappedCredentialResponse
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "DELETE",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		_ = respBody
+		resp = &DeleteMcpServiceUserMappedCredentialResponse{}
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Deletes the model provider service identified by its resource name.
 // Optionally supply an `etag` to make the delete conditional on the model
 // provider service not having changed since it was read.
@@ -573,6 +713,78 @@ func (c *internalClient) GetMcpService(ctx context.Context, req GetMcpServiceReq
 			return err
 		}
 		resp, err = mcpServiceFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Returns the caller's per-user OAuth login state for an MCP service. Read
+// `provisioning_info.state`: `ACTIVE` means the caller is logged in and the
+// credential is usable; any other state (for example a failed or
+// still-provisioning login) means the login has not completed and the caller
+// should log in again. If the caller has no credential yet, the RPC returns
+// `NOT_FOUND`.
+//
+// You must be the owner of the MCP service or have `EXECUTE` on it, plus
+// `USE_CATALOG` on the parent catalog and `USE_SCHEMA` on the parent schema.
+func (c *internalClient) GetMcpServiceUserMappedCredential(ctx context.Context, req GetMcpServiceUserMappedCredentialRequest, opts ...call.Option) (*McpServiceUserMappedCredential, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.1/unity-catalog/")
+	if req.Name == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	pb.literal("/user-credentials")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *McpServiceUserMappedCredential
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp mcpServiceUserMappedCredentialWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = mcpServiceUserMappedCredentialFromWire(&wireResp)
 		if err != nil {
 			return err
 		}

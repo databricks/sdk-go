@@ -90,6 +90,18 @@ const (
 	ModelServiceConfig_DestinationConfig_DestinationType_DestinationTypeExternalFoundationModel ModelServiceConfig_DestinationConfig_DestinationType = "DESTINATION_TYPE_EXTERNAL_FOUNDATION_MODEL"
 )
 
+type ProvisioningInfo_State string
+
+const (
+	ProvisioningInfo_State_Unspecified  ProvisioningInfo_State = ""
+	ProvisioningInfo_State_Provisioning ProvisioningInfo_State = "PROVISIONING"
+	ProvisioningInfo_State_Active       ProvisioningInfo_State = "ACTIVE"
+	ProvisioningInfo_State_Failed       ProvisioningInfo_State = "FAILED"
+	ProvisioningInfo_State_Deleting     ProvisioningInfo_State = "DELETING"
+	ProvisioningInfo_State_Updating     ProvisioningInfo_State = "UPDATING"
+	ProvisioningInfo_State_Degraded     ProvisioningInfo_State = "DEGRADED"
+)
+
 // Scope key for a rate limit.
 type RateLimit_RateLimitKey string
 
@@ -132,6 +144,15 @@ type CreateMcpServiceRequest struct {
 	McpService *McpService
 }
 
+// Request to log the caller in to an MCP service: create their user credential,
+// or re-authenticate it if one already exists..
+type CreateMcpServiceUserMappedCredentialRequest struct {
+	// Resource name of the MCP service. Format:
+	// `mcp-services/{catalog}.{schema}.{mcp_service}`.
+	Name  *string
+	Login *McpServiceUserMappedCredentialLogin
+}
+
 // Request to create a new model provider service..
 type CreateModelProviderServiceRequest struct {
 	// Name of the parent schema. Format: `schemas/{catalog}.{schema}`. Each `{...}`
@@ -169,6 +190,18 @@ type DeleteMcpServiceRequest struct {
 	Etag []byte
 }
 
+// Request to revoke (delete) the caller's user credential for an MCP service..
+type DeleteMcpServiceUserMappedCredentialRequest struct {
+	// Resource name of the MCP service. Format:
+	// `mcp-services/{catalog}.{schema}.{mcp_service}`.
+	Name *string
+}
+
+// Delete returns no resource; a dedicated (empty) response keeps the revoke
+// RPC's shape owned here rather than google.protobuf.Empty..
+type DeleteMcpServiceUserMappedCredentialResponse struct {
+}
+
 // Request to delete a model provider service..
 type DeleteModelProviderServiceRequest struct {
 	// Resource name of the model provider service. Format:
@@ -200,6 +233,13 @@ type GetMcpServiceRequest struct {
 	// Resource name of the MCP service. Format:
 	// `mcp-services/{catalog}.{schema}.{mcp_service}`. Each `{...}` component is
 	// capped at 255 characters individually.
+	Name *string
+}
+
+// Request to get the caller's user credential for an MCP service..
+type GetMcpServiceUserMappedCredentialRequest struct {
+	// Resource name of the MCP service. Format:
+	// `mcp-services/{catalog}.{schema}.{mcp_service}`.
 	Name *string
 }
 
@@ -416,6 +456,26 @@ type McpServiceConfig_SourceConnection struct {
 	// reference so callers can identify the broken dependency; tool invocation
 	// fails until the source connection is updated.
 	IsDeleted *bool `fieldmask:"is_deleted"`
+}
+
+// A caller's per-user OAuth credential for an MCP service..
+type McpServiceUserMappedCredential struct {
+	// Token-expiry info for the credential, returned as a flat map:
+	// `access_token_expiration` (always set) and `refresh_token_expiration` (set
+	// when the credential has a refresh token). Both values are timestamps.
+	Options map[string]string
+	// Provisioning state of the credential. `ACTIVE` means the caller is logged in
+	// and the credential is usable; any other state means the login has not
+	// completed.
+	ProvisioningInfo *ProvisioningInfo
+}
+
+// Login input for an MCP service user credential. Carries the OAuth exchange
+// fields as a flat map..
+type McpServiceUserMappedCredentialLogin struct {
+	// OAuth exchange fields: `pkce_verifier`, `authorization_code`, and
+	// `oauth_redirect_uri`.
+	Options map[string]string
 }
 
 // A Unity Catalog securable that stores authentication and request
@@ -1366,6 +1426,12 @@ type ModelServiceConfig_RoutingConfig struct {
 	// Fallback routing applied after a primary destination fails. Fallback
 	// destinations are tried in the listed order.
 	Fallback *ModelServiceConfig_FallbackConfig `fieldmask:"fallback"`
+}
+
+// Status of an asynchronously provisioned resource..
+type ProvisioningInfo struct {
+	// The provisioning state of the resource.
+	State ProvisioningInfo_State
 }
 
 // A rate limit applied to service requests. Leave `requests` or `tokens` unset
