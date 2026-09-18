@@ -961,6 +961,7 @@ func createStreamRequestToWire(v *CreateStreamRequest) (*createStreamRequestWire
 type cronScheduleWire struct {
 	CronExpression *string           `json:"cron_expression,omitempty"`
 	Mode           CronSchedule_Mode `json:"mode,omitempty"`
+	TimezoneId     *string           `json:"timezone_id,omitempty"`
 }
 
 func cronScheduleToWire(v *CronSchedule) (*cronScheduleWire, error) {
@@ -970,6 +971,7 @@ func cronScheduleToWire(v *CronSchedule) (*cronScheduleWire, error) {
 	return &cronScheduleWire{
 		CronExpression: v.CronExpression,
 		Mode:           v.Mode,
+		TimezoneId:     v.TimezoneId,
 	}, nil
 }
 
@@ -980,6 +982,7 @@ func cronScheduleFromWire(w *cronScheduleWire) (*CronSchedule, error) {
 	return &CronSchedule{
 		CronExpression: w.CronExpression,
 		Mode:           w.Mode,
+		TimezoneId:     w.TimezoneId,
 	}, nil
 }
 

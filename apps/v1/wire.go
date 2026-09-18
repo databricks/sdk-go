@@ -1311,17 +1311,18 @@ func appThumbnailFromWire(w *appThumbnailWire) (*AppThumbnail, error) {
 }
 
 type appUpdateWire struct {
-	Status                 *appUpdate_UpdateStatusWire `json:"status,omitempty"`
-	Description            *string                     `json:"description,omitempty"`
-	BudgetPolicyId         *string                     `json:"budget_policy_id,omitempty"`
-	Resources              []appResourceWire           `json:"resources,omitempty"`
-	UserApiScopes          []string                    `json:"user_api_scopes,omitempty"`
-	ComputeSize            ComputeSize                 `json:"compute_size,omitempty"`
-	UsagePolicyId          *string                     `json:"usage_policy_id,omitempty"`
-	ComputeMinInstances    *int                        `json:"compute_min_instances,omitempty"`
-	ComputeMaxInstances    *int                        `json:"compute_max_instances,omitempty"`
-	GitRepository          *gitRepositoryWire          `json:"git_repository,omitempty"`
-	ForwardUserAccessToken *bool                       `json:"forward_user_access_token,omitempty"`
+	Status                      *appUpdate_UpdateStatusWire      `json:"status,omitempty"`
+	Description                 *string                          `json:"description,omitempty"`
+	BudgetPolicyId              *string                          `json:"budget_policy_id,omitempty"`
+	Resources                   []appResourceWire                `json:"resources,omitempty"`
+	UserApiScopes               []string                         `json:"user_api_scopes,omitempty"`
+	ComputeSize                 ComputeSize                      `json:"compute_size,omitempty"`
+	UsagePolicyId               *string                          `json:"usage_policy_id,omitempty"`
+	ComputeMinInstances         *int                             `json:"compute_min_instances,omitempty"`
+	ComputeMaxInstances         *int                             `json:"compute_max_instances,omitempty"`
+	GitRepository               *gitRepositoryWire               `json:"git_repository,omitempty"`
+	TelemetryExportDestinations []telemetryExportDestinationWire `json:"telemetry_export_destinations,omitempty"`
+	ForwardUserAccessToken      *bool                            `json:"forward_user_access_token,omitempty"`
 }
 
 func appUpdateFromWire(w *appUpdateWire) (*AppUpdate, error) {
@@ -1340,18 +1341,23 @@ func appUpdateFromWire(w *appUpdateWire) (*AppUpdate, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "AppUpdate.GitRepository", err)
 	}
+	telemetryExportDestinationsPublicValue, err := convertSlice(w.TelemetryExportDestinations, telemetryExportDestinationFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AppUpdate.TelemetryExportDestinations", err)
+	}
 	return &AppUpdate{
-		Status:                 statusPublicValue,
-		Description:            w.Description,
-		BudgetPolicyId:         w.BudgetPolicyId,
-		Resources:              resourcesPublicValue,
-		UserApiScopes:          w.UserApiScopes,
-		ComputeSize:            w.ComputeSize,
-		UsagePolicyId:          w.UsagePolicyId,
-		ComputeMinInstances:    w.ComputeMinInstances,
-		ComputeMaxInstances:    w.ComputeMaxInstances,
-		GitRepository:          gitRepositoryPublicValue,
-		ForwardUserAccessToken: w.ForwardUserAccessToken,
+		Status:                      statusPublicValue,
+		Description:                 w.Description,
+		BudgetPolicyId:              w.BudgetPolicyId,
+		Resources:                   resourcesPublicValue,
+		UserApiScopes:               w.UserApiScopes,
+		ComputeSize:                 w.ComputeSize,
+		UsagePolicyId:               w.UsagePolicyId,
+		ComputeMinInstances:         w.ComputeMinInstances,
+		ComputeMaxInstances:         w.ComputeMaxInstances,
+		GitRepository:               gitRepositoryPublicValue,
+		TelemetryExportDestinations: telemetryExportDestinationsPublicValue,
+		ForwardUserAccessToken:      w.ForwardUserAccessToken,
 	}, nil
 }
 

@@ -77,7 +77,10 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 
 // Create a draft dashboard.
 //
-// Requires the Databricks SQL access entitlement.
+// Requires the [Databricks SQL access] entitlement. Grant Databricks SQL access
+// in addition to Workspace access.
+//
+// [Databricks SQL access]: https://docs.databricks.com/security/auth/entitlements
 func (c *internalClient) CreateDashboard(ctx context.Context, req CreateDashboardRequest, opts ...call.Option) (*Dashboard, error) {
 	wireReq, err := createDashboardRequestToWire(&req)
 	if err != nil {
@@ -150,6 +153,11 @@ func (c *internalClient) CreateDashboard(ctx context.Context, req CreateDashboar
 }
 
 // Create dashboard schedule.
+//
+// Requires the [Databricks SQL access] entitlement. Grant Databricks SQL access
+// in addition to Workspace access.
+//
+// [Databricks SQL access]: https://docs.databricks.com/security/auth/entitlements
 func (c *internalClient) CreateSchedule(ctx context.Context, req CreateScheduleRequest, opts ...call.Option) (*Schedule, error) {
 	wireReq, err := createScheduleRequestToWire(&req)
 	if err != nil {
@@ -224,6 +232,14 @@ func (c *internalClient) CreateSchedule(ctx context.Context, req CreateScheduleR
 }
 
 // Create schedule subscription.
+//
+// The caller must be a workspace user with one of the following [entitlements]:
+// Workspace access, Databricks SQL access, or Consumer access.
+//
+// Account-level users who are not members of the workspace cannot call this
+// endpoint, even if the dashboard has been shared with them.
+//
+// [entitlements]: https://docs.databricks.com/security/auth/entitlements
 func (c *internalClient) CreateSubscription(ctx context.Context, req CreateSubscriptionRequest, opts ...call.Option) (*Subscription, error) {
 	wireReq, err := createSubscriptionRequestToWire(&req)
 	if err != nil {
@@ -304,6 +320,11 @@ func (c *internalClient) CreateSubscription(ctx context.Context, req CreateSubsc
 }
 
 // Delete dashboard schedule.
+//
+// Requires the [Databricks SQL access] entitlement. Grant Databricks SQL access
+// in addition to Workspace access.
+//
+// [Databricks SQL access]: https://docs.databricks.com/security/auth/entitlements
 func (c *internalClient) DeleteSchedule(ctx context.Context, req DeleteScheduleRequest, opts ...call.Option) error {
 	wireReq, err := deleteScheduleRequestToWire(&req)
 	if err != nil {
@@ -370,6 +391,14 @@ func (c *internalClient) DeleteSchedule(ctx context.Context, req DeleteScheduleR
 }
 
 // Delete schedule subscription.
+//
+// The caller must be a workspace user with one of the following [entitlements]:
+// Workspace access, Databricks SQL access, or Consumer access.
+//
+// Account-level users who are not members of the workspace cannot call this
+// endpoint, even if the dashboard has been shared with them.
+//
+// [entitlements]: https://docs.databricks.com/security/auth/entitlements
 func (c *internalClient) DeleteSubscription(ctx context.Context, req DeleteSubscriptionRequest, opts ...call.Option) error {
 	wireReq, err := deleteSubscriptionRequestToWire(&req)
 	if err != nil {
@@ -442,7 +471,10 @@ func (c *internalClient) DeleteSubscription(ctx context.Context, req DeleteSubsc
 
 // Get a draft dashboard.
 //
-// Requires the Databricks SQL access entitlement.
+// Requires the [Databricks SQL access] entitlement. Grant Databricks SQL access
+// in addition to Workspace access.
+//
+// [Databricks SQL access]: https://docs.databricks.com/security/auth/entitlements
 func (c *internalClient) GetDashboard(ctx context.Context, req GetDashboardRequest, opts ...call.Option) (*Dashboard, error) {
 
 	headers := http.Header{}
@@ -657,6 +689,14 @@ func (c *internalClient) GetPublishedDashboardTokenInfo(ctx context.Context, req
 }
 
 // Get dashboard schedule.
+//
+// The caller must be a workspace user with one of the following [entitlements]:
+// Workspace access, Databricks SQL access, or Consumer access.
+//
+// Account-level users who are not members of the workspace cannot call this
+// endpoint, even if the dashboard has been shared with them.
+//
+// [entitlements]: https://docs.databricks.com/security/auth/entitlements
 func (c *internalClient) GetSchedule(ctx context.Context, req GetScheduleRequest, opts ...call.Option) (*Schedule, error) {
 
 	headers := http.Header{}
@@ -725,6 +765,14 @@ func (c *internalClient) GetSchedule(ctx context.Context, req GetScheduleRequest
 }
 
 // Get schedule subscription.
+//
+// The caller must be a workspace user with one of the following [entitlements]:
+// Workspace access, Databricks SQL access, or Consumer access.
+//
+// Account-level users who are not members of the workspace cannot call this
+// endpoint, even if the dashboard has been shared with them.
+//
+// [entitlements]: https://docs.databricks.com/security/auth/entitlements
 func (c *internalClient) GetSubscription(ctx context.Context, req GetSubscriptionRequest, opts ...call.Option) (*Subscription, error) {
 
 	headers := http.Header{}
@@ -799,7 +847,10 @@ func (c *internalClient) GetSubscription(ctx context.Context, req GetSubscriptio
 
 // List dashboards.
 //
-// Requires the Databricks SQL access entitlement.
+// Requires the [Databricks SQL access] entitlement. Grant Databricks SQL access
+// in addition to Workspace access.
+//
+// [Databricks SQL access]: https://docs.databricks.com/security/auth/entitlements
 func (c *internalClient) ListDashboards(ctx context.Context, req ListDashboardsRequest, opts ...call.Option) (*ListDashboardsResponse, error) {
 	wireReq, err := listDashboardsRequestToWire(&req)
 	if err != nil {
@@ -916,6 +967,14 @@ func (c *internalClient) ListDashboardsIter(ctx context.Context, req ListDashboa
 }
 
 // List dashboard schedules.
+//
+// The caller must be a workspace user with one of the following [entitlements]:
+// Workspace access, Databricks SQL access, or Consumer access.
+//
+// Account-level users who are not members of the workspace cannot call this
+// endpoint, even if the dashboard has been shared with them.
+//
+// [entitlements]: https://docs.databricks.com/security/auth/entitlements
 func (c *internalClient) ListSchedules(ctx context.Context, req ListSchedulesRequest, opts ...call.Option) (*ListSchedulesResponse, error) {
 	wireReq, err := listSchedulesRequestToWire(&req)
 	if err != nil {
@@ -1031,6 +1090,14 @@ func (c *internalClient) ListSchedulesIter(ctx context.Context, req ListSchedule
 }
 
 // List schedule subscriptions.
+//
+// The caller must be a workspace user with one of the following [entitlements]:
+// Workspace access, Databricks SQL access, or Consumer access.
+//
+// Account-level users who are not members of the workspace cannot call this
+// endpoint, even if the dashboard has been shared with them.
+//
+// [entitlements]: https://docs.databricks.com/security/auth/entitlements
 func (c *internalClient) ListSubscriptions(ctx context.Context, req ListSubscriptionsRequest, opts ...call.Option) (*ListSubscriptionsResponse, error) {
 	wireReq, err := listSubscriptionsRequestToWire(&req)
 	if err != nil {
@@ -1219,7 +1286,10 @@ func (c *internalClient) MigrateDashboard(ctx context.Context, req MigrateDashbo
 
 // Publish the current draft dashboard.
 //
-// Requires the Databricks SQL access entitlement.
+// Requires the [Databricks SQL access] entitlement. Grant Databricks SQL access
+// in addition to Workspace access.
+//
+// [Databricks SQL access]: https://docs.databricks.com/security/auth/entitlements
 func (c *internalClient) PublishDashboard(ctx context.Context, req PublishDashboardRequest, opts ...call.Option) (*PublishedDashboard, error) {
 	wireReq, err := publishDashboardRequestToWire(&req)
 	if err != nil {
@@ -1294,7 +1364,10 @@ func (c *internalClient) PublishDashboard(ctx context.Context, req PublishDashbo
 
 // Revert a dashboard's definition in draft mode to the last published version.
 //
-// Requires the Databricks SQL access entitlement.
+// Requires the [Databricks SQL access] entitlement. Grant Databricks SQL access
+// in addition to Workspace access.
+//
+// [Databricks SQL access]: https://docs.databricks.com/security/auth/entitlements
 func (c *internalClient) RevertDashboard(ctx context.Context, req RevertDashboardRequest, opts ...call.Option) (*RevertDashboardResponse, error) {
 	wireReq, err := revertDashboardRequestToWire(&req)
 	if err != nil {
@@ -1369,7 +1442,10 @@ func (c *internalClient) RevertDashboard(ctx context.Context, req RevertDashboar
 
 // Trash a dashboard.
 //
-// Requires the Databricks SQL access entitlement.
+// Requires the [Databricks SQL access] entitlement. Grant Databricks SQL access
+// in addition to Workspace access.
+//
+// [Databricks SQL access]: https://docs.databricks.com/security/auth/entitlements
 func (c *internalClient) TrashDashboard(ctx context.Context, req TrashDashboardRequest, opts ...call.Option) (*TrashDashboardResponse, error) {
 
 	headers := http.Header{}
@@ -1428,7 +1504,10 @@ func (c *internalClient) TrashDashboard(ctx context.Context, req TrashDashboardR
 
 // Unpublish the dashboard.
 //
-// Requires the Databricks SQL access entitlement.
+// Requires the [Databricks SQL access] entitlement. Grant Databricks SQL access
+// in addition to Workspace access.
+//
+// [Databricks SQL access]: https://docs.databricks.com/security/auth/entitlements
 func (c *internalClient) UnpublishDashboard(ctx context.Context, req UnpublishDashboardRequest, opts ...call.Option) (*UnpublishDashboardResponse, error) {
 
 	headers := http.Header{}
@@ -1488,7 +1567,10 @@ func (c *internalClient) UnpublishDashboard(ctx context.Context, req UnpublishDa
 
 // Update a draft dashboard.
 //
-// Requires the Databricks SQL access entitlement.
+// Requires the [Databricks SQL access] entitlement. Grant Databricks SQL access
+// in addition to Workspace access.
+//
+// [Databricks SQL access]: https://docs.databricks.com/security/auth/entitlements
 func (c *internalClient) UpdateDashboard(ctx context.Context, req UpdateDashboardRequest, opts ...call.Option) (*Dashboard, error) {
 	wireReq, err := updateDashboardRequestToWire(&req)
 	if err != nil {
@@ -1568,6 +1650,11 @@ func (c *internalClient) UpdateDashboard(ctx context.Context, req UpdateDashboar
 }
 
 // Update dashboard schedule.
+//
+// Requires the [Databricks SQL access] entitlement. Grant Databricks SQL access
+// in addition to Workspace access.
+//
+// [Databricks SQL access]: https://docs.databricks.com/security/auth/entitlements
 func (c *internalClient) UpdateSchedule(ctx context.Context, req UpdateScheduleRequest, opts ...call.Option) (*Schedule, error) {
 	wireReq, err := updateScheduleRequestToWire(&req)
 	if err != nil {

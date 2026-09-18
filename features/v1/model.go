@@ -896,13 +896,17 @@ type CreateStreamRequest struct {
 // A cron-based schedule trigger for the materialization pipeline..
 type CronSchedule struct {
 	// The cron expression defining the schedule (e.g., "0 0 * * *" for daily at
-	// midnight). The schedule is interpreted in the UTC time zone. Required when
-	// mode is MANUAL (or unset). Left empty when mode is DERIVED, where the service
-	// computes it (aligned to UTC) from the features' window timing and fills it in
-	// on the response.
+	// midnight). The schedule is interpreted in timezone_id (defaults to UTC).
+	// Required when mode is MANUAL (or unset). Left empty when mode is DERIVED,
+	// where the service computes it (aligned to UTC) from the features' window
+	// timing and fills it in on the response.
 	CronExpression *string `fieldmask:"cron_expression"`
 	// How the schedule is determined. Defaults to MANUAL when unset.
 	Mode CronSchedule_Mode `fieldmask:"mode"`
+	// A Java timezone ID. The schedule is resolved with respect to this timezone.
+	// Defaults to UTC when omitted. Can only be configured for MANUAL schedules;
+	// DERIVED schedules are always aligned to UTC.
+	TimezoneId *string `fieldmask:"timezone_id"`
 }
 
 // A CustomUdf function applies a registered Unity Catalog function row-wise to

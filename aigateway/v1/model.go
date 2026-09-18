@@ -456,6 +456,12 @@ type McpServiceConfig_SourceConnection struct {
 	// reference so callers can identify the broken dependency; tool invocation
 	// fails until the source connection is updated.
 	IsDeleted *bool `fieldmask:"is_deleted"`
+	// Options needed to build the U2M authorize request, returned as a flat map.
+	// When set, it includes: `authorization_endpoint` (OAuth authorize URL),
+	// `token_endpoint` (token-exchange URL), `oauth_scope` (space-separated scopes
+	// to request), `client_id` (OAuth client id), and `oauth_provider` (the OAuth
+	// provider).
+	Options map[string]string `fieldmask:"options"`
 }
 
 // A caller's per-user OAuth credential for an MCP service..
@@ -905,6 +911,19 @@ type modelProviderServiceConfig_AzureOpenAiProviderDirectConfigAuthModeFieldMask
 	*ModelProviderServiceConfig_AzureOpenAiProviderDirectConfig_AuthMode_EntraServicePrincipal
 }
 
+// Header-based API-key authentication for a custom provider: the secret is
+// forwarded on outbound requests under a caller-chosen HTTP header, as
+// `<api_key_name>: <api_key_value>`..
+type ModelProviderServiceConfig_CustomProviderApiKeyHeaderAuth struct {
+	// HTTP header name that carries the API key on outbound requests (e.g.,
+	// `Ocp-Apim-Subscription-Key`). The value forwarded under this header is
+	// supplied via `api_key_value`.
+	ApiKeyName *string `fieldmask:"api_key_name"`
+	// Secret value forwarded under the `api_key_name` header on outbound requests.
+	// Supplied as inline plaintext via `ProviderSecret.plaintext`.
+	ApiKeyValue *ModelProviderServiceConfig_ProviderSecret `fieldmask:"api_key_value"`
+}
+
 // Custom OpenAI-compatible provider configuration with bearer-token
 // authentication..
 type ModelProviderServiceConfig_CustomProviderConfig struct {
@@ -932,8 +951,9 @@ type modelProviderServiceConfig_CustomProviderConfigProviderModeFieldMaskMetadat
 	*ModelProviderServiceConfig_CustomProviderConfig_ProviderMode_Direct
 }
 
-// Direct form of a custom provider configuration. Set `api_key` to the bearer
-// token sent in the `Authorization` header..
+// Direct form of a custom provider configuration. Set `api_key` to send the
+// secret as an `Authorization` bearer token, or `header_auth` to forward it
+// under a caller-chosen HTTP header..
 type ModelProviderServiceConfig_CustomProviderDirectConfig struct {
 	// Endpoint URL of the OpenAI-compatible service (e.g.,
 	// `https://api.example.com/v1`). Required on Create.
@@ -958,8 +978,20 @@ type ModelProviderServiceConfig_CustomProviderDirectConfig_AuthMode_ApiKey struc
 func (*ModelProviderServiceConfig_CustomProviderDirectConfig_AuthMode_ApiKey) isModelProviderServiceConfig_CustomProviderDirectConfig_AuthMode() {
 }
 
+// ModelProviderServiceConfig_CustomProviderDirectConfig_AuthMode_HeaderAuth selects HeaderAuth for ModelProviderServiceConfig_CustomProviderDirectConfig.AuthMode.
+// Header-based API-key auth: the secret is forwarded on outbound requests under
+// a caller-chosen HTTP header rather than as an `Authorization` bearer token.
+// Set this instead of `api_key` for header auth.
+type ModelProviderServiceConfig_CustomProviderDirectConfig_AuthMode_HeaderAuth struct {
+	HeaderAuth ModelProviderServiceConfig_CustomProviderApiKeyHeaderAuth `fieldmask:"header_auth"`
+}
+
+func (*ModelProviderServiceConfig_CustomProviderDirectConfig_AuthMode_HeaderAuth) isModelProviderServiceConfig_CustomProviderDirectConfig_AuthMode() {
+}
+
 type modelProviderServiceConfig_CustomProviderDirectConfigAuthModeFieldMaskMetadata struct {
 	*ModelProviderServiceConfig_CustomProviderDirectConfig_AuthMode_ApiKey
+	*ModelProviderServiceConfig_CustomProviderDirectConfig_AuthMode_HeaderAuth
 }
 
 // Entra ID (Azure AD) service-principal authentication. The `tenant_id` and

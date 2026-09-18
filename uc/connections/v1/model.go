@@ -30,6 +30,7 @@ const (
 	ConnectionType_Confluence          ConnectionType = "CONFLUENCE"
 	ConnectionType_Jdbc                ConnectionType = "JDBC"
 	ConnectionType_MetaMarketing       ConnectionType = "META_MARKETING"
+	ConnectionType_TiktokAds           ConnectionType = "TIKTOK_ADS"
 	ConnectionType_Hubspot             ConnectionType = "HUBSPOT"
 	ConnectionType_Zendesk             ConnectionType = "ZENDESK"
 	ConnectionType_AwsSecretsManager   ConnectionType = "AWS_SECRETS_MANAGER"
@@ -87,6 +88,8 @@ const (
 	SecurableType_ModelService         SecurableType = "MODEL_SERVICE"
 	SecurableType_McpService           SecurableType = "MCP_SERVICE"
 	SecurableType_ModelProviderService SecurableType = "MODEL_PROVIDER_SERVICE"
+	SecurableType_AgentService         SecurableType = "AGENT_SERVICE"
+	SecurableType_Skill                SecurableType = "SKILL"
 )
 
 type ProvisioningInfo_State string

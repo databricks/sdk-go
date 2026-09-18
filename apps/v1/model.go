@@ -1085,8 +1085,9 @@ type AppUpdate struct {
 	ComputeMinInstances *int
 	// Maximum number of app instances. Must be set together with
 	// `compute_min_instances`.
-	ComputeMaxInstances *int
-	GitRepository       *GitRepository
+	ComputeMaxInstances         *int
+	GitRepository               *GitRepository
+	TelemetryExportDestinations []TelemetryExportDestination
 	// Forward the user's access token to the app. Requires stopping and starting
 	// app compute to take effect.
 	ForwardUserAccessToken *bool
