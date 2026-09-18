@@ -1291,9 +1291,11 @@ type BaseRun struct {
 	// This can differ from the client-set performance target on the request
 	// depending on whether the performance mode is supported by the job type.
 	//
-	// * `STANDARD`: Enables cost-efficient execution of serverless workloads. *
-	// `PERFORMANCE_OPTIMIZED`: Prioritizes fast startup and execution times through
-	// rapid scaling and optimized cluster performance.
+	// * `PERFORMANCE_OPTIMIZED`: Prioritizes fast startup and execution times
+	// through rapid scaling and optimized cluster performance. * `STANDARD`:
+	// Enables cost-efficient execution of serverless workloads. * `COST_OPTIMIZED`:
+	// Enables lower job costs by optimizing compute for your selected target
+	// duration time. Must provide a duration target.
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget
 	// The id of the usage policy used by this run for cost attribution purposes.
 	EffectiveUsagePolicyId *string
@@ -1878,9 +1880,11 @@ type CreateJobRequest struct {
 	// compute performance or cost-efficiency for the run. The performance target
 	// does not apply to tasks that run on Serverless GPU compute.
 	//
-	// * `STANDARD`: Enables cost-efficient execution of serverless workloads. *
-	// `PERFORMANCE_OPTIMIZED`: Prioritizes fast startup and execution times through
-	// rapid scaling and optimized cluster performance.
+	// * `PERFORMANCE_OPTIMIZED`: Prioritizes fast startup and execution times
+	// through rapid scaling and optimized cluster performance. * `STANDARD`:
+	// Enables cost-efficient execution of serverless workloads. * `COST_OPTIMIZED`:
+	// Enables lower job costs by optimizing compute for your selected target
+	// duration time. Must provide a duration target.
 	PerformanceTarget PerformanceTarget_PerformanceTarget
 	// Path of the job parent folder in workspace file tree. If absent, the job
 	// doesn't have a workspace object.
@@ -2687,9 +2691,11 @@ type GetRunResponse struct {
 	// This can differ from the client-set performance target on the request
 	// depending on whether the performance mode is supported by the job type.
 	//
-	// * `STANDARD`: Enables cost-efficient execution of serverless workloads. *
-	// `PERFORMANCE_OPTIMIZED`: Prioritizes fast startup and execution times through
-	// rapid scaling and optimized cluster performance.
+	// * `PERFORMANCE_OPTIMIZED`: Prioritizes fast startup and execution times
+	// through rapid scaling and optimized cluster performance. * `STANDARD`:
+	// Enables cost-efficient execution of serverless workloads. * `COST_OPTIMIZED`:
+	// Enables lower job costs by optimizing compute for your selected target
+	// duration time. Must provide a duration target.
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget
 	// The id of the usage policy used by this run for cost attribution purposes.
 	EffectiveUsagePolicyId *string
@@ -3115,9 +3121,11 @@ type JobSettings struct {
 	// compute performance or cost-efficiency for the run. The performance target
 	// does not apply to tasks that run on Serverless GPU compute.
 	//
-	// * `STANDARD`: Enables cost-efficient execution of serverless workloads. *
-	// `PERFORMANCE_OPTIMIZED`: Prioritizes fast startup and execution times through
-	// rapid scaling and optimized cluster performance.
+	// * `PERFORMANCE_OPTIMIZED`: Prioritizes fast startup and execution times
+	// through rapid scaling and optimized cluster performance. * `STANDARD`:
+	// Enables cost-efficient execution of serverless workloads. * `COST_OPTIMIZED`:
+	// Enables lower job costs by optimizing compute for your selected target
+	// duration time. Must provide a duration target.
 	PerformanceTarget PerformanceTarget_PerformanceTarget
 	// Path of the job parent folder in workspace file tree. If absent, the job
 	// doesn't have a workspace object.
@@ -3790,9 +3798,11 @@ type Repair struct {
 	// This can differ from the client-set performance target on the request
 	// depending on whether the performance mode is supported by the job type.
 	//
-	// * `STANDARD`: Enables cost-efficient execution of serverless workloads. *
-	// `PERFORMANCE_OPTIMIZED`: Prioritizes fast startup and execution times through
-	// rapid scaling and optimized cluster performance.
+	// * `PERFORMANCE_OPTIMIZED`: Prioritizes fast startup and execution times
+	// through rapid scaling and optimized cluster performance. * `STANDARD`:
+	// Enables cost-efficient execution of serverless workloads. * `COST_OPTIMIZED`:
+	// Enables lower job costs by optimizing compute for your selected target
+	// duration time. Must provide a duration target.
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget
 }
 
@@ -3818,9 +3828,11 @@ type RepairRunRequest struct {
 	// the level of compute performance or cost-efficiency for the run. This field
 	// overrides the performance target defined on the job level.
 	//
-	// * `STANDARD`: Enables cost-efficient execution of serverless workloads. *
-	// `PERFORMANCE_OPTIMIZED`: Prioritizes fast startup and execution times through
-	// rapid scaling and optimized cluster performance.
+	// * `PERFORMANCE_OPTIMIZED`: Prioritizes fast startup and execution times
+	// through rapid scaling and optimized cluster performance. * `STANDARD`:
+	// Enables cost-efficient execution of serverless workloads. * `COST_OPTIMIZED`:
+	// Enables lower job costs by optimizing compute for your selected target
+	// duration time. Must provide a duration target.
 	PerformanceTarget PerformanceTarget_PerformanceTarget
 	// Controls whether the pipeline should perform a full refresh
 	PipelineParams *PipelineParameters
@@ -4160,9 +4172,11 @@ type Run struct {
 	// This can differ from the client-set performance target on the request
 	// depending on whether the performance mode is supported by the job type.
 	//
-	// * `STANDARD`: Enables cost-efficient execution of serverless workloads. *
-	// `PERFORMANCE_OPTIMIZED`: Prioritizes fast startup and execution times through
-	// rapid scaling and optimized cluster performance.
+	// * `PERFORMANCE_OPTIMIZED`: Prioritizes fast startup and execution times
+	// through rapid scaling and optimized cluster performance. * `STANDARD`:
+	// Enables cost-efficient execution of serverless workloads. * `COST_OPTIMIZED`:
+	// Enables lower job costs by optimizing compute for your selected target
+	// duration time. Must provide a duration target.
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget
 	// The id of the usage policy used by this run for cost attribution purposes.
 	EffectiveUsagePolicyId *string
@@ -4350,9 +4364,11 @@ type RunNowRequest struct {
 	// the level of compute performance or cost-efficiency for the run. This field
 	// overrides the performance target defined on the job level.
 	//
-	// * `STANDARD`: Enables cost-efficient execution of serverless workloads. *
-	// `PERFORMANCE_OPTIMIZED`: Prioritizes fast startup and execution times through
-	// rapid scaling and optimized cluster performance.
+	// * `PERFORMANCE_OPTIMIZED`: Prioritizes fast startup and execution times
+	// through rapid scaling and optimized cluster performance. * `STANDARD`:
+	// Enables cost-efficient execution of serverless workloads. * `COST_OPTIMIZED`:
+	// Enables lower job costs by optimizing compute for your selected target
+	// duration time. Must provide a duration target.
 	PerformanceTarget PerformanceTarget_PerformanceTarget
 	// Controls whether the pipeline should perform a full refresh
 	PipelineParams *PipelineParameters
@@ -4598,9 +4614,11 @@ type RunTask struct {
 	// This can differ from the client-set performance target on the request
 	// depending on whether the performance mode is supported by the job type.
 	//
-	// * `STANDARD`: Enables cost-efficient execution of serverless workloads. *
-	// `PERFORMANCE_OPTIMIZED`: Prioritizes fast startup and execution times through
-	// rapid scaling and optimized cluster performance.
+	// * `PERFORMANCE_OPTIMIZED`: Prioritizes fast startup and execution times
+	// through rapid scaling and optimized cluster performance. * `STANDARD`:
+	// Enables cost-efficient execution of serverless workloads. * `COST_OPTIMIZED`:
+	// Enables lower job costs by optimizing compute for your selected target
+	// duration time. Must provide a duration target.
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget
 	// The id of the serverless compute this task ran on, either explicitly
 	// configured on the task or the workspace default. Only set once the compute
@@ -5640,9 +5658,11 @@ type SubmitRunRequest struct {
 	// level of compute performance or cost-efficiency for the run. The performance
 	// target does not apply to tasks that run on Serverless GPU compute.
 	//
-	// * `STANDARD`: Enables cost-efficient execution of serverless workloads. *
-	// `PERFORMANCE_OPTIMIZED`: Prioritizes fast startup and execution times through
-	// rapid scaling and optimized cluster performance.
+	// * `PERFORMANCE_OPTIMIZED`: Prioritizes fast startup and execution times
+	// through rapid scaling and optimized cluster performance. * `STANDARD`:
+	// Enables cost-efficient execution of serverless workloads. * `COST_OPTIMIZED`:
+	// Enables lower job costs by optimizing compute for your selected target
+	// duration time. Must provide a duration target.
 	PerformanceTarget PerformanceTarget_PerformanceTarget
 }
 

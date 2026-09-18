@@ -85,7 +85,9 @@ const (
 	IngestionSourceType_Jira              IngestionSourceType = "JIRA"
 	IngestionSourceType_Confluence        IngestionSourceType = "CONFLUENCE"
 	IngestionSourceType_MetaMarketing     IngestionSourceType = "META_MARKETING"
+	IngestionSourceType_TiktokAds         IngestionSourceType = "TIKTOK_ADS"
 	IngestionSourceType_Zendesk           IngestionSourceType = "ZENDESK"
+	IngestionSourceType_Smartsheet        IngestionSourceType = "SMARTSHEET"
 	IngestionSourceType_Rabbitmq          IngestionSourceType = "RABBITMQ"
 	IngestionSourceType_ForeignCatalog    IngestionSourceType = "FOREIGN_CATALOG"
 )

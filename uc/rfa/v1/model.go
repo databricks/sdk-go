@@ -53,6 +53,8 @@ const (
 	SecurableType_ModelService         SecurableType = "MODEL_SERVICE"
 	SecurableType_McpService           SecurableType = "MCP_SERVICE"
 	SecurableType_ModelProviderService SecurableType = "MODEL_PROVIDER_SERVICE"
+	SecurableType_AgentService         SecurableType = "AGENT_SERVICE"
+	SecurableType_Skill                SecurableType = "SKILL"
 )
 
 type SpecialDestination string

@@ -458,8 +458,9 @@ func mcpServiceConfigFromWire(w *mcpServiceConfigWire) (*McpServiceConfig, error
 }
 
 type mcpServiceConfig_SourceConnectionWire struct {
-	Name      *string `json:"name,omitempty"`
-	IsDeleted *bool   `json:"is_deleted,omitempty"`
+	Name      *string           `json:"name,omitempty"`
+	IsDeleted *bool             `json:"is_deleted,omitempty"`
+	Options   map[string]string `json:"options,omitempty"`
 }
 
 func mcpServiceConfig_SourceConnectionToWire(v *McpServiceConfig_SourceConnection) (*mcpServiceConfig_SourceConnectionWire, error) {
@@ -469,6 +470,7 @@ func mcpServiceConfig_SourceConnectionToWire(v *McpServiceConfig_SourceConnectio
 	return &mcpServiceConfig_SourceConnectionWire{
 		Name:      v.Name,
 		IsDeleted: v.IsDeleted,
+		Options:   v.Options,
 	}, nil
 }
 
@@ -479,6 +481,7 @@ func mcpServiceConfig_SourceConnectionFromWire(w *mcpServiceConfig_SourceConnect
 	return &McpServiceConfig_SourceConnection{
 		Name:      w.Name,
 		IsDeleted: w.IsDeleted,
+		Options:   w.Options,
 	}, nil
 }
 
@@ -1239,6 +1242,39 @@ func modelProviderServiceConfig_AzureOpenAiProviderDirectConfigFromWire(w *model
 	}, nil
 }
 
+type modelProviderServiceConfig_CustomProviderApiKeyHeaderAuthWire struct {
+	ApiKeyName  *string                                        `json:"api_key_name,omitempty"`
+	ApiKeyValue *modelProviderServiceConfig_ProviderSecretWire `json:"api_key_value,omitempty"`
+}
+
+func modelProviderServiceConfig_CustomProviderApiKeyHeaderAuthToWire(v *ModelProviderServiceConfig_CustomProviderApiKeyHeaderAuth) (*modelProviderServiceConfig_CustomProviderApiKeyHeaderAuthWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	apiKeyValueWireValue, err := modelProviderServiceConfig_ProviderSecretToWire(v.ApiKeyValue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelProviderServiceConfig_CustomProviderApiKeyHeaderAuth.ApiKeyValue", err)
+	}
+	return &modelProviderServiceConfig_CustomProviderApiKeyHeaderAuthWire{
+		ApiKeyName:  v.ApiKeyName,
+		ApiKeyValue: apiKeyValueWireValue,
+	}, nil
+}
+
+func modelProviderServiceConfig_CustomProviderApiKeyHeaderAuthFromWire(w *modelProviderServiceConfig_CustomProviderApiKeyHeaderAuthWire) (*ModelProviderServiceConfig_CustomProviderApiKeyHeaderAuth, error) {
+	if w == nil {
+		return nil, nil
+	}
+	apiKeyValuePublicValue, err := modelProviderServiceConfig_ProviderSecretFromWire(w.ApiKeyValue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelProviderServiceConfig_CustomProviderApiKeyHeaderAuth.ApiKeyValue", err)
+	}
+	return &ModelProviderServiceConfig_CustomProviderApiKeyHeaderAuth{
+		ApiKeyName:  w.ApiKeyName,
+		ApiKeyValue: apiKeyValuePublicValue,
+	}, nil
+}
+
 type modelProviderServiceConfig_CustomProviderConfigWire struct {
 	Direct *modelProviderServiceConfig_CustomProviderDirectConfigWire `json:"direct,omitempty"`
 }
@@ -1292,8 +1328,9 @@ func modelProviderServiceConfig_CustomProviderConfigFromWire(w *modelProviderSer
 }
 
 type modelProviderServiceConfig_CustomProviderDirectConfigWire struct {
-	BaseUrl *string                                        `json:"base_url,omitempty"`
-	ApiKey  *modelProviderServiceConfig_ProviderSecretWire `json:"api_key,omitempty"`
+	BaseUrl    *string                                                        `json:"base_url,omitempty"`
+	ApiKey     *modelProviderServiceConfig_ProviderSecretWire                 `json:"api_key,omitempty"`
+	HeaderAuth *modelProviderServiceConfig_CustomProviderApiKeyHeaderAuthWire `json:"header_auth,omitempty"`
 }
 
 func modelProviderServiceConfig_CustomProviderDirectConfigToWire(v *ModelProviderServiceConfig_CustomProviderDirectConfig) (*modelProviderServiceConfig_CustomProviderDirectConfigWire, error) {
@@ -1301,6 +1338,7 @@ func modelProviderServiceConfig_CustomProviderDirectConfigToWire(v *ModelProvide
 		return nil, nil
 	}
 	var authModeApiKeyWire *modelProviderServiceConfig_ProviderSecretWire
+	var authModeHeaderAuthWire *modelProviderServiceConfig_CustomProviderApiKeyHeaderAuthWire
 	switch value := v.AuthMode.(type) {
 	case nil:
 	case *ModelProviderServiceConfig_CustomProviderDirectConfig_AuthMode_ApiKey:
@@ -1311,12 +1349,21 @@ func modelProviderServiceConfig_CustomProviderDirectConfigToWire(v *ModelProvide
 			}
 			authModeApiKeyWire = authModeApiKeyConverted
 		}
+	case *ModelProviderServiceConfig_CustomProviderDirectConfig_AuthMode_HeaderAuth:
+		if value != nil {
+			authModeHeaderAuthConverted, err := modelProviderServiceConfig_CustomProviderApiKeyHeaderAuthToWire(&value.HeaderAuth)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ModelProviderServiceConfig_CustomProviderDirectConfig.AuthMode.HeaderAuth", err)
+			}
+			authModeHeaderAuthWire = authModeHeaderAuthConverted
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "ModelProviderServiceConfig_CustomProviderDirectConfig.AuthMode", value)
 	}
 	return &modelProviderServiceConfig_CustomProviderDirectConfigWire{
-		BaseUrl: v.BaseUrl,
-		ApiKey:  authModeApiKeyWire,
+		BaseUrl:    v.BaseUrl,
+		ApiKey:     authModeApiKeyWire,
+		HeaderAuth: authModeHeaderAuthWire,
 	}, nil
 }
 
@@ -1326,6 +1373,9 @@ func modelProviderServiceConfig_CustomProviderDirectConfigFromWire(w *modelProvi
 	}
 	authModeMembers := 0
 	if w.ApiKey != nil {
+		authModeMembers++
+	}
+	if w.HeaderAuth != nil {
 		authModeMembers++
 	}
 	if authModeMembers > 1 {
@@ -1339,6 +1389,12 @@ func modelProviderServiceConfig_CustomProviderDirectConfigFromWire(w *modelProvi
 			return nil, fmt.Errorf("%s: %w", "ModelProviderServiceConfig_CustomProviderDirectConfig.AuthMode.ApiKey", err)
 		}
 		authModeSelection = &ModelProviderServiceConfig_CustomProviderDirectConfig_AuthMode_ApiKey{ApiKey: *authModeApiKeyConverted}
+	case w.HeaderAuth != nil:
+		authModeHeaderAuthConverted, err := modelProviderServiceConfig_CustomProviderApiKeyHeaderAuthFromWire(w.HeaderAuth)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "ModelProviderServiceConfig_CustomProviderDirectConfig.AuthMode.HeaderAuth", err)
+		}
+		authModeSelection = &ModelProviderServiceConfig_CustomProviderDirectConfig_AuthMode_HeaderAuth{HeaderAuth: *authModeHeaderAuthConverted}
 	}
 	return &ModelProviderServiceConfig_CustomProviderDirectConfig{
 		BaseUrl:  w.BaseUrl,
