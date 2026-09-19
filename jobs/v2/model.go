@@ -2942,6 +2942,12 @@ type JobEmailNotifications struct {
 	// these metrics. If the issue persists, notifications are resent every 30
 	// minutes.
 	OnStreamingBacklogExceeded []string
+	// A list of email addresses to notify when platform-initiated maintenance
+	// starts for a continuous job.
+	OnMaintenanceStart []string
+	// A list of email addresses to notify when platform-initiated maintenance
+	// completes for a continuous job.
+	OnMaintenanceComplete []string
 	// If true, do not send email to recipients specified in `on_failure` if the run
 	// is skipped. This field is `deprecated`. Please use the
 	// `notification_settings.no_alert_for_skipped_runs` field.
@@ -6257,6 +6263,14 @@ type WebhookNotifications struct {
 	// notifications are resent every 30 minutes. A maximum of 3 destinations can be
 	// specified for the `on_streaming_backlog_exceeded` property.
 	OnStreamingBacklogExceeded []Webhook
+	// An optional list of system notification IDs to call when platform-initiated
+	// maintenance starts for a continuous job. A maximum of 3 destinations can be
+	// specified for the `on_maintenance_start` property.
+	OnMaintenanceStart []Webhook
+	// An optional list of system notification IDs to call when platform-initiated
+	// maintenance completes for a continuous job. A maximum of 3 destinations can
+	// be specified for the `on_maintenance_complete` property.
+	OnMaintenanceComplete []Webhook
 }
 
 type WidgetErrorDetail struct {
