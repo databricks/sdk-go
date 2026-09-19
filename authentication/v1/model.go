@@ -119,6 +119,9 @@ type isFederationPolicy_Policy interface {
 }
 
 // FederationPolicy_Policy_OidcPolicy selects OidcPolicy for FederationPolicy.Policy.
+// audit_mode INCLUDE is required on both this message field and its leaf fields
+// so the OIDC policy configuration is captured in create/update audit logs (see
+// go/auditlogs).
 type FederationPolicy_Policy_OidcPolicy struct {
 	OidcPolicy OidcFederationPolicy `fieldmask:"oidc_policy"`
 }

@@ -615,6 +615,8 @@ type backfillFeaturesRequestWire struct {
 	FeatureFullNames []string            `json:"feature_full_names,omitempty"`
 	BackfillRanges   []backfillRangeWire `json:"backfill_ranges,omitempty"`
 	RequestId        *string             `json:"request_id,omitempty"`
+	Tags             map[string]string   `json:"tags,omitempty"`
+	BudgetPolicyId   *string             `json:"budget_policy_id,omitempty"`
 }
 
 func backfillFeaturesRequestToWire(v *BackfillFeaturesRequest) (*backfillFeaturesRequestWire, error) {
@@ -629,6 +631,8 @@ func backfillFeaturesRequestToWire(v *BackfillFeaturesRequest) (*backfillFeature
 		FeatureFullNames: v.FeatureFullNames,
 		BackfillRanges:   backfillRangesWireValue,
 		RequestId:        v.RequestId,
+		Tags:             v.Tags,
+		BudgetPolicyId:   v.BudgetPolicyId,
 	}, nil
 }
 
@@ -2941,9 +2945,11 @@ func purgeFeatureEntitiesMetadataFromWire(w *purgeFeatureEntitiesMetadataWire) (
 }
 
 type purgeFeatureEntitiesRequestWire struct {
-	Features      []string `json:"features,omitempty"`
-	EntitiesTable *string  `json:"entities_table,omitempty"`
-	RequestId     *string  `json:"request_id,omitempty"`
+	Features       []string          `json:"features,omitempty"`
+	EntitiesTable  *string           `json:"entities_table,omitempty"`
+	RequestId      *string           `json:"request_id,omitempty"`
+	Tags           map[string]string `json:"tags,omitempty"`
+	BudgetPolicyId *string           `json:"budget_policy_id,omitempty"`
 }
 
 func purgeFeatureEntitiesRequestToWire(v *PurgeFeatureEntitiesRequest) (*purgeFeatureEntitiesRequestWire, error) {
@@ -2961,9 +2967,11 @@ func purgeFeatureEntitiesRequestToWire(v *PurgeFeatureEntitiesRequest) (*purgeFe
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "PurgeFeatureEntitiesRequest.Entities", value)
 	}
 	return &purgeFeatureEntitiesRequestWire{
-		Features:      v.Features,
-		EntitiesTable: entitiesEntitiesTableWire,
-		RequestId:     v.RequestId,
+		Features:       v.Features,
+		EntitiesTable:  entitiesEntitiesTableWire,
+		RequestId:      v.RequestId,
+		Tags:           v.Tags,
+		BudgetPolicyId: v.BudgetPolicyId,
 	}, nil
 }
 

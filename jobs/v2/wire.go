@@ -3174,6 +3174,8 @@ type jobEmailNotificationsWire struct {
 	OnFailure                          []string `json:"on_failure,omitempty"`
 	OnDurationWarningThresholdExceeded []string `json:"on_duration_warning_threshold_exceeded,omitempty"`
 	OnStreamingBacklogExceeded         []string `json:"on_streaming_backlog_exceeded,omitempty"`
+	OnMaintenanceStart                 []string `json:"on_maintenance_start,omitempty"`
+	OnMaintenanceComplete              []string `json:"on_maintenance_complete,omitempty"`
 	NoAlertForSkippedRuns              *bool    `json:"no_alert_for_skipped_runs,omitempty"`
 }
 
@@ -3187,6 +3189,8 @@ func jobEmailNotificationsToWire(v *JobEmailNotifications) (*jobEmailNotificatio
 		OnFailure:                          v.OnFailure,
 		OnDurationWarningThresholdExceeded: v.OnDurationWarningThresholdExceeded,
 		OnStreamingBacklogExceeded:         v.OnStreamingBacklogExceeded,
+		OnMaintenanceStart:                 v.OnMaintenanceStart,
+		OnMaintenanceComplete:              v.OnMaintenanceComplete,
 		NoAlertForSkippedRuns:              v.NoAlertForSkippedRuns,
 	}, nil
 }
@@ -3201,6 +3205,8 @@ func jobEmailNotificationsFromWire(w *jobEmailNotificationsWire) (*JobEmailNotif
 		OnFailure:                          w.OnFailure,
 		OnDurationWarningThresholdExceeded: w.OnDurationWarningThresholdExceeded,
 		OnStreamingBacklogExceeded:         w.OnStreamingBacklogExceeded,
+		OnMaintenanceStart:                 w.OnMaintenanceStart,
+		OnMaintenanceComplete:              w.OnMaintenanceComplete,
 		NoAlertForSkippedRuns:              w.NoAlertForSkippedRuns,
 	}, nil
 }
@@ -8479,6 +8485,8 @@ type webhookNotificationsWire struct {
 	OnFailure                          []webhookWire `json:"on_failure,omitempty"`
 	OnDurationWarningThresholdExceeded []webhookWire `json:"on_duration_warning_threshold_exceeded,omitempty"`
 	OnStreamingBacklogExceeded         []webhookWire `json:"on_streaming_backlog_exceeded,omitempty"`
+	OnMaintenanceStart                 []webhookWire `json:"on_maintenance_start,omitempty"`
+	OnMaintenanceComplete              []webhookWire `json:"on_maintenance_complete,omitempty"`
 }
 
 func webhookNotificationsToWire(v *WebhookNotifications) (*webhookNotificationsWire, error) {
@@ -8505,12 +8513,22 @@ func webhookNotificationsToWire(v *WebhookNotifications) (*webhookNotificationsW
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "WebhookNotifications.OnStreamingBacklogExceeded", err)
 	}
+	onMaintenanceStartWireValue, err := convertSlice(v.OnMaintenanceStart, webhookToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "WebhookNotifications.OnMaintenanceStart", err)
+	}
+	onMaintenanceCompleteWireValue, err := convertSlice(v.OnMaintenanceComplete, webhookToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "WebhookNotifications.OnMaintenanceComplete", err)
+	}
 	return &webhookNotificationsWire{
 		OnStart:                            onStartWireValue,
 		OnSuccess:                          onSuccessWireValue,
 		OnFailure:                          onFailureWireValue,
 		OnDurationWarningThresholdExceeded: onDurationWarningThresholdExceededWireValue,
 		OnStreamingBacklogExceeded:         onStreamingBacklogExceededWireValue,
+		OnMaintenanceStart:                 onMaintenanceStartWireValue,
+		OnMaintenanceComplete:              onMaintenanceCompleteWireValue,
 	}, nil
 }
 
@@ -8538,12 +8556,22 @@ func webhookNotificationsFromWire(w *webhookNotificationsWire) (*WebhookNotifica
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "WebhookNotifications.OnStreamingBacklogExceeded", err)
 	}
+	onMaintenanceStartPublicValue, err := convertSlice(w.OnMaintenanceStart, webhookFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "WebhookNotifications.OnMaintenanceStart", err)
+	}
+	onMaintenanceCompletePublicValue, err := convertSlice(w.OnMaintenanceComplete, webhookFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "WebhookNotifications.OnMaintenanceComplete", err)
+	}
 	return &WebhookNotifications{
 		OnStart:                            onStartPublicValue,
 		OnSuccess:                          onSuccessPublicValue,
 		OnFailure:                          onFailurePublicValue,
 		OnDurationWarningThresholdExceeded: onDurationWarningThresholdExceededPublicValue,
 		OnStreamingBacklogExceeded:         onStreamingBacklogExceededPublicValue,
+		OnMaintenanceStart:                 onMaintenanceStartPublicValue,
+		OnMaintenanceComplete:              onMaintenanceCompletePublicValue,
 	}, nil
 }
 

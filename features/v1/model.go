@@ -769,6 +769,18 @@ type BackfillFeaturesRequest struct {
 	BackfillRanges []BackfillRange
 	// Idempotency token for the request.
 	RequestId *string
+	// Custom tags to associate with this backfill. They are applied to the backfill
+	// job and forwarded to the underlying compute as Databricks resource tags, so
+	// backfill cost can be attributed in the billing system tables. These tags
+	// apply only to the backfill compute; they are not applied to the Unity Catalog
+	// Feature resources themselves, whose tags are managed separately through the
+	// Unity Catalog tagging API. A maximum of 25 tags is supported; keys and values
+	// are subject to the same limitations as Databricks resource tags.
+	Tags map[string]string
+	// The budget policy ID, in UUID format, used to attribute the serverless
+	// compute cost of this backfill. If not specified, a default budget policy may
+	// be applied.
+	BudgetPolicyId *string
 }
 
 // Result of a completed backfill..
@@ -1852,6 +1864,18 @@ type PurgeFeatureEntitiesRequest struct {
 	Entities isPurgeFeatureEntitiesRequest_Entities
 	// Optional UUID4 idempotency token for the request.
 	RequestId *string
+	// Custom tags to associate with this purge. They are applied to the purge job
+	// and forwarded to the underlying compute as Databricks resource tags, so purge
+	// cost can be attributed in the billing system tables. These tags apply only to
+	// the purge compute; they are not applied to the Unity Catalog Feature
+	// resources themselves, whose tags are managed separately through the Unity
+	// Catalog tagging API. A maximum of 25 tags is supported; keys and values are
+	// subject to the same limitations as Databricks resource tags.
+	Tags map[string]string
+	// The budget policy ID, in UUID format, used to attribute the serverless
+	// compute cost of this purge. If not specified, a default budget policy may be
+	// applied.
+	BudgetPolicyId *string
 }
 
 type isPurgeFeatureEntitiesRequest_Entities interface {
