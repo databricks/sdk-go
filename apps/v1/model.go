@@ -716,11 +716,11 @@ type App struct {
 	ComputeSize            ComputeSize `fieldmask:"compute_size"`
 	UsagePolicyId          *string     `fieldmask:"usage_policy_id"`
 	EffectiveUsagePolicyId *string     `fieldmask:"effective_usage_policy_id"`
-	// Minimum number of app instances. Must be set together with
-	// `compute_max_instances`.
+	// Minimum number of app instances the app is configured to run. Must be set
+	// together with `compute_max_instances`.
 	ComputeMinInstances *int `fieldmask:"compute_min_instances"`
-	// Maximum number of app instances. Must be set together with
-	// `compute_min_instances`.
+	// Maximum number of app instances the app is configured to run. Must be set
+	// together with `compute_min_instances`.
 	ComputeMaxInstances *int `fieldmask:"compute_max_instances"`
 	// Git repository configuration for app deployments. When specified, deployments
 	// can reference code from this repository by providing only the git reference
@@ -1080,11 +1080,11 @@ type AppUpdate struct {
 	UserApiScopes  []string
 	ComputeSize    ComputeSize
 	UsagePolicyId  *string
-	// Minimum number of app instances. Must be set together with
-	// `compute_max_instances`.
+	// Minimum number of app instances the app is configured to run. Must be set
+	// together with `compute_max_instances`.
 	ComputeMinInstances *int
-	// Maximum number of app instances. Must be set together with
-	// `compute_min_instances`.
+	// Maximum number of app instances the app is configured to run. Must be set
+	// together with `compute_min_instances`.
 	ComputeMaxInstances         *int
 	GitRepository               *GitRepository
 	TelemetryExportDestinations []TelemetryExportDestination
@@ -1103,7 +1103,7 @@ type ApplicationStatus struct {
 	State ApplicationStatus_ApplicationState `fieldmask:"state"`
 	// Application status message
 	Message *string `fieldmask:"message"`
-	// The number of running instances of this application.
+	// The number of app instances whose application process is running.
 	RunningInstances *int `fieldmask:"running_instances"`
 }
 
@@ -1118,7 +1118,8 @@ type ComputeStatus struct {
 	State ComputeStatus_ComputeState `fieldmask:"state"`
 	// Compute status message
 	Message *string `fieldmask:"message"`
-	// The number of compute instances used and billed for this application.
+	// The number of active compute instances currently used and billed for this
+	// application.
 	ActiveInstances *int `fieldmask:"active_instances"`
 }
 
