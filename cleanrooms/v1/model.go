@@ -370,7 +370,7 @@ func (*CleanRoomAsset_LocalDetails_VolumeLocalDetails) isCleanRoomAsset_LocalDet
 
 // CleanRoomAsset_LocalDetails_ViewLocalDetails selects ViewLocalDetails for CleanRoomAsset.LocalDetails.
 // Local details for a view that are only available to its owner. Present if and
-// only if **asset_type** is **VIEW**
+// only if **asset_type** is **VIEW** or **METRIC_VIEW**
 type CleanRoomAsset_LocalDetails_ViewLocalDetails struct {
 	ViewLocalDetails CleanRoomAsset_ViewLocalDetails
 }
@@ -410,7 +410,7 @@ func (*CleanRoomAsset_Details_Notebook) isCleanRoomAsset_Details() {}
 
 // CleanRoomAsset_Details_View selects View for CleanRoomAsset.Details.
 // View details available to all collaborators of the clean room. Present if and
-// only if **asset_type** is **VIEW**
+// only if **asset_type** is **VIEW** or **METRIC_VIEW**
 type CleanRoomAsset_Details_View struct {
 	View CleanRoomAsset_View
 }
@@ -467,7 +467,7 @@ type CleanRoomAsset_JarAnalysis struct {
 	// Only returned for the owner collaborator.
 	CentralJarFilePaths []string
 	// The serverless environment version used to execute the JAR analysis (e.g.
-	// "4"). Defaults to "4-scala-preview" if not specified.
+	// "4"). If not specified, uses the service-configured JAR analysis default.
 	EnvironmentVersion *string
 }
 

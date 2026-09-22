@@ -460,7 +460,7 @@ type AvroTransformerOptions struct {
 	// Path to a schema file (.avsc).
 	SchemaFilePath *string
 	// (Optional) Parse mode for Avro data. Valid values: FAILFAST, PERMISSIVE.
-	// Defaults to FAILFAST.
+	// Defaults to PERMISSIVE.
 	ParseMode ParseMode
 	// (Optional) Schema registry to resolve the Avro schema at runtime instead of
 	// providing it inline or via a file path.
@@ -2528,7 +2528,7 @@ type ProtobufTransformerOptions struct {
 	// recursive fields), 0 (drop), 1-10.
 	RecursiveFieldsMaxDepth *int
 	// (Optional) Parse mode for Protobuf data. Valid values: FAILFAST, PERMISSIVE.
-	// Defaults to FAILFAST.
+	// Defaults to PERMISSIVE.
 	ParseMode ParseMode
 	// (Optional) Schema registry to resolve the Protobuf schema at runtime instead
 	// of providing it via desc_file_path.
