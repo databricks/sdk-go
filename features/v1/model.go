@@ -765,10 +765,7 @@ type AvgFunction struct {
 type BackfillFeaturesRequest struct {
 	// Full names of the features to backfill.
 	FeatureFullNames []string
-	// Output ranges to backfill. TODO[FS-1372]: audit_mode=INCLUDE is intentionally
-	// omitted. The annotation redactor cannot serialize google.protobuf.Timestamp
-	// leaves (start_time/end_time), so annotating this field does not surface the
-	// ranges in audit logs. See FeatureStoreEventDefinitions.BackfillFeatures.
+	// Output ranges to backfill.
 	BackfillRanges []BackfillRange
 	// Idempotency token for the request.
 	RequestId *string
