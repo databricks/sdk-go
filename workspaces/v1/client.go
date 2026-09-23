@@ -520,7 +520,7 @@ func (c *internalClient) ListWorkspacesPublic(ctx context.Context, req ListWorks
 }
 
 // Updates a workspace.
-// Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
+// Account-level method. Uses the Client's accountID, overridable per call via req.CustomerFacingWorkspace.AccountId.
 func (c *internalClient) updateWorkspacePublicBase(ctx context.Context, req UpdateWorkspaceRequest, opts ...call.Option) (*Workspace, error) {
 	wireReq, err := updateWorkspaceRequestToWire(&req)
 	if err != nil {
@@ -539,6 +539,9 @@ func (c *internalClient) updateWorkspacePublicBase(ctx context.Context, req Upda
 		return nil, err
 	}
 	accountID := c.accountID
+	if req.CustomerFacingWorkspace != nil && req.CustomerFacingWorkspace.AccountId != nil && *req.CustomerFacingWorkspace.AccountId != "" {
+		accountID = *req.CustomerFacingWorkspace.AccountId
+	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)

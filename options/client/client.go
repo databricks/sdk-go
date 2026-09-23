@@ -16,6 +16,7 @@
 package client
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 	"time"
@@ -110,9 +111,13 @@ func WithoutEnv() Option {
 
 // WithConfigFile returns an Option that sets the config file to use for
 // profile resolution. By default, the config file is resolved from the
-// environment variable $DATABRICKS_CONFIG_FILE.
+// environment variable $DATABRICKS_CONFIG_FILE. If file is empty, the returned
+// Option returns an error when applied.
 func WithConfigFile(file string) Option {
 	return func(c *internaloptions.ClientOptions) error {
+		if file == "" {
+			return errors.New("config file path is required")
+		}
 		c.ConfigFile = file
 		return nil
 	}
@@ -120,9 +125,13 @@ func WithConfigFile(file string) Option {
 
 // WithProfile returns an Option that sets the profile name to use for
 // profile resolution. By default, the profile name is resolved from the
-// environment variable $DATABRICKS_CONFIG_PROFILE.
+// environment variable $DATABRICKS_CONFIG_PROFILE. If name is empty, the
+// returned Option returns an error when applied.
 func WithProfile(name string) Option {
 	return func(c *internaloptions.ClientOptions) error {
+		if name == "" {
+			return errors.New("profile name is required")
+		}
 		c.ProfileName = name
 		return nil
 	}

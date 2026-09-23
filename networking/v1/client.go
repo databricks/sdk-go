@@ -3295,7 +3295,7 @@ func (c *internalClient) ListVpcEndpointPublic(ctx context.Context, req ListVpcE
 // private access settings are specific to AWS regions, so only workspaces in
 // the same AWS region can use a given private access settings object. Before
 // configuring PrivateLink, read the <Databricks> article about PrivateLink.
-// Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
+// Account-level method. Uses the Client's accountID, overridable per call via req.CustomerFacingPrivateAccessSettings.AccountId.
 func (c *internalClient) UpdatePrivateAccessSettingsPublic(ctx context.Context, req UpdatePrivateAccessSettingsRequest, opts ...call.Option) (*PrivateAccessSettings, error) {
 	wireReq, err := updatePrivateAccessSettingsRequestToWire(&req)
 	if err != nil {
@@ -3314,6 +3314,9 @@ func (c *internalClient) UpdatePrivateAccessSettingsPublic(ctx context.Context, 
 		return nil, err
 	}
 	accountID := c.accountID
+	if req.CustomerFacingPrivateAccessSettings != nil && req.CustomerFacingPrivateAccessSettings.AccountId != nil && *req.CustomerFacingPrivateAccessSettings.AccountId != "" {
+		accountID = *req.CustomerFacingPrivateAccessSettings.AccountId
+	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)

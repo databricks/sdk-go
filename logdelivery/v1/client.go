@@ -100,7 +100,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 //
 // [Configure audit logging]: https://docs.databricks.com/administration-guide/account-settings/audit-logs.html
 // [Deliver and access billable usage logs]: https://docs.databricks.com/administration-guide/account-settings/billable-usage-delivery.html
-// Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
+// Account-level method. Uses the Client's accountID, overridable per call via req.LogDeliveryConfiguration.AccountId.
 func (c *internalClient) CreateLogDeliveryConfiguration(ctx context.Context, req CreateLogDeliveryConfigurationRequest, opts ...call.Option) (*CreateLogDeliveryConfigurationResponse, error) {
 	wireReq, err := createLogDeliveryConfigurationRequestToWire(&req)
 	if err != nil {
@@ -119,6 +119,9 @@ func (c *internalClient) CreateLogDeliveryConfiguration(ctx context.Context, req
 		return nil, err
 	}
 	accountID := c.accountID
+	if req.LogDeliveryConfiguration != nil && req.LogDeliveryConfiguration.AccountId != nil && *req.LogDeliveryConfiguration.AccountId != "" {
+		accountID = *req.LogDeliveryConfiguration.AccountId
+	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.0/accounts/")
 	pb.singleSegment(accountID)
