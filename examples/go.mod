@@ -17,7 +17,7 @@ require (
 	github.com/databricks/sdk-go/core v0.0.1-dev.8
 	github.com/databricks/sdk-go/dataquality v0.0.0-00010101000000-000000000000
 	github.com/databricks/sdk-go/jobs v0.0.0-00010101000000-000000000000
-	github.com/databricks/sdk-go/options v0.0.1-dev.9
+	github.com/databricks/sdk-go/options v0.0.1-dev.8
 )
 
 require (

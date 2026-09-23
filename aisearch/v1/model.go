@@ -543,7 +543,7 @@ type QueryIndexRequest struct {
 	// Facets to compute over the matched results (e.g. `"category TOP 5"`).
 	Facets []string
 	// Maximum number of results to return (the legacy `num_results`). Defaults to
-	// 10. Prefer `page_size`; when both are set, `page_size` takes precedence.
+	// 10.
 	MaxResults *int
 }
 
