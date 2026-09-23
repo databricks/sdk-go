@@ -77,7 +77,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 
 // Create a new budget configuration for an account. For full details, see
 // https://docs.databricks.com/en/admin/account-settings/budgets.html.
-// Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
+// Account-level method. Uses the Client's accountID, overridable per call via req.Budget.AccountId.
 func (c *internalClient) CreateBudgetConfiguration(ctx context.Context, req CreateBudgetConfigurationRequest, opts ...call.Option) (*CreateBudgetConfigurationResponse, error) {
 	wireReq, err := createBudgetConfigurationRequestToWire(&req)
 	if err != nil {
@@ -96,6 +96,9 @@ func (c *internalClient) CreateBudgetConfiguration(ctx context.Context, req Crea
 		return nil, err
 	}
 	accountID := c.accountID
+	if req.Budget != nil && req.Budget.AccountId != nil && *req.Budget.AccountId != "" {
+		accountID = *req.Budget.AccountId
+	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/accounts/")
 	pb.singleSegment(accountID)
@@ -388,7 +391,7 @@ func (c *internalClient) ListBudgetConfigurationsIter(ctx context.Context, req L
 
 // Updates a budget configuration for an account. Both account and budget
 // configuration are specified by ID.
-// Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
+// Account-level method. Uses the Client's accountID, overridable per call via req.Budget.AccountId.
 func (c *internalClient) UpdateBudgetConfiguration(ctx context.Context, req UpdateBudgetConfigurationRequest, opts ...call.Option) (*UpdateBudgetConfigurationResponse, error) {
 	wireReq, err := updateBudgetConfigurationRequestToWire(&req)
 	if err != nil {
@@ -407,6 +410,9 @@ func (c *internalClient) UpdateBudgetConfiguration(ctx context.Context, req Upda
 		return nil, err
 	}
 	accountID := c.accountID
+	if req.Budget != nil && req.Budget.AccountId != nil && *req.Budget.AccountId != "" {
+		accountID = *req.Budget.AccountId
+	}
 	pb := pathBuilder{}
 	pb.literal("/api/2.1/accounts/")
 	pb.singleSegment(accountID)

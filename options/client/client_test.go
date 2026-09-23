@@ -68,6 +68,20 @@ func TestOptionsApply_AllFields(t *testing.T) {
 	}
 }
 
+func TestWithConfigFile_emptyPathReturnsError(t *testing.T) {
+	err := WithConfigFile("")(&internaloptions.ClientOptions{})
+	if err == nil || err.Error() != "config file path is required" {
+		t.Errorf("WithConfigFile(\"\") error = %v, want %q", err, "config file path is required")
+	}
+}
+
+func TestWithProfile_emptyNameReturnsError(t *testing.T) {
+	err := WithProfile("")(&internaloptions.ClientOptions{})
+	if err == nil || err.Error() != "profile name is required" {
+		t.Errorf("WithProfile(\"\") error = %v, want %q", err, "profile name is required")
+	}
+}
+
 type stubCredentials struct{}
 
 func (stubCredentials) Name() string { return "stub" }

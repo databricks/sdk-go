@@ -11,7 +11,7 @@ replace github.com/databricks/sdk-go/options => ../options
 require (
 	github.com/databricks/sdk-go/auth v0.0.1-dev.8
 	github.com/databricks/sdk-go/core v0.0.1-dev.8
-	github.com/databricks/sdk-go/options v0.0.1-dev.8
+	github.com/databricks/sdk-go/options v0.0.1-dev.9
 )
 
 require (

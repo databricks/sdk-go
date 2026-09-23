@@ -1513,9 +1513,10 @@ func modelProviderServiceConfig_GeminiEnterpriseProviderConfigFromWire(w *modelP
 }
 
 type modelProviderServiceConfig_GeminiEnterpriseProviderDirectConfigWire struct {
-	ApiKey    *modelProviderServiceConfig_ProviderSecretWire `json:"api_key,omitempty"`
-	ProjectId *string                                        `json:"project_id,omitempty"`
-	Region    *string                                        `json:"region,omitempty"`
+	ApiKey            *modelProviderServiceConfig_ProviderSecretWire    `json:"api_key,omitempty"`
+	ServiceCredential *modelProviderServiceConfig_ServiceCredentialWire `json:"service_credential,omitempty"`
+	ProjectId         *string                                           `json:"project_id,omitempty"`
+	Region            *string                                           `json:"region,omitempty"`
 }
 
 func modelProviderServiceConfig_GeminiEnterpriseProviderDirectConfigToWire(v *ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig) (*modelProviderServiceConfig_GeminiEnterpriseProviderDirectConfigWire, error) {
@@ -1523,6 +1524,7 @@ func modelProviderServiceConfig_GeminiEnterpriseProviderDirectConfigToWire(v *Mo
 		return nil, nil
 	}
 	var authModeApiKeyWire *modelProviderServiceConfig_ProviderSecretWire
+	var authModeServiceCredentialWire *modelProviderServiceConfig_ServiceCredentialWire
 	switch value := v.AuthMode.(type) {
 	case nil:
 	case *ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode_ApiKey:
@@ -1533,13 +1535,22 @@ func modelProviderServiceConfig_GeminiEnterpriseProviderDirectConfigToWire(v *Mo
 			}
 			authModeApiKeyWire = authModeApiKeyConverted
 		}
+	case *ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode_ServiceCredential:
+		if value != nil {
+			authModeServiceCredentialConverted, err := modelProviderServiceConfig_ServiceCredentialToWire(&value.ServiceCredential)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig.AuthMode.ServiceCredential", err)
+			}
+			authModeServiceCredentialWire = authModeServiceCredentialConverted
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig.AuthMode", value)
 	}
 	return &modelProviderServiceConfig_GeminiEnterpriseProviderDirectConfigWire{
-		ApiKey:    authModeApiKeyWire,
-		ProjectId: v.ProjectId,
-		Region:    v.Region,
+		ApiKey:            authModeApiKeyWire,
+		ServiceCredential: authModeServiceCredentialWire,
+		ProjectId:         v.ProjectId,
+		Region:            v.Region,
 	}, nil
 }
 
@@ -1549,6 +1560,9 @@ func modelProviderServiceConfig_GeminiEnterpriseProviderDirectConfigFromWire(w *
 	}
 	authModeMembers := 0
 	if w.ApiKey != nil {
+		authModeMembers++
+	}
+	if w.ServiceCredential != nil {
 		authModeMembers++
 	}
 	if authModeMembers > 1 {
@@ -1562,6 +1576,12 @@ func modelProviderServiceConfig_GeminiEnterpriseProviderDirectConfigFromWire(w *
 			return nil, fmt.Errorf("%s: %w", "ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig.AuthMode.ApiKey", err)
 		}
 		authModeSelection = &ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode_ApiKey{ApiKey: *authModeApiKeyConverted}
+	case w.ServiceCredential != nil:
+		authModeServiceCredentialConverted, err := modelProviderServiceConfig_ServiceCredentialFromWire(w.ServiceCredential)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig.AuthMode.ServiceCredential", err)
+		}
+		authModeSelection = &ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode_ServiceCredential{ServiceCredential: *authModeServiceCredentialConverted}
 	}
 	return &ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig{
 		ProjectId: w.ProjectId,
@@ -1853,7 +1873,8 @@ func modelProviderServiceConfig_OpenAiProviderDirectConfigFromWire(w *modelProvi
 }
 
 type modelProviderServiceConfig_ProviderSecretWire struct {
-	Plaintext *string `json:"plaintext,omitempty"`
+	Plaintext       *string                                         `json:"plaintext,omitempty"`
+	SecretReference *modelProviderServiceConfig_SecretReferenceWire `json:"secret_reference,omitempty"`
 }
 
 func modelProviderServiceConfig_ProviderSecretToWire(v *ModelProviderServiceConfig_ProviderSecret) (*modelProviderServiceConfig_ProviderSecretWire, error) {
@@ -1861,17 +1882,27 @@ func modelProviderServiceConfig_ProviderSecretToWire(v *ModelProviderServiceConf
 		return nil, nil
 	}
 	var valuePlaintextWire *string
+	var valueSecretReferenceWire *modelProviderServiceConfig_SecretReferenceWire
 	switch value := v.Value.(type) {
 	case nil:
 	case *ModelProviderServiceConfig_ProviderSecret_Value_Plaintext:
 		if value != nil {
 			valuePlaintextWire = new(value.Plaintext)
 		}
+	case *ModelProviderServiceConfig_ProviderSecret_Value_SecretReference:
+		if value != nil {
+			valueSecretReferenceConverted, err := modelProviderServiceConfig_SecretReferenceToWire(&value.SecretReference)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ModelProviderServiceConfig_ProviderSecret.Value.SecretReference", err)
+			}
+			valueSecretReferenceWire = valueSecretReferenceConverted
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "ModelProviderServiceConfig_ProviderSecret.Value", value)
 	}
 	return &modelProviderServiceConfig_ProviderSecretWire{
-		Plaintext: valuePlaintextWire,
+		Plaintext:       valuePlaintextWire,
+		SecretReference: valueSecretReferenceWire,
 	}, nil
 }
 
@@ -1883,6 +1914,9 @@ func modelProviderServiceConfig_ProviderSecretFromWire(w *modelProviderServiceCo
 	if w.Plaintext != nil {
 		valueMembers++
 	}
+	if w.SecretReference != nil {
+		valueMembers++
+	}
 	if valueMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "ModelProviderServiceConfig_ProviderSecret.Value")
 	}
@@ -1890,9 +1924,37 @@ func modelProviderServiceConfig_ProviderSecretFromWire(w *modelProviderServiceCo
 	switch {
 	case w.Plaintext != nil:
 		valueSelection = &ModelProviderServiceConfig_ProviderSecret_Value_Plaintext{Plaintext: *w.Plaintext}
+	case w.SecretReference != nil:
+		valueSecretReferenceConverted, err := modelProviderServiceConfig_SecretReferenceFromWire(w.SecretReference)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "ModelProviderServiceConfig_ProviderSecret.Value.SecretReference", err)
+		}
+		valueSelection = &ModelProviderServiceConfig_ProviderSecret_Value_SecretReference{SecretReference: *valueSecretReferenceConverted}
 	}
 	return &ModelProviderServiceConfig_ProviderSecret{
 		Value: valueSelection,
+	}, nil
+}
+
+type modelProviderServiceConfig_SecretReferenceWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func modelProviderServiceConfig_SecretReferenceToWire(v *ModelProviderServiceConfig_SecretReference) (*modelProviderServiceConfig_SecretReferenceWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &modelProviderServiceConfig_SecretReferenceWire{
+		Name: v.Name,
+	}, nil
+}
+
+func modelProviderServiceConfig_SecretReferenceFromWire(w *modelProviderServiceConfig_SecretReferenceWire) (*ModelProviderServiceConfig_SecretReference, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ModelProviderServiceConfig_SecretReference{
+		Name: w.Name,
 	}, nil
 }
 

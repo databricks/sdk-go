@@ -1081,8 +1081,23 @@ type ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode_Ap
 func (*ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode_ApiKey) isModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode() {
 }
 
+// ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode_ServiceCredential selects ServiceCredential for ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig.AuthMode.
+// Reference to a Unity Catalog service credential authorizing Gemini Enterprise
+// requests. On Create, supply `service_credential.name` as
+// `credentials/{name}`; required when using service-credential authentication
+// and mutually exclusive with `api_key`. The credential is referenced by name;
+// its value is not carried here. On read, the resolved `id` and `is_deleted`
+// are also populated. Supported only on GCP-hosted workspaces.
+type ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode_ServiceCredential struct {
+	ServiceCredential ModelProviderServiceConfig_ServiceCredential `fieldmask:"service_credential"`
+}
+
+func (*ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode_ServiceCredential) isModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode() {
+}
+
 type modelProviderServiceConfig_GeminiEnterpriseProviderDirectConfigAuthModeFieldMaskMetadata struct {
 	*ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode_ApiKey
+	*ModelProviderServiceConfig_GeminiEnterpriseProviderDirectConfig_AuthMode_ServiceCredential
 }
 
 // Microsoft Foundry provider configuration..
@@ -1277,8 +1292,31 @@ type ModelProviderServiceConfig_ProviderSecret_Value_Plaintext struct {
 func (*ModelProviderServiceConfig_ProviderSecret_Value_Plaintext) isModelProviderServiceConfig_ProviderSecret_Value() {
 }
 
+// ModelProviderServiceConfig_ProviderSecret_Value_SecretReference selects SecretReference for ModelProviderServiceConfig_ProviderSecret.Value.
+// Reference to a customer-owned UC Secret that carries this secret value. The
+// value is read at invoke time under the model provider service owner's access
+// and is never copied onto the model provider service, so rotating the UC
+// Secret takes effect with no change to the model provider service. On Create,
+// supply `secret_reference.name` as `secrets/{catalog}.{schema}.{secret}`.
+type ModelProviderServiceConfig_ProviderSecret_Value_SecretReference struct {
+	SecretReference ModelProviderServiceConfig_SecretReference `fieldmask:"secret_reference"`
+}
+
+func (*ModelProviderServiceConfig_ProviderSecret_Value_SecretReference) isModelProviderServiceConfig_ProviderSecret_Value() {
+}
+
 type modelProviderServiceConfig_ProviderSecretValueFieldMaskMetadata struct {
 	*ModelProviderServiceConfig_ProviderSecret_Value_Plaintext
+	*ModelProviderServiceConfig_ProviderSecret_Value_SecretReference
+}
+
+// Reference to a customer-owned UC Secret backing a secret-bearing provider
+// field, in the `ProviderSecret.secret_reference` arm..
+type ModelProviderServiceConfig_SecretReference struct {
+	// Resource name of the bound UC Secret, in the form
+	// `secrets/{catalog}.{schema}.{secret}`. On Create the caller supplies the name
+	// here. On read it reflects the secret's current name at read time.
+	Name *string `fieldmask:"name"`
 }
 
 // The customer-owned Unity Catalog service credential a model provider service
