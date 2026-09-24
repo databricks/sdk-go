@@ -2323,7 +2323,8 @@ func (w *StopAppWaiter) Wait(ctx context.Context, opts ...lro.Option) (*App, err
 	return result, nil
 }
 
-// Updates the app with the supplied name.
+// Updates the app with the supplied name. This is a full replacement: fields
+// omitted from the request are cleared, so send the complete app.
 func (c *internalClient) UpdateApp(ctx context.Context, req UpdateAppRequest, opts ...call.Option) (*App, error) {
 	wireReq, err := updateAppRequestToWire(&req)
 	if err != nil {
