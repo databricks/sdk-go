@@ -144,6 +144,27 @@ func createModelServiceRequestToWire(v *CreateModelServiceRequest) (*createModel
 	}, nil
 }
 
+type createSkillRequestWire struct {
+	Parent  *string    `json:"parent,omitempty"`
+	SkillId *string    `json:"skill_id,omitempty"`
+	Skill   *skillWire `json:"skill,omitempty"`
+}
+
+func createSkillRequestToWire(v *CreateSkillRequest) (*createSkillRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	skillWireValue, err := skillToWire(v.Skill)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateSkillRequest.Skill", err)
+	}
+	return &createSkillRequestWire{
+		Parent:  v.Parent,
+		SkillId: v.SkillId,
+		Skill:   skillWireValue,
+	}, nil
+}
+
 type deleteMcpServiceRequestWire struct {
 	Name *string `json:"name,omitempty"`
 	Etag []byte  `json:"etag,omitempty"`
@@ -184,6 +205,21 @@ func deleteModelServiceRequestToWire(v *DeleteModelServiceRequest) (*deleteModel
 		return nil, nil
 	}
 	return &deleteModelServiceRequestWire{
+		Name: v.Name,
+		Etag: v.Etag,
+	}, nil
+}
+
+type deleteSkillRequestWire struct {
+	Name *string `json:"name,omitempty"`
+	Etag []byte  `json:"etag,omitempty"`
+}
+
+func deleteSkillRequestToWire(v *DeleteSkillRequest) (*deleteSkillRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteSkillRequestWire{
 		Name: v.Name,
 		Etag: v.Etag,
 	}, nil
@@ -330,6 +366,42 @@ func listModelServicesResponseFromWire(w *listModelServicesResponseWire) (*ListM
 	}
 	return &ListModelServicesResponse{
 		ModelServices: modelServicesPublicValue,
+		NextPageToken: w.NextPageToken,
+	}, nil
+}
+
+type listSkillsRequestWire struct {
+	Parent    *string `json:"parent,omitempty"`
+	PageSize  *int    `json:"page_size,omitempty"`
+	PageToken *string `json:"page_token,omitempty"`
+}
+
+func listSkillsRequestToWire(v *ListSkillsRequest) (*listSkillsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listSkillsRequestWire{
+		Parent:    v.Parent,
+		PageSize:  v.PageSize,
+		PageToken: v.PageToken,
+	}, nil
+}
+
+type listSkillsResponseWire struct {
+	Skills        []skillWire `json:"skills,omitempty"`
+	NextPageToken *string     `json:"next_page_token,omitempty"`
+}
+
+func listSkillsResponseFromWire(w *listSkillsResponseWire) (*ListSkillsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	skillsPublicValue, err := convertSlice(w.Skills, skillFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSkillsResponse.Skills", err)
+	}
+	return &ListSkillsResponse{
+		Skills:        skillsPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
 }
@@ -2410,6 +2482,61 @@ func rateLimitFromWire(w *rateLimitWire) (*RateLimit, error) {
 	}, nil
 }
 
+type skillWire struct {
+	Name           *string     `json:"name,omitempty"`
+	BundleName     *string     `json:"bundle_name,omitempty"`
+	Description    *string     `json:"description,omitempty"`
+	Etag           []byte      `json:"etag,omitempty"`
+	CreateTime     *types.Time `json:"create_time,omitempty"`
+	UpdateTime     *types.Time `json:"update_time,omitempty"`
+	FinalizeTime   *types.Time `json:"finalize_time,omitempty"`
+	CreatedBy      *string     `json:"created_by,omitempty"`
+	UpdatedBy      *string     `json:"updated_by,omitempty"`
+	EffectiveOwner *string     `json:"effective_owner,omitempty"`
+	MetastoreId    *string     `json:"metastore_id,omitempty"`
+	Comment        *string     `json:"comment,omitempty"`
+}
+
+func skillToWire(v *Skill) (*skillWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &skillWire{
+		Name:           v.Name,
+		BundleName:     v.BundleName,
+		Description:    v.Description,
+		Etag:           v.Etag,
+		CreateTime:     v.CreateTime,
+		UpdateTime:     v.UpdateTime,
+		FinalizeTime:   v.FinalizeTime,
+		CreatedBy:      v.CreatedBy,
+		UpdatedBy:      v.UpdatedBy,
+		EffectiveOwner: v.EffectiveOwner,
+		MetastoreId:    v.MetastoreId,
+		Comment:        v.Comment,
+	}, nil
+}
+
+func skillFromWire(w *skillWire) (*Skill, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &Skill{
+		Name:           w.Name,
+		BundleName:     w.BundleName,
+		Description:    w.Description,
+		Etag:           w.Etag,
+		CreateTime:     w.CreateTime,
+		UpdateTime:     w.UpdateTime,
+		FinalizeTime:   w.FinalizeTime,
+		CreatedBy:      w.CreatedBy,
+		UpdatedBy:      w.UpdatedBy,
+		EffectiveOwner: w.EffectiveOwner,
+		MetastoreId:    w.MetastoreId,
+		Comment:        w.Comment,
+	}, nil
+}
+
 type updateMcpServiceRequestWire struct {
 	McpService *mcpServiceWire `json:"mcp_service,omitempty"`
 	UpdateMask *string         `json:"update_mask,omitempty"`
@@ -2470,6 +2597,27 @@ func updateModelServiceRequestToWire(v *UpdateModelServiceRequest) (*updateModel
 		ModelService: modelServiceWireValue,
 		UpdateMask:   fieldMaskToWire(v.UpdateMask),
 		Etag:         v.Etag,
+	}, nil
+}
+
+type updateSkillRequestWire struct {
+	Skill      *skillWire `json:"skill,omitempty"`
+	UpdateMask *string    `json:"update_mask,omitempty"`
+	Etag       []byte     `json:"etag,omitempty"`
+}
+
+func updateSkillRequestToWire(v *UpdateSkillRequest) (*updateSkillRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	skillWireValue, err := skillToWire(v.Skill)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateSkillRequest.Skill", err)
+	}
+	return &updateSkillRequestWire{
+		Skill:      skillWireValue,
+		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		Etag:       v.Etag,
 	}, nil
 }
 
