@@ -397,6 +397,84 @@ func (c *internalClient) CreateModelService(ctx context.Context, req CreateModel
 	return resp, nil
 }
 
+// Creates a skill in a Unity Catalog schema and provisions its managed bundle
+// storage. Specify its name in `skill_id`. The request contains an optional
+// comment but no bundle bytes. Upload bundle files through the Files API, then
+// call FinalizeSkill.
+//
+// You must be the owner of the parent schema or have `CREATE_VOLUME` and
+// `USE_SCHEMA` on it, plus `USE_CATALOG` on the parent catalog.
+func (c *internalClient) CreateSkill(ctx context.Context, req CreateSkillRequest, opts ...call.Option) (*Skill, error) {
+	wireReq, err := createSkillRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq.Skill)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = "/api/2.1/unity-catalog/skills"
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "parent", wireReq.Parent); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "skill_id", wireReq.SkillId); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Skill
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp skillWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = skillFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Deletes the MCP service identified by its resource name. Optionally supply an
 // `etag` to make the delete conditional on the MCP service not having changed
 // since it was read.
@@ -656,6 +734,147 @@ func (c *internalClient) DeleteModelService(ctx context.Context, req DeleteModel
 		return err
 	}
 	return nil
+}
+
+// Deletes the skill identified by its resource name and makes its managed
+// bundle path unavailable. Managed bundle data is deleted asynchronously.
+// Optionally supply an `etag` to make the delete conditional on the skill not
+// having changed since it was read.
+//
+// You must be the owner of the skill or have `MANAGE` on it, plus `USE_CATALOG`
+// on the parent catalog and `USE_SCHEMA` on the parent schema.
+func (c *internalClient) DeleteSkill(ctx context.Context, req DeleteSkillRequest, opts ...call.Option) error {
+	wireReq, err := deleteSkillRequestToWire(&req)
+	if err != nil {
+		return err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.1/unity-catalog/")
+	if req.Name == nil {
+		return fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "etag", wireReq.Etag); err != nil {
+		return err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "DELETE",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		_ = respBody
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Finalizes a skill after its bundle is uploaded. This method reads SKILL.md
+// through the Files API using the caller's authorization. Its YAML frontmatter
+// must contain an agentskills.io-compliant `name` and a nonblank `description`
+// within the configured UTF-8 byte limit. On success, it replaces `bundle_name`
+// and `description`; refreshes `finalize_time`, `update_time`, and
+// `updated_by`; and returns the updated skill. `comment` is preserved.
+// Re-finalization uses the latest SKILL.md and is last-write-wins without an
+// etag precondition. Validation failures do not change metadata.
+//
+// You must be the owner of the skill or have `READ_VOLUME` on it, plus
+// `USE_CATALOG` on the parent catalog and `USE_SCHEMA` on the parent schema.
+func (c *internalClient) FinalizeSkill(ctx context.Context, req FinalizeSkillRequest, opts ...call.Option) (*Skill, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.1/unity-catalog/")
+	if req.Name == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	pb.literal("/finalize")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Skill
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp skillWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = skillFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
 // Returns the MCP service identified by its resource name.
@@ -919,6 +1138,73 @@ func (c *internalClient) GetModelService(ctx context.Context, req GetModelServic
 			return err
 		}
 		resp, err = modelServiceFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Returns the skill identified by its resource name.
+//
+// You must be the owner of the skill or have `READ_VOLUME`, `READ_METADATA`, or
+// `MANAGE` on it, plus `USE_CATALOG` on the parent catalog and `USE_SCHEMA` on
+// the parent schema.
+func (c *internalClient) GetSkill(ctx context.Context, req GetSkillRequest, opts ...call.Option) (*Skill, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.1/unity-catalog/")
+	if req.Name == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Skill
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp skillWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = skillFromWire(&wireResp)
 		if err != nil {
 			return err
 		}
@@ -1297,6 +1583,123 @@ func (c *internalClient) ListModelServicesIter(ctx context.Context, req ListMode
 	}
 }
 
+// Lists skills in a Unity Catalog schema. Provide `parent` as
+// `schemas/{catalog}.{schema}`. Results are paginated; pass the returned
+// `next_page_token` to fetch subsequent pages.
+//
+// Requires `USE_CATALOG` on the parent catalog and `USE_SCHEMA` on the parent
+// schema. Only skills the caller can access as owner or through `READ_VOLUME`,
+// `READ_METADATA`, or `MANAGE` are returned.
+func (c *internalClient) ListSkills(ctx context.Context, req ListSkillsRequest, opts ...call.Option) (*ListSkillsResponse, error) {
+	wireReq, err := listSkillsRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = "/api/2.1/unity-catalog/skills"
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "parent", wireReq.Parent); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "page_size", wireReq.PageSize); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "page_token", wireReq.PageToken); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *ListSkillsResponse
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp listSkillsResponseWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = listSkillsResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// ListSkillsIter returns an iterator that iterates
+// over the results of ListSkills.
+//
+// For example:
+//
+//	for item, err := range c.ListSkillsIter(ctx, ListSkillsRequest{}) {
+//	  if err != nil {
+//	    return err
+//	  }
+//	  fmt.Println(item)
+//	}
+//
+// Options opts are passed to each ListSkills call
+// made by the iterator under the hood.
+//
+// Callers who need custom pagination logic should use
+// ListSkills directly.
+func (c *internalClient) ListSkillsIter(ctx context.Context, req ListSkillsRequest, opts ...call.Option) iter.Seq2[*Skill, error] {
+	return func(yield func(*Skill, error) bool) {
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
+		for {
+			resp, err := c.ListSkills(ctx, pageReq, opts...)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			for i := range resp.Skills {
+				if !yield(&resp.Skills[i], nil) {
+					return
+				}
+			}
+			if resp.NextPageToken == nil || *resp.NextPageToken == "" {
+				return
+			}
+			pageReq.PageToken = resp.NextPageToken
+		}
+	}
+}
+
 // Updates an MCP service. Only the fields named in `update_mask` are changed;
 // the resource name is immutable. Optionally supply an `etag` to make the
 // update conditional on the MCP service not having changed since it was read.
@@ -1550,6 +1953,92 @@ func (c *internalClient) UpdateModelService(ctx context.Context, req UpdateModel
 			return err
 		}
 		resp, err = modelServiceFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Updates a skill. Only fields named in `update_mask` are changed; currently
+// only `comment` is supported. The resource name is immutable. Optionally
+// supply an `etag` to make the update conditional on the skill not having
+// changed since it was read. Bundle files, grants, tags, and ownership are
+// unchanged.
+//
+// You must be the owner of the skill or have `MANAGE` on it, plus `USE_CATALOG`
+// on the parent catalog and `USE_SCHEMA` on the parent schema.
+func (c *internalClient) UpdateSkill(ctx context.Context, req UpdateSkillRequest, opts ...call.Option) (*Skill, error) {
+	wireReq, err := updateSkillRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq.Skill)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.1/unity-catalog/")
+	if req.Skill == nil || req.Skill.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Skill.Name)
+	}
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "etag", wireReq.Etag); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Skill
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "PATCH",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp skillWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = skillFromWire(&wireResp)
 		if err != nil {
 			return err
 		}

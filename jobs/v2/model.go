@@ -2137,11 +2137,11 @@ type DeploymentSpec struct {
 	//
 	// Example script contents:
 	//
-	// # Plain Python: python train.py --epochs 10
+	// ```bash # Plain Python: python train.py --epochs 10
 	//
 	// # Multi-GPU via accelerate: accelerate launch train.py --config config.yaml
 	//
-	// # Distributed via torchrun: torchrun --nproc_per_node=8 train.py
+	// # Distributed via torchrun: torchrun --nproc_per_node=8 train.py ```
 	CommandPath *string
 	// Compute resources allocated to each node in this deployment.
 	Compute *ComputeSpec

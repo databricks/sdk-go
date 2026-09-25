@@ -177,6 +177,20 @@ type CreateModelServiceRequest struct {
 	ModelService *ModelService
 }
 
+// Request to create a new skill..
+type CreateSkillRequest struct {
+	// Name of the parent schema. Format: `schemas/{catalog}.{schema}`. Each `{...}`
+	// component is capped at 255 characters individually.
+	Parent *string
+	// Name for the skill, e.g. "basic-math". The server normalizes this identifier
+	// to lowercase. It is independent of the bundle name read from SKILL.md.
+	SkillId *string
+	// The skill to create. `comment` is the only accepted client input and may be
+	// omitted. Do not set `name`; the server derives it from `parent` and
+	// `skill_id`.
+	Skill *Skill
+}
+
 // Request to delete an MCP service..
 type DeleteMcpServiceRequest struct {
 	// Resource name of the MCP service. Format:
@@ -228,6 +242,25 @@ type DeleteModelServiceRequest struct {
 	Etag []byte
 }
 
+// Request to delete a skill..
+type DeleteSkillRequest struct {
+	// Full resource name of the skill. Format: `skills/{catalog}.{schema}.{skill}`.
+	// Each `{...}` component is capped at 255 characters individually.
+	Name *string
+	// Optimistic concurrency token from the most recent read. When set, the delete
+	// succeeds only if the resource has not changed. Leave unset for an
+	// unconditional delete. For REST requests, URL-encode the base64 string
+	// returned by the API when setting the `etag` query parameter.
+	Etag []byte
+}
+
+// Request to finalize a skill..
+type FinalizeSkillRequest struct {
+	// Full resource name of the skill. Format: `skills/{catalog}.{schema}.{skill}`.
+	// Each `{...}` component is capped at 255 characters individually.
+	Name *string
+}
+
 // Request to get an MCP service..
 type GetMcpServiceRequest struct {
 	// Resource name of the MCP service. Format:
@@ -256,6 +289,13 @@ type GetModelServiceRequest struct {
 	// Resource name of the model service. Format:
 	// `model-services/{catalog}.{schema}.{model_service}`. Each `{...}` component
 	// is capped at 255 characters individually.
+	Name *string
+}
+
+// Request to get a skill..
+type GetSkillRequest struct {
+	// Full resource name of the skill. Format: `skills/{catalog}.{schema}.{skill}`.
+	// Each `{...}` component is capped at 255 characters individually.
 	Name *string
 }
 
@@ -359,6 +399,29 @@ type ListModelServicesResponse struct {
 	ModelServices []ModelService
 	// Pagination token for retrieving the next page. Empty when there are no more
 	// results.
+	NextPageToken *string
+}
+
+// Request to list skills. Accepts `parent`, `page_size`, and `page_token`. v1
+// supports schema-level listing only..
+type ListSkillsRequest struct {
+	// Name of the parent schema. Format: `schemas/{catalog}.{schema}`. Each `{...}`
+	// component is capped at 255 characters individually. Required: skill listing
+	// is schema-scoped, so `parent` must be set; an unset or empty `parent` is
+	// rejected with INVALID_PARAMETER_VALUE.
+	Parent *string
+	// Maximum number of skills to return. Defaults to 100 when unset or 0; the
+	// maximum is 100. Use `page_token` to retrieve additional pages.
+	PageSize *int
+	// Opaque pagination token from a previous request.
+	PageToken *string
+}
+
+// Response for listing skills..
+type ListSkillsResponse struct {
+	// The list of skills.
+	Skills []Skill
+	// Pagination token for retrieving the next page of results.
 	NextPageToken *string
 }
 
@@ -1525,6 +1588,51 @@ type RateLimit struct {
 	Tokens *int64
 }
 
+// A Skill is an agentskills.io bundle registered in Unity Catalog. Clients
+// transfer bundle bytes through the Files API. FinalizeSkill reads the uploaded
+// SKILL.md and projects its frontmatter onto the Skill metadata..
+type Skill struct {
+	// Resource name of the skill. Format: `skills/{catalog}.{schema}.{skill}`. Each
+	// `{...}` component is capped at 255 characters individually. Server-derived on
+	// Create from `parent` + `skill_id`; required and immutable on
+	// Update/Get/Delete.
+	Name *string `fieldmask:"name"`
+	// Name from the most recently successfully finalized SKILL.md. It may differ
+	// from the final component of the Skill resource name. Unset until
+	// FinalizeSkill succeeds.
+	BundleName *string `fieldmask:"bundle_name"`
+	// Description from the most recently successfully finalized SKILL.md. Unset
+	// until FinalizeSkill succeeds.
+	Description *string `fieldmask:"description"`
+	// Optimistic concurrency token returned on every read. To make an Update or
+	// Delete conditional, pass the last-read value in that request's `etag` field.
+	// In REST responses, this value is a base64 string; URL-encode it when setting
+	// the `etag` query parameter.
+	Etag []byte `fieldmask:"etag"`
+	// Time the skill was created.
+	CreateTime *types.Time `fieldmask:"create_time"`
+	// Time of the most recent Skill metadata mutation. Uploading bundle files alone
+	// does not change this value.
+	UpdateTime *types.Time `fieldmask:"update_time"`
+	// Time of the most recent successful FinalizeSkill. Unset until one succeeds.
+	FinalizeTime *types.Time `fieldmask:"finalize_time"`
+	// Creator identity.
+	CreatedBy *string `fieldmask:"created_by"`
+	// Identity of the last updater.
+	UpdatedBy *string `fieldmask:"updated_by"`
+	// Owner of the skill.
+	EffectiveOwner *string `fieldmask:"effective_owner"`
+	// Metastore hosting the skill.
+	MetastoreId *string `fieldmask:"metastore_id"`
+	// User-provided comment for the skill. Free-text, user-editable via UpdateSkill
+	// (listed in its `update_mask`). DISTINCT from `description`, which is the
+	// server-parsed, OUTPUT_ONLY SKILL.md frontmatter value: `comment` is the
+	// customer's own annotation and is preserved across bundle re-uploads. When
+	// `comment` is in the update mask, omitting it clears the field, while an
+	// explicitly empty string is retained.
+	Comment *string `fieldmask:"comment"`
+}
+
 // Request to update an MCP service. `name` cannot appear in `update_mask`..
 type UpdateMcpServiceRequest struct {
 	// The MCP service with the updated field values. `name` identifies the resource
@@ -1584,6 +1692,23 @@ type UpdateModelServiceRequest struct {
 	// `config.inference_table`. Intermediate paths such as `config.routing` and
 	// `config.routing.fallback` are not supported.
 	UpdateMask *types.FieldMask[ModelService]
+	// Optimistic concurrency token from the most recent read. When set, the update
+	// succeeds only if the resource has not changed. Leave unset for an
+	// unconditional update. For REST requests, URL-encode the base64 string
+	// returned by the API when setting the `etag` query parameter.
+	Etag []byte
+}
+
+// Request to update a skill. `name` cannot appear in `update_mask`; the skill
+// name is immutable..
+type UpdateSkillRequest struct {
+	// The skill with the updated field values. `name` identifies the resource
+	// (`skills/{catalog}.{schema}.{skill}`); only fields listed in `update_mask`
+	// are applied.
+	Skill *Skill
+	// Fields to update; validated against `skill`. REQUIRED, matching the sibling
+	// Update RPCs. `comment` is the only mutable field.
+	UpdateMask *types.FieldMask[Skill]
 	// Optimistic concurrency token from the most recent read. When set, the update
 	// succeeds only if the resource has not changed. Leave unset for an
 	// unconditional update. For REST requests, URL-encode the base64 string
