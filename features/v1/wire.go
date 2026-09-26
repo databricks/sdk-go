@@ -2528,11 +2528,17 @@ type materializedFeatureWire struct {
 	LatestBackfillOperation *string                                   `json:"latest_backfill_operation,omitempty"`
 	Tags                    map[string]string                         `json:"tags,omitempty"`
 	BudgetPolicyId          *string                                   `json:"budget_policy_id,omitempty"`
+	PipelineId              *string                                   `json:"pipeline_id,omitempty"`
+	JobId                   *wireInt64                                `json:"job_id,omitempty"`
 }
 
 func materializedFeatureToWire(v *MaterializedFeature) (*materializedFeatureWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	jobIdWireValue, err := int64ToWire(v.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializedFeature.JobId", err)
 	}
 	var destinationOfflineStoreConfigWire *offlineStoreConfigWire
 	var destinationOnlineStoreConfigWire *onlineStoreConfigWire
@@ -2605,6 +2611,8 @@ func materializedFeatureToWire(v *MaterializedFeature) (*materializedFeatureWire
 		LatestBackfillOperation: v.LatestBackfillOperation,
 		Tags:                    v.Tags,
 		BudgetPolicyId:          v.BudgetPolicyId,
+		PipelineId:              v.PipelineId,
+		JobId:                   jobIdWireValue,
 	}, nil
 }
 
@@ -2634,6 +2642,10 @@ func materializedFeatureFromWire(w *materializedFeatureWire) (*MaterializedFeatu
 	}
 	if triggerMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "MaterializedFeature.Trigger")
+	}
+	jobIdPublicValue, err := int64FromWire(w.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializedFeature.JobId", err)
 	}
 	var destinationSelection isMaterializedFeature_Destination
 	switch {
@@ -2682,6 +2694,8 @@ func materializedFeatureFromWire(w *materializedFeatureWire) (*MaterializedFeatu
 		LatestBackfillOperation: w.LatestBackfillOperation,
 		Tags:                    w.Tags,
 		BudgetPolicyId:          w.BudgetPolicyId,
+		PipelineId:              w.PipelineId,
+		JobId:                   jobIdPublicValue,
 		Destination:             destinationSelection,
 		Trigger:                 triggerSelection,
 	}, nil

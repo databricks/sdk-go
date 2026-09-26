@@ -1628,9 +1628,15 @@ type MaterializedFeature struct {
 	// The ID of the budget policy used to attribute the serverless compute cost of
 	// this materialization. If not specified, a default budget policy may be
 	// applied.
-	BudgetPolicyId *string                                            `fieldmask:"budget_policy_id"`
-	_              [0]materializedFeatureDestinationFieldMaskMetadata `fieldmask_oneof:"Destination"`
-	_              [0]materializedFeatureTriggerFieldMaskMetadata     `fieldmask_oneof:"Trigger"`
+	BudgetPolicyId *string `fieldmask:"budget_policy_id"`
+	// The ID of the pipeline that materializes this feature. This is only present
+	// for streaming features.
+	PipelineId *string `fieldmask:"pipeline_id"`
+	// The ID of the job that materializes the feature. This is present for both
+	// batch and streaming features.
+	JobId *int64                                             `fieldmask:"job_id"`
+	_     [0]materializedFeatureDestinationFieldMaskMetadata `fieldmask_oneof:"Destination"`
+	_     [0]materializedFeatureTriggerFieldMaskMetadata     `fieldmask_oneof:"Trigger"`
 }
 
 type isMaterializedFeature_Destination interface {
