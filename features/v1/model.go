@@ -2065,6 +2065,7 @@ type SchemaRegistryConfig struct {
 	// A Schema Registry UC Connection object.
 	UcConnection *string `fieldmask:"uc_connection"`
 	// Reference to the schema registry API secret in a <Databricks> secret scope.
+	// Set this only if required for authentication for the schema registry.
 	ApiSecretRef *SecretScopeReference `fieldmask:"api_secret_ref"`
 	// Schema locator for the message payload. For Kafka this is the value. At least
 	// one of payload_schema_locator or key_schema_locator must be set.

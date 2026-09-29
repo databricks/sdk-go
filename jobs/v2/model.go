@@ -1299,6 +1299,11 @@ type BaseRun struct {
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget
 	// The id of the usage policy used by this run for cost attribution purposes.
 	EffectiveUsagePolicyId *string
+	// Snapshot of `JobSettings.environment_variables` as it was at run launch —
+	// the full list of named environment-variable entries the job defined. To find
+	// which entry a given task ran with, look at
+	// `RunTaskSettings.environment_variables_key`.
+	EnvironmentVariables []JobEnvironmentVariables
 	// ID of the deployment that produced the job when this run was created. Used to
 	// look up deployment metadata from the Deployment Metadata service. Only set
 	// for job runs of jobs with a `BUNDLE` deployment.
@@ -1894,6 +1899,11 @@ type CreateJobRequest struct {
 	// `schedule`, `trigger`, or `continuous` fields. Gated behind the "Multiple
 	// Triggers" feature preview.
 	Triggers []TriggerConfiguration
+	// Named environment-variable entries that tasks can reference by key from
+	// `TaskSettings.environment_variables_key`. Each entry's `spec` holds inline
+	// `variables` and optional `.env` `files`. Maximum 10 entries per job. A task
+	// can reference at most one entry from this list.
+	EnvironmentVariables []JobEnvironmentVariables
 	// An optional maximum number of times to retry an unsuccessful run. A run is
 	// considered to be unsuccessful if it completes with the `FAILED` result_state
 	// or `INTERNAL_ERROR` `life_cycle_state`. The value `-1` means to retry
@@ -2699,6 +2709,11 @@ type GetRunResponse struct {
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget
 	// The id of the usage policy used by this run for cost attribution purposes.
 	EffectiveUsagePolicyId *string
+	// Snapshot of `JobSettings.environment_variables` as it was at run launch —
+	// the full list of named environment-variable entries the job defined. To find
+	// which entry a given task ran with, look at
+	// `RunTaskSettings.environment_variables_key`.
+	EnvironmentVariables []JobEnvironmentVariables
 	// ID of the deployment that produced the job when this run was created. Used to
 	// look up deployment metadata from the Deployment Metadata service. Only set
 	// for job runs of jobs with a `BUNDLE` deployment.
@@ -2960,6 +2975,52 @@ type JobEnvironment struct {
 	Spec           *Environment
 }
 
+// A named environment-variable entry, defined once at the job level and
+// referenced by key from one or more tasks. Entries live on
+// `JobSettings.environment_variables`, and tasks select one via
+// `TaskSettings.environment_variables_key`..
+type JobEnvironmentVariables struct {
+	// Identifier for this entry. Must be unique within
+	// `JobSettings.environment_variables`. Tasks reference it from
+	// `TaskSettings.environment_variables_key`.
+	EnvironmentVariablesKey *string
+	// The environment variable specification.
+	Spec *JobEnvironmentVariablesSpec
+}
+
+// The environment variables and files associated with a job environment
+// variable entry. Runtime environment variables override inline `variables`,
+// which override values from `files`, on duplicate keys..
+type JobEnvironmentVariablesSpec struct {
+	// Environment variables specified directly as key/value pairs. Maximum 20
+	// entries.
+	//
+	// Each key must be 1 to 256 characters and match `^[A-Za-z_][A-Za-z0-9_]*$`: it
+	// must start with an ASCII letter or underscore and contain only ASCII letters,
+	// digits, and underscores. Each value can be any Unicode string of up to 512
+	// characters, including an empty string.
+	Variables map[string]string
+	// Workspace (`/Workspace/...`) or UC Volumes (`/Volumes/...`) paths to `.env`
+	// files. Maximum 5 files. Files are read, parsed, and merged at task execution
+	// time, not at job creation or update API call time.
+	//
+	// File format: each line containing a variable must be exactly `KEY=VALUE`.
+	// Empty and whitespace-only lines, and lines beginning with `#`, are ignored.
+	// Keys must match the same regex as inlined variable names
+	// (`^[A-Za-z_][A-Za-z0-9_]*$`); the value continues to the end of the line. No
+	// other syntax is supported — no inline comments, no quoted values, no escape
+	// sequences, no variable interpolation. Any other line that does not match the
+	// `KEY=VALUE` shape fails the run.
+	//
+	// Size limits: maximum 32,768 bytes (32 KiB) per file on disk; maximum 1,024
+	// bytes (1 KiB) per `KEY=VALUE` line combined. Files or lines exceeding these
+	// limits fail the run.
+	//
+	// On a duplicate key, the later file wins; `variables` override values from any
+	// file.
+	Files []string
+}
+
 type JobLevelParameter struct {
 	// The name of the defined parameter. May only contain alphanumeric characters,
 	// `_`, `-`, and `.`
@@ -3141,6 +3202,11 @@ type JobSettings struct {
 	// `schedule`, `trigger`, or `continuous` fields. Gated behind the "Multiple
 	// Triggers" feature preview.
 	Triggers []TriggerConfiguration
+	// Named environment-variable entries that tasks can reference by key from
+	// `TaskSettings.environment_variables_key`. Each entry's `spec` holds inline
+	// `variables` and optional `.env` `files`. Maximum 10 entries per job. A task
+	// can reference at most one entry from this list.
+	EnvironmentVariables []JobEnvironmentVariables
 	// An optional maximum number of times to retry an unsuccessful run. A run is
 	// considered to be unsuccessful if it completes with the `FAILED` result_state
 	// or `INTERNAL_ERROR` `life_cycle_state`. The value `-1` means to retry
@@ -4186,6 +4252,11 @@ type Run struct {
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget
 	// The id of the usage policy used by this run for cost attribution purposes.
 	EffectiveUsagePolicyId *string
+	// Snapshot of `JobSettings.environment_variables` as it was at run launch —
+	// the full list of named environment-variable entries the job defined. To find
+	// which entry a given task ran with, look at
+	// `RunTaskSettings.environment_variables_key`.
+	EnvironmentVariables []JobEnvironmentVariables
 	// ID of the deployment that produced the job when this run was created. Used to
 	// look up deployment metadata from the Deployment Metadata service. Only set
 	// for job runs of jobs with a `BUNDLE` deployment.
@@ -4668,6 +4739,12 @@ type RunTask struct {
 	Disabled *bool
 	// Task level compute configuration.
 	Compute *Compute
+	// Reference to a `JobEnvironmentVariables` entry defined in
+	// `RunSettings.environment_variables` for one-time runs or preserved in
+	// `Run.environment_variables` for run snapshots. The selected entry's variables
+	// are applied to this task at execution time. This field supports serverless
+	// tasks using environment version 5 or later.
+	EnvironmentVariablesKey *string
 	// DO NOT ADD ANY NEW FIELDS TO JobTask OUTSIDE OF THIS ONEOF as it will break
 	// the TaskRegistry
 	Task isRunTask_Task
@@ -4988,6 +5065,12 @@ type RunTaskSettings struct {
 	Disabled *bool
 	// Task level compute configuration.
 	Compute *Compute
+	// Reference to a `JobEnvironmentVariables` entry defined in
+	// `RunSettings.environment_variables` for one-time runs or preserved in
+	// `Run.environment_variables` for run snapshots. The selected entry's variables
+	// are applied to this task at execution time. This field supports serverless
+	// tasks using environment version 5 or later.
+	EnvironmentVariablesKey *string
 	// DO NOT ADD ANY NEW FIELDS TO JobTask OUTSIDE OF THIS ONEOF as it will break
 	// the TaskRegistry
 	Task isRunTaskSettings_Task
@@ -5660,6 +5743,12 @@ type SubmitRunRequest struct {
 	// not specified, a default usage policy may be applied when creating or
 	// modifying the job.
 	UsagePolicyId *string
+	// Named environment-variable entries that tasks of this one-time run can
+	// reference by key from `RunTaskSettings.environment_variables_key`. Each
+	// entry's `spec` holds inline `variables` and optional `.env` `files`. Handled
+	// identically to `JobSettings.environment_variables`. Maximum 10 entries.
+	// Entries are independent of one another — there is no cross-entry merging.
+	EnvironmentVariables []JobEnvironmentVariables
 	// The performance mode on a serverless one-time run. This field determines the
 	// level of compute performance or cost-efficiency for the run. The performance
 	// target does not apply to tasks that run on Serverless GPU compute.
@@ -5798,6 +5887,11 @@ type TaskSettings struct {
 	Disabled *bool
 	// Task level compute configuration.
 	Compute *Compute
+	// Reference to a `JobEnvironmentVariables` entry defined in
+	// `JobSettings.environment_variables`. The selected entry's variables are
+	// applied to this task at execution time. This field supports serverless tasks
+	// using environment version 5 or later.
+	EnvironmentVariablesKey *string
 	// DO NOT ADD ANY NEW FIELDS TO JobTask OUTSIDE OF THIS ONEOF as it will break
 	// the TaskRegistry
 	Task isTaskSettings_Task

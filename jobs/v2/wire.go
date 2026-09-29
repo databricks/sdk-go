@@ -490,6 +490,7 @@ type baseRunWire struct {
 	HasMore                    *bool                               `json:"has_more,omitempty"`
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget `json:"effective_performance_target,omitempty"`
 	EffectiveUsagePolicyId     *string                             `json:"effective_usage_policy_id,omitempty"`
+	EnvironmentVariables       []jobEnvironmentVariablesWire       `json:"environment_variables,omitempty"`
 	DeploymentId               *string                             `json:"deployment_id,omitempty"`
 	VersionId                  *string                             `json:"version_id,omitempty"`
 	StartTime                  *wireInt64                          `json:"start_time,omitempty"`
@@ -573,6 +574,10 @@ func baseRunFromWire(w *baseRunWire) (*BaseRun, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "BaseRun.JobRunId", err)
 	}
+	environmentVariablesPublicValue, err := convertSlice(w.EnvironmentVariables, jobEnvironmentVariablesFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.EnvironmentVariables", err)
+	}
 	startTimePublicValue, err := int64FromWire(w.StartTime)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "BaseRun.StartTime", err)
@@ -629,6 +634,7 @@ func baseRunFromWire(w *baseRunWire) (*BaseRun, error) {
 		HasMore:                    w.HasMore,
 		EffectivePerformanceTarget: w.EffectivePerformanceTarget,
 		EffectiveUsagePolicyId:     w.EffectiveUsagePolicyId,
+		EnvironmentVariables:       environmentVariablesPublicValue,
 		DeploymentId:               w.DeploymentId,
 		VersionId:                  w.VersionId,
 		StartTime:                  startTimePublicValue,
@@ -1369,6 +1375,7 @@ type createJobRequestWire struct {
 	PerformanceTarget       PerformanceTarget_PerformanceTarget `json:"performance_target,omitempty"`
 	ParentPath              *string                             `json:"parent_path,omitempty"`
 	Triggers                []triggerConfigurationWire          `json:"triggers,omitempty"`
+	EnvironmentVariables    []jobEnvironmentVariablesWire       `json:"environment_variables,omitempty"`
 	MaxRetries              *int                                `json:"max_retries,omitempty"`
 	MinRetryIntervalMillis  *int                                `json:"min_retry_interval_millis,omitempty"`
 	RetryOnTimeout          *bool                               `json:"retry_on_timeout,omitempty"`
@@ -1447,6 +1454,10 @@ func createJobRequestToWire(v *CreateJobRequest) (*createJobRequestWire, error) 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreateJobRequest.Triggers", err)
 	}
+	environmentVariablesWireValue, err := convertSlice(v.EnvironmentVariables, jobEnvironmentVariablesToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobRequest.EnvironmentVariables", err)
+	}
 	return &createJobRequestWire{
 		AccessControlList:       accessControlListWireValue,
 		Name:                    v.Name,
@@ -1476,6 +1487,7 @@ func createJobRequestToWire(v *CreateJobRequest) (*createJobRequestWire, error) 
 		PerformanceTarget:       v.PerformanceTarget,
 		ParentPath:              v.ParentPath,
 		Triggers:                triggersWireValue,
+		EnvironmentVariables:    environmentVariablesWireValue,
 		MaxRetries:              v.MaxRetries,
 		MinRetryIntervalMillis:  v.MinRetryIntervalMillis,
 		RetryOnTimeout:          v.RetryOnTimeout,
@@ -2648,6 +2660,7 @@ type getRunResponseWire struct {
 	HasMore                    *bool                               `json:"has_more,omitempty"`
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget `json:"effective_performance_target,omitempty"`
 	EffectiveUsagePolicyId     *string                             `json:"effective_usage_policy_id,omitempty"`
+	EnvironmentVariables       []jobEnvironmentVariablesWire       `json:"environment_variables,omitempty"`
 	DeploymentId               *string                             `json:"deployment_id,omitempty"`
 	VersionId                  *string                             `json:"version_id,omitempty"`
 	StartTime                  *wireInt64                          `json:"start_time,omitempty"`
@@ -2731,6 +2744,10 @@ func getRunResponseFromWire(w *getRunResponseWire) (*GetRunResponse, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "GetRunResponse.JobRunId", err)
 	}
+	environmentVariablesPublicValue, err := convertSlice(w.EnvironmentVariables, jobEnvironmentVariablesFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.EnvironmentVariables", err)
+	}
 	startTimePublicValue, err := int64FromWire(w.StartTime)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "GetRunResponse.StartTime", err)
@@ -2788,6 +2805,7 @@ func getRunResponseFromWire(w *getRunResponseWire) (*GetRunResponse, error) {
 		HasMore:                    w.HasMore,
 		EffectivePerformanceTarget: w.EffectivePerformanceTarget,
 		EffectiveUsagePolicyId:     w.EffectiveUsagePolicyId,
+		EnvironmentVariables:       environmentVariablesPublicValue,
 		DeploymentId:               w.DeploymentId,
 		VersionId:                  w.VersionId,
 		StartTime:                  startTimePublicValue,
@@ -3244,6 +3262,64 @@ func jobEnvironmentFromWire(w *jobEnvironmentWire) (*JobEnvironment, error) {
 	}, nil
 }
 
+type jobEnvironmentVariablesWire struct {
+	EnvironmentVariablesKey *string                          `json:"environment_variables_key,omitempty"`
+	Spec                    *jobEnvironmentVariablesSpecWire `json:"spec,omitempty"`
+}
+
+func jobEnvironmentVariablesToWire(v *JobEnvironmentVariables) (*jobEnvironmentVariablesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	specWireValue, err := jobEnvironmentVariablesSpecToWire(v.Spec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "JobEnvironmentVariables.Spec", err)
+	}
+	return &jobEnvironmentVariablesWire{
+		EnvironmentVariablesKey: v.EnvironmentVariablesKey,
+		Spec:                    specWireValue,
+	}, nil
+}
+
+func jobEnvironmentVariablesFromWire(w *jobEnvironmentVariablesWire) (*JobEnvironmentVariables, error) {
+	if w == nil {
+		return nil, nil
+	}
+	specPublicValue, err := jobEnvironmentVariablesSpecFromWire(w.Spec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "JobEnvironmentVariables.Spec", err)
+	}
+	return &JobEnvironmentVariables{
+		EnvironmentVariablesKey: w.EnvironmentVariablesKey,
+		Spec:                    specPublicValue,
+	}, nil
+}
+
+type jobEnvironmentVariablesSpecWire struct {
+	Variables map[string]string `json:"variables,omitempty"`
+	Files     []string          `json:"files,omitempty"`
+}
+
+func jobEnvironmentVariablesSpecToWire(v *JobEnvironmentVariablesSpec) (*jobEnvironmentVariablesSpecWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &jobEnvironmentVariablesSpecWire{
+		Variables: v.Variables,
+		Files:     v.Files,
+	}, nil
+}
+
+func jobEnvironmentVariablesSpecFromWire(w *jobEnvironmentVariablesSpecWire) (*JobEnvironmentVariablesSpec, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &JobEnvironmentVariablesSpec{
+		Variables: w.Variables,
+		Files:     w.Files,
+	}, nil
+}
+
 type jobLevelParameterWire struct {
 	Name    *string `json:"name,omitempty"`
 	Default *string `json:"default,omitempty"`
@@ -3365,6 +3441,7 @@ type jobSettingsWire struct {
 	PerformanceTarget       PerformanceTarget_PerformanceTarget `json:"performance_target,omitempty"`
 	ParentPath              *string                             `json:"parent_path,omitempty"`
 	Triggers                []triggerConfigurationWire          `json:"triggers,omitempty"`
+	EnvironmentVariables    []jobEnvironmentVariablesWire       `json:"environment_variables,omitempty"`
 	MaxRetries              *int                                `json:"max_retries,omitempty"`
 	MinRetryIntervalMillis  *int                                `json:"min_retry_interval_millis,omitempty"`
 	RetryOnTimeout          *bool                               `json:"retry_on_timeout,omitempty"`
@@ -3439,6 +3516,10 @@ func jobSettingsToWire(v *JobSettings) (*jobSettingsWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "JobSettings.Triggers", err)
 	}
+	environmentVariablesWireValue, err := convertSlice(v.EnvironmentVariables, jobEnvironmentVariablesToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "JobSettings.EnvironmentVariables", err)
+	}
 	return &jobSettingsWire{
 		Name:                    v.Name,
 		Description:             v.Description,
@@ -3467,6 +3548,7 @@ func jobSettingsToWire(v *JobSettings) (*jobSettingsWire, error) {
 		PerformanceTarget:       v.PerformanceTarget,
 		ParentPath:              v.ParentPath,
 		Triggers:                triggersWireValue,
+		EnvironmentVariables:    environmentVariablesWireValue,
 		MaxRetries:              v.MaxRetries,
 		MinRetryIntervalMillis:  v.MinRetryIntervalMillis,
 		RetryOnTimeout:          v.RetryOnTimeout,
@@ -3542,6 +3624,10 @@ func jobSettingsFromWire(w *jobSettingsWire) (*JobSettings, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "JobSettings.Triggers", err)
 	}
+	environmentVariablesPublicValue, err := convertSlice(w.EnvironmentVariables, jobEnvironmentVariablesFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "JobSettings.EnvironmentVariables", err)
+	}
 	return &JobSettings{
 		Name:                    w.Name,
 		Description:             w.Description,
@@ -3570,6 +3656,7 @@ func jobSettingsFromWire(w *jobSettingsWire) (*JobSettings, error) {
 		PerformanceTarget:       w.PerformanceTarget,
 		ParentPath:              w.ParentPath,
 		Triggers:                triggersPublicValue,
+		EnvironmentVariables:    environmentVariablesPublicValue,
 		MaxRetries:              w.MaxRetries,
 		MinRetryIntervalMillis:  w.MinRetryIntervalMillis,
 		RetryOnTimeout:          w.RetryOnTimeout,
@@ -5242,6 +5329,7 @@ type runWire struct {
 	HasMore                    *bool                               `json:"has_more,omitempty"`
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget `json:"effective_performance_target,omitempty"`
 	EffectiveUsagePolicyId     *string                             `json:"effective_usage_policy_id,omitempty"`
+	EnvironmentVariables       []jobEnvironmentVariablesWire       `json:"environment_variables,omitempty"`
 	DeploymentId               *string                             `json:"deployment_id,omitempty"`
 	VersionId                  *string                             `json:"version_id,omitempty"`
 	StartTime                  *wireInt64                          `json:"start_time,omitempty"`
@@ -5325,6 +5413,10 @@ func runFromWire(w *runWire) (*Run, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Run.JobRunId", err)
 	}
+	environmentVariablesPublicValue, err := convertSlice(w.EnvironmentVariables, jobEnvironmentVariablesFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.EnvironmentVariables", err)
+	}
 	startTimePublicValue, err := int64FromWire(w.StartTime)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Run.StartTime", err)
@@ -5381,6 +5473,7 @@ func runFromWire(w *runWire) (*Run, error) {
 		HasMore:                    w.HasMore,
 		EffectivePerformanceTarget: w.EffectivePerformanceTarget,
 		EffectiveUsagePolicyId:     w.EffectiveUsagePolicyId,
+		EnvironmentVariables:       environmentVariablesPublicValue,
 		DeploymentId:               w.DeploymentId,
 		VersionId:                  w.VersionId,
 		StartTime:                  startTimePublicValue,
@@ -5666,6 +5759,7 @@ type runTaskWire struct {
 	EnvironmentKey               *string                             `json:"environment_key,omitempty"`
 	Disabled                     *bool                               `json:"disabled,omitempty"`
 	Compute                      *computeWire                        `json:"compute,omitempty"`
+	EnvironmentVariablesKey      *string                             `json:"environment_variables_key,omitempty"`
 	NotebookTask                 *notebookTaskWire                   `json:"notebook_task,omitempty"`
 	SparkJarTask                 *sparkJarTaskWire                   `json:"spark_jar_task,omitempty"`
 	SparkPythonTask              *sparkPythonTaskWire                `json:"spark_python_task,omitempty"`
@@ -6034,6 +6128,7 @@ func runTaskFromWire(w *runTaskWire) (*RunTask, error) {
 		WebhookNotifications:         webhookNotificationsPublicValue,
 		Disabled:                     w.Disabled,
 		Compute:                      computePublicValue,
+		EnvironmentVariablesKey:      w.EnvironmentVariablesKey,
 		Libraries:                    librariesPublicValue,
 		MaxRetries:                   w.MaxRetries,
 		MinRetryIntervalMillis:       w.MinRetryIntervalMillis,
@@ -6065,6 +6160,7 @@ type runTaskSettingsWire struct {
 	EnvironmentKey          *string                     `json:"environment_key,omitempty"`
 	Disabled                *bool                       `json:"disabled,omitempty"`
 	Compute                 *computeWire                `json:"compute,omitempty"`
+	EnvironmentVariablesKey *string                     `json:"environment_variables_key,omitempty"`
 	NotebookTask            *notebookTaskWire           `json:"notebook_task,omitempty"`
 	SparkJarTask            *sparkJarTaskWire           `json:"spark_jar_task,omitempty"`
 	SparkPythonTask         *sparkPythonTaskWire        `json:"spark_python_task,omitempty"`
@@ -6359,6 +6455,7 @@ func runTaskSettingsToWire(v *RunTaskSettings) (*runTaskSettingsWire, error) {
 		EnvironmentKey:          environmentRefEnvironmentKeyWire,
 		Disabled:                v.Disabled,
 		Compute:                 computeWireValue,
+		EnvironmentVariablesKey: v.EnvironmentVariablesKey,
 		NotebookTask:            taskNotebookTaskWire,
 		SparkJarTask:            taskSparkJarTaskWire,
 		SparkPythonTask:         taskSparkPythonTaskWire,
@@ -7143,6 +7240,7 @@ type submitRunRequestWire struct {
 	Environments         []jobEnvironmentWire                `json:"environments,omitempty"`
 	BudgetPolicyId       *string                             `json:"budget_policy_id,omitempty"`
 	UsagePolicyId        *string                             `json:"usage_policy_id,omitempty"`
+	EnvironmentVariables []jobEnvironmentVariablesWire       `json:"environment_variables,omitempty"`
 	PerformanceTarget    PerformanceTarget_PerformanceTarget `json:"performance_target,omitempty"`
 }
 
@@ -7190,6 +7288,10 @@ func submitRunRequestToWire(v *SubmitRunRequest) (*submitRunRequestWire, error) 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "SubmitRunRequest.Environments", err)
 	}
+	environmentVariablesWireValue, err := convertSlice(v.EnvironmentVariables, jobEnvironmentVariablesToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SubmitRunRequest.EnvironmentVariables", err)
+	}
 	return &submitRunRequestWire{
 		AccessControlList:    accessControlListWireValue,
 		Queue:                queueWireValue,
@@ -7206,6 +7308,7 @@ func submitRunRequestToWire(v *SubmitRunRequest) (*submitRunRequestWire, error) 
 		Environments:         environmentsWireValue,
 		BudgetPolicyId:       v.BudgetPolicyId,
 		UsagePolicyId:        v.UsagePolicyId,
+		EnvironmentVariables: environmentVariablesWireValue,
 		PerformanceTarget:    v.PerformanceTarget,
 	}, nil
 }
@@ -7422,6 +7525,7 @@ type taskSettingsWire struct {
 	EnvironmentKey          *string                     `json:"environment_key,omitempty"`
 	Disabled                *bool                       `json:"disabled,omitempty"`
 	Compute                 *computeWire                `json:"compute,omitempty"`
+	EnvironmentVariablesKey *string                     `json:"environment_variables_key,omitempty"`
 	NotebookTask            *notebookTaskWire           `json:"notebook_task,omitempty"`
 	SparkJarTask            *sparkJarTaskWire           `json:"spark_jar_task,omitempty"`
 	SparkPythonTask         *sparkPythonTaskWire        `json:"spark_python_task,omitempty"`
@@ -7716,6 +7820,7 @@ func taskSettingsToWire(v *TaskSettings) (*taskSettingsWire, error) {
 		EnvironmentKey:          environmentRefEnvironmentKeyWire,
 		Disabled:                v.Disabled,
 		Compute:                 computeWireValue,
+		EnvironmentVariablesKey: v.EnvironmentVariablesKey,
 		NotebookTask:            taskNotebookTaskWire,
 		SparkJarTask:            taskSparkJarTaskWire,
 		SparkPythonTask:         taskSparkPythonTaskWire,
@@ -8016,6 +8121,7 @@ func taskSettingsFromWire(w *taskSettingsWire) (*TaskSettings, error) {
 		Description:             w.Description,
 		Disabled:                w.Disabled,
 		Compute:                 computePublicValue,
+		EnvironmentVariablesKey: w.EnvironmentVariablesKey,
 		Libraries:               librariesPublicValue,
 		MaxRetries:              w.MaxRetries,
 		MinRetryIntervalMillis:  w.MinRetryIntervalMillis,
