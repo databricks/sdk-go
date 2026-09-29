@@ -71,33 +71,21 @@ type CreateQueryRequest struct {
 }
 
 type CreateQueryRequestQuery struct {
-	// UUID identifying the query.
-	Id *string
 	// Display name of the query that appears in list views, widget headings, and on
 	// the query page.
 	DisplayName *string
 	// General description that conveys additional information about this query such
 	// as usage notes.
 	Description *string
-	// Username of the user that owns the query.
-	OwnerUserName *string
 	// ID of the SQL warehouse attached to the query.
 	WarehouseId *string
 	// Text of the query to be run.
 	QueryText *string
 	// Sets the "Run as" role for the object.
 	RunAsMode RunAsMode
-	// Indicates whether the query is trashed.
-	LifecycleState LifecycleState
-	// Username of the user who last saved changes to this query.
-	LastModifierUserName *string
 	// Workspace path of the workspace folder containing the object.
 	ParentPath *string
 	Tags       []string
-	// Timestamp when this query was created.
-	CreateTime *types.Time
-	// Timestamp when this query was last updated.
-	UpdateTime *types.Time
 	// List of query parameter definitions.
 	Parameters []QueryParameter
 	// Whether to apply a 1000 row limit to the query result.
@@ -217,9 +205,7 @@ type ListQueryObjectsResponseQuery struct {
 	LifecycleState LifecycleState
 	// Username of the user who last saved changes to this query.
 	LastModifierUserName *string
-	// Workspace path of the workspace folder containing the object.
-	ParentPath *string
-	Tags       []string
+	Tags                 []string
 	// Timestamp when this query was created.
 	CreateTime *types.Time
 	// Timestamp when this query was last updated.
@@ -389,8 +375,6 @@ type UpdateQueryRequest struct {
 }
 
 type UpdateQueryRequestQuery struct {
-	// UUID identifying the query.
-	Id *string `fieldmask:"id"`
 	// Display name of the query that appears in list views, widget headings, and on
 	// the query page.
 	DisplayName *string `fieldmask:"display_name"`
@@ -405,17 +389,7 @@ type UpdateQueryRequestQuery struct {
 	QueryText *string `fieldmask:"query_text"`
 	// Sets the "Run as" role for the object.
 	RunAsMode RunAsMode `fieldmask:"run_as_mode"`
-	// Indicates whether the query is trashed.
-	LifecycleState LifecycleState `fieldmask:"lifecycle_state"`
-	// Username of the user who last saved changes to this query.
-	LastModifierUserName *string `fieldmask:"last_modifier_user_name"`
-	// Workspace path of the workspace folder containing the object.
-	ParentPath *string  `fieldmask:"parent_path"`
-	Tags       []string `fieldmask:"tags"`
-	// Timestamp when this query was created.
-	CreateTime *types.Time `fieldmask:"create_time"`
-	// Timestamp when this query was last updated.
-	UpdateTime *types.Time `fieldmask:"update_time"`
+	Tags      []string  `fieldmask:"tags"`
 	// List of query parameter definitions.
 	Parameters []QueryParameter `fieldmask:"parameters"`
 	// Whether to apply a 1000 row limit to the query result.

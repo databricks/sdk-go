@@ -36,23 +36,17 @@ func createQueryRequestToWire(v *CreateQueryRequest) (*createQueryRequestWire, e
 }
 
 type createQueryRequestQueryWire struct {
-	Id                   *string              `json:"id,omitempty"`
-	DisplayName          *string              `json:"display_name,omitempty"`
-	Description          *string              `json:"description,omitempty"`
-	OwnerUserName        *string              `json:"owner_user_name,omitempty"`
-	WarehouseId          *string              `json:"warehouse_id,omitempty"`
-	QueryText            *string              `json:"query_text,omitempty"`
-	RunAsMode            RunAsMode            `json:"run_as_mode,omitempty"`
-	LifecycleState       LifecycleState       `json:"lifecycle_state,omitempty"`
-	LastModifierUserName *string              `json:"last_modifier_user_name,omitempty"`
-	ParentPath           *string              `json:"parent_path,omitempty"`
-	Tags                 []string             `json:"tags,omitempty"`
-	CreateTime           *types.Time          `json:"create_time,omitempty"`
-	UpdateTime           *types.Time          `json:"update_time,omitempty"`
-	Parameters           []queryParameterWire `json:"parameters,omitempty"`
-	ApplyAutoLimit       *bool                `json:"apply_auto_limit,omitempty"`
-	Catalog              *string              `json:"catalog,omitempty"`
-	Schema               *string              `json:"schema,omitempty"`
+	DisplayName    *string              `json:"display_name,omitempty"`
+	Description    *string              `json:"description,omitempty"`
+	WarehouseId    *string              `json:"warehouse_id,omitempty"`
+	QueryText      *string              `json:"query_text,omitempty"`
+	RunAsMode      RunAsMode            `json:"run_as_mode,omitempty"`
+	ParentPath     *string              `json:"parent_path,omitempty"`
+	Tags           []string             `json:"tags,omitempty"`
+	Parameters     []queryParameterWire `json:"parameters,omitempty"`
+	ApplyAutoLimit *bool                `json:"apply_auto_limit,omitempty"`
+	Catalog        *string              `json:"catalog,omitempty"`
+	Schema         *string              `json:"schema,omitempty"`
 }
 
 func createQueryRequestQueryToWire(v *CreateQueryRequestQuery) (*createQueryRequestQueryWire, error) {
@@ -64,23 +58,17 @@ func createQueryRequestQueryToWire(v *CreateQueryRequestQuery) (*createQueryRequ
 		return nil, fmt.Errorf("%s: %w", "CreateQueryRequestQuery.Parameters", err)
 	}
 	return &createQueryRequestQueryWire{
-		Id:                   v.Id,
-		DisplayName:          v.DisplayName,
-		Description:          v.Description,
-		OwnerUserName:        v.OwnerUserName,
-		WarehouseId:          v.WarehouseId,
-		QueryText:            v.QueryText,
-		RunAsMode:            v.RunAsMode,
-		LifecycleState:       v.LifecycleState,
-		LastModifierUserName: v.LastModifierUserName,
-		ParentPath:           v.ParentPath,
-		Tags:                 v.Tags,
-		CreateTime:           v.CreateTime,
-		UpdateTime:           v.UpdateTime,
-		Parameters:           parametersWireValue,
-		ApplyAutoLimit:       v.ApplyAutoLimit,
-		Catalog:              v.Catalog,
-		Schema:               v.Schema,
+		DisplayName:    v.DisplayName,
+		Description:    v.Description,
+		WarehouseId:    v.WarehouseId,
+		QueryText:      v.QueryText,
+		RunAsMode:      v.RunAsMode,
+		ParentPath:     v.ParentPath,
+		Tags:           v.Tags,
+		Parameters:     parametersWireValue,
+		ApplyAutoLimit: v.ApplyAutoLimit,
+		Catalog:        v.Catalog,
+		Schema:         v.Schema,
 	}, nil
 }
 
@@ -318,7 +306,6 @@ type listQueryObjectsResponseQueryWire struct {
 	RunAsMode            RunAsMode            `json:"run_as_mode,omitempty"`
 	LifecycleState       LifecycleState       `json:"lifecycle_state,omitempty"`
 	LastModifierUserName *string              `json:"last_modifier_user_name,omitempty"`
-	ParentPath           *string              `json:"parent_path,omitempty"`
 	Tags                 []string             `json:"tags,omitempty"`
 	CreateTime           *types.Time          `json:"create_time,omitempty"`
 	UpdateTime           *types.Time          `json:"update_time,omitempty"`
@@ -346,7 +333,6 @@ func listQueryObjectsResponseQueryFromWire(w *listQueryObjectsResponseQueryWire)
 		RunAsMode:            w.RunAsMode,
 		LifecycleState:       w.LifecycleState,
 		LastModifierUserName: w.LastModifierUserName,
-		ParentPath:           w.ParentPath,
 		Tags:                 w.Tags,
 		CreateTime:           w.CreateTime,
 		UpdateTime:           w.UpdateTime,
@@ -732,23 +718,17 @@ func updateQueryRequestToWire(v *UpdateQueryRequest) (*updateQueryRequestWire, e
 }
 
 type updateQueryRequestQueryWire struct {
-	Id                   *string              `json:"id,omitempty"`
-	DisplayName          *string              `json:"display_name,omitempty"`
-	Description          *string              `json:"description,omitempty"`
-	OwnerUserName        *string              `json:"owner_user_name,omitempty"`
-	WarehouseId          *string              `json:"warehouse_id,omitempty"`
-	QueryText            *string              `json:"query_text,omitempty"`
-	RunAsMode            RunAsMode            `json:"run_as_mode,omitempty"`
-	LifecycleState       LifecycleState       `json:"lifecycle_state,omitempty"`
-	LastModifierUserName *string              `json:"last_modifier_user_name,omitempty"`
-	ParentPath           *string              `json:"parent_path,omitempty"`
-	Tags                 []string             `json:"tags,omitempty"`
-	CreateTime           *types.Time          `json:"create_time,omitempty"`
-	UpdateTime           *types.Time          `json:"update_time,omitempty"`
-	Parameters           []queryParameterWire `json:"parameters,omitempty"`
-	ApplyAutoLimit       *bool                `json:"apply_auto_limit,omitempty"`
-	Catalog              *string              `json:"catalog,omitempty"`
-	Schema               *string              `json:"schema,omitempty"`
+	DisplayName    *string              `json:"display_name,omitempty"`
+	Description    *string              `json:"description,omitempty"`
+	OwnerUserName  *string              `json:"owner_user_name,omitempty"`
+	WarehouseId    *string              `json:"warehouse_id,omitempty"`
+	QueryText      *string              `json:"query_text,omitempty"`
+	RunAsMode      RunAsMode            `json:"run_as_mode,omitempty"`
+	Tags           []string             `json:"tags,omitempty"`
+	Parameters     []queryParameterWire `json:"parameters,omitempty"`
+	ApplyAutoLimit *bool                `json:"apply_auto_limit,omitempty"`
+	Catalog        *string              `json:"catalog,omitempty"`
+	Schema         *string              `json:"schema,omitempty"`
 }
 
 func updateQueryRequestQueryToWire(v *UpdateQueryRequestQuery) (*updateQueryRequestQueryWire, error) {
@@ -760,23 +740,17 @@ func updateQueryRequestQueryToWire(v *UpdateQueryRequestQuery) (*updateQueryRequ
 		return nil, fmt.Errorf("%s: %w", "UpdateQueryRequestQuery.Parameters", err)
 	}
 	return &updateQueryRequestQueryWire{
-		Id:                   v.Id,
-		DisplayName:          v.DisplayName,
-		Description:          v.Description,
-		OwnerUserName:        v.OwnerUserName,
-		WarehouseId:          v.WarehouseId,
-		QueryText:            v.QueryText,
-		RunAsMode:            v.RunAsMode,
-		LifecycleState:       v.LifecycleState,
-		LastModifierUserName: v.LastModifierUserName,
-		ParentPath:           v.ParentPath,
-		Tags:                 v.Tags,
-		CreateTime:           v.CreateTime,
-		UpdateTime:           v.UpdateTime,
-		Parameters:           parametersWireValue,
-		ApplyAutoLimit:       v.ApplyAutoLimit,
-		Catalog:              v.Catalog,
-		Schema:               v.Schema,
+		DisplayName:    v.DisplayName,
+		Description:    v.Description,
+		OwnerUserName:  v.OwnerUserName,
+		WarehouseId:    v.WarehouseId,
+		QueryText:      v.QueryText,
+		RunAsMode:      v.RunAsMode,
+		Tags:           v.Tags,
+		Parameters:     parametersWireValue,
+		ApplyAutoLimit: v.ApplyAutoLimit,
+		Catalog:        v.Catalog,
+		Schema:         v.Schema,
 	}, nil
 }
 

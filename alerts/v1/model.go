@@ -171,25 +171,14 @@ type CreateAlertRequest struct {
 }
 
 type CreateAlertRequestAlert struct {
-	// UUID identifying the alert.
-	Id *string
 	// The display name of the alert.
 	DisplayName *string
 	// UUID of the query attached to the alert.
 	QueryId *string
-	// Current state of the alert's trigger status. This field is set to UNKNOWN if
-	// the alert has not yet been evaluated or ran into an error during the last
-	// evaluation.
-	State AlertState
 	// Number of seconds an alert must wait after being triggered to rearm itself.
 	// After rearming, it can be triggered again. If 0 or not specified, the alert
 	// will not be triggered again.
 	SecondsToRetrigger *int
-	// The workspace state of the alert. Used for tracking trashed status.
-	LifecycleState LifecycleState
-	// Timestamp when the alert was last triggered, if the alert has been triggered
-	// before.
-	TriggerTime *types.Time
 	// Custom body of alert notification, if it exists. See
 	// [here](/sql/user/alerts/index.html) for custom templating instructions.
 	CustomBody *string
@@ -199,15 +188,8 @@ type CreateAlertRequestAlert struct {
 	CustomSubject *string
 	// Trigger conditions of the alert.
 	Condition *AlertCondition
-	// The owner's username. This field is set to "Unavailable" if the user has been
-	// deleted.
-	OwnerUserName *string
 	// The workspace path of the folder containing the alert.
 	ParentPath *string
-	// The timestamp indicating when the alert was created.
-	CreateTime *types.Time
-	// The timestamp indicating when the alert was updated.
-	UpdateTime *types.Time
 	// Whether to notify alert subscribers when alert returns back to normal.
 	NotifyOnOk *bool
 }
@@ -263,8 +245,6 @@ type ListAlertsResponseAlert struct {
 	// The owner's username. This field is set to "Unavailable" if the user has been
 	// deleted.
 	OwnerUserName *string
-	// The workspace path of the folder containing the alert.
-	ParentPath *string
 	// The timestamp indicating when the alert was created.
 	CreateTime *types.Time
 	// The timestamp indicating when the alert was updated.
@@ -288,25 +268,14 @@ type UpdateAlertRequest struct {
 }
 
 type UpdateAlertRequestAlert struct {
-	// UUID identifying the alert.
-	Id *string `fieldmask:"id"`
 	// The display name of the alert.
 	DisplayName *string `fieldmask:"display_name"`
 	// UUID of the query attached to the alert.
 	QueryId *string `fieldmask:"query_id"`
-	// Current state of the alert's trigger status. This field is set to UNKNOWN if
-	// the alert has not yet been evaluated or ran into an error during the last
-	// evaluation.
-	State AlertState `fieldmask:"state"`
 	// Number of seconds an alert must wait after being triggered to rearm itself.
 	// After rearming, it can be triggered again. If 0 or not specified, the alert
 	// will not be triggered again.
 	SecondsToRetrigger *int `fieldmask:"seconds_to_retrigger"`
-	// The workspace state of the alert. Used for tracking trashed status.
-	LifecycleState LifecycleState `fieldmask:"lifecycle_state"`
-	// Timestamp when the alert was last triggered, if the alert has been triggered
-	// before.
-	TriggerTime *types.Time `fieldmask:"trigger_time"`
 	// Custom body of alert notification, if it exists. See
 	// [here](/sql/user/alerts/index.html) for custom templating instructions.
 	CustomBody *string `fieldmask:"custom_body"`
@@ -319,12 +288,6 @@ type UpdateAlertRequestAlert struct {
 	// The owner's username. This field is set to "Unavailable" if the user has been
 	// deleted.
 	OwnerUserName *string `fieldmask:"owner_user_name"`
-	// The workspace path of the folder containing the alert.
-	ParentPath *string `fieldmask:"parent_path"`
-	// The timestamp indicating when the alert was created.
-	CreateTime *types.Time `fieldmask:"create_time"`
-	// The timestamp indicating when the alert was updated.
-	UpdateTime *types.Time `fieldmask:"update_time"`
 	// Whether to notify alert subscribers when alert returns back to normal.
 	NotifyOnOk *bool `fieldmask:"notify_on_ok"`
 }

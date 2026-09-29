@@ -290,20 +290,13 @@ func createAlertRequestToWire(v *CreateAlertRequest) (*createAlertRequestWire, e
 }
 
 type createAlertRequestAlertWire struct {
-	Id                 *string             `json:"id,omitempty"`
 	DisplayName        *string             `json:"display_name,omitempty"`
 	QueryId            *string             `json:"query_id,omitempty"`
-	State              AlertState          `json:"state,omitempty"`
 	SecondsToRetrigger *int                `json:"seconds_to_retrigger,omitempty"`
-	LifecycleState     LifecycleState      `json:"lifecycle_state,omitempty"`
-	TriggerTime        *types.Time         `json:"trigger_time,omitempty"`
 	CustomBody         *string             `json:"custom_body,omitempty"`
 	CustomSubject      *string             `json:"custom_subject,omitempty"`
 	Condition          *alertConditionWire `json:"condition,omitempty"`
-	OwnerUserName      *string             `json:"owner_user_name,omitempty"`
 	ParentPath         *string             `json:"parent_path,omitempty"`
-	CreateTime         *types.Time         `json:"create_time,omitempty"`
-	UpdateTime         *types.Time         `json:"update_time,omitempty"`
 	NotifyOnOk         *bool               `json:"notify_on_ok,omitempty"`
 }
 
@@ -316,20 +309,13 @@ func createAlertRequestAlertToWire(v *CreateAlertRequestAlert) (*createAlertRequ
 		return nil, fmt.Errorf("%s: %w", "CreateAlertRequestAlert.Condition", err)
 	}
 	return &createAlertRequestAlertWire{
-		Id:                 v.Id,
 		DisplayName:        v.DisplayName,
 		QueryId:            v.QueryId,
-		State:              v.State,
 		SecondsToRetrigger: v.SecondsToRetrigger,
-		LifecycleState:     v.LifecycleState,
-		TriggerTime:        v.TriggerTime,
 		CustomBody:         v.CustomBody,
 		CustomSubject:      v.CustomSubject,
 		Condition:          conditionWireValue,
-		OwnerUserName:      v.OwnerUserName,
 		ParentPath:         v.ParentPath,
-		CreateTime:         v.CreateTime,
-		UpdateTime:         v.UpdateTime,
 		NotifyOnOk:         v.NotifyOnOk,
 	}, nil
 }
@@ -380,7 +366,6 @@ type listAlertsResponseAlertWire struct {
 	CustomSubject      *string             `json:"custom_subject,omitempty"`
 	Condition          *alertConditionWire `json:"condition,omitempty"`
 	OwnerUserName      *string             `json:"owner_user_name,omitempty"`
-	ParentPath         *string             `json:"parent_path,omitempty"`
 	CreateTime         *types.Time         `json:"create_time,omitempty"`
 	UpdateTime         *types.Time         `json:"update_time,omitempty"`
 	NotifyOnOk         *bool               `json:"notify_on_ok,omitempty"`
@@ -406,7 +391,6 @@ func listAlertsResponseAlertFromWire(w *listAlertsResponseAlertWire) (*ListAlert
 		CustomSubject:      w.CustomSubject,
 		Condition:          conditionPublicValue,
 		OwnerUserName:      w.OwnerUserName,
-		ParentPath:         w.ParentPath,
 		CreateTime:         w.CreateTime,
 		UpdateTime:         w.UpdateTime,
 		NotifyOnOk:         w.NotifyOnOk,
@@ -437,20 +421,13 @@ func updateAlertRequestToWire(v *UpdateAlertRequest) (*updateAlertRequestWire, e
 }
 
 type updateAlertRequestAlertWire struct {
-	Id                 *string             `json:"id,omitempty"`
 	DisplayName        *string             `json:"display_name,omitempty"`
 	QueryId            *string             `json:"query_id,omitempty"`
-	State              AlertState          `json:"state,omitempty"`
 	SecondsToRetrigger *int                `json:"seconds_to_retrigger,omitempty"`
-	LifecycleState     LifecycleState      `json:"lifecycle_state,omitempty"`
-	TriggerTime        *types.Time         `json:"trigger_time,omitempty"`
 	CustomBody         *string             `json:"custom_body,omitempty"`
 	CustomSubject      *string             `json:"custom_subject,omitempty"`
 	Condition          *alertConditionWire `json:"condition,omitempty"`
 	OwnerUserName      *string             `json:"owner_user_name,omitempty"`
-	ParentPath         *string             `json:"parent_path,omitempty"`
-	CreateTime         *types.Time         `json:"create_time,omitempty"`
-	UpdateTime         *types.Time         `json:"update_time,omitempty"`
 	NotifyOnOk         *bool               `json:"notify_on_ok,omitempty"`
 }
 
@@ -463,20 +440,13 @@ func updateAlertRequestAlertToWire(v *UpdateAlertRequestAlert) (*updateAlertRequ
 		return nil, fmt.Errorf("%s: %w", "UpdateAlertRequestAlert.Condition", err)
 	}
 	return &updateAlertRequestAlertWire{
-		Id:                 v.Id,
 		DisplayName:        v.DisplayName,
 		QueryId:            v.QueryId,
-		State:              v.State,
 		SecondsToRetrigger: v.SecondsToRetrigger,
-		LifecycleState:     v.LifecycleState,
-		TriggerTime:        v.TriggerTime,
 		CustomBody:         v.CustomBody,
 		CustomSubject:      v.CustomSubject,
 		Condition:          conditionWireValue,
 		OwnerUserName:      v.OwnerUserName,
-		ParentPath:         v.ParentPath,
-		CreateTime:         v.CreateTime,
-		UpdateTime:         v.UpdateTime,
 		NotifyOnOk:         v.NotifyOnOk,
 	}, nil
 }
