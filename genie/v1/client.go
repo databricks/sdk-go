@@ -143,8 +143,7 @@ func (c *internalClient) CreateSpace(ctx context.Context, req GenieCreateSpaceRe
 
 // Download a rendered image of a message visualization attachment. The response
 // body is the raw PNG image, not a JSON payload. This is only available if the
-// attachment is a visualization and the message status is `COMPLETED`. This
-// endpoint is not supported for Private Link workspaces.
+// attachment is a visualization and the message status is `COMPLETED`.
 func (c *internalClient) DownloadMessageAttachmentVisualization(ctx context.Context, req DownloadMessageAttachmentVisualizationRequest, opts ...call.Option) (*DownloadMessageAttachmentVisualizationResponse, error) {
 
 	headers := http.Header{}

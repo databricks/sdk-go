@@ -141,6 +141,74 @@ func (c *internalClient) AiClassify(ctx context.Context, req AiClassifyRequest, 
 	return resp, nil
 }
 
+// Turn text and structured data into decisions your application can use. Define
+// questions and criteria to choose an option, estimate a probability, or assign
+// a score given a provided state.
+func (c *internalClient) AiDecide(ctx context.Context, req AiDecideRequest, opts ...call.Option) (*AiDecideResponse, error) {
+	wireReq, err := aiDecideRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = "/api/2.0/ai-functions/ai-decide"
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *AiDecideResponse
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp aiDecideResponseWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = aiDecideResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Extracts structured data from text and documents according to a provided
 // schema. For REST API requests, the default rate limit is 120 requests per
 // minute per workspace. Contact your <Databricks> account team to request a
