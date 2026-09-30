@@ -513,6 +513,8 @@ type ClonePipelineRequest struct {
 	// and this field is ignored.
 	Continuous *bool
 	// Whether the pipeline is in Development mode. Defaults to false.
+	//
+	// Deprecated: set development mode for each update instead.
 	Development *bool
 	// Whether Photon is enabled for this pipeline.
 	Photon *bool
@@ -749,6 +751,8 @@ type CreatePipelineRequest struct {
 	// and this field is ignored.
 	Continuous *bool
 	// Whether the pipeline is in Development mode. Defaults to false.
+	//
+	// Deprecated: set development mode for each update instead.
 	Development *bool
 	// Whether Photon is enabled for this pipeline.
 	Photon *bool
@@ -890,6 +894,8 @@ type EditPipelineRequest struct {
 	// and this field is ignored.
 	Continuous *bool
 	// Whether the pipeline is in Development mode. Defaults to false.
+	//
+	// Deprecated: set development mode for each update instead.
 	Development *bool
 	// Whether Photon is enabled for this pipeline.
 	Photon *bool
@@ -2103,6 +2109,8 @@ type PipelineSpec struct {
 	// and this field is ignored.
 	Continuous *bool
 	// Whether the pipeline is in Development mode. Defaults to false.
+	//
+	// Deprecated: set development mode for each update instead.
 	Development *bool
 	// Whether Photon is enabled for this pipeline.
 	Photon *bool

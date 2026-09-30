@@ -126,6 +126,72 @@ func aiClassifyResponseMetadataFromWire(w *aiClassifyResponseMetadataWire) (*AiC
 	}, nil
 }
 
+type aiDecideOptionsWire struct {
+	Version *string `json:"version,omitempty"`
+}
+
+func aiDecideOptionsToWire(v *AiDecideOptions) (*aiDecideOptionsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &aiDecideOptionsWire{
+		Version: v.Version,
+	}, nil
+}
+
+type aiDecideRequestWire struct {
+	State     json.RawMessage      `json:"state,omitempty"`
+	Questions json.RawMessage      `json:"questions,omitempty"`
+	Options   *aiDecideOptionsWire `json:"options,omitempty"`
+}
+
+func aiDecideRequestToWire(v *AiDecideRequest) (*aiDecideRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	optionsWireValue, err := aiDecideOptionsToWire(v.Options)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiDecideRequest.Options", err)
+	}
+	return &aiDecideRequestWire{
+		State:     v.State,
+		Questions: v.Questions,
+		Options:   optionsWireValue,
+	}, nil
+}
+
+type aiDecideResponseWire struct {
+	Response json.RawMessage               `json:"response,omitempty"`
+	Metadata *aiDecideResponseMetadataWire `json:"metadata,omitempty"`
+}
+
+func aiDecideResponseFromWire(w *aiDecideResponseWire) (*AiDecideResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	metadataPublicValue, err := aiDecideResponseMetadataFromWire(w.Metadata)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiDecideResponse.Metadata", err)
+	}
+	return &AiDecideResponse{
+		Response: w.Response,
+		Metadata: metadataPublicValue,
+	}, nil
+}
+
+type aiDecideResponseMetadataWire struct {
+	Version *string `json:"version,omitempty"`
+}
+
+func aiDecideResponseMetadataFromWire(w *aiDecideResponseMetadataWire) (*AiDecideResponseMetadata, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AiDecideResponseMetadata{
+		Version: w.Version,
+	}, nil
+}
+
 type aiExtractBboxWire struct {
 	Coord  []wireInt64 `json:"coord,omitempty"`
 	PageId *wireInt64  `json:"page_id,omitempty"`
