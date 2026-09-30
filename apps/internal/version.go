@@ -2,4 +2,4 @@ package internal
 
 const ModuleName = "sdk-go-apps"
 
-const Version = "0.0.1-dev.16"
+const Version = "0.0.1-dev.15"
