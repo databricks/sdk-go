@@ -32,11 +32,12 @@ func WithDisableRetry() Option {
 	}
 }
 
-// WithTimeout returns an Option that sets the timeout for the call. If the
-// context already has a deadline, it is updated to the minimum of the
-// context's deadline and the timeout. A timeout of zero means no timeout.
+// WithTimeout returns an Option that limits how long a call can take,
+// including retry delays and rate-limiter waits. The timeout applies until the
+// method returns.
 //
-// The timeout covers the entire execution, including retries.
+// An earlier deadline on the caller's context takes precedence.
+// A zero duration disables the SDK timeout.
 func WithTimeout(t time.Duration) Option {
 	return func(c *internaloptions.CallOptions) error {
 		c.Timeout = t

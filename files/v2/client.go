@@ -951,6 +951,8 @@ func (c *internalClient) DeleteFile(ctx context.Context, req DeleteFileRequest, 
 // Downloads a file. The file contents are the response body. This is a standard
 // HTTP file download, not a JSON RPC. It supports the Range and
 // If-Unmodified-Since HTTP headers.
+// A timeout configured with [call.WithTimeout] applies until this method
+// returns. It does not apply while reading the returned response stream.
 func (c *internalClient) DownloadFile(ctx context.Context, req DownloadFileRequest, opts ...call.Option) (*DownloadFileResponse, error) {
 
 	headers := http.Header{}
@@ -983,7 +985,7 @@ func (c *internalClient) DownloadFile(ctx context.Context, req DownloadFileReque
 
 	var resp *DownloadFileResponse
 
-	call := func(ctx context.Context) error {
+	call := func(ctx context.Context) (io.ReadCloser, error) {
 		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
 			Method:      "GET",
 			URL:         urlStr,
@@ -992,7 +994,7 @@ func (c *internalClient) DownloadFile(ctx context.Context, req DownloadFileReque
 			Headers:     headers,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		httpResp, err := executeStreamingHTTPCall(httpCallOptions{
@@ -1001,15 +1003,14 @@ func (c *internalClient) DownloadFile(ctx context.Context, req DownloadFileReque
 			logger: c.logger,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 		resp = &DownloadFileResponse{}
-		resp.Contents = httpResp.Body
 		if v := httpResp.Header.Get("content-length"); v != "" {
 			n, err := strconv.ParseInt(v, 10, 64)
 			if err != nil {
 				httpResp.Body.Close() // avoid leaking the connection
-				return err
+				return nil, err
 			}
 			resp.ContentLength = &n
 		}
@@ -1021,12 +1022,14 @@ func (c *internalClient) DownloadFile(ctx context.Context, req DownloadFileReque
 			h := v
 			resp.LastModified = &h
 		}
-		return nil
+		return httpResp.Body, nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	contents, err := executeStreamingResponseCall(ctx, call, opts)
+	if err != nil {
 		return nil, err
 	}
+	resp.Contents = contents
 	return resp, nil
 }
 
@@ -1294,6 +1297,12 @@ func (c *internalClient) ListDirectoryContentsIter(ctx context.Context, req List
 // modify the bytes before sending. The contents of the resulting file will be
 // exactly the bytes sent in the request body. If the request is successful,
 // there is no response body.
+//
+// This method has a one-hour SDK timeout by default. Use [call.WithTimeout]
+// to override it; zero disables the SDK timeout.
+//
+// The call returns an error if a retrier is configured because replaying the
+// request body is not supported.
 func (c *internalClient) UploadFile(ctx context.Context, req UploadFileRequest, opts ...call.Option) (*UploadFileResponse, error) {
 	wireReq, err := uploadFileRequestToWire(&req)
 	if err != nil {
@@ -1326,13 +1335,6 @@ func (c *internalClient) UploadFile(ctx context.Context, req UploadFileRequest, 
 
 	var resp *UploadFileResponse
 
-	// A streaming request body is consumed on the first attempt and cannot be
-	// replayed, so retries default to disabled to avoid resending a partial
-	// body. Prepended (not appended) so a caller who explicitly passes a
-	// retry option still overrides this default. Set before the call closure
-	// below shadows the call package identifier.
-	opts = append([]call.Option{call.WithDisableRetry()}, opts...)
-
 	call := func(ctx context.Context) error {
 		var reqBody io.Reader
 		if req.Contents != nil {
@@ -1363,7 +1365,7 @@ func (c *internalClient) UploadFile(ctx context.Context, req UploadFileRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := executeStreamingRequestCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil

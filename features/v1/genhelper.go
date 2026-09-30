@@ -127,26 +127,30 @@ func executeHTTPCall(opts httpCallOptions) ([]byte, http.Header, error) {
 	return body, resp.Header, nil
 }
 
-// executeCall resolves call.Option values to ops.Option values and invokes
-// ops.Execute.
-func executeCall(ctx context.Context, op func(context.Context) error, opts []call.Option) error {
+func resolveCallOptions(opts []call.Option) (internaloptions.CallOptions, error) {
 	cfg := internaloptions.CallOptions{}
 	for _, opt := range opts {
 		if err := opt(&cfg); err != nil {
-			return err
+			return internaloptions.CallOptions{}, err
 		}
 	}
-	var opsOpts []ops.Option
-	if cfg.Retrier != nil {
-		opsOpts = append(opsOpts, ops.WithRetrier(cfg.Retrier))
+	return cfg, nil
+}
+
+func executeCall(ctx context.Context, op func(context.Context) error, opts []call.Option) error {
+	cfg, err := resolveCallOptions(opts)
+	if err != nil {
+		return err
 	}
-	if cfg.RateLimiter != nil {
-		opsOpts = append(opsOpts, ops.WithLimiter(cfg.RateLimiter))
-	}
-	if cfg.Timeout != 0 {
-		opsOpts = append(opsOpts, ops.WithTimeout(cfg.Timeout))
-	}
-	return ops.Execute(ctx, op, opsOpts...)
+	return executeResolvedCall(ctx, op, cfg)
+}
+
+func executeResolvedCall(ctx context.Context, op func(context.Context) error, cfg internaloptions.CallOptions) error {
+	return ops.Execute(ctx, op,
+		ops.WithRetrier(cfg.Retrier),
+		ops.WithLimiter(cfg.RateLimiter),
+		ops.WithTimeout(cfg.Timeout),
+	)
 }
 
 func validateOperationName(operationName *string) error {

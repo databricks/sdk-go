@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -144,6 +145,8 @@ func (c *internalClient) CreateSpace(ctx context.Context, req GenieCreateSpaceRe
 // Download a rendered image of a message visualization attachment. The response
 // body is the raw PNG image, not a JSON payload. This is only available if the
 // attachment is a visualization and the message status is `COMPLETED`.
+// A timeout configured with [call.WithTimeout] applies until this method
+// returns. It does not apply while reading the returned response stream.
 func (c *internalClient) DownloadMessageAttachmentVisualization(ctx context.Context, req DownloadMessageAttachmentVisualizationRequest, opts ...call.Option) (*DownloadMessageAttachmentVisualizationResponse, error) {
 
 	headers := http.Header{}
@@ -171,7 +174,7 @@ func (c *internalClient) DownloadMessageAttachmentVisualization(ctx context.Cont
 
 	var resp *DownloadMessageAttachmentVisualizationResponse
 
-	call := func(ctx context.Context) error {
+	call := func(ctx context.Context) (io.ReadCloser, error) {
 		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
 			Method:      "GET",
 			URL:         urlStr,
@@ -180,7 +183,7 @@ func (c *internalClient) DownloadMessageAttachmentVisualization(ctx context.Cont
 			Headers:     headers,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		httpResp, err := executeStreamingHTTPCall(httpCallOptions{
@@ -189,16 +192,17 @@ func (c *internalClient) DownloadMessageAttachmentVisualization(ctx context.Cont
 			logger: c.logger,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 		resp = &DownloadMessageAttachmentVisualizationResponse{}
-		resp.Contents = httpResp.Body
-		return nil
+		return httpResp.Body, nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	contents, err := executeStreamingResponseCall(ctx, call, opts)
+	if err != nil {
 		return nil, err
 	}
+	resp.Contents = contents
 	return resp, nil
 }
 
