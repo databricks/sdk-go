@@ -126,26 +126,101 @@ func executeHTTPCall(opts httpCallOptions) ([]byte, http.Header, error) {
 	return body, resp.Header, nil
 }
 
-// executeCall resolves call.Option values to ops.Option values and invokes
-// ops.Execute.
-func executeCall(ctx context.Context, op func(context.Context) error, opts []call.Option) error {
+func resolveCallOptions(opts []call.Option) (internaloptions.CallOptions, error) {
 	cfg := internaloptions.CallOptions{}
 	for _, opt := range opts {
 		if err := opt(&cfg); err != nil {
-			return err
+			return internaloptions.CallOptions{}, err
 		}
 	}
-	var opsOpts []ops.Option
-	if cfg.Retrier != nil {
-		opsOpts = append(opsOpts, ops.WithRetrier(cfg.Retrier))
+	return cfg, nil
+}
+
+func executeCall(ctx context.Context, op func(context.Context) error, opts []call.Option) error {
+	cfg, err := resolveCallOptions(opts)
+	if err != nil {
+		return err
 	}
-	if cfg.RateLimiter != nil {
-		opsOpts = append(opsOpts, ops.WithLimiter(cfg.RateLimiter))
+	return executeResolvedCall(ctx, op, cfg)
+}
+
+func executeResolvedCall(ctx context.Context, op func(context.Context) error, cfg internaloptions.CallOptions) error {
+	return ops.Execute(ctx, op,
+		ops.WithRetrier(cfg.Retrier),
+		ops.WithLimiter(cfg.RateLimiter),
+		ops.WithTimeout(cfg.Timeout),
+	)
+}
+
+var errNilStream = errors.New("streaming operation returned a nil stream")
+
+// executeStreamingResponseCall runs a call whose response body is returned as a
+// stream. The context and options apply until the stream is returned. After
+// that handoff, the caller owns the stream and must close it.
+func executeStreamingResponseCall(ctx context.Context, op func(context.Context) (io.ReadCloser, error), opts []call.Option) (io.ReadCloser, error) {
+	cfg, err := resolveCallOptions(opts)
+	if err != nil {
+		return nil, err
 	}
+
+	executionCtx := ctx
+	cancelExecution := context.CancelFunc(func() {})
 	if cfg.Timeout != 0 {
-		opsOpts = append(opsOpts, ops.WithTimeout(cfg.Timeout))
+		executionCtx, cancelExecution = context.WithTimeout(ctx, cfg.Timeout)
 	}
-	return ops.Execute(ctx, op, opsOpts...)
+	defer cancelExecution()
+
+	// Preserve context values while allowing the request to outlive the call.
+	requestCtx, cancelRequest := context.WithCancelCause(context.WithoutCancel(ctx))
+	stopForwarding := context.AfterFunc(executionCtx, func() {
+		cancelRequest(context.Cause(executionCtx))
+	})
+
+	var stream io.ReadCloser
+	err = ops.Execute(executionCtx, func(context.Context) error {
+		var opErr error
+		stream, opErr = op(requestCtx)
+		return opErr
+	},
+		ops.WithRetrier(cfg.Retrier),
+		ops.WithLimiter(cfg.RateLimiter),
+	)
+
+	// Disconnect before deferred cleanup cancels executionCtx. A timeout that
+	// already started cancellation must fail the handoff instead of returning a broken body.
+	stopForwarding()
+	if cause := context.Cause(executionCtx); cause != nil {
+		err = cause
+	}
+	if err == nil && stream == nil {
+		err = errNilStream
+	}
+	if err != nil {
+		cancelRequest(err)
+		if stream != nil {
+			stream.Close()
+		}
+		return nil, err
+	}
+	return &cancelingReadCloser{ReadCloser: stream, cancel: func() { cancelRequest(nil) }}, nil
+}
+
+type cancelingReadCloser struct {
+	io.ReadCloser
+	cancel context.CancelFunc
+}
+
+func (r *cancelingReadCloser) Read(p []byte) (int, error) {
+	n, err := r.ReadCloser.Read(p)
+	if err != nil {
+		r.cancel()
+	}
+	return n, err
+}
+
+func (r *cancelingReadCloser) Close() error {
+	r.cancel()
+	return r.ReadCloser.Close()
 }
 
 var errOperationStillRunning = errors.New("operation is still running")

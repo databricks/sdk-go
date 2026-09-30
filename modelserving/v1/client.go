@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -446,6 +447,8 @@ func (c *internalClient) DeleteInferenceEndpoint(ctx context.Context, req Delete
 
 // Retrieves the metrics associated with the provided serving endpoint in either
 // Prometheus or OpenMetrics exposition format.
+// A timeout configured with [call.WithTimeout] applies until this method
+// returns. It does not apply while reading the returned response stream.
 func (c *internalClient) GetExportEndpointMetrics(ctx context.Context, req GetExportEndpointMetricsRequest, opts ...call.Option) (*ExportMetricsResponse, error) {
 
 	headers := http.Header{}
@@ -473,7 +476,7 @@ func (c *internalClient) GetExportEndpointMetrics(ctx context.Context, req GetEx
 
 	var resp *ExportMetricsResponse
 
-	call := func(ctx context.Context) error {
+	call := func(ctx context.Context) (io.ReadCloser, error) {
 		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
 			Method:      "GET",
 			URL:         urlStr,
@@ -482,7 +485,7 @@ func (c *internalClient) GetExportEndpointMetrics(ctx context.Context, req GetEx
 			Headers:     headers,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		httpResp, err := executeStreamingHTTPCall(httpCallOptions{
@@ -491,16 +494,17 @@ func (c *internalClient) GetExportEndpointMetrics(ctx context.Context, req GetEx
 			logger: c.logger,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 		resp = &ExportMetricsResponse{}
-		resp.Contents = httpResp.Body
-		return nil
+		return httpResp.Body, nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	contents, err := executeStreamingResponseCall(ctx, call, opts)
+	if err != nil {
 		return nil, err
 	}
+	resp.Contents = contents
 	return resp, nil
 }
 
@@ -570,6 +574,8 @@ func (c *internalClient) GetInferenceEndpoint(ctx context.Context, req GetInfere
 // Get the query schema of the serving endpoint in OpenAPI format. The schema
 // contains information for the supported paths, input and output format and
 // datatypes.
+// A timeout configured with [call.WithTimeout] applies until this method
+// returns. It does not apply while reading the returned response stream.
 func (c *internalClient) GetInferenceEndpointSchema(ctx context.Context, req GetInferenceEndpointSchemaRequest, opts ...call.Option) (*GetOpenApiResponse, error) {
 
 	headers := http.Header{}
@@ -597,7 +603,7 @@ func (c *internalClient) GetInferenceEndpointSchema(ctx context.Context, req Get
 
 	var resp *GetOpenApiResponse
 
-	call := func(ctx context.Context) error {
+	call := func(ctx context.Context) (io.ReadCloser, error) {
 		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
 			Method:      "GET",
 			URL:         urlStr,
@@ -606,7 +612,7 @@ func (c *internalClient) GetInferenceEndpointSchema(ctx context.Context, req Get
 			Headers:     headers,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		httpResp, err := executeStreamingHTTPCall(httpCallOptions{
@@ -615,16 +621,17 @@ func (c *internalClient) GetInferenceEndpointSchema(ctx context.Context, req Get
 			logger: c.logger,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 		resp = &GetOpenApiResponse{}
-		resp.Contents = httpResp.Body
-		return nil
+		return httpResp.Body, nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	contents, err := executeStreamingResponseCall(ctx, call, opts)
+	if err != nil {
 		return nil, err
 	}
+	resp.Contents = contents
 	return resp, nil
 }
 
@@ -1530,6 +1537,8 @@ func (c *internalClient) UpdateInferenceEndpointNotifications(ctx context.Contex
 }
 
 // Make external services call using the credentials stored in UC Connection.
+// A timeout configured with [call.WithTimeout] applies until this method
+// returns. It does not apply while reading the returned response stream.
 func (c *internalClient) HttpRequest(ctx context.Context, req ExternalFunctionRequest, opts ...call.Option) (*ExternalFunctionResponse, error) {
 	wireReq, err := externalFunctionRequestToWire(&req)
 	if err != nil {
@@ -1558,7 +1567,7 @@ func (c *internalClient) HttpRequest(ctx context.Context, req ExternalFunctionRe
 
 	var resp *ExternalFunctionResponse
 
-	call := func(ctx context.Context) error {
+	call := func(ctx context.Context) (io.ReadCloser, error) {
 		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
 			Method:      "POST",
 			URL:         urlStr,
@@ -1568,7 +1577,7 @@ func (c *internalClient) HttpRequest(ctx context.Context, req ExternalFunctionRe
 			Body:        bytes.NewBuffer(body),
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		httpResp, err := executeStreamingHTTPCall(httpCallOptions{
@@ -1577,15 +1586,16 @@ func (c *internalClient) HttpRequest(ctx context.Context, req ExternalFunctionRe
 			logger: c.logger,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 		resp = &ExternalFunctionResponse{}
-		resp.Contents = httpResp.Body
-		return nil
+		return httpResp.Body, nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	contents, err := executeStreamingResponseCall(ctx, call, opts)
+	if err != nil {
 		return nil, err
 	}
+	resp.Contents = contents
 	return resp, nil
 }
