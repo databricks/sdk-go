@@ -669,3 +669,78 @@ func (c *internalClient) ExecuteCommandSync(ctx context.Context, req ExecuteComm
 	}
 	return resp, nil
 }
+
+// Lists the tracked command executions (running and completed) in a sandbox.
+func (c *internalClient) ListCommands(ctx context.Context, req ListCommandsRequest, opts ...call.Option) (*ListCommandsResponse, error) {
+	wireReq, err := listCommandsRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/sandbox-exec/")
+	if req.Parent == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Parent)
+	}
+	pb.literal("/commands")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "page_size", wireReq.PageSize); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "page_token", wireReq.PageToken); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *ListCommandsResponse
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp listCommandsResponseWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = listCommandsResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}

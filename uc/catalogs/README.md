@@ -1,14 +1,10 @@
 # github.com/databricks/sdk-go/uc/catalogs
 
-> [!WARNING]
+> [!NOTE]
 >
-> ## ⚠️ PREVIEW - NOT FOR PRODUCTION USE
+> ## Beta
 >
-> **This SDK is in active development and is subject to change without notice.**
->
-> - ❌ **Do NOT use in production environments**
-> - ⚠️ **Breaking changes may occur at any time**
-> - 🔬 **APIs are experimental and unstable**
+> **This SDK is in Beta and is supported for production use cases.** Interfaces might still change slightly before GA (e.g. name standardization and minor ergonomic tweaks). We are keen to hear feedback from early adopters — please [file issues](https://github.com/databricks/sdk-go/issues), and we will address them.
 
 ## Installation
 

@@ -1,5 +1,11 @@
 # Databricks Core
 
+> [!NOTE]
+>
+> ## Beta
+>
+> **This SDK is in Beta and is supported for production use cases.** Interfaces might still change slightly before GA (e.g. name standardization and minor ergonomic tweaks). We are keen to hear feedback from early adopters — please [file issues](https://github.com/databricks/sdk-go/issues), and we will address them.
+
 [![Go Reference](https://pkg.go.dev/badge/github.com/databricks/sdk-go/core.svg)](https://pkg.go.dev/github.com/databricks/sdk-go/core)
 
 Internal core of the [Databricks Modular Go SDK](https://github.com/databricks/sdk-go), providing foundational primitives for error handling, operation execution with retry and rate limiting, configuration profile resolution, and client metadata collection.
