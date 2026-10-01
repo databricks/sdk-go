@@ -33,6 +33,23 @@ const (
 	SandboxState_SandboxStateStopping SandboxState = "SANDBOX_STATE_STOPPING"
 )
 
+// A single command execution..
+type Command struct {
+	// Stable identifier for this command.
+	CommandId *string
+	// The program that was executed.
+	Cmd *string
+	// Arguments passed to the program.
+	Args []string
+	// PID of the spawned process. Absent if the process failed to start.
+	Pid *int64
+	// Whether the command has finished executing.
+	Finished *bool
+	// Process exit code. Only present when finished is true and the process exited
+	// normally (not killed by signal or failed to start).
+	ExitCode *int
+}
+
 type ComputeSpec struct {
 	// Idle duration after which the sandbox is automatically terminated.
 	InactivityTimeout *types.Duration `fieldmask:"inactivity_timeout"`
@@ -49,6 +66,13 @@ type CreateSandboxRequest struct {
 // A request to delete a Sandbox..
 type DeleteSandboxRequest struct {
 	Name *string
+}
+
+type EnvironmentSpec struct {
+	// A Unity Catalog container artifact (e.g. `catalog.schema.folder.image:tag`)
+	// to run as the sandbox environment. When set, this image is used as the
+	// environment instead of resolving a managed image from `environment_version`.
+	ImageUri *string `fieldmask:"image_uri"`
 }
 
 // Request to run a command in the given sandbox and wait for it to finish..
@@ -98,6 +122,26 @@ type GetSandboxRequest struct {
 	Name *string
 }
 
+// Request to list tracked command executions..
+type ListCommandsRequest struct {
+	// Maximum number of commands to return. The server may return fewer. If
+	// unspecified, the server returns all commands.
+	PageSize *int
+	// Page token returned by a previous ListCommands call. Use this to retrieve the
+	// next page of results.
+	PageToken *string
+	// The sandbox whose commands to list, in the form `sandboxes/{sandbox_id}`.
+	Parent *string
+}
+
+// Response listing tracked command executions..
+type ListCommandsResponse struct {
+	// Commands in this page of results.
+	Commands []Command
+	// Token to retrieve the next page. Empty when there are no more results.
+	NextPageToken *string
+}
+
 // A request to list Sandboxes..
 type ListSandboxesRequest struct {
 	PageToken *string
@@ -132,6 +176,8 @@ type Sandbox struct {
 type SandboxSpec struct {
 	// Compute configuration (size, inactivity timeout) requested for the sandbox.
 	Compute *ComputeSpec `fieldmask:"compute"`
+	// The execution environment to use for the sandbox.
+	Environment *EnvironmentSpec `fieldmask:"environment"`
 }
 
 type SandboxStatus struct {

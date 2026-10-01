@@ -3,10 +3,56 @@
 package sandbox
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/databricks/sdk-go/core/types"
 )
+
+type wireInt64 int64
+
+func (v *wireInt64) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		return fmt.Errorf("parse int64: null is not valid")
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var text string
+		if err := json.Unmarshal(data, &text); err != nil {
+			return err
+		}
+		parsed, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse int64 %q: %w", text, err)
+		}
+		*v = wireInt64(parsed)
+		return nil
+	}
+	var parsed int64
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = wireInt64(parsed)
+	return nil
+}
+
+func int64ToWire(v *int64) (*wireInt64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := wireInt64(*v)
+	return &converted, nil
+}
+
+func int64FromWire(v *wireInt64) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	converted := int64(*v)
+	return &converted, nil
+}
 
 func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	if mask == nil {
@@ -14,6 +60,33 @@ func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	}
 	value := mask.String()
 	return &value
+}
+
+type commandWire struct {
+	CommandId *string    `json:"command_id,omitempty"`
+	Cmd       *string    `json:"cmd,omitempty"`
+	Args      []string   `json:"args,omitempty"`
+	Pid       *wireInt64 `json:"pid,omitempty"`
+	Finished  *bool      `json:"finished,omitempty"`
+	ExitCode  *int       `json:"exit_code,omitempty"`
+}
+
+func commandFromWire(w *commandWire) (*Command, error) {
+	if w == nil {
+		return nil, nil
+	}
+	pidPublicValue, err := int64FromWire(w.Pid)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Command.Pid", err)
+	}
+	return &Command{
+		CommandId: w.CommandId,
+		Cmd:       w.Cmd,
+		Args:      w.Args,
+		Pid:       pidPublicValue,
+		Finished:  w.Finished,
+		ExitCode:  w.ExitCode,
+	}, nil
 }
 
 type computeSpecWire struct {
@@ -54,6 +127,28 @@ func createSandboxRequestToWire(v *CreateSandboxRequest) (*createSandboxRequestW
 	return &createSandboxRequestWire{
 		Sandbox:   sandboxWireValue,
 		SandboxId: v.SandboxId,
+	}, nil
+}
+
+type environmentSpecWire struct {
+	ImageUri *string `json:"image_uri,omitempty"`
+}
+
+func environmentSpecToWire(v *EnvironmentSpec) (*environmentSpecWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &environmentSpecWire{
+		ImageUri: v.ImageUri,
+	}, nil
+}
+
+func environmentSpecFromWire(w *environmentSpecWire) (*EnvironmentSpec, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &EnvironmentSpec{
+		ImageUri: w.ImageUri,
 	}, nil
 }
 
@@ -98,6 +193,42 @@ func executeCommandSyncResponseFromWire(w *executeCommandSyncResponseWire) (*Exe
 		Stderr:    w.Stderr,
 		CommandId: w.CommandId,
 		Truncated: w.Truncated,
+	}, nil
+}
+
+type listCommandsRequestWire struct {
+	PageSize  *int    `json:"page_size,omitempty"`
+	PageToken *string `json:"page_token,omitempty"`
+	Parent    *string `json:"parent,omitempty"`
+}
+
+func listCommandsRequestToWire(v *ListCommandsRequest) (*listCommandsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listCommandsRequestWire{
+		PageSize:  v.PageSize,
+		PageToken: v.PageToken,
+		Parent:    v.Parent,
+	}, nil
+}
+
+type listCommandsResponseWire struct {
+	Commands      []commandWire `json:"commands,omitempty"`
+	NextPageToken *string       `json:"next_page_token,omitempty"`
+}
+
+func listCommandsResponseFromWire(w *listCommandsResponseWire) (*ListCommandsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	commandsPublicValue, err := convertSlice(w.Commands, commandFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCommandsResponse.Commands", err)
+	}
+	return &ListCommandsResponse{
+		Commands:      commandsPublicValue,
+		NextPageToken: w.NextPageToken,
 	}, nil
 }
 
@@ -189,7 +320,8 @@ func sandboxFromWire(w *sandboxWire) (*Sandbox, error) {
 }
 
 type sandboxSpecWire struct {
-	Compute *computeSpecWire `json:"compute,omitempty"`
+	Compute     *computeSpecWire     `json:"compute,omitempty"`
+	Environment *environmentSpecWire `json:"environment,omitempty"`
 }
 
 func sandboxSpecToWire(v *SandboxSpec) (*sandboxSpecWire, error) {
@@ -200,8 +332,13 @@ func sandboxSpecToWire(v *SandboxSpec) (*sandboxSpecWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "SandboxSpec.Compute", err)
 	}
+	environmentWireValue, err := environmentSpecToWire(v.Environment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SandboxSpec.Environment", err)
+	}
 	return &sandboxSpecWire{
-		Compute: computeWireValue,
+		Compute:     computeWireValue,
+		Environment: environmentWireValue,
 	}, nil
 }
 
@@ -213,8 +350,13 @@ func sandboxSpecFromWire(w *sandboxSpecWire) (*SandboxSpec, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "SandboxSpec.Compute", err)
 	}
+	environmentPublicValue, err := environmentSpecFromWire(w.Environment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SandboxSpec.Environment", err)
+	}
 	return &SandboxSpec{
-		Compute: computePublicValue,
+		Compute:     computePublicValue,
+		Environment: environmentPublicValue,
 	}, nil
 }
 
