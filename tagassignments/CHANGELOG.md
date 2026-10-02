@@ -1,5 +1,10 @@
 # Version changelog
 
+## Release v0.1.0 (2026-10-02)
+
+### New Features and Improvements
+* Beta release.
+
 ## Release v0.0.1 (2026-10-01)
 
 ## Release v0.0.1-dev.15 (2026-09-30)
