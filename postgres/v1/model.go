@@ -961,7 +961,8 @@ type CreateCdfConfigRequest struct {
 	// projects/{project}/branches/{branch}/databases/{database}
 	Parent *string
 	// The CdfConfig to create. The catalog, schema, and postgres_schema fields are
-	// required; all other fields are output only and ignored on input.
+	// required; service_principal is optional. All other fields are output only and
+	// ignored on input.
 	CdfConfig *CdfConfig
 	// The user-specified id for the CdfConfig, forming the final segment of its
 	// resource name. Must match the pattern `[a-z][a-z0-9_]{0,62}`. Defaults to the

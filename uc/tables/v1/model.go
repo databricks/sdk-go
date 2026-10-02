@@ -97,6 +97,10 @@ const (
 	SecurableKind_TableForeignDeltasharing            SecurableKind = "TABLE_FOREIGN_DELTASHARING"
 	SecurableKind_TableDeltaIcebergDeltasharing       SecurableKind = "TABLE_DELTA_ICEBERG_DELTASHARING"
 	SecurableKind_TableDeltasharingOpenDirBased       SecurableKind = "TABLE_DELTASHARING_OPEN_DIR_BASED"
+	// This is the delta sharing version of foreign delta tables. Unlike
+	// TABLE_FOREIGN_DELTASHARING which represents a generic foreign table, this
+	// specifically represents a foreign delta table shared via Delta Sharing.
+	SecurableKind_TableForeignDeltaDeltasharing SecurableKind = "TABLE_FOREIGN_DELTA_DELTASHARING"
 	// TABLE_FEATURE_STORE and TABLE_FEATURE_STORE_EXTERNAL are deprecated.
 	SecurableKind_TableFeatureStore                              SecurableKind = "TABLE_FEATURE_STORE"
 	SecurableKind_TableFeatureStoreExternal                      SecurableKind = "TABLE_FEATURE_STORE_EXTERNAL"

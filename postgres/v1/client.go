@@ -3585,9 +3585,8 @@ func (c *internalClient) GetCatalog(ctx context.Context, req GetCatalogRequest, 
 	return resp, nil
 }
 
-// Get a single Lakebase CDF configuration, including the source Postgres
-// schema, target Unity Catalog schema, and the identity under which writes are
-// authorized.
+// Get a single Lakebase CDF configuration, including the source Postgres schema
+// and target Unity Catalog schema.
 func (c *internalClient) GetCdfConfig(ctx context.Context, req GetCdfConfigRequest, opts ...call.Option) (*CdfConfig, error) {
 
 	headers := http.Header{}

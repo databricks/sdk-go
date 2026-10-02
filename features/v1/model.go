@@ -2465,9 +2465,9 @@ type TumblingWindow struct {
 }
 
 type UpdateFeatureRequest struct {
-	// Feature to update.
+	// Feature whose full_name identifies the target. Only description is mutable.
 	Feature *Feature
-	// The list of fields to update.
+	// Fields to update. The only supported path is description.
 	UpdateMask *types.FieldMask[Feature]
 }
 
