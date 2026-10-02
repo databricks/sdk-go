@@ -2093,6 +2093,7 @@ type environmentWire struct {
 	BaseEnvironment    *string  `json:"base_environment,omitempty"`
 	EnvironmentVersion *string  `json:"environment_version,omitempty"`
 	JavaDependencies   []string `json:"java_dependencies,omitempty"`
+	ProjectEnvironment *string  `json:"project_environment,omitempty"`
 }
 
 func environmentToWire(v *Environment) (*environmentWire, error) {
@@ -2105,6 +2106,7 @@ func environmentToWire(v *Environment) (*environmentWire, error) {
 		BaseEnvironment:    v.BaseEnvironment,
 		EnvironmentVersion: v.EnvironmentVersion,
 		JavaDependencies:   v.JavaDependencies,
+		ProjectEnvironment: v.ProjectEnvironment,
 	}, nil
 }
 
@@ -2118,6 +2120,7 @@ func environmentFromWire(w *environmentWire) (*Environment, error) {
 		BaseEnvironment:    w.BaseEnvironment,
 		EnvironmentVersion: w.EnvironmentVersion,
 		JavaDependencies:   w.JavaDependencies,
+		ProjectEnvironment: w.ProjectEnvironment,
 	}, nil
 }
 

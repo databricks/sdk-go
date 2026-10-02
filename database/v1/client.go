@@ -1602,7 +1602,7 @@ func (c *internalClient) ListDatabaseInstancesIter(ctx context.Context, req List
 	}
 }
 
-// This API is currently unimplemented, but exposed for Terraform support.
+// List synced database tables in a Database Instance.
 func (c *internalClient) ListSyncedDatabaseTables(ctx context.Context, req ListSyncedDatabaseTablesRequest, opts ...call.Option) (*ListSyncedDatabaseTablesResponse, error) {
 	wireReq, err := listSyncedDatabaseTablesRequestToWire(&req)
 	if err != nil {

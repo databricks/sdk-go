@@ -2262,6 +2262,8 @@ type Environment struct {
 	// List of java dependencies. Each dependency is a string representing a java
 	// library path. For example: `/Volumes/path/to/test.jar`.
 	JavaDependencies []string
+	// File path of pyproject.toml file that defines the project-scoped environment.
+	ProjectEnvironment *string
 }
 
 // Retrieves the export of a job run task..
