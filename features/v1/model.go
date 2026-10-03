@@ -1927,8 +1927,7 @@ type PurgeFeatureEntitiesResult struct {
 // A request-time data source whose value is provided at inference time: offline
 // batch scoring or online serving endpoint.
 type RequestSource struct {
-	// The schema describing the request-time fields. Currently only flat schemas
-	// are supported.
+	// The schema describing the request-time fields.
 	Schema isRequestSource_Schema
 	_      [0]requestSourceSchemaFieldMaskMetadata `fieldmask_oneof:"Schema"`
 }

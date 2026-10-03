@@ -375,8 +375,7 @@ type ListModelProviderServicesResponse struct {
 	NextPageToken *string
 }
 
-// Request to list model services. Accepts `parent`, `page_size`, `page_token`,
-// and `view`..
+// Request to list model services..
 type ListModelServicesRequest struct {
 	// Parent schema to list within, in the form `schemas/{catalog}.{schema}`.
 	// Required. Each `{...}` component is capped at 255 characters individually.
