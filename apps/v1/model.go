@@ -430,8 +430,7 @@ const (
 	AppDeployment_Mode_Unspecified AppDeployment_Mode = ""
 	// Captures a snapshot of the source code at deployment time.
 	AppDeployment_Mode_Snapshot AppDeployment_Mode = "SNAPSHOT"
-	// Deprecated. Auto-sync deployments are no longer supported. Use SNAPSHOT
-	// instead.
+	// Unsupported. Auto-sync deployments are not accepted. Use SNAPSHOT instead.
 	AppDeployment_Mode_AutoSync AppDeployment_Mode = "AUTO_SYNC"
 )
 
