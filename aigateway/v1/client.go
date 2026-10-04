@@ -1795,8 +1795,9 @@ func (c *internalClient) UpdateMcpService(ctx context.Context, req UpdateMcpServ
 // plus `USE_CATALOG` on the parent catalog and `USE_SCHEMA` on the parent
 // schema.
 //
-// Updating `config.provider` cannot change the provider type or switch between
-// Unity Catalog service-credential authentication and inline authentication.
+// Updating `config.provider` cannot change the provider type. Authentication
+// mode changes require feature availability and support for both modes on the
+// selected provider.
 func (c *internalClient) UpdateModelProviderService(ctx context.Context, req UpdateModelProviderServiceRequest, opts ...call.Option) (*ModelProviderService, error) {
 	wireReq, err := updateModelProviderServiceRequestToWire(&req)
 	if err != nil {

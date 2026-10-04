@@ -1667,7 +1667,9 @@ type UpdateModelProviderServiceRequest struct {
 	// `config.allow_all_targets`, `config.targets`, `config.forward_headers`,
 	// `config.forward_query_parameters`, `config.forward_unmanaged_paths`,
 	// `config.rate_limits`, or `config.inference_table`. The provider type is
-	// immutable.
+	// immutable. A `config` or `config.provider` replacement that carries no
+	// authentication material preserves the existing authentication binding;
+	// input-only plaintext does not need to be read back and re-sent.
 	UpdateMask *types.FieldMask[ModelProviderService]
 	// Optimistic concurrency token from the most recent read. When set, the update
 	// succeeds only if the resource has not changed. Leave unset for an

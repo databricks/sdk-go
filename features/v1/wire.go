@@ -3044,7 +3044,8 @@ func purgeFeatureEntitiesResultFromWire(w *purgeFeatureEntitiesResultWire) (*Pur
 }
 
 type requestSourceWire struct {
-	FlatSchema *flatSchemaWire `json:"flat_schema,omitempty"`
+	FlatSchema      *flatSchemaWire `json:"flat_schema,omitempty"`
+	DataframeSchema *string         `json:"dataframe_schema,omitempty"`
 }
 
 func requestSourceToWire(v *RequestSource) (*requestSourceWire, error) {
@@ -3052,6 +3053,7 @@ func requestSourceToWire(v *RequestSource) (*requestSourceWire, error) {
 		return nil, nil
 	}
 	var schemaFlatSchemaWire *flatSchemaWire
+	var schemaDataframeSchemaWire *string
 	switch value := v.Schema.(type) {
 	case nil:
 	case *RequestSource_Schema_FlatSchema:
@@ -3062,11 +3064,16 @@ func requestSourceToWire(v *RequestSource) (*requestSourceWire, error) {
 			}
 			schemaFlatSchemaWire = schemaFlatSchemaConverted
 		}
+	case *RequestSource_Schema_DataframeSchema:
+		if value != nil {
+			schemaDataframeSchemaWire = new(value.DataframeSchema)
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "RequestSource.Schema", value)
 	}
 	return &requestSourceWire{
-		FlatSchema: schemaFlatSchemaWire,
+		FlatSchema:      schemaFlatSchemaWire,
+		DataframeSchema: schemaDataframeSchemaWire,
 	}, nil
 }
 
@@ -3076,6 +3083,9 @@ func requestSourceFromWire(w *requestSourceWire) (*RequestSource, error) {
 	}
 	schemaMembers := 0
 	if w.FlatSchema != nil {
+		schemaMembers++
+	}
+	if w.DataframeSchema != nil {
 		schemaMembers++
 	}
 	if schemaMembers > 1 {
@@ -3089,6 +3099,8 @@ func requestSourceFromWire(w *requestSourceWire) (*RequestSource, error) {
 			return nil, fmt.Errorf("%s: %w", "RequestSource.Schema.FlatSchema", err)
 		}
 		schemaSelection = &RequestSource_Schema_FlatSchema{FlatSchema: *schemaFlatSchemaConverted}
+	case w.DataframeSchema != nil:
+		schemaSelection = &RequestSource_Schema_DataframeSchema{DataframeSchema: *w.DataframeSchema}
 	}
 	return &RequestSource{
 		Schema: schemaSelection,
