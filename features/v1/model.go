@@ -1944,8 +1944,19 @@ type RequestSource_Schema_FlatSchema struct {
 
 func (*RequestSource_Schema_FlatSchema) isRequestSource_Schema() {}
 
+// RequestSource_Schema_DataframeSchema selects DataframeSchema for RequestSource.Schema.
+// A schema containing scalar or nested fields, in Spark StructType JSON format
+// (from df.schema.json()). This preserves field, array-element, and map-value
+// nullability.
+type RequestSource_Schema_DataframeSchema struct {
+	DataframeSchema string `fieldmask:"dataframe_schema"`
+}
+
+func (*RequestSource_Schema_DataframeSchema) isRequestSource_Schema() {}
+
 type requestSourceSchemaFieldMaskMetadata struct {
 	*RequestSource_Schema_FlatSchema
+	*RequestSource_Schema_DataframeSchema
 }
 
 // A rolling time window with an optional non-negative delay..
