@@ -2,4 +2,4 @@ package internal
 
 const ModuleName = "sdk-go-globalinitscripts"
 
-const Version = "0.1.0"
+const Version = "0.2.0"

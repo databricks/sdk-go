@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
@@ -73,117 +74,80 @@ func TestDefaultStrategies_Order(t *testing.T) {
 }
 
 func TestDefaultCredentials_Resolution(t *testing.T) {
-	executable, err := os.Executable()
-	if err != nil {
-		t.Fatalf("os.Executable() error = %v", err)
-	}
-
 	testCases := []struct {
-		name       string
-		strategies []strategy
-		profile    profiles.Profile
-		setEnv     func(*testing.T)
-		wantName   string
+		name        string
+		strategies  []strategy
+		profile     profiles.Profile
+		wantName    string
+		wantHeaders []auth.Header
 	}{
 		{
-			name:       "returns the first configured strategy",
-			strategies: []strategy{{name: "pat", configure: configurePAT}, configuredStrategy("oauth-m2m")},
-			profile:    profiles.Profile{Host: testHost, Token: "dapi-abc"},
-			wantName:   "pat",
+			name:        "returns the first strategy that provides headers",
+			strategies:  []strategy{configuredStrategy("first"), configuredStrategy("second")},
+			wantName:    "first",
+			wantHeaders: []auth.Header{{Key: "Authorization", Value: "Bearer first"}},
 		},
 		{
-			name:       "falls through to the next strategy when earlier ones are unconfigured",
-			strategies: []strategy{unconfiguredStrategy("pat"), configuredStrategy("oauth-m2m")},
-			profile:    profiles.Profile{Host: testHost},
-			wantName:   "oauth-m2m",
-		},
-		{
-			name:       "auth_type pins a strategy over an earlier configured strategy",
-			strategies: []strategy{{name: "pat", configure: configurePAT}, configuredStrategy("oauth-m2m")},
-			profile:    profiles.Profile{Host: testHost, Token: "dapi-abc", AuthType: "oauth-m2m"},
-			wantName:   "oauth-m2m",
-		},
-		{
-			name:    "auth_type pins environment OIDC when PAT is configured",
-			profile: profiles.Profile{Host: testHost, AuthType: "env-oidc", Token: "earlier-pat"},
-			setEnv: func(t *testing.T) {
-				t.Setenv(defaultOIDCTokenEnv, "id-token")
+			name: "falls through after a configuration error",
+			strategies: []strategy{
+				{
+					name: "first",
+					configure: func(profiles.Profile) (auth.Credentials, error) {
+						return nil, errors.New("configuration failed")
+					},
+				},
+				configuredStrategy("second"),
 			},
-			wantName: "env-oidc",
+			wantName:    "second",
+			wantHeaders: []auth.Header{{Key: "Authorization", Value: "Bearer second"}},
 		},
 		{
-			name:     "grouped file OIDC selected by auth_type",
-			profile:  profiles.Profile{Host: testHost, AuthType: "file-oidc", OIDCTokenFilePath: "/missing", GroupID: "group-id"},
-			wantName: "file-oidc",
+			name:       "falls through when configuration does not apply",
+			strategies: []strategy{unconfiguredStrategy("first"), configuredStrategy("second")},
+			wantName:   "second",
+			wantHeaders: []auth.Header{
+				{Key: "Authorization", Value: "Bearer second"},
+			},
 		},
 		{
-			name:    "grouped environment OIDC selected without auth_type",
-			profile: profiles.Profile{Host: testHost, GroupID: "group-id"},
-			setEnv: func(t *testing.T) {
-				t.Setenv(defaultOIDCTokenEnv, "id-token")
+			name: "falls through after token acquisition fails",
+			strategies: []strategy{
+				{
+					name: "first",
+					configure: func(profiles.Profile) (auth.Credentials, error) {
+						return auth.NewTokenCredentials("first", auth.TokenProviderFn(
+							func(context.Context) (*auth.Token, error) {
+								return nil, errors.New("token acquisition failed")
+							},
+						)), nil
+					},
+				},
+				configuredStrategy("second"),
 			},
-			wantName: "env-oidc",
+			wantName:    "second",
+			wantHeaders: []auth.Header{{Key: "Authorization", Value: "Bearer second"}},
 		},
 		{
-			name:    "custom environment OIDC selected without auth_type",
-			profile: profiles.Profile{Host: testHost, OIDCTokenEnv: "TEST_OIDC_TOKEN"},
-			setEnv: func(t *testing.T) {
-				t.Setenv("TEST_OIDC_TOKEN", "id-token")
+			name: "explicit auth type pins selected strategy",
+			strategies: []strategy{
+				configuredStrategy("first"),
+				configuredStrategy("second"),
 			},
-			wantName: "env-oidc",
-		},
-		{
-			name:     "file OIDC selected without auth_type",
-			profile:  profiles.Profile{Host: testHost, OIDCTokenFilePath: "/missing"},
-			wantName: "file-oidc",
-		},
-		{
-			name:    "PAT precedes environment OIDC without auth_type",
-			profile: profiles.Profile{Host: testHost, Token: "earlier-pat"},
-			setEnv: func(t *testing.T) {
-				t.Setenv(defaultOIDCTokenEnv, "id-token")
-			},
-			wantName: "pat",
-		},
-		{
-			name: "OAuth M2M precedes environment OIDC without auth_type",
-			profile: profiles.Profile{
-				Host:         testHost,
-				ClientID:     "client-id",
-				ClientSecret: "client-secret",
-			},
-			setEnv: func(t *testing.T) {
-				t.Setenv(defaultOIDCTokenEnv, "id-token")
-			},
-			wantName: "oauth-m2m",
-		},
-		{
-			name: "CLI precedes environment OIDC without auth_type",
-			profile: profiles.Profile{
-				Name:              "configured-profile",
-				Host:              testHost,
-				DatabricksCLIPath: executable,
-			},
-			setEnv: func(t *testing.T) {
-				t.Setenv(defaultOIDCTokenEnv, "id-token")
-			},
-			wantName: "databricks-cli",
+			profile:     profiles.Profile{AuthType: "second"},
+			wantName:    "second",
+			wantHeaders: []auth.Header{{Key: "Authorization", Value: "Bearer second"}},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			isolateOIDCEnvironment(t)
-			if tc.setEnv != nil {
-				tc.setEnv(t)
-			}
-			strategies := tc.strategies
-			if strategies == nil {
-				strategies = defaultStrategies()
-			}
-			credentials, err := newTestChain(strategies, tc.profile).resolveChain()
+			credentials := newTestChain(tc.strategies, tc.profile)
+			headers, err := credentials.AuthHeaders(context.Background())
 			if err != nil {
-				t.Fatalf("resolveChain() error = %v", err)
+				t.Fatalf("AuthHeaders() error = %v", err)
+			}
+			if diff := cmp.Diff(tc.wantHeaders, headers); diff != "" {
+				t.Errorf("AuthHeaders() mismatch (-want +got):\n%s", diff)
 			}
 			if got := credentials.Name(); got != tc.wantName {
 				t.Errorf("Name() = %q, want %q", got, tc.wantName)
@@ -192,28 +156,50 @@ func TestDefaultCredentials_Resolution(t *testing.T) {
 	}
 }
 
-func TestDefaultCredentials_CachesResolvedStrategy(t *testing.T) {
-	buildCount := 0
-	counting := strategy{
-		name: "counting",
-		configure: func(profiles.Profile) (auth.Credentials, error) {
-			buildCount++
-			return auth.NewTokenCredentials("counting", auth.TokenProviderFn(
+func TestDefaultCredentials_CachesResolution(t *testing.T) {
+	testCases := []struct {
+		name         string
+		credentials  auth.Credentials
+		configureErr error
+		wantErr      error
+	}{
+		{
+			name: "successful resolution",
+			credentials: auth.NewTokenCredentials("counting", auth.TokenProviderFn(
 				func(context.Context) (*auth.Token, error) {
 					return &auth.Token{Value: "x"}, nil
 				},
-			)), nil
+			)),
+		},
+		{
+			name:         "failed resolution",
+			configureErr: errors.New("configuration failed"),
+			wantErr:      ErrNoAuthConfigured,
 		},
 	}
-	creds := newTestChain([]strategy{counting}, profiles.Profile{})
-	if _, err := creds.AuthHeaders(context.Background()); err != nil {
-		t.Fatalf("AuthHeaders() error = %v", err)
-	}
-	if _, err := creds.AuthHeaders(context.Background()); err != nil {
-		t.Fatalf("AuthHeaders() error = %v", err)
-	}
-	if buildCount != 1 {
-		t.Errorf("configure called %d times, want 1", buildCount)
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			configureCalls := 0
+			counting := strategy{
+				name: "counting",
+				configure: func(profiles.Profile) (auth.Credentials, error) {
+					configureCalls++
+					return tc.credentials, tc.configureErr
+				},
+			}
+			creds := newTestChain([]strategy{counting}, profiles.Profile{})
+
+			for range 2 {
+				_, err := creds.AuthHeaders(context.Background())
+				if !errors.Is(err, tc.wantErr) {
+					t.Fatalf("AuthHeaders() error = %v, want %v", err, tc.wantErr)
+				}
+			}
+			if configureCalls != 1 {
+				t.Errorf("configure calls = %d, want 1", configureCalls)
+			}
+		})
 	}
 }
 
@@ -240,60 +226,95 @@ func TestDefaultCredentials_InvokesLoaderExactlyOnce(t *testing.T) {
 
 func TestDefaultCredentials_Errors(t *testing.T) {
 	testCases := []struct {
-		desc       string
-		strategies []strategy
-		profile    profiles.Profile
-		wantErr    error
+		name        string
+		strategies  []strategy
+		profile     profiles.Profile
+		wantErr     error
+		wantMessage string
 	}{
 		{
-			desc:       "no strategy is configured",
-			strategies: []strategy{{name: "pat", configure: configurePAT}},
-			profile:    profiles.Profile{Host: testHost},
-			wantErr:    ErrNoAuthConfigured,
-		},
-		{
-			desc:       "no strategy matches auth_type",
-			strategies: []strategy{{name: "pat", configure: configurePAT}, configuredStrategy("oauth-m2m")},
-			profile:    profiles.Profile{Host: testHost, Token: "dapi-abc", AuthType: "made-up"},
-			wantErr:    ErrAuthTypeNotFound,
-		},
-		{
-			desc:       "the strategy named by auth_type is not configured",
-			strategies: []strategy{{name: "pat", configure: configurePAT}, configuredStrategy("oauth-m2m")},
-			profile:    profiles.Profile{Host: testHost, AuthType: "pat"},
-			wantErr:    ErrNoAuthConfigured,
-		},
-		{
-			desc:    "environment OIDC token is missing",
-			profile: profiles.Profile{Host: testHost, AuthType: "env-oidc"},
-			wantErr: ErrNoAuthConfigured,
-		},
-		{
-			desc:    "file OIDC path is missing",
-			profile: profiles.Profile{Host: testHost, AuthType: "file-oidc"},
-			wantErr: ErrNoAuthConfigured,
-		},
-		{
-			desc: "file OIDC host is missing",
-			profile: profiles.Profile{
-				AuthType:          "file-oidc",
-				OIDCTokenFilePath: "/token",
+			name: "automatic exhaustion returns generic error",
+			strategies: []strategy{
+				{
+					name: "configuration-error",
+					configure: func(profiles.Profile) (auth.Credentials, error) {
+						return nil, errors.New("configuration failed")
+					},
+				},
+				{
+					name: "token-error",
+					configure: func(profiles.Profile) (auth.Credentials, error) {
+						return auth.NewTokenCredentials("token-error", auth.TokenProviderFn(
+							func(context.Context) (*auth.Token, error) {
+								return nil, errors.New("token acquisition failed")
+							},
+						)), nil
+					},
+				},
 			},
 			wantErr: ErrNoAuthConfigured,
+			wantMessage: "cannot configure default credentials, please check " + authDocURL +
+				" to configure credentials for your preferred authentication method",
+		},
+		{
+			name: "selected strategy configuration error",
+			strategies: []strategy{
+				{
+					name: "selected",
+					configure: func(profiles.Profile) (auth.Credentials, error) {
+						return nil, errTokenRequired
+					},
+				},
+				configuredStrategy("fallback"),
+			},
+			profile: profiles.Profile{AuthType: "selected"},
+			wantErr: errTokenRequired,
+		},
+		{
+			name: "selected strategy initial header error",
+			strategies: []strategy{
+				{
+					name: "selected",
+					configure: func(profiles.Profile) (auth.Credentials, error) {
+						return auth.NewTokenCredentials("selected", auth.TokenProviderFn(
+							func(context.Context) (*auth.Token, error) {
+								return nil, errTokenRequired
+							},
+						)), nil
+					},
+				},
+				configuredStrategy("fallback"),
+			},
+			profile: profiles.Profile{AuthType: "selected"},
+			wantErr: errTokenRequired,
+		},
+		{
+			name:       "oauth m2m missing client secret",
+			strategies: defaultStrategies(),
+			profile: profiles.Profile{
+				Host:     testHost,
+				ClientID: "client-id",
+				AuthType: "oauth-m2m",
+			},
+			wantErr: errClientSecretRequired,
+		},
+		{
+			name:       "unknown auth type",
+			strategies: defaultStrategies(),
+			profile:    profiles.Profile{AuthType: "made-up"},
+			wantErr:    ErrAuthTypeNotFound,
 		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
-			isolateOIDCEnvironment(t)
-			strategies := tc.strategies
-			if strategies == nil {
-				strategies = defaultStrategies()
-			}
-			creds := newTestChain(strategies, tc.profile)
+		t.Run(tc.name, func(t *testing.T) {
+			creds := newTestChain(tc.strategies, tc.profile)
 			_, err := creds.AuthHeaders(context.Background())
 			if !errors.Is(err, tc.wantErr) {
-				t.Errorf("AuthHeaders() err = %v, want %v", err, tc.wantErr)
+				t.Fatalf("AuthHeaders() error = %v, want %v", err, tc.wantErr)
+			}
+			if tc.wantMessage != "" && err.Error() != tc.wantMessage {
+				t.Errorf("AuthHeaders() error = %q, want %q", err, tc.wantMessage)
 			}
 		})
 	}
@@ -421,10 +442,7 @@ func TestDefaultCredentials_BuiltInUnsupportedStrategiesRejectGroup(t *testing.T
 	}
 }
 
-// TestDefaultCredentials_DoesNotFallBackAfterSelectedProviderFails verifies
-// that a token failure from the selected provider is returned without trying a
-// later credential strategy.
-func TestDefaultCredentials_DoesNotFallBackAfterSelectedProviderFails(t *testing.T) {
+func TestDefaultCredentials_FallsBackWhenProviderCannotAcquireInitialToken(t *testing.T) {
 	providerErr := errors.New("group assumption rejected")
 	fallbackCalls := 0
 	failed := strategy{
@@ -448,11 +466,64 @@ func TestDefaultCredentials_DoesNotFallBackAfterSelectedProviderFails(t *testing
 
 	creds := newTestChain([]strategy{failed, fallback}, profiles.Profile{GroupID: "group-id"})
 
-	_, err := creds.AuthHeaders(context.Background())
-	if !errors.Is(err, providerErr) {
-		t.Fatalf("AuthHeaders() error = %v, want %v", err, providerErr)
+	headers, err := creds.AuthHeaders(context.Background())
+	if err != nil {
+		t.Fatalf("AuthHeaders() error = %v", err)
+	}
+	want := []auth.Header{{Key: "Authorization", Value: "Bearer dapi-fallback"}}
+	if diff := cmp.Diff(want, headers); diff != "" {
+		t.Errorf("AuthHeaders() mismatch (-want +got):\n%s", diff)
+	}
+	if fallbackCalls != 1 {
+		t.Errorf("fallback configure calls = %d, want 1", fallbackCalls)
+	}
+	if got, want := creds.Name(), "pat"; got != want {
+		t.Errorf("Name() = %q, want %q", got, want)
+	}
+}
+
+func TestDefaultCredentials_DoesNotFallBackAfterSelectedProviderFails(t *testing.T) {
+	providerErr := errors.New("token refresh failed")
+	failSelected := false
+	fallbackCalls := 0
+	selected := strategy{
+		name:                    "oauth-m2m",
+		supportsGroupAssumption: true,
+		configure: func(profiles.Profile) (auth.Credentials, error) {
+			return auth.NewTokenCredentials("oauth-m2m", auth.TokenProviderFn(
+				func(context.Context) (*auth.Token, error) {
+					if failSelected {
+						return nil, providerErr
+					}
+					return &auth.Token{Value: "initial-token"}, nil
+				},
+			)), nil
+		},
+	}
+	fallback := strategy{
+		name:                    "fallback",
+		supportsGroupAssumption: true,
+		configure: func(profiles.Profile) (auth.Credentials, error) {
+			fallbackCalls++
+			return NewPATCredentials("dapi-fallback")
+		},
+	}
+	creds := newTestChain([]strategy{selected, fallback}, profiles.Profile{GroupID: "group-id"})
+
+	headers, err := creds.AuthHeaders(context.Background())
+	if err != nil {
+		t.Fatalf("first AuthHeaders() error = %v", err)
+	}
+	wantHeaders := []auth.Header{{Key: "Authorization", Value: "Bearer initial-token"}}
+	if diff := cmp.Diff(wantHeaders, headers); diff != "" {
+		t.Errorf("first AuthHeaders() mismatch (-want +got):\n%s", diff)
 	}
 
+	failSelected = true
+	_, err = creds.AuthHeaders(context.Background())
+	if !errors.Is(err, providerErr) {
+		t.Fatalf("second AuthHeaders() error = %v, want %v", err, providerErr)
+	}
 	if fallbackCalls != 0 {
 		t.Errorf("fallback configure calls = %d, want 0", fallbackCalls)
 	}
@@ -577,22 +648,152 @@ func TestDefaultCredentials_NameConcurrentWithAuthHeaders(t *testing.T) {
 	wg.Wait()
 }
 
-// TestNewDefaultCredentials_PATFromProfile exercises the public constructor
-// end-to-end with a real strategy (PAT needs no network) via an explicit
-// profile, confirming the default chain wires up correctly.
-func TestNewDefaultCredentials_PATFromProfile(t *testing.T) {
-	creds := NewDefaultCredentials(DefaultCredentialsOptions{
-		Profile: &profiles.Profile{Host: testHost, Token: "dapi-xyz"},
-	})
+func TestNewDefaultCredentials_BuiltInStrategies(t *testing.T) {
+	executable, err := os.Executable()
+	if err != nil {
+		t.Fatalf("os.Executable() error = %v", err)
+	}
+
+	const (
+		accountHost = "https://accounts.example.com"
+		accountID   = "account-id"
+	)
+	testCases := []struct {
+		name      string
+		setup     func(*testing.T) profiles.Profile
+		wantName  string
+		wantToken string
+	}{
+		{
+			name: "PAT",
+			setup: func(*testing.T) profiles.Profile {
+				return profiles.Profile{
+					Host:     testHost,
+					Token:    "dapi-xyz",
+					AuthType: "pat",
+				}
+			},
+			wantName:  "pat",
+			wantToken: "dapi-xyz",
+		},
+		{
+			name: "OAuth M2M",
+			setup: func(t *testing.T) profiles.Profile {
+				server := newFakeOIDCServer()
+				t.Cleanup(server.Close)
+				return profiles.Profile{
+					Host:         server.server.URL,
+					ClientID:     "client-id",
+					ClientSecret: "client-secret",
+					AuthType:     "oauth-m2m",
+				}
+			},
+			wantName:  "oauth-m2m",
+			wantToken: "access-token",
+		},
+		{
+			name: "Databricks CLI",
+			setup: func(t *testing.T) profiles.Profile {
+				setFakeCLIEnv(t, "ok")
+				t.Setenv(envFakeCLIArgs, "auth token --host "+accountHost+" --account-id "+accountID)
+				return profiles.Profile{
+					Host:              accountHost,
+					AccountID:         accountID,
+					AuthType:          "databricks-cli",
+					DatabricksCLIPath: executable,
+				}
+			},
+			wantName:  "databricks-cli",
+			wantToken: "fake-access-token",
+		},
+		{
+			name: "environment OIDC with custom variable",
+			setup: func(t *testing.T) profiles.Profile {
+				isolateOIDCEnvironment(t)
+				t.Setenv("TEST_OIDC_TOKEN", "id-token")
+				server := newFakeOIDCServer()
+				t.Cleanup(server.Close)
+				return profiles.Profile{
+					Host:         server.server.URL,
+					ClientID:     "client-id",
+					AuthType:     "env-oidc",
+					OIDCTokenEnv: "TEST_OIDC_TOKEN",
+				}
+			},
+			wantName:  "env-oidc",
+			wantToken: "access-token",
+		},
+		{
+			name: "file OIDC",
+			setup: func(t *testing.T) profiles.Profile {
+				tokenFile := filepath.Join(t.TempDir(), "oidc-token")
+				if err := os.WriteFile(tokenFile, []byte("id-token"), 0o600); err != nil {
+					t.Fatalf("os.WriteFile() error = %v", err)
+				}
+				server := newFakeOIDCServer()
+				t.Cleanup(server.Close)
+				return profiles.Profile{
+					Host:              server.server.URL,
+					ClientID:          "client-id",
+					AuthType:          "file-oidc",
+					OIDCTokenFilePath: tokenFile,
+				}
+			},
+			wantName:  "file-oidc",
+			wantToken: "access-token",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			profile := tc.setup(t)
+			creds := NewDefaultCredentials(DefaultCredentialsOptions{Profile: &profile})
+
+			headers, err := creds.AuthHeaders(context.Background())
+			if err != nil {
+				t.Fatalf("AuthHeaders() error = %v", err)
+			}
+			want := []auth.Header{{Key: "Authorization", Value: "Bearer " + tc.wantToken}}
+			if diff := cmp.Diff(want, headers); diff != "" {
+				t.Errorf("AuthHeaders() mismatch (-want +got):\n%s", diff)
+			}
+			if got, want := creds.Name(), tc.wantName; got != want {
+				t.Errorf("Name() = %q, want %q", got, want)
+			}
+		})
+	}
+}
+
+func TestNewDefaultCredentials_U2MProfileFallsBackToHostWithOldCLI(t *testing.T) {
+	executable, err := os.Executable()
+	if err != nil {
+		t.Fatalf("os.Executable() error = %v", err)
+	}
+
+	const (
+		host      = "https://accounts.example.com"
+		accountID = "account-id"
+	)
+	setFakeCLIEnv(t, "unknown-profile-flag")
+	t.Setenv(envFakeCLIArgs, "auth token --host "+host+" --account-id "+accountID)
+	profile := profiles.Profile{
+		Name:              "ACCOUNT",
+		Host:              host,
+		AccountID:         accountID,
+		AuthType:          "databricks-cli",
+		DatabricksCLIPath: executable,
+	}
+	creds := NewDefaultCredentials(DefaultCredentialsOptions{Profile: &profile})
+
 	headers, err := creds.AuthHeaders(context.Background())
 	if err != nil {
 		t.Fatalf("AuthHeaders() error = %v", err)
 	}
-	want := []auth.Header{{Key: "Authorization", Value: "Bearer dapi-xyz"}}
-	if diff := cmp.Diff(want, headers); diff != "" {
+	wantHeaders := []auth.Header{{Key: "Authorization", Value: "Bearer fallback-token"}}
+	if diff := cmp.Diff(wantHeaders, headers); diff != "" {
 		t.Errorf("AuthHeaders() mismatch (-want +got):\n%s", diff)
 	}
-	if got := creds.Name(); got != "pat" {
-		t.Errorf("Name() = %q, want %q", got, "pat")
+	if got, want := creds.Name(), "databricks-cli"; got != want {
+		t.Errorf("Name() = %q, want %q", got, want)
 	}
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"sync"
 	"sync/atomic"
 
@@ -29,9 +28,8 @@ var (
 )
 
 // strategy is one entry in the default credential chain: a name plus a way to
-// build credentials from a profile. Configure returns nil (without an error)
-// when the strategy does not apply to the given profile, so the chain can move
-// on to the next strategy.
+// build credentials from a profile. Configure may return nil without an error
+// when the strategy does not apply to the given profile.
 type strategy struct {
 	name                    string
 	supportsGroupAssumption bool
@@ -79,7 +77,7 @@ type DefaultCredentialsOptions struct {
 }
 
 // NewDefaultCredentials returns [auth.Credentials] that resolve to the first
-// configured authentication strategy on first use.
+// authentication strategy that can provide headers on first use.
 //
 // Strategies are tried in this order:
 //  1. PAT (pat).
@@ -90,7 +88,7 @@ type DefaultCredentialsOptions struct {
 //
 // If the profile sets auth_type, only the strategy with that name is tried.
 // Resolution is deferred until the first [auth.Credentials.AuthHeaders] call
-// and then memoized, so profile resolution and any network discovery happen
+// and then memoized, so profile resolution and initial authentication happen
 // lazily and at most once.
 func NewDefaultCredentials(opts DefaultCredentialsOptions) auth.Credentials {
 	explicit := opts.Profile
@@ -110,10 +108,11 @@ func NewDefaultCredentials(opts DefaultCredentialsOptions) auth.Credentials {
 	}
 }
 
-// defaultCredentials lazily resolves a profile and selects a strategy the first
-// time AuthHeaders is called. It is safe for concurrent use: resolution runs
-// once under [sync.Once], and the selected credentials are published through an
-// [atomic.Pointer] so Name can read them without blocking on AuthHeaders.
+// defaultCredentials lazily resolves a profile and selects a strategy that can
+// provide headers the first time AuthHeaders is called. It is safe for concurrent
+// use: resolution runs once under [sync.Once], and the selected credentials are
+// published through an [atomic.Pointer] so Name can read them without blocking
+// on AuthHeaders.
 type defaultCredentials struct {
 	loadProfile func() (profiles.Profile, error)
 	strategies  []strategy
@@ -135,7 +134,7 @@ func (c *defaultCredentials) Name() string {
 
 func (c *defaultCredentials) AuthHeaders(ctx context.Context) ([]auth.Header, error) {
 	c.once.Do(func() {
-		creds, err := c.resolveChain()
+		creds, err := c.resolveChain(ctx)
 		if err != nil {
 			c.resolveErr = err
 			return
@@ -148,32 +147,29 @@ func (c *defaultCredentials) AuthHeaders(ctx context.Context) ([]auth.Header, er
 	return (*c.resolved.Load()).AuthHeaders(ctx)
 }
 
-func (c *defaultCredentials) resolveChain() (auth.Credentials, error) {
+func (c *defaultCredentials) resolveChain(ctx context.Context) (auth.Credentials, error) {
 	profile, err := c.loadProfile()
 	if err != nil {
 		return nil, err
 	}
 
 	if profile.AuthType != "" {
-		return c.resolveByAuthType(profile, profile.AuthType)
+		return c.resolveByAuthType(ctx, profile, profile.AuthType)
 	}
 
 	for _, s := range c.strategies {
 		if profile.GroupID != "" && !s.supportsGroupAssumption {
 			continue
 		}
-		creds, err := s.configure(profile)
-		if err != nil {
-			return nil, err
-		}
-		if creds != nil {
+		creds, err := authenticateStrategy(ctx, s, profile)
+		if err == nil && creds != nil {
 			return creds, nil
 		}
 	}
 	return nil, fmt.Errorf("%w, please check %s to configure credentials for your preferred authentication method", ErrNoAuthConfigured, authDocURL)
 }
 
-func (c *defaultCredentials) resolveByAuthType(profile profiles.Profile, authType string) (auth.Credentials, error) {
+func (c *defaultCredentials) resolveByAuthType(ctx context.Context, profile profiles.Profile, authType string) (auth.Credentials, error) {
 	for _, s := range c.strategies {
 		if s.name != authType {
 			continue
@@ -181,7 +177,7 @@ func (c *defaultCredentials) resolveByAuthType(profile profiles.Profile, authTyp
 		if profile.GroupID != "" && !s.supportsGroupAssumption {
 			return nil, fmt.Errorf("auth type %q does not support group role assumption. Use OAuth M2M or Workload Identity Federation", authType)
 		}
-		creds, err := s.configure(profile)
+		creds, err := authenticateStrategy(ctx, s, profile)
 		if err != nil {
 			return nil, err
 		}
@@ -193,22 +189,27 @@ func (c *defaultCredentials) resolveByAuthType(profile profiles.Profile, authTyp
 	return nil, fmt.Errorf("%w: %q, please check %s for a list of supported auth types", ErrAuthTypeNotFound, authType, authDocURL)
 }
 
-// configurePAT selects PAT credentials when the profile has a host and a token.
-func configurePAT(p profiles.Profile) (auth.Credentials, error) {
-	if p.Host == "" || p.Token == "" {
-		return nil, nil
+func authenticateStrategy(ctx context.Context, s strategy, profile profiles.Profile) (auth.Credentials, error) {
+	creds, err := s.configure(profile)
+	if err != nil || creds == nil {
+		return creds, err
 	}
+	_, err = creds.AuthHeaders(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return creds, nil
+}
+
+// configurePAT creates PAT credentials from the profile token.
+func configurePAT(p profiles.Profile) (auth.Credentials, error) {
 	return NewPATCredentials(string(p.Token))
 }
 
-// configureM2M selects OAuth M2M credentials when the profile has a host plus a
-// client ID and client secret. The underlying token provider is wrapped in a
-// cache so a token is reused until it nears expiry rather than re-minted on
-// every request.
+// configureM2M creates OAuth M2M credentials. The underlying token provider is
+// wrapped in a cache so a token is reused until it nears expiry rather than
+// re-minted on every request.
 func configureM2M(p profiles.Profile) (auth.Credentials, error) {
-	if p.Host == "" || p.ClientID == "" || p.ClientSecret == "" {
-		return nil, nil
-	}
 	provider, err := NewM2MCredentials(M2MOptions{
 		Host:         p.Host,
 		ClientID:     p.ClientID,
@@ -221,18 +222,16 @@ func configureM2M(p profiles.Profile) (auth.Credentials, error) {
 	return auth.NewTokenCredentials("oauth-m2m", auth.NewCachedTokenProvider(provider)), nil
 }
 
-// configureU2M selects Databricks CLI (U2M) credentials when the profile was
-// loaded from the config file (so its section name is known) and has a host.
-// The CLI must have been logged in ahead of time via "databricks auth login".
-// The underlying token provider is wrapped in a cache to avoid shelling out to
-// the CLI on every request.
+// configureU2M creates Databricks CLI (U2M) credentials. The CLI must have been
+// logged in ahead of time via "databricks auth login". The underlying token
+// provider is wrapped in a cache to avoid shelling out to the CLI on every
+// request.
 func configureU2M(p profiles.Profile) (auth.Credentials, error) {
-	if p.Host == "" || p.Name == "" {
-		return nil, nil
-	}
 	provider, err := NewU2MCredentials(U2MOptions{
-		Profile: p.Name,
-		CLIPath: p.DatabricksCLIPath,
+		Profile:   p.Name,
+		Host:      p.Host,
+		AccountID: p.AccountID,
+		CLIPath:   p.DatabricksCLIPath,
 	})
 	if err != nil {
 		return nil, err
@@ -245,16 +244,10 @@ func configureEnvOIDC(profile profiles.Profile) (auth.Credentials, error) {
 	if name == "" {
 		name = defaultOIDCTokenEnv
 	}
-	if profile.Host == "" || os.Getenv(name) == "" {
-		return nil, nil
-	}
 	return newOIDCCredentials(profile, "env-oidc", oidc.NewEnvIDTokenProvider(name)), nil
 }
 
 func configureFileOIDC(profile profiles.Profile) (auth.Credentials, error) {
-	if profile.Host == "" || profile.OIDCTokenFilePath == "" {
-		return nil, nil
-	}
 	return newOIDCCredentials(profile, "file-oidc", oidc.NewFileTokenProvider(profile.OIDCTokenFilePath)), nil
 }
 
