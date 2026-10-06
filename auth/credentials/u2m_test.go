@@ -143,10 +143,23 @@ func TestParseExpiry(t *testing.T) {
 // set on the exec.Cmd.
 
 const (
-	envFakeMode   = "TEST_FAKE_CLI_MODE"
-	envFakeExpiry = "TEST_FAKE_CLI_EXPIRY"
-	envFakeToken  = "TEST_FAKE_CLI_TOKEN"
+	envFakeMode    = "TEST_FAKE_CLI_MODE"
+	envFakeExpiry  = "TEST_FAKE_CLI_EXPIRY"
+	envFakeToken   = "TEST_FAKE_CLI_TOKEN"
+	envFakeCLIArgs = "TEST_FAKE_CLI_ARGS"
 )
+
+func validateFakeCLIArgs() {
+	want := os.Getenv(envFakeCLIArgs)
+	if want == "" {
+		return
+	}
+	got := strings.Join(os.Args[1:], " ")
+	if got != want {
+		fmt.Fprintf(os.Stderr, "arguments = %q, want %q\n", got, want)
+		os.Exit(1)
+	}
+}
 
 // TestMain intercepts invocations where the test binary is being used as a
 // stand-in for the databricks CLI.
@@ -157,6 +170,7 @@ func TestMain(m *testing.M) {
 	}
 	switch mode {
 	case "ok":
+		validateFakeCLIArgs()
 		expiry := os.Getenv(envFakeExpiry)
 		if expiry == "" {
 			expiry = time.Now().Add(1 * time.Hour).UTC().Format(time.RFC3339)
@@ -178,6 +192,7 @@ func TestMain(m *testing.M) {
 			}
 		}
 		// Fall through and behave like "ok" for the --host invocation.
+		validateFakeCLIArgs()
 		fmt.Fprintf(os.Stdout,
 			`{"access_token":"fallback-token","token_type":"Bearer","expiry":%q}`,
 			time.Now().Add(1*time.Hour).UTC().Format(time.RFC3339))
