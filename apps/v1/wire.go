@@ -331,6 +331,7 @@ type appDeploymentWire struct {
 	UpdateTime          *types.Time                 `json:"update_time,omitempty"`
 	Command             []string                    `json:"command,omitempty"`
 	EnvVars             []envVarWire                `json:"env_vars,omitempty"`
+	HealthCheck         *appHealthCheckWire         `json:"health_check,omitempty"`
 }
 
 func appDeploymentToWire(v *AppDeployment) (*appDeploymentWire, error) {
@@ -353,6 +354,10 @@ func appDeploymentToWire(v *AppDeployment) (*appDeploymentWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "AppDeployment.EnvVars", err)
 	}
+	healthCheckWireValue, err := appHealthCheckToWire(v.HealthCheck)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AppDeployment.HealthCheck", err)
+	}
 	return &appDeploymentWire{
 		DeploymentId:        v.DeploymentId,
 		SourceCodePath:      v.SourceCodePath,
@@ -365,6 +370,7 @@ func appDeploymentToWire(v *AppDeployment) (*appDeploymentWire, error) {
 		UpdateTime:          v.UpdateTime,
 		Command:             v.Command,
 		EnvVars:             envVarsWireValue,
+		HealthCheck:         healthCheckWireValue,
 	}, nil
 }
 
@@ -388,6 +394,10 @@ func appDeploymentFromWire(w *appDeploymentWire) (*AppDeployment, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "AppDeployment.EnvVars", err)
 	}
+	healthCheckPublicValue, err := appHealthCheckFromWire(w.HealthCheck)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AppDeployment.HealthCheck", err)
+	}
 	return &AppDeployment{
 		DeploymentId:        w.DeploymentId,
 		SourceCodePath:      w.SourceCodePath,
@@ -400,6 +410,7 @@ func appDeploymentFromWire(w *appDeploymentWire) (*AppDeployment, error) {
 		UpdateTime:          w.UpdateTime,
 		Command:             w.Command,
 		EnvVars:             envVarsPublicValue,
+		HealthCheck:         healthCheckPublicValue,
 	}, nil
 }
 
@@ -447,6 +458,31 @@ func appDeploymentStatusFromWire(w *appDeploymentStatusWire) (*AppDeploymentStat
 	return &AppDeploymentStatus{
 		State:   w.State,
 		Message: w.Message,
+	}, nil
+}
+
+type appHealthCheckWire struct {
+	Path    *string         `json:"path,omitempty"`
+	Timeout *types.Duration `json:"timeout,omitempty"`
+}
+
+func appHealthCheckToWire(v *AppHealthCheck) (*appHealthCheckWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &appHealthCheckWire{
+		Path:    v.Path,
+		Timeout: v.Timeout,
+	}, nil
+}
+
+func appHealthCheckFromWire(w *appHealthCheckWire) (*AppHealthCheck, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AppHealthCheck{
+		Path:    w.Path,
+		Timeout: w.Timeout,
 	}, nil
 }
 

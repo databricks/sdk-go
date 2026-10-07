@@ -1093,10 +1093,12 @@ type Feature struct {
 	// SDK and terraform users.
 	LineageContext *LineageContext `fieldmask:"lineage_context"`
 	// The entity columns for the feature, used as aggregation keys and for
-	// query-time lookup.
+	// query-time lookup. Optional since entities are not set for RequestSource
+	// features or on-demand calculated features.
 	Entities []EntityColumn `fieldmask:"entities"`
 	// Column recording time, used for point-in-time joins, backfills, and
-	// aggregations.
+	// aggregations. Optional since a timeseries column is not set for RequestSource
+	// features or on-demand calculated features.
 	TimeseriesColumn *TimeseriesColumn `fieldmask:"timeseries_column"`
 	// Name of parent catalog.
 	CatalogName *string `fieldmask:"catalog_name"`
@@ -1597,6 +1599,9 @@ type MaterializedFeature struct {
 	MaterializedFeatureId *string `fieldmask:"materialized_feature_id"`
 	// The full name of the feature in Unity Catalog.
 	FeatureName *string `fieldmask:"feature_name"`
+	// (-- The destination configs are deliberately IMMUTABLE: an API review settled
+	// that a materialization cannot be retargeted in place, so a destination change
+	// recreates it. --)
 	Destination isMaterializedFeature_Destination
 	// The fully qualified Unity Catalog path to the table containing the
 	// materialized feature (Delta table or Lakebase table). Output only.
@@ -1644,7 +1649,8 @@ type isMaterializedFeature_Destination interface {
 }
 
 // MaterializedFeature_Destination_OfflineStoreConfig selects OfflineStoreConfig for MaterializedFeature.Destination.
-// Destination for writing feature values to an offline Delta table.
+// Destination for writing feature values to an offline Delta table. The
+// resulting table is returned as `table_name`.
 type MaterializedFeature_Destination_OfflineStoreConfig struct {
 	OfflineStoreConfig OfflineStoreConfig `fieldmask:"offline_store_config"`
 }
@@ -1652,7 +1658,8 @@ type MaterializedFeature_Destination_OfflineStoreConfig struct {
 func (*MaterializedFeature_Destination_OfflineStoreConfig) isMaterializedFeature_Destination() {}
 
 // MaterializedFeature_Destination_OnlineStoreConfig selects OnlineStoreConfig for MaterializedFeature.Destination.
-// Destination for writing feature values to an online Lakebase table.
+// Destination for writing feature values to an online Lakebase table. The
+// resulting table is returned as `table_name`.
 type MaterializedFeature_Destination_OnlineStoreConfig struct {
 	OnlineStoreConfig OnlineStoreConfig `fieldmask:"online_store_config"`
 }
