@@ -796,6 +796,9 @@ type AppDeployment struct {
 	// The environment variables to set in the app runtime environment. This will
 	// override the environment variables specified in the app.yaml file.
 	EnvVars []EnvVar `fieldmask:"env_vars"`
+	// Deploy-time health check for the app. Verifies the app is responding to HTTP
+	// requests before considering the deployment successful.
+	HealthCheck *AppHealthCheck `fieldmask:"health_check"`
 }
 
 type AppDeploymentArtifacts struct {
@@ -809,6 +812,15 @@ type AppDeploymentStatus struct {
 	State AppDeployment_State `fieldmask:"state"`
 	// Message corresponding with the deployment state.
 	Message *string `fieldmask:"message"`
+}
+
+// Deploy-time HTTP health check configuration for an app deployment..
+type AppHealthCheck struct {
+	// HTTP path to probe, e.g. "/health" or "/api/status".
+	Path *string `fieldmask:"path"`
+	// Timeout to wait for the health check to pass before failing the deployment.
+	// If not set, a default timeout is used.
+	Timeout *types.Duration `fieldmask:"timeout"`
 }
 
 // App manifest definition.
