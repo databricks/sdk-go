@@ -204,6 +204,7 @@ type clonePipelineRequestWire struct {
 	EventLog             *eventLogSpecWire                       `json:"event_log,omitempty"`
 	RootPath             *string                                 `json:"root_path,omitempty"`
 	Environment          *pipelinesEnvironmentWire               `json:"environment,omitempty"`
+	ParentPath           *string                                 `json:"parent_path,omitempty"`
 	UsagePolicyId        *string                                 `json:"usage_policy_id,omitempty"`
 	ServerlessComputeId  *string                                 `json:"serverless_compute_id,omitempty"`
 	CloneMode            CloneMode                               `json:"clone_mode,omitempty"`
@@ -292,6 +293,7 @@ func clonePipelineRequestToWire(v *ClonePipelineRequest) (*clonePipelineRequestW
 		EventLog:             eventLogWireValue,
 		RootPath:             v.RootPath,
 		Environment:          environmentWireValue,
+		ParentPath:           v.ParentPath,
 		UsagePolicyId:        v.UsagePolicyId,
 		ServerlessComputeId:  v.ServerlessComputeId,
 		CloneMode:            v.CloneMode,
@@ -761,6 +763,7 @@ type createPipelineRequestWire struct {
 	EventLog            *eventLogSpecWire                       `json:"event_log,omitempty"`
 	RootPath            *string                                 `json:"root_path,omitempty"`
 	Environment         *pipelinesEnvironmentWire               `json:"environment,omitempty"`
+	ParentPath          *string                                 `json:"parent_path,omitempty"`
 	UsagePolicyId       *string                                 `json:"usage_policy_id,omitempty"`
 	ServerlessComputeId *string                                 `json:"serverless_compute_id,omitempty"`
 }
@@ -849,6 +852,7 @@ func createPipelineRequestToWire(v *CreatePipelineRequest) (*createPipelineReque
 		EventLog:            eventLogWireValue,
 		RootPath:            v.RootPath,
 		Environment:         environmentWireValue,
+		ParentPath:          v.ParentPath,
 		UsagePolicyId:       v.UsagePolicyId,
 		ServerlessComputeId: v.ServerlessComputeId,
 	}, nil
@@ -995,6 +999,7 @@ type editPipelineRequestWire struct {
 	EventLog             *eventLogSpecWire                       `json:"event_log,omitempty"`
 	RootPath             *string                                 `json:"root_path,omitempty"`
 	Environment          *pipelinesEnvironmentWire               `json:"environment,omitempty"`
+	ParentPath           *string                                 `json:"parent_path,omitempty"`
 	UsagePolicyId        *string                                 `json:"usage_policy_id,omitempty"`
 	ServerlessComputeId  *string                                 `json:"serverless_compute_id,omitempty"`
 }
@@ -1088,6 +1093,7 @@ func editPipelineRequestToWire(v *EditPipelineRequest) (*editPipelineRequestWire
 		EventLog:             eventLogWireValue,
 		RootPath:             v.RootPath,
 		Environment:          environmentWireValue,
+		ParentPath:           v.ParentPath,
 		UsagePolicyId:        v.UsagePolicyId,
 		ServerlessComputeId:  v.ServerlessComputeId,
 	}, nil
@@ -3189,6 +3195,7 @@ type pipelineSpecWire struct {
 	EventLog            *eventLogSpecWire                       `json:"event_log,omitempty"`
 	RootPath            *string                                 `json:"root_path,omitempty"`
 	Environment         *pipelinesEnvironmentWire               `json:"environment,omitempty"`
+	ParentPath          *string                                 `json:"parent_path,omitempty"`
 	UsagePolicyId       *string                                 `json:"usage_policy_id,omitempty"`
 	ServerlessComputeId *string                                 `json:"serverless_compute_id,omitempty"`
 }
@@ -3269,6 +3276,7 @@ func pipelineSpecFromWire(w *pipelineSpecWire) (*PipelineSpec, error) {
 		EventLog:            eventLogPublicValue,
 		RootPath:            w.RootPath,
 		Environment:         environmentPublicValue,
+		ParentPath:          w.ParentPath,
 		UsagePolicyId:       w.UsagePolicyId,
 		ServerlessComputeId: w.ServerlessComputeId,
 	}, nil

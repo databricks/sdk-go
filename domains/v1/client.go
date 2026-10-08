@@ -208,7 +208,7 @@ func (c *internalClient) DeleteDomain(ctx context.Context, req DeleteDomainReque
 
 // Get a domain by resource name.
 //
-// Authorization: external callers must have the `MANAGE DISCOVERY` permission.
+// Authorization: external callers must have the `MANAGE DISCOVER` permission.
 func (c *internalClient) GetDomain(ctx context.Context, req GetDomainRequest, opts ...call.Option) (*Domain, error) {
 
 	headers := http.Header{}
@@ -274,7 +274,7 @@ func (c *internalClient) GetDomain(ctx context.Context, req GetDomainRequest, op
 // List domains in the account. Set `parent_domain_id` to return only the direct
 // subdomains of a given domain.
 //
-// Authorization: external callers must have the `MANAGE DISCOVERY` permission;
+// Authorization: external callers must have the `MANAGE DISCOVER` permission;
 // only domains the caller is authorized to read are returned.
 func (c *internalClient) ListDomains(ctx context.Context, req ListDomainsRequest, opts ...call.Option) (*ListDomainsResponse, error) {
 	wireReq, err := listDomainsRequestToWire(&req)

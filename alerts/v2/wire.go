@@ -17,23 +17,24 @@ func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 }
 
 type alertWire struct {
-	Id                *string                       `json:"id,omitempty"`
-	DisplayName       *string                       `json:"display_name,omitempty"`
-	OwnerUserName     *string                       `json:"owner_user_name,omitempty"`
-	CreateTime        *types.Time                   `json:"create_time,omitempty"`
-	UpdateTime        *types.Time                   `json:"update_time,omitempty"`
-	ParentPath        *string                       `json:"parent_path,omitempty"`
-	QueryText         *string                       `json:"query_text,omitempty"`
-	WarehouseId       *string                       `json:"warehouse_id,omitempty"`
-	RunAsUserName     *string                       `json:"run_as_user_name,omitempty"`
-	Evaluation        *alertEvaluationWire          `json:"evaluation,omitempty"`
-	Schedule          *cronScheduleWire             `json:"schedule,omitempty"`
-	LifecycleState    AlertLifecycleState           `json:"lifecycle_state,omitempty"`
-	CustomSummary     *string                       `json:"custom_summary,omitempty"`
-	CustomDescription *string                       `json:"custom_description,omitempty"`
-	RunAs             *alertRunAsWire               `json:"run_as,omitempty"`
-	EffectiveRunAs    *alertRunAsWire               `json:"effective_run_as,omitempty"`
-	Parameters        []alertStatementParameterWire `json:"parameters,omitempty"`
+	Id                   *string                       `json:"id,omitempty"`
+	DisplayName          *string                       `json:"display_name,omitempty"`
+	OwnerUserName        *string                       `json:"owner_user_name,omitempty"`
+	CreateTime           *types.Time                   `json:"create_time,omitempty"`
+	UpdateTime           *types.Time                   `json:"update_time,omitempty"`
+	ParentPath           *string                       `json:"parent_path,omitempty"`
+	QueryText            *string                       `json:"query_text,omitempty"`
+	WarehouseId          *string                       `json:"warehouse_id,omitempty"`
+	RunAsUserName        *string                       `json:"run_as_user_name,omitempty"`
+	Evaluation           *alertEvaluationWire          `json:"evaluation,omitempty"`
+	Schedule             *cronScheduleWire             `json:"schedule,omitempty"`
+	LifecycleState       AlertLifecycleState           `json:"lifecycle_state,omitempty"`
+	CustomSummary        *string                       `json:"custom_summary,omitempty"`
+	CustomDescription    *string                       `json:"custom_description,omitempty"`
+	RunAs                *alertRunAsWire               `json:"run_as,omitempty"`
+	EffectiveRunAs       *alertRunAsWire               `json:"effective_run_as,omitempty"`
+	Parameters           []alertStatementParameterWire `json:"parameters,omitempty"`
+	CustomTemplateFormat CustomTemplateFormat          `json:"custom_template_format,omitempty"`
 }
 
 func alertToWire(v *Alert) (*alertWire, error) {
@@ -61,23 +62,24 @@ func alertToWire(v *Alert) (*alertWire, error) {
 		return nil, fmt.Errorf("%s: %w", "Alert.Parameters", err)
 	}
 	return &alertWire{
-		Id:                v.Id,
-		DisplayName:       v.DisplayName,
-		OwnerUserName:     v.OwnerUserName,
-		CreateTime:        v.CreateTime,
-		UpdateTime:        v.UpdateTime,
-		ParentPath:        v.ParentPath,
-		QueryText:         v.QueryText,
-		WarehouseId:       v.WarehouseId,
-		RunAsUserName:     v.RunAsUserName,
-		Evaluation:        evaluationWireValue,
-		Schedule:          scheduleWireValue,
-		LifecycleState:    v.LifecycleState,
-		CustomSummary:     v.CustomSummary,
-		CustomDescription: v.CustomDescription,
-		RunAs:             runAsWireValue,
-		EffectiveRunAs:    effectiveRunAsWireValue,
-		Parameters:        parametersWireValue,
+		Id:                   v.Id,
+		DisplayName:          v.DisplayName,
+		OwnerUserName:        v.OwnerUserName,
+		CreateTime:           v.CreateTime,
+		UpdateTime:           v.UpdateTime,
+		ParentPath:           v.ParentPath,
+		QueryText:            v.QueryText,
+		WarehouseId:          v.WarehouseId,
+		RunAsUserName:        v.RunAsUserName,
+		Evaluation:           evaluationWireValue,
+		Schedule:             scheduleWireValue,
+		LifecycleState:       v.LifecycleState,
+		CustomSummary:        v.CustomSummary,
+		CustomDescription:    v.CustomDescription,
+		RunAs:                runAsWireValue,
+		EffectiveRunAs:       effectiveRunAsWireValue,
+		Parameters:           parametersWireValue,
+		CustomTemplateFormat: v.CustomTemplateFormat,
 	}, nil
 }
 
@@ -106,23 +108,24 @@ func alertFromWire(w *alertWire) (*Alert, error) {
 		return nil, fmt.Errorf("%s: %w", "Alert.Parameters", err)
 	}
 	return &Alert{
-		Id:                w.Id,
-		DisplayName:       w.DisplayName,
-		OwnerUserName:     w.OwnerUserName,
-		CreateTime:        w.CreateTime,
-		UpdateTime:        w.UpdateTime,
-		ParentPath:        w.ParentPath,
-		QueryText:         w.QueryText,
-		WarehouseId:       w.WarehouseId,
-		RunAsUserName:     w.RunAsUserName,
-		Evaluation:        evaluationPublicValue,
-		Schedule:          schedulePublicValue,
-		LifecycleState:    w.LifecycleState,
-		CustomSummary:     w.CustomSummary,
-		CustomDescription: w.CustomDescription,
-		RunAs:             runAsPublicValue,
-		EffectiveRunAs:    effectiveRunAsPublicValue,
-		Parameters:        parametersPublicValue,
+		Id:                   w.Id,
+		DisplayName:          w.DisplayName,
+		OwnerUserName:        w.OwnerUserName,
+		CreateTime:           w.CreateTime,
+		UpdateTime:           w.UpdateTime,
+		ParentPath:           w.ParentPath,
+		QueryText:            w.QueryText,
+		WarehouseId:          w.WarehouseId,
+		RunAsUserName:        w.RunAsUserName,
+		Evaluation:           evaluationPublicValue,
+		Schedule:             schedulePublicValue,
+		LifecycleState:       w.LifecycleState,
+		CustomSummary:        w.CustomSummary,
+		CustomDescription:    w.CustomDescription,
+		RunAs:                runAsPublicValue,
+		EffectiveRunAs:       effectiveRunAsPublicValue,
+		Parameters:           parametersPublicValue,
+		CustomTemplateFormat: w.CustomTemplateFormat,
 	}, nil
 }
 

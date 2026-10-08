@@ -1812,6 +1812,7 @@ func modelProviderServiceConfig_MicrosoftFoundryProviderDirectConfigFromWire(w *
 type modelProviderServiceConfig_ModelTargetConfigWire struct {
 	Model          *string  `json:"model,omitempty"`
 	NativeApiTypes []string `json:"native_api_types,omitempty"`
+	EndpointRoute  *string  `json:"endpoint_route,omitempty"`
 }
 
 func modelProviderServiceConfig_ModelTargetConfigToWire(v *ModelProviderServiceConfig_ModelTargetConfig) (*modelProviderServiceConfig_ModelTargetConfigWire, error) {
@@ -1821,6 +1822,7 @@ func modelProviderServiceConfig_ModelTargetConfigToWire(v *ModelProviderServiceC
 	return &modelProviderServiceConfig_ModelTargetConfigWire{
 		Model:          v.Model,
 		NativeApiTypes: v.NativeApiTypes,
+		EndpointRoute:  v.EndpointRoute,
 	}, nil
 }
 
@@ -1831,6 +1833,7 @@ func modelProviderServiceConfig_ModelTargetConfigFromWire(w *modelProviderServic
 	return &ModelProviderServiceConfig_ModelTargetConfig{
 		Model:          w.Model,
 		NativeApiTypes: w.NativeApiTypes,
+		EndpointRoute:  w.EndpointRoute,
 	}, nil
 }
 
