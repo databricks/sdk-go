@@ -708,6 +708,8 @@ type CreateWarehouseRequest struct {
 	// you must set to `PRO` and also set the field `enable_serverless_compute` to
 	// `true`.
 	WarehouseType WarehouseType
+	// Warehouse statement timeout in seconds.
+	StatementTimeout *int
 }
 
 type CreateWarehouseResponse struct {
@@ -809,6 +811,8 @@ type EditWarehouseRequest struct {
 	// you must set to `PRO` and also set the field `enable_serverless_compute` to
 	// `true`.
 	WarehouseType WarehouseType
+	// Warehouse statement timeout in seconds.
+	StatementTimeout *int
 }
 
 type EditWarehouseResponse struct {
@@ -894,6 +898,8 @@ type EndpointInfo struct {
 	// you must set to `PRO` and also set the field `enable_serverless_compute` to
 	// `true`.
 	WarehouseType WarehouseType
+	// Warehouse statement timeout in seconds.
+	StatementTimeout *int
 	// current number of clusters running for the service
 	NumClusters *int
 	// Deprecated. current number of active sessions for the warehouse
@@ -994,6 +1000,8 @@ type GetWarehouseResponse struct {
 	// you must set to `PRO` and also set the field `enable_serverless_compute` to
 	// `true`.
 	WarehouseType WarehouseType
+	// Warehouse statement timeout in seconds.
+	StatementTimeout *int
 	// current number of clusters running for the service
 	NumClusters *int
 	// Deprecated. current number of active sessions for the warehouse

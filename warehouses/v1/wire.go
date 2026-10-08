@@ -120,6 +120,7 @@ type createWarehouseRequestWire struct {
 	Channel                 *channelWire               `json:"channel,omitempty"`
 	EnableServerlessCompute *bool                      `json:"enable_serverless_compute,omitempty"`
 	WarehouseType           WarehouseType              `json:"warehouse_type,omitempty"`
+	StatementTimeout        *int                       `json:"statement_timeout,omitempty"`
 }
 
 func createWarehouseRequestToWire(v *CreateWarehouseRequest) (*createWarehouseRequestWire, error) {
@@ -148,6 +149,7 @@ func createWarehouseRequestToWire(v *CreateWarehouseRequest) (*createWarehouseRe
 		Channel:                 channelWireValue,
 		EnableServerlessCompute: v.EnableServerlessCompute,
 		WarehouseType:           v.WarehouseType,
+		StatementTimeout:        v.StatementTimeout,
 	}, nil
 }
 
@@ -210,6 +212,7 @@ type editWarehouseRequestWire struct {
 	Channel                 *channelWire               `json:"channel,omitempty"`
 	EnableServerlessCompute *bool                      `json:"enable_serverless_compute,omitempty"`
 	WarehouseType           WarehouseType              `json:"warehouse_type,omitempty"`
+	StatementTimeout        *int                       `json:"statement_timeout,omitempty"`
 }
 
 func editWarehouseRequestToWire(v *EditWarehouseRequest) (*editWarehouseRequestWire, error) {
@@ -239,6 +242,7 @@ func editWarehouseRequestToWire(v *EditWarehouseRequest) (*editWarehouseRequestW
 		Channel:                 channelWireValue,
 		EnableServerlessCompute: v.EnableServerlessCompute,
 		WarehouseType:           v.WarehouseType,
+		StatementTimeout:        v.StatementTimeout,
 	}, nil
 }
 
@@ -307,6 +311,7 @@ type endpointInfoWire struct {
 	Channel                 *channelWire               `json:"channel,omitempty"`
 	EnableServerlessCompute *bool                      `json:"enable_serverless_compute,omitempty"`
 	WarehouseType           WarehouseType              `json:"warehouse_type,omitempty"`
+	StatementTimeout        *int                       `json:"statement_timeout,omitempty"`
 	NumClusters             *int                       `json:"num_clusters,omitempty"`
 	NumActiveSessions       *wireInt64                 `json:"num_active_sessions,omitempty"`
 	State                   EndpointState              `json:"state,omitempty"`
@@ -354,6 +359,7 @@ func endpointInfoFromWire(w *endpointInfoWire) (*EndpointInfo, error) {
 		Channel:                 channelPublicValue,
 		EnableServerlessCompute: w.EnableServerlessCompute,
 		WarehouseType:           w.WarehouseType,
+		StatementTimeout:        w.StatementTimeout,
 		NumClusters:             w.NumClusters,
 		NumActiveSessions:       numActiveSessionsPublicValue,
 		State:                   w.State,
@@ -433,6 +439,7 @@ type getWarehouseResponseWire struct {
 	Channel                 *channelWire               `json:"channel,omitempty"`
 	EnableServerlessCompute *bool                      `json:"enable_serverless_compute,omitempty"`
 	WarehouseType           WarehouseType              `json:"warehouse_type,omitempty"`
+	StatementTimeout        *int                       `json:"statement_timeout,omitempty"`
 	NumClusters             *int                       `json:"num_clusters,omitempty"`
 	NumActiveSessions       *wireInt64                 `json:"num_active_sessions,omitempty"`
 	State                   EndpointState              `json:"state,omitempty"`
@@ -480,6 +487,7 @@ func getWarehouseResponseFromWire(w *getWarehouseResponseWire) (*GetWarehouseRes
 		Channel:                 channelPublicValue,
 		EnableServerlessCompute: w.EnableServerlessCompute,
 		WarehouseType:           w.WarehouseType,
+		StatementTimeout:        w.StatementTimeout,
 		NumClusters:             w.NumClusters,
 		NumActiveSessions:       numActiveSessionsPublicValue,
 		State:                   w.State,

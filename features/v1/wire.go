@@ -2512,6 +2512,100 @@ func listStreamsResponseFromWire(w *listStreamsResponseWire) (*ListStreamsRespon
 	}, nil
 }
 
+type materializationFailureNotificationWire struct {
+	EmailAddresses   []string `json:"email_addresses,omitempty"`
+	DestinationIds   []string `json:"destination_ids,omitempty"`
+	FinalAttemptOnly *bool    `json:"final_attempt_only,omitempty"`
+}
+
+func materializationFailureNotificationToWire(v *MaterializationFailureNotification) (*materializationFailureNotificationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &materializationFailureNotificationWire{
+		EmailAddresses:   v.EmailAddresses,
+		DestinationIds:   v.DestinationIds,
+		FinalAttemptOnly: v.FinalAttemptOnly,
+	}, nil
+}
+
+func materializationFailureNotificationFromWire(w *materializationFailureNotificationWire) (*MaterializationFailureNotification, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &MaterializationFailureNotification{
+		EmailAddresses:   w.EmailAddresses,
+		DestinationIds:   w.DestinationIds,
+		FinalAttemptOnly: w.FinalAttemptOnly,
+	}, nil
+}
+
+type materializationNotificationsWire struct {
+	OnSuccess *materializationSuccessNotificationWire `json:"on_success,omitempty"`
+	OnFailure *materializationFailureNotificationWire `json:"on_failure,omitempty"`
+}
+
+func materializationNotificationsToWire(v *MaterializationNotifications) (*materializationNotificationsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	onSuccessWireValue, err := materializationSuccessNotificationToWire(v.OnSuccess)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializationNotifications.OnSuccess", err)
+	}
+	onFailureWireValue, err := materializationFailureNotificationToWire(v.OnFailure)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializationNotifications.OnFailure", err)
+	}
+	return &materializationNotificationsWire{
+		OnSuccess: onSuccessWireValue,
+		OnFailure: onFailureWireValue,
+	}, nil
+}
+
+func materializationNotificationsFromWire(w *materializationNotificationsWire) (*MaterializationNotifications, error) {
+	if w == nil {
+		return nil, nil
+	}
+	onSuccessPublicValue, err := materializationSuccessNotificationFromWire(w.OnSuccess)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializationNotifications.OnSuccess", err)
+	}
+	onFailurePublicValue, err := materializationFailureNotificationFromWire(w.OnFailure)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializationNotifications.OnFailure", err)
+	}
+	return &MaterializationNotifications{
+		OnSuccess: onSuccessPublicValue,
+		OnFailure: onFailurePublicValue,
+	}, nil
+}
+
+type materializationSuccessNotificationWire struct {
+	EmailAddresses []string `json:"email_addresses,omitempty"`
+	DestinationIds []string `json:"destination_ids,omitempty"`
+}
+
+func materializationSuccessNotificationToWire(v *MaterializationSuccessNotification) (*materializationSuccessNotificationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &materializationSuccessNotificationWire{
+		EmailAddresses: v.EmailAddresses,
+		DestinationIds: v.DestinationIds,
+	}, nil
+}
+
+func materializationSuccessNotificationFromWire(w *materializationSuccessNotificationWire) (*MaterializationSuccessNotification, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &MaterializationSuccessNotification{
+		EmailAddresses: w.EmailAddresses,
+		DestinationIds: w.DestinationIds,
+	}, nil
+}
+
 type materializedFeatureWire struct {
 	MaterializedFeatureId   *string                                   `json:"materialized_feature_id,omitempty"`
 	FeatureName             *string                                   `json:"feature_name,omitempty"`
@@ -2530,6 +2624,7 @@ type materializedFeatureWire struct {
 	BudgetPolicyId          *string                                   `json:"budget_policy_id,omitempty"`
 	PipelineId              *string                                   `json:"pipeline_id,omitempty"`
 	JobId                   *wireInt64                                `json:"job_id,omitempty"`
+	Notifications           *materializationNotificationsWire         `json:"notifications,omitempty"`
 }
 
 func materializedFeatureToWire(v *MaterializedFeature) (*materializedFeatureWire, error) {
@@ -2539,6 +2634,10 @@ func materializedFeatureToWire(v *MaterializedFeature) (*materializedFeatureWire
 	jobIdWireValue, err := int64ToWire(v.JobId)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "MaterializedFeature.JobId", err)
+	}
+	notificationsWireValue, err := materializationNotificationsToWire(v.Notifications)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializedFeature.Notifications", err)
 	}
 	var destinationOfflineStoreConfigWire *offlineStoreConfigWire
 	var destinationOnlineStoreConfigWire *onlineStoreConfigWire
@@ -2613,6 +2712,7 @@ func materializedFeatureToWire(v *MaterializedFeature) (*materializedFeatureWire
 		BudgetPolicyId:          v.BudgetPolicyId,
 		PipelineId:              v.PipelineId,
 		JobId:                   jobIdWireValue,
+		Notifications:           notificationsWireValue,
 	}, nil
 }
 
@@ -2646,6 +2746,10 @@ func materializedFeatureFromWire(w *materializedFeatureWire) (*MaterializedFeatu
 	jobIdPublicValue, err := int64FromWire(w.JobId)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "MaterializedFeature.JobId", err)
+	}
+	notificationsPublicValue, err := materializationNotificationsFromWire(w.Notifications)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializedFeature.Notifications", err)
 	}
 	var destinationSelection isMaterializedFeature_Destination
 	switch {
@@ -2696,6 +2800,7 @@ func materializedFeatureFromWire(w *materializedFeatureWire) (*MaterializedFeatu
 		BudgetPolicyId:          w.BudgetPolicyId,
 		PipelineId:              w.PipelineId,
 		JobId:                   jobIdPublicValue,
+		Notifications:           notificationsPublicValue,
 		Destination:             destinationSelection,
 		Trigger:                 triggerSelection,
 	}, nil
@@ -3861,8 +3966,9 @@ func streamSourceConfigFromWire(w *streamSourceConfigWire) (*StreamSourceConfig,
 }
 
 type streamingModeWire struct {
-	Mode            StreamingMode_StreamingModeType `json:"mode,omitempty"`
-	FreshnessTarget *string                         `json:"freshness_target,omitempty"`
+	Mode              StreamingMode_StreamingModeType `json:"mode,omitempty"`
+	FreshnessTarget   *string                         `json:"freshness_target,omitempty"`
+	ShufflePartitions *int                            `json:"shuffle_partitions,omitempty"`
 }
 
 func streamingModeToWire(v *StreamingMode) (*streamingModeWire, error) {
@@ -3870,8 +3976,9 @@ func streamingModeToWire(v *StreamingMode) (*streamingModeWire, error) {
 		return nil, nil
 	}
 	return &streamingModeWire{
-		Mode:            v.Mode,
-		FreshnessTarget: v.FreshnessTarget,
+		Mode:              v.Mode,
+		FreshnessTarget:   v.FreshnessTarget,
+		ShufflePartitions: v.ShufflePartitions,
 	}, nil
 }
 
@@ -3880,8 +3987,9 @@ func streamingModeFromWire(w *streamingModeWire) (*StreamingMode, error) {
 		return nil, nil
 	}
 	return &StreamingMode{
-		Mode:            w.Mode,
-		FreshnessTarget: w.FreshnessTarget,
+		Mode:              w.Mode,
+		FreshnessTarget:   w.FreshnessTarget,
+		ShufflePartitions: w.ShufflePartitions,
 	}, nil
 }
 

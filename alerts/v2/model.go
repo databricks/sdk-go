@@ -56,6 +56,18 @@ const (
 	ComparisonOperator_IsNotNull          ComparisonOperator = "IS_NOT_NULL"
 )
 
+// Rendering format for the `custom_summary` and `custom_description` templates.
+type CustomTemplateFormat string
+
+const (
+	CustomTemplateFormat_Unspecified CustomTemplateFormat = ""
+	// Templates are HTML with Mustache `{{VARIABLE_NAME}}` placeholders.
+	CustomTemplateFormat_Html CustomTemplateFormat = "HTML"
+	// Templates are Markdown with allowlisted `@VARIABLE_NAME` placeholders,
+	// converted to the format each notification destination expects.
+	CustomTemplateFormat_Markdown CustomTemplateFormat = "MARKDOWN"
+)
+
 type SchedulePauseStatus string
 
 const (
@@ -126,6 +138,18 @@ type Alert struct {
 	//
 	// [`cast` function]: https://docs.databricks.com/sql/language-manual/functions/cast.html
 	Parameters []AlertStatementParameter `fieldmask:"parameters"`
+	// The format used to interpret the `custom_summary` and `custom_description`
+	// templates.
+	//
+	// `HTML` treats both templates as HTML with Mustache `{{VARIABLE_NAME}}`
+	// placeholders. `MARKDOWN` treats them as Markdown with allowlisted
+	// `@VARIABLE_NAME` placeholders and converts them to the format each
+	// notification destination expects, so a single template renders correctly in
+	// email, Slack, and Microsoft Teams.
+	//
+	// When unset, the API applies no default. Responses omit the field unless a
+	// format is stored, and a template with no format is rendered as HTML.
+	CustomTemplateFormat CustomTemplateFormat `fieldmask:"custom_template_format"`
 }
 
 type AlertEvaluation struct {

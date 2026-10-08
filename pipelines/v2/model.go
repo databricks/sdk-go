@@ -549,6 +549,10 @@ type ClonePipelineRequest struct {
 	RootPath *string
 	// Environment specification for this pipeline used to install dependencies.
 	Environment *PipelinesEnvironment
+	// Path of the pipeline parent folder in workspace file tree.
+	//
+	// If absent, the pipeline doesn't have a workspace object.
+	ParentPath *string
 	// Usage policy of this pipeline.
 	UsagePolicyId *string
 	// Serverless compute ID specified by the user for serverless pipelines.
@@ -787,6 +791,10 @@ type CreatePipelineRequest struct {
 	RootPath *string
 	// Environment specification for this pipeline used to install dependencies.
 	Environment *PipelinesEnvironment
+	// Path of the pipeline parent folder in workspace file tree.
+	//
+	// If absent, the pipeline doesn't have a workspace object.
+	ParentPath *string
 	// Usage policy of this pipeline.
 	UsagePolicyId *string
 	// Serverless compute ID specified by the user for serverless pipelines.
@@ -930,6 +938,10 @@ type EditPipelineRequest struct {
 	RootPath *string
 	// Environment specification for this pipeline used to install dependencies.
 	Environment *PipelinesEnvironment
+	// Path of the pipeline parent folder in workspace file tree.
+	//
+	// If absent, the pipeline doesn't have a workspace object.
+	ParentPath *string
 	// Usage policy of this pipeline.
 	UsagePolicyId *string
 	// Serverless compute ID specified by the user for serverless pipelines.
@@ -2145,6 +2157,10 @@ type PipelineSpec struct {
 	RootPath *string
 	// Environment specification for this pipeline used to install dependencies.
 	Environment *PipelinesEnvironment
+	// Path of the pipeline parent folder in workspace file tree.
+	//
+	// If absent, the pipeline doesn't have a workspace object.
+	ParentPath *string
 	// Usage policy of this pipeline.
 	UsagePolicyId *string
 	// Serverless compute ID specified by the user for serverless pipelines.

@@ -1592,6 +1592,48 @@ type ListStreamsResponse struct {
 	NextPageToken *string
 }
 
+// Recipients to notify when a materialization run fails..
+type MaterializationFailureNotification struct {
+	// Email addresses to notify.
+	EmailAddresses []string `fieldmask:"email_addresses"`
+	// IDs of the notification destinations (for example Slack, Microsoft Teams,
+	// PagerDuty, or a generic webhook) to notify. Not supported for streaming
+	// materialized features.
+	DestinationIds []string `fieldmask:"destination_ids"`
+	// If true, notify only when the final attempt of a run fails. If false or
+	// unset, notify on every failed attempt, including attempts that will be
+	// retried.
+	//
+	// Batch materialization does not retry failures that need a fix on your side,
+	// such as missing permissions or invalid configuration, so the first attempt is
+	// the final one. Other batch failures are retried up to twice.
+	//
+	// Streaming materialization restarts a failed update indefinitely unless the
+	// error cannot be retried. With this set, a streaming materialized feature
+	// notifies only on errors that cannot be retried, and never on failures that
+	// are restarted.
+	FinalAttemptOnly *bool `fieldmask:"final_attempt_only"`
+}
+
+// Notifications for the jobs and pipelines that materialize a feature, one
+// field per trigger..
+type MaterializationNotifications struct {
+	// Who to notify when a run succeeds.
+	OnSuccess *MaterializationSuccessNotification `fieldmask:"on_success"`
+	// Who to notify when a run fails, and on which attempts.
+	OnFailure *MaterializationFailureNotification `fieldmask:"on_failure"`
+}
+
+// Recipients to notify when a materialization run succeeds..
+type MaterializationSuccessNotification struct {
+	// Email addresses to notify.
+	EmailAddresses []string `fieldmask:"email_addresses"`
+	// IDs of the notification destinations (for example Slack, Microsoft Teams,
+	// PagerDuty, or a generic webhook) to notify. Not supported for streaming
+	// materialized features.
+	DestinationIds []string `fieldmask:"destination_ids"`
+}
+
 // A materialized feature represents a feature that is continuously computed and
 // stored..
 type MaterializedFeature struct {
@@ -1639,9 +1681,14 @@ type MaterializedFeature struct {
 	PipelineId *string `fieldmask:"pipeline_id"`
 	// The ID of the job that materializes the feature. This is present for both
 	// batch and streaming features.
-	JobId *int64                                             `fieldmask:"job_id"`
-	_     [0]materializedFeatureDestinationFieldMaskMetadata `fieldmask_oneof:"Destination"`
-	_     [0]materializedFeatureTriggerFieldMaskMetadata     `fieldmask_oneof:"Trigger"`
+	JobId *int64 `fieldmask:"job_id"`
+	// Notification configuration around the materialization job or pipeline
+	// lifecycle. They are applied to every job and pipeline that materializes this
+	// feature. Features which are materialized in the same pipeline will share the
+	// same notification.
+	Notifications *MaterializationNotifications                      `fieldmask:"notifications"`
+	_             [0]materializedFeatureDestinationFieldMaskMetadata `fieldmask_oneof:"Destination"`
+	_             [0]materializedFeatureTriggerFieldMaskMetadata     `fieldmask_oneof:"Trigger"`
 }
 
 type isMaterializedFeature_Destination interface {
@@ -2329,6 +2376,11 @@ type StreamingMode struct {
 	// The desired data freshness for feature materialization, expressed as a
 	// duration string (e.g. "1 minute").
 	FreshnessTarget *string `fieldmask:"freshness_target"`
+	// Number of shuffle partitions for streaming materialization of this feature.
+	// Higher values process high-throughput features with more parallelism at
+	// higher compute cost. Materialized features which are computed together will
+	// use the largest value set among them.
+	ShufflePartitions *int `fieldmask:"shuffle_partitions"`
 }
 
 // Deprecated: Use KafkaSubscriptionMode instead..
