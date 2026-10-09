@@ -268,6 +268,10 @@ func (c *internalClient) ExecuteStatement(ctx context.Context, req ExecuteStatem
 // `disposition`, the response returns chunks of data either inline, or as
 // links.
 func (c *internalClient) GetResultData(ctx context.Context, req GetResultDataRequest, opts ...call.Option) (*ResultData, error) {
+	wireReq, err := getResultDataRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -292,6 +296,9 @@ func (c *internalClient) GetResultData(ctx context.Context, req GetResultDataReq
 	pb.singleSegment(*req.ChunkIndex)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "warehouse_id", wireReq.WarehouseId); err != nil {
+		return nil, err
+	}
 	baseURL.RawQuery = queryParams.Encode()
 	urlStr := baseURL.String()
 
@@ -346,6 +353,10 @@ func (c *internalClient) GetResultData(ctx context.Context, req GetResultDataReq
 // **NOTE** This call currently might take up to 5 seconds to get the latest
 // status and result.
 func (c *internalClient) GetStatementResult(ctx context.Context, req GetStatementResultRequest, opts ...call.Option) (*StatementResponse, error) {
+	wireReq, err := getStatementResultRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
 
 	headers := http.Header{}
 	headers.Set("Content-Type", "application/json")
@@ -365,6 +376,9 @@ func (c *internalClient) GetStatementResult(ctx context.Context, req GetStatemen
 	pb.singleSegment(*req.StatementId)
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "warehouse_id", wireReq.WarehouseId); err != nil {
+		return nil, err
+	}
 	baseURL.RawQuery = queryParams.Encode()
 	urlStr := baseURL.String()
 

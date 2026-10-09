@@ -54,6 +54,7 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 
 type cancelStatementRequestWire struct {
 	StatementId *string `json:"statement_id,omitempty"`
+	WarehouseId *string `json:"warehouse_id,omitempty"`
 }
 
 func cancelStatementRequestToWire(v *CancelStatementRequest) (*cancelStatementRequestWire, error) {
@@ -62,6 +63,7 @@ func cancelStatementRequestToWire(v *CancelStatementRequest) (*cancelStatementRe
 	}
 	return &cancelStatementRequestWire{
 		StatementId: v.StatementId,
+		WarehouseId: v.WarehouseId,
 	}, nil
 }
 
@@ -214,6 +216,38 @@ func externalLinkFromWire(w *externalLinkWire) (*ExternalLink, error) {
 		ByteCount:             byteCountPublicValue,
 		NextChunkIndex:        w.NextChunkIndex,
 		NextChunkInternalLink: w.NextChunkInternalLink,
+	}, nil
+}
+
+type getResultDataRequestWire struct {
+	StatementId *string `json:"statement_id,omitempty"`
+	ChunkIndex  *int    `json:"chunk_index,omitempty"`
+	WarehouseId *string `json:"warehouse_id,omitempty"`
+}
+
+func getResultDataRequestToWire(v *GetResultDataRequest) (*getResultDataRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getResultDataRequestWire{
+		StatementId: v.StatementId,
+		ChunkIndex:  v.ChunkIndex,
+		WarehouseId: v.WarehouseId,
+	}, nil
+}
+
+type getStatementResultRequestWire struct {
+	StatementId *string `json:"statement_id,omitempty"`
+	WarehouseId *string `json:"warehouse_id,omitempty"`
+}
+
+func getStatementResultRequestToWire(v *GetStatementResultRequest) (*getStatementResultRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getStatementResultRequestWire{
+		StatementId: v.StatementId,
+		WarehouseId: v.WarehouseId,
 	}, nil
 }
 

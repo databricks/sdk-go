@@ -325,6 +325,8 @@ type Endpoint struct {
 	ScalingInfo *EndpointScalingInfo
 }
 
+// Scaling information for a Standard endpoint: the current scaling state, the
+// requested QPS target, and the progress of an in-progress scaling change..
 type EndpointScalingInfo struct {
 	// The current state of the scaling change request.
 	State ScalingChangeState

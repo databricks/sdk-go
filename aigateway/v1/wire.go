@@ -655,6 +655,7 @@ type modelProviderServiceConfigWire struct {
 	Custom                 *modelProviderServiceConfig_CustomProviderConfigWire           `json:"custom,omitempty"`
 	MicrosoftFoundry       *modelProviderServiceConfig_MicrosoftFoundryProviderConfigWire `json:"microsoft_foundry,omitempty"`
 	GeminiEnterprise       *modelProviderServiceConfig_GeminiEnterpriseProviderConfigWire `json:"gemini_enterprise,omitempty"`
+	BedrockMantle          *modelProviderServiceConfig_AmazonBedrockProviderConfigWire    `json:"bedrock_mantle,omitempty"`
 	AllowAllTargets        *bool                                                          `json:"allow_all_targets,omitempty"`
 	Targets                []modelProviderServiceConfig_ModelTargetConfigWire             `json:"targets,omitempty"`
 	ForwardHeaders         *bool                                                          `json:"forward_headers,omitempty"`
@@ -662,6 +663,7 @@ type modelProviderServiceConfigWire struct {
 	ForwardUnmanagedPaths  *bool                                                          `json:"forward_unmanaged_paths,omitempty"`
 	RateLimits             []rateLimitWire                                                `json:"rate_limits,omitempty"`
 	InferenceTable         *inferenceTableConfigWire                                      `json:"inference_table,omitempty"`
+	Pricing                *modelProviderServiceConfig_ProviderPricingConfigWire          `json:"pricing,omitempty"`
 }
 
 func modelProviderServiceConfigToWire(v *ModelProviderServiceConfig) (*modelProviderServiceConfigWire, error) {
@@ -680,6 +682,10 @@ func modelProviderServiceConfigToWire(v *ModelProviderServiceConfig) (*modelProv
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ModelProviderServiceConfig.InferenceTable", err)
 	}
+	pricingWireValue, err := modelProviderServiceConfig_ProviderPricingConfigToWire(v.Pricing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelProviderServiceConfig.Pricing", err)
+	}
 	var providerOpenaiWire *modelProviderServiceConfig_OpenAiProviderConfigWire
 	var providerAzureOpenaiWire *modelProviderServiceConfig_AzureOpenAiProviderConfigWire
 	var providerAnthropicWire *modelProviderServiceConfig_AnthropicProviderConfigWire
@@ -687,6 +693,7 @@ func modelProviderServiceConfigToWire(v *ModelProviderServiceConfig) (*modelProv
 	var providerCustomWire *modelProviderServiceConfig_CustomProviderConfigWire
 	var providerMicrosoftFoundryWire *modelProviderServiceConfig_MicrosoftFoundryProviderConfigWire
 	var providerGeminiEnterpriseWire *modelProviderServiceConfig_GeminiEnterpriseProviderConfigWire
+	var providerBedrockMantleWire *modelProviderServiceConfig_AmazonBedrockProviderConfigWire
 	switch value := v.Provider.(type) {
 	case nil:
 	case *ModelProviderServiceConfig_Provider_Openai:
@@ -745,6 +752,14 @@ func modelProviderServiceConfigToWire(v *ModelProviderServiceConfig) (*modelProv
 			}
 			providerGeminiEnterpriseWire = providerGeminiEnterpriseConverted
 		}
+	case *ModelProviderServiceConfig_Provider_BedrockMantle:
+		if value != nil {
+			providerBedrockMantleConverted, err := modelProviderServiceConfig_AmazonBedrockProviderConfigToWire(&value.BedrockMantle)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ModelProviderServiceConfig.Provider.BedrockMantle", err)
+			}
+			providerBedrockMantleWire = providerBedrockMantleConverted
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "ModelProviderServiceConfig.Provider", value)
 	}
@@ -757,6 +772,7 @@ func modelProviderServiceConfigToWire(v *ModelProviderServiceConfig) (*modelProv
 		Custom:                 providerCustomWire,
 		MicrosoftFoundry:       providerMicrosoftFoundryWire,
 		GeminiEnterprise:       providerGeminiEnterpriseWire,
+		BedrockMantle:          providerBedrockMantleWire,
 		AllowAllTargets:        v.AllowAllTargets,
 		Targets:                targetsWireValue,
 		ForwardHeaders:         v.ForwardHeaders,
@@ -764,6 +780,7 @@ func modelProviderServiceConfigToWire(v *ModelProviderServiceConfig) (*modelProv
 		ForwardUnmanagedPaths:  v.ForwardUnmanagedPaths,
 		RateLimits:             rateLimitsWireValue,
 		InferenceTable:         inferenceTableWireValue,
+		Pricing:                pricingWireValue,
 	}, nil
 }
 
@@ -793,6 +810,9 @@ func modelProviderServiceConfigFromWire(w *modelProviderServiceConfigWire) (*Mod
 	if w.GeminiEnterprise != nil {
 		providerMembers++
 	}
+	if w.BedrockMantle != nil {
+		providerMembers++
+	}
 	if providerMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "ModelProviderServiceConfig.Provider")
 	}
@@ -807,6 +827,10 @@ func modelProviderServiceConfigFromWire(w *modelProviderServiceConfigWire) (*Mod
 	inferenceTablePublicValue, err := inferenceTableConfigFromWire(w.InferenceTable)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ModelProviderServiceConfig.InferenceTable", err)
+	}
+	pricingPublicValue, err := modelProviderServiceConfig_ProviderPricingConfigFromWire(w.Pricing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelProviderServiceConfig.Pricing", err)
 	}
 	var providerSelection isModelProviderServiceConfig_Provider
 	switch {
@@ -852,6 +876,12 @@ func modelProviderServiceConfigFromWire(w *modelProviderServiceConfigWire) (*Mod
 			return nil, fmt.Errorf("%s: %w", "ModelProviderServiceConfig.Provider.GeminiEnterprise", err)
 		}
 		providerSelection = &ModelProviderServiceConfig_Provider_GeminiEnterprise{GeminiEnterprise: *providerGeminiEnterpriseConverted}
+	case w.BedrockMantle != nil:
+		providerBedrockMantleConverted, err := modelProviderServiceConfig_AmazonBedrockProviderConfigFromWire(w.BedrockMantle)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "ModelProviderServiceConfig.Provider.BedrockMantle", err)
+		}
+		providerSelection = &ModelProviderServiceConfig_Provider_BedrockMantle{BedrockMantle: *providerBedrockMantleConverted}
 	}
 	return &ModelProviderServiceConfig{
 		ProviderType:           w.ProviderType,
@@ -862,6 +892,7 @@ func modelProviderServiceConfigFromWire(w *modelProviderServiceConfigWire) (*Mod
 		ForwardUnmanagedPaths:  w.ForwardUnmanagedPaths,
 		RateLimits:             rateLimitsPublicValue,
 		InferenceTable:         inferenceTablePublicValue,
+		Pricing:                pricingPublicValue,
 		Provider:               providerSelection,
 	}, nil
 }
@@ -1944,6 +1975,28 @@ func modelProviderServiceConfig_OpenAiProviderDirectConfigFromWire(w *modelProvi
 		Organization: w.Organization,
 		BaseUrl:      w.BaseUrl,
 		AuthMode:     authModeSelection,
+	}, nil
+}
+
+type modelProviderServiceConfig_ProviderPricingConfigWire struct {
+	DefaultDiscountBasisPoints *int `json:"default_discount_basis_points,omitempty"`
+}
+
+func modelProviderServiceConfig_ProviderPricingConfigToWire(v *ModelProviderServiceConfig_ProviderPricingConfig) (*modelProviderServiceConfig_ProviderPricingConfigWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &modelProviderServiceConfig_ProviderPricingConfigWire{
+		DefaultDiscountBasisPoints: v.DefaultDiscountBasisPoints,
+	}, nil
+}
+
+func modelProviderServiceConfig_ProviderPricingConfigFromWire(w *modelProviderServiceConfig_ProviderPricingConfigWire) (*ModelProviderServiceConfig_ProviderPricingConfig, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ModelProviderServiceConfig_ProviderPricingConfig{
+		DefaultDiscountBasisPoints: w.DefaultDiscountBasisPoints,
 	}, nil
 }
 

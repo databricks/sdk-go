@@ -3,7 +3,9 @@
 package statementexecution
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
@@ -146,6 +148,38 @@ func executeResolvedCall(ctx context.Context, op func(context.Context) error, cf
 		ops.WithLimiter(cfg.RateLimiter),
 		ops.WithTimeout(cfg.Timeout),
 	)
+}
+
+func addQueryValue(params url.Values, key string, value any) error {
+	data, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.UseNumber()
+	var decoded any
+	if err := decoder.Decode(&decoded); err != nil {
+		return err
+	}
+	flattenQueryValue(params, key, decoded)
+	return nil
+}
+
+func flattenQueryValue(params url.Values, key string, value any) {
+	switch value := value.(type) {
+	case nil:
+		// JSON null represents an absent query value.
+	case map[string]any:
+		for childKey, child := range value {
+			flattenQueryValue(params, key+"."+childKey, child)
+		}
+	case []any:
+		for _, item := range value {
+			params.Add(key, fmt.Sprintf("%v", item))
+		}
+	default:
+		params.Add(key, fmt.Sprintf("%v", value))
+	}
 }
 
 // pathBuilder assembles request paths so "/" in parameter values remains a
