@@ -78,8 +78,7 @@ const (
 	PipelineType_Continuous PipelineType = "CONTINUOUS"
 )
 
-// State of the most recent scaling change request for a Storage Optimized
-// endpoint.
+// State of the most recent scaling change request for a Standard endpoint.
 type ScalingChangeState string
 
 const (
@@ -328,8 +327,8 @@ type Endpoint struct {
 	TargetQps *int `fieldmask:"target_qps"`
 }
 
-// Scaling information for a Storage Optimized endpoint — current scaling
-// state and the requested QPS target the system is scaling toward..
+// Scaling information for a Standard endpoint: the current scaling state, the
+// requested QPS target, and the progress of an in-progress scaling change..
 type EndpointScalingInfo struct {
 	// The current state of the scaling change request.
 	State ScalingChangeState `fieldmask:"state"`

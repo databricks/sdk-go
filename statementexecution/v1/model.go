@@ -99,6 +99,9 @@ type CancelStatementRequest struct {
 	// The statement ID is returned upon successfully submitting a SQL statement,
 	// and is a required reference for all subsequent calls.
 	StatementId *string
+	// For warehouse statement URLs, this field contains the warehouse_id path
+	// parameter.
+	WarehouseId *string
 }
 
 type CancelStatementResponse struct {
@@ -343,12 +346,18 @@ type GetResultDataRequest struct {
 	// and is a required reference for all subsequent calls.
 	StatementId *string
 	ChunkIndex  *int
+	// For warehouse statement URLs, this field contains the warehouse_id path
+	// parameter.
+	WarehouseId *string
 }
 
 type GetStatementResultRequest struct {
 	// The statement ID is returned upon successfully submitting a SQL statement,
 	// and is a required reference for all subsequent calls.
 	StatementId *string
+	// For warehouse statement URLs, this field contains the warehouse_id path
+	// parameter.
+	WarehouseId *string
 }
 
 // * A query execution can be annotated with an optional key-value pair to allow

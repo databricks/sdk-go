@@ -75,6 +75,11 @@ const (
 	ModelProviderServiceConfig_ExternalModelProviderType_ExternalModelProviderTypeMicrosoftFoundry ModelProviderServiceConfig_ExternalModelProviderType = "EXTERNAL_MODEL_PROVIDER_TYPE_MICROSOFT_FOUNDRY"
 	// Google Gemini Enterprise. Auth via API key.
 	ModelProviderServiceConfig_ExternalModelProviderType_ExternalModelProviderTypeGeminiEnterprise ModelProviderServiceConfig_ExternalModelProviderType = "EXTERNAL_MODEL_PROVIDER_TYPE_GEMINI_ENTERPRISE"
+	// Amazon Bedrock Mantle. Uses OpenAI-compatible APIs or the Anthropic Messages
+	// API for Claude instead of the standard Bedrock Runtime API. Authentication
+	// uses an AWS access-key pair or a Unity Catalog service credential. Configure
+	// the region and credentials in `bedrock_mantle`.
+	ModelProviderServiceConfig_ExternalModelProviderType_ExternalModelProviderTypeBedrockMantle ModelProviderServiceConfig_ExternalModelProviderType = "EXTERNAL_MODEL_PROVIDER_TYPE_BEDROCK_MANTLE"
 )
 
 // Backing-model category for a model service destination.
@@ -329,7 +334,7 @@ type ListMcpServicesRequest struct {
 	// Required. Each `{...}` component is capped at 255 characters individually.
 	Parent *string
 	// Maximum number of MCP services to return. Defaults to 100 when unset or 0;
-	// the maximum is 100. Use `page_token` to retrieve additional pages.
+	// the maximum is 200. Use `page_token` to retrieve additional pages.
 	PageSize *int
 	// Opaque pagination token from the previous response.
 	PageToken *string
@@ -355,7 +360,7 @@ type ListModelProviderServicesRequest struct {
 	// Required. Each `{...}` component is capped at 255 characters individually.
 	Parent *string
 	// Maximum number of provider services to return. Defaults to 100 when unset or
-	// 0; the maximum is 100. Use `page_token` to retrieve additional pages.
+	// 0; the maximum is 200. Use `page_token` to retrieve additional pages.
 	PageSize *int
 	// Opaque pagination token from the previous response.
 	PageToken *string
@@ -381,7 +386,7 @@ type ListModelServicesRequest struct {
 	// Required. Each `{...}` component is capped at 255 characters individually.
 	Parent *string
 	// Maximum number of model services to return. Defaults to 100 when unset or 0;
-	// the maximum is 100. Use `page_token` to retrieve additional pages.
+	// the maximum is 200. Use `page_token` to retrieve additional pages.
 	PageSize *int
 	// Opaque pagination token from the previous response.
 	PageToken *string
@@ -410,7 +415,7 @@ type ListSkillsRequest struct {
 	// rejected with INVALID_PARAMETER_VALUE.
 	Parent *string
 	// Maximum number of skills to return. Defaults to 100 when unset or 0; the
-	// maximum is 100. Use `page_token` to retrieve additional pages.
+	// maximum is 200. Use `page_token` to retrieve additional pages.
 	PageSize *int
 	// Opaque pagination token from a previous request.
 	PageToken *string
@@ -651,8 +656,10 @@ type ModelProviderServiceConfig struct {
 	// Payload logging configuration for requests sent directly to this provider
 	// service. Requests routed through a model service are captured by that model
 	// service's inference table instead.
-	InferenceTable *InferenceTableConfig                                  `fieldmask:"inference_table"`
-	_              [0]modelProviderServiceConfigProviderFieldMaskMetadata `fieldmask_oneof:"Provider"`
+	InferenceTable *InferenceTableConfig `fieldmask:"inference_table"`
+	// Pricing configuration for this provider service.
+	Pricing *ModelProviderServiceConfig_ProviderPricingConfig      `fieldmask:"pricing"`
+	_       [0]modelProviderServiceConfigProviderFieldMaskMetadata `fieldmask_oneof:"Provider"`
 }
 
 type isModelProviderServiceConfig_Provider interface {
@@ -710,6 +717,13 @@ type ModelProviderServiceConfig_Provider_GeminiEnterprise struct {
 func (*ModelProviderServiceConfig_Provider_GeminiEnterprise) isModelProviderServiceConfig_Provider() {
 }
 
+// ModelProviderServiceConfig_Provider_BedrockMantle selects BedrockMantle for ModelProviderServiceConfig.Provider.
+type ModelProviderServiceConfig_Provider_BedrockMantle struct {
+	BedrockMantle ModelProviderServiceConfig_AmazonBedrockProviderConfig `fieldmask:"bedrock_mantle"`
+}
+
+func (*ModelProviderServiceConfig_Provider_BedrockMantle) isModelProviderServiceConfig_Provider() {}
+
 type modelProviderServiceConfigProviderFieldMaskMetadata struct {
 	*ModelProviderServiceConfig_Provider_Openai
 	*ModelProviderServiceConfig_Provider_AzureOpenai
@@ -718,6 +732,7 @@ type modelProviderServiceConfigProviderFieldMaskMetadata struct {
 	*ModelProviderServiceConfig_Provider_Custom
 	*ModelProviderServiceConfig_Provider_MicrosoftFoundry
 	*ModelProviderServiceConfig_Provider_GeminiEnterprise
+	*ModelProviderServiceConfig_Provider_BedrockMantle
 }
 
 // Amazon Bedrock provider configuration..
@@ -1333,6 +1348,14 @@ func (*ModelProviderServiceConfig_OpenAiProviderDirectConfig_AuthMode_ApiKey) is
 
 type modelProviderServiceConfig_OpenAiProviderDirectConfigAuthModeFieldMaskMetadata struct {
 	*ModelProviderServiceConfig_OpenAiProviderDirectConfig_AuthMode_ApiKey
+}
+
+// Pricing adjustments applied to this provider service's external-model spend
+// estimates..
+type ModelProviderServiceConfig_ProviderPricingConfig struct {
+	// Provider-wide discount in basis points: 2000 = 20% off. Negative values are
+	// markups; the discount cannot exceed 10000 (100% off).
+	DefaultDiscountBasisPoints *int `fieldmask:"default_discount_basis_points"`
 }
 
 // A secret value supplied as part of an inline provider config. The caller
