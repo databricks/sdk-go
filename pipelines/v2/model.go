@@ -485,7 +485,8 @@ type ClonePipelineRequest struct {
 	Storage *string
 	// String-String configuration for this pipeline execution.
 	Configuration map[string]string
-	// Cluster settings for this pipeline deployment.
+	// Cluster settings for this pipeline deployment. Applies to classic
+	// (non-serverless) pipelines. Omit this field when `serverless` is `true`.
 	Clusters []PipelineCluster
 	// Libraries or code needed by this deployment.
 	Libraries []PipelineLibrary
@@ -529,7 +530,11 @@ type ClonePipelineRequest struct {
 	Catalog *string
 	// List of notification settings for this pipeline.
 	Notifications []Notifications
-	// Whether serverless compute is enabled for this pipeline.
+	// Whether serverless compute is enabled for this pipeline. Serverless is the
+	// recommended compute for new pipelines; set this to `true` to run the pipeline
+	// on serverless. For notebook/file pipelines, omitting this field uses classic
+	// compute configured through the `clusters` field. When `true`, omit
+	// `clusters`; Photon is always enabled.
 	Serverless *bool
 	// Deployment type of this pipeline.
 	Deployment *PipelineDeployment
@@ -727,7 +732,8 @@ type CreatePipelineRequest struct {
 	Storage *string
 	// String-String configuration for this pipeline execution.
 	Configuration map[string]string
-	// Cluster settings for this pipeline deployment.
+	// Cluster settings for this pipeline deployment. Applies to classic
+	// (non-serverless) pipelines. Omit this field when `serverless` is `true`.
 	Clusters []PipelineCluster
 	// Libraries or code needed by this deployment.
 	Libraries []PipelineLibrary
@@ -771,7 +777,11 @@ type CreatePipelineRequest struct {
 	Catalog *string
 	// List of notification settings for this pipeline.
 	Notifications []Notifications
-	// Whether serverless compute is enabled for this pipeline.
+	// Whether serverless compute is enabled for this pipeline. Serverless is the
+	// recommended compute for new pipelines; set this to `true` to run the pipeline
+	// on serverless. For notebook/file pipelines, omitting this field uses classic
+	// compute configured through the `clusters` field. When `true`, omit
+	// `clusters`; Photon is always enabled.
 	Serverless *bool
 	// Deployment type of this pipeline.
 	Deployment *PipelineDeployment
@@ -874,7 +884,8 @@ type EditPipelineRequest struct {
 	Storage *string
 	// String-String configuration for this pipeline execution.
 	Configuration map[string]string
-	// Cluster settings for this pipeline deployment.
+	// Cluster settings for this pipeline deployment. Applies to classic
+	// (non-serverless) pipelines. Omit this field when `serverless` is `true`.
 	Clusters []PipelineCluster
 	// Libraries or code needed by this deployment.
 	Libraries []PipelineLibrary
@@ -918,7 +929,11 @@ type EditPipelineRequest struct {
 	Catalog *string
 	// List of notification settings for this pipeline.
 	Notifications []Notifications
-	// Whether serverless compute is enabled for this pipeline.
+	// Whether serverless compute is enabled for this pipeline. Serverless is the
+	// recommended compute for new pipelines; set this to `true` to run the pipeline
+	// on serverless. For notebook/file pipelines, omitting this field uses classic
+	// compute configured through the `clusters` field. When `true`, omit
+	// `clusters`; Photon is always enabled.
 	Serverless *bool
 	// Deployment type of this pipeline.
 	Deployment *PipelineDeployment
@@ -2093,7 +2108,8 @@ type PipelineSpec struct {
 	Storage *string
 	// String-String configuration for this pipeline execution.
 	Configuration map[string]string
-	// Cluster settings for this pipeline deployment.
+	// Cluster settings for this pipeline deployment. Applies to classic
+	// (non-serverless) pipelines. Omit this field when `serverless` is `true`.
 	Clusters []PipelineCluster
 	// Libraries or code needed by this deployment.
 	Libraries []PipelineLibrary
@@ -2137,7 +2153,11 @@ type PipelineSpec struct {
 	Catalog *string
 	// List of notification settings for this pipeline.
 	Notifications []Notifications
-	// Whether serverless compute is enabled for this pipeline.
+	// Whether serverless compute is enabled for this pipeline. Serverless is the
+	// recommended compute for new pipelines; set this to `true` to run the pipeline
+	// on serverless. For notebook/file pipelines, omitting this field uses classic
+	// compute configured through the `clusters` field. When `true`, omit
+	// `clusters`; Photon is always enabled.
 	Serverless *bool
 	// Deployment type of this pipeline.
 	Deployment *PipelineDeployment

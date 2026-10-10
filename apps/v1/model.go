@@ -507,11 +507,12 @@ const (
 type AppManifest_AppResourceUcSecurableSpec_UcSecurableType string
 
 const (
-	AppManifest_AppResourceUcSecurableSpec_UcSecurableType_Unspecified AppManifest_AppResourceUcSecurableSpec_UcSecurableType = ""
-	AppManifest_AppResourceUcSecurableSpec_UcSecurableType_Volume      AppManifest_AppResourceUcSecurableSpec_UcSecurableType = "VOLUME"
-	AppManifest_AppResourceUcSecurableSpec_UcSecurableType_Table       AppManifest_AppResourceUcSecurableSpec_UcSecurableType = "TABLE"
-	AppManifest_AppResourceUcSecurableSpec_UcSecurableType_Function    AppManifest_AppResourceUcSecurableSpec_UcSecurableType = "FUNCTION"
-	AppManifest_AppResourceUcSecurableSpec_UcSecurableType_Connection  AppManifest_AppResourceUcSecurableSpec_UcSecurableType = "CONNECTION"
+	AppManifest_AppResourceUcSecurableSpec_UcSecurableType_Unspecified  AppManifest_AppResourceUcSecurableSpec_UcSecurableType = ""
+	AppManifest_AppResourceUcSecurableSpec_UcSecurableType_Volume       AppManifest_AppResourceUcSecurableSpec_UcSecurableType = "VOLUME"
+	AppManifest_AppResourceUcSecurableSpec_UcSecurableType_Table        AppManifest_AppResourceUcSecurableSpec_UcSecurableType = "TABLE"
+	AppManifest_AppResourceUcSecurableSpec_UcSecurableType_Function     AppManifest_AppResourceUcSecurableSpec_UcSecurableType = "FUNCTION"
+	AppManifest_AppResourceUcSecurableSpec_UcSecurableType_Connection   AppManifest_AppResourceUcSecurableSpec_UcSecurableType = "CONNECTION"
+	AppManifest_AppResourceUcSecurableSpec_UcSecurableType_ModelService AppManifest_AppResourceUcSecurableSpec_UcSecurableType = "MODEL_SERVICE"
 )
 
 type AppResourceApp_AppPermission string
@@ -608,11 +609,12 @@ const (
 type AppResourceUcSecurable_UcSecurableType string
 
 const (
-	AppResourceUcSecurable_UcSecurableType_Unspecified AppResourceUcSecurable_UcSecurableType = ""
-	AppResourceUcSecurable_UcSecurableType_Volume      AppResourceUcSecurable_UcSecurableType = "VOLUME"
-	AppResourceUcSecurable_UcSecurableType_Table       AppResourceUcSecurable_UcSecurableType = "TABLE"
-	AppResourceUcSecurable_UcSecurableType_Function    AppResourceUcSecurable_UcSecurableType = "FUNCTION"
-	AppResourceUcSecurable_UcSecurableType_Connection  AppResourceUcSecurable_UcSecurableType = "CONNECTION"
+	AppResourceUcSecurable_UcSecurableType_Unspecified  AppResourceUcSecurable_UcSecurableType = ""
+	AppResourceUcSecurable_UcSecurableType_Volume       AppResourceUcSecurable_UcSecurableType = "VOLUME"
+	AppResourceUcSecurable_UcSecurableType_Table        AppResourceUcSecurable_UcSecurableType = "TABLE"
+	AppResourceUcSecurable_UcSecurableType_Function     AppResourceUcSecurable_UcSecurableType = "FUNCTION"
+	AppResourceUcSecurable_UcSecurableType_Connection   AppResourceUcSecurable_UcSecurableType = "CONNECTION"
+	AppResourceUcSecurable_UcSecurableType_ModelService AppResourceUcSecurable_UcSecurableType = "MODEL_SERVICE"
 )
 
 type AppUpdate_UpdateStatus_UpdateState string
