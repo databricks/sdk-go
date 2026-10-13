@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
 	"github.com/databricks/sdk-go/core/clientinfo"
@@ -33,6 +34,7 @@ type Client struct {
 
 type internalClient struct {
 	httpClient  *http.Client
+	callTimeout *time.Duration
 	credentials auth.Credentials
 	logger      *slog.Logger
 	userAgent   func() (string, error)
@@ -65,6 +67,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	return &Client{
 		internalClient: internalClient{
 			httpClient:  cfg.HTTPClient,
+			callTimeout: cfg.Timeout,
 			credentials: cfg.Credentials,
 			logger:      cfg.Logger,
 			userAgent:   userAgent,
@@ -154,7 +157,7 @@ func (c *internalClient) CreateAccountIpAccessList(ctx context.Context, req Crea
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -216,7 +219,7 @@ func (c *internalClient) DeleteAccountIpAccessList(ctx context.Context, req Dele
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -284,7 +287,7 @@ func (c *internalClient) GetAccountIpAccessList(ctx context.Context, req GetAcco
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -347,7 +350,7 @@ func (c *internalClient) ListAccountIpAccessLists(ctx context.Context, req ListA
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -433,7 +436,7 @@ func (c *internalClient) ReplaceAccountIpAccessList(ctx context.Context, req Rep
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -523,7 +526,7 @@ func (c *internalClient) UpdateAccountIpAccessList(ctx context.Context, req Upda
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -604,7 +607,7 @@ func (c *internalClient) CreateEndpoint(ctx context.Context, req CreateEndpointR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -660,7 +663,7 @@ func (c *internalClient) DeleteEndpoint(ctx context.Context, req DeleteEndpointR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -723,7 +726,7 @@ func (c *internalClient) GetEndpoint(ctx context.Context, req GetEndpointRequest
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -797,7 +800,7 @@ func (c *internalClient) ListEndpoints(ctx context.Context, req ListEndpointsReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -921,7 +924,7 @@ func (c *internalClient) CreateIpAccessList(ctx context.Context, req CreateIpAcc
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -979,7 +982,7 @@ func (c *internalClient) DeleteIpAccessList(ctx context.Context, req DeleteIpAcc
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1043,7 +1046,7 @@ func (c *internalClient) GetIpAccessList(ctx context.Context, req GetIpAccessLis
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1100,7 +1103,7 @@ func (c *internalClient) ListIpAccessLists(ctx context.Context, req ListIpAccess
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1186,7 +1189,7 @@ func (c *internalClient) ReplaceIpAccessList(ctx context.Context, req ReplaceIpA
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1276,7 +1279,7 @@ func (c *internalClient) UpdateIpAccessList(ctx context.Context, req UpdateIpAcc
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1360,7 +1363,7 @@ func (c *internalClient) CreateNetworkConnectivityConfigPublic(ctx context.Conte
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1419,7 +1422,7 @@ func (c *internalClient) DeleteNetworkConnectivityConfigPublic(ctx context.Conte
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -1487,7 +1490,7 @@ func (c *internalClient) GetNetworkConnectivityConfigPublic(ctx context.Context,
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1557,7 +1560,7 @@ func (c *internalClient) ListNetworkConnectivityConfigsPublic(ctx context.Contex
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1685,7 +1688,7 @@ func (c *internalClient) CreateNccPrivateEndpointRule(ctx context.Context, req C
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1764,7 +1767,7 @@ func (c *internalClient) DeleteNccPrivateEndpointRule(ctx context.Context, req D
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1838,7 +1841,7 @@ func (c *internalClient) GetNccPrivateEndpointRule(ctx context.Context, req GetN
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1914,7 +1917,7 @@ func (c *internalClient) ListNccPrivateEndpointRules(ctx context.Context, req Li
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2042,7 +2045,7 @@ func (c *internalClient) UpdateNccPrivateEndpointRule(ctx context.Context, req U
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2115,7 +2118,7 @@ func (c *internalClient) CreateNetworkPolicyRpc(ctx context.Context, req CreateN
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2173,7 +2176,7 @@ func (c *internalClient) DeleteNetworkPolicyRpc(ctx context.Context, req DeleteN
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -2240,7 +2243,7 @@ func (c *internalClient) GetNetworkPolicyRpc(ctx context.Context, req GetNetwork
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2310,7 +2313,7 @@ func (c *internalClient) ListNetworkPoliciesRpc(ctx context.Context, req ListNet
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2428,7 +2431,7 @@ func (c *internalClient) UpdateNetworkPolicyRpc(ctx context.Context, req UpdateN
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2502,7 +2505,7 @@ func (c *internalClient) CreateNetworkPublic(ctx context.Context, req CreateNetw
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2577,7 +2580,7 @@ func (c *internalClient) CreatePrivateAccessSettingsPublic(ctx context.Context, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2662,7 +2665,7 @@ func (c *internalClient) CreateVpcEndpointPublic(ctx context.Context, req Create
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2734,7 +2737,7 @@ func (c *internalClient) DeleteNetworkPublic(ctx context.Context, req DeleteNetw
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2802,7 +2805,7 @@ func (c *internalClient) DeletePrivateAccessSettingsPublic(ctx context.Context, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2870,7 +2873,7 @@ func (c *internalClient) DeleteVpcEndpointPublic(ctx context.Context, req Delete
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2938,7 +2941,7 @@ func (c *internalClient) GetNetworkPublic(ctx context.Context, req GetNetworkReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3006,7 +3009,7 @@ func (c *internalClient) GetPrivateAccessSettingsPublic(ctx context.Context, req
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3078,7 +3081,7 @@ func (c *internalClient) GetVpcEndpointPublic(ctx context.Context, req GetVpcEnd
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3144,7 +3147,7 @@ func (c *internalClient) ListNetworkPublic(ctx context.Context, req ListNetworkR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3210,7 +3213,7 @@ func (c *internalClient) ListPrivateAccessSettingsPublic(ctx context.Context, re
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3276,7 +3279,7 @@ func (c *internalClient) ListVpcEndpointPublic(ctx context.Context, req ListVpcE
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3365,7 +3368,7 @@ func (c *internalClient) UpdatePrivateAccessSettingsPublic(ctx context.Context, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3436,7 +3439,7 @@ func (c *internalClient) GetWorkspaceNetworkOptionRpc(ctx context.Context, req G
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3516,7 +3519,7 @@ func (c *internalClient) UpdateWorkspaceNetworkOptionRpc(ctx context.Context, re
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil

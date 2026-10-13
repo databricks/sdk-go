@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
 	"github.com/databricks/sdk-go/core/clientinfo"
@@ -33,6 +34,7 @@ type Client struct {
 
 type internalClient struct {
 	httpClient  *http.Client
+	callTimeout *time.Duration
 	credentials auth.Credentials
 	logger      *slog.Logger
 	userAgent   func() (string, error)
@@ -65,6 +67,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	return &Client{
 		internalClient: internalClient{
 			httpClient:  cfg.HTTPClient,
+			callTimeout: cfg.Timeout,
 			credentials: cfg.Credentials,
 			logger:      cfg.Logger,
 			userAgent:   userAgent,
@@ -146,7 +149,7 @@ func (c *internalClient) CreateDashboard(ctx context.Context, req CreateDashboar
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -225,7 +228,7 @@ func (c *internalClient) CreateSchedule(ctx context.Context, req CreateScheduleR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -313,7 +316,7 @@ func (c *internalClient) CreateSubscription(ctx context.Context, req CreateSubsc
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -384,7 +387,7 @@ func (c *internalClient) DeleteSchedule(ctx context.Context, req DeleteScheduleR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -463,7 +466,7 @@ func (c *internalClient) DeleteSubscription(ctx context.Context, req DeleteSubsc
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -531,7 +534,7 @@ func (c *internalClient) GetDashboard(ctx context.Context, req GetDashboardReque
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -601,7 +604,7 @@ func (c *internalClient) GetPublishedDashboard(ctx context.Context, req GetPubli
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -682,7 +685,7 @@ func (c *internalClient) GetPublishedDashboardTokenInfo(ctx context.Context, req
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -758,7 +761,7 @@ func (c *internalClient) GetSchedule(ctx context.Context, req GetScheduleRequest
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -839,7 +842,7 @@ func (c *internalClient) GetSubscription(ctx context.Context, req GetSubscriptio
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -919,7 +922,7 @@ func (c *internalClient) ListDashboards(ctx context.Context, req ListDashboardsR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1042,7 +1045,7 @@ func (c *internalClient) ListSchedules(ctx context.Context, req ListSchedulesReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1170,7 +1173,7 @@ func (c *internalClient) ListSubscriptions(ctx context.Context, req ListSubscrip
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1278,7 +1281,7 @@ func (c *internalClient) MigrateDashboard(ctx context.Context, req MigrateDashbo
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1356,7 +1359,7 @@ func (c *internalClient) PublishDashboard(ctx context.Context, req PublishDashbo
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1434,7 +1437,7 @@ func (c *internalClient) RevertDashboard(ctx context.Context, req RevertDashboar
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1496,7 +1499,7 @@ func (c *internalClient) TrashDashboard(ctx context.Context, req TrashDashboardR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1559,7 +1562,7 @@ func (c *internalClient) UnpublishDashboard(ctx context.Context, req UnpublishDa
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1643,7 +1646,7 @@ func (c *internalClient) UpdateDashboard(ctx context.Context, req UpdateDashboar
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1727,7 +1730,7 @@ func (c *internalClient) UpdateSchedule(ctx context.Context, req UpdateScheduleR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil

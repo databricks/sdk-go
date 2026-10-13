@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/databricks/sdk-go/apps/internal"
 	"github.com/databricks/sdk-go/auth"
@@ -34,6 +35,7 @@ type Client struct {
 
 type internalClient struct {
 	httpClient  *http.Client
+	callTimeout *time.Duration
 	credentials auth.Credentials
 	logger      *slog.Logger
 	userAgent   func() (string, error)
@@ -66,6 +68,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	return &Client{
 		internalClient: internalClient{
 			httpClient:  cfg.HTTPClient,
+			callTimeout: cfg.Timeout,
 			credentials: cfg.Credentials,
 			logger:      cfg.Logger,
 			userAgent:   userAgent,
@@ -146,7 +149,7 @@ func (c *internalClient) asyncUpdateAppBase(ctx context.Context, req AsyncUpdate
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -310,7 +313,7 @@ func (c *internalClient) createAppBase(ctx context.Context, req CreateAppRequest
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -476,7 +479,7 @@ func (c *internalClient) createAppDeploymentBase(ctx context.Context, req Create
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -647,7 +650,7 @@ func (c *internalClient) CreateCustomTemplate(ctx context.Context, req CreateCus
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -713,7 +716,7 @@ func (c *internalClient) createSpaceBase(ctx context.Context, req CreateSpaceReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -876,7 +879,7 @@ func (c *internalClient) DeleteApp(ctx context.Context, req DeleteAppRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -932,7 +935,7 @@ func (c *internalClient) DeleteAppThumbnail(ctx context.Context, req DeleteAppTh
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -995,7 +998,7 @@ func (c *internalClient) DeleteCustomTemplate(ctx context.Context, req DeleteCus
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1058,7 +1061,7 @@ func (c *internalClient) deleteSpaceBase(ctx context.Context, req DeleteSpaceReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1212,7 +1215,7 @@ func (c *internalClient) GetApp(ctx context.Context, req GetAppRequest, opts ...
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1283,7 +1286,7 @@ func (c *internalClient) GetAppDeployment(ctx context.Context, req GetAppDeploym
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1348,7 +1351,7 @@ func (c *internalClient) GetAppUpdate(ctx context.Context, req GetAppUpdateReque
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1411,7 +1414,7 @@ func (c *internalClient) GetCustomTemplate(ctx context.Context, req GetCustomTem
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1475,7 +1478,7 @@ func (c *internalClient) GetSpace(ctx context.Context, req GetSpaceRequest, opts
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1540,7 +1543,7 @@ func (c *internalClient) getSpaceOperation(ctx context.Context, req GetOperation
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1615,7 +1618,7 @@ func (c *internalClient) ListAppDeployments(ctx context.Context, req ListAppDepl
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1726,7 +1729,7 @@ func (c *internalClient) ListApps(ctx context.Context, req ListAppsRequest, opts
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1834,7 +1837,7 @@ func (c *internalClient) ListCustomTemplates(ctx context.Context, req ListCustom
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1942,7 +1945,7 @@ func (c *internalClient) ListSpaces(ctx context.Context, req ListSpacesRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2057,7 +2060,7 @@ func (c *internalClient) startAppBase(ctx context.Context, req StartAppRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2224,7 +2227,7 @@ func (c *internalClient) stopAppBase(ctx context.Context, req StopAppRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2390,7 +2393,7 @@ func (c *internalClient) UpdateApp(ctx context.Context, req UpdateAppRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2464,7 +2467,7 @@ func (c *internalClient) UpdateAppThumbnail(ctx context.Context, req UpdateAppTh
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2537,7 +2540,7 @@ func (c *internalClient) UpdateCustomTemplate(ctx context.Context, req UpdateCus
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2613,7 +2616,7 @@ func (c *internalClient) updateSpaceBase(ctx context.Context, req UpdateSpaceReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil

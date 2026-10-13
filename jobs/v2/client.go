@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
 	"github.com/databricks/sdk-go/core/clientinfo"
@@ -34,6 +35,7 @@ type Client struct {
 
 type internalClient struct {
 	httpClient  *http.Client
+	callTimeout *time.Duration
 	credentials auth.Credentials
 	logger      *slog.Logger
 	userAgent   func() (string, error)
@@ -66,6 +68,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	return &Client{
 		internalClient: internalClient{
 			httpClient:  cfg.HTTPClient,
+			callTimeout: cfg.Timeout,
 			credentials: cfg.Credentials,
 			logger:      cfg.Logger,
 			userAgent:   userAgent,
@@ -139,7 +142,7 @@ func (c *internalClient) EnforcePolicyComplianceForJob(ctx context.Context, req 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -206,7 +209,7 @@ func (c *internalClient) GetPolicyComplianceForJob(ctx context.Context, req GetP
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -279,7 +282,7 @@ func (c *internalClient) ListJobComplianceForPolicy(ctx context.Context, req Lis
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -381,7 +384,7 @@ func (c *internalClient) CancelAllRuns(ctx context.Context, req CancelAllRunsReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -442,7 +445,7 @@ func (c *internalClient) cancelRunBase(ctx context.Context, req CancelRunRequest
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -602,7 +605,7 @@ func (c *internalClient) CreateJob(ctx context.Context, req CreateJobRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -662,7 +665,7 @@ func (c *internalClient) DeleteJob(ctx context.Context, req DeleteJobRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -722,7 +725,7 @@ func (c *internalClient) DeleteRun(ctx context.Context, req DeleteRunRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -791,7 +794,7 @@ func (c *internalClient) ExportRun(ctx context.Context, req ExportRunRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -870,7 +873,7 @@ func (c *internalClient) GetJob(ctx context.Context, req GetJobRequest, opts ...
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -952,7 +955,7 @@ func (c *internalClient) GetRun(ctx context.Context, req GetRunRequest, opts ...
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1025,7 +1028,7 @@ func (c *internalClient) GetRunOutput(ctx context.Context, req GetRunOutputReque
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1101,7 +1104,7 @@ func (c *internalClient) ListJobs(ctx context.Context, req ListJobsRequest, opts
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1236,7 +1239,7 @@ func (c *internalClient) ListRuns(ctx context.Context, req ListRunsRequest, opts
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1345,7 +1348,7 @@ func (c *internalClient) repairBase(ctx context.Context, req RepairRunRequest, o
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1501,7 +1504,7 @@ func (c *internalClient) ResetJob(ctx context.Context, req ResetJobRequest, opts
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1567,7 +1570,7 @@ func (c *internalClient) runNowBase(ctx context.Context, req RunNowRequest, opts
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1736,7 +1739,7 @@ func (c *internalClient) submitRunBase(ctx context.Context, req SubmitRunRequest
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1900,7 +1903,7 @@ func (c *internalClient) UpdateJob(ctx context.Context, req UpdateJobRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil

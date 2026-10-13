@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
 	"github.com/databricks/sdk-go/cleanrooms/internal"
@@ -34,6 +35,7 @@ type Client struct {
 
 type internalClient struct {
 	httpClient  *http.Client
+	callTimeout *time.Duration
 	credentials auth.Credentials
 	logger      *slog.Logger
 	userAgent   func() (string, error)
@@ -66,6 +68,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	return &Client{
 		internalClient: internalClient{
 			httpClient:  cfg.HTTPClient,
+			callTimeout: cfg.Timeout,
 			credentials: cfg.Credentials,
 			logger:      cfg.Logger,
 			userAgent:   userAgent,
@@ -146,7 +149,7 @@ func (c *internalClient) createCleanRoomBase(ctx context.Context, req CreateClea
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -314,7 +317,7 @@ func (c *internalClient) CreateCleanRoomAsset(ctx context.Context, req CreateCle
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -394,7 +397,7 @@ func (c *internalClient) CreateCleanRoomAssetReview(ctx context.Context, req Cre
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -468,7 +471,7 @@ func (c *internalClient) CreateCleanRoomAutoApprovalRule(ctx context.Context, re
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -541,7 +544,7 @@ func (c *internalClient) CreateCleanRoomOutputCatalog(ctx context.Context, req C
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -598,7 +601,7 @@ func (c *internalClient) DeleteCleanRoom(ctx context.Context, req DeleteCleanRoo
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -662,7 +665,7 @@ func (c *internalClient) DeleteCleanRoomAsset(ctx context.Context, req DeleteCle
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -721,7 +724,7 @@ func (c *internalClient) DeleteCleanRoomAutoApprovalRule(ctx context.Context, re
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -784,7 +787,7 @@ func (c *internalClient) GetCleanRoom(ctx context.Context, req GetCleanRoomReque
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -854,7 +857,7 @@ func (c *internalClient) GetCleanRoomAsset(ctx context.Context, req GetCleanRoom
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -930,7 +933,7 @@ func (c *internalClient) GetCleanRoomAssetRevision(ctx context.Context, req GetC
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -998,7 +1001,7 @@ func (c *internalClient) GetCleanRoomAutoApprovalRule(ctx context.Context, req G
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1079,7 +1082,7 @@ func (c *internalClient) ListCleanRoomAssetRevisions(ctx context.Context, req Li
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1191,7 +1194,7 @@ func (c *internalClient) ListCleanRoomAssets(ctx context.Context, req ListCleanR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1306,7 +1309,7 @@ func (c *internalClient) ListCleanRoomAutoApprovalRules(ctx context.Context, req
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1424,7 +1427,7 @@ func (c *internalClient) ListCleanRoomNotebookTaskRuns(ctx context.Context, req 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1547,7 +1550,7 @@ func (c *internalClient) ListCleanRoomTaskRunsHandler(ctx context.Context, req L
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1656,7 +1659,7 @@ func (c *internalClient) ListCleanRooms(ctx context.Context, req ListCleanRoomsR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1773,7 +1776,7 @@ func (c *internalClient) UpdateCleanRoom(ctx context.Context, req UpdateCleanRoo
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1857,7 +1860,7 @@ func (c *internalClient) UpdateCleanRoomAsset(ctx context.Context, req UpdateCle
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1936,7 +1939,7 @@ func (c *internalClient) UpdateCleanRoomAutoApprovalRule(ctx context.Context, re
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil

@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
 	"github.com/databricks/sdk-go/core/clientinfo"
@@ -34,6 +35,7 @@ type Client struct {
 
 type internalClient struct {
 	httpClient  *http.Client
+	callTimeout *time.Duration
 	credentials auth.Credentials
 	logger      *slog.Logger
 	userAgent   func() (string, error)
@@ -66,6 +68,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	return &Client{
 		internalClient: internalClient{
 			httpClient:  cfg.HTTPClient,
+			callTimeout: cfg.Timeout,
 			credentials: cfg.Credentials,
 			logger:      cfg.Logger,
 			userAgent:   userAgent,
@@ -136,7 +139,7 @@ func (c *internalClient) CreateDatabaseCatalog(ctx context.Context, req CreateDa
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -202,7 +205,7 @@ func (c *internalClient) createDatabaseInstanceBase(ctx context.Context, req Cre
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -359,7 +362,7 @@ func (c *internalClient) CreateDatabaseInstanceRole(ctx context.Context, req Cre
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -427,7 +430,7 @@ func (c *internalClient) CreateDatabaseTable(ctx context.Context, req CreateData
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -493,7 +496,7 @@ func (c *internalClient) CreateSyncedDatabaseTable(ctx context.Context, req Crea
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -547,7 +550,7 @@ func (c *internalClient) DeleteDatabaseCatalog(ctx context.Context, req DeleteDa
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -612,7 +615,7 @@ func (c *internalClient) DeleteDatabaseInstance(ctx context.Context, req DeleteD
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -681,7 +684,7 @@ func (c *internalClient) DeleteDatabaseInstanceRole(ctx context.Context, req Del
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -735,7 +738,7 @@ func (c *internalClient) DeleteDatabaseTable(ctx context.Context, req DeleteData
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -796,7 +799,7 @@ func (c *internalClient) DeleteSyncedDatabaseTable(ctx context.Context, req Dele
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -860,7 +863,7 @@ func (c *internalClient) FindDatabaseInstanceByUid(ctx context.Context, req Find
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -929,7 +932,7 @@ func (c *internalClient) GenerateDatabaseCredential(ctx context.Context, req Gen
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -992,7 +995,7 @@ func (c *internalClient) GetDatabaseCatalog(ctx context.Context, req GetDatabase
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1056,7 +1059,7 @@ func (c *internalClient) GetDatabaseInstance(ctx context.Context, req GetDatabas
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1126,7 +1129,7 @@ func (c *internalClient) GetDatabaseInstanceRole(ctx context.Context, req GetDat
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1189,7 +1192,7 @@ func (c *internalClient) GetDatabaseTable(ctx context.Context, req GetDatabaseTa
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1252,7 +1255,7 @@ func (c *internalClient) GetSyncedDatabaseTable(ctx context.Context, req GetSync
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1327,7 +1330,7 @@ func (c *internalClient) ListDatabaseCatalogs(ctx context.Context, req ListDatab
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1447,7 +1450,7 @@ func (c *internalClient) ListDatabaseInstanceRoles(ctx context.Context, req List
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1555,7 +1558,7 @@ func (c *internalClient) ListDatabaseInstances(ctx context.Context, req ListData
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1671,7 +1674,7 @@ func (c *internalClient) ListSyncedDatabaseTables(ctx context.Context, req ListS
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1787,7 +1790,7 @@ func (c *internalClient) UpdateDatabaseCatalog(ctx context.Context, req UpdateDa
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1862,7 +1865,7 @@ func (c *internalClient) UpdateDatabaseInstance(ctx context.Context, req UpdateD
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1937,7 +1940,7 @@ func (c *internalClient) UpdateSyncedDatabaseTable(ctx context.Context, req Upda
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil

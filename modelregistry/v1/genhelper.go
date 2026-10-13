@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
 	"github.com/databricks/sdk-go/core/apierr"
@@ -123,8 +124,14 @@ func executeHTTPCall(opts httpCallOptions) ([]byte, http.Header, error) {
 	return body, resp.Header, nil
 }
 
-func resolveCallOptions(opts []call.Option) (internaloptions.CallOptions, error) {
-	cfg := internaloptions.CallOptions{}
+func (c *internalClient) resolveCallOptions(
+	opts []call.Option,
+	timeout time.Duration,
+) (internaloptions.CallOptions, error) {
+	cfg := internaloptions.CallOptions{Timeout: timeout}
+	if c.callTimeout != nil {
+		cfg.Timeout = *c.callTimeout
+	}
 	for _, opt := range opts {
 		if err := opt(&cfg); err != nil {
 			return internaloptions.CallOptions{}, err
@@ -133,8 +140,12 @@ func resolveCallOptions(opts []call.Option) (internaloptions.CallOptions, error)
 	return cfg, nil
 }
 
-func executeCall(ctx context.Context, op func(context.Context) error, opts []call.Option) error {
-	cfg, err := resolveCallOptions(opts)
+func (c *internalClient) executeCall(
+	ctx context.Context,
+	op func(context.Context) error,
+	opts []call.Option,
+) error {
+	cfg, err := c.resolveCallOptions(opts, 5*time.Minute)
 	if err != nil {
 		return err
 	}

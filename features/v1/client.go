@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
 	"github.com/databricks/sdk-go/core/clientinfo"
@@ -34,6 +35,7 @@ type Client struct {
 
 type internalClient struct {
 	httpClient  *http.Client
+	callTimeout *time.Duration
 	credentials auth.Credentials
 	logger      *slog.Logger
 	userAgent   func() (string, error)
@@ -66,6 +68,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	return &Client{
 		internalClient: internalClient{
 			httpClient:  cfg.HTTPClient,
+			callTimeout: cfg.Timeout,
 			credentials: cfg.Credentials,
 			logger:      cfg.Logger,
 			userAgent:   userAgent,
@@ -139,7 +142,7 @@ func (c *internalClient) backfillFeaturesBase(ctx context.Context, req BackfillF
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -311,7 +314,7 @@ func (c *internalClient) BatchCreateMaterializedFeatures(ctx context.Context, re
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -376,7 +379,7 @@ func (c *internalClient) cancelOperation(ctx context.Context, req CancelOperatio
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -442,7 +445,7 @@ func (c *internalClient) CreateFeature(ctx context.Context, req CreateFeatureReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -510,7 +513,7 @@ func (c *internalClient) CreateKafkaConfig(ctx context.Context, req CreateKafkaC
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -576,7 +579,7 @@ func (c *internalClient) CreateMaterializedFeature(ctx context.Context, req Crea
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -643,7 +646,7 @@ func (c *internalClient) CreateStream(ctx context.Context, req CreateStreamReque
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -697,7 +700,7 @@ func (c *internalClient) DeleteFeature(ctx context.Context, req DeleteFeatureReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -753,7 +756,7 @@ func (c *internalClient) DeleteKafkaConfig(ctx context.Context, req DeleteKafkaC
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -807,7 +810,7 @@ func (c *internalClient) DeleteMaterializedFeature(ctx context.Context, req Dele
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -861,7 +864,7 @@ func (c *internalClient) DeleteStream(ctx context.Context, req DeleteStreamReque
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -924,7 +927,7 @@ func (c *internalClient) GetFeature(ctx context.Context, req GetFeatureRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -989,7 +992,7 @@ func (c *internalClient) GetKafkaConfig(ctx context.Context, req GetKafkaConfigR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1052,7 +1055,7 @@ func (c *internalClient) GetMaterializedFeature(ctx context.Context, req GetMate
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1116,7 +1119,7 @@ func (c *internalClient) getOperation(ctx context.Context, req GetOperationReque
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1179,7 +1182,7 @@ func (c *internalClient) GetStream(ctx context.Context, req GetStreamRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1252,7 +1255,7 @@ func (c *internalClient) ListFeatures(ctx context.Context, req ListFeaturesReque
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1362,7 +1365,7 @@ func (c *internalClient) ListKafkaConfigs(ctx context.Context, req ListKafkaConf
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1473,7 +1476,7 @@ func (c *internalClient) ListMaterializedFeatures(ctx context.Context, req ListM
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1584,7 +1587,7 @@ func (c *internalClient) ListStreams(ctx context.Context, req ListStreamsRequest
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1694,7 +1697,7 @@ func (c *internalClient) purgeFeatureEntitiesBase(ctx context.Context, req Purge
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1868,7 +1871,7 @@ func (c *internalClient) UpdateFeature(ctx context.Context, req UpdateFeatureReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1945,7 +1948,7 @@ func (c *internalClient) UpdateKafkaConfig(ctx context.Context, req UpdateKafkaC
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2021,7 +2024,7 @@ func (c *internalClient) UpdateMaterializedFeature(ctx context.Context, req Upda
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2096,7 +2099,7 @@ func (c *internalClient) UpdateStream(ctx context.Context, req UpdateStreamReque
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil

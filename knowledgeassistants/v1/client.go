@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
 	"github.com/databricks/sdk-go/core/clientinfo"
@@ -33,6 +34,7 @@ type Client struct {
 
 type internalClient struct {
 	httpClient  *http.Client
+	callTimeout *time.Duration
 	credentials auth.Credentials
 	logger      *slog.Logger
 	userAgent   func() (string, error)
@@ -65,6 +67,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	return &Client{
 		internalClient: internalClient{
 			httpClient:  cfg.HTTPClient,
+			callTimeout: cfg.Timeout,
 			credentials: cfg.Credentials,
 			logger:      cfg.Logger,
 			userAgent:   userAgent,
@@ -142,7 +145,7 @@ func (c *internalClient) CreateExample(ctx context.Context, req CreateExampleReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -208,7 +211,7 @@ func (c *internalClient) CreateKnowledgeAssistant(ctx context.Context, req Creat
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -281,7 +284,7 @@ func (c *internalClient) CreateKnowledgeSource(ctx context.Context, req CreateKn
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -335,7 +338,7 @@ func (c *internalClient) DeleteExample(ctx context.Context, req DeleteExampleReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -389,7 +392,7 @@ func (c *internalClient) DeleteKnowledgeAssistant(ctx context.Context, req Delet
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -443,7 +446,7 @@ func (c *internalClient) DeleteKnowledgeSource(ctx context.Context, req DeleteKn
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -506,7 +509,7 @@ func (c *internalClient) GetExample(ctx context.Context, req GetExampleRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -569,7 +572,7 @@ func (c *internalClient) GetKnowledgeAssistant(ctx context.Context, req GetKnowl
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -632,7 +635,7 @@ func (c *internalClient) GetKnowledgeSource(ctx context.Context, req GetKnowledg
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -706,7 +709,7 @@ func (c *internalClient) ListExamples(ctx context.Context, req ListExamplesReque
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -814,7 +817,7 @@ func (c *internalClient) ListKnowledgeAssistants(ctx context.Context, req ListKn
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -929,7 +932,7 @@ func (c *internalClient) ListKnowledgeSources(ctx context.Context, req ListKnowl
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1035,7 +1038,7 @@ func (c *internalClient) SyncKnowledgeSources(ctx context.Context, req SyncKnowl
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -1110,7 +1113,7 @@ func (c *internalClient) UpdateExample(ctx context.Context, req UpdateExampleReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1186,7 +1189,7 @@ func (c *internalClient) UpdateKnowledgeAssistant(ctx context.Context, req Updat
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1261,7 +1264,7 @@ func (c *internalClient) UpdateKnowledgeSource(ctx context.Context, req UpdateKn
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil

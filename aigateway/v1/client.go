@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/databricks/sdk-go/aigateway/internal"
 	"github.com/databricks/sdk-go/auth"
@@ -33,6 +34,7 @@ type Client struct {
 
 type internalClient struct {
 	httpClient  *http.Client
+	callTimeout *time.Duration
 	credentials auth.Credentials
 	logger      *slog.Logger
 	userAgent   func() (string, error)
@@ -65,6 +67,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	return &Client{
 		internalClient: internalClient{
 			httpClient:  cfg.HTTPClient,
+			callTimeout: cfg.Timeout,
 			credentials: cfg.Credentials,
 			logger:      cfg.Logger,
 			userAgent:   userAgent,
@@ -149,7 +152,7 @@ func (c *internalClient) CreateMcpService(ctx context.Context, req CreateMcpServ
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -227,7 +230,7 @@ func (c *internalClient) CreateMcpServiceUserMappedCredential(ctx context.Contex
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -309,7 +312,7 @@ func (c *internalClient) CreateModelProviderService(ctx context.Context, req Cre
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -391,7 +394,7 @@ func (c *internalClient) CreateModelService(ctx context.Context, req CreateModel
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -469,7 +472,7 @@ func (c *internalClient) CreateSkill(ctx context.Context, req CreateSkillRequest
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -535,7 +538,7 @@ func (c *internalClient) DeleteMcpService(ctx context.Context, req DeleteMcpServ
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -597,7 +600,7 @@ func (c *internalClient) DeleteMcpServiceUserMappedCredential(ctx context.Contex
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -664,7 +667,7 @@ func (c *internalClient) DeleteModelProviderService(ctx context.Context, req Del
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -730,7 +733,7 @@ func (c *internalClient) DeleteModelService(ctx context.Context, req DeleteModel
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -797,7 +800,7 @@ func (c *internalClient) DeleteSkill(ctx context.Context, req DeleteSkillRequest
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -871,7 +874,7 @@ func (c *internalClient) FinalizeSkill(ctx context.Context, req FinalizeSkillReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -938,7 +941,7 @@ func (c *internalClient) GetMcpService(ctx context.Context, req GetMcpServiceReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1010,7 +1013,7 @@ func (c *internalClient) GetMcpServiceUserMappedCredential(ctx context.Context, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1077,7 +1080,7 @@ func (c *internalClient) GetModelProviderService(ctx context.Context, req GetMod
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1144,7 +1147,7 @@ func (c *internalClient) GetModelService(ctx context.Context, req GetModelServic
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1211,7 +1214,7 @@ func (c *internalClient) GetSkill(ctx context.Context, req GetSkillRequest, opts
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1292,7 +1295,7 @@ func (c *internalClient) ListMcpServices(ctx context.Context, req ListMcpService
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1414,7 +1417,7 @@ func (c *internalClient) ListModelProviderServices(ctx context.Context, req List
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1536,7 +1539,7 @@ func (c *internalClient) ListModelServices(ctx context.Context, req ListModelSer
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1653,7 +1656,7 @@ func (c *internalClient) ListSkills(ctx context.Context, req ListSkillsRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1780,7 +1783,7 @@ func (c *internalClient) UpdateMcpService(ctx context.Context, req UpdateMcpServ
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1870,7 +1873,7 @@ func (c *internalClient) UpdateModelProviderService(ctx context.Context, req Upd
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1960,7 +1963,7 @@ func (c *internalClient) UpdateModelService(ctx context.Context, req UpdateModel
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2046,7 +2049,7 @@ func (c *internalClient) UpdateSkill(ctx context.Context, req UpdateSkillRequest
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil

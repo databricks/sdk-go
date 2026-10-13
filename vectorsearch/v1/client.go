@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
 	"github.com/databricks/sdk-go/core/clientinfo"
@@ -34,6 +35,7 @@ type Client struct {
 
 type internalClient struct {
 	httpClient  *http.Client
+	callTimeout *time.Duration
 	credentials auth.Credentials
 	logger      *slog.Logger
 	userAgent   func() (string, error)
@@ -66,6 +68,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	return &Client{
 		internalClient: internalClient{
 			httpClient:  cfg.HTTPClient,
+			callTimeout: cfg.Timeout,
 			credentials: cfg.Credentials,
 			logger:      cfg.Logger,
 			userAgent:   userAgent,
@@ -136,7 +139,7 @@ func (c *internalClient) createEndpointBase(ctx context.Context, req CreateEndpo
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -294,7 +297,7 @@ func (c *internalClient) CreateVectorIndex(ctx context.Context, req CreateVector
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -365,7 +368,7 @@ func (c *internalClient) DeleteDataVectorIndex(ctx context.Context, req DeleteDa
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -422,7 +425,7 @@ func (c *internalClient) DeleteEndpoint(ctx context.Context, req DeleteEndpointR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -479,7 +482,7 @@ func (c *internalClient) DeleteVectorIndex(ctx context.Context, req DeleteVector
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -542,7 +545,7 @@ func (c *internalClient) GetEndpoint(ctx context.Context, req GetEndpointRequest
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -612,7 +615,7 @@ func (c *internalClient) GetVectorIndex(ctx context.Context, req GetVectorIndexR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -676,7 +679,7 @@ func (c *internalClient) ListEndpoints(ctx context.Context, req ListEndpointsReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -784,7 +787,7 @@ func (c *internalClient) ListVectorIndex(ctx context.Context, req ListVectorInde
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -897,7 +900,7 @@ func (c *internalClient) PatchEndpoint(ctx context.Context, req PatchEndpointReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -970,7 +973,7 @@ func (c *internalClient) PatchEndpointBudgetPolicy(ctx context.Context, req Patc
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1043,7 +1046,7 @@ func (c *internalClient) QueryVectorIndex(ctx context.Context, req QueryVectorIn
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1117,7 +1120,7 @@ func (c *internalClient) QueryVectorIndexNextPage(ctx context.Context, req Query
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1190,7 +1193,7 @@ func (c *internalClient) RetrieveUserVisibleMetrics(ctx context.Context, req Ret
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1264,7 +1267,7 @@ func (c *internalClient) ScanVectorIndex(ctx context.Context, req ScanVectorInde
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1331,7 +1334,7 @@ func (c *internalClient) SyncVectorIndex(ctx context.Context, req SyncVectorInde
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1404,7 +1407,7 @@ func (c *internalClient) UpdateEndpointCustomTags(ctx context.Context, req Updat
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1477,7 +1480,7 @@ func (c *internalClient) UpsertDataVectorIndex(ctx context.Context, req UpsertDa
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil

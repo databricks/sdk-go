@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
 	"github.com/databricks/sdk-go/core/clientinfo"
@@ -34,6 +35,7 @@ type Client struct {
 
 type internalClient struct {
 	httpClient  *http.Client
+	callTimeout *time.Duration
 	credentials auth.Credentials
 	logger      *slog.Logger
 	userAgent   func() (string, error)
@@ -66,6 +68,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	return &Client{
 		internalClient: internalClient{
 			httpClient:  cfg.HTTPClient,
+			callTimeout: cfg.Timeout,
 			credentials: cfg.Credentials,
 			logger:      cfg.Logger,
 			userAgent:   userAgent,
@@ -136,7 +139,7 @@ func (c *internalClient) CreateSpace(ctx context.Context, req GenieCreateSpaceRe
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -145,8 +148,8 @@ func (c *internalClient) CreateSpace(ctx context.Context, req GenieCreateSpaceRe
 // Download a rendered image of a message visualization attachment. The response
 // body is the raw PNG image, not a JSON payload. This is only available if the
 // attachment is a visualization and the message status is `COMPLETED`.
-// A timeout configured with [call.WithTimeout] applies until this method
-// returns. It does not apply while reading the returned response stream.
+// A timeout configured with [client.WithTimeout] or [call.WithTimeout] applies
+// until this method returns. It does not apply while reading the response stream.
 func (c *internalClient) DownloadMessageAttachmentVisualization(ctx context.Context, req DownloadMessageAttachmentVisualizationRequest, opts ...call.Option) (*DownloadMessageAttachmentVisualizationResponse, error) {
 
 	headers := http.Header{}
@@ -198,7 +201,7 @@ func (c *internalClient) DownloadMessageAttachmentVisualization(ctx context.Cont
 		return httpResp.Body, nil
 	}
 
-	contents, err := executeStreamingResponseCall(ctx, call, opts)
+	contents, err := c.executeStreamingResponseCall(ctx, call, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +288,7 @@ func (c *internalClient) GenieCancelResponse(ctx context.Context, req GenieCance
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -365,7 +368,7 @@ func (c *internalClient) genieCreateConversationMessageBase(ctx context.Context,
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -550,7 +553,7 @@ func (c *internalClient) GenieCreateEvalRun(ctx context.Context, req GenieCreate
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -633,7 +636,7 @@ func (c *internalClient) GenieCreateMessageComment(ctx context.Context, req Geni
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -692,7 +695,7 @@ func (c *internalClient) GenieDeleteConversation(ctx context.Context, req GenieD
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -756,7 +759,7 @@ func (c *internalClient) GenieDeleteConversationMessage(ctx context.Context, req
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -845,7 +848,7 @@ func (c *internalClient) GenieExecuteMessageAttachmentQuery(ctx context.Context,
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -929,7 +932,7 @@ func (c *internalClient) GenieExecuteMessageQuery(ctx context.Context, req Genie
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1037,7 +1040,7 @@ func (c *internalClient) GenieGenerateDownloadFullQueryResult(ctx context.Contex
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1111,7 +1114,7 @@ func (c *internalClient) GenieGetConversationMessage(ctx context.Context, req Ge
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1222,7 +1225,7 @@ func (c *internalClient) GenieGetDownloadFullQueryResult(ctx context.Context, re
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1295,7 +1298,7 @@ func (c *internalClient) GenieGetEvalResultDetails(ctx context.Context, req Geni
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1363,7 +1366,7 @@ func (c *internalClient) GenieGetEvalRun(ctx context.Context, req GenieGetEvalRu
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1444,7 +1447,7 @@ func (c *internalClient) GenieGetMessageAttachmentQueryResult(ctx context.Contex
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1519,7 +1522,7 @@ func (c *internalClient) GenieGetMessageQueryResult(ctx context.Context, req Gen
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1598,7 +1601,7 @@ func (c *internalClient) GenieGetQueryResultByAttachment(ctx context.Context, re
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1668,7 +1671,7 @@ func (c *internalClient) GenieGetSpace(ctx context.Context, req GenieGetSpaceReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1747,7 +1750,7 @@ func (c *internalClient) GenieListConversationComments(ctx context.Context, req 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1828,7 +1831,7 @@ func (c *internalClient) GenieListConversationMessages(ctx context.Context, req 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1905,7 +1908,7 @@ func (c *internalClient) GenieListConversations(ctx context.Context, req GenieLi
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1984,7 +1987,7 @@ func (c *internalClient) GenieListEvalResults(ctx context.Context, req GenieList
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2058,7 +2061,7 @@ func (c *internalClient) GenieListEvalRuns(ctx context.Context, req GenieListEva
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2142,7 +2145,7 @@ func (c *internalClient) GenieListMessageComments(ctx context.Context, req Genie
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2209,7 +2212,7 @@ func (c *internalClient) GenieListSpaces(ctx context.Context, req GenieListSpace
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2283,7 +2286,7 @@ func (c *internalClient) GenieSendMessageFeedback(ctx context.Context, req Genie
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -2356,7 +2359,7 @@ func (c *internalClient) genieStartConversationBase(ctx context.Context, req Gen
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2518,7 +2521,7 @@ func (c *internalClient) GenieTrashSpace(ctx context.Context, req GenieTrashSpac
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -2590,7 +2593,7 @@ func (c *internalClient) UpdateSpace(ctx context.Context, req GenieUpdateSpaceRe
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil

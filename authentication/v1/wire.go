@@ -120,6 +120,7 @@ type createServicePrincipalSecretRequestWire struct {
 	AccountId        *string         `json:"account_id,omitempty"`
 	ServicePrincipal *string         `json:"service_principal,omitempty"`
 	Lifetime         *types.Duration `json:"lifetime,omitempty"`
+	Scopes           []string        `json:"scopes,omitempty"`
 }
 
 func createServicePrincipalSecretRequestToWire(v *CreateServicePrincipalSecretRequest) (*createServicePrincipalSecretRequestWire, error) {
@@ -130,6 +131,7 @@ func createServicePrincipalSecretRequestToWire(v *CreateServicePrincipalSecretRe
 		AccountId:        v.AccountId,
 		ServicePrincipal: v.ServicePrincipal,
 		Lifetime:         v.Lifetime,
+		Scopes:           v.Scopes,
 	}, nil
 }
 
@@ -141,6 +143,7 @@ type createServicePrincipalSecretResponseWire struct {
 	UpdateTime *string     `json:"update_time,omitempty"`
 	Status     *string     `json:"status,omitempty"`
 	ExpireTime *types.Time `json:"expire_time,omitempty"`
+	Scopes     []string    `json:"scopes,omitempty"`
 }
 
 func createServicePrincipalSecretResponseFromWire(w *createServicePrincipalSecretResponseWire) (*CreateServicePrincipalSecretResponse, error) {
@@ -155,6 +158,7 @@ func createServicePrincipalSecretResponseFromWire(w *createServicePrincipalSecre
 		UpdateTime: w.UpdateTime,
 		Status:     w.Status,
 		ExpireTime: w.ExpireTime,
+		Scopes:     w.Scopes,
 	}, nil
 }
 
@@ -446,6 +450,7 @@ type servicePrincipalSecretWire struct {
 	UpdateTime *string     `json:"update_time,omitempty"`
 	Status     *string     `json:"status,omitempty"`
 	ExpireTime *types.Time `json:"expire_time,omitempty"`
+	Scopes     []string    `json:"scopes,omitempty"`
 }
 
 func servicePrincipalSecretFromWire(w *servicePrincipalSecretWire) (*ServicePrincipalSecret, error) {
@@ -460,6 +465,7 @@ func servicePrincipalSecretFromWire(w *servicePrincipalSecretWire) (*ServicePrin
 		UpdateTime: w.UpdateTime,
 		Status:     w.Status,
 		ExpireTime: w.ExpireTime,
+		Scopes:     w.Scopes,
 	}, nil
 }
 

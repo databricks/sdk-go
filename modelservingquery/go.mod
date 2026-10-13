@@ -11,7 +11,7 @@ replace github.com/databricks/sdk-go/options => ../options
 require (
 	github.com/databricks/sdk-go/auth v0.2.0
 	github.com/databricks/sdk-go/core v0.1.0
-	github.com/databricks/sdk-go/options v0.2.0
+	github.com/databricks/sdk-go/options v0.3.0
 	github.com/google/go-cmp v0.7.0
 )
 

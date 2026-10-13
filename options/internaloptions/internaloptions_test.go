@@ -3,9 +3,11 @@ package internaloptions
 import (
 	"context"
 	"log/slog"
+	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
 )
@@ -63,6 +65,45 @@ func TestClientOptionsResolve_PreservesProvidedLogger(t *testing.T) {
 	}
 	if c.Logger != provided {
 		t.Fatal("expected provided logger to be preserved")
+	}
+}
+
+func TestClientOptionsResolve_HTTPClientTimeout(t *testing.T) {
+	provided := &http.Client{Timeout: 3 * time.Second}
+	for _, tc := range []struct {
+		name        string
+		timeout     *time.Duration
+		httpClient  *http.Client
+		wantTimeout time.Duration
+	}{
+		{name: "unset method timeout"},
+		{name: "explicit method timeout", timeout: new(time.Minute)},
+		{name: "disabled method timeout", timeout: new(time.Duration)},
+		{
+			name:        "custom HTTP timeout is preserved",
+			timeout:     new(time.Minute),
+			httpClient:  provided,
+			wantTimeout: provided.Timeout,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := ClientOptions{
+				Credentials:       stubCredentials{},
+				DisableConfigFile: true,
+				DisableEnv:        true,
+				Timeout:           tc.timeout,
+				HTTPClient:        tc.httpClient,
+			}
+			if err := cfg.Resolve(); err != nil {
+				t.Fatalf("Resolve: %v", err)
+			}
+			if got := cfg.HTTPClient.Timeout; got != tc.wantTimeout {
+				t.Errorf("HTTP timeout = %v, want %v", got, tc.wantTimeout)
+			}
+			if tc.httpClient != nil && cfg.HTTPClient != tc.httpClient {
+				t.Error("Resolve replaced the supplied HTTP client")
+			}
+		})
 	}
 }
 

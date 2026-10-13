@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
 	"github.com/databricks/sdk-go/core/clientinfo"
@@ -34,6 +35,7 @@ type Client struct {
 
 type internalClient struct {
 	httpClient  *http.Client
+	callTimeout *time.Duration
 	credentials auth.Credentials
 	logger      *slog.Logger
 	userAgent   func() (string, error)
@@ -66,6 +68,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	return &Client{
 		internalClient: internalClient{
 			httpClient:  cfg.HTTPClient,
+			callTimeout: cfg.Timeout,
 			credentials: cfg.Credentials,
 			logger:      cfg.Logger,
 			userAgent:   userAgent,
@@ -149,7 +152,7 @@ func (c *internalClient) createBranchBase(ctx context.Context, req CreateBranchR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -317,7 +320,7 @@ func (c *internalClient) createCatalogBase(ctx context.Context, req CreateCatalo
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -495,7 +498,7 @@ func (c *internalClient) createCdfConfigBase(ctx context.Context, req CreateCdfC
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -670,7 +673,7 @@ func (c *internalClient) createDataApiBase(ctx context.Context, req CreateDataAp
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -851,7 +854,7 @@ func (c *internalClient) createDatabaseBase(ctx context.Context, req CreateDatab
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1032,7 +1035,7 @@ func (c *internalClient) createEndpointBase(ctx context.Context, req CreateEndpo
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1201,7 +1204,7 @@ func (c *internalClient) createProjectBase(ctx context.Context, req CreateProjec
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1380,7 +1383,7 @@ func (c *internalClient) createRoleBase(ctx context.Context, req CreateRoleReque
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1556,7 +1559,7 @@ func (c *internalClient) createSnapshotBase(ctx context.Context, req CreateSnaps
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1725,7 +1728,7 @@ func (c *internalClient) createSyncedTableBase(ctx context.Context, req CreateSy
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1894,7 +1897,7 @@ func (c *internalClient) deleteBranchBase(ctx context.Context, req DeleteBranchR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2047,7 +2050,7 @@ func (c *internalClient) deleteCatalogBase(ctx context.Context, req DeleteCatalo
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2209,7 +2212,7 @@ func (c *internalClient) deleteCdfConfigBase(ctx context.Context, req DeleteCdfC
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2364,7 +2367,7 @@ func (c *internalClient) deleteDataApiBase(ctx context.Context, req DeleteDataAp
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2517,7 +2520,7 @@ func (c *internalClient) deleteDatabaseBase(ctx context.Context, req DeleteDatab
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2670,7 +2673,7 @@ func (c *internalClient) deleteEndpointBase(ctx context.Context, req DeleteEndpo
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2831,7 +2834,7 @@ func (c *internalClient) deleteProjectBase(ctx context.Context, req DeleteProjec
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2991,7 +2994,7 @@ func (c *internalClient) deleteRoleBase(ctx context.Context, req DeleteRoleReque
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3144,7 +3147,7 @@ func (c *internalClient) deleteSnapshotBase(ctx context.Context, req DeleteSnaps
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3297,7 +3300,7 @@ func (c *internalClient) deleteSyncedTableBase(ctx context.Context, req DeleteSy
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3453,7 +3456,7 @@ func (c *internalClient) GenerateDatabaseCredential(ctx context.Context, req Gen
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3516,7 +3519,7 @@ func (c *internalClient) GetBranch(ctx context.Context, req GetBranchRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3579,7 +3582,7 @@ func (c *internalClient) GetCatalog(ctx context.Context, req GetCatalogRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3643,7 +3646,7 @@ func (c *internalClient) GetCdfConfig(ctx context.Context, req GetCdfConfigReque
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3707,7 +3710,7 @@ func (c *internalClient) GetCdfStatus(ctx context.Context, req GetCdfStatusReque
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3770,7 +3773,7 @@ func (c *internalClient) GetDataApi(ctx context.Context, req GetDataApiRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3833,7 +3836,7 @@ func (c *internalClient) GetDatabase(ctx context.Context, req GetDatabaseRequest
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3897,7 +3900,7 @@ func (c *internalClient) GetEndpoint(ctx context.Context, req GetEndpointRequest
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3961,7 +3964,7 @@ func (c *internalClient) getOperation(ctx context.Context, req GetOperationReque
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -4025,7 +4028,7 @@ func (c *internalClient) GetProject(ctx context.Context, req GetProjectRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -4089,7 +4092,7 @@ func (c *internalClient) GetRole(ctx context.Context, req GetRoleRequest, opts .
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -4152,7 +4155,7 @@ func (c *internalClient) GetSnapshot(ctx context.Context, req GetSnapshotRequest
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -4216,7 +4219,7 @@ func (c *internalClient) GetSnapshotSchedule(ctx context.Context, req GetSnapsho
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -4279,7 +4282,7 @@ func (c *internalClient) GetSyncedTable(ctx context.Context, req GetSyncedTableR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -4356,7 +4359,7 @@ func (c *internalClient) ListBranches(ctx context.Context, req ListBranchesReque
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -4473,7 +4476,7 @@ func (c *internalClient) ListCdfConfigs(ctx context.Context, req ListCdfConfigsR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -4590,7 +4593,7 @@ func (c *internalClient) ListCdfStatuses(ctx context.Context, req ListCdfStatuse
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -4705,7 +4708,7 @@ func (c *internalClient) ListDatabases(ctx context.Context, req ListDatabasesReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -4820,7 +4823,7 @@ func (c *internalClient) ListEndpoints(ctx context.Context, req ListEndpointsReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -4932,7 +4935,7 @@ func (c *internalClient) ListProjects(ctx context.Context, req ListProjectsReque
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -5047,7 +5050,7 @@ func (c *internalClient) ListRoles(ctx context.Context, req ListRolesRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -5162,7 +5165,7 @@ func (c *internalClient) ListSnapshots(ctx context.Context, req ListSnapshotsReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -5276,7 +5279,7 @@ func (c *internalClient) undeleteBranchBase(ctx context.Context, req UndeleteBra
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -5439,7 +5442,7 @@ func (c *internalClient) undeleteProjectBase(ctx context.Context, req UndeletePr
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -5606,7 +5609,7 @@ func (c *internalClient) updateBranchBase(ctx context.Context, req UpdateBranchR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -5782,7 +5785,7 @@ func (c *internalClient) updateDataApiBase(ctx context.Context, req UpdateDataAp
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -5957,7 +5960,7 @@ func (c *internalClient) updateDatabaseBase(ctx context.Context, req UpdateDatab
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -6133,7 +6136,7 @@ func (c *internalClient) updateEndpointBase(ctx context.Context, req UpdateEndpo
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -6309,7 +6312,7 @@ func (c *internalClient) updateProjectBase(ctx context.Context, req UpdateProjec
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -6484,7 +6487,7 @@ func (c *internalClient) updateRoleBase(ctx context.Context, req UpdateRoleReque
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -6660,7 +6663,7 @@ func (c *internalClient) updateSnapshotScheduleBase(ctx context.Context, req Upd
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil

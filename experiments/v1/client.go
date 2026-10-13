@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
 	"github.com/databricks/sdk-go/core/clientinfo"
@@ -33,6 +34,7 @@ type Client struct {
 
 type internalClient struct {
 	httpClient  *http.Client
+	callTimeout *time.Duration
 	credentials auth.Credentials
 	logger      *slog.Logger
 	userAgent   func() (string, error)
@@ -65,6 +67,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	return &Client{
 		internalClient: internalClient{
 			httpClient:  cfg.HTTPClient,
+			callTimeout: cfg.Timeout,
 			credentials: cfg.Credentials,
 			logger:      cfg.Logger,
 			userAgent:   userAgent,
@@ -142,7 +145,7 @@ func (c *internalClient) CreateExperiment(ctx context.Context, req CreateExperim
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -208,7 +211,7 @@ func (c *internalClient) CreateLoggedModel(ctx context.Context, req CreateLogged
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -277,7 +280,7 @@ func (c *internalClient) CreateRun(ctx context.Context, req CreateRunRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -339,7 +342,7 @@ func (c *internalClient) DeleteExperiment(ctx context.Context, req DeleteExperim
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -396,7 +399,7 @@ func (c *internalClient) DeleteLoggedModel(ctx context.Context, req DeleteLogged
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -458,7 +461,7 @@ func (c *internalClient) DeleteLoggedModelTag(ctx context.Context, req DeleteLog
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -518,7 +521,7 @@ func (c *internalClient) DeleteRun(ctx context.Context, req DeleteRunRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -586,7 +589,7 @@ func (c *internalClient) DeleteRuns(ctx context.Context, req DeleteRunsRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -647,7 +650,7 @@ func (c *internalClient) DeleteTag(ctx context.Context, req DeleteTagRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -719,7 +722,7 @@ func (c *internalClient) FinalizeLoggedModel(ctx context.Context, req FinalizeLo
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -783,7 +786,7 @@ func (c *internalClient) GetExperiment(ctx context.Context, req GetExperimentReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -855,7 +858,7 @@ func (c *internalClient) GetExperimentByName(ctx context.Context, req GetExperim
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -918,7 +921,7 @@ func (c *internalClient) GetLoggedModel(ctx context.Context, req GetLoggedModelR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -990,7 +993,7 @@ func (c *internalClient) GetRun(ctx context.Context, req GetRunRequest, opts ...
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1068,7 +1071,7 @@ func (c *internalClient) ListArtifacts(ctx context.Context, req ListArtifactsReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1181,7 +1184,7 @@ func (c *internalClient) ListExperiments(ctx context.Context, req ListExperiment
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1298,7 +1301,7 @@ func (c *internalClient) ListMetricHistory(ctx context.Context, req ListMetricHi
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1441,7 +1444,7 @@ func (c *internalClient) LogBatch(ctx context.Context, req LogBatchRequest, opts
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1501,7 +1504,7 @@ func (c *internalClient) LogInputs(ctx context.Context, req LogInputsRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1571,7 +1574,7 @@ func (c *internalClient) LogLoggedModelParams(ctx context.Context, req LogLogged
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1633,7 +1636,7 @@ func (c *internalClient) LogMetric(ctx context.Context, req LogMetricRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1697,7 +1700,7 @@ func (c *internalClient) LogModel(ctx context.Context, req LogModelRequest, opts
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1757,7 +1760,7 @@ func (c *internalClient) LogOutputs(ctx context.Context, req LogOutputsRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1820,7 +1823,7 @@ func (c *internalClient) LogParam(ctx context.Context, req LogParamRequest, opts
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1885,7 +1888,7 @@ func (c *internalClient) RestoreExperiment(ctx context.Context, req RestoreExper
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1949,7 +1952,7 @@ func (c *internalClient) RestoreRun(ctx context.Context, req RestoreRunRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2017,7 +2020,7 @@ func (c *internalClient) RestoreRuns(ctx context.Context, req RestoreRunsRequest
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2083,7 +2086,7 @@ func (c *internalClient) SearchExperiments(ctx context.Context, req SearchExperi
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2190,7 +2193,7 @@ func (c *internalClient) SearchLoggedModels(ctx context.Context, req SearchLogge
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2258,7 +2261,7 @@ func (c *internalClient) SearchRuns(ctx context.Context, req SearchRunsRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2360,7 +2363,7 @@ func (c *internalClient) SetExperimentTag(ctx context.Context, req SetExperiment
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2427,7 +2430,7 @@ func (c *internalClient) SetLoggedModelTags(ctx context.Context, req SetLoggedMo
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2488,7 +2491,7 @@ func (c *internalClient) SetTag(ctx context.Context, req SetTagRequest, opts ...
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2548,7 +2551,7 @@ func (c *internalClient) UpdateExperiment(ctx context.Context, req UpdateExperim
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2614,7 +2617,7 @@ func (c *internalClient) UpdateRun(ctx context.Context, req UpdateRunRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
