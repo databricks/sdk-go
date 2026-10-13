@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
 	"github.com/databricks/sdk-go/core/apierr"
@@ -126,8 +127,14 @@ func executeHTTPCall(opts httpCallOptions) ([]byte, http.Header, error) {
 	return body, resp.Header, nil
 }
 
-func resolveCallOptions(opts []call.Option) (internaloptions.CallOptions, error) {
-	cfg := internaloptions.CallOptions{}
+func (c *internalClient) resolveCallOptions(
+	opts []call.Option,
+	timeout time.Duration,
+) (internaloptions.CallOptions, error) {
+	cfg := internaloptions.CallOptions{Timeout: timeout}
+	if c.callTimeout != nil {
+		cfg.Timeout = *c.callTimeout
+	}
 	for _, opt := range opts {
 		if err := opt(&cfg); err != nil {
 			return internaloptions.CallOptions{}, err
@@ -136,8 +143,12 @@ func resolveCallOptions(opts []call.Option) (internaloptions.CallOptions, error)
 	return cfg, nil
 }
 
-func executeCall(ctx context.Context, op func(context.Context) error, opts []call.Option) error {
-	cfg, err := resolveCallOptions(opts)
+func (c *internalClient) executeCall(
+	ctx context.Context,
+	op func(context.Context) error,
+	opts []call.Option,
+) error {
+	cfg, err := c.resolveCallOptions(opts, 5*time.Minute)
 	if err != nil {
 		return err
 	}
@@ -157,8 +168,12 @@ var errNilStream = errors.New("streaming operation returned a nil stream")
 // executeStreamingResponseCall runs a call whose response body is returned as a
 // stream. The context and options apply until the stream is returned. After
 // that handoff, the caller owns the stream and must close it.
-func executeStreamingResponseCall(ctx context.Context, op func(context.Context) (io.ReadCloser, error), opts []call.Option) (io.ReadCloser, error) {
-	cfg, err := resolveCallOptions(opts)
+func (c *internalClient) executeStreamingResponseCall(
+	ctx context.Context,
+	op func(context.Context) (io.ReadCloser, error),
+	opts []call.Option,
+) (io.ReadCloser, error) {
+	cfg, err := c.resolveCallOptions(opts, 5*time.Minute)
 	if err != nil {
 		return nil, err
 	}

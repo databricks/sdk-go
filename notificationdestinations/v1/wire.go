@@ -53,11 +53,13 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 }
 
 type configWire struct {
-	Slack          *slackConfigWire          `json:"slack,omitempty"`
-	Email          *emailConfigWire          `json:"email,omitempty"`
-	GenericWebhook *genericWebhookConfigWire `json:"generic_webhook,omitempty"`
-	Pagerduty      *pagerdutyConfigWire      `json:"pagerduty,omitempty"`
-	MicrosoftTeams *microsoftTeamsConfigWire `json:"microsoft_teams,omitempty"`
+	Slack              *slackConfigWire              `json:"slack,omitempty"`
+	Email              *emailConfigWire              `json:"email,omitempty"`
+	GenericWebhook     *genericWebhookConfigWire     `json:"generic_webhook,omitempty"`
+	Pagerduty          *pagerdutyConfigWire          `json:"pagerduty,omitempty"`
+	MicrosoftTeams     *microsoftTeamsConfigWire     `json:"microsoft_teams,omitempty"`
+	DatabricksAppSlack *databricksAppSlackConfigWire `json:"databricks_app_slack,omitempty"`
+	DatabricksAppTeams *databricksAppTeamsConfigWire `json:"databricks_app_teams,omitempty"`
 }
 
 func configToWire(v *Config) (*configWire, error) {
@@ -69,6 +71,8 @@ func configToWire(v *Config) (*configWire, error) {
 	var configGenericWebhookWire *genericWebhookConfigWire
 	var configPagerdutyWire *pagerdutyConfigWire
 	var configMicrosoftTeamsWire *microsoftTeamsConfigWire
+	var configDatabricksAppSlackWire *databricksAppSlackConfigWire
+	var configDatabricksAppTeamsWire *databricksAppTeamsConfigWire
 	switch value := v.Config.(type) {
 	case nil:
 	case *Config_Config_Slack:
@@ -111,15 +115,33 @@ func configToWire(v *Config) (*configWire, error) {
 			}
 			configMicrosoftTeamsWire = configMicrosoftTeamsConverted
 		}
+	case *Config_Config_DatabricksAppSlack:
+		if value != nil {
+			configDatabricksAppSlackConverted, err := databricksAppSlackConfigToWire(&value.DatabricksAppSlack)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Config.Config.DatabricksAppSlack", err)
+			}
+			configDatabricksAppSlackWire = configDatabricksAppSlackConverted
+		}
+	case *Config_Config_DatabricksAppTeams:
+		if value != nil {
+			configDatabricksAppTeamsConverted, err := databricksAppTeamsConfigToWire(&value.DatabricksAppTeams)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Config.Config.DatabricksAppTeams", err)
+			}
+			configDatabricksAppTeamsWire = configDatabricksAppTeamsConverted
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Config.Config", value)
 	}
 	return &configWire{
-		Slack:          configSlackWire,
-		Email:          configEmailWire,
-		GenericWebhook: configGenericWebhookWire,
-		Pagerduty:      configPagerdutyWire,
-		MicrosoftTeams: configMicrosoftTeamsWire,
+		Slack:              configSlackWire,
+		Email:              configEmailWire,
+		GenericWebhook:     configGenericWebhookWire,
+		Pagerduty:          configPagerdutyWire,
+		MicrosoftTeams:     configMicrosoftTeamsWire,
+		DatabricksAppSlack: configDatabricksAppSlackWire,
+		DatabricksAppTeams: configDatabricksAppTeamsWire,
 	}, nil
 }
 
@@ -141,6 +163,12 @@ func configFromWire(w *configWire) (*Config, error) {
 		configMembers++
 	}
 	if w.MicrosoftTeams != nil {
+		configMembers++
+	}
+	if w.DatabricksAppSlack != nil {
+		configMembers++
+	}
+	if w.DatabricksAppTeams != nil {
 		configMembers++
 	}
 	if configMembers > 1 {
@@ -178,6 +206,18 @@ func configFromWire(w *configWire) (*Config, error) {
 			return nil, fmt.Errorf("%s: %w", "Config.Config.MicrosoftTeams", err)
 		}
 		configSelection = &Config_Config_MicrosoftTeams{MicrosoftTeams: *configMicrosoftTeamsConverted}
+	case w.DatabricksAppSlack != nil:
+		configDatabricksAppSlackConverted, err := databricksAppSlackConfigFromWire(w.DatabricksAppSlack)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "Config.Config.DatabricksAppSlack", err)
+		}
+		configSelection = &Config_Config_DatabricksAppSlack{DatabricksAppSlack: *configDatabricksAppSlackConverted}
+	case w.DatabricksAppTeams != nil:
+		configDatabricksAppTeamsConverted, err := databricksAppTeamsConfigFromWire(w.DatabricksAppTeams)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "Config.Config.DatabricksAppTeams", err)
+		}
+		configSelection = &Config_Config_DatabricksAppTeams{DatabricksAppTeams: *configDatabricksAppTeamsConverted}
 	}
 	return &Config{
 		Config: configSelection,
@@ -200,6 +240,74 @@ func createNotificationDestinationRequestToWire(v *CreateNotificationDestination
 	return &createNotificationDestinationRequestWire{
 		DisplayName: v.DisplayName,
 		Config:      configWireValue,
+	}, nil
+}
+
+type databricksAppSlackConfigWire struct {
+	TeamId       *string `json:"team_id,omitempty"`
+	TeamIdSet    *bool   `json:"team_id_set,omitempty"`
+	ChannelId    *string `json:"channel_id,omitempty"`
+	ChannelIdSet *bool   `json:"channel_id_set,omitempty"`
+}
+
+func databricksAppSlackConfigToWire(v *DatabricksAppSlackConfig) (*databricksAppSlackConfigWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &databricksAppSlackConfigWire{
+		TeamId:       v.TeamId,
+		TeamIdSet:    v.TeamIdSet,
+		ChannelId:    v.ChannelId,
+		ChannelIdSet: v.ChannelIdSet,
+	}, nil
+}
+
+func databricksAppSlackConfigFromWire(w *databricksAppSlackConfigWire) (*DatabricksAppSlackConfig, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DatabricksAppSlackConfig{
+		TeamId:       w.TeamId,
+		TeamIdSet:    w.TeamIdSet,
+		ChannelId:    w.ChannelId,
+		ChannelIdSet: w.ChannelIdSet,
+	}, nil
+}
+
+type databricksAppTeamsConfigWire struct {
+	TenantId     *string `json:"tenant_id,omitempty"`
+	TenantIdSet  *bool   `json:"tenant_id_set,omitempty"`
+	TeamId       *string `json:"team_id,omitempty"`
+	TeamIdSet    *bool   `json:"team_id_set,omitempty"`
+	ChannelId    *string `json:"channel_id,omitempty"`
+	ChannelIdSet *bool   `json:"channel_id_set,omitempty"`
+}
+
+func databricksAppTeamsConfigToWire(v *DatabricksAppTeamsConfig) (*databricksAppTeamsConfigWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &databricksAppTeamsConfigWire{
+		TenantId:     v.TenantId,
+		TenantIdSet:  v.TenantIdSet,
+		TeamId:       v.TeamId,
+		TeamIdSet:    v.TeamIdSet,
+		ChannelId:    v.ChannelId,
+		ChannelIdSet: v.ChannelIdSet,
+	}, nil
+}
+
+func databricksAppTeamsConfigFromWire(w *databricksAppTeamsConfigWire) (*DatabricksAppTeamsConfig, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DatabricksAppTeamsConfig{
+		TenantId:     w.TenantId,
+		TenantIdSet:  w.TenantIdSet,
+		TeamId:       w.TeamId,
+		TeamIdSet:    w.TeamIdSet,
+		ChannelId:    w.ChannelId,
+		ChannelIdSet: w.ChannelIdSet,
 	}, nil
 }
 

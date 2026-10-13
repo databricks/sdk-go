@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
 	"github.com/databricks/sdk-go/core/clientinfo"
@@ -35,6 +36,7 @@ type Client struct {
 
 type internalClient struct {
 	httpClient  *http.Client
+	callTimeout *time.Duration
 	credentials auth.Credentials
 	logger      *slog.Logger
 	userAgent   func() (string, error)
@@ -67,6 +69,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	return &Client{
 		internalClient: internalClient{
 			httpClient:  cfg.HTTPClient,
+			callTimeout: cfg.Timeout,
 			credentials: cfg.Credentials,
 			logger:      cfg.Logger,
 			userAgent:   userAgent,
@@ -136,7 +139,7 @@ func (c *internalClient) AddBlock(ctx context.Context, req AddBlockRequest, opts
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -197,7 +200,7 @@ func (c *internalClient) Close(ctx context.Context, req CloseRequest, opts ...ca
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -272,7 +275,7 @@ func (c *internalClient) Create(ctx context.Context, req CreateRequest, opts ...
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -349,7 +352,7 @@ func (c *internalClient) Delete(ctx context.Context, req DeleteRequest, opts ...
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -414,7 +417,7 @@ func (c *internalClient) GetStatus(ctx context.Context, req GetStatusRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -488,7 +491,7 @@ func (c *internalClient) List(ctx context.Context, req ListStatusRequest, opts .
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -552,7 +555,7 @@ func (c *internalClient) Mkdirs(ctx context.Context, req MkDirsRequest, opts ...
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -616,7 +619,7 @@ func (c *internalClient) Move(ctx context.Context, req MoveRequest, opts ...call
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -687,7 +690,7 @@ func (c *internalClient) Put(ctx context.Context, req PutRequest, opts ...call.O
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -764,7 +767,7 @@ func (c *internalClient) Read(ctx context.Context, req ReadRequest, opts ...call
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -824,7 +827,7 @@ func (c *internalClient) CreateDirectory(ctx context.Context, req CreateDirector
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -885,7 +888,7 @@ func (c *internalClient) DeleteDirectory(ctx context.Context, req DeleteDirector
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -942,7 +945,7 @@ func (c *internalClient) DeleteFile(ctx context.Context, req DeleteFileRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -951,8 +954,8 @@ func (c *internalClient) DeleteFile(ctx context.Context, req DeleteFileRequest, 
 // Downloads a file. The file contents are the response body. This is a standard
 // HTTP file download, not a JSON RPC. It supports the Range and
 // If-Unmodified-Since HTTP headers.
-// A timeout configured with [call.WithTimeout] applies until this method
-// returns. It does not apply while reading the returned response stream.
+// A timeout configured with [client.WithTimeout] or [call.WithTimeout] applies
+// until this method returns. It does not apply while reading the response stream.
 func (c *internalClient) DownloadFile(ctx context.Context, req DownloadFileRequest, opts ...call.Option) (*DownloadFileResponse, error) {
 
 	headers := http.Header{}
@@ -1025,7 +1028,7 @@ func (c *internalClient) DownloadFile(ctx context.Context, req DownloadFileReque
 		return httpResp.Body, nil
 	}
 
-	contents, err := executeStreamingResponseCall(ctx, call, opts)
+	contents, err := c.executeStreamingResponseCall(ctx, call, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -1092,7 +1095,7 @@ func (c *internalClient) GetDirectoryMetadata(ctx context.Context, req GetDirect
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1171,7 +1174,7 @@ func (c *internalClient) GetFileMetadata(ctx context.Context, req GetFileMetadat
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1245,7 +1248,7 @@ func (c *internalClient) ListDirectoryContents(ctx context.Context, req ListDire
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1298,8 +1301,9 @@ func (c *internalClient) ListDirectoryContentsIter(ctx context.Context, req List
 // exactly the bytes sent in the request body. If the request is successful,
 // there is no response body.
 //
-// This method has a one-hour SDK timeout by default. Use [call.WithTimeout]
-// to override it; zero disables the SDK timeout.
+// This method has a one-hour SDK timeout by default. Use [client.WithTimeout]
+// to set a client default or [call.WithTimeout] to override it for this call.
+// A zero timeout disables the SDK timeout.
 //
 // The call returns an error if a retrier is configured because replaying the
 // request body is not supported.
@@ -1365,7 +1369,7 @@ func (c *internalClient) UploadFile(ctx context.Context, req UploadFileRequest, 
 		return nil
 	}
 
-	if err := executeStreamingRequestCall(ctx, call, opts); err != nil {
+	if err := c.executeStreamingRequestCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil

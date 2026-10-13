@@ -36,6 +36,7 @@ func WithDisableRetry() Option {
 // including retry delays and rate-limiter waits. The timeout applies until the
 // method returns.
 //
+// It overrides the client's default timeout for this invocation.
 // An earlier deadline on the caller's context takes precedence.
 // A zero duration disables the SDK timeout.
 func WithTimeout(t time.Duration) Option {

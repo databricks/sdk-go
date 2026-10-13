@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
 	"github.com/databricks/sdk-go/core/clientinfo"
@@ -33,6 +34,7 @@ type Client struct {
 
 type internalClient struct {
 	httpClient  *http.Client
+	callTimeout *time.Duration
 	credentials auth.Credentials
 	logger      *slog.Logger
 	userAgent   func() (string, error)
@@ -65,6 +67,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	return &Client{
 		internalClient: internalClient{
 			httpClient:  cfg.HTTPClient,
+			callTimeout: cfg.Timeout,
 			credentials: cfg.Credentials,
 			logger:      cfg.Logger,
 			userAgent:   userAgent,
@@ -134,7 +137,7 @@ func (c *internalClient) BatchGetListings(ctx context.Context, req BatchGetListi
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -199,7 +202,7 @@ func (c *internalClient) BatchGetProviders(ctx context.Context, req BatchGetProv
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -272,7 +275,7 @@ func (c *internalClient) CreatePersonalizationRequest(ctx context.Context, req C
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -346,7 +349,7 @@ func (c *internalClient) GetInstallationDetails(ctx context.Context, req GetInst
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -461,7 +464,7 @@ func (c *internalClient) GetListingContent(ctx context.Context, req GetListingCo
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -567,7 +570,7 @@ func (c *internalClient) GetPersonalizationRequestsForConsumer(ctx context.Conte
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -631,7 +634,7 @@ func (c *internalClient) GetPublishedListingForConsumer(ctx context.Context, req
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -695,7 +698,7 @@ func (c *internalClient) GetPublishedProviderForConsumer(ctx context.Context, re
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -768,7 +771,7 @@ func (c *internalClient) InstallListing(ctx context.Context, req CreateInstallat
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -835,7 +838,7 @@ func (c *internalClient) ListInstallations(ctx context.Context, req ListInstalla
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -954,7 +957,7 @@ func (c *internalClient) ListListingFulfillments(ctx context.Context, req ListLi
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1062,7 +1065,7 @@ func (c *internalClient) ListPersonalizationRequestsForConsumer(ctx context.Cont
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1192,7 +1195,7 @@ func (c *internalClient) ListPublishedListingsForConsumer(ctx context.Context, r
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1304,7 +1307,7 @@ func (c *internalClient) ListPublishedProvidersForConsumer(ctx context.Context, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1432,7 +1435,7 @@ func (c *internalClient) SearchPublishedListingsForConsumer(ctx context.Context,
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1535,7 +1538,7 @@ func (c *internalClient) UninstallListing(ctx context.Context, req DeleteInstall
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1616,7 +1619,7 @@ func (c *internalClient) UpdateInstallationDetail(ctx context.Context, req Updat
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1682,7 +1685,7 @@ func (c *internalClient) AddExchangeForListing(ctx context.Context, req AddExcha
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1748,7 +1751,7 @@ func (c *internalClient) CreateExchange(ctx context.Context, req CreateExchangeR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1814,7 +1817,7 @@ func (c *internalClient) CreateExchangeFilter(ctx context.Context, req CreateExc
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1881,7 +1884,7 @@ func (c *internalClient) CreateFile(ctx context.Context, req CreateFileRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1947,7 +1950,7 @@ func (c *internalClient) CreateListing(ctx context.Context, req CreateListingReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2013,7 +2016,7 @@ func (c *internalClient) CreateProvider(ctx context.Context, req CreateProviderR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2080,7 +2083,7 @@ func (c *internalClient) CreateProviderAnalyticsDashboard(ctx context.Context, r
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2137,7 +2140,7 @@ func (c *internalClient) DeleteExchange(ctx context.Context, req DeleteExchangeR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2194,7 +2197,7 @@ func (c *internalClient) DeleteExchangeFilter(ctx context.Context, req DeleteExc
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2251,7 +2254,7 @@ func (c *internalClient) DeleteFile(ctx context.Context, req DeleteFileRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2308,7 +2311,7 @@ func (c *internalClient) DeleteListing(ctx context.Context, req DeleteListingReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2365,7 +2368,7 @@ func (c *internalClient) DeleteProvider(ctx context.Context, req DeleteProviderR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2428,7 +2431,7 @@ func (c *internalClient) GetExchange(ctx context.Context, req GetExchangeRequest
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2491,7 +2494,7 @@ func (c *internalClient) GetFile(ctx context.Context, req GetFileRequest, opts .
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2548,7 +2551,7 @@ func (c *internalClient) GetLatestVersionProviderAnalyticsDashboard(ctx context.
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2611,7 +2614,7 @@ func (c *internalClient) GetListing(ctx context.Context, req GetListingRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2679,7 +2682,7 @@ func (c *internalClient) GetPersonalizationRequestsForProvider(ctx context.Conte
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2783,7 +2786,7 @@ func (c *internalClient) GetProvider(ctx context.Context, req GetProviderRequest
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2853,7 +2856,7 @@ func (c *internalClient) ListExchangeFilters(ctx context.Context, req ListExchan
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2961,7 +2964,7 @@ func (c *internalClient) ListExchanges(ctx context.Context, req ListExchangesReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3072,7 +3075,7 @@ func (c *internalClient) ListExchangesForListing(ctx context.Context, req ListEx
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3183,7 +3186,7 @@ func (c *internalClient) ListFiles(ctx context.Context, req ListFilesRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3291,7 +3294,7 @@ func (c *internalClient) ListListings(ctx context.Context, req ListListingsReque
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3402,7 +3405,7 @@ func (c *internalClient) ListListingsForExchange(ctx context.Context, req ListLi
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3500,7 +3503,7 @@ func (c *internalClient) ListProviderAnalyticsDashboard(ctx context.Context, req
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3567,7 +3570,7 @@ func (c *internalClient) ListProviders(ctx context.Context, req ListProvidersReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3665,7 +3668,7 @@ func (c *internalClient) RemoveExchangeForListing(ctx context.Context, req Remov
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3737,7 +3740,7 @@ func (c *internalClient) UpdateExchange(ctx context.Context, req UpdateExchangeR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3809,7 +3812,7 @@ func (c *internalClient) UpdateExchangeFilter(ctx context.Context, req UpdateExc
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3881,7 +3884,7 @@ func (c *internalClient) UpdateListing(ctx context.Context, req UpdateListingReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3960,7 +3963,7 @@ func (c *internalClient) UpdatePersonalizationRequestStatus(ctx context.Context,
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -4032,7 +4035,7 @@ func (c *internalClient) UpdateProvider(ctx context.Context, req UpdateProviderR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -4104,7 +4107,7 @@ func (c *internalClient) UpdateProviderAnalyticsDashboard(ctx context.Context, r
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil

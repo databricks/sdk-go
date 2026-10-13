@@ -39,7 +39,7 @@ func WithHost(h string) Option {
 // WithHTTPClient returns an Option that uses a specific HTTP client when
 // making HTTP requests.
 //
-// Important: When set, this option ignores all other options.
+// Its transport and HTTP timeout are used unchanged.
 func WithHTTPClient(hc *http.Client) Option {
 	return func(c *internaloptions.ClientOptions) error {
 		c.HTTPClient = hc
@@ -55,11 +55,13 @@ func WithCredentials(creds auth.Credentials) Option {
 	}
 }
 
-// WithTimeout returns an Option that sets the overall API call timeout to
-// the given duration by default.
+// WithTimeout sets the default timeout for method execution, including retry
+// delays and rate-limiter waits. It applies until the method returns.
+// Override it with call.WithTimeout for a single method invocation.
+// A zero duration disables the SDK timeout.
 func WithTimeout(d time.Duration) Option {
 	return func(c *internaloptions.ClientOptions) error {
-		c.Timeout = d
+		c.Timeout = &d
 		return nil
 	}
 }

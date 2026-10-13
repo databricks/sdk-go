@@ -43,8 +43,11 @@ func TestOptionsApply_AllFields(t *testing.T) {
 	if cfg.Credentials != auth.Credentials(creds) {
 		t.Error("Credentials mismatch")
 	}
-	if cfg.Timeout != 7*time.Second {
-		t.Errorf("Timeout = %v", cfg.Timeout)
+	if cfg.Timeout == nil {
+		t.Fatal("Timeout = nil, want seven seconds")
+	}
+	if got := *cfg.Timeout; got != 7*time.Second {
+		t.Errorf("Timeout = %v, want seven seconds", got)
 	}
 	if cfg.Logger != logger {
 		t.Error("Logger mismatch")

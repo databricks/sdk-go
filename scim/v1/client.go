@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
 	"github.com/databricks/sdk-go/core/clientinfo"
@@ -33,6 +34,7 @@ type Client struct {
 
 type internalClient struct {
 	httpClient  *http.Client
+	callTimeout *time.Duration
 	credentials auth.Credentials
 	logger      *slog.Logger
 	userAgent   func() (string, error)
@@ -65,6 +67,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	return &Client{
 		internalClient: internalClient{
 			httpClient:  cfg.HTTPClient,
+			callTimeout: cfg.Timeout,
 			credentials: cfg.Credentials,
 			logger:      cfg.Logger,
 			userAgent:   userAgent,
@@ -142,7 +145,7 @@ func (c *internalClient) CreateAccountGroup(ctx context.Context, req CreateAccou
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -200,7 +203,7 @@ func (c *internalClient) DeleteAccountGroup(ctx context.Context, req DeleteAccou
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -267,7 +270,7 @@ func (c *internalClient) GetAccountGroup(ctx context.Context, req GetAccountGrou
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -361,7 +364,7 @@ func (c *internalClient) ListAccountGroups(ctx context.Context, req ListAccountG
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -474,7 +477,7 @@ func (c *internalClient) PatchAccountGroup(ctx context.Context, req PatchAccount
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -542,7 +545,7 @@ func (c *internalClient) UpdateAccountGroup(ctx context.Context, req UpdateAccou
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -614,7 +617,7 @@ func (c *internalClient) CreateAccountServicePrincipal(ctx context.Context, req 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -672,7 +675,7 @@ func (c *internalClient) DeleteAccountServicePrincipal(ctx context.Context, req 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -740,7 +743,7 @@ func (c *internalClient) GetAccountServicePrincipal(ctx context.Context, req Get
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -830,7 +833,7 @@ func (c *internalClient) ListAccountServicePrincipals(ctx context.Context, req L
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -944,7 +947,7 @@ func (c *internalClient) PatchAccountServicePrincipal(ctx context.Context, req P
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -1014,7 +1017,7 @@ func (c *internalClient) UpdateAccountServicePrincipal(ctx context.Context, req 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -1087,7 +1090,7 @@ func (c *internalClient) CreateAccountUser(ctx context.Context, req CreateAccoun
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1146,7 +1149,7 @@ func (c *internalClient) DeleteAccountUser(ctx context.Context, req DeleteAccoun
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -1240,7 +1243,7 @@ func (c *internalClient) GetAccountUser(ctx context.Context, req GetAccountUserR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1330,7 +1333,7 @@ func (c *internalClient) ListAccountUsers(ctx context.Context, req ListAccountUs
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1445,7 +1448,7 @@ func (c *internalClient) PatchAccountUser(ctx context.Context, req PatchAccountU
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -1515,7 +1518,7 @@ func (c *internalClient) UpdateAccountUser(ctx context.Context, req UpdateAccoun
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -1582,7 +1585,7 @@ func (c *internalClient) Me(ctx context.Context, req MeRequest, opts ...call.Opt
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1649,7 +1652,7 @@ func (c *internalClient) CreateGroup(ctx context.Context, req CreateGroupRequest
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1703,7 +1706,7 @@ func (c *internalClient) DeleteGroup(ctx context.Context, req DeleteGroupRequest
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -1766,7 +1769,7 @@ func (c *internalClient) GetGroup(ctx context.Context, req GetGroupRequest, opts
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1850,7 +1853,7 @@ func (c *internalClient) ListGroups(ctx context.Context, req ListGroupsRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1959,7 +1962,7 @@ func (c *internalClient) PatchGroup(ctx context.Context, req PatchGroupRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -2023,7 +2026,7 @@ func (c *internalClient) UpdateGroup(ctx context.Context, req UpdateGroupRequest
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -2089,7 +2092,7 @@ func (c *internalClient) CreateServicePrincipal(ctx context.Context, req CreateS
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2143,7 +2146,7 @@ func (c *internalClient) DeleteServicePrincipal(ctx context.Context, req DeleteS
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -2207,7 +2210,7 @@ func (c *internalClient) GetServicePrincipal(ctx context.Context, req GetService
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2291,7 +2294,7 @@ func (c *internalClient) ListServicePrincipals(ctx context.Context, req ListServ
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2401,7 +2404,7 @@ func (c *internalClient) PatchServicePrincipal(ctx context.Context, req PatchSer
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -2467,7 +2470,7 @@ func (c *internalClient) UpdateServicePrincipal(ctx context.Context, req UpdateS
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -2534,7 +2537,7 @@ func (c *internalClient) CreateUser(ctx context.Context, req CreateUserRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2589,7 +2592,7 @@ func (c *internalClient) DeleteUser(ctx context.Context, req DeleteUserRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -2646,7 +2649,7 @@ func (c *internalClient) GetPermissionLevels(ctx context.Context, req GetPasswor
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2704,7 +2707,7 @@ func (c *internalClient) GetPermissions(ctx context.Context, req GetPasswordPerm
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2794,7 +2797,7 @@ func (c *internalClient) GetUser(ctx context.Context, req GetUserRequest, opts .
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2878,7 +2881,7 @@ func (c *internalClient) ListUsers(ctx context.Context, req ListUsersRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2989,7 +2992,7 @@ func (c *internalClient) PatchUser(ctx context.Context, req PatchUserRequest, op
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil
@@ -3057,7 +3060,7 @@ func (c *internalClient) SetPermissions(ctx context.Context, req PasswordPermiss
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3124,7 +3127,7 @@ func (c *internalClient) UpdatePermissions(ctx context.Context, req PasswordPerm
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -3190,7 +3193,7 @@ func (c *internalClient) UpdateUser(ctx context.Context, req UpdateUserRequest, 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return err
 	}
 	return nil

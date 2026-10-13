@@ -34,7 +34,8 @@ type ClientOptions struct {
 
 	Credentials auth.Credentials
 
-	Timeout    time.Duration
+	// Nil uses the method's default timeout; zero disables the SDK timeout.
+	Timeout    *time.Duration
 	HTTPClient *http.Client
 	Logger     *slog.Logger
 }
@@ -53,7 +54,6 @@ func (c *ClientOptions) Resolve() error {
 	}
 	if c.HTTPClient == nil {
 		c.HTTPClient = &http.Client{
-			Timeout: c.Timeout,
 			// Share the default transport so the connection pool is reused
 			// across all clients.
 			Transport: http.DefaultTransport,

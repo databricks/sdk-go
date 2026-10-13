@@ -38,6 +38,9 @@ type CreateServicePrincipalSecretRequest struct {
 	// The lifetime of the secret in seconds. If this parameter is not provided, the
 	// secret will have a default lifetime of 730 days (63072000s).
 	Lifetime *types.Duration
+	// OAuth API scopes to bind to the secret; a minted token cannot exceed them.
+	// Empty = unrestricted (all-apis). E.g. all-apis, sql, iam.groups:read.
+	Scopes []string
 }
 
 type CreateServicePrincipalSecretResponse struct {
@@ -56,6 +59,8 @@ type CreateServicePrincipalSecretResponse struct {
 	// UTC time when the secret will expire. If the field is not present, the secret
 	// does not expire.
 	ExpireTime *types.Time
+	// OAuth API scopes bound to this secret. Empty = unrestricted (all-apis).
+	Scopes []string
 }
 
 type DeleteAccountFederationPolicyRequest struct {
@@ -248,6 +253,8 @@ type ServicePrincipalSecret struct {
 	// UTC time when the secret will expire. If the field is not present, the secret
 	// does not expire.
 	ExpireTime *types.Time
+	// OAuth API scopes bound to this secret. Empty = unrestricted (all-apis).
+	Scopes []string
 }
 
 type UpdateAccountFederationPolicyRequest struct {

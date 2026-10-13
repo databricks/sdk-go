@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
 	"github.com/databricks/sdk-go/core/clientinfo"
@@ -34,6 +35,7 @@ type Client struct {
 
 type internalClient struct {
 	httpClient  *http.Client
+	callTimeout *time.Duration
 	credentials auth.Credentials
 	logger      *slog.Logger
 	userAgent   func() (string, error)
@@ -66,6 +68,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	return &Client{
 		internalClient: internalClient{
 			httpClient:  cfg.HTTPClient,
+			callTimeout: cfg.Timeout,
 			credentials: cfg.Credentials,
 			logger:      cfg.Logger,
 			userAgent:   userAgent,
@@ -136,7 +139,7 @@ func (c *internalClient) createInferenceEndpointBase(ctx context.Context, req Cr
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -292,7 +295,7 @@ func (c *internalClient) createProvisionedThroughputInferenceEndpointBase(ctx co
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -439,7 +442,7 @@ func (c *internalClient) DeleteInferenceEndpoint(ctx context.Context, req Delete
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -447,8 +450,8 @@ func (c *internalClient) DeleteInferenceEndpoint(ctx context.Context, req Delete
 
 // Retrieves the metrics associated with the provided serving endpoint in either
 // Prometheus or OpenMetrics exposition format.
-// A timeout configured with [call.WithTimeout] applies until this method
-// returns. It does not apply while reading the returned response stream.
+// A timeout configured with [client.WithTimeout] or [call.WithTimeout] applies
+// until this method returns. It does not apply while reading the response stream.
 func (c *internalClient) GetExportEndpointMetrics(ctx context.Context, req GetExportEndpointMetricsRequest, opts ...call.Option) (*ExportMetricsResponse, error) {
 
 	headers := http.Header{}
@@ -500,7 +503,7 @@ func (c *internalClient) GetExportEndpointMetrics(ctx context.Context, req GetEx
 		return httpResp.Body, nil
 	}
 
-	contents, err := executeStreamingResponseCall(ctx, call, opts)
+	contents, err := c.executeStreamingResponseCall(ctx, call, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -565,7 +568,7 @@ func (c *internalClient) GetInferenceEndpoint(ctx context.Context, req GetInfere
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -574,8 +577,8 @@ func (c *internalClient) GetInferenceEndpoint(ctx context.Context, req GetInfere
 // Get the query schema of the serving endpoint in OpenAPI format. The schema
 // contains information for the supported paths, input and output format and
 // datatypes.
-// A timeout configured with [call.WithTimeout] applies until this method
-// returns. It does not apply while reading the returned response stream.
+// A timeout configured with [client.WithTimeout] or [call.WithTimeout] applies
+// until this method returns. It does not apply while reading the response stream.
 func (c *internalClient) GetInferenceEndpointSchema(ctx context.Context, req GetInferenceEndpointSchemaRequest, opts ...call.Option) (*GetOpenApiResponse, error) {
 
 	headers := http.Header{}
@@ -627,7 +630,7 @@ func (c *internalClient) GetInferenceEndpointSchema(ctx context.Context, req Get
 		return httpResp.Body, nil
 	}
 
-	contents, err := executeStreamingResponseCall(ctx, call, opts)
+	contents, err := c.executeStreamingResponseCall(ctx, call, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -699,7 +702,7 @@ func (c *internalClient) GetServedModelBuildLogs(ctx context.Context, req GetSer
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -769,7 +772,7 @@ func (c *internalClient) GetServedModelLogs(ctx context.Context, req GetServedMo
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -826,7 +829,7 @@ func (c *internalClient) ListInferenceEndpoints(ctx context.Context, req ListInf
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -900,7 +903,7 @@ func (c *internalClient) PatchInferenceEndpointTags(ctx context.Context, req Pat
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -973,7 +976,7 @@ func (c *internalClient) PatchInferenceEndpointTelemetryConfig(ctx context.Conte
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1048,7 +1051,7 @@ func (c *internalClient) PutInferenceEndpointAiGateway(ctx context.Context, req 
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1124,7 +1127,7 @@ func (c *internalClient) putInferenceEndpointConfigBase(ctx context.Context, req
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1290,7 +1293,7 @@ func (c *internalClient) PutInferenceEndpointRateLimits(ctx context.Context, req
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1365,7 +1368,7 @@ func (c *internalClient) putProvisionedThroughputInferenceEndpointConfigBase(ctx
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1530,15 +1533,15 @@ func (c *internalClient) UpdateInferenceEndpointNotifications(ctx context.Contex
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
 // Make external services call using the credentials stored in UC Connection.
-// A timeout configured with [call.WithTimeout] applies until this method
-// returns. It does not apply while reading the returned response stream.
+// A timeout configured with [client.WithTimeout] or [call.WithTimeout] applies
+// until this method returns. It does not apply while reading the response stream.
 func (c *internalClient) HttpRequest(ctx context.Context, req ExternalFunctionRequest, opts ...call.Option) (*ExternalFunctionResponse, error) {
 	wireReq, err := externalFunctionRequestToWire(&req)
 	if err != nil {
@@ -1592,7 +1595,7 @@ func (c *internalClient) HttpRequest(ctx context.Context, req ExternalFunctionRe
 		return httpResp.Body, nil
 	}
 
-	contents, err := executeStreamingResponseCall(ctx, call, opts)
+	contents, err := c.executeStreamingResponseCall(ctx, call, opts)
 	if err != nil {
 		return nil, err
 	}

@@ -31,7 +31,7 @@ func run(ctx context.Context, profile string) error {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
 	// WithProfile selects a profile in code instead of through
 	// DATABRICKS_CONFIG_PROFILE. WithLogger enables SDK logs, and WithTimeout
-	// sets the default timeout for API calls made by this client.
+	// sets the default method timeout, including retries.
 	c, err := jobs.NewClient(ctx,
 		client.WithProfile(profile),
 		client.WithLogger(logger),

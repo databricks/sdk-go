@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
 	"github.com/databricks/sdk-go/core/clientinfo"
@@ -32,6 +33,7 @@ type Client struct {
 
 type internalClient struct {
 	httpClient  *http.Client
+	callTimeout *time.Duration
 	credentials auth.Credentials
 	logger      *slog.Logger
 	userAgent   func() (string, error)
@@ -64,6 +66,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	return &Client{
 		internalClient: internalClient{
 			httpClient:  cfg.HTTPClient,
+			callTimeout: cfg.Timeout,
 			credentials: cfg.Credentials,
 			logger:      cfg.Logger,
 			userAgent:   userAgent,
@@ -134,7 +137,7 @@ func (c *internalClient) ApproveTransitionRequest(ctx context.Context, req Appro
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -202,7 +205,7 @@ func (c *internalClient) CreateComment(ctx context.Context, req CreateCommentReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -268,7 +271,7 @@ func (c *internalClient) CreateRegistryWebhook(ctx context.Context, req CreateRe
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -334,7 +337,7 @@ func (c *internalClient) CreateTransitionRequest(ctx context.Context, req Create
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -392,7 +395,7 @@ func (c *internalClient) DeleteComment(ctx context.Context, req DeleteCommentReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -450,7 +453,7 @@ func (c *internalClient) DeleteRegistryWebhook(ctx context.Context, req DeleteRe
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -526,7 +529,7 @@ func (c *internalClient) DeleteTransitionRequest(ctx context.Context, req Delete
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -594,7 +597,7 @@ func (c *internalClient) GetRegisteredModelDatabricks(ctx context.Context, req G
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -667,7 +670,7 @@ func (c *internalClient) ListRegistryWebhooks(ctx context.Context, req ListRegis
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -775,7 +778,7 @@ func (c *internalClient) ListTransitionRequests(ctx context.Context, req ListTra
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -841,7 +844,7 @@ func (c *internalClient) RejectTransitionRequest(ctx context.Context, req Reject
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -907,7 +910,7 @@ func (c *internalClient) TestRegistryWebhook(ctx context.Context, req TestRegist
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -977,7 +980,7 @@ func (c *internalClient) TransitionModelVersionStageDatabricks(ctx context.Conte
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1043,7 +1046,7 @@ func (c *internalClient) UpdateComment(ctx context.Context, req UpdateCommentReq
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1109,7 +1112,7 @@ func (c *internalClient) UpdateRegistryWebhook(ctx context.Context, req UpdateRe
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1175,7 +1178,7 @@ func (c *internalClient) CreateModelVersion(ctx context.Context, req CreateModel
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1243,7 +1246,7 @@ func (c *internalClient) CreateRegisteredModel(ctx context.Context, req CreateRe
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1304,7 +1307,7 @@ func (c *internalClient) DeleteModelVersion(ctx context.Context, req DeleteModel
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1368,7 +1371,7 @@ func (c *internalClient) DeleteModelVersionTag(ctx context.Context, req DeleteMo
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1426,7 +1429,7 @@ func (c *internalClient) DeleteRegisteredModel(ctx context.Context, req DeleteRe
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1487,7 +1490,7 @@ func (c *internalClient) DeleteRegisteredModelTag(ctx context.Context, req Delet
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1554,7 +1557,7 @@ func (c *internalClient) GetModelVersion(ctx context.Context, req GetModelVersio
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1621,7 +1624,7 @@ func (c *internalClient) GetModelVersionDownloadUri(ctx context.Context, req Get
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1687,7 +1690,7 @@ func (c *internalClient) ListLatestVersions(ctx context.Context, req ListLatestV
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1755,7 +1758,7 @@ func (c *internalClient) ListRegisteredModels(ctx context.Context, req ListRegis
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1862,7 +1865,7 @@ func (c *internalClient) RenameRegisteredModel(ctx context.Context, req RenameRe
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -1935,7 +1938,7 @@ func (c *internalClient) SearchModelVersions(ctx context.Context, req SearchMode
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2049,7 +2052,7 @@ func (c *internalClient) SearchRegisteredModels(ctx context.Context, req SearchR
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2150,7 +2153,7 @@ func (c *internalClient) SetModelVersionTag(ctx context.Context, req SetModelVer
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2210,7 +2213,7 @@ func (c *internalClient) SetRegisteredModelTag(ctx context.Context, req SetRegis
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2276,7 +2279,7 @@ func (c *internalClient) UpdateModelVersion(ctx context.Context, req UpdateModel
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -2342,7 +2345,7 @@ func (c *internalClient) UpdateRegisteredModel(ctx context.Context, req UpdateRe
 		return nil
 	}
 
-	if err := executeCall(ctx, call, opts); err != nil {
+	if err := c.executeCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil

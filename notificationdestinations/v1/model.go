@@ -5,12 +5,14 @@ package notificationdestinations
 type DestinationType string
 
 const (
-	DestinationType_Unspecified    DestinationType = ""
-	DestinationType_Slack          DestinationType = "SLACK"
-	DestinationType_Email          DestinationType = "EMAIL"
-	DestinationType_Webhook        DestinationType = "WEBHOOK"
-	DestinationType_Pagerduty      DestinationType = "PAGERDUTY"
-	DestinationType_MicrosoftTeams DestinationType = "MICROSOFT_TEAMS"
+	DestinationType_Unspecified        DestinationType = ""
+	DestinationType_Slack              DestinationType = "SLACK"
+	DestinationType_Email              DestinationType = "EMAIL"
+	DestinationType_Webhook            DestinationType = "WEBHOOK"
+	DestinationType_Pagerduty          DestinationType = "PAGERDUTY"
+	DestinationType_MicrosoftTeams     DestinationType = "MICROSOFT_TEAMS"
+	DestinationType_DatabricksAppSlack DestinationType = "DATABRICKS_APP_SLACK"
+	DestinationType_DatabricksAppTeams DestinationType = "DATABRICKS_APP_TEAMS"
 )
 
 type Config struct {
@@ -56,12 +58,58 @@ type Config_Config_MicrosoftTeams struct {
 
 func (*Config_Config_MicrosoftTeams) isConfig_Config() {}
 
+// Config_Config_DatabricksAppSlack selects DatabricksAppSlack for Config.Config.
+type Config_Config_DatabricksAppSlack struct {
+	DatabricksAppSlack DatabricksAppSlackConfig
+}
+
+func (*Config_Config_DatabricksAppSlack) isConfig_Config() {}
+
+// Config_Config_DatabricksAppTeams selects DatabricksAppTeams for Config.Config.
+type Config_Config_DatabricksAppTeams struct {
+	DatabricksAppTeams DatabricksAppTeamsConfig
+}
+
+func (*Config_Config_DatabricksAppTeams) isConfig_Config() {}
+
 type CreateNotificationDestinationRequest struct {
 	// The display name for the notification destination.
 	DisplayName *string
 	// The configuration for the notification destination. Must wrap EXACTLY one of
 	// the nested configs.
 	Config *Config
+}
+
+// Slack channel reached through the Databricks app. The app must already be
+// installed in the Slack workspace and connected to this Databricks workspace..
+type DatabricksAppSlackConfig struct {
+	// [Input-Only] Slack workspace (team) ID the Databricks app is installed in.
+	TeamId *string
+	// [Output-Only] Whether team ID is set.
+	TeamIdSet *bool
+	// [Input-Only] Slack channel ID notifications are posted to.
+	ChannelId *string
+	// [Output-Only] Whether channel ID is set.
+	ChannelIdSet *bool
+}
+
+// Microsoft Teams channel reached through the Databricks app. The app must
+// already be installed in the Microsoft 365 tenant and connected to this
+// Databricks workspace..
+type DatabricksAppTeamsConfig struct {
+	// [Input-Only] Microsoft Entra tenant ID of the Microsoft 365 tenant the app is
+	// installed in.
+	TenantId *string
+	// [Output-Only] Whether tenant ID is set.
+	TenantIdSet *bool
+	// [Input-Only] Microsoft Entra group ID of the team that owns the channel.
+	TeamId *string
+	// [Output-Only] Whether team ID is set.
+	TeamIdSet *bool
+	// [Input-Only] Teams channel ID notifications are posted to.
+	ChannelId *string
+	// [Output-Only] Whether channel ID is set.
+	ChannelIdSet *bool
 }
 
 type DeleteNotificationDestinationRequest struct {
