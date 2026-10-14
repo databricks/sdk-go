@@ -2360,6 +2360,32 @@ func requestedResourceToWire(v *RequestedResource) (*requestedResourceWire, erro
 	}, nil
 }
 
+type revealRolePasswordRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func revealRolePasswordRequestToWire(v *RevealRolePasswordRequest) (*revealRolePasswordRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &revealRolePasswordRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+type revealRolePasswordResponseWire struct {
+	Password *string `json:"password,omitempty"`
+}
+
+func revealRolePasswordResponseFromWire(w *revealRolePasswordResponseWire) (*RevealRolePasswordResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RevealRolePasswordResponse{
+		Password: w.Password,
+	}, nil
+}
+
 type roleWire struct {
 	Name       *string              `json:"name,omitempty"`
 	Parent     *string              `json:"parent,omitempty"`

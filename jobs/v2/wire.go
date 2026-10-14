@@ -5740,64 +5740,63 @@ func runStatusFromWire(w *runStatusWire) (*RunStatus, error) {
 }
 
 type runTaskWire struct {
-	RunId                        *wireInt64                          `json:"run_id,omitempty"`
-	State                        *runStateWire                       `json:"state,omitempty"`
-	RunPageUrl                   *string                             `json:"run_page_url,omitempty"`
-	ClusterInstance              *clusterInstanceWire                `json:"cluster_instance,omitempty"`
-	AttemptNumber                *int                                `json:"attempt_number,omitempty"`
-	GitSource                    *gitSourceWire                      `json:"git_source,omitempty"`
-	ResolvedValues               *resolvedValuesWire                 `json:"resolved_values,omitempty"`
-	Status                       *runStatusWire                      `json:"status,omitempty"`
-	EffectivePerformanceTarget   PerformanceTarget_PerformanceTarget `json:"effective_performance_target,omitempty"`
-	EffectiveServerlessComputeId *string                             `json:"effective_serverless_compute_id,omitempty"`
-	TaskKey                      *string                             `json:"task_key,omitempty"`
-	Description                  *string                             `json:"description,omitempty"`
-	DependsOn                    []taskDependencyWire                `json:"depends_on,omitempty"`
-	RunIf                        TaskDependencyType                  `json:"run_if,omitempty"`
-	TimeoutSeconds               *int                                `json:"timeout_seconds,omitempty"`
-	EmailNotifications           *jobEmailNotificationsWire          `json:"email_notifications,omitempty"`
-	Health                       *jobsHealthRulesWire                `json:"health,omitempty"`
-	NotificationSettings         *notificationSettingsWire           `json:"notification_settings,omitempty"`
-	WebhookNotifications         *webhookNotificationsWire           `json:"webhook_notifications,omitempty"`
-	EnvironmentKey               *string                             `json:"environment_key,omitempty"`
-	Disabled                     *bool                               `json:"disabled,omitempty"`
-	Compute                      *computeWire                        `json:"compute,omitempty"`
-	EnvironmentVariablesKey      *string                             `json:"environment_variables_key,omitempty"`
-	NotebookTask                 *notebookTaskWire                   `json:"notebook_task,omitempty"`
-	SparkJarTask                 *sparkJarTaskWire                   `json:"spark_jar_task,omitempty"`
-	SparkPythonTask              *sparkPythonTaskWire                `json:"spark_python_task,omitempty"`
-	SparkSubmitTask              *sparkSubmitTaskWire                `json:"spark_submit_task,omitempty"`
-	PipelineTask                 *pipelineTaskWire                   `json:"pipeline_task,omitempty"`
-	PythonWheelTask              *pythonWheelTaskWire                `json:"python_wheel_task,omitempty"`
-	DbtTask                      *dbtTaskWire                        `json:"dbt_task,omitempty"`
-	SqlTask                      *sqlTaskWire                        `json:"sql_task,omitempty"`
-	RunJobTask                   *runJobTaskWire                     `json:"run_job_task,omitempty"`
-	ConditionTask                *conditionTaskWire                  `json:"condition_task,omitempty"`
-	ForEachTask                  *forEachTaskWire                    `json:"for_each_task,omitempty"`
-	CleanRoomsNotebookTask       *cleanRoomsNotebookTaskWire         `json:"clean_rooms_notebook_task,omitempty"`
-	GenAiComputeTask             *genAiComputeTaskWire               `json:"gen_ai_compute_task,omitempty"`
-	AlertTask                    *alertTaskWire                      `json:"alert_task,omitempty"`
-	PowerBiTask                  *powerBiTaskWire                    `json:"power_bi_task,omitempty"`
-	DashboardTask                *dashboardTaskWire                  `json:"dashboard_task,omitempty"`
-	DbtCloudTask                 *dbtCloudTaskWire                   `json:"dbt_cloud_task,omitempty"`
-	DbtPlatformTask              *dbtPlatformTaskWire                `json:"dbt_platform_task,omitempty"`
-	PythonOperatorTask           *pythonOperatorTaskWire             `json:"python_operator_task,omitempty"`
-	AiRuntimeTask                *aiRuntimeTaskWire                  `json:"ai_runtime_task,omitempty"`
-	ExistingClusterId            *string                             `json:"existing_cluster_id,omitempty"`
-	NewCluster                   *clusterSpec_NewClusterWire         `json:"new_cluster,omitempty"`
-	JobClusterKey                *string                             `json:"job_cluster_key,omitempty"`
-	Libraries                    []libraryWire                       `json:"libraries,omitempty"`
-	MaxRetries                   *int                                `json:"max_retries,omitempty"`
-	MinRetryIntervalMillis       *int                                `json:"min_retry_interval_millis,omitempty"`
-	RetryOnTimeout               *bool                               `json:"retry_on_timeout,omitempty"`
-	DisableAutoOptimization      *bool                               `json:"disable_auto_optimization,omitempty"`
-	StartTime                    *wireInt64                          `json:"start_time,omitempty"`
-	SetupDuration                *wireInt64                          `json:"setup_duration,omitempty"`
-	ExecutionDuration            *wireInt64                          `json:"execution_duration,omitempty"`
-	CleanupDuration              *wireInt64                          `json:"cleanup_duration,omitempty"`
-	EndTime                      *wireInt64                          `json:"end_time,omitempty"`
-	RunDuration                  *wireInt64                          `json:"run_duration,omitempty"`
-	QueueDuration                *wireInt64                          `json:"queue_duration,omitempty"`
+	RunId                      *wireInt64                          `json:"run_id,omitempty"`
+	State                      *runStateWire                       `json:"state,omitempty"`
+	RunPageUrl                 *string                             `json:"run_page_url,omitempty"`
+	ClusterInstance            *clusterInstanceWire                `json:"cluster_instance,omitempty"`
+	AttemptNumber              *int                                `json:"attempt_number,omitempty"`
+	GitSource                  *gitSourceWire                      `json:"git_source,omitempty"`
+	ResolvedValues             *resolvedValuesWire                 `json:"resolved_values,omitempty"`
+	Status                     *runStatusWire                      `json:"status,omitempty"`
+	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget `json:"effective_performance_target,omitempty"`
+	TaskKey                    *string                             `json:"task_key,omitempty"`
+	Description                *string                             `json:"description,omitempty"`
+	DependsOn                  []taskDependencyWire                `json:"depends_on,omitempty"`
+	RunIf                      TaskDependencyType                  `json:"run_if,omitempty"`
+	TimeoutSeconds             *int                                `json:"timeout_seconds,omitempty"`
+	EmailNotifications         *jobEmailNotificationsWire          `json:"email_notifications,omitempty"`
+	Health                     *jobsHealthRulesWire                `json:"health,omitempty"`
+	NotificationSettings       *notificationSettingsWire           `json:"notification_settings,omitempty"`
+	WebhookNotifications       *webhookNotificationsWire           `json:"webhook_notifications,omitempty"`
+	EnvironmentKey             *string                             `json:"environment_key,omitempty"`
+	Disabled                   *bool                               `json:"disabled,omitempty"`
+	Compute                    *computeWire                        `json:"compute,omitempty"`
+	EnvironmentVariablesKey    *string                             `json:"environment_variables_key,omitempty"`
+	NotebookTask               *notebookTaskWire                   `json:"notebook_task,omitempty"`
+	SparkJarTask               *sparkJarTaskWire                   `json:"spark_jar_task,omitempty"`
+	SparkPythonTask            *sparkPythonTaskWire                `json:"spark_python_task,omitempty"`
+	SparkSubmitTask            *sparkSubmitTaskWire                `json:"spark_submit_task,omitempty"`
+	PipelineTask               *pipelineTaskWire                   `json:"pipeline_task,omitempty"`
+	PythonWheelTask            *pythonWheelTaskWire                `json:"python_wheel_task,omitempty"`
+	DbtTask                    *dbtTaskWire                        `json:"dbt_task,omitempty"`
+	SqlTask                    *sqlTaskWire                        `json:"sql_task,omitempty"`
+	RunJobTask                 *runJobTaskWire                     `json:"run_job_task,omitempty"`
+	ConditionTask              *conditionTaskWire                  `json:"condition_task,omitempty"`
+	ForEachTask                *forEachTaskWire                    `json:"for_each_task,omitempty"`
+	CleanRoomsNotebookTask     *cleanRoomsNotebookTaskWire         `json:"clean_rooms_notebook_task,omitempty"`
+	GenAiComputeTask           *genAiComputeTaskWire               `json:"gen_ai_compute_task,omitempty"`
+	AlertTask                  *alertTaskWire                      `json:"alert_task,omitempty"`
+	PowerBiTask                *powerBiTaskWire                    `json:"power_bi_task,omitempty"`
+	DashboardTask              *dashboardTaskWire                  `json:"dashboard_task,omitempty"`
+	DbtCloudTask               *dbtCloudTaskWire                   `json:"dbt_cloud_task,omitempty"`
+	DbtPlatformTask            *dbtPlatformTaskWire                `json:"dbt_platform_task,omitempty"`
+	PythonOperatorTask         *pythonOperatorTaskWire             `json:"python_operator_task,omitempty"`
+	AiRuntimeTask              *aiRuntimeTaskWire                  `json:"ai_runtime_task,omitempty"`
+	ExistingClusterId          *string                             `json:"existing_cluster_id,omitempty"`
+	NewCluster                 *clusterSpec_NewClusterWire         `json:"new_cluster,omitempty"`
+	JobClusterKey              *string                             `json:"job_cluster_key,omitempty"`
+	Libraries                  []libraryWire                       `json:"libraries,omitempty"`
+	MaxRetries                 *int                                `json:"max_retries,omitempty"`
+	MinRetryIntervalMillis     *int                                `json:"min_retry_interval_millis,omitempty"`
+	RetryOnTimeout             *bool                               `json:"retry_on_timeout,omitempty"`
+	DisableAutoOptimization    *bool                               `json:"disable_auto_optimization,omitempty"`
+	StartTime                  *wireInt64                          `json:"start_time,omitempty"`
+	SetupDuration              *wireInt64                          `json:"setup_duration,omitempty"`
+	ExecutionDuration          *wireInt64                          `json:"execution_duration,omitempty"`
+	CleanupDuration            *wireInt64                          `json:"cleanup_duration,omitempty"`
+	EndTime                    *wireInt64                          `json:"end_time,omitempty"`
+	RunDuration                *wireInt64                          `json:"run_duration,omitempty"`
+	QueueDuration              *wireInt64                          `json:"queue_duration,omitempty"`
 }
 
 func runTaskFromWire(w *runTaskWire) (*RunTask, error) {
@@ -6110,43 +6109,42 @@ func runTaskFromWire(w *runTaskWire) (*RunTask, error) {
 		specSelection = &RunTask_Spec_JobClusterKey{JobClusterKey: *w.JobClusterKey}
 	}
 	return &RunTask{
-		RunId:                        runIdPublicValue,
-		State:                        statePublicValue,
-		RunPageUrl:                   w.RunPageUrl,
-		ClusterInstance:              clusterInstancePublicValue,
-		AttemptNumber:                w.AttemptNumber,
-		GitSource:                    gitSourcePublicValue,
-		ResolvedValues:               resolvedValuesPublicValue,
-		Status:                       statusPublicValue,
-		EffectivePerformanceTarget:   w.EffectivePerformanceTarget,
-		EffectiveServerlessComputeId: w.EffectiveServerlessComputeId,
-		TaskKey:                      w.TaskKey,
-		Description:                  w.Description,
-		DependsOn:                    dependsOnPublicValue,
-		RunIf:                        w.RunIf,
-		TimeoutSeconds:               w.TimeoutSeconds,
-		EmailNotifications:           emailNotificationsPublicValue,
-		Health:                       healthPublicValue,
-		NotificationSettings:         notificationSettingsPublicValue,
-		WebhookNotifications:         webhookNotificationsPublicValue,
-		Disabled:                     w.Disabled,
-		Compute:                      computePublicValue,
-		EnvironmentVariablesKey:      w.EnvironmentVariablesKey,
-		Libraries:                    librariesPublicValue,
-		MaxRetries:                   w.MaxRetries,
-		MinRetryIntervalMillis:       w.MinRetryIntervalMillis,
-		RetryOnTimeout:               w.RetryOnTimeout,
-		DisableAutoOptimization:      w.DisableAutoOptimization,
-		StartTime:                    startTimePublicValue,
-		SetupDuration:                setupDurationPublicValue,
-		ExecutionDuration:            executionDurationPublicValue,
-		CleanupDuration:              cleanupDurationPublicValue,
-		EndTime:                      endTimePublicValue,
-		RunDuration:                  runDurationPublicValue,
-		QueueDuration:                queueDurationPublicValue,
-		EnvironmentRef:               environmentRefSelection,
-		Task:                         taskSelection,
-		Spec:                         specSelection,
+		RunId:                      runIdPublicValue,
+		State:                      statePublicValue,
+		RunPageUrl:                 w.RunPageUrl,
+		ClusterInstance:            clusterInstancePublicValue,
+		AttemptNumber:              w.AttemptNumber,
+		GitSource:                  gitSourcePublicValue,
+		ResolvedValues:             resolvedValuesPublicValue,
+		Status:                     statusPublicValue,
+		EffectivePerformanceTarget: w.EffectivePerformanceTarget,
+		TaskKey:                    w.TaskKey,
+		Description:                w.Description,
+		DependsOn:                  dependsOnPublicValue,
+		RunIf:                      w.RunIf,
+		TimeoutSeconds:             w.TimeoutSeconds,
+		EmailNotifications:         emailNotificationsPublicValue,
+		Health:                     healthPublicValue,
+		NotificationSettings:       notificationSettingsPublicValue,
+		WebhookNotifications:       webhookNotificationsPublicValue,
+		Disabled:                   w.Disabled,
+		Compute:                    computePublicValue,
+		EnvironmentVariablesKey:    w.EnvironmentVariablesKey,
+		Libraries:                  librariesPublicValue,
+		MaxRetries:                 w.MaxRetries,
+		MinRetryIntervalMillis:     w.MinRetryIntervalMillis,
+		RetryOnTimeout:             w.RetryOnTimeout,
+		DisableAutoOptimization:    w.DisableAutoOptimization,
+		StartTime:                  startTimePublicValue,
+		SetupDuration:              setupDurationPublicValue,
+		ExecutionDuration:          executionDurationPublicValue,
+		CleanupDuration:            cleanupDurationPublicValue,
+		EndTime:                    endTimePublicValue,
+		RunDuration:                runDurationPublicValue,
+		QueueDuration:              queueDurationPublicValue,
+		EnvironmentRef:             environmentRefSelection,
+		Task:                       taskSelection,
+		Spec:                       specSelection,
 	}, nil
 }
 

@@ -4699,10 +4699,6 @@ type RunTask struct {
 	// Enables lower job costs by optimizing compute for your selected target
 	// duration time. Must provide a duration target.
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget
-	// The id of the serverless compute this task ran on, either explicitly
-	// configured on the task or the workspace default. Only set once the compute
-	// has been resolved at run trigger.
-	EffectiveServerlessComputeId *string
 	// A unique name for the task. This field is used to refer to this task from
 	// other tasks. This field is required and must be unique within its parent job.
 	// On Update or Reset, this field is used to reference the tasks to be updated

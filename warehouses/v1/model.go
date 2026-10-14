@@ -616,6 +616,8 @@ const (
 	WarehouseType_Classic WarehouseType = "CLASSIC"
 	// Pro warehouse type
 	WarehouseType_Pro WarehouseType = "PRO"
+	// Real-Time warehouse type
+	WarehouseType_Realtime WarehouseType = "REALTIME"
 )
 
 type EndpointHealth_Status string
