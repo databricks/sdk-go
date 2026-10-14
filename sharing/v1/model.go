@@ -220,6 +220,8 @@ type CreateShareRequest struct {
 	Comment *string
 	// Storage root URL for the share.
 	StorageRoot *string
+	// Configuration for share replication.
+	ReplicationConfig *ReplicationConfig
 	// A list of shared data objects within the share.
 	Objects []SharedDataObject
 	// Time at which this share was created, in epoch milliseconds.
@@ -868,6 +870,14 @@ type RegisteredModelAlias struct {
 	VersionNum *int64
 }
 
+// Configuration for Delta Sharing replication on a share. When enabled, the
+// share's data is copied into each recipient's region so recipients can query
+// the share locally..
+type ReplicationConfig struct {
+	// Whether replication is enabled for the share.
+	Enabled *bool
+}
+
 type RetrieveTokenRequest struct {
 	// The one time activation url. It also accepts activation token.
 	ActivationUrl *string
@@ -908,6 +918,8 @@ type ShareInfo struct {
 	Comment *string
 	// Storage root URL for the share.
 	StorageRoot *string
+	// Configuration for share replication.
+	ReplicationConfig *ReplicationConfig
 	// A list of shared data objects within the share.
 	Objects []SharedDataObject
 	// Time at which this share was created, in epoch milliseconds.
@@ -1186,6 +1198,8 @@ type UpdateShareRequest struct {
 	Comment *string
 	// Storage root URL for the share.
 	StorageRoot *string
+	// Configuration for share replication.
+	ReplicationConfig *ReplicationConfig
 	// A list of shared data objects within the share.
 	Objects []SharedDataObject
 	// Time at which this share was created, in epoch milliseconds.

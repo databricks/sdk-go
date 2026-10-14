@@ -1151,8 +1151,7 @@ func (c *internalClient) ListJobsIter(ctx context.Context, req ListJobsRequest, 
 	}
 }
 
-// List runs in descending order by end time. If a run has not finished, it
-// falls back to start time.
+// List runs in descending order by start time.
 func (c *internalClient) ListRuns(ctx context.Context, req ListRunsRequest, opts ...call.Option) (*ListRunsResponse, error) {
 	wireReq, err := listRunsRequestToWire(&req)
 	if err != nil {

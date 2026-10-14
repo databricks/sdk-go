@@ -2036,6 +2036,20 @@ type RequestedResource_ResourceName_TableName struct {
 
 func (*RequestedResource_ResourceName_TableName) isRequestedResource_ResourceName() {}
 
+// Request to reveal the current password for a password-authenticated Postgres
+// role..
+type RevealRolePasswordRequest struct {
+	// The full resource path of the role whose password should be revealed. Format:
+	// projects/{project_id}/branches/{branch_id}/roles/{role_id}
+	Name *string
+}
+
+// Response containing the password for a password-authenticated Postgres role..
+type RevealRolePasswordResponse struct {
+	// The current password for the Postgres role.
+	Password *string
+}
+
 // Role represents a Postgres role within a Branch..
 type Role struct {
 	// Output only. The full resource path of the role. Format:
