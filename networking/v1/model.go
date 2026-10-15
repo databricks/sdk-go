@@ -310,11 +310,13 @@ type AccountIpAccessList struct {
 	// Universally unique identifier (UUID) of the IP access list.
 	ListId *string
 	// Label for the IP access list. This **cannot** be empty.
-	Label       *string
+	Label *string
+	// IP addresses or CIDR ranges in the IP access list.
 	IpAddresses []string
 	// Total number of IP or CIDR values.
 	AddressCount *int
-	ListType     AccountIpAccessListType_IpAccessListType
+	// Whether the list allows or blocks its IP addresses.
+	ListType AccountIpAccessListType_IpAccessListType
 	// Creation timestamp in milliseconds.
 	CreatedAt *int64
 	// The ID of the user that created this list.
@@ -370,14 +372,18 @@ type AzurePrivateEndpointInfo struct {
 
 // Details required to configure a block list or allow list..
 type CreateAccountIpAccessListRequest struct {
-	AccountId   *string
-	Label       *string
-	ListType    AccountIpAccessListType_IpAccessListType
+	AccountId *string
+	// Label for the IP access list. This **cannot** be empty.
+	Label *string
+	// Whether the list allows or blocks its IP addresses.
+	ListType AccountIpAccessListType_IpAccessListType
+	// IP addresses or CIDR ranges to include in the IP access list.
 	IpAddresses []string
 }
 
 // An IP access list was successfully created..
 type CreateAccountIpAccessListResponse struct {
+	// The IP access list that was created.
 	IpAccessList *AccountIpAccessList
 }
 
