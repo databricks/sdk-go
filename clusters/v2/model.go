@@ -1154,11 +1154,6 @@ type ClusterAttributes struct {
 	// The node type of the Spark driver. Note that this field is optional; if
 	// unset, the driver node type will be set as the same value as `node_type_id`
 	// defined above.
-	//
-	// This field, along with node_type_id, should not be set if
-	// virtual_cluster_size is set. If both driver_node_type_id, node_type_id, and
-	// virtual_cluster_size are specified, driver_node_type_id and node_type_id take
-	// precedence.
 	DriverNodeTypeId *string
 	// Flexible node type configuration for worker nodes.
 	WorkerNodeTypeFlexibility *NodeTypeFlexibility
@@ -1376,11 +1371,6 @@ type ClusterInfo struct {
 	// The node type of the Spark driver. Note that this field is optional; if
 	// unset, the driver node type will be set as the same value as `node_type_id`
 	// defined above.
-	//
-	// This field, along with node_type_id, should not be set if
-	// virtual_cluster_size is set. If both driver_node_type_id, node_type_id, and
-	// virtual_cluster_size are specified, driver_node_type_id and node_type_id take
-	// precedence.
 	DriverNodeTypeId *string
 	// Flexible node type configuration for worker nodes.
 	WorkerNodeTypeFlexibility *NodeTypeFlexibility
@@ -1563,11 +1553,6 @@ type ClusterInfo_ComputeSpec struct {
 	// The node type of the Spark driver. Note that this field is optional; if
 	// unset, the driver node type will be set as the same value as `node_type_id`
 	// defined above.
-	//
-	// This field, along with node_type_id, should not be set if
-	// virtual_cluster_size is set. If both driver_node_type_id, node_type_id, and
-	// virtual_cluster_size are specified, driver_node_type_id and node_type_id take
-	// precedence.
 	DriverNodeTypeId *string
 	// Flexible node type configuration for worker nodes.
 	WorkerNodeTypeFlexibility *NodeTypeFlexibility
@@ -1825,11 +1810,6 @@ type CreateClusterRequest struct {
 	// The node type of the Spark driver. Note that this field is optional; if
 	// unset, the driver node type will be set as the same value as `node_type_id`
 	// defined above.
-	//
-	// This field, along with node_type_id, should not be set if
-	// virtual_cluster_size is set. If both driver_node_type_id, node_type_id, and
-	// virtual_cluster_size are specified, driver_node_type_id and node_type_id take
-	// precedence.
 	DriverNodeTypeId *string
 	// Flexible node type configuration for worker nodes.
 	WorkerNodeTypeFlexibility *NodeTypeFlexibility
@@ -2057,11 +2037,6 @@ type EditClusterRequest struct {
 	// The node type of the Spark driver. Note that this field is optional; if
 	// unset, the driver node type will be set as the same value as `node_type_id`
 	// defined above.
-	//
-	// This field, along with node_type_id, should not be set if
-	// virtual_cluster_size is set. If both driver_node_type_id, node_type_id, and
-	// virtual_cluster_size are specified, driver_node_type_id and node_type_id take
-	// precedence.
 	DriverNodeTypeId *string
 	// Flexible node type configuration for worker nodes.
 	WorkerNodeTypeFlexibility *NodeTypeFlexibility
@@ -2263,11 +2238,6 @@ type EnforcePolicyComplianceForClusterResponse_ClusterSettings struct {
 	// The node type of the Spark driver. Note that this field is optional; if
 	// unset, the driver node type will be set as the same value as `node_type_id`
 	// defined above.
-	//
-	// This field, along with node_type_id, should not be set if
-	// virtual_cluster_size is set. If both driver_node_type_id, node_type_id, and
-	// virtual_cluster_size are specified, driver_node_type_id and node_type_id take
-	// precedence.
 	DriverNodeTypeId *string
 	// Flexible node type configuration for worker nodes.
 	WorkerNodeTypeFlexibility *NodeTypeFlexibility
@@ -3189,11 +3159,6 @@ type UpdateClusterRequest_UpdateClusterResource struct {
 	// The node type of the Spark driver. Note that this field is optional; if
 	// unset, the driver node type will be set as the same value as `node_type_id`
 	// defined above.
-	//
-	// This field, along with node_type_id, should not be set if
-	// virtual_cluster_size is set. If both driver_node_type_id, node_type_id, and
-	// virtual_cluster_size are specified, driver_node_type_id and node_type_id take
-	// precedence.
 	DriverNodeTypeId *string `fieldmask:"driver_node_type_id"`
 	// Flexible node type configuration for worker nodes.
 	WorkerNodeTypeFlexibility *NodeTypeFlexibility `fieldmask:"worker_node_type_flexibility"`

@@ -218,8 +218,8 @@ func (c *internalClient) ClearSessionItems(ctx context.Context, req ClearSession
 	return resp, nil
 }
 
-// Creates a managed memory entry using exclusive-create semantics. Callers may
-// choose the entry ID; the service generates one when it is omitted. Returns
+// Creates a memory entry using exclusive-create semantics. Callers may choose
+// the entry ID; the service generates one when it is omitted. Returns
 // `ALREADY_EXISTS` when an entry with the same actor, session, and path already
 // exists. Omitted `session_id` is its own uniqueness key: two omitted-session
 // entries with the same actor and path conflict, but an omitted-session entry
@@ -299,7 +299,7 @@ func (c *internalClient) CreateMemory(ctx context.Context, req CreateManagedMemo
 	return resp, nil
 }
 
-// Creates a managed memory store in the caller's workspace.
+// Creates a memory store in the caller's workspace.
 func (c *internalClient) CreateMemoryStore(ctx context.Context, req CreateManagedMemoryStoreRequest, opts ...call.Option) (*ManagedMemoryStore, error) {
 	wireReq, err := createManagedMemoryStoreRequestToWire(&req)
 	if err != nil {
@@ -513,8 +513,8 @@ func (c *internalClient) CreateSessionStore(ctx context.Context, req CreateSessi
 	return resp, nil
 }
 
-// Deletes a managed memory entry by resource name. Returns `NOT_FOUND` when the
-// entry does not exist in the caller's workspace.
+// Deletes a memory entry by resource name. Returns `NOT_FOUND` when the entry
+// does not exist in the caller's workspace.
 func (c *internalClient) DeleteMemory(ctx context.Context, req DeleteManagedMemoryEntryRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
@@ -568,8 +568,8 @@ func (c *internalClient) DeleteMemory(ctx context.Context, req DeleteManagedMemo
 	return nil
 }
 
-// Deletes a managed memory store by resource name. Returns `NOT_FOUND` when the
-// store does not exist in the caller's workspace.
+// Deletes a memory store by resource name. Returns `NOT_FOUND` when the store
+// does not exist in the caller's workspace.
 func (c *internalClient) DeleteMemoryStore(ctx context.Context, req DeleteManagedMemoryStoreRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
@@ -885,9 +885,9 @@ func (c *internalClient) ForkSession(ctx context.Context, req ForkSessionRequest
 	return resp, nil
 }
 
-// Retrieves a managed memory entry by resource name. `view` controls whether
-// the response includes memory content. Returns `NOT_FOUND` when the entry does
-// not exist in the caller's workspace.
+// Retrieves a memory entry by resource name. `view` controls whether the
+// response includes memory content. Returns `NOT_FOUND` when the entry does not
+// exist in the caller's workspace.
 func (c *internalClient) GetMemory(ctx context.Context, req GetManagedMemoryEntryRequest, opts ...call.Option) (*ManagedMemoryEntry, error) {
 	wireReq, err := getManagedMemoryEntryRequestToWire(&req)
 	if err != nil {
@@ -959,8 +959,8 @@ func (c *internalClient) GetMemory(ctx context.Context, req GetManagedMemoryEntr
 	return resp, nil
 }
 
-// Retrieves a managed memory store by resource name. Returns `NOT_FOUND` when
-// the store does not exist in the caller's workspace.
+// Retrieves a memory store by resource name. Returns `NOT_FOUND` when the store
+// does not exist in the caller's workspace.
 func (c *internalClient) GetMemoryStore(ctx context.Context, req GetManagedMemoryStoreRequest, opts ...call.Option) (*ManagedMemoryStore, error) {
 
 	headers := http.Header{}
@@ -1149,8 +1149,8 @@ func (c *internalClient) GetSessionStore(ctx context.Context, req GetSessionStor
 	return resp, nil
 }
 
-// Lists managed memory entries for one actor. An exact `path` filters entries
-// across sessions, ignoring session metadata. Otherwise, `session_id` and
+// Lists memory entries for one actor. An exact `path` filters entries across
+// sessions, ignoring session metadata. Otherwise, `session_id` and
 // `path_prefix` restrict the actor partition. `view` controls whether each
 // returned entry includes memory content.
 func (c *internalClient) ListMemories(ctx context.Context, req ListManagedMemoryEntriesRequest, opts ...call.Option) (*ListManagedMemoryEntriesResponse, error) {
@@ -1281,7 +1281,7 @@ func (c *internalClient) ListMemoriesIter(ctx context.Context, req ListManagedMe
 	}
 }
 
-// Lists managed memory stores in the caller's workspace.
+// Lists memory stores in the caller's workspace.
 func (c *internalClient) ListMemoryStores(ctx context.Context, req ListManagedMemoryStoresRequest, opts ...call.Option) (*ListManagedMemoryStoresResponse, error) {
 	wireReq, err := listManagedMemoryStoresRequestToWire(&req)
 	if err != nil {
@@ -1809,9 +1809,9 @@ func (c *internalClient) PopSessionItem(ctx context.Context, req PopSessionItemR
 	return resp, nil
 }
 
-// Searches managed memory entries by text query for one actor. Returns matching
-// entries and scores ranked by relevance; `view` controls whether each returned
-// entry includes content.
+// Searches memory entries by text query for one actor. Returns matching entries
+// and scores ranked by relevance; `view` controls whether each returned entry
+// includes content.
 func (c *internalClient) SearchMemories(ctx context.Context, req SearchManagedMemoryEntriesRequest, opts ...call.Option) (*SearchManagedMemoryEntriesResponse, error) {
 	wireReq, err := searchManagedMemoryEntriesRequestToWire(&req)
 	if err != nil {
@@ -1925,8 +1925,8 @@ func (c *internalClient) SearchMemoriesIter(ctx context.Context, req SearchManag
 	}
 }
 
-// Updates selected mutable fields on a managed memory entry. Identity fields
-// are immutable.
+// Updates selected mutable fields on a memory entry. Identity fields are
+// immutable.
 func (c *internalClient) UpdateMemory(ctx context.Context, req UpdateManagedMemoryEntryRequest, opts ...call.Option) (*ManagedMemoryEntry, error) {
 	wireReq, err := updateManagedMemoryEntryRequestToWire(&req)
 	if err != nil {
@@ -2002,7 +2002,7 @@ func (c *internalClient) UpdateMemory(ctx context.Context, req UpdateManagedMemo
 	return resp, nil
 }
 
-// Updates a managed memory store's description and metadata.
+// Updates a memory store's description and metadata.
 func (c *internalClient) UpdateMemoryStore(ctx context.Context, req UpdateManagedMemoryStoreRequest, opts ...call.Option) (*ManagedMemoryStore, error) {
 	wireReq, err := updateManagedMemoryStoreRequestToWire(&req)
 	if err != nil {

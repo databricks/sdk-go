@@ -71,6 +71,7 @@ type connectionInfoWire struct {
 	SecurableType       SecurableType            `json:"securable_type,omitempty"`
 	ProvisioningInfo    *provisioningInfoWire    `json:"provisioning_info,omitempty"`
 	Options             map[string]string        `json:"options,omitempty"`
+	Secrets             map[string]string        `json:"secrets,omitempty"`
 	Properties          map[string]string        `json:"properties,omitempty"`
 }
 
@@ -113,6 +114,7 @@ func connectionInfoFromWire(w *connectionInfoWire) (*ConnectionInfo, error) {
 		SecurableType:       w.SecurableType,
 		ProvisioningInfo:    provisioningInfoPublicValue,
 		Options:             w.Options,
+		Secrets:             w.Secrets,
 		Properties:          w.Properties,
 	}, nil
 }
@@ -137,6 +139,7 @@ type createConnectionRequestWire struct {
 	SecurableType       SecurableType            `json:"securable_type,omitempty"`
 	ProvisioningInfo    *provisioningInfoWire    `json:"provisioning_info,omitempty"`
 	Options             map[string]string        `json:"options,omitempty"`
+	Secrets             map[string]string        `json:"secrets,omitempty"`
 	Properties          map[string]string        `json:"properties,omitempty"`
 }
 
@@ -180,6 +183,7 @@ func createConnectionRequestToWire(v *CreateConnectionRequest) (*createConnectio
 		SecurableType:       v.SecurableType,
 		ProvisioningInfo:    provisioningInfoWireValue,
 		Options:             v.Options,
+		Secrets:             v.Secrets,
 		Properties:          v.Properties,
 	}, nil
 }
@@ -288,6 +292,7 @@ type updateConnectionRequestWire struct {
 	SecurableType       SecurableType            `json:"securable_type,omitempty"`
 	ProvisioningInfo    *provisioningInfoWire    `json:"provisioning_info,omitempty"`
 	Options             map[string]string        `json:"options,omitempty"`
+	Secrets             map[string]string        `json:"secrets,omitempty"`
 	Properties          map[string]string        `json:"properties,omitempty"`
 }
 
@@ -332,6 +337,7 @@ func updateConnectionRequestToWire(v *UpdateConnectionRequest) (*updateConnectio
 		SecurableType:       v.SecurableType,
 		ProvisioningInfo:    provisioningInfoWireValue,
 		Options:             v.Options,
+		Secrets:             v.Secrets,
 		Properties:          v.Properties,
 	}, nil
 }

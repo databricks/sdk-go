@@ -489,6 +489,7 @@ type baseRunWire struct {
 	JobRunId                   *wireInt64                          `json:"job_run_id,omitempty"`
 	HasMore                    *bool                               `json:"has_more,omitempty"`
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget `json:"effective_performance_target,omitempty"`
+	DurationTarget             *string                             `json:"duration_target,omitempty"`
 	EffectiveUsagePolicyId     *string                             `json:"effective_usage_policy_id,omitempty"`
 	EnvironmentVariables       []jobEnvironmentVariablesWire       `json:"environment_variables,omitempty"`
 	DeploymentId               *string                             `json:"deployment_id,omitempty"`
@@ -633,6 +634,7 @@ func baseRunFromWire(w *baseRunWire) (*BaseRun, error) {
 		JobRunId:                   jobRunIdPublicValue,
 		HasMore:                    w.HasMore,
 		EffectivePerformanceTarget: w.EffectivePerformanceTarget,
+		DurationTarget:             w.DurationTarget,
 		EffectiveUsagePolicyId:     w.EffectiveUsagePolicyId,
 		EnvironmentVariables:       environmentVariablesPublicValue,
 		DeploymentId:               w.DeploymentId,
@@ -1373,6 +1375,7 @@ type createJobRequestWire struct {
 	BudgetPolicyId          *string                             `json:"budget_policy_id,omitempty"`
 	UsagePolicyId           *string                             `json:"usage_policy_id,omitempty"`
 	PerformanceTarget       PerformanceTarget_PerformanceTarget `json:"performance_target,omitempty"`
+	DurationTarget          *string                             `json:"duration_target,omitempty"`
 	ParentPath              *string                             `json:"parent_path,omitempty"`
 	Triggers                []triggerConfigurationWire          `json:"triggers,omitempty"`
 	EnvironmentVariables    []jobEnvironmentVariablesWire       `json:"environment_variables,omitempty"`
@@ -1485,6 +1488,7 @@ func createJobRequestToWire(v *CreateJobRequest) (*createJobRequestWire, error) 
 		BudgetPolicyId:          v.BudgetPolicyId,
 		UsagePolicyId:           v.UsagePolicyId,
 		PerformanceTarget:       v.PerformanceTarget,
+		DurationTarget:          v.DurationTarget,
 		ParentPath:              v.ParentPath,
 		Triggers:                triggersWireValue,
 		EnvironmentVariables:    environmentVariablesWireValue,
@@ -2662,6 +2666,7 @@ type getRunResponseWire struct {
 	JobRunId                   *wireInt64                          `json:"job_run_id,omitempty"`
 	HasMore                    *bool                               `json:"has_more,omitempty"`
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget `json:"effective_performance_target,omitempty"`
+	DurationTarget             *string                             `json:"duration_target,omitempty"`
 	EffectiveUsagePolicyId     *string                             `json:"effective_usage_policy_id,omitempty"`
 	EnvironmentVariables       []jobEnvironmentVariablesWire       `json:"environment_variables,omitempty"`
 	DeploymentId               *string                             `json:"deployment_id,omitempty"`
@@ -2807,6 +2812,7 @@ func getRunResponseFromWire(w *getRunResponseWire) (*GetRunResponse, error) {
 		JobRunId:                   jobRunIdPublicValue,
 		HasMore:                    w.HasMore,
 		EffectivePerformanceTarget: w.EffectivePerformanceTarget,
+		DurationTarget:             w.DurationTarget,
 		EffectiveUsagePolicyId:     w.EffectiveUsagePolicyId,
 		EnvironmentVariables:       environmentVariablesPublicValue,
 		DeploymentId:               w.DeploymentId,
@@ -3442,6 +3448,7 @@ type jobSettingsWire struct {
 	BudgetPolicyId          *string                             `json:"budget_policy_id,omitempty"`
 	UsagePolicyId           *string                             `json:"usage_policy_id,omitempty"`
 	PerformanceTarget       PerformanceTarget_PerformanceTarget `json:"performance_target,omitempty"`
+	DurationTarget          *string                             `json:"duration_target,omitempty"`
 	ParentPath              *string                             `json:"parent_path,omitempty"`
 	Triggers                []triggerConfigurationWire          `json:"triggers,omitempty"`
 	EnvironmentVariables    []jobEnvironmentVariablesWire       `json:"environment_variables,omitempty"`
@@ -3549,6 +3556,7 @@ func jobSettingsToWire(v *JobSettings) (*jobSettingsWire, error) {
 		BudgetPolicyId:          v.BudgetPolicyId,
 		UsagePolicyId:           v.UsagePolicyId,
 		PerformanceTarget:       v.PerformanceTarget,
+		DurationTarget:          v.DurationTarget,
 		ParentPath:              v.ParentPath,
 		Triggers:                triggersWireValue,
 		EnvironmentVariables:    environmentVariablesWireValue,
@@ -3657,6 +3665,7 @@ func jobSettingsFromWire(w *jobSettingsWire) (*JobSettings, error) {
 		BudgetPolicyId:          w.BudgetPolicyId,
 		UsagePolicyId:           w.UsagePolicyId,
 		PerformanceTarget:       w.PerformanceTarget,
+		DurationTarget:          w.DurationTarget,
 		ParentPath:              w.ParentPath,
 		Triggers:                triggersPublicValue,
 		EnvironmentVariables:    environmentVariablesPublicValue,
@@ -4927,6 +4936,7 @@ type repairRunRequestWire struct {
 	RerunAllFailedTasks *bool                               `json:"rerun_all_failed_tasks,omitempty"`
 	RerunDependentTasks *bool                               `json:"rerun_dependent_tasks,omitempty"`
 	PerformanceTarget   PerformanceTarget_PerformanceTarget `json:"performance_target,omitempty"`
+	DurationTarget      *string                             `json:"duration_target,omitempty"`
 	PipelineParams      *pipelineParametersWire             `json:"pipeline_params,omitempty"`
 	JarParams           []string                            `json:"jar_params,omitempty"`
 	NotebookParams      map[string]string                   `json:"notebook_params,omitempty"`
@@ -4961,6 +4971,7 @@ func repairRunRequestToWire(v *RepairRunRequest) (*repairRunRequestWire, error) 
 		RerunAllFailedTasks: v.RerunAllFailedTasks,
 		RerunDependentTasks: v.RerunDependentTasks,
 		PerformanceTarget:   v.PerformanceTarget,
+		DurationTarget:      v.DurationTarget,
 		PipelineParams:      pipelineParamsWireValue,
 		JarParams:           v.JarParams,
 		NotebookParams:      v.NotebookParams,
@@ -5331,6 +5342,7 @@ type runWire struct {
 	JobRunId                   *wireInt64                          `json:"job_run_id,omitempty"`
 	HasMore                    *bool                               `json:"has_more,omitempty"`
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget `json:"effective_performance_target,omitempty"`
+	DurationTarget             *string                             `json:"duration_target,omitempty"`
 	EffectiveUsagePolicyId     *string                             `json:"effective_usage_policy_id,omitempty"`
 	EnvironmentVariables       []jobEnvironmentVariablesWire       `json:"environment_variables,omitempty"`
 	DeploymentId               *string                             `json:"deployment_id,omitempty"`
@@ -5475,6 +5487,7 @@ func runFromWire(w *runWire) (*Run, error) {
 		JobRunId:                   jobRunIdPublicValue,
 		HasMore:                    w.HasMore,
 		EffectivePerformanceTarget: w.EffectivePerformanceTarget,
+		DurationTarget:             w.DurationTarget,
 		EffectiveUsagePolicyId:     w.EffectiveUsagePolicyId,
 		EnvironmentVariables:       environmentVariablesPublicValue,
 		DeploymentId:               w.DeploymentId,
@@ -5595,6 +5608,7 @@ type runNowRequestWire struct {
 	Queue             *queueSettingsWire                  `json:"queue,omitempty"`
 	Only              []string                            `json:"only,omitempty"`
 	PerformanceTarget PerformanceTarget_PerformanceTarget `json:"performance_target,omitempty"`
+	DurationTarget    *string                             `json:"duration_target,omitempty"`
 	PipelineParams    *pipelineParametersWire             `json:"pipeline_params,omitempty"`
 	JarParams         []string                            `json:"jar_params,omitempty"`
 	NotebookParams    map[string]string                   `json:"notebook_params,omitempty"`
@@ -5628,6 +5642,7 @@ func runNowRequestToWire(v *RunNowRequest) (*runNowRequestWire, error) {
 		Queue:             queueWireValue,
 		Only:              v.Only,
 		PerformanceTarget: v.PerformanceTarget,
+		DurationTarget:    v.DurationTarget,
 		PipelineParams:    pipelineParamsWireValue,
 		JarParams:         v.JarParams,
 		NotebookParams:    v.NotebookParams,
@@ -7243,6 +7258,7 @@ type submitRunRequestWire struct {
 	UsagePolicyId        *string                             `json:"usage_policy_id,omitempty"`
 	EnvironmentVariables []jobEnvironmentVariablesWire       `json:"environment_variables,omitempty"`
 	PerformanceTarget    PerformanceTarget_PerformanceTarget `json:"performance_target,omitempty"`
+	DurationTarget       *string                             `json:"duration_target,omitempty"`
 }
 
 func submitRunRequestToWire(v *SubmitRunRequest) (*submitRunRequestWire, error) {
@@ -7311,6 +7327,7 @@ func submitRunRequestToWire(v *SubmitRunRequest) (*submitRunRequestWire, error) 
 		UsagePolicyId:        v.UsagePolicyId,
 		EnvironmentVariables: environmentVariablesWireValue,
 		PerformanceTarget:    v.PerformanceTarget,
+		DurationTarget:       v.DurationTarget,
 	}, nil
 }
 
@@ -7335,6 +7352,7 @@ type subscriptionWire struct {
 	Subscribers   []subscription_SubscriberWire `json:"subscribers,omitempty"`
 	Paused        *bool                         `json:"paused,omitempty"`
 	CustomSubject *string                       `json:"custom_subject,omitempty"`
+	Attachment    *subscription_AttachmentWire  `json:"attachment,omitempty"`
 }
 
 func subscriptionToWire(v *Subscription) (*subscriptionWire, error) {
@@ -7345,10 +7363,15 @@ func subscriptionToWire(v *Subscription) (*subscriptionWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Subscription.Subscribers", err)
 	}
+	attachmentWireValue, err := subscription_AttachmentToWire(v.Attachment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Subscription.Attachment", err)
+	}
 	return &subscriptionWire{
 		Subscribers:   subscribersWireValue,
 		Paused:        v.Paused,
 		CustomSubject: v.CustomSubject,
+		Attachment:    attachmentWireValue,
 	}, nil
 }
 
@@ -7360,10 +7383,142 @@ func subscriptionFromWire(w *subscriptionWire) (*Subscription, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Subscription.Subscribers", err)
 	}
+	attachmentPublicValue, err := subscription_AttachmentFromWire(w.Attachment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Subscription.Attachment", err)
+	}
 	return &Subscription{
 		Subscribers:   subscribersPublicValue,
 		Paused:        w.Paused,
 		CustomSubject: w.CustomSubject,
+		Attachment:    attachmentPublicValue,
+	}, nil
+}
+
+type subscription_AttachmentWire struct {
+	DataAttachment *subscription_Attachment_DataAttachmentWire `json:"data_attachment,omitempty"`
+	PageAttachment *subscription_Attachment_PageAttachmentWire `json:"page_attachment,omitempty"`
+}
+
+func subscription_AttachmentToWire(v *Subscription_Attachment) (*subscription_AttachmentWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	dataAttachmentWireValue, err := subscription_Attachment_DataAttachmentToWire(v.DataAttachment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Subscription_Attachment.DataAttachment", err)
+	}
+	pageAttachmentWireValue, err := subscription_Attachment_PageAttachmentToWire(v.PageAttachment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Subscription_Attachment.PageAttachment", err)
+	}
+	return &subscription_AttachmentWire{
+		DataAttachment: dataAttachmentWireValue,
+		PageAttachment: pageAttachmentWireValue,
+	}, nil
+}
+
+func subscription_AttachmentFromWire(w *subscription_AttachmentWire) (*Subscription_Attachment, error) {
+	if w == nil {
+		return nil, nil
+	}
+	dataAttachmentPublicValue, err := subscription_Attachment_DataAttachmentFromWire(w.DataAttachment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Subscription_Attachment.DataAttachment", err)
+	}
+	pageAttachmentPublicValue, err := subscription_Attachment_PageAttachmentFromWire(w.PageAttachment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Subscription_Attachment.PageAttachment", err)
+	}
+	return &Subscription_Attachment{
+		DataAttachment: dataAttachmentPublicValue,
+		PageAttachment: pageAttachmentPublicValue,
+	}, nil
+}
+
+type subscription_Attachment_DataAttachmentWire struct {
+	Widgets               []subscription_Attachment_DataAttachment_WidgetWire `json:"widgets,omitempty"`
+	FileFormat            Subscription_Attachment_DataAttachment_FileFormat   `json:"file_format,omitempty"`
+	IncludeAppliedFilters *bool                                               `json:"include_applied_filters,omitempty"`
+}
+
+func subscription_Attachment_DataAttachmentToWire(v *Subscription_Attachment_DataAttachment) (*subscription_Attachment_DataAttachmentWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	widgetsWireValue, err := convertSlice(v.Widgets, subscription_Attachment_DataAttachment_WidgetToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Subscription_Attachment_DataAttachment.Widgets", err)
+	}
+	return &subscription_Attachment_DataAttachmentWire{
+		Widgets:               widgetsWireValue,
+		FileFormat:            v.FileFormat,
+		IncludeAppliedFilters: v.IncludeAppliedFilters,
+	}, nil
+}
+
+func subscription_Attachment_DataAttachmentFromWire(w *subscription_Attachment_DataAttachmentWire) (*Subscription_Attachment_DataAttachment, error) {
+	if w == nil {
+		return nil, nil
+	}
+	widgetsPublicValue, err := convertSlice(w.Widgets, subscription_Attachment_DataAttachment_WidgetFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Subscription_Attachment_DataAttachment.Widgets", err)
+	}
+	return &Subscription_Attachment_DataAttachment{
+		Widgets:               widgetsPublicValue,
+		FileFormat:            w.FileFormat,
+		IncludeAppliedFilters: w.IncludeAppliedFilters,
+	}, nil
+}
+
+type subscription_Attachment_DataAttachment_WidgetWire struct {
+	PageId   *string `json:"page_id,omitempty"`
+	WidgetId *string `json:"widget_id,omitempty"`
+}
+
+func subscription_Attachment_DataAttachment_WidgetToWire(v *Subscription_Attachment_DataAttachment_Widget) (*subscription_Attachment_DataAttachment_WidgetWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &subscription_Attachment_DataAttachment_WidgetWire{
+		PageId:   v.PageId,
+		WidgetId: v.WidgetId,
+	}, nil
+}
+
+func subscription_Attachment_DataAttachment_WidgetFromWire(w *subscription_Attachment_DataAttachment_WidgetWire) (*Subscription_Attachment_DataAttachment_Widget, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &Subscription_Attachment_DataAttachment_Widget{
+		PageId:   w.PageId,
+		WidgetId: w.WidgetId,
+	}, nil
+}
+
+type subscription_Attachment_PageAttachmentWire struct {
+	PageSelection Subscription_Attachment_PageAttachment_PageSelection `json:"page_selection,omitempty"`
+	PageIds       []string                                             `json:"page_ids,omitempty"`
+}
+
+func subscription_Attachment_PageAttachmentToWire(v *Subscription_Attachment_PageAttachment) (*subscription_Attachment_PageAttachmentWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &subscription_Attachment_PageAttachmentWire{
+		PageSelection: v.PageSelection,
+		PageIds:       v.PageIds,
+	}, nil
+}
+
+func subscription_Attachment_PageAttachmentFromWire(w *subscription_Attachment_PageAttachmentWire) (*Subscription_Attachment_PageAttachment, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &Subscription_Attachment_PageAttachment{
+		PageSelection: w.PageSelection,
+		PageIds:       w.PageIds,
 	}, nil
 }
 
