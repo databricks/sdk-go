@@ -20,6 +20,17 @@ const (
 	ExecuteCommandStatus_ExecuteCommandStatusFailed ExecuteCommandStatus = "EXECUTE_COMMAND_STATUS_FAILED"
 )
 
+// Type of a sandbox filesystem entry without following its final symlink.
+type SandboxFileType string
+
+const (
+	SandboxFileType_Unspecified              SandboxFileType = ""
+	SandboxFileType_SandboxFileTypeFile      SandboxFileType = "SANDBOX_FILE_TYPE_FILE"
+	SandboxFileType_SandboxFileTypeDirectory SandboxFileType = "SANDBOX_FILE_TYPE_DIRECTORY"
+	SandboxFileType_SandboxFileTypeSymlink   SandboxFileType = "SANDBOX_FILE_TYPE_SYMLINK"
+	SandboxFileType_SandboxFileTypeOther     SandboxFileType = "SANDBOX_FILE_TYPE_OTHER"
+)
+
 // Lifecycle state of a Sandbox resource. STOPPING is the transient state while
 // the sandbox is being stopped -- by a Stop request or inactivity
 // auto-termination -- and settles to STOPPED once the operation completes.
@@ -55,12 +66,38 @@ type ComputeSpec struct {
 	InactivityTimeout *types.Duration `fieldmask:"inactivity_timeout"`
 }
 
+// Selects a sandbox directory to create and whether to create its parents..
+type CreateDirectoryRequest struct {
+	Parent *string
+	// Absolute UTF-8 path of the directory.
+	Path *string
+	// Defaults to true, which also succeeds when the directory already exists.
+	Parents *bool
+}
+
+// Confirms that the requested directory exists..
+type CreateDirectoryResponse struct {
+}
+
 // A request to create a Sandbox..
 type CreateSandboxRequest struct {
 	// The sandbox to create.
 	Sandbox *Sandbox
 	// Client-supplied ID that becomes the final path segment of the resource name.
 	SandboxId *string
+}
+
+// Selects a sandbox path to delete and whether to delete its contents..
+type DeletePathRequest struct {
+	Parent *string
+	// Absolute UTF-8 path of the entry to delete.
+	Path *string
+	// Required for a non-empty directory.
+	Recursive *bool
+}
+
+// Confirms that the requested path is absent..
+type DeletePathResponse struct {
 }
 
 // A request to delete a Sandbox..
@@ -117,6 +154,18 @@ type ExecuteCommandSyncResponse struct {
 	Truncated *bool
 }
 
+// Selects a sandbox path for metadata inspection..
+type GetMetadataRequest struct {
+	Parent *string
+	// Absolute UTF-8 path of the entry to inspect.
+	Path *string
+}
+
+// Contains metadata for the requested path without following its final symlink..
+type GetMetadataResponse struct {
+	File *SandboxFileInfo
+}
+
 // A request to retrieve a Sandbox..
 type GetSandboxRequest struct {
 	Name *string
@@ -142,6 +191,26 @@ type ListCommandsResponse struct {
 	NextPageToken *string
 }
 
+// Selects a page of immediate entries from a sandbox directory..
+type ListDirectoryContentsRequest struct {
+	Parent *string
+	// Absolute UTF-8 path of the directory.
+	Path *string
+	// The token from a prior response. Keep parent and path unchanged between
+	// pages.
+	PageToken *string
+	// Zero uses the default of 1000; values above 1000 are clamped to 1000.
+	PageSize *int
+}
+
+// Contains a page of immediate directory entries and an optional continuation
+// token. An empty token marks the final page. Pages reflect concurrent
+// directory changes..
+type ListDirectoryContentsResponse struct {
+	Contents      []SandboxFileInfo
+	NextPageToken *string
+}
+
 // A request to list Sandboxes..
 type ListSandboxesRequest struct {
 	PageToken *string
@@ -152,6 +221,20 @@ type ListSandboxesRequest struct {
 type ListSandboxesResponse struct {
 	Sandboxes     []Sandbox
 	NextPageToken *string
+}
+
+// Identifies the source and exact destination for a sandbox path rename..
+type RenamePathRequest struct {
+	// Sandbox resource name, for example `sandboxes/my-sandbox`.
+	Parent *string
+	// Absolute UTF-8 path to move.
+	Source *string
+	// Exact absolute UTF-8 destination; it must not already exist.
+	Destination *string
+}
+
+// Confirms that the sandbox path was renamed..
+type RenamePathResponse struct {
 }
 
 // A Sandbox resource representing an execution environment..
@@ -171,6 +254,21 @@ type Sandbox struct {
 	UpdateTime *types.Time `fieldmask:"update_time"`
 	// Human-readable display label for the sandbox. At most 256 characters.
 	DisplayName *string `fieldmask:"display_name"`
+}
+
+// Metadata for a sandbox filesystem entry, describing a final symlink itself..
+type SandboxFileInfo struct {
+	Name        *string
+	Path        *string
+	FileType    SandboxFileType
+	Size        *int64
+	Mode        *int
+	Permissions *string
+	Owner       *string
+	Group       *string
+	// Nanosecond precision is preserved on the wire.
+	ModifyTime    *types.Time
+	SymlinkTarget *string
 }
 
 type SandboxSpec struct {

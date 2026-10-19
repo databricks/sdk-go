@@ -3,6 +3,7 @@
 package genie
 
 import (
+	"encoding/json"
 	"io"
 
 	"github.com/databricks/sdk-go/core/types"
@@ -493,18 +494,6 @@ const (
 	GenieFeedbackRating_Positive    GenieFeedbackRating = "POSITIVE"
 	GenieFeedbackRating_Negative    GenieFeedbackRating = "NEGATIVE"
 	GenieFeedbackRating_None        GenieFeedbackRating = "NONE"
-)
-
-// copied from proto3 / Google Well Known Types, source:
-// https://github.com/protocolbuffers/protobuf/blob/450d24ca820750c5db5112a6f0b0c2efb9758021/src/google/protobuf/struct.proto
-// `NullValue` is a singleton enumeration to represent the null value for the
-// `Value` type union.
-//
-// The JSON representation for `NullValue` is JSON `null`.
-type NullValue string
-
-const (
-	NullValue_Unspecified NullValue = ""
 )
 
 type ScoreReason string
@@ -1517,24 +1506,6 @@ type GenieVizAttachment struct {
 	QueryAttachmentId *string
 }
 
-// copied from proto3 / Google Well Known Types, source:
-// https://github.com/protocolbuffers/protobuf/blob/450d24ca820750c5db5112a6f0b0c2efb9758021/src/google/protobuf/struct.proto
-// `ListValue` is a wrapper around a repeated field of values.
-//
-// The JSON representation for `ListValue` is JSON array..
-type ListValue struct {
-	// Repeated field of dynamically typed values.
-	Values []Value
-}
-
-// <Databricks> proto compiler is too old and does not support map. This is wire
-// compatible with map<string,string>. See
-// https://developers.google.com/protocol-buffers/docs/proto#backwards_compatibility..
-type MapStringValueEntry struct {
-	Key   *string
-	Value *Value
-}
-
 type MessageError struct {
 	Error *string
 	Type  MessageError_Type
@@ -1598,7 +1569,7 @@ type ResultData struct {
 	ExternalLinks []ExternalLink
 	// The `JSON_ARRAY` format is an array of arrays of values, where each non-null
 	// value is formatted as a string. Null values are encoded as JSON `null`.
-	DataArray []ListValue
+	DataArray [][]json.RawMessage
 	// The position within the sequence of result set chunks.
 	ChunkIndex *int
 	// The starting row offset within the result set.
@@ -1667,20 +1638,6 @@ type StatementStatus struct {
 	SqlState *string
 }
 
-// copied from proto3 / Google Well Known Types, source:
-// https://github.com/protocolbuffers/protobuf/blob/450d24ca820750c5db5112a6f0b0c2efb9758021/src/google/protobuf/struct.proto
-// `Struct` represents a structured data value, consisting of fields which map
-// to dynamically typed values. In some languages, `Struct` might be supported
-// by a native representation. For example, in scripting languages like JS a
-// struct is represented as an object. The details of that representation are
-// described together with the proto support for the language.
-//
-// The JSON representation for `Struct` is JSON object..
-type Struct struct {
-	// Unordered map of dynamically typed values.
-	Fields []MapStringValueEntry
-}
-
 // A text response on a conversation message: the answer, the final summary, or
 // a clarifying follow-up question, along with optional phase and verification
 // metadata..
@@ -1709,68 +1666,3 @@ type Thought struct {
 	// The md formatted content for this thought.
 	Content *string
 }
-
-// copied from proto3 / Google Well Known Types, source:
-// https://github.com/protocolbuffers/protobuf/blob/450d24ca820750c5db5112a6f0b0c2efb9758021/src/google/protobuf/struct.proto
-// `Value` represents a dynamically typed value which can be either null, a
-// number, a string, a boolean, a recursive struct value, or a list of values. A
-// producer of value is expected to set one of these variants. Absence of any
-// variant indicates an error.
-//
-// The JSON representation for `Value` is JSON value..
-type Value struct {
-	// The kind of value.
-	Kind isValue_Kind
-}
-
-type isValue_Kind interface {
-	isValue_Kind()
-}
-
-// Value_Kind_NullValue selects NullValue for Value.Kind.
-// Represents a null value.
-type Value_Kind_NullValue struct {
-	NullValue NullValue
-}
-
-func (*Value_Kind_NullValue) isValue_Kind() {}
-
-// Value_Kind_NumberValue selects NumberValue for Value.Kind.
-// Represents a double value.
-type Value_Kind_NumberValue struct {
-	NumberValue float64
-}
-
-func (*Value_Kind_NumberValue) isValue_Kind() {}
-
-// Value_Kind_StringValue selects StringValue for Value.Kind.
-// Represents a string value.
-type Value_Kind_StringValue struct {
-	StringValue string
-}
-
-func (*Value_Kind_StringValue) isValue_Kind() {}
-
-// Value_Kind_BoolValue selects BoolValue for Value.Kind.
-// Represents a boolean value.
-type Value_Kind_BoolValue struct {
-	BoolValue bool
-}
-
-func (*Value_Kind_BoolValue) isValue_Kind() {}
-
-// Value_Kind_StructValue selects StructValue for Value.Kind.
-// Represents a structured value.
-type Value_Kind_StructValue struct {
-	StructValue Struct
-}
-
-func (*Value_Kind_StructValue) isValue_Kind() {}
-
-// Value_Kind_ListValue selects ListValue for Value.Kind.
-// Represents a repeated `Value`.
-type Value_Kind_ListValue struct {
-	ListValue ListValue
-}
-
-func (*Value_Kind_ListValue) isValue_Kind() {}

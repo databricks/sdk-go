@@ -15,28 +15,19 @@ on:
   merge_group:
     types: [checks_requested]
 
-permissions:
-  pull-requests: read
-
 jobs:
   sync-label:
     name: sync-label
     runs-on: ubuntu-latest
     steps:
+      - name: Merge queue — gate already applied at PR level
+        if: ${{ github.event_name == 'merge_group' }}
+        run: echo "merge group — sync label was enforced when the PR entered the queue."
       - name: Require the `sync` label
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+        if: ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'sync') }}
         run: |
-          if [[ "$GITHUB_EVENT_NAME" == "merge_group" ]]; then
-            echo "merge group — sync label was enforced when the PR entered the queue."
-            exit 0
-          fi
-          # Event labels are snapshots; delayed runs and reruns must read current labels.
-          has_sync_label=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq 'any(.labels[]; .name == "sync")')
-          if [[ "$has_sync_label" != "true" ]]; then
-            echo "::error::This PR does not carry the 'sync' label. This repository is a read-only mirror — only release sync PRs merge here. If this IS a release sync PR, a maintainer must apply the 'sync' label; community contributions are re-applied in the internal repository instead (see CONTRIBUTING.md)."
-            exit 1
-          fi
-          echo "sync label present — this is a release sync PR."
+          echo "::error::This PR does not carry the 'sync' label. This repository is a read-only mirror — only release sync PRs merge here. If this IS a release sync PR, a maintainer must apply the 'sync' label; community contributions are re-applied in the internal repository instead (see CONTRIBUTING.md)."
+          exit 1
+      - name: Label present
+        if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'sync') }}
+        run: echo "sync label present — this is a release sync PR."

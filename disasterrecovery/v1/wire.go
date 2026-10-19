@@ -97,17 +97,19 @@ func failoverFailoverGroupRequestToWire(v *FailoverFailoverGroupRequest) (*failo
 }
 
 type failoverGroupWire struct {
-	Name                   *string                  `json:"name,omitempty"`
-	EffectivePrimaryRegion *string                  `json:"effective_primary_region,omitempty"`
-	Regions                []string                 `json:"regions,omitempty"`
-	WorkspaceSets          []workspaceSetWire       `json:"workspace_sets,omitempty"`
-	UnityCatalogAssets     *ucReplicationConfigWire `json:"unity_catalog_assets,omitempty"`
-	State                  FailoverGroup_State      `json:"state,omitempty"`
-	Etag                   *string                  `json:"etag,omitempty"`
-	CreateTime             *types.Time              `json:"create_time,omitempty"`
-	UpdateTime             *types.Time              `json:"update_time,omitempty"`
-	ReplicationPoint       *types.Time              `json:"replication_point,omitempty"`
-	InitialPrimaryRegion   *string                  `json:"initial_primary_region,omitempty"`
+	Name                              *string                         `json:"name,omitempty"`
+	EffectivePrimaryRegion            *string                         `json:"effective_primary_region,omitempty"`
+	Regions                           []string                        `json:"regions,omitempty"`
+	WorkspaceSets                     []workspaceSetWire              `json:"workspace_sets,omitempty"`
+	UnityCatalogAssets                *ucReplicationConfigWire        `json:"unity_catalog_assets,omitempty"`
+	State                             FailoverGroup_State             `json:"state,omitempty"`
+	Etag                              *string                         `json:"etag,omitempty"`
+	CreateTime                        *types.Time                     `json:"create_time,omitempty"`
+	UpdateTime                        *types.Time                     `json:"update_time,omitempty"`
+	ReplicationPoint                  *types.Time                     `json:"replication_point,omitempty"`
+	InitialPrimaryRegion              *string                         `json:"initial_primary_region,omitempty"`
+	InitialReplicationProgress        *initialReplicationProgressWire `json:"initial_replication_progress,omitempty"`
+	HasReplicationPointBlockingErrors *bool                           `json:"has_replication_point_blocking_errors,omitempty"`
 }
 
 func failoverGroupToWire(v *FailoverGroup) (*failoverGroupWire, error) {
@@ -122,18 +124,24 @@ func failoverGroupToWire(v *FailoverGroup) (*failoverGroupWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "FailoverGroup.UnityCatalogAssets", err)
 	}
+	initialReplicationProgressWireValue, err := initialReplicationProgressToWire(v.InitialReplicationProgress)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FailoverGroup.InitialReplicationProgress", err)
+	}
 	return &failoverGroupWire{
-		Name:                   v.Name,
-		EffectivePrimaryRegion: v.EffectivePrimaryRegion,
-		Regions:                v.Regions,
-		WorkspaceSets:          workspaceSetsWireValue,
-		UnityCatalogAssets:     unityCatalogAssetsWireValue,
-		State:                  v.State,
-		Etag:                   v.Etag,
-		CreateTime:             v.CreateTime,
-		UpdateTime:             v.UpdateTime,
-		ReplicationPoint:       v.ReplicationPoint,
-		InitialPrimaryRegion:   v.InitialPrimaryRegion,
+		Name:                              v.Name,
+		EffectivePrimaryRegion:            v.EffectivePrimaryRegion,
+		Regions:                           v.Regions,
+		WorkspaceSets:                     workspaceSetsWireValue,
+		UnityCatalogAssets:                unityCatalogAssetsWireValue,
+		State:                             v.State,
+		Etag:                              v.Etag,
+		CreateTime:                        v.CreateTime,
+		UpdateTime:                        v.UpdateTime,
+		ReplicationPoint:                  v.ReplicationPoint,
+		InitialPrimaryRegion:              v.InitialPrimaryRegion,
+		InitialReplicationProgress:        initialReplicationProgressWireValue,
+		HasReplicationPointBlockingErrors: v.HasReplicationPointBlockingErrors,
 	}, nil
 }
 
@@ -149,18 +157,46 @@ func failoverGroupFromWire(w *failoverGroupWire) (*FailoverGroup, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "FailoverGroup.UnityCatalogAssets", err)
 	}
+	initialReplicationProgressPublicValue, err := initialReplicationProgressFromWire(w.InitialReplicationProgress)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FailoverGroup.InitialReplicationProgress", err)
+	}
 	return &FailoverGroup{
-		Name:                   w.Name,
-		EffectivePrimaryRegion: w.EffectivePrimaryRegion,
-		Regions:                w.Regions,
-		WorkspaceSets:          workspaceSetsPublicValue,
-		UnityCatalogAssets:     unityCatalogAssetsPublicValue,
-		State:                  w.State,
-		Etag:                   w.Etag,
-		CreateTime:             w.CreateTime,
-		UpdateTime:             w.UpdateTime,
-		ReplicationPoint:       w.ReplicationPoint,
-		InitialPrimaryRegion:   w.InitialPrimaryRegion,
+		Name:                              w.Name,
+		EffectivePrimaryRegion:            w.EffectivePrimaryRegion,
+		Regions:                           w.Regions,
+		WorkspaceSets:                     workspaceSetsPublicValue,
+		UnityCatalogAssets:                unityCatalogAssetsPublicValue,
+		State:                             w.State,
+		Etag:                              w.Etag,
+		CreateTime:                        w.CreateTime,
+		UpdateTime:                        w.UpdateTime,
+		ReplicationPoint:                  w.ReplicationPoint,
+		InitialPrimaryRegion:              w.InitialPrimaryRegion,
+		InitialReplicationProgress:        initialReplicationProgressPublicValue,
+		HasReplicationPointBlockingErrors: w.HasReplicationPointBlockingErrors,
+	}, nil
+}
+
+type initialReplicationProgressWire struct {
+	Completed *int `json:"completed,omitempty"`
+}
+
+func initialReplicationProgressToWire(v *InitialReplicationProgress) (*initialReplicationProgressWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &initialReplicationProgressWire{
+		Completed: v.Completed,
+	}, nil
+}
+
+func initialReplicationProgressFromWire(w *initialReplicationProgressWire) (*InitialReplicationProgress, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &InitialReplicationProgress{
+		Completed: w.Completed,
 	}, nil
 }
 

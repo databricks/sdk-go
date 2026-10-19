@@ -63,6 +63,7 @@ const (
 	EventLevel_Metrics     EventLevel = "METRICS"
 )
 
+// Type of source system that a managed ingestion pipeline reads from.
 type IngestionSourceType string
 
 const (

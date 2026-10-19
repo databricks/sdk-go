@@ -1291,42 +1291,6 @@ func genieVizAttachmentFromWire(w *genieVizAttachmentWire) (*GenieVizAttachment,
 	}, nil
 }
 
-type listValueWire struct {
-	Values []valueWire `json:"values,omitempty"`
-}
-
-func listValueFromWire(w *listValueWire) (*ListValue, error) {
-	if w == nil {
-		return nil, nil
-	}
-	valuesPublicValue, err := convertSlice(w.Values, valueFromWire)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "ListValue.Values", err)
-	}
-	return &ListValue{
-		Values: valuesPublicValue,
-	}, nil
-}
-
-type mapStringValueEntryWire struct {
-	Key   *string    `json:"key,omitempty"`
-	Value *valueWire `json:"value,omitempty"`
-}
-
-func mapStringValueEntryFromWire(w *mapStringValueEntryWire) (*MapStringValueEntry, error) {
-	if w == nil {
-		return nil, nil
-	}
-	valuePublicValue, err := valueFromWire(w.Value)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "MapStringValueEntry.Value", err)
-	}
-	return &MapStringValueEntry{
-		Key:   w.Key,
-		Value: valuePublicValue,
-	}, nil
-}
-
 type messageErrorWire struct {
 	Error *string           `json:"error,omitempty"`
 	Type  MessageError_Type `json:"type,omitempty"`
@@ -1414,14 +1378,14 @@ func resultFromWire(w *resultWire) (*Result, error) {
 }
 
 type resultDataWire struct {
-	ExternalLinks         []externalLinkWire `json:"external_links,omitempty"`
-	DataArray             []listValueWire    `json:"data_array,omitempty"`
-	ChunkIndex            *int               `json:"chunk_index,omitempty"`
-	RowOffset             *wireInt64         `json:"row_offset,omitempty"`
-	RowCount              *wireInt64         `json:"row_count,omitempty"`
-	ByteCount             *wireInt64         `json:"byte_count,omitempty"`
-	NextChunkIndex        *int               `json:"next_chunk_index,omitempty"`
-	NextChunkInternalLink *string            `json:"next_chunk_internal_link,omitempty"`
+	ExternalLinks         []externalLinkWire  `json:"external_links,omitempty"`
+	DataArray             [][]json.RawMessage `json:"data_array,omitempty"`
+	ChunkIndex            *int                `json:"chunk_index,omitempty"`
+	RowOffset             *wireInt64          `json:"row_offset,omitempty"`
+	RowCount              *wireInt64          `json:"row_count,omitempty"`
+	ByteCount             *wireInt64          `json:"byte_count,omitempty"`
+	NextChunkIndex        *int                `json:"next_chunk_index,omitempty"`
+	NextChunkInternalLink *string             `json:"next_chunk_internal_link,omitempty"`
 }
 
 func resultDataFromWire(w *resultDataWire) (*ResultData, error) {
@@ -1431,10 +1395,6 @@ func resultDataFromWire(w *resultDataWire) (*ResultData, error) {
 	externalLinksPublicValue, err := convertSlice(w.ExternalLinks, externalLinkFromWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ResultData.ExternalLinks", err)
-	}
-	dataArrayPublicValue, err := convertSlice(w.DataArray, listValueFromWire)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "ResultData.DataArray", err)
 	}
 	rowOffsetPublicValue, err := int64FromWire(w.RowOffset)
 	if err != nil {
@@ -1450,7 +1410,7 @@ func resultDataFromWire(w *resultDataWire) (*ResultData, error) {
 	}
 	return &ResultData{
 		ExternalLinks:         externalLinksPublicValue,
-		DataArray:             dataArrayPublicValue,
+		DataArray:             w.DataArray,
 		ChunkIndex:            w.ChunkIndex,
 		RowOffset:             rowOffsetPublicValue,
 		RowCount:              rowCountPublicValue,
@@ -1572,23 +1532,6 @@ func statementStatusFromWire(w *statementStatusWire) (*StatementStatus, error) {
 	}, nil
 }
 
-type structWire struct {
-	Fields []mapStringValueEntryWire `json:"fields,omitempty"`
-}
-
-func structFromWire(w *structWire) (*Struct, error) {
-	if w == nil {
-		return nil, nil
-	}
-	fieldsPublicValue, err := convertSlice(w.Fields, mapStringValueEntryFromWire)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "Struct.Fields", err)
-	}
-	return &Struct{
-		Fields: fieldsPublicValue,
-	}, nil
-}
-
 type textAttachmentWire struct {
 	Content *string               `json:"content,omitempty"`
 	Id      *string               `json:"id,omitempty"`
@@ -1618,69 +1561,6 @@ func thoughtFromWire(w *thoughtWire) (*Thought, error) {
 	return &Thought{
 		ThoughtType: w.ThoughtType,
 		Content:     w.Content,
-	}, nil
-}
-
-type valueWire struct {
-	NullValue   NullValue      `json:"null_value,omitempty"`
-	NumberValue *float64       `json:"number_value,omitempty"`
-	StringValue *string        `json:"string_value,omitempty"`
-	BoolValue   *bool          `json:"bool_value,omitempty"`
-	StructValue *structWire    `json:"struct_value,omitempty"`
-	ListValue   *listValueWire `json:"list_value,omitempty"`
-}
-
-func valueFromWire(w *valueWire) (*Value, error) {
-	if w == nil {
-		return nil, nil
-	}
-	kindMembers := 0
-	if w.NullValue != "" {
-		kindMembers++
-	}
-	if w.NumberValue != nil {
-		kindMembers++
-	}
-	if w.StringValue != nil {
-		kindMembers++
-	}
-	if w.BoolValue != nil {
-		kindMembers++
-	}
-	if w.StructValue != nil {
-		kindMembers++
-	}
-	if w.ListValue != nil {
-		kindMembers++
-	}
-	if kindMembers > 1 {
-		return nil, fmt.Errorf("%s: multiple oneof members set", "Value.Kind")
-	}
-	var kindSelection isValue_Kind
-	switch {
-	case w.NullValue != "":
-		kindSelection = &Value_Kind_NullValue{NullValue: w.NullValue}
-	case w.NumberValue != nil:
-		kindSelection = &Value_Kind_NumberValue{NumberValue: *w.NumberValue}
-	case w.StringValue != nil:
-		kindSelection = &Value_Kind_StringValue{StringValue: *w.StringValue}
-	case w.BoolValue != nil:
-		kindSelection = &Value_Kind_BoolValue{BoolValue: *w.BoolValue}
-	case w.StructValue != nil:
-		kindStructValueConverted, err := structFromWire(w.StructValue)
-		if err != nil {
-			return nil, fmt.Errorf("%s: %w", "Value.Kind.StructValue", err)
-		}
-		kindSelection = &Value_Kind_StructValue{StructValue: *kindStructValueConverted}
-	case w.ListValue != nil:
-		kindListValueConverted, err := listValueFromWire(w.ListValue)
-		if err != nil {
-			return nil, fmt.Errorf("%s: %w", "Value.Kind.ListValue", err)
-		}
-		kindSelection = &Value_Kind_ListValue{ListValue: *kindListValueConverted}
-	}
-	return &Value{
-		Kind: kindSelection,
 	}, nil
 }
 

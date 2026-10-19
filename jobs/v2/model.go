@@ -735,6 +735,31 @@ const (
 	SqlTask_SqlTaskQueryStatus_Cancelled   SqlTask_SqlTaskQueryStatus = "CANCELLED"
 )
 
+// The output format of an exported tabular data file. Must be set to a value
+// other than `FILE_FORMAT_UNSPECIFIED`.
+type Subscription_Attachment_DataAttachment_FileFormat string
+
+const (
+	Subscription_Attachment_DataAttachment_FileFormat_Unspecified Subscription_Attachment_DataAttachment_FileFormat = ""
+	// Each widget's data is exported as a comma-separated values (CSV) file.
+	Subscription_Attachment_DataAttachment_FileFormat_FileFormatCsv Subscription_Attachment_DataAttachment_FileFormat = "FILE_FORMAT_CSV"
+	// Each widget's data is exported as a tab-separated values (TSV) file.
+	Subscription_Attachment_DataAttachment_FileFormat_FileFormatTsv Subscription_Attachment_DataAttachment_FileFormat = "FILE_FORMAT_TSV"
+	// Each widget's data is exported as a Microsoft Excel (.xlsx) file.
+	Subscription_Attachment_DataAttachment_FileFormat_FileFormatExcel Subscription_Attachment_DataAttachment_FileFormat = "FILE_FORMAT_EXCEL"
+)
+
+// Determines which dashboard pages are attached to the notification.
+type Subscription_Attachment_PageAttachment_PageSelection string
+
+const (
+	Subscription_Attachment_PageAttachment_PageSelection_Unspecified Subscription_Attachment_PageAttachment_PageSelection = ""
+	// Attaches every page of the dashboard.
+	Subscription_Attachment_PageAttachment_PageSelection_PageSelectionAll Subscription_Attachment_PageAttachment_PageSelection = "PAGE_SELECTION_ALL"
+	// Attaches only the pages listed in `page_ids`.
+	Subscription_Attachment_PageAttachment_PageSelection_PageSelectionSubset Subscription_Attachment_PageAttachment_PageSelection = "PAGE_SELECTION_SUBSET"
+)
+
 type TableTriggerConfiguration_Condition string
 
 const (
@@ -1297,6 +1322,12 @@ type BaseRun struct {
 	// Enables lower job costs by optimizing compute for your selected target
 	// duration time. Must provide a duration target.
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget
+	// The window the run aims to finish within, in hours, for a Cost-optimized
+	// serverless run. Required only when `performance_target` is `COST_OPTIMIZED`.
+	// Must be one of the supported values: `NO_FLEXIBILITY`, `4h`, `12h`, `24h`,
+	// `72h`. `NO_FLEXIBILITY` means the run uses the default cost-optimized
+	// performance level without additional cost-saving optimizations.
+	DurationTarget *string
 	// The id of the usage policy used by this run for cost attribution purposes.
 	EffectiveUsagePolicyId *string
 	// Snapshot of `JobSettings.environment_variables` as it was at run launch —
@@ -1547,11 +1578,6 @@ type ClusterSpec_NewCluster struct {
 	// The node type of the Spark driver. Note that this field is optional; if
 	// unset, the driver node type will be set as the same value as `node_type_id`
 	// defined above.
-	//
-	// This field, along with node_type_id, should not be set if
-	// virtual_cluster_size is set. If both driver_node_type_id, node_type_id, and
-	// virtual_cluster_size are specified, driver_node_type_id and node_type_id take
-	// precedence.
 	DriverNodeTypeId *string
 	// Flexible node type configuration for worker nodes.
 	WorkerNodeTypeFlexibility *NodeTypeFlexibility
@@ -1891,6 +1917,12 @@ type CreateJobRequest struct {
 	// Enables lower job costs by optimizing compute for your selected target
 	// duration time. Must provide a duration target.
 	PerformanceTarget PerformanceTarget_PerformanceTarget
+	// The window the run aims to finish within, in hours, for a Cost-optimized
+	// serverless run. Required only when `performance_target` is `COST_OPTIMIZED`.
+	// Must be one of the supported values: `NO_FLEXIBILITY`, `4h`, `12h`, `24h`,
+	// `72h`. `NO_FLEXIBILITY` means the run uses the default cost-optimized
+	// performance level without additional cost-saving optimizations.
+	DurationTarget *string
 	// Path of the job parent folder in workspace file tree. If absent, the job
 	// doesn't have a workspace object.
 	ParentPath *string
@@ -2709,6 +2741,12 @@ type GetRunResponse struct {
 	// Enables lower job costs by optimizing compute for your selected target
 	// duration time. Must provide a duration target.
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget
+	// The window the run aims to finish within, in hours, for a Cost-optimized
+	// serverless run. Required only when `performance_target` is `COST_OPTIMIZED`.
+	// Must be one of the supported values: `NO_FLEXIBILITY`, `4h`, `12h`, `24h`,
+	// `72h`. `NO_FLEXIBILITY` means the run uses the default cost-optimized
+	// performance level without additional cost-saving optimizations.
+	DurationTarget *string
 	// The id of the usage policy used by this run for cost attribution purposes.
 	EffectiveUsagePolicyId *string
 	// Snapshot of `JobSettings.environment_variables` as it was at run launch —
@@ -3196,6 +3234,12 @@ type JobSettings struct {
 	// Enables lower job costs by optimizing compute for your selected target
 	// duration time. Must provide a duration target.
 	PerformanceTarget PerformanceTarget_PerformanceTarget
+	// The window the run aims to finish within, in hours, for a Cost-optimized
+	// serverless run. Required only when `performance_target` is `COST_OPTIMIZED`.
+	// Must be one of the supported values: `NO_FLEXIBILITY`, `4h`, `12h`, `24h`,
+	// `72h`. `NO_FLEXIBILITY` means the run uses the default cost-optimized
+	// performance level without additional cost-saving optimizations.
+	DurationTarget *string
 	// Path of the job parent folder in workspace file tree. If absent, the job
 	// doesn't have a workspace object.
 	ParentPath *string
@@ -3908,6 +3952,12 @@ type RepairRunRequest struct {
 	// Enables lower job costs by optimizing compute for your selected target
 	// duration time. Must provide a duration target.
 	PerformanceTarget PerformanceTarget_PerformanceTarget
+	// The window the run aims to finish within, in hours, for a Cost-optimized
+	// serverless run. Required only when `performance_target` is `COST_OPTIMIZED`.
+	// Must be one of the supported values: `NO_FLEXIBILITY`, `4h`, `12h`, `24h`,
+	// `72h`. `NO_FLEXIBILITY` means the run uses the default cost-optimized
+	// performance level without additional cost-saving optimizations.
+	DurationTarget *string
 	// Controls whether the pipeline should perform a full refresh
 	PipelineParams *PipelineParameters
 	// A list of parameters for jobs with Spark JAR tasks, for example
@@ -4252,6 +4302,12 @@ type Run struct {
 	// Enables lower job costs by optimizing compute for your selected target
 	// duration time. Must provide a duration target.
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget
+	// The window the run aims to finish within, in hours, for a Cost-optimized
+	// serverless run. Required only when `performance_target` is `COST_OPTIMIZED`.
+	// Must be one of the supported values: `NO_FLEXIBILITY`, `4h`, `12h`, `24h`,
+	// `72h`. `NO_FLEXIBILITY` means the run uses the default cost-optimized
+	// performance level without additional cost-saving optimizations.
+	DurationTarget *string
 	// The id of the usage policy used by this run for cost attribution purposes.
 	EffectiveUsagePolicyId *string
 	// Snapshot of `JobSettings.environment_variables` as it was at run launch —
@@ -4449,6 +4505,12 @@ type RunNowRequest struct {
 	// Enables lower job costs by optimizing compute for your selected target
 	// duration time. Must provide a duration target.
 	PerformanceTarget PerformanceTarget_PerformanceTarget
+	// The window the run aims to finish within, in hours, for a Cost-optimized
+	// serverless run. Required only when `performance_target` is `COST_OPTIMIZED`.
+	// Must be one of the supported values: `NO_FLEXIBILITY`, `4h`, `12h`, `24h`,
+	// `72h`. `NO_FLEXIBILITY` means the run uses the default cost-optimized
+	// performance level without additional cost-saving optimizations.
+	DurationTarget *string
 	// Controls whether the pipeline should perform a full refresh
 	PipelineParams *PipelineParameters
 	// A list of parameters for jobs with Spark JAR tasks, for example
@@ -5757,6 +5819,12 @@ type SubmitRunRequest struct {
 	// Enables lower job costs by optimizing compute for your selected target
 	// duration time. Must provide a duration target.
 	PerformanceTarget PerformanceTarget_PerformanceTarget
+	// The window the run aims to finish within, in hours, for a Cost-optimized
+	// serverless run. Required only when `performance_target` is `COST_OPTIMIZED`.
+	// Must be one of the supported values: `NO_FLEXIBILITY`, `4h`, `12h`, `24h`,
+	// `72h`. `NO_FLEXIBILITY` means the run uses the default cost-optimized
+	// performance level without additional cost-saving optimizations.
+	DurationTarget *string
 }
 
 // Run was created and started successfully..
@@ -5773,6 +5841,73 @@ type Subscription struct {
 	// Optional: Allows users to specify a custom subject line on the email sent to
 	// subscribers.
 	CustomSubject *string
+	// Optional: The configuration for the files attached to the dashboard snapshot
+	// notification. It controls the underlying data of dashboard widgets that is
+	// attached as data files and which pages are included in the attached PDF. If
+	// not specified, the notification is sent with only the default snapshot.
+	Attachment *Subscription_Attachment
+}
+
+// The configuration for the files attached to the dashboard snapshot
+// notification sent to subscribers. `data_attachment` describes the underlying
+// data of dashboard widgets attached as data files, and `page_attachment`
+// describes which dashboard pages are included in the attached PDF..
+type Subscription_Attachment struct {
+	// Optional: The configuration for the underlying data of dashboard widgets
+	// attached as tabular data files. If not specified, no tabular data is
+	// attached.
+	DataAttachment *Subscription_Attachment_DataAttachment
+	// Optional: The selection of dashboard pages included in the attached PDF. If
+	// not specified, only the first page is included.
+	PageAttachment *Subscription_Attachment_PageAttachment
+}
+
+// The configuration for the tabular data files attached to the dashboard
+// snapshot. `widgets` lists the widgets whose data is exported and
+// `file_format` is the output format; each referenced widget's data is exported
+// as a separate file..
+type Subscription_Attachment_DataAttachment struct {
+	// The widgets whose underlying data is exported. At least one widget must be
+	// referenced.
+	Widgets []Subscription_Attachment_DataAttachment_Widget
+	// The file format of the exported tabular data files.
+	FileFormat Subscription_Attachment_DataAttachment_FileFormat
+	// When true, the dashboard's applied filter values are included alongside the
+	// tabular data as an additional attached file.
+	IncludeAppliedFilters *bool
+}
+
+// Identifies a dashboard widget whose data to attach. `page_id` and `widget_id`
+// are the URL identifiers from the dashboard's serialized definition returned
+// by the Get dashboard API (`serialized_dashboard`), and together they uniquely
+// identify the widget..
+type Subscription_Attachment_DataAttachment_Widget struct {
+	// The URL identifier of the page containing the widget. This is the value of
+	// the `name` field of the corresponding entry under `pages` in the serialized
+	// dashboard definition. Format: alphanumeric, hyphen, and underscore characters
+	// allowed, max length 63.
+	PageId *string
+	// The URL identifier of the widget. This is the value of the `name` field of
+	// the corresponding widget under that page's `layout` in the serialized
+	// dashboard definition. Format: alphanumeric, hyphen, and underscore characters
+	// allowed, max length 63.
+	WidgetId *string
+}
+
+// The selection of dashboard pages included in the attached PDF.
+// `page_selection` chooses between all pages, the first page only, or an
+// explicit subset listed in `page_ids`..
+type Subscription_Attachment_PageAttachment struct {
+	// How the attached pages are selected. When set to `PAGE_SELECTION_SUBSET`, the
+	// pages to include are listed in `page_ids`.
+	PageSelection Subscription_Attachment_PageAttachment_PageSelection
+	// The identifiers of the pages to include in the PDF. Only specified when
+	// `page_selection` is `PAGE_SELECTION_SUBSET`. Each value is the identifier of
+	// a page in the dashboard's serialized definition returned by the Get dashboard
+	// API (`serialized_dashboard`): the value of the `name` field of an entry under
+	// `pages`. Format: alphanumeric, hyphen, and underscore characters allowed, max
+	// length 63.
+	PageIds []string
 }
 
 type Subscription_Subscriber struct {
