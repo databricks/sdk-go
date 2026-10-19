@@ -8,19 +8,18 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
-// Identifies the source that created a managed memory entry.
+// Identifies the source that created a memory entry.
 type ManagedMemoryEntrySourceType string
 
 const (
 	ManagedMemoryEntrySourceType_Unspecified ManagedMemoryEntrySourceType = ""
-	// The managed memory entry was created by an agent during a live conversation.
+	// The memory entry was created by an agent during a live conversation.
 	ManagedMemoryEntrySourceType_ManagedMemoryEntrySourceTypeAgent ManagedMemoryEntrySourceType = "MANAGED_MEMORY_ENTRY_SOURCE_TYPE_AGENT"
-	// The managed memory entry was distilled from prior sessions by the dreamer
-	// pipeline.
+	// The memory entry was distilled from prior sessions by the dreamer pipeline.
 	ManagedMemoryEntrySourceType_ManagedMemoryEntrySourceTypeDreamer ManagedMemoryEntrySourceType = "MANAGED_MEMORY_ENTRY_SOURCE_TYPE_DREAMER"
 )
 
-// Controls how much managed memory entry data is returned.
+// Controls how much memory entry data is returned.
 type ManagedMemoryEntryView string
 
 const (
@@ -31,12 +30,12 @@ const (
 	ManagedMemoryEntryView_ManagedMemoryEntryViewFull ManagedMemoryEntryView = "MANAGED_MEMORY_ENTRY_VIEW_FULL"
 )
 
-// Type of service-managed storage backing a managed memory store.
+// Type of service-managed storage backing a memory store.
 type StorageBackendType string
 
 const (
 	StorageBackendType_Unspecified StorageBackendType = ""
-	// Lakebase-managed storage backing the managed memory store.
+	// Lakebase-managed storage backing the memory store.
 	StorageBackendType_StorageBackendTypeLakebase StorageBackendType = "STORAGE_BACKEND_TYPE_LAKEBASE"
 )
 
@@ -68,23 +67,23 @@ type ClearSessionItemsRequest struct {
 type ClearSessionItemsResponse struct {
 }
 
-// Request to create a managed memory entry..
+// Request to create a memory entry..
 type CreateManagedMemoryEntryRequest struct {
-	// Managed memory store that will contain the entry, in the form
+	// Memory store that will contain the entry, in the form
 	// `memory-stores/{managed_memory_store_id}`.
 	Parent *string
-	// The managed memory entry to create.
+	// The memory entry to create.
 	ManagedMemoryEntry *ManagedMemoryEntry
-	// Optional caller-selected managed memory entry ID. The service generates an ID
-	// when omitted.
+	// Optional caller-selected memory entry ID. The service generates an ID when
+	// omitted.
 	ManagedMemoryEntryId *string
 }
 
-// Request to create a managed memory store..
+// Request to create a memory store..
 type CreateManagedMemoryStoreRequest struct {
-	// The managed memory store to create.
+	// The memory store to create.
 	ManagedMemoryStore *ManagedMemoryStore
-	// Caller-provided, workspace-unique managed memory store ID. It must be 3-56
+	// Caller-provided, workspace-unique memory store ID. It must be 3-56
 	// characters, begin with a lowercase letter, contain only lowercase letters,
 	// digits, and hyphens, and end with a letter or digit.
 	ManagedMemoryStoreId *string
@@ -115,14 +114,14 @@ type CreateSessionStoreRequest struct {
 	SessionStoreId *string
 }
 
-// Request to delete a managed memory entry by resource name..
+// Request to delete a memory entry by resource name..
 type DeleteManagedMemoryEntryRequest struct {
 	// Resource name in the form
 	// `memory-stores/{managed_memory_store_id}/entries/{managed_memory_entry_id}`.
 	Name *string
 }
 
-// Request to delete a managed memory store by resource name..
+// Request to delete a memory store by resource name..
 type DeleteManagedMemoryStoreRequest struct {
 	// Resource name in the form `memory-stores/{managed_memory_store_id}`.
 	Name *string
@@ -143,7 +142,7 @@ type DeleteSessionStoreRequest struct {
 
 // Request to synchronously extract memories from a single session..
 type ExtractMemoriesRequest struct {
-	// Managed memory store the extracted entries are written to, in the form
+	// Memory store the extracted entries are written to, in the form
 	// `memory-stores/{managed_memory_store_id}`.
 	MemoryStore *string
 	// Session store containing the session, in the form
@@ -194,7 +193,7 @@ type ForkSessionResponse struct {
 	Session *Session
 }
 
-// Request to retrieve a managed memory entry by resource name..
+// Request to retrieve a memory entry by resource name..
 type GetManagedMemoryEntryRequest struct {
 	// Resource name in the form
 	// `memory-stores/{managed_memory_store_id}/entries/{managed_memory_entry_id}`.
@@ -203,7 +202,7 @@ type GetManagedMemoryEntryRequest struct {
 	View ManagedMemoryEntryView
 }
 
-// Request to retrieve a managed memory store by resource name..
+// Request to retrieve a memory store by resource name..
 type GetManagedMemoryStoreRequest struct {
 	// Resource name in the form `memory-stores/{managed_memory_store_id}`.
 	Name *string
@@ -222,10 +221,10 @@ type GetSessionStoreRequest struct {
 	Name *string
 }
 
-// Request to list managed memory entries for one actor, optionally restricted
-// by session and path prefix, or matched by exact path regardless of session..
+// Request to list memory entries for one actor, optionally restricted by
+// session and path prefix, or matched by exact path regardless of session..
 type ListManagedMemoryEntriesRequest struct {
-	// Managed memory store whose entries are listed, in the form
+	// Memory store whose entries are listed, in the form
 	// `memory-stores/{managed_memory_store_id}`.
 	Parent *string
 	// Maximum number of entries to return. The service may return fewer entries
@@ -246,16 +245,16 @@ type ListManagedMemoryEntriesRequest struct {
 	View ManagedMemoryEntryView
 }
 
-// Response containing managed memory entries..
+// Response containing memory entries..
 type ListManagedMemoryEntriesResponse struct {
-	// Managed memory entries matching the request and selected response view.
+	// Memory entries matching the request and selected response view.
 	ManagedMemoryEntries []ManagedMemoryEntry
 	// Opaque pagination token. This field is omitted when there are no more
 	// results.
 	NextPageToken *string
 }
 
-// Request to list managed memory stores in the caller's workspace..
+// Request to list memory stores in the caller's workspace..
 type ListManagedMemoryStoresRequest struct {
 	// Maximum number of stores to return. The service may return fewer stores than
 	// requested. Defaults to 10; must be between 1 and 100.
@@ -264,9 +263,9 @@ type ListManagedMemoryStoresRequest struct {
 	PageToken *string
 }
 
-// Response containing managed memory stores in the caller's workspace..
+// Response containing memory stores in the caller's workspace..
 type ListManagedMemoryStoresResponse struct {
-	// Managed memory stores in the caller's workspace.
+	// Memory stores in the caller's workspace.
 	ManagedMemoryStores []ManagedMemoryStore
 	// Opaque pagination token. This field is omitted when there are no more
 	// results.
@@ -343,7 +342,7 @@ type ListSessionsResponse struct {
 	NextPageToken *string
 }
 
-// A workspace-scoped entry in a managed memory store..
+// A workspace-scoped entry in a memory store..
 type ManagedMemoryEntry struct {
 	// Resource name in the form
 	// `memory-stores/{managed_memory_store_id}/entries/{managed_memory_entry_id}`.
@@ -371,20 +370,20 @@ type ManagedMemoryEntry struct {
 	UpdateTime *types.Time `fieldmask:"update_time"`
 }
 
-// One relevance-ranked managed memory search result..
+// One relevance-ranked memory search result..
 type ManagedMemoryEntrySearchResult struct {
-	// Managed memory entry matching the query.
+	// Memory entry matching the query.
 	ManagedMemoryEntry *ManagedMemoryEntry
 	// Relevance score for the result. Higher scores are more relevant.
 	Score *float64
 }
 
-// A workspace-scoped managed memory store backed by service-managed storage..
+// A workspace-scoped memory store backed by service-managed storage..
 type ManagedMemoryStore struct {
 	// Resource name in the form `memory-stores/{managed_memory_store_id}`.
 	Name *string `fieldmask:"name"`
-	// Deprecated compatibility alias for the caller-provided managed memory store
-	// ID. Canonical clients provide the ID through
+	// Deprecated compatibility alias for the caller-provided memory store ID.
+	// Canonical clients provide the ID through
 	// `CreateMemoryStoreRequest.managed_memory_store_id` and use `name` as the
 	// resource identifier.
 	DisplayName *string `fieldmask:"display_name"`
@@ -420,10 +419,10 @@ type PopSessionItemResponse struct {
 	Item *SessionItem
 }
 
-// Request to search managed memory entries by text query for one actor. Search
-// returns a relevance-ranked top-N result set and does not currently paginate..
+// Request to search memory entries by text query for one actor. Search returns
+// a relevance-ranked top-N result set and does not currently paginate..
 type SearchManagedMemoryEntriesRequest struct {
-	// Managed memory store whose entries are searched, in the form
+	// Memory store whose entries are searched, in the form
 	// `memory-stores/{managed_memory_store_id}`.
 	Parent *string
 	// Customer-provided identifier for the actor whose entries are searched.
@@ -452,7 +451,7 @@ type SearchManagedMemoryEntriesRequest struct {
 	View ManagedMemoryEntryView
 }
 
-// Response containing managed memory entries ranked by relevance..
+// Response containing memory entries ranked by relevance..
 type SearchManagedMemoryEntriesResponse struct {
 	// Deprecated compatibility alias for clients migrating to `results`. This
 	// contains the same entries in the same order, but omits their relevance
@@ -529,7 +528,7 @@ type SessionStore struct {
 	Name *string `fieldmask:"name"`
 }
 
-// Service-managed storage backing a managed memory store..
+// Service-managed storage backing a memory store..
 type StorageBackend struct {
 	// Type of the storage backend.
 	BackendType StorageBackendType `fieldmask:"backend_type"`
@@ -537,17 +536,17 @@ type StorageBackend struct {
 	BackendId *string `fieldmask:"backend_id"`
 }
 
-// Request to update a managed memory entry..
+// Request to update a memory entry..
 type UpdateManagedMemoryEntryRequest struct {
-	// The managed memory entry to update.
+	// The memory entry to update.
 	ManagedMemoryEntry *ManagedMemoryEntry
 	// Fields to update. Only `content` and `description` may be updated.
 	UpdateMask *types.FieldMask[ManagedMemoryEntry]
 }
 
-// Request to update the description and metadata on a managed memory store..
+// Request to update the description and metadata on a memory store..
 type UpdateManagedMemoryStoreRequest struct {
-	// The managed memory store to update. `name` is taken from the URL.
+	// The memory store to update. `name` is taken from the URL.
 	ManagedMemoryStore *ManagedMemoryStore
 	// Only `description` and `metadata` may be updated. Selecting `metadata`
 	// replaces the entire map.

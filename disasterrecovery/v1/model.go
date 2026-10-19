@@ -125,6 +125,11 @@ type FailoverGroup struct {
 	// Initial primary region. Used only in Create requests to set the starting
 	// primary region. Not returned in responses.
 	InitialPrimaryRegion *string `fieldmask:"initial_primary_region"`
+	// Initial replication progress of all in-scope assets. Set only when the
+	// FailoverGroup is in INITIAL_REPLICATION state.
+	InitialReplicationProgress *InitialReplicationProgress `fieldmask:"initial_replication_progress"`
+	// True if errors currently block the replication point.
+	HasReplicationPointBlockingErrors *bool `fieldmask:"has_replication_point_blocking_errors"`
 }
 
 // Request to get a failover group..
@@ -139,6 +144,14 @@ type GetStableUrlRequest struct {
 	// The fully qualified resource name. Format:
 	// accounts/{account_id}/stable-urls/{stable_url_id}.
 	Name *string
+}
+
+// Progress of the initial replication of all in-scope assets (Unity Catalog and
+// workspace assets) of a FailoverGroup. Populated only while the FailoverGroup
+// is in INITIAL_REPLICATION..
+type InitialReplicationProgress struct {
+	// Percent complete, 0-100.
+	Completed *int `fieldmask:"completed"`
 }
 
 // Request to list failover groups for an account..

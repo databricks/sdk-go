@@ -111,6 +111,23 @@ func computeSpecFromWire(w *computeSpecWire) (*ComputeSpec, error) {
 	}, nil
 }
 
+type createDirectoryRequestWire struct {
+	Parent  *string `json:"parent,omitempty"`
+	Path    *string `json:"path,omitempty"`
+	Parents *bool   `json:"parents,omitempty"`
+}
+
+func createDirectoryRequestToWire(v *CreateDirectoryRequest) (*createDirectoryRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createDirectoryRequestWire{
+		Parent:  v.Parent,
+		Path:    v.Path,
+		Parents: v.Parents,
+	}, nil
+}
+
 type createSandboxRequestWire struct {
 	Sandbox   *sandboxWire `json:"sandbox,omitempty"`
 	SandboxId *string      `json:"sandbox_id,omitempty"`
@@ -127,6 +144,23 @@ func createSandboxRequestToWire(v *CreateSandboxRequest) (*createSandboxRequestW
 	return &createSandboxRequestWire{
 		Sandbox:   sandboxWireValue,
 		SandboxId: v.SandboxId,
+	}, nil
+}
+
+type deletePathRequestWire struct {
+	Parent    *string `json:"parent,omitempty"`
+	Path      *string `json:"path,omitempty"`
+	Recursive *bool   `json:"recursive,omitempty"`
+}
+
+func deletePathRequestToWire(v *DeletePathRequest) (*deletePathRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deletePathRequestWire{
+		Parent:    v.Parent,
+		Path:      v.Path,
+		Recursive: v.Recursive,
 	}, nil
 }
 
@@ -196,6 +230,38 @@ func executeCommandSyncResponseFromWire(w *executeCommandSyncResponseWire) (*Exe
 	}, nil
 }
 
+type getMetadataRequestWire struct {
+	Parent *string `json:"parent,omitempty"`
+	Path   *string `json:"path,omitempty"`
+}
+
+func getMetadataRequestToWire(v *GetMetadataRequest) (*getMetadataRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getMetadataRequestWire{
+		Parent: v.Parent,
+		Path:   v.Path,
+	}, nil
+}
+
+type getMetadataResponseWire struct {
+	File *sandboxFileInfoWire `json:"file,omitempty"`
+}
+
+func getMetadataResponseFromWire(w *getMetadataResponseWire) (*GetMetadataResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	filePublicValue, err := sandboxFileInfoFromWire(w.File)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetMetadataResponse.File", err)
+	}
+	return &GetMetadataResponse{
+		File: filePublicValue,
+	}, nil
+}
+
 type listCommandsRequestWire struct {
 	PageSize  *int    `json:"page_size,omitempty"`
 	PageToken *string `json:"page_token,omitempty"`
@@ -232,6 +298,44 @@ func listCommandsResponseFromWire(w *listCommandsResponseWire) (*ListCommandsRes
 	}, nil
 }
 
+type listDirectoryContentsRequestWire struct {
+	Parent    *string `json:"parent,omitempty"`
+	Path      *string `json:"path,omitempty"`
+	PageToken *string `json:"page_token,omitempty"`
+	PageSize  *int    `json:"page_size,omitempty"`
+}
+
+func listDirectoryContentsRequestToWire(v *ListDirectoryContentsRequest) (*listDirectoryContentsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listDirectoryContentsRequestWire{
+		Parent:    v.Parent,
+		Path:      v.Path,
+		PageToken: v.PageToken,
+		PageSize:  v.PageSize,
+	}, nil
+}
+
+type listDirectoryContentsResponseWire struct {
+	Contents      []sandboxFileInfoWire `json:"contents,omitempty"`
+	NextPageToken *string               `json:"next_page_token,omitempty"`
+}
+
+func listDirectoryContentsResponseFromWire(w *listDirectoryContentsResponseWire) (*ListDirectoryContentsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	contentsPublicValue, err := convertSlice(w.Contents, sandboxFileInfoFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListDirectoryContentsResponse.Contents", err)
+	}
+	return &ListDirectoryContentsResponse{
+		Contents:      contentsPublicValue,
+		NextPageToken: w.NextPageToken,
+	}, nil
+}
+
 type listSandboxesRequestWire struct {
 	PageToken *string `json:"page_token,omitempty"`
 	PageSize  *int    `json:"page_size,omitempty"`
@@ -263,6 +367,23 @@ func listSandboxesResponseFromWire(w *listSandboxesResponseWire) (*ListSandboxes
 	return &ListSandboxesResponse{
 		Sandboxes:     sandboxesPublicValue,
 		NextPageToken: w.NextPageToken,
+	}, nil
+}
+
+type renamePathRequestWire struct {
+	Parent      *string `json:"parent,omitempty"`
+	Source      *string `json:"source,omitempty"`
+	Destination *string `json:"destination,omitempty"`
+}
+
+func renamePathRequestToWire(v *RenamePathRequest) (*renamePathRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &renamePathRequestWire{
+		Parent:      v.Parent,
+		Source:      v.Source,
+		Destination: v.Destination,
 	}, nil
 }
 
@@ -316,6 +437,41 @@ func sandboxFromWire(w *sandboxWire) (*Sandbox, error) {
 		CreateTime:  w.CreateTime,
 		UpdateTime:  w.UpdateTime,
 		DisplayName: w.DisplayName,
+	}, nil
+}
+
+type sandboxFileInfoWire struct {
+	Name          *string         `json:"name,omitempty"`
+	Path          *string         `json:"path,omitempty"`
+	FileType      SandboxFileType `json:"file_type,omitempty"`
+	Size          *wireInt64      `json:"size,omitempty"`
+	Mode          *int            `json:"mode,omitempty"`
+	Permissions   *string         `json:"permissions,omitempty"`
+	Owner         *string         `json:"owner,omitempty"`
+	Group         *string         `json:"group,omitempty"`
+	ModifyTime    *types.Time     `json:"modify_time,omitempty"`
+	SymlinkTarget *string         `json:"symlink_target,omitempty"`
+}
+
+func sandboxFileInfoFromWire(w *sandboxFileInfoWire) (*SandboxFileInfo, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sizePublicValue, err := int64FromWire(w.Size)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SandboxFileInfo.Size", err)
+	}
+	return &SandboxFileInfo{
+		Name:          w.Name,
+		Path:          w.Path,
+		FileType:      w.FileType,
+		Size:          sizePublicValue,
+		Mode:          w.Mode,
+		Permissions:   w.Permissions,
+		Owner:         w.Owner,
+		Group:         w.Group,
+		ModifyTime:    w.ModifyTime,
+		SymlinkTarget: w.SymlinkTarget,
 	}, nil
 }
 

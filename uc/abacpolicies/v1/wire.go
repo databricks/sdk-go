@@ -290,6 +290,31 @@ func functionArgumentFromWire(w *functionArgumentWire) (*FunctionArgument, error
 	}, nil
 }
 
+type governedTagReferenceWire struct {
+	TagKey   *string `json:"tag_key,omitempty"`
+	TagValue *string `json:"tag_value,omitempty"`
+}
+
+func governedTagReferenceToWire(v *GovernedTagReference) (*governedTagReferenceWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &governedTagReferenceWire{
+		TagKey:   v.TagKey,
+		TagValue: v.TagValue,
+	}, nil
+}
+
+func governedTagReferenceFromWire(w *governedTagReferenceWire) (*GovernedTagReference, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GovernedTagReference{
+		TagKey:   w.TagKey,
+		TagValue: w.TagValue,
+	}, nil
+}
+
 type grantOptionsWire struct {
 	Privileges []string `json:"privileges,omitempty"`
 }
@@ -378,25 +403,26 @@ func matchColumnFromWire(w *matchColumnWire) (*MatchColumn, error) {
 }
 
 type policyInfoWire struct {
-	Id                  *string                `json:"id,omitempty"`
-	OnSecurableType     SecurableType          `json:"on_securable_type,omitempty"`
-	OnSecurableFullname *string                `json:"on_securable_fullname,omitempty"`
-	Name                *string                `json:"name,omitempty"`
-	Comment             *string                `json:"comment,omitempty"`
-	ToPrincipals        []string               `json:"to_principals,omitempty"`
-	ExceptPrincipals    []string               `json:"except_principals,omitempty"`
-	ForSecurableType    SecurableType          `json:"for_securable_type,omitempty"`
-	WhenCondition       *string                `json:"when_condition,omitempty"`
-	PolicyType          PolicyType             `json:"policy_type,omitempty"`
-	RowFilter           *rowFilterOptionsWire  `json:"row_filter,omitempty"`
-	ColumnMask          *columnMaskOptionsWire `json:"column_mask,omitempty"`
-	Deny                *denyOptionsWire       `json:"deny,omitempty"`
-	Grant               *grantOptionsWire      `json:"grant,omitempty"`
-	MatchColumns        []matchColumnWire      `json:"match_columns,omitempty"`
-	CreatedAt           *wireInt64             `json:"created_at,omitempty"`
-	CreatedBy           *string                `json:"created_by,omitempty"`
-	UpdatedAt           *wireInt64             `json:"updated_at,omitempty"`
-	UpdatedBy           *string                `json:"updated_by,omitempty"`
+	Id                  *string                    `json:"id,omitempty"`
+	OnSecurableType     SecurableType              `json:"on_securable_type,omitempty"`
+	OnSecurableFullname *string                    `json:"on_securable_fullname,omitempty"`
+	Name                *string                    `json:"name,omitempty"`
+	Comment             *string                    `json:"comment,omitempty"`
+	ToPrincipals        []string                   `json:"to_principals,omitempty"`
+	ExceptPrincipals    []string                   `json:"except_principals,omitempty"`
+	ForSecurableType    SecurableType              `json:"for_securable_type,omitempty"`
+	WhenCondition       *string                    `json:"when_condition,omitempty"`
+	PolicyType          PolicyType                 `json:"policy_type,omitempty"`
+	RowFilter           *rowFilterOptionsWire      `json:"row_filter,omitempty"`
+	ColumnMask          *columnMaskOptionsWire     `json:"column_mask,omitempty"`
+	Deny                *denyOptionsWire           `json:"deny,omitempty"`
+	Grant               *grantOptionsWire          `json:"grant,omitempty"`
+	MatchColumns        []matchColumnWire          `json:"match_columns,omitempty"`
+	CreatedAt           *wireInt64                 `json:"created_at,omitempty"`
+	CreatedBy           *string                    `json:"created_by,omitempty"`
+	UpdatedAt           *wireInt64                 `json:"updated_at,omitempty"`
+	UpdatedBy           *string                    `json:"updated_by,omitempty"`
+	GovernedTags        []governedTagReferenceWire `json:"governed_tags,omitempty"`
 }
 
 func policyInfoToWire(v *PolicyInfo) (*policyInfoWire, error) {
@@ -414,6 +440,10 @@ func policyInfoToWire(v *PolicyInfo) (*policyInfoWire, error) {
 	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "PolicyInfo.UpdatedAt", err)
+	}
+	governedTagsWireValue, err := convertSlice(v.GovernedTags, governedTagReferenceToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PolicyInfo.GovernedTags", err)
 	}
 	var optionsRowFilterWire *rowFilterOptionsWire
 	var optionsColumnMaskWire *columnMaskOptionsWire
@@ -476,6 +506,7 @@ func policyInfoToWire(v *PolicyInfo) (*policyInfoWire, error) {
 		CreatedBy:           v.CreatedBy,
 		UpdatedAt:           updatedAtWireValue,
 		UpdatedBy:           v.UpdatedBy,
+		GovernedTags:        governedTagsWireValue,
 	}, nil
 }
 
@@ -510,6 +541,10 @@ func policyInfoFromWire(w *policyInfoWire) (*PolicyInfo, error) {
 	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "PolicyInfo.UpdatedAt", err)
+	}
+	governedTagsPublicValue, err := convertSlice(w.GovernedTags, governedTagReferenceFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PolicyInfo.GovernedTags", err)
 	}
 	var optionsSelection isPolicyInfo_Options
 	switch {
@@ -554,6 +589,7 @@ func policyInfoFromWire(w *policyInfoWire) (*PolicyInfo, error) {
 		CreatedBy:           w.CreatedBy,
 		UpdatedAt:           updatedAtPublicValue,
 		UpdatedBy:           w.UpdatedBy,
+		GovernedTags:        governedTagsPublicValue,
 		Options:             optionsSelection,
 	}, nil
 }

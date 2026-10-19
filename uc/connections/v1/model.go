@@ -140,6 +140,10 @@ type ConnectionInfo struct {
 	ProvisioningInfo *ProvisioningInfo
 	// A map of key-value properties attached to the securable.
 	Options map[string]string
+	// A map of option names to UC Secret references. Keys are connection option
+	// names (same as in OptionsKVPairs) and values are UC Secret fully qualified
+	// names.
+	Secrets map[string]string
 	// A map of key-value properties attached to the securable.
 	Properties map[string]string
 }
@@ -183,6 +187,10 @@ type CreateConnectionRequest struct {
 	ProvisioningInfo *ProvisioningInfo
 	// A map of key-value properties attached to the securable.
 	Options map[string]string
+	// A map of option names to UC Secret references. Keys are connection option
+	// names (same as in OptionsKVPairs) and values are UC Secret fully qualified
+	// names.
+	Secrets map[string]string
 	// A map of key-value properties attached to the securable.
 	Properties map[string]string
 }
@@ -274,6 +282,10 @@ type UpdateConnectionRequest struct {
 	ProvisioningInfo *ProvisioningInfo
 	// A map of key-value properties attached to the securable.
 	Options map[string]string
+	// A map of option names to UC Secret references. Keys are connection option
+	// names (same as in OptionsKVPairs) and values are UC Secret fully qualified
+	// names.
+	Secrets map[string]string
 	// A map of key-value properties attached to the securable.
 	Properties map[string]string
 }

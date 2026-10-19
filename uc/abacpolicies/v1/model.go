@@ -159,6 +159,14 @@ type GetPolicyRequest struct {
 	Name *string
 }
 
+// A governed tag referenced by a policy condition..
+type GovernedTagReference struct {
+	// The governed tag key.
+	TagKey *string
+	// The governed tag value, when the policy references a specific value.
+	TagValue *string
+}
+
 type GrantOptions struct {
 	// List of privileges to grant. When any of these privileges are requested, the
 	// policy will grant access if the principal and condition match. Required on
@@ -240,8 +248,11 @@ type PolicyInfo struct {
 	// only.
 	UpdatedAt *int64 `fieldmask:"updated_at"`
 	// Username of the user who last modified the policy. Output only.
-	UpdatedBy *string                               `fieldmask:"updated_by"`
-	_         [0]policyInfoOptionsFieldMaskMetadata `fieldmask_oneof:"Options"`
+	UpdatedBy *string `fieldmask:"updated_by"`
+	// Governed tag keys and values referenced by this policy's conditions and
+	// function arguments. Output only.
+	GovernedTags []GovernedTagReference                `fieldmask:"governed_tags"`
+	_            [0]policyInfoOptionsFieldMaskMetadata `fieldmask_oneof:"Options"`
 }
 
 type isPolicyInfo_Options interface {
