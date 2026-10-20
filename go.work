@@ -93,5 +93,6 @@ use (
 	./usagedashboards
 	./vectorsearch
 	./warehouses
+	./workspacefiles
 	./workspaces
 )

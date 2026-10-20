@@ -1643,8 +1643,8 @@ type ListPipelinesRequest struct {
 	// maximum value is 100. An error is returned if the value of max_results is
 	// greater than 100.
 	MaxResults *int
-	// A list of strings specifying the order of results. Supported order_by fields
-	// are id and name. The default is id asc. This field is optional.
+	// A list of strings specifying the order of results. The supported order_by
+	// field is id. The default is id asc. This field is optional.
 	OrderBy []string
 	// Select a subset of results based on the specified criteria. The supported
 	// filters are:

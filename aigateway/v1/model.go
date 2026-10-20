@@ -333,7 +333,7 @@ type ListMcpServicesRequest struct {
 	// Parent schema to list within, in the form `schemas/{catalog}.{schema}`.
 	// Required. Each `{...}` component is capped at 255 characters individually.
 	Parent *string
-	// Maximum number of MCP services to return. Defaults to 100 when unset or 0;
+	// Maximum number of MCP services to return. Defaults to 200 when unset or 0;
 	// the maximum is 200. Use `page_token` to retrieve additional pages.
 	PageSize *int
 	// Opaque pagination token from the previous response.
@@ -359,7 +359,7 @@ type ListModelProviderServicesRequest struct {
 	// Parent schema to list within, in the form `schemas/{catalog}.{schema}`.
 	// Required. Each `{...}` component is capped at 255 characters individually.
 	Parent *string
-	// Maximum number of provider services to return. Defaults to 100 when unset or
+	// Maximum number of provider services to return. Defaults to 200 when unset or
 	// 0; the maximum is 200. Use `page_token` to retrieve additional pages.
 	PageSize *int
 	// Opaque pagination token from the previous response.
@@ -385,7 +385,7 @@ type ListModelServicesRequest struct {
 	// Parent schema to list within, in the form `schemas/{catalog}.{schema}`.
 	// Required. Each `{...}` component is capped at 255 characters individually.
 	Parent *string
-	// Maximum number of model services to return. Defaults to 100 when unset or 0;
+	// Maximum number of model services to return. Defaults to 200 when unset or 0;
 	// the maximum is 200. Use `page_token` to retrieve additional pages.
 	PageSize *int
 	// Opaque pagination token from the previous response.
@@ -414,7 +414,7 @@ type ListSkillsRequest struct {
 	// is schema-scoped, so `parent` must be set; an unset or empty `parent` is
 	// rejected with INVALID_PARAMETER_VALUE.
 	Parent *string
-	// Maximum number of skills to return. Defaults to 100 when unset or 0; the
+	// Maximum number of skills to return. Defaults to 200 when unset or 0; the
 	// maximum is 200. Use `page_token` to retrieve additional pages.
 	PageSize *int
 	// Opaque pagination token from a previous request.
@@ -1004,8 +1004,7 @@ type ModelProviderServiceConfig_CustomProviderApiKeyHeaderAuth struct {
 	ApiKeyValue *ModelProviderServiceConfig_ProviderSecret `fieldmask:"api_key_value"`
 }
 
-// Custom OpenAI-compatible provider configuration with bearer-token
-// authentication..
+// Custom OpenAI-compatible provider configuration..
 type ModelProviderServiceConfig_CustomProviderConfig struct {
 	// Provider configuration mode. Exactly one variant may be set. (-- Wrapped in a
 	// oneof so future non-direct modes can be added as additional variants without
