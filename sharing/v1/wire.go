@@ -200,26 +200,21 @@ func createRecipientRequestToWire(v *CreateRecipientRequest) (*createRecipientRe
 }
 
 type createShareRequestWire struct {
-	Name              *string                `json:"name,omitempty"`
-	Owner             *string                `json:"owner,omitempty"`
-	Comment           *string                `json:"comment,omitempty"`
-	StorageRoot       *string                `json:"storage_root,omitempty"`
-	ReplicationConfig *replicationConfigWire `json:"replication_config,omitempty"`
-	Objects           []sharedDataObjectWire `json:"objects,omitempty"`
-	CreatedAt         *wireInt64             `json:"created_at,omitempty"`
-	CreatedBy         *string                `json:"created_by,omitempty"`
-	UpdatedAt         *wireInt64             `json:"updated_at,omitempty"`
-	UpdatedBy         *string                `json:"updated_by,omitempty"`
-	StorageLocation   *string                `json:"storage_location,omitempty"`
+	Name            *string                `json:"name,omitempty"`
+	Owner           *string                `json:"owner,omitempty"`
+	Comment         *string                `json:"comment,omitempty"`
+	StorageRoot     *string                `json:"storage_root,omitempty"`
+	Objects         []sharedDataObjectWire `json:"objects,omitempty"`
+	CreatedAt       *wireInt64             `json:"created_at,omitempty"`
+	CreatedBy       *string                `json:"created_by,omitempty"`
+	UpdatedAt       *wireInt64             `json:"updated_at,omitempty"`
+	UpdatedBy       *string                `json:"updated_by,omitempty"`
+	StorageLocation *string                `json:"storage_location,omitempty"`
 }
 
 func createShareRequestToWire(v *CreateShareRequest) (*createShareRequestWire, error) {
 	if v == nil {
 		return nil, nil
-	}
-	replicationConfigWireValue, err := replicationConfigToWire(v.ReplicationConfig)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "CreateShareRequest.ReplicationConfig", err)
 	}
 	objectsWireValue, err := convertSlice(v.Objects, sharedDataObjectToWire)
 	if err != nil {
@@ -234,17 +229,16 @@ func createShareRequestToWire(v *CreateShareRequest) (*createShareRequestWire, e
 		return nil, fmt.Errorf("%s: %w", "CreateShareRequest.UpdatedAt", err)
 	}
 	return &createShareRequestWire{
-		Name:              v.Name,
-		Owner:             v.Owner,
-		Comment:           v.Comment,
-		StorageRoot:       v.StorageRoot,
-		ReplicationConfig: replicationConfigWireValue,
-		Objects:           objectsWireValue,
-		CreatedAt:         createdAtWireValue,
-		CreatedBy:         v.CreatedBy,
-		UpdatedAt:         updatedAtWireValue,
-		UpdatedBy:         v.UpdatedBy,
-		StorageLocation:   v.StorageLocation,
+		Name:            v.Name,
+		Owner:           v.Owner,
+		Comment:         v.Comment,
+		StorageRoot:     v.StorageRoot,
+		Objects:         objectsWireValue,
+		CreatedAt:       createdAtWireValue,
+		CreatedBy:       v.CreatedBy,
+		UpdatedAt:       updatedAtWireValue,
+		UpdatedBy:       v.UpdatedBy,
+		StorageLocation: v.StorageLocation,
 	}, nil
 }
 
@@ -1271,28 +1265,6 @@ func registeredModelAliasFromWire(w *registeredModelAliasWire) (*RegisteredModel
 	}, nil
 }
 
-type replicationConfigWire struct {
-	Enabled *bool `json:"enabled,omitempty"`
-}
-
-func replicationConfigToWire(v *ReplicationConfig) (*replicationConfigWire, error) {
-	if v == nil {
-		return nil, nil
-	}
-	return &replicationConfigWire{
-		Enabled: v.Enabled,
-	}, nil
-}
-
-func replicationConfigFromWire(w *replicationConfigWire) (*ReplicationConfig, error) {
-	if w == nil {
-		return nil, nil
-	}
-	return &ReplicationConfig{
-		Enabled: w.Enabled,
-	}, nil
-}
-
 type retrieveTokenResponseWire struct {
 	ShareCredentialsVersion *int    `json:"shareCredentialsVersion,omitempty"`
 	BearerToken             *string `json:"bearerToken,omitempty"`
@@ -1347,26 +1319,21 @@ func shareFromWire(w *shareWire) (*Share, error) {
 }
 
 type shareInfoWire struct {
-	Name              *string                `json:"name,omitempty"`
-	Owner             *string                `json:"owner,omitempty"`
-	Comment           *string                `json:"comment,omitempty"`
-	StorageRoot       *string                `json:"storage_root,omitempty"`
-	ReplicationConfig *replicationConfigWire `json:"replication_config,omitempty"`
-	Objects           []sharedDataObjectWire `json:"objects,omitempty"`
-	CreatedAt         *wireInt64             `json:"created_at,omitempty"`
-	CreatedBy         *string                `json:"created_by,omitempty"`
-	UpdatedAt         *wireInt64             `json:"updated_at,omitempty"`
-	UpdatedBy         *string                `json:"updated_by,omitempty"`
-	StorageLocation   *string                `json:"storage_location,omitempty"`
+	Name            *string                `json:"name,omitempty"`
+	Owner           *string                `json:"owner,omitempty"`
+	Comment         *string                `json:"comment,omitempty"`
+	StorageRoot     *string                `json:"storage_root,omitempty"`
+	Objects         []sharedDataObjectWire `json:"objects,omitempty"`
+	CreatedAt       *wireInt64             `json:"created_at,omitempty"`
+	CreatedBy       *string                `json:"created_by,omitempty"`
+	UpdatedAt       *wireInt64             `json:"updated_at,omitempty"`
+	UpdatedBy       *string                `json:"updated_by,omitempty"`
+	StorageLocation *string                `json:"storage_location,omitempty"`
 }
 
 func shareInfoFromWire(w *shareInfoWire) (*ShareInfo, error) {
 	if w == nil {
 		return nil, nil
-	}
-	replicationConfigPublicValue, err := replicationConfigFromWire(w.ReplicationConfig)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "ShareInfo.ReplicationConfig", err)
 	}
 	objectsPublicValue, err := convertSlice(w.Objects, sharedDataObjectFromWire)
 	if err != nil {
@@ -1381,17 +1348,16 @@ func shareInfoFromWire(w *shareInfoWire) (*ShareInfo, error) {
 		return nil, fmt.Errorf("%s: %w", "ShareInfo.UpdatedAt", err)
 	}
 	return &ShareInfo{
-		Name:              w.Name,
-		Owner:             w.Owner,
-		Comment:           w.Comment,
-		StorageRoot:       w.StorageRoot,
-		ReplicationConfig: replicationConfigPublicValue,
-		Objects:           objectsPublicValue,
-		CreatedAt:         createdAtPublicValue,
-		CreatedBy:         w.CreatedBy,
-		UpdatedAt:         updatedAtPublicValue,
-		UpdatedBy:         w.UpdatedBy,
-		StorageLocation:   w.StorageLocation,
+		Name:            w.Name,
+		Owner:           w.Owner,
+		Comment:         w.Comment,
+		StorageRoot:     w.StorageRoot,
+		Objects:         objectsPublicValue,
+		CreatedAt:       createdAtPublicValue,
+		CreatedBy:       w.CreatedBy,
+		UpdatedAt:       updatedAtPublicValue,
+		UpdatedBy:       w.UpdatedBy,
+		StorageLocation: w.StorageLocation,
 	}, nil
 }
 
@@ -1732,20 +1698,19 @@ func updateSharePermissionsResponseFromWire(w *updateSharePermissionsResponseWir
 }
 
 type updateShareRequestWire struct {
-	NameArg           *string                                         `json:"name_arg,omitempty"`
-	NewName           *string                                         `json:"new_name,omitempty"`
-	Updates           []updateShareRequest_SharedDataObjectUpdateWire `json:"updates,omitempty"`
-	Name              *string                                         `json:"name,omitempty"`
-	Owner             *string                                         `json:"owner,omitempty"`
-	Comment           *string                                         `json:"comment,omitempty"`
-	StorageRoot       *string                                         `json:"storage_root,omitempty"`
-	ReplicationConfig *replicationConfigWire                          `json:"replication_config,omitempty"`
-	Objects           []sharedDataObjectWire                          `json:"objects,omitempty"`
-	CreatedAt         *wireInt64                                      `json:"created_at,omitempty"`
-	CreatedBy         *string                                         `json:"created_by,omitempty"`
-	UpdatedAt         *wireInt64                                      `json:"updated_at,omitempty"`
-	UpdatedBy         *string                                         `json:"updated_by,omitempty"`
-	StorageLocation   *string                                         `json:"storage_location,omitempty"`
+	NameArg         *string                                         `json:"name_arg,omitempty"`
+	NewName         *string                                         `json:"new_name,omitempty"`
+	Updates         []updateShareRequest_SharedDataObjectUpdateWire `json:"updates,omitempty"`
+	Name            *string                                         `json:"name,omitempty"`
+	Owner           *string                                         `json:"owner,omitempty"`
+	Comment         *string                                         `json:"comment,omitempty"`
+	StorageRoot     *string                                         `json:"storage_root,omitempty"`
+	Objects         []sharedDataObjectWire                          `json:"objects,omitempty"`
+	CreatedAt       *wireInt64                                      `json:"created_at,omitempty"`
+	CreatedBy       *string                                         `json:"created_by,omitempty"`
+	UpdatedAt       *wireInt64                                      `json:"updated_at,omitempty"`
+	UpdatedBy       *string                                         `json:"updated_by,omitempty"`
+	StorageLocation *string                                         `json:"storage_location,omitempty"`
 }
 
 func updateShareRequestToWire(v *UpdateShareRequest) (*updateShareRequestWire, error) {
@@ -1755,10 +1720,6 @@ func updateShareRequestToWire(v *UpdateShareRequest) (*updateShareRequestWire, e
 	updatesWireValue, err := convertSlice(v.Updates, updateShareRequest_SharedDataObjectUpdateToWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "UpdateShareRequest.Updates", err)
-	}
-	replicationConfigWireValue, err := replicationConfigToWire(v.ReplicationConfig)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "UpdateShareRequest.ReplicationConfig", err)
 	}
 	objectsWireValue, err := convertSlice(v.Objects, sharedDataObjectToWire)
 	if err != nil {
@@ -1773,20 +1734,19 @@ func updateShareRequestToWire(v *UpdateShareRequest) (*updateShareRequestWire, e
 		return nil, fmt.Errorf("%s: %w", "UpdateShareRequest.UpdatedAt", err)
 	}
 	return &updateShareRequestWire{
-		NameArg:           v.NameArg,
-		NewName:           v.NewName,
-		Updates:           updatesWireValue,
-		Name:              v.Name,
-		Owner:             v.Owner,
-		Comment:           v.Comment,
-		StorageRoot:       v.StorageRoot,
-		ReplicationConfig: replicationConfigWireValue,
-		Objects:           objectsWireValue,
-		CreatedAt:         createdAtWireValue,
-		CreatedBy:         v.CreatedBy,
-		UpdatedAt:         updatedAtWireValue,
-		UpdatedBy:         v.UpdatedBy,
-		StorageLocation:   v.StorageLocation,
+		NameArg:         v.NameArg,
+		NewName:         v.NewName,
+		Updates:         updatesWireValue,
+		Name:            v.Name,
+		Owner:           v.Owner,
+		Comment:         v.Comment,
+		StorageRoot:     v.StorageRoot,
+		Objects:         objectsWireValue,
+		CreatedAt:       createdAtWireValue,
+		CreatedBy:       v.CreatedBy,
+		UpdatedAt:       updatedAtWireValue,
+		UpdatedBy:       v.UpdatedBy,
+		StorageLocation: v.StorageLocation,
 	}, nil
 }
 
