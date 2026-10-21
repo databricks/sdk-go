@@ -1029,6 +1029,7 @@ type dataSourceWire struct {
 	RequestSource     *requestSourceWire     `json:"request_source,omitempty"`
 	StreamSource      *streamSourceWire      `json:"stream_source,omitempty"`
 	FeatureViewSource *featureViewSourceWire `json:"feature_view_source,omitempty"`
+	SdpSource         *sdpSourceWire         `json:"sdp_source,omitempty"`
 	Lateness          *sourceLatenessWire    `json:"lateness,omitempty"`
 }
 
@@ -1045,6 +1046,7 @@ func dataSourceToWire(v *DataSource) (*dataSourceWire, error) {
 	var dataSourceRequestSourceWire *requestSourceWire
 	var dataSourceStreamSourceWire *streamSourceWire
 	var dataSourceFeatureViewSourceWire *featureViewSourceWire
+	var dataSourceSdpSourceWire *sdpSourceWire
 	switch value := v.DataSource.(type) {
 	case nil:
 	case *DataSource_DataSource_DeltaTableSource:
@@ -1087,6 +1089,14 @@ func dataSourceToWire(v *DataSource) (*dataSourceWire, error) {
 			}
 			dataSourceFeatureViewSourceWire = dataSourceFeatureViewSourceConverted
 		}
+	case *DataSource_DataSource_SdpSource:
+		if value != nil {
+			dataSourceSdpSourceConverted, err := sdpSourceToWire(&value.SdpSource)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "DataSource.DataSource.SdpSource", err)
+			}
+			dataSourceSdpSourceWire = dataSourceSdpSourceConverted
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "DataSource.DataSource", value)
 	}
@@ -1096,6 +1106,7 @@ func dataSourceToWire(v *DataSource) (*dataSourceWire, error) {
 		RequestSource:     dataSourceRequestSourceWire,
 		StreamSource:      dataSourceStreamSourceWire,
 		FeatureViewSource: dataSourceFeatureViewSourceWire,
+		SdpSource:         dataSourceSdpSourceWire,
 		Lateness:          latenessWireValue,
 	}, nil
 }
@@ -1118,6 +1129,9 @@ func dataSourceFromWire(w *dataSourceWire) (*DataSource, error) {
 		dataSourceMembers++
 	}
 	if w.FeatureViewSource != nil {
+		dataSourceMembers++
+	}
+	if w.SdpSource != nil {
 		dataSourceMembers++
 	}
 	if dataSourceMembers > 1 {
@@ -1159,6 +1173,12 @@ func dataSourceFromWire(w *dataSourceWire) (*DataSource, error) {
 			return nil, fmt.Errorf("%s: %w", "DataSource.DataSource.FeatureViewSource", err)
 		}
 		dataSourceSelection = &DataSource_DataSource_FeatureViewSource{FeatureViewSource: *dataSourceFeatureViewSourceConverted}
+	case w.SdpSource != nil:
+		dataSourceSdpSourceConverted, err := sdpSourceFromWire(w.SdpSource)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "DataSource.DataSource.SdpSource", err)
+		}
+		dataSourceSelection = &DataSource_DataSource_SdpSource{SdpSource: *dataSourceSdpSourceConverted}
 	}
 	return &DataSource{
 		Lateness:   latenessPublicValue,
@@ -3467,6 +3487,46 @@ func schemaRegistryConfigFromWire(w *schemaRegistryConfigWire) (*SchemaRegistryC
 		ApiSecretRef:         apiSecretRefPublicValue,
 		PayloadSchemaLocator: payloadSchemaLocatorPublicValue,
 		KeySchemaLocator:     keySchemaLocatorPublicValue,
+	}, nil
+}
+
+type sdpSourceWire struct {
+	PipelineId        *string        `json:"pipeline_id,omitempty"`
+	OutputTable       *string        `json:"output_table,omitempty"`
+	InputTables       []string       `json:"input_tables,omitempty"`
+	PipelineState     SdpSourceState `json:"pipeline_state,omitempty"`
+	FilterCondition   *string        `json:"filter_condition,omitempty"`
+	TransformationSql *string        `json:"transformation_sql,omitempty"`
+	DataframeSchema   *string        `json:"dataframe_schema,omitempty"`
+}
+
+func sdpSourceToWire(v *SdpSource) (*sdpSourceWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &sdpSourceWire{
+		PipelineId:        v.PipelineId,
+		OutputTable:       v.OutputTable,
+		InputTables:       v.InputTables,
+		PipelineState:     v.PipelineState,
+		FilterCondition:   v.FilterCondition,
+		TransformationSql: v.TransformationSql,
+		DataframeSchema:   v.DataframeSchema,
+	}, nil
+}
+
+func sdpSourceFromWire(w *sdpSourceWire) (*SdpSource, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SdpSource{
+		PipelineId:        w.PipelineId,
+		OutputTable:       w.OutputTable,
+		InputTables:       w.InputTables,
+		PipelineState:     w.PipelineState,
+		FilterCondition:   w.FilterCondition,
+		TransformationSql: w.TransformationSql,
+		DataframeSchema:   w.DataframeSchema,
 	}, nil
 }
 

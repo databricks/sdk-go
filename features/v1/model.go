@@ -443,6 +443,25 @@ const (
 	ScalarDataType_Decimal     ScalarDataType = "DECIMAL"
 )
 
+// State of the SDP source relative to pipeline execution and output table
+// validation.
+type SdpSourceState string
+
+const (
+	SdpSourceState_Unspecified SdpSourceState = ""
+	// The pipeline has not run yet, so the output table does not exist. Feature
+	// Store will check the output table's columns and validate pipeline inputs
+	// after the pipeline first executes.
+	SdpSourceState_Pending SdpSourceState = "PENDING"
+	// The pipeline has executed successfully. The output table exists and its
+	// columns have been validated. The pipeline reads from the specified input
+	// tables.
+	SdpSourceState_Resolved SdpSourceState = "RESOLVED"
+	// The pipeline execution failed, or output table validation failed. The feature
+	// requires manual intervention or pipeline rerun to resolve.
+	SdpSourceState_Error SdpSourceState = "ERROR"
+)
+
 // Lifecycle state of a backfill.
 type BackfillOperationMetadata_State string
 
@@ -934,6 +953,7 @@ type CustomUdf struct {
 // Specifies the data source backing a feature. Exactly one source type must be
 // set..
 type DataSource struct {
+	// (-- Next ID: 8. --)
 	DataSource isDataSource_DataSource
 	// Completeness timing for this Feature's use of the source. This configuration
 	// is part of the Feature definition; it does not modify the underlying table or
@@ -986,12 +1006,21 @@ type DataSource_DataSource_FeatureViewSource struct {
 
 func (*DataSource_DataSource_FeatureViewSource) isDataSource_DataSource() {}
 
+// DataSource_DataSource_SdpSource selects SdpSource for DataSource.DataSource.
+// A Spark Declarative Pipeline data source.
+type DataSource_DataSource_SdpSource struct {
+	SdpSource SdpSource `fieldmask:"sdp_source"`
+}
+
+func (*DataSource_DataSource_SdpSource) isDataSource_DataSource() {}
+
 type dataSourceDataSourceFieldMaskMetadata struct {
 	*DataSource_DataSource_DeltaTableSource
 	*DataSource_DataSource_KafkaSource
 	*DataSource_DataSource_RequestSource
 	*DataSource_DataSource_StreamSource
 	*DataSource_DataSource_FeatureViewSource
+	*DataSource_DataSource_SdpSource
 }
 
 type DeleteFeatureRequest struct {
@@ -2127,6 +2156,46 @@ type SchemaRegistryConfig struct {
 	// Schema locator for the message key. Only used for Kafka streams. At least one
 	// of payload_schema_locator or key_schema_locator must be set.
 	KeySchemaLocator *SchemaLocator `fieldmask:"key_schema_locator"`
+}
+
+// A Spark Declarative Pipeline (SDP) data source..
+type SdpSource struct {
+	// The ID of the Spark Declarative Pipeline that Feature Store runs to produce
+	// this source, before each materialization or backfill. The pipeline must
+	// already exist when the feature is created, and you need CAN_RUN, CAN_MANAGE,
+	// or owner permission on it. It doesn't need to have run yet. Deleting the
+	// feature doesn't delete the pipeline. If the pipeline is deleted, this field
+	// reads back empty. Required.
+	PipelineId *string `fieldmask:"pipeline_id"`
+	// The full three-part (catalog, schema, table) name of the pipeline's output
+	// table to read from. The table doesn't need to exist until the pipeline first
+	// runs. Required.
+	OutputTable *string `fieldmask:"output_table"`
+	// The full three-part names of the tables the pipeline reads from. Required to
+	// materialize this feature with a TableTrigger, which starts a run when these
+	// tables update. Each table must exist when the feature is created. After the
+	// pipeline runs, Feature Store checks that it reads from these tables, and the
+	// run fails if it doesn't. At most 100 tables.
+	InputTables []string `fieldmask:"input_tables"`
+	// State tracking pipeline execution and output table validation. PENDING until
+	// the pipeline has run at least once and created the output table; then
+	// RESOLVED on success, or ERROR on failure.
+	PipelineState SdpSourceState `fieldmask:"pipeline_state"`
+	// Single WHERE clause to filter the pipeline's output table before applying
+	// transformations. Will be row-wise evaluated, so should only include
+	// conditionals and projections.
+	FilterCondition *string `fieldmask:"filter_condition"`
+	// A single SQL SELECT expression applied after filter_condition. Should contain
+	// all the columns needed (eg. "SELECT *, col_a + col_b AS col_c FROM x.y.z
+	// WHERE col_a > 0" would have `transformation_sql` "*, col_a + col_b AS col_c")
+	// If transformation_sql is not provided, all columns of the pipeline's output
+	// table are present in the DataSource dataframe.
+	TransformationSql *string `fieldmask:"transformation_sql"`
+	// Schema of the resulting dataframe after transformations, in Spark StructType
+	// JSON format (from df.schema.json()). Required if transformation_sql is
+	// specified. Example:
+	// {"type":"struct","fields":[{"name":"col_a","type":"integer","nullable":true,"metadata":{}},{"name":"col_c","type":"integer","nullable":true,"metadata":{}}]}
+	DataframeSchema *string `fieldmask:"dataframe_schema"`
 }
 
 // Reference to an entry in a <Databricks> secret scope..

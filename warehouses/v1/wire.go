@@ -107,20 +107,23 @@ func createDefaultWarehouseOverrideRequestToWire(v *CreateDefaultWarehouseOverri
 }
 
 type createWarehouseRequestWire struct {
-	Name                    *string                    `json:"name,omitempty"`
-	ClusterSize             *string                    `json:"cluster_size,omitempty"`
-	MinNumClusters          *int                       `json:"min_num_clusters,omitempty"`
-	MaxNumClusters          *int                       `json:"max_num_clusters,omitempty"`
-	AutoStopMins            *int                       `json:"auto_stop_mins,omitempty"`
-	CreatorName             *string                    `json:"creator_name,omitempty"`
-	InstanceProfileArn      *string                    `json:"instance_profile_arn,omitempty"`
-	Tags                    *endpointTagsWire          `json:"tags,omitempty"`
-	SpotInstancePolicy      EndpointSpotInstancePolicy `json:"spot_instance_policy,omitempty"`
-	EnablePhoton            *bool                      `json:"enable_photon,omitempty"`
-	Channel                 *channelWire               `json:"channel,omitempty"`
-	EnableServerlessCompute *bool                      `json:"enable_serverless_compute,omitempty"`
-	WarehouseType           WarehouseType              `json:"warehouse_type,omitempty"`
-	StatementTimeout        *int                       `json:"statement_timeout,omitempty"`
+	Name                        *string                    `json:"name,omitempty"`
+	ClusterSize                 *string                    `json:"cluster_size,omitempty"`
+	MinNumClusters              *int                       `json:"min_num_clusters,omitempty"`
+	MaxNumClusters              *int                       `json:"max_num_clusters,omitempty"`
+	AutoStopMins                *int                       `json:"auto_stop_mins,omitempty"`
+	CreatorName                 *string                    `json:"creator_name,omitempty"`
+	InstanceProfileArn          *string                    `json:"instance_profile_arn,omitempty"`
+	Tags                        *endpointTagsWire          `json:"tags,omitempty"`
+	SpotInstancePolicy          EndpointSpotInstancePolicy `json:"spot_instance_policy,omitempty"`
+	EnablePhoton                *bool                      `json:"enable_photon,omitempty"`
+	Channel                     *channelWire               `json:"channel,omitempty"`
+	EnableServerlessCompute     *bool                      `json:"enable_serverless_compute,omitempty"`
+	WarehouseType               WarehouseType              `json:"warehouse_type,omitempty"`
+	StatementTimeout            *int                       `json:"statement_timeout,omitempty"`
+	ReydenClusterSizeMultiplier *float64                   `json:"reyden_cluster_size_multiplier,omitempty"`
+	CustomerVersionLabel        *string                    `json:"customer_version_label,omitempty"`
+	MaxDbu                      *int                       `json:"max_dbu,omitempty"`
 }
 
 func createWarehouseRequestToWire(v *CreateWarehouseRequest) (*createWarehouseRequestWire, error) {
@@ -136,20 +139,23 @@ func createWarehouseRequestToWire(v *CreateWarehouseRequest) (*createWarehouseRe
 		return nil, fmt.Errorf("%s: %w", "CreateWarehouseRequest.Channel", err)
 	}
 	return &createWarehouseRequestWire{
-		Name:                    v.Name,
-		ClusterSize:             v.ClusterSize,
-		MinNumClusters:          v.MinNumClusters,
-		MaxNumClusters:          v.MaxNumClusters,
-		AutoStopMins:            v.AutoStopMins,
-		CreatorName:             v.CreatorName,
-		InstanceProfileArn:      v.InstanceProfileArn,
-		Tags:                    tagsWireValue,
-		SpotInstancePolicy:      v.SpotInstancePolicy,
-		EnablePhoton:            v.EnablePhoton,
-		Channel:                 channelWireValue,
-		EnableServerlessCompute: v.EnableServerlessCompute,
-		WarehouseType:           v.WarehouseType,
-		StatementTimeout:        v.StatementTimeout,
+		Name:                        v.Name,
+		ClusterSize:                 v.ClusterSize,
+		MinNumClusters:              v.MinNumClusters,
+		MaxNumClusters:              v.MaxNumClusters,
+		AutoStopMins:                v.AutoStopMins,
+		CreatorName:                 v.CreatorName,
+		InstanceProfileArn:          v.InstanceProfileArn,
+		Tags:                        tagsWireValue,
+		SpotInstancePolicy:          v.SpotInstancePolicy,
+		EnablePhoton:                v.EnablePhoton,
+		Channel:                     channelWireValue,
+		EnableServerlessCompute:     v.EnableServerlessCompute,
+		WarehouseType:               v.WarehouseType,
+		StatementTimeout:            v.StatementTimeout,
+		ReydenClusterSizeMultiplier: v.ReydenClusterSizeMultiplier,
+		CustomerVersionLabel:        v.CustomerVersionLabel,
+		MaxDbu:                      v.MaxDbu,
 	}, nil
 }
 
@@ -198,21 +204,24 @@ func defaultWarehouseOverrideFromWire(w *defaultWarehouseOverrideWire) (*Default
 }
 
 type editWarehouseRequestWire struct {
-	Id                      *string                    `json:"id,omitempty"`
-	Name                    *string                    `json:"name,omitempty"`
-	ClusterSize             *string                    `json:"cluster_size,omitempty"`
-	MinNumClusters          *int                       `json:"min_num_clusters,omitempty"`
-	MaxNumClusters          *int                       `json:"max_num_clusters,omitempty"`
-	AutoStopMins            *int                       `json:"auto_stop_mins,omitempty"`
-	CreatorName             *string                    `json:"creator_name,omitempty"`
-	InstanceProfileArn      *string                    `json:"instance_profile_arn,omitempty"`
-	Tags                    *endpointTagsWire          `json:"tags,omitempty"`
-	SpotInstancePolicy      EndpointSpotInstancePolicy `json:"spot_instance_policy,omitempty"`
-	EnablePhoton            *bool                      `json:"enable_photon,omitempty"`
-	Channel                 *channelWire               `json:"channel,omitempty"`
-	EnableServerlessCompute *bool                      `json:"enable_serverless_compute,omitempty"`
-	WarehouseType           WarehouseType              `json:"warehouse_type,omitempty"`
-	StatementTimeout        *int                       `json:"statement_timeout,omitempty"`
+	Id                          *string                    `json:"id,omitempty"`
+	Name                        *string                    `json:"name,omitempty"`
+	ClusterSize                 *string                    `json:"cluster_size,omitempty"`
+	MinNumClusters              *int                       `json:"min_num_clusters,omitempty"`
+	MaxNumClusters              *int                       `json:"max_num_clusters,omitempty"`
+	AutoStopMins                *int                       `json:"auto_stop_mins,omitempty"`
+	CreatorName                 *string                    `json:"creator_name,omitempty"`
+	InstanceProfileArn          *string                    `json:"instance_profile_arn,omitempty"`
+	Tags                        *endpointTagsWire          `json:"tags,omitempty"`
+	SpotInstancePolicy          EndpointSpotInstancePolicy `json:"spot_instance_policy,omitempty"`
+	EnablePhoton                *bool                      `json:"enable_photon,omitempty"`
+	Channel                     *channelWire               `json:"channel,omitempty"`
+	EnableServerlessCompute     *bool                      `json:"enable_serverless_compute,omitempty"`
+	WarehouseType               WarehouseType              `json:"warehouse_type,omitempty"`
+	StatementTimeout            *int                       `json:"statement_timeout,omitempty"`
+	ReydenClusterSizeMultiplier *float64                   `json:"reyden_cluster_size_multiplier,omitempty"`
+	CustomerVersionLabel        *string                    `json:"customer_version_label,omitempty"`
+	MaxDbu                      *int                       `json:"max_dbu,omitempty"`
 }
 
 func editWarehouseRequestToWire(v *EditWarehouseRequest) (*editWarehouseRequestWire, error) {
@@ -228,21 +237,24 @@ func editWarehouseRequestToWire(v *EditWarehouseRequest) (*editWarehouseRequestW
 		return nil, fmt.Errorf("%s: %w", "EditWarehouseRequest.Channel", err)
 	}
 	return &editWarehouseRequestWire{
-		Id:                      v.Id,
-		Name:                    v.Name,
-		ClusterSize:             v.ClusterSize,
-		MinNumClusters:          v.MinNumClusters,
-		MaxNumClusters:          v.MaxNumClusters,
-		AutoStopMins:            v.AutoStopMins,
-		CreatorName:             v.CreatorName,
-		InstanceProfileArn:      v.InstanceProfileArn,
-		Tags:                    tagsWireValue,
-		SpotInstancePolicy:      v.SpotInstancePolicy,
-		EnablePhoton:            v.EnablePhoton,
-		Channel:                 channelWireValue,
-		EnableServerlessCompute: v.EnableServerlessCompute,
-		WarehouseType:           v.WarehouseType,
-		StatementTimeout:        v.StatementTimeout,
+		Id:                          v.Id,
+		Name:                        v.Name,
+		ClusterSize:                 v.ClusterSize,
+		MinNumClusters:              v.MinNumClusters,
+		MaxNumClusters:              v.MaxNumClusters,
+		AutoStopMins:                v.AutoStopMins,
+		CreatorName:                 v.CreatorName,
+		InstanceProfileArn:          v.InstanceProfileArn,
+		Tags:                        tagsWireValue,
+		SpotInstancePolicy:          v.SpotInstancePolicy,
+		EnablePhoton:                v.EnablePhoton,
+		Channel:                     channelWireValue,
+		EnableServerlessCompute:     v.EnableServerlessCompute,
+		WarehouseType:               v.WarehouseType,
+		StatementTimeout:            v.StatementTimeout,
+		ReydenClusterSizeMultiplier: v.ReydenClusterSizeMultiplier,
+		CustomerVersionLabel:        v.CustomerVersionLabel,
+		MaxDbu:                      v.MaxDbu,
 	}, nil
 }
 
@@ -297,27 +309,30 @@ func endpointHealthFromWire(w *endpointHealthWire) (*EndpointHealth, error) {
 }
 
 type endpointInfoWire struct {
-	Id                      *string                    `json:"id,omitempty"`
-	Name                    *string                    `json:"name,omitempty"`
-	ClusterSize             *string                    `json:"cluster_size,omitempty"`
-	MinNumClusters          *int                       `json:"min_num_clusters,omitempty"`
-	MaxNumClusters          *int                       `json:"max_num_clusters,omitempty"`
-	AutoStopMins            *int                       `json:"auto_stop_mins,omitempty"`
-	CreatorName             *string                    `json:"creator_name,omitempty"`
-	InstanceProfileArn      *string                    `json:"instance_profile_arn,omitempty"`
-	Tags                    *endpointTagsWire          `json:"tags,omitempty"`
-	SpotInstancePolicy      EndpointSpotInstancePolicy `json:"spot_instance_policy,omitempty"`
-	EnablePhoton            *bool                      `json:"enable_photon,omitempty"`
-	Channel                 *channelWire               `json:"channel,omitempty"`
-	EnableServerlessCompute *bool                      `json:"enable_serverless_compute,omitempty"`
-	WarehouseType           WarehouseType              `json:"warehouse_type,omitempty"`
-	StatementTimeout        *int                       `json:"statement_timeout,omitempty"`
-	NumClusters             *int                       `json:"num_clusters,omitempty"`
-	NumActiveSessions       *wireInt64                 `json:"num_active_sessions,omitempty"`
-	State                   EndpointState              `json:"state,omitempty"`
-	JdbcUrl                 *string                    `json:"jdbc_url,omitempty"`
-	OdbcParams              *odbcParamsWire            `json:"odbc_params,omitempty"`
-	Health                  *endpointHealthWire        `json:"health,omitempty"`
+	Id                          *string                    `json:"id,omitempty"`
+	Name                        *string                    `json:"name,omitempty"`
+	ClusterSize                 *string                    `json:"cluster_size,omitempty"`
+	MinNumClusters              *int                       `json:"min_num_clusters,omitempty"`
+	MaxNumClusters              *int                       `json:"max_num_clusters,omitempty"`
+	AutoStopMins                *int                       `json:"auto_stop_mins,omitempty"`
+	CreatorName                 *string                    `json:"creator_name,omitempty"`
+	InstanceProfileArn          *string                    `json:"instance_profile_arn,omitempty"`
+	Tags                        *endpointTagsWire          `json:"tags,omitempty"`
+	SpotInstancePolicy          EndpointSpotInstancePolicy `json:"spot_instance_policy,omitempty"`
+	EnablePhoton                *bool                      `json:"enable_photon,omitempty"`
+	Channel                     *channelWire               `json:"channel,omitempty"`
+	EnableServerlessCompute     *bool                      `json:"enable_serverless_compute,omitempty"`
+	WarehouseType               WarehouseType              `json:"warehouse_type,omitempty"`
+	StatementTimeout            *int                       `json:"statement_timeout,omitempty"`
+	ReydenClusterSizeMultiplier *float64                   `json:"reyden_cluster_size_multiplier,omitempty"`
+	CustomerVersionLabel        *string                    `json:"customer_version_label,omitempty"`
+	MaxDbu                      *int                       `json:"max_dbu,omitempty"`
+	NumClusters                 *int                       `json:"num_clusters,omitempty"`
+	NumActiveSessions           *wireInt64                 `json:"num_active_sessions,omitempty"`
+	State                       EndpointState              `json:"state,omitempty"`
+	JdbcUrl                     *string                    `json:"jdbc_url,omitempty"`
+	OdbcParams                  *odbcParamsWire            `json:"odbc_params,omitempty"`
+	Health                      *endpointHealthWire        `json:"health,omitempty"`
 }
 
 func endpointInfoFromWire(w *endpointInfoWire) (*EndpointInfo, error) {
@@ -345,27 +360,30 @@ func endpointInfoFromWire(w *endpointInfoWire) (*EndpointInfo, error) {
 		return nil, fmt.Errorf("%s: %w", "EndpointInfo.Health", err)
 	}
 	return &EndpointInfo{
-		Id:                      w.Id,
-		Name:                    w.Name,
-		ClusterSize:             w.ClusterSize,
-		MinNumClusters:          w.MinNumClusters,
-		MaxNumClusters:          w.MaxNumClusters,
-		AutoStopMins:            w.AutoStopMins,
-		CreatorName:             w.CreatorName,
-		InstanceProfileArn:      w.InstanceProfileArn,
-		Tags:                    tagsPublicValue,
-		SpotInstancePolicy:      w.SpotInstancePolicy,
-		EnablePhoton:            w.EnablePhoton,
-		Channel:                 channelPublicValue,
-		EnableServerlessCompute: w.EnableServerlessCompute,
-		WarehouseType:           w.WarehouseType,
-		StatementTimeout:        w.StatementTimeout,
-		NumClusters:             w.NumClusters,
-		NumActiveSessions:       numActiveSessionsPublicValue,
-		State:                   w.State,
-		JdbcUrl:                 w.JdbcUrl,
-		OdbcParams:              odbcParamsPublicValue,
-		Health:                  healthPublicValue,
+		Id:                          w.Id,
+		Name:                        w.Name,
+		ClusterSize:                 w.ClusterSize,
+		MinNumClusters:              w.MinNumClusters,
+		MaxNumClusters:              w.MaxNumClusters,
+		AutoStopMins:                w.AutoStopMins,
+		CreatorName:                 w.CreatorName,
+		InstanceProfileArn:          w.InstanceProfileArn,
+		Tags:                        tagsPublicValue,
+		SpotInstancePolicy:          w.SpotInstancePolicy,
+		EnablePhoton:                w.EnablePhoton,
+		Channel:                     channelPublicValue,
+		EnableServerlessCompute:     w.EnableServerlessCompute,
+		WarehouseType:               w.WarehouseType,
+		StatementTimeout:            w.StatementTimeout,
+		ReydenClusterSizeMultiplier: w.ReydenClusterSizeMultiplier,
+		CustomerVersionLabel:        w.CustomerVersionLabel,
+		MaxDbu:                      w.MaxDbu,
+		NumClusters:                 w.NumClusters,
+		NumActiveSessions:           numActiveSessionsPublicValue,
+		State:                       w.State,
+		JdbcUrl:                     w.JdbcUrl,
+		OdbcParams:                  odbcParamsPublicValue,
+		Health:                      healthPublicValue,
 	}, nil
 }
 
@@ -425,27 +443,30 @@ func endpointTagsFromWire(w *endpointTagsWire) (*EndpointTags, error) {
 }
 
 type getWarehouseResponseWire struct {
-	Id                      *string                    `json:"id,omitempty"`
-	Name                    *string                    `json:"name,omitempty"`
-	ClusterSize             *string                    `json:"cluster_size,omitempty"`
-	MinNumClusters          *int                       `json:"min_num_clusters,omitempty"`
-	MaxNumClusters          *int                       `json:"max_num_clusters,omitempty"`
-	AutoStopMins            *int                       `json:"auto_stop_mins,omitempty"`
-	CreatorName             *string                    `json:"creator_name,omitempty"`
-	InstanceProfileArn      *string                    `json:"instance_profile_arn,omitempty"`
-	Tags                    *endpointTagsWire          `json:"tags,omitempty"`
-	SpotInstancePolicy      EndpointSpotInstancePolicy `json:"spot_instance_policy,omitempty"`
-	EnablePhoton            *bool                      `json:"enable_photon,omitempty"`
-	Channel                 *channelWire               `json:"channel,omitempty"`
-	EnableServerlessCompute *bool                      `json:"enable_serverless_compute,omitempty"`
-	WarehouseType           WarehouseType              `json:"warehouse_type,omitempty"`
-	StatementTimeout        *int                       `json:"statement_timeout,omitempty"`
-	NumClusters             *int                       `json:"num_clusters,omitempty"`
-	NumActiveSessions       *wireInt64                 `json:"num_active_sessions,omitempty"`
-	State                   EndpointState              `json:"state,omitempty"`
-	JdbcUrl                 *string                    `json:"jdbc_url,omitempty"`
-	OdbcParams              *odbcParamsWire            `json:"odbc_params,omitempty"`
-	Health                  *endpointHealthWire        `json:"health,omitempty"`
+	Id                          *string                    `json:"id,omitempty"`
+	Name                        *string                    `json:"name,omitempty"`
+	ClusterSize                 *string                    `json:"cluster_size,omitempty"`
+	MinNumClusters              *int                       `json:"min_num_clusters,omitempty"`
+	MaxNumClusters              *int                       `json:"max_num_clusters,omitempty"`
+	AutoStopMins                *int                       `json:"auto_stop_mins,omitempty"`
+	CreatorName                 *string                    `json:"creator_name,omitempty"`
+	InstanceProfileArn          *string                    `json:"instance_profile_arn,omitempty"`
+	Tags                        *endpointTagsWire          `json:"tags,omitempty"`
+	SpotInstancePolicy          EndpointSpotInstancePolicy `json:"spot_instance_policy,omitempty"`
+	EnablePhoton                *bool                      `json:"enable_photon,omitempty"`
+	Channel                     *channelWire               `json:"channel,omitempty"`
+	EnableServerlessCompute     *bool                      `json:"enable_serverless_compute,omitempty"`
+	WarehouseType               WarehouseType              `json:"warehouse_type,omitempty"`
+	StatementTimeout            *int                       `json:"statement_timeout,omitempty"`
+	ReydenClusterSizeMultiplier *float64                   `json:"reyden_cluster_size_multiplier,omitempty"`
+	CustomerVersionLabel        *string                    `json:"customer_version_label,omitempty"`
+	MaxDbu                      *int                       `json:"max_dbu,omitempty"`
+	NumClusters                 *int                       `json:"num_clusters,omitempty"`
+	NumActiveSessions           *wireInt64                 `json:"num_active_sessions,omitempty"`
+	State                       EndpointState              `json:"state,omitempty"`
+	JdbcUrl                     *string                    `json:"jdbc_url,omitempty"`
+	OdbcParams                  *odbcParamsWire            `json:"odbc_params,omitempty"`
+	Health                      *endpointHealthWire        `json:"health,omitempty"`
 }
 
 func getWarehouseResponseFromWire(w *getWarehouseResponseWire) (*GetWarehouseResponse, error) {
@@ -473,27 +494,30 @@ func getWarehouseResponseFromWire(w *getWarehouseResponseWire) (*GetWarehouseRes
 		return nil, fmt.Errorf("%s: %w", "GetWarehouseResponse.Health", err)
 	}
 	return &GetWarehouseResponse{
-		Id:                      w.Id,
-		Name:                    w.Name,
-		ClusterSize:             w.ClusterSize,
-		MinNumClusters:          w.MinNumClusters,
-		MaxNumClusters:          w.MaxNumClusters,
-		AutoStopMins:            w.AutoStopMins,
-		CreatorName:             w.CreatorName,
-		InstanceProfileArn:      w.InstanceProfileArn,
-		Tags:                    tagsPublicValue,
-		SpotInstancePolicy:      w.SpotInstancePolicy,
-		EnablePhoton:            w.EnablePhoton,
-		Channel:                 channelPublicValue,
-		EnableServerlessCompute: w.EnableServerlessCompute,
-		WarehouseType:           w.WarehouseType,
-		StatementTimeout:        w.StatementTimeout,
-		NumClusters:             w.NumClusters,
-		NumActiveSessions:       numActiveSessionsPublicValue,
-		State:                   w.State,
-		JdbcUrl:                 w.JdbcUrl,
-		OdbcParams:              odbcParamsPublicValue,
-		Health:                  healthPublicValue,
+		Id:                          w.Id,
+		Name:                        w.Name,
+		ClusterSize:                 w.ClusterSize,
+		MinNumClusters:              w.MinNumClusters,
+		MaxNumClusters:              w.MaxNumClusters,
+		AutoStopMins:                w.AutoStopMins,
+		CreatorName:                 w.CreatorName,
+		InstanceProfileArn:          w.InstanceProfileArn,
+		Tags:                        tagsPublicValue,
+		SpotInstancePolicy:          w.SpotInstancePolicy,
+		EnablePhoton:                w.EnablePhoton,
+		Channel:                     channelPublicValue,
+		EnableServerlessCompute:     w.EnableServerlessCompute,
+		WarehouseType:               w.WarehouseType,
+		StatementTimeout:            w.StatementTimeout,
+		ReydenClusterSizeMultiplier: w.ReydenClusterSizeMultiplier,
+		CustomerVersionLabel:        w.CustomerVersionLabel,
+		MaxDbu:                      w.MaxDbu,
+		NumClusters:                 w.NumClusters,
+		NumActiveSessions:           numActiveSessionsPublicValue,
+		State:                       w.State,
+		JdbcUrl:                     w.JdbcUrl,
+		OdbcParams:                  odbcParamsPublicValue,
+		Health:                      healthPublicValue,
 	}, nil
 }
 

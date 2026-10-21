@@ -712,6 +712,21 @@ type CreateWarehouseRequest struct {
 	WarehouseType WarehouseType
 	// Warehouse statement timeout in seconds.
 	StatementTimeout *int
+	// Cluster size multiplier for Reyden warehouses. Scales the effective compute
+	// capacity relative to the nominal virtual cluster size. Only meaningful when
+	// the warehouse is of Reyden type.
+	//
+	// Accepted range: 1.0 to the workspace-configured maximum (decimals allowed).
+	// The default maximum is 100.0. - Values below 1.0 are normalized to 1.0. -
+	// Values above the configured maximum are capped at that maximum. - When
+	// absent, the warehouse is treated as having a multiplier of 1.0.
+	ReydenClusterSizeMultiplier *float64
+	// Compute version label for a REALTIME warehouse. This field is output only.
+	CustomerVersionLabel *string
+	// Maximum compute capacity of a real-time SQL warehouse, in DBU per hour. Must
+	// be a multiple of 3 between 3 and 960. The effective maximum cannot be lower
+	// than the warehouse's minimum capacity.
+	MaxDbu *int
 }
 
 type CreateWarehouseResponse struct {
@@ -815,6 +830,21 @@ type EditWarehouseRequest struct {
 	WarehouseType WarehouseType
 	// Warehouse statement timeout in seconds.
 	StatementTimeout *int
+	// Cluster size multiplier for Reyden warehouses. Scales the effective compute
+	// capacity relative to the nominal virtual cluster size. Only meaningful when
+	// the warehouse is of Reyden type.
+	//
+	// Accepted range: 1.0 to the workspace-configured maximum (decimals allowed).
+	// The default maximum is 100.0. - Values below 1.0 are normalized to 1.0. -
+	// Values above the configured maximum are capped at that maximum. - When
+	// absent, the warehouse is treated as having a multiplier of 1.0.
+	ReydenClusterSizeMultiplier *float64
+	// Compute version label for a REALTIME warehouse. This field is output only.
+	CustomerVersionLabel *string
+	// Maximum compute capacity of a real-time SQL warehouse, in DBU per hour. Must
+	// be a multiple of 3 between 3 and 960. The effective maximum cannot be lower
+	// than the warehouse's minimum capacity.
+	MaxDbu *int
 }
 
 type EditWarehouseResponse struct {
@@ -902,6 +932,21 @@ type EndpointInfo struct {
 	WarehouseType WarehouseType
 	// Warehouse statement timeout in seconds.
 	StatementTimeout *int
+	// Cluster size multiplier for Reyden warehouses. Scales the effective compute
+	// capacity relative to the nominal virtual cluster size. Only meaningful when
+	// the warehouse is of Reyden type.
+	//
+	// Accepted range: 1.0 to the workspace-configured maximum (decimals allowed).
+	// The default maximum is 100.0. - Values below 1.0 are normalized to 1.0. -
+	// Values above the configured maximum are capped at that maximum. - When
+	// absent, the warehouse is treated as having a multiplier of 1.0.
+	ReydenClusterSizeMultiplier *float64
+	// Compute version label for a REALTIME warehouse. This field is output only.
+	CustomerVersionLabel *string
+	// Maximum compute capacity of a real-time SQL warehouse, in DBU per hour. Must
+	// be a multiple of 3 between 3 and 960. The effective maximum cannot be lower
+	// than the warehouse's minimum capacity.
+	MaxDbu *int
 	// current number of clusters running for the service
 	NumClusters *int
 	// Deprecated. current number of active sessions for the warehouse
@@ -1004,6 +1049,21 @@ type GetWarehouseResponse struct {
 	WarehouseType WarehouseType
 	// Warehouse statement timeout in seconds.
 	StatementTimeout *int
+	// Cluster size multiplier for Reyden warehouses. Scales the effective compute
+	// capacity relative to the nominal virtual cluster size. Only meaningful when
+	// the warehouse is of Reyden type.
+	//
+	// Accepted range: 1.0 to the workspace-configured maximum (decimals allowed).
+	// The default maximum is 100.0. - Values below 1.0 are normalized to 1.0. -
+	// Values above the configured maximum are capped at that maximum. - When
+	// absent, the warehouse is treated as having a multiplier of 1.0.
+	ReydenClusterSizeMultiplier *float64
+	// Compute version label for a REALTIME warehouse. This field is output only.
+	CustomerVersionLabel *string
+	// Maximum compute capacity of a real-time SQL warehouse, in DBU per hour. Must
+	// be a multiple of 3 between 3 and 960. The effective maximum cannot be lower
+	// than the warehouse's minimum capacity.
+	MaxDbu *int
 	// current number of clusters running for the service
 	NumClusters *int
 	// Deprecated. current number of active sessions for the warehouse
