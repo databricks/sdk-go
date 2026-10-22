@@ -88,6 +88,12 @@ const (
 	// being cleaned up; once cleanup completes the endpoint will no longer be
 	// retrievable.
 	EndpointStatus_State_Deleted EndpointStatus_State = "DELETED"
+	// Serving compute is being removed. Indexes and their data are retained.
+	EndpointStatus_State_Stopping EndpointStatus_State = "STOPPING"
+	// The endpoint has no serving compute. Start it to serve queries again.
+	EndpointStatus_State_Stopped EndpointStatus_State = "STOPPED"
+	// Serving compute is being restored; the endpoint becomes ONLINE when ready.
+	EndpointStatus_State_Starting EndpointStatus_State = "STARTING"
 )
 
 type ColumnInfo struct {
@@ -646,6 +652,16 @@ type ScanVectorIndexResponse struct {
 	Data []Struct
 	// Primary key of the last entry.
 	LastPrimaryKey *string
+}
+
+type StartEndpointRequest struct {
+	// Name of the AI Search endpoint
+	Name *string
+}
+
+type StopEndpointRequest struct {
+	// Name of the AI Search endpoint
+	Name *string
 }
 
 type Struct struct {

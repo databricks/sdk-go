@@ -465,8 +465,9 @@ func apiErrorFromWire(w *apiErrorWire) (*ApiError, error) {
 }
 
 type approxCountDistinctFunctionWire struct {
-	Input      *string  `json:"input,omitempty"`
-	RelativeSd *float64 `json:"relative_sd,omitempty"`
+	Input         *string  `json:"input,omitempty"`
+	RelativeSd    *float64 `json:"relative_sd,omitempty"`
+	RelativeError *float64 `json:"relative_error,omitempty"`
 }
 
 func approxCountDistinctFunctionToWire(v *ApproxCountDistinctFunction) (*approxCountDistinctFunctionWire, error) {
@@ -474,8 +475,9 @@ func approxCountDistinctFunctionToWire(v *ApproxCountDistinctFunction) (*approxC
 		return nil, nil
 	}
 	return &approxCountDistinctFunctionWire{
-		Input:      v.Input,
-		RelativeSd: v.RelativeSd,
+		Input:         v.Input,
+		RelativeSd:    v.RelativeSd,
+		RelativeError: v.RelativeError,
 	}, nil
 }
 
@@ -484,15 +486,17 @@ func approxCountDistinctFunctionFromWire(w *approxCountDistinctFunctionWire) (*A
 		return nil, nil
 	}
 	return &ApproxCountDistinctFunction{
-		Input:      w.Input,
-		RelativeSd: w.RelativeSd,
+		Input:         w.Input,
+		RelativeSd:    w.RelativeSd,
+		RelativeError: w.RelativeError,
 	}, nil
 }
 
 type approxPercentileFunctionWire struct {
-	Input      *string    `json:"input,omitempty"`
-	Percentile *float64   `json:"percentile,omitempty"`
-	Accuracy   *wireInt64 `json:"accuracy,omitempty"`
+	Input         *string    `json:"input,omitempty"`
+	Percentile    *float64   `json:"percentile,omitempty"`
+	Accuracy      *wireInt64 `json:"accuracy,omitempty"`
+	RelativeError *float64   `json:"relative_error,omitempty"`
 }
 
 func approxPercentileFunctionToWire(v *ApproxPercentileFunction) (*approxPercentileFunctionWire, error) {
@@ -504,9 +508,10 @@ func approxPercentileFunctionToWire(v *ApproxPercentileFunction) (*approxPercent
 		return nil, fmt.Errorf("%s: %w", "ApproxPercentileFunction.Accuracy", err)
 	}
 	return &approxPercentileFunctionWire{
-		Input:      v.Input,
-		Percentile: v.Percentile,
-		Accuracy:   accuracyWireValue,
+		Input:         v.Input,
+		Percentile:    v.Percentile,
+		Accuracy:      accuracyWireValue,
+		RelativeError: v.RelativeError,
 	}, nil
 }
 
@@ -519,9 +524,10 @@ func approxPercentileFunctionFromWire(w *approxPercentileFunctionWire) (*ApproxP
 		return nil, fmt.Errorf("%s: %w", "ApproxPercentileFunction.Accuracy", err)
 	}
 	return &ApproxPercentileFunction{
-		Input:      w.Input,
-		Percentile: w.Percentile,
-		Accuracy:   accuracyPublicValue,
+		Input:         w.Input,
+		Percentile:    w.Percentile,
+		Accuracy:      accuracyPublicValue,
+		RelativeError: w.RelativeError,
 	}, nil
 }
 
@@ -4144,20 +4150,31 @@ func sumFunctionFromWire(w *sumFunctionWire) (*SumFunction, error) {
 }
 
 type tableTriggerWire struct {
+	MinTimeBetweenTriggers *types.Duration                    `json:"min_time_between_triggers,omitempty"`
+	WaitAfterLastChange    *types.Duration                    `json:"wait_after_last_change,omitempty"`
+	Condition              TableTrigger_TableTriggerCondition `json:"condition,omitempty"`
 }
 
 func tableTriggerToWire(v *TableTrigger) (*tableTriggerWire, error) {
 	if v == nil {
 		return nil, nil
 	}
-	return &tableTriggerWire{}, nil
+	return &tableTriggerWire{
+		MinTimeBetweenTriggers: v.MinTimeBetweenTriggers,
+		WaitAfterLastChange:    v.WaitAfterLastChange,
+		Condition:              v.Condition,
+	}, nil
 }
 
 func tableTriggerFromWire(w *tableTriggerWire) (*TableTrigger, error) {
 	if w == nil {
 		return nil, nil
 	}
-	return &TableTrigger{}, nil
+	return &TableTrigger{
+		MinTimeBetweenTriggers: w.MinTimeBetweenTriggers,
+		WaitAfterLastChange:    w.WaitAfterLastChange,
+		Condition:              w.Condition,
+	}, nil
 }
 
 type timeWindowWire struct {

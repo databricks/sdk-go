@@ -1480,7 +1480,7 @@ func (c *internalClient) ListModelProviderServicesIter(ctx context.Context, req 
 //
 // Requires `USE_CATALOG` on the parent catalog and `USE_SCHEMA` on the parent
 // schema. Only model services the caller can access (as owner or through
-// `EXECUTE`, `READ_METADATA`, or `MANAGE`) are returned.
+// `EXECUTE`, `READ_METADATA`, or `MANAGE`) are returned by default.
 func (c *internalClient) ListModelServices(ctx context.Context, req ListModelServicesRequest, opts ...call.Option) (*ListModelServicesResponse, error) {
 	wireReq, err := listModelServicesRequestToWire(&req)
 	if err != nil {

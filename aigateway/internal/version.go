@@ -2,4 +2,4 @@ package internal
 
 const ModuleName = "sdk-go-aigateway"
 
-const Version = "0.11.0"
+const Version = "0.12.0"

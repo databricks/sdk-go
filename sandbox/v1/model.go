@@ -106,9 +106,10 @@ type DeleteSandboxRequest struct {
 }
 
 type EnvironmentSpec struct {
-	// A Unity Catalog container artifact (e.g. `catalog.schema.folder.image:tag`)
-	// to run as the sandbox environment. When set, this image is used as the
-	// environment instead of resolving a managed image from `environment_version`.
+	// The Unity Catalog container image to use for the sandbox environment (for
+	// example, `catalog.schema.folder.image:tag`). See [Artifact Registry].
+	//
+	// [Artifact Registry]: https://docs.databricks.com/en/artifact-registry/
 	ImageUri *string `fieldmask:"image_uri"`
 }
 

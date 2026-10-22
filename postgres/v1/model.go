@@ -2339,8 +2339,7 @@ type SyncedTable struct {
 	// The Unity Catalog table ID for this synced table.
 	Uid *string
 	// Configuration details of the synced table, such as the source table,
-	// scheduling policy, etc. This attribute is specified at creation time and most
-	// fields are returned as is on subsequent queries.
+	// scheduling policy, etc.
 	Spec *SyncedTable_SyncedTableSpec
 	// Synced Table data synchronization status.
 	Status     *SyncedTable_SyncedTableStatus

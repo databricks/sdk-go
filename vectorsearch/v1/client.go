@@ -1273,6 +1273,155 @@ func (c *internalClient) ScanVectorIndex(ctx context.Context, req ScanVectorInde
 	return resp, nil
 }
 
+// Start a stopped endpoint. The endpoint serves the same indexes it had when it
+// stopped.
+func (c *internalClient) StartEndpoint(ctx context.Context, req StartEndpointRequest, opts ...call.Option) (*Endpoint, error) {
+	wireReq, err := startEndpointRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/vector-search/endpoints/")
+	if req.Name == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	pb.literal("/start")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Endpoint
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp endpointWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = endpointFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Stop an endpoint. Stopping removes the endpoint's serving compute and retains
+// its indexes. A stopped endpoint can't serve queries or sync indexes until it
+// is started.
+func (c *internalClient) StopEndpoint(ctx context.Context, req StopEndpointRequest, opts ...call.Option) (*Endpoint, error) {
+	wireReq, err := stopEndpointRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/vector-search/endpoints/")
+	if req.Name == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	pb.literal("/stop")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Endpoint
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp endpointWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = endpointFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Triggers a synchronization process for a specified vector index.
 func (c *internalClient) SyncVectorIndex(ctx context.Context, req SyncVectorIndexRequest, opts ...call.Option) (*SyncVectorIndexResponse, error) {
 	wireReq, err := syncVectorIndexRequestToWire(&req)

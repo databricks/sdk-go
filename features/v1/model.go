@@ -561,6 +561,17 @@ const (
 	StreamingMode_StreamingModeType_StreamingModeTypeMbm StreamingMode_StreamingModeType = "STREAMING_MODE_TYPE_MBM"
 )
 
+// Which source table updates trigger a materialization run.
+type TableTrigger_TableTriggerCondition string
+
+const (
+	TableTrigger_TableTriggerCondition_Unspecified TableTrigger_TableTriggerCondition = ""
+	// Fire when any source table updates.
+	TableTrigger_TableTriggerCondition_TableTriggerConditionAnyUpdated TableTrigger_TableTriggerCondition = "TABLE_TRIGGER_CONDITION_ANY_UPDATED"
+	// Fire only once every source table has updated.
+	TableTrigger_TableTriggerCondition_TableTriggerConditionAllUpdated TableTrigger_TableTriggerCondition = "TABLE_TRIGGER_CONDITION_ALL_UPDATED"
+)
+
 // An aggregation function applied over a time window..
 type AggregationFunction struct {
 	// The type of the aggregation function.
@@ -727,7 +738,18 @@ type ApproxCountDistinctFunction struct {
 	// computed.
 	Input *string `fieldmask:"input"`
 	// The maximum relative standard deviation allowed (default defined by Spark).
+	// Deprecated: use relative_error. When relative_error is set, reads return the
+	// same value here for clients that don't have relative_error, and a request may
+	// only send that value.
 	RelativeSd *float64 `fieldmask:"relative_sd"`
+	// The error the user accepts, as a fraction of the count, between 0.02 (by
+	// default) and 0.3. This is one standard error of the estimate, the same
+	// meaning as Spark's relativeSD: 0.02 means the result is within ±2% of the
+	// true count about 68% of the time (one standard deviation covers 68% of the
+	// region). Feature Store picks the sketch size that gives this relative error.
+	// If neither relative_error nor relative_sd is set, 0.02 is default chosen at
+	// feature creation.
+	RelativeError *float64 `fieldmask:"relative_error"`
 }
 
 // Computes the approximate percentile of values..
@@ -736,8 +758,18 @@ type ApproxPercentileFunction struct {
 	Input *string `fieldmask:"input"`
 	// The percentile value to compute (between 0 and 1).
 	Percentile *float64 `fieldmask:"percentile"`
-	// The accuracy parameter (higher is more accurate but slower).
+	// The accuracy parameter (higher is more accurate but slower). Deprecated: use
+	// relative_error. When relative_error is set, reads return ceil(1 /
+	// relative_error) here for clients that don't have relative_error, and a
+	// request may only send that value.
 	Accuracy *int64 `fieldmask:"accuracy"`
+	// The error the user accepts, as a fraction of rank, between 0.01 (by default)
+	// and 0.3. The result is within this rank error with 99% confidence: at 0.01,
+	// the value returned for p95 is between the true p94 and p96 at least 99% of
+	// the time. Feature Store picks the sketch size that gives this error. If
+	// neither relative_error nor accuracy is set, 0.01 is default chosen at feature
+	// creation.
+	RelativeError *float64 `fieldmask:"relative_error"`
 }
 
 type AuthConfig struct {
@@ -2494,8 +2526,22 @@ type SumFunction struct {
 	Input *string `fieldmask:"input"`
 }
 
-// A trigger that fires when the upstream source table changes..
+// A trigger that fires when the feature's source table changes: a
+// DeltaTableSource's table, or an SdpSource's input_tables..
 type TableTrigger struct {
+	// The minimum time between two triggered runs, so a frequently updated source
+	// table does not trigger runs too often. If not set, a feature with a sliding
+	// window uses half its slide_duration and a feature with a tumbling window uses
+	// half its window_duration, clamped to between 5 minutes and 1 hour. Other
+	// features have no minimum.
+	MinTimeBetweenTriggers *types.Duration `fieldmask:"min_time_between_triggers"`
+	// How long the source table must go without updates before a run starts, so a
+	// series of updates settles before the run. If not set, a run starts as soon as
+	// the source table updates.
+	WaitAfterLastChange *types.Duration `fieldmask:"wait_after_last_change"`
+	// Which source table updates trigger a materialization run. If not set, any
+	// source table update triggers a run.
+	Condition TableTrigger_TableTriggerCondition `fieldmask:"condition"`
 }
 
 type TimeWindow struct {
