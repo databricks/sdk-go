@@ -147,6 +147,7 @@ type budgetConfigurationWire struct {
 	AlertConfigurations   []alertConfigurationWire       `json:"alert_configurations,omitempty"`
 	Filter                *budgetConfigurationFilterWire `json:"filter,omitempty"`
 	DisplayName           *string                        `json:"display_name,omitempty"`
+	IncludeExternalSpend  *bool                          `json:"include_external_spend,omitempty"`
 	ResourceType          BudgetResourceType             `json:"resource_type,omitempty"`
 }
 
@@ -178,6 +179,7 @@ func budgetConfigurationFromWire(w *budgetConfigurationWire) (*BudgetConfigurati
 		AlertConfigurations:   alertConfigurationsPublicValue,
 		Filter:                filterPublicValue,
 		DisplayName:           w.DisplayName,
+		IncludeExternalSpend:  w.IncludeExternalSpend,
 		ResourceType:          w.ResourceType,
 	}, nil
 }
@@ -315,11 +317,12 @@ func budgetConfigurationFilter_WorkspaceIdClauseFromWire(w *budgetConfigurationF
 }
 
 type createBudgetConfigurationBudgetWire struct {
-	AccountId           *string                                                  `json:"account_id,omitempty"`
-	AlertConfigurations []createBudgetConfigurationBudgetAlertConfigurationsWire `json:"alert_configurations,omitempty"`
-	Filter              *budgetConfigurationFilterWire                           `json:"filter,omitempty"`
-	DisplayName         *string                                                  `json:"display_name,omitempty"`
-	ResourceType        BudgetResourceType                                       `json:"resource_type,omitempty"`
+	AccountId            *string                                                  `json:"account_id,omitempty"`
+	AlertConfigurations  []createBudgetConfigurationBudgetAlertConfigurationsWire `json:"alert_configurations,omitempty"`
+	Filter               *budgetConfigurationFilterWire                           `json:"filter,omitempty"`
+	DisplayName          *string                                                  `json:"display_name,omitempty"`
+	IncludeExternalSpend *bool                                                    `json:"include_external_spend,omitempty"`
+	ResourceType         BudgetResourceType                                       `json:"resource_type,omitempty"`
 }
 
 func createBudgetConfigurationBudgetToWire(v *CreateBudgetConfigurationBudget) (*createBudgetConfigurationBudgetWire, error) {
@@ -335,11 +338,12 @@ func createBudgetConfigurationBudgetToWire(v *CreateBudgetConfigurationBudget) (
 		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationBudget.Filter", err)
 	}
 	return &createBudgetConfigurationBudgetWire{
-		AccountId:           v.AccountId,
-		AlertConfigurations: alertConfigurationsWireValue,
-		Filter:              filterWireValue,
-		DisplayName:         v.DisplayName,
-		ResourceType:        v.ResourceType,
+		AccountId:            v.AccountId,
+		AlertConfigurations:  alertConfigurationsWireValue,
+		Filter:               filterWireValue,
+		DisplayName:          v.DisplayName,
+		IncludeExternalSpend: v.IncludeExternalSpend,
+		ResourceType:         v.ResourceType,
 	}, nil
 }
 
@@ -515,6 +519,7 @@ type updateBudgetConfigurationBudgetWire struct {
 	AlertConfigurations   []alertConfigurationWire       `json:"alert_configurations,omitempty"`
 	Filter                *budgetConfigurationFilterWire `json:"filter,omitempty"`
 	DisplayName           *string                        `json:"display_name,omitempty"`
+	IncludeExternalSpend  *bool                          `json:"include_external_spend,omitempty"`
 	ResourceType          BudgetResourceType             `json:"resource_type,omitempty"`
 }
 
@@ -536,6 +541,7 @@ func updateBudgetConfigurationBudgetToWire(v *UpdateBudgetConfigurationBudget) (
 		AlertConfigurations:   alertConfigurationsWireValue,
 		Filter:                filterWireValue,
 		DisplayName:           v.DisplayName,
+		IncludeExternalSpend:  v.IncludeExternalSpend,
 		ResourceType:          v.ResourceType,
 	}, nil
 }

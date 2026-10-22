@@ -1012,7 +1012,9 @@ type IngressNetworkPolicy struct {
 	PublicAccess *IngressNetworkPolicy_PublicAccess
 	// The network policy restrictions for private access. Configures how requests
 	// arriving over private connectivity are governed.
-	PrivateAccess        *IngressNetworkPolicy_PrivateAccess
+	PrivateAccess *IngressNetworkPolicy_PrivateAccess
+	// The network policy restrictions for cross-workspace access: which other
+	// workspaces may access this workspace.
 	CrossWorkspaceAccess *IngressNetworkPolicy_CrossWorkspaceAccess
 }
 

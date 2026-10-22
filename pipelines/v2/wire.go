@@ -396,6 +396,7 @@ type connectorOptionsWire struct {
 	LinkedinAdsOptions        *linkedInAdsOptionsWire         `json:"linkedin_ads_options,omitempty"`
 	RedditAdsOptions          *redditAdsOptionsWire           `json:"reddit_ads_options,omitempty"`
 	ApiSourceConnectorOptions *apiSourceConnectorOptionsWire  `json:"api_source_connector_options,omitempty"`
+	OnedriveOptions           *oneDriveOptionsWire            `json:"onedrive_options,omitempty"`
 }
 
 func connectorOptionsToWire(v *ConnectorOptions) (*connectorOptionsWire, error) {
@@ -418,6 +419,7 @@ func connectorOptionsToWire(v *ConnectorOptions) (*connectorOptionsWire, error) 
 	var connectorOptionsLinkedinAdsOptionsWire *linkedInAdsOptionsWire
 	var connectorOptionsRedditAdsOptionsWire *redditAdsOptionsWire
 	var connectorOptionsApiSourceConnectorOptionsWire *apiSourceConnectorOptionsWire
+	var connectorOptionsOnedriveOptionsWire *oneDriveOptionsWire
 	switch value := v.ConnectorOptions.(type) {
 	case nil:
 	case *ConnectorOptions_ConnectorOptions_GoogleAdsOptions:
@@ -548,6 +550,14 @@ func connectorOptionsToWire(v *ConnectorOptions) (*connectorOptionsWire, error) 
 			}
 			connectorOptionsApiSourceConnectorOptionsWire = connectorOptionsApiSourceConnectorOptionsConverted
 		}
+	case *ConnectorOptions_ConnectorOptions_OnedriveOptions:
+		if value != nil {
+			connectorOptionsOnedriveOptionsConverted, err := oneDriveOptionsToWire(&value.OnedriveOptions)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ConnectorOptions.ConnectorOptions.OnedriveOptions", err)
+			}
+			connectorOptionsOnedriveOptionsWire = connectorOptionsOnedriveOptionsConverted
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "ConnectorOptions.ConnectorOptions", value)
 	}
@@ -568,6 +578,7 @@ func connectorOptionsToWire(v *ConnectorOptions) (*connectorOptionsWire, error) 
 		LinkedinAdsOptions:        connectorOptionsLinkedinAdsOptionsWire,
 		RedditAdsOptions:          connectorOptionsRedditAdsOptionsWire,
 		ApiSourceConnectorOptions: connectorOptionsApiSourceConnectorOptionsWire,
+		OnedriveOptions:           connectorOptionsOnedriveOptionsWire,
 	}, nil
 }
 
@@ -622,6 +633,9 @@ func connectorOptionsFromWire(w *connectorOptionsWire) (*ConnectorOptions, error
 		connectorOptionsMembers++
 	}
 	if w.ApiSourceConnectorOptions != nil {
+		connectorOptionsMembers++
+	}
+	if w.OnedriveOptions != nil {
 		connectorOptionsMembers++
 	}
 	if connectorOptionsMembers > 1 {
@@ -725,6 +739,12 @@ func connectorOptionsFromWire(w *connectorOptionsWire) (*ConnectorOptions, error
 			return nil, fmt.Errorf("%s: %w", "ConnectorOptions.ConnectorOptions.ApiSourceConnectorOptions", err)
 		}
 		connectorOptionsSelection = &ConnectorOptions_ConnectorOptions_ApiSourceConnectorOptions{ApiSourceConnectorOptions: *connectorOptionsApiSourceConnectorOptionsConverted}
+	case w.OnedriveOptions != nil:
+		connectorOptionsOnedriveOptionsConverted, err := oneDriveOptionsFromWire(w.OnedriveOptions)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "ConnectorOptions.ConnectorOptions.OnedriveOptions", err)
+		}
+		connectorOptionsSelection = &ConnectorOptions_ConnectorOptions_OnedriveOptions{OnedriveOptions: *connectorOptionsOnedriveOptionsConverted}
 	}
 	return &ConnectorOptions{
 		ConnectorOptions: connectorOptionsSelection,
@@ -2633,6 +2653,42 @@ func notificationsFromWire(w *notificationsWire) (*Notifications, error) {
 	return &Notifications{
 		EmailRecipients: w.EmailRecipients,
 		Alerts:          w.Alerts,
+	}, nil
+}
+
+type oneDriveOptionsWire struct {
+	Url                  *string                            `json:"url,omitempty"`
+	EntityType           OneDriveOptions_OneDriveEntityType `json:"entity_type,omitempty"`
+	FileIngestionOptions *fileIngestionOptionsWire          `json:"file_ingestion_options,omitempty"`
+}
+
+func oneDriveOptionsToWire(v *OneDriveOptions) (*oneDriveOptionsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	fileIngestionOptionsWireValue, err := fileIngestionOptionsToWire(v.FileIngestionOptions)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "OneDriveOptions.FileIngestionOptions", err)
+	}
+	return &oneDriveOptionsWire{
+		Url:                  v.Url,
+		EntityType:           v.EntityType,
+		FileIngestionOptions: fileIngestionOptionsWireValue,
+	}, nil
+}
+
+func oneDriveOptionsFromWire(w *oneDriveOptionsWire) (*OneDriveOptions, error) {
+	if w == nil {
+		return nil, nil
+	}
+	fileIngestionOptionsPublicValue, err := fileIngestionOptionsFromWire(w.FileIngestionOptions)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "OneDriveOptions.FileIngestionOptions", err)
+	}
+	return &OneDriveOptions{
+		Url:                  w.Url,
+		EntityType:           w.EntityType,
+		FileIngestionOptions: fileIngestionOptionsPublicValue,
 	}, nil
 }
 

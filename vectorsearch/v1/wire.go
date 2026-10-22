@@ -1069,6 +1069,32 @@ func scanVectorIndexResponseFromWire(w *scanVectorIndexResponseWire) (*ScanVecto
 	}, nil
 }
 
+type startEndpointRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func startEndpointRequestToWire(v *StartEndpointRequest) (*startEndpointRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &startEndpointRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+type stopEndpointRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func stopEndpointRequestToWire(v *StopEndpointRequest) (*stopEndpointRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &stopEndpointRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
 type structWire struct {
 	Fields []mapStringValueEntryWire `json:"fields,omitempty"`
 }

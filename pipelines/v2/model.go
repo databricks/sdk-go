@@ -90,6 +90,7 @@ const (
 	IngestionSourceType_Zendesk           IngestionSourceType = "ZENDESK"
 	IngestionSourceType_Smartsheet        IngestionSourceType = "SMARTSHEET"
 	IngestionSourceType_Rabbitmq          IngestionSourceType = "RABBITMQ"
+	IngestionSourceType_Onedrive          IngestionSourceType = "ONEDRIVE"
 	IngestionSourceType_ForeignCatalog    IngestionSourceType = "FOREIGN_CATALOG"
 )
 
@@ -339,6 +340,15 @@ const (
 	LinkedInAdsOptions_LinkedInAdsCustomReportOptions_LinkedInAdsTimeGranularity_Daily       LinkedInAdsOptions_LinkedInAdsCustomReportOptions_LinkedInAdsTimeGranularity = "DAILY"
 	LinkedInAdsOptions_LinkedInAdsCustomReportOptions_LinkedInAdsTimeGranularity_Monthly     LinkedInAdsOptions_LinkedInAdsCustomReportOptions_LinkedInAdsTimeGranularity = "MONTHLY"
 	LinkedInAdsOptions_LinkedInAdsCustomReportOptions_LinkedInAdsTimeGranularity_Yearly      LinkedInAdsOptions_LinkedInAdsCustomReportOptions_LinkedInAdsTimeGranularity = "YEARLY"
+)
+
+// The type of OneDrive entity to ingest.
+type OneDriveOptions_OneDriveEntityType string
+
+const (
+	OneDriveOptions_OneDriveEntityType_Unspecified  OneDriveOptions_OneDriveEntityType = ""
+	OneDriveOptions_OneDriveEntityType_File         OneDriveOptions_OneDriveEntityType = "FILE"
+	OneDriveOptions_OneDriveEntityType_FileMetadata OneDriveOptions_OneDriveEntityType = "FILE_METADATA"
 )
 
 // The pipeline state.
@@ -715,6 +725,13 @@ type ConnectorOptions_ConnectorOptions_ApiSourceConnectorOptions struct {
 
 func (*ConnectorOptions_ConnectorOptions_ApiSourceConnectorOptions) isConnectorOptions_ConnectorOptions() {
 }
+
+// ConnectorOptions_ConnectorOptions_OnedriveOptions selects OnedriveOptions for ConnectorOptions.ConnectorOptions.
+type ConnectorOptions_ConnectorOptions_OnedriveOptions struct {
+	OnedriveOptions OneDriveOptions
+}
+
+func (*ConnectorOptions_ConnectorOptions_OnedriveOptions) isConnectorOptions_ConnectorOptions() {}
 
 type CreatePipelineRequest struct {
 	// If false, deployment will fail if name conflicts with that of another
@@ -1774,6 +1791,16 @@ type Notifications struct {
 	// `on-update-fatal-failure`: A pipeline update fails with a non-retryable
 	// (fatal) error. * `on-flow-failure`: A single data flow fails.
 	Alerts []string
+}
+
+type OneDriveOptions struct {
+	// Required. The OneDrive URL.
+	Url *string
+	// (Optional) The type of OneDrive entity to ingest. If not specified, defaults
+	// to FILE.
+	EntityType OneDriveOptions_OneDriveEntityType
+	// (Optional) File ingestion options for processing files.
+	FileIngestionOptions *FileIngestionOptions
 }
 
 // Proto representing a window.

@@ -126,6 +126,12 @@ type BudgetConfiguration struct {
 	Filter *BudgetConfigurationFilter
 	// Human-readable name of budget configuration. Max Length: 128
 	DisplayName *string
+	// Whether this budget tracks external pass-through spend (third-party costs
+	// billed through a <Databricks> product) in addition to internal <Databricks>
+	// spend. Only applicable to Unity Gateway budgets, i.e. when `resource_type` is
+	// `BUDGET_RESOURCE_TYPE_UNITY_AI_GATEWAY`. This field is immutable after
+	// create.
+	IncludeExternalSpend *bool
 	// The resource scope for this budget. Determines whether the budget tracks all
 	// resources or a specific resource.
 	ResourceType BudgetResourceType
@@ -176,6 +182,12 @@ type CreateBudgetConfigurationBudget struct {
 	Filter *BudgetConfigurationFilter
 	// Human-readable name of budget configuration. Max Length: 128
 	DisplayName *string
+	// Whether this budget tracks external pass-through spend (third-party costs
+	// billed through a <Databricks> product) in addition to internal <Databricks>
+	// spend. Only applicable to Unity Gateway budgets, i.e. when `resource_type` is
+	// `BUDGET_RESOURCE_TYPE_UNITY_AI_GATEWAY`. This field is immutable after
+	// create.
+	IncludeExternalSpend *bool
 	// The resource scope for this budget. Determines whether the budget tracks all
 	// resources or a specific resource.
 	ResourceType BudgetResourceType
@@ -293,6 +305,12 @@ type UpdateBudgetConfigurationBudget struct {
 	Filter *BudgetConfigurationFilter
 	// Human-readable name of budget configuration. Max Length: 128
 	DisplayName *string
+	// Whether this budget tracks external pass-through spend (third-party costs
+	// billed through a <Databricks> product) in addition to internal <Databricks>
+	// spend. Only applicable to Unity Gateway budgets, i.e. when `resource_type` is
+	// `BUDGET_RESOURCE_TYPE_UNITY_AI_GATEWAY`. This field is immutable after
+	// create.
+	IncludeExternalSpend *bool
 	// The resource scope for this budget. Determines whether the budget tracks all
 	// resources or a specific resource.
 	ResourceType BudgetResourceType
