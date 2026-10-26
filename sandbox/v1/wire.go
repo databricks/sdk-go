@@ -388,17 +388,22 @@ func renamePathRequestToWire(v *RenamePathRequest) (*renamePathRequestWire, erro
 }
 
 type sandboxWire struct {
-	Spec        *sandboxSpecWire   `json:"spec,omitempty"`
-	Status      *sandboxStatusWire `json:"status,omitempty"`
-	Name        *string            `json:"name,omitempty"`
-	CreateTime  *types.Time        `json:"create_time,omitempty"`
-	UpdateTime  *types.Time        `json:"update_time,omitempty"`
-	DisplayName *string            `json:"display_name,omitempty"`
+	Metadata    *sandboxMetadataWire `json:"metadata,omitempty"`
+	Spec        *sandboxSpecWire     `json:"spec,omitempty"`
+	Status      *sandboxStatusWire   `json:"status,omitempty"`
+	Name        *string              `json:"name,omitempty"`
+	CreateTime  *types.Time          `json:"create_time,omitempty"`
+	UpdateTime  *types.Time          `json:"update_time,omitempty"`
+	DisplayName *string              `json:"display_name,omitempty"`
 }
 
 func sandboxToWire(v *Sandbox) (*sandboxWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	metadataWireValue, err := sandboxMetadataToWire(v.Metadata)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Sandbox.Metadata", err)
 	}
 	specWireValue, err := sandboxSpecToWire(v.Spec)
 	if err != nil {
@@ -409,6 +414,7 @@ func sandboxToWire(v *Sandbox) (*sandboxWire, error) {
 		return nil, fmt.Errorf("%s: %w", "Sandbox.Status", err)
 	}
 	return &sandboxWire{
+		Metadata:    metadataWireValue,
 		Spec:        specWireValue,
 		Status:      statusWireValue,
 		Name:        v.Name,
@@ -422,6 +428,10 @@ func sandboxFromWire(w *sandboxWire) (*Sandbox, error) {
 	if w == nil {
 		return nil, nil
 	}
+	metadataPublicValue, err := sandboxMetadataFromWire(w.Metadata)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Sandbox.Metadata", err)
+	}
 	specPublicValue, err := sandboxSpecFromWire(w.Spec)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Sandbox.Spec", err)
@@ -431,6 +441,7 @@ func sandboxFromWire(w *sandboxWire) (*Sandbox, error) {
 		return nil, fmt.Errorf("%s: %w", "Sandbox.Status", err)
 	}
 	return &Sandbox{
+		Metadata:    metadataPublicValue,
 		Spec:        specPublicValue,
 		Status:      statusPublicValue,
 		Name:        w.Name,
@@ -472,6 +483,28 @@ func sandboxFileInfoFromWire(w *sandboxFileInfoWire) (*SandboxFileInfo, error) {
 		Group:         w.Group,
 		ModifyTime:    w.ModifyTime,
 		SymlinkTarget: w.SymlinkTarget,
+	}, nil
+}
+
+type sandboxMetadataWire struct {
+	CustomTags map[string]string `json:"custom_tags,omitempty"`
+}
+
+func sandboxMetadataToWire(v *SandboxMetadata) (*sandboxMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &sandboxMetadataWire{
+		CustomTags: v.CustomTags,
+	}, nil
+}
+
+func sandboxMetadataFromWire(w *sandboxMetadataWire) (*SandboxMetadata, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SandboxMetadata{
+		CustomTags: w.CustomTags,
 	}, nil
 }
 

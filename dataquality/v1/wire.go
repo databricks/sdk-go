@@ -63,15 +63,21 @@ func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 }
 
 type anomalyDetectionConfigWire struct {
-	ExcludedTableFullNames []string `json:"excluded_table_full_names,omitempty"`
+	ExcludedTableFullNames []string                  `json:"excluded_table_full_names,omitempty"`
+	NotificationSettings   *notificationSettingsWire `json:"notification_settings,omitempty"`
 }
 
 func anomalyDetectionConfigToWire(v *AnomalyDetectionConfig) (*anomalyDetectionConfigWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	notificationSettingsWireValue, err := notificationSettingsToWire(v.NotificationSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AnomalyDetectionConfig.NotificationSettings", err)
+	}
 	return &anomalyDetectionConfigWire{
 		ExcludedTableFullNames: v.ExcludedTableFullNames,
+		NotificationSettings:   notificationSettingsWireValue,
 	}, nil
 }
 
@@ -79,8 +85,13 @@ func anomalyDetectionConfigFromWire(w *anomalyDetectionConfigWire) (*AnomalyDete
 	if w == nil {
 		return nil, nil
 	}
+	notificationSettingsPublicValue, err := notificationSettingsFromWire(w.NotificationSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AnomalyDetectionConfig.NotificationSettings", err)
+	}
 	return &AnomalyDetectionConfig{
 		ExcludedTableFullNames: w.ExcludedTableFullNames,
+		NotificationSettings:   notificationSettingsPublicValue,
 	}, nil
 }
 
@@ -550,15 +561,23 @@ func monitorFromWire(w *monitorWire) (*Monitor, error) {
 }
 
 type notificationDestinationWire struct {
-	EmailAddresses []string `json:"email_addresses,omitempty"`
+	EmailAddresses     []string    `json:"email_addresses,omitempty"`
+	DestinationIds     []string    `json:"destination_ids,omitempty"`
+	DestinationUserIds []wireInt64 `json:"destination_user_ids,omitempty"`
 }
 
 func notificationDestinationToWire(v *NotificationDestination) (*notificationDestinationWire, error) {
 	if v == nil {
 		return nil, nil
 	}
+	destinationUserIdsWireValue, err := convertSlice(v.DestinationUserIds, int64ToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NotificationDestination.DestinationUserIds", err)
+	}
 	return &notificationDestinationWire{
-		EmailAddresses: v.EmailAddresses,
+		EmailAddresses:     v.EmailAddresses,
+		DestinationIds:     v.DestinationIds,
+		DestinationUserIds: destinationUserIdsWireValue,
 	}, nil
 }
 
@@ -566,13 +585,20 @@ func notificationDestinationFromWire(w *notificationDestinationWire) (*Notificat
 	if w == nil {
 		return nil, nil
 	}
+	destinationUserIdsPublicValue, err := convertSlice(w.DestinationUserIds, int64FromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NotificationDestination.DestinationUserIds", err)
+	}
 	return &NotificationDestination{
-		EmailAddresses: w.EmailAddresses,
+		EmailAddresses:     w.EmailAddresses,
+		DestinationIds:     w.DestinationIds,
+		DestinationUserIds: destinationUserIdsPublicValue,
 	}, nil
 }
 
 type notificationSettingsWire struct {
-	OnFailure *notificationDestinationWire `json:"on_failure,omitempty"`
+	OnFailure        *notificationDestinationWire `json:"on_failure,omitempty"`
+	OnUnhealthyTable *notificationDestinationWire `json:"on_unhealthy_table,omitempty"`
 }
 
 func notificationSettingsToWire(v *NotificationSettings) (*notificationSettingsWire, error) {
@@ -583,8 +609,13 @@ func notificationSettingsToWire(v *NotificationSettings) (*notificationSettingsW
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "NotificationSettings.OnFailure", err)
 	}
+	onUnhealthyTableWireValue, err := notificationDestinationToWire(v.OnUnhealthyTable)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NotificationSettings.OnUnhealthyTable", err)
+	}
 	return &notificationSettingsWire{
-		OnFailure: onFailureWireValue,
+		OnFailure:        onFailureWireValue,
+		OnUnhealthyTable: onUnhealthyTableWireValue,
 	}, nil
 }
 
@@ -596,8 +627,13 @@ func notificationSettingsFromWire(w *notificationSettingsWire) (*NotificationSet
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "NotificationSettings.OnFailure", err)
 	}
+	onUnhealthyTablePublicValue, err := notificationDestinationFromWire(w.OnUnhealthyTable)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NotificationSettings.OnUnhealthyTable", err)
+	}
 	return &NotificationSettings{
-		OnFailure: onFailurePublicValue,
+		OnFailure:        onFailurePublicValue,
+		OnUnhealthyTable: onUnhealthyTablePublicValue,
 	}, nil
 }
 

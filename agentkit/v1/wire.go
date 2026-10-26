@@ -286,6 +286,48 @@ func getManagedMemoryEntryRequestToWire(v *GetManagedMemoryEntryRequest) (*getMa
 	}, nil
 }
 
+type grantMemoryStorePermissionRequestWire struct {
+	Name       *string             `json:"name,omitempty"`
+	Principal  *storePrincipalWire `json:"principal,omitempty"`
+	Permission PermissionLevel     `json:"permission,omitempty"`
+}
+
+func grantMemoryStorePermissionRequestToWire(v *GrantMemoryStorePermissionRequest) (*grantMemoryStorePermissionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	principalWireValue, err := storePrincipalToWire(v.Principal)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GrantMemoryStorePermissionRequest.Principal", err)
+	}
+	return &grantMemoryStorePermissionRequestWire{
+		Name:       v.Name,
+		Principal:  principalWireValue,
+		Permission: v.Permission,
+	}, nil
+}
+
+type grantSessionStorePermissionRequestWire struct {
+	Name       *string             `json:"name,omitempty"`
+	Principal  *storePrincipalWire `json:"principal,omitempty"`
+	Permission PermissionLevel     `json:"permission,omitempty"`
+}
+
+func grantSessionStorePermissionRequestToWire(v *GrantSessionStorePermissionRequest) (*grantSessionStorePermissionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	principalWireValue, err := storePrincipalToWire(v.Principal)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GrantSessionStorePermissionRequest.Principal", err)
+	}
+	return &grantSessionStorePermissionRequestWire{
+		Name:       v.Name,
+		Principal:  principalWireValue,
+		Permission: v.Permission,
+	}, nil
+}
+
 type listManagedMemoryEntriesRequestWire struct {
 	Parent     *string                `json:"parent,omitempty"`
 	PageSize   *int                   `json:"page_size,omitempty"`
@@ -364,6 +406,42 @@ func listManagedMemoryStoresResponseFromWire(w *listManagedMemoryStoresResponseW
 	}, nil
 }
 
+type listMemoryStorePermissionsRequestWire struct {
+	Parent    *string `json:"parent,omitempty"`
+	PageSize  *int    `json:"page_size,omitempty"`
+	PageToken *string `json:"page_token,omitempty"`
+}
+
+func listMemoryStorePermissionsRequestToWire(v *ListMemoryStorePermissionsRequest) (*listMemoryStorePermissionsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listMemoryStorePermissionsRequestWire{
+		Parent:    v.Parent,
+		PageSize:  v.PageSize,
+		PageToken: v.PageToken,
+	}, nil
+}
+
+type listMemoryStorePermissionsResponseWire struct {
+	MemoryStorePermissions []memoryStorePermissionWire `json:"memory_store_permissions,omitempty"`
+	NextPageToken          *string                     `json:"next_page_token,omitempty"`
+}
+
+func listMemoryStorePermissionsResponseFromWire(w *listMemoryStorePermissionsResponseWire) (*ListMemoryStorePermissionsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	memoryStorePermissionsPublicValue, err := convertSlice(w.MemoryStorePermissions, memoryStorePermissionFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListMemoryStorePermissionsResponse.MemoryStorePermissions", err)
+	}
+	return &ListMemoryStorePermissionsResponse{
+		MemoryStorePermissions: memoryStorePermissionsPublicValue,
+		NextPageToken:          w.NextPageToken,
+	}, nil
+}
+
 type listSessionItemsRequestWire struct {
 	PageSize  *int    `json:"page_size,omitempty"`
 	PageToken *string `json:"page_token,omitempty"`
@@ -399,6 +477,42 @@ func listSessionItemsResponseFromWire(w *listSessionItemsResponseWire) (*ListSes
 	return &ListSessionItemsResponse{
 		SessionItems:  sessionItemsPublicValue,
 		NextPageToken: w.NextPageToken,
+	}, nil
+}
+
+type listSessionStorePermissionsRequestWire struct {
+	Parent    *string `json:"parent,omitempty"`
+	PageSize  *int    `json:"page_size,omitempty"`
+	PageToken *string `json:"page_token,omitempty"`
+}
+
+func listSessionStorePermissionsRequestToWire(v *ListSessionStorePermissionsRequest) (*listSessionStorePermissionsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listSessionStorePermissionsRequestWire{
+		Parent:    v.Parent,
+		PageSize:  v.PageSize,
+		PageToken: v.PageToken,
+	}, nil
+}
+
+type listSessionStorePermissionsResponseWire struct {
+	SessionStorePermissions []sessionStorePermissionWire `json:"session_store_permissions,omitempty"`
+	NextPageToken           *string                      `json:"next_page_token,omitempty"`
+}
+
+func listSessionStorePermissionsResponseFromWire(w *listSessionStorePermissionsResponseWire) (*ListSessionStorePermissionsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sessionStorePermissionsPublicValue, err := convertSlice(w.SessionStorePermissions, sessionStorePermissionFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSessionStorePermissionsResponse.SessionStorePermissions", err)
+	}
+	return &ListSessionStorePermissionsResponse{
+		SessionStorePermissions: sessionStorePermissionsPublicValue,
+		NextPageToken:           w.NextPageToken,
 	}, nil
 }
 
@@ -603,6 +717,25 @@ func managedMemoryStoreFromWire(w *managedMemoryStoreWire) (*ManagedMemoryStore,
 	}, nil
 }
 
+type memoryStorePermissionWire struct {
+	Principal  *storePrincipalWire `json:"principal,omitempty"`
+	Permission PermissionLevel     `json:"permission,omitempty"`
+}
+
+func memoryStorePermissionFromWire(w *memoryStorePermissionWire) (*MemoryStorePermission, error) {
+	if w == nil {
+		return nil, nil
+	}
+	principalPublicValue, err := storePrincipalFromWire(w.Principal)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MemoryStorePermission.Principal", err)
+	}
+	return &MemoryStorePermission{
+		Principal:  principalPublicValue,
+		Permission: w.Permission,
+	}, nil
+}
+
 type popSessionItemRequestWire struct {
 	Parent *string `json:"parent,omitempty"`
 }
@@ -630,6 +763,44 @@ func popSessionItemResponseFromWire(w *popSessionItemResponseWire) (*PopSessionI
 	}
 	return &PopSessionItemResponse{
 		Item: itemPublicValue,
+	}, nil
+}
+
+type revokeMemoryStorePermissionRequestWire struct {
+	Name      *string             `json:"name,omitempty"`
+	Principal *storePrincipalWire `json:"principal,omitempty"`
+}
+
+func revokeMemoryStorePermissionRequestToWire(v *RevokeMemoryStorePermissionRequest) (*revokeMemoryStorePermissionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	principalWireValue, err := storePrincipalToWire(v.Principal)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RevokeMemoryStorePermissionRequest.Principal", err)
+	}
+	return &revokeMemoryStorePermissionRequestWire{
+		Name:      v.Name,
+		Principal: principalWireValue,
+	}, nil
+}
+
+type revokeSessionStorePermissionRequestWire struct {
+	Name      *string             `json:"name,omitempty"`
+	Principal *storePrincipalWire `json:"principal,omitempty"`
+}
+
+func revokeSessionStorePermissionRequestToWire(v *RevokeSessionStorePermissionRequest) (*revokeSessionStorePermissionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	principalWireValue, err := storePrincipalToWire(v.Principal)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RevokeSessionStorePermissionRequest.Principal", err)
+	}
+	return &revokeSessionStorePermissionRequestWire{
+		Name:      v.Name,
+		Principal: principalWireValue,
 	}, nil
 }
 
@@ -798,6 +969,25 @@ func sessionStoreFromWire(w *sessionStoreWire) (*SessionStore, error) {
 	}, nil
 }
 
+type sessionStorePermissionWire struct {
+	Principal  *storePrincipalWire `json:"principal,omitempty"`
+	Permission PermissionLevel     `json:"permission,omitempty"`
+}
+
+func sessionStorePermissionFromWire(w *sessionStorePermissionWire) (*SessionStorePermission, error) {
+	if w == nil {
+		return nil, nil
+	}
+	principalPublicValue, err := storePrincipalFromWire(w.Principal)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SessionStorePermission.Principal", err)
+	}
+	return &SessionStorePermission{
+		Principal:  principalPublicValue,
+		Permission: w.Permission,
+	}, nil
+}
+
 type storageBackendWire struct {
 	BackendType StorageBackendType `json:"backend_type,omitempty"`
 	BackendId   *string            `json:"backend_id,omitempty"`
@@ -820,6 +1010,31 @@ func storageBackendFromWire(w *storageBackendWire) (*StorageBackend, error) {
 	return &StorageBackend{
 		BackendType: w.BackendType,
 		BackendId:   w.BackendId,
+	}, nil
+}
+
+type storePrincipalWire struct {
+	Name          *string       `json:"name,omitempty"`
+	PrincipalType PrincipalType `json:"principal_type,omitempty"`
+}
+
+func storePrincipalToWire(v *StorePrincipal) (*storePrincipalWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &storePrincipalWire{
+		Name:          v.Name,
+		PrincipalType: v.PrincipalType,
+	}, nil
+}
+
+func storePrincipalFromWire(w *storePrincipalWire) (*StorePrincipal, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &StorePrincipal{
+		Name:          w.Name,
+		PrincipalType: w.PrincipalType,
 	}, nil
 }
 

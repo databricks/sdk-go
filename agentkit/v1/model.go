@@ -30,6 +30,26 @@ const (
 	ManagedMemoryEntryView_ManagedMemoryEntryViewFull ManagedMemoryEntryView = "MANAGED_MEMORY_ENTRY_VIEW_FULL"
 )
 
+// Permission level granted on a store. WRITE is a superset of READ.
+type PermissionLevel string
+
+const (
+	PermissionLevel_Unspecified PermissionLevel = ""
+	PermissionLevel_Read        PermissionLevel = "READ"
+	PermissionLevel_Write       PermissionLevel = "WRITE"
+)
+
+// The kind of Databricks principal a store permission is granted to.
+type PrincipalType string
+
+const (
+	PrincipalType_Unspecified PrincipalType = ""
+	// A Databricks user, identified by email.
+	PrincipalType_User PrincipalType = "USER"
+	// A Databricks service principal, identified by its application (client) id.
+	PrincipalType_ServicePrincipal PrincipalType = "SERVICE_PRINCIPAL"
+)
+
 // Type of service-managed storage backing a memory store.
 type StorageBackendType string
 
@@ -208,6 +228,12 @@ type GetManagedMemoryStoreRequest struct {
 	Name *string
 }
 
+// Request to retrieve the current caller's permission on a memory store..
+type GetMemoryStorePermissionRequest struct {
+	// Resource name in the form `memory-stores/{managed_memory_store_id}`.
+	Name *string
+}
+
 // Request to get a session..
 type GetSessionRequest struct {
 	// Resource name in the form
@@ -215,10 +241,46 @@ type GetSessionRequest struct {
 	Name *string
 }
 
+// Request to retrieve the current caller's permission on a session store..
+type GetSessionStorePermissionRequest struct {
+	// Resource name in the form `session-stores/{session_store_id}`.
+	Name *string
+}
+
 // Request to get a session store..
 type GetSessionStoreRequest struct {
 	// Resource name in the form `session-stores/{session_store_id}`.
 	Name *string
+}
+
+// Request to grant a READ or WRITE permission on a memory store to a principal.
+// Only the store owner or a workspace admin may grant permissions..
+type GrantMemoryStorePermissionRequest struct {
+	// Resource name in the form `memory-stores/{managed_memory_store_id}`.
+	Name *string
+	// Principal to grant the permission to.
+	Principal *StorePrincipal
+	// Permission level to grant.
+	Permission PermissionLevel
+}
+
+// Response from granting a permission on a memory store..
+type GrantMemoryStorePermissionResponse struct {
+}
+
+// Request to grant a READ or WRITE permission on a session store to a
+// principal. Only the store owner or a workspace admin may grant permissions..
+type GrantSessionStorePermissionRequest struct {
+	// Resource name in the form `session-stores/{session_store_id}`.
+	Name *string
+	// Principal to grant the permission to.
+	Principal *StorePrincipal
+	// Permission level to grant.
+	Permission PermissionLevel
+}
+
+// Response from granting a permission on a session store..
+type GrantSessionStorePermissionResponse struct {
 }
 
 // Request to list memory entries for one actor, optionally restricted by
@@ -272,6 +334,27 @@ type ListManagedMemoryStoresResponse struct {
 	NextPageToken *string
 }
 
+// Request to list explicit grants on a memory store. Only the owner or a
+// workspace admin may list permissions..
+type ListMemoryStorePermissionsRequest struct {
+	// Resource name of the store, in the form
+	// `memory-stores/{managed_memory_store_id}`.
+	Parent *string
+	// Maximum number of permissions to return. Defaults to 100; maximum is 1000.
+	PageSize *int
+	// Continuation token from a previous response.
+	PageToken *string
+}
+
+// A page of explicit memory store permissions..
+type ListMemoryStorePermissionsResponse struct {
+	// Explicit READ or WRITE grants. Implicit owner/admin access and inherited
+	// grants are excluded.
+	MemoryStorePermissions []MemoryStorePermission
+	// Token for the next page, omitted when all permissions have been returned.
+	NextPageToken *string
+}
+
 // Request to list items in a session..
 type ListSessionItemsRequest struct {
 	// Maximum number of items to return. Defaults to 10; must be between 1 and 100.
@@ -293,6 +376,26 @@ type ListSessionItemsResponse struct {
 	// Session items in the requested page.
 	SessionItems []SessionItem
 	// Token to retrieve the next page.
+	NextPageToken *string
+}
+
+// Request to list explicit grants on a session store. Only the owner or a
+// workspace admin may list permissions..
+type ListSessionStorePermissionsRequest struct {
+	// Resource name of the store, in the form `session-stores/{session_store_id}`.
+	Parent *string
+	// Maximum number of permissions to return. Defaults to 100; maximum is 1000.
+	PageSize *int
+	// Continuation token from a previous response.
+	PageToken *string
+}
+
+// A page of explicit session store permissions..
+type ListSessionStorePermissionsResponse struct {
+	// Explicit READ or WRITE grants. Implicit owner/admin access and inherited
+	// grants are excluded.
+	SessionStorePermissions []SessionStorePermission
+	// Token for the next page, omitted when all permissions have been returned.
 	NextPageToken *string
 }
 
@@ -346,6 +449,7 @@ type ListSessionsResponse struct {
 type ManagedMemoryEntry struct {
 	// Resource name in the form
 	// `memory-stores/{managed_memory_store_id}/entries/{managed_memory_entry_id}`.
+	// Required for updates; assigned by the service on creation.
 	Name *string `fieldmask:"name"`
 	// Customer-provided identifier for the actor whose memory this entry
 	// represents.
@@ -406,6 +510,15 @@ type ManagedMemoryStore struct {
 	UpdateTime *types.Time `fieldmask:"update_time"`
 }
 
+// A principal's permission on a memory store..
+type MemoryStorePermission struct {
+	// The principal whose permission is reported.
+	Principal *StorePrincipal
+	// The permission level. WRITE includes READ; PERMISSION_LEVEL_UNSPECIFIED means
+	// neither is available.
+	Permission PermissionLevel
+}
+
 // Request to pop an item from a session..
 type PopSessionItemRequest struct {
 	// Resource name of the containing session, in the form
@@ -417,6 +530,32 @@ type PopSessionItemRequest struct {
 type PopSessionItemResponse struct {
 	// Removed item, if any.
 	Item *SessionItem
+}
+
+// Request to revoke all explicit access to a memory store. Only the owner or a
+// workspace admin may revoke permissions..
+type RevokeMemoryStorePermissionRequest struct {
+	// Resource name in the form `memory-stores/{managed_memory_store_id}`.
+	Name *string
+	// Principal whose READ and WRITE grants will be removed.
+	Principal *StorePrincipal
+}
+
+// Response from revoking a memory store permission..
+type RevokeMemoryStorePermissionResponse struct {
+}
+
+// Request to revoke all explicit access to a session store. Only the owner or a
+// workspace admin may revoke permissions..
+type RevokeSessionStorePermissionRequest struct {
+	// Resource name in the form `session-stores/{session_store_id}`.
+	Name *string
+	// Principal whose READ and WRITE grants will be removed.
+	Principal *StorePrincipal
+}
+
+// Response from revoking a session store permission..
+type RevokeSessionStorePermissionResponse struct {
 }
 
 // Request to search memory entries by text query for one actor. Search returns
@@ -528,12 +667,30 @@ type SessionStore struct {
 	Name *string `fieldmask:"name"`
 }
 
+// A principal's permission on a session store..
+type SessionStorePermission struct {
+	// The principal whose permission is reported.
+	Principal *StorePrincipal
+	// The permission level. WRITE includes READ; PERMISSION_LEVEL_UNSPECIFIED means
+	// neither is available.
+	Permission PermissionLevel
+}
+
 // Service-managed storage backing a memory store..
 type StorageBackend struct {
 	// Type of the storage backend.
 	BackendType StorageBackendType `fieldmask:"backend_type"`
 	// Backend-specific identifier. For Lakebase, this is the project ID.
 	BackendId *string `fieldmask:"backend_id"`
+}
+
+// A principal a store permission is granted to. `name` is the principal's
+// Lakebase identifier: a user's email or a service principal's application
+// (client) id..
+type StorePrincipal struct {
+	Name *string
+	// The kind of principal. Required unless the deprecated type alias is supplied.
+	PrincipalType PrincipalType
 }
 
 // Request to update a memory entry..

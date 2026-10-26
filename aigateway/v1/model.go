@@ -327,8 +327,7 @@ type InferenceTableConfig struct {
 	IsDeleted *bool `fieldmask:"is_deleted"`
 }
 
-// Request to list MCP services. Accepts `parent`, `page_size`, `page_token`,
-// and `view`..
+// Request to list MCP services..
 type ListMcpServicesRequest struct {
 	// Parent schema to list within, in the form `schemas/{catalog}.{schema}`.
 	// Required. Each `{...}` component is capped at 255 characters individually.
@@ -353,8 +352,7 @@ type ListMcpServicesResponse struct {
 	NextPageToken *string
 }
 
-// Request to list model provider services. Accepts `parent`, `page_size`,
-// `page_token`, and `view`..
+// Request to list model provider services..
 type ListModelProviderServicesRequest struct {
 	// Parent schema to list within, in the form `schemas/{catalog}.{schema}`.
 	// Required. Each `{...}` component is capped at 255 characters individually.
@@ -624,18 +622,16 @@ type ModelProviderServiceConfig struct {
 	// breaking AIP-134 partial-Update. The user-facing javadoc on each field states
 	// which fields are required on Create. --)
 	Provider isModelProviderServiceConfig_Provider
-	// When true, allows models from the provider's built-in model catalog in
-	// addition to explicit `targets`. When false, only models listed in `targets`
-	// are routable. Defaults to false. CUSTOM providers have no built-in model
-	// catalog and must leave this false and list their models in `targets`.
+	// When true, accepts any model exposed by the upstream provider; `targets` is
+	// not required and does not restrict routability. When false, only models
+	// listed in `targets` are routable. Defaults to false.
 	AllowAllTargets *bool `fieldmask:"allow_all_targets"`
 	// Models and provider-native API types exposed by this provider service. Each
 	// entry must include at least one `native_api_types` value. When
 	// `allow_all_targets` is false, at least one entry is required and model
 	// service destinations can reference only listed models. When
-	// `allow_all_targets` is true, models from the provider's built-in model
-	// catalog are also routable. CUSTOM providers must explicitly list their models
-	// here and cannot enable `allow_all_targets`.
+	// `allow_all_targets` is true, any upstream model is routable; entries in this
+	// list provide API-type metadata without restricting other models.
 	Targets []ModelProviderServiceConfig_ModelTargetConfig `fieldmask:"targets"`
 	// Whether to forward incoming HTTP headers to the upstream provider. Defaults
 	// to false and is configured for the entire provider service, not per request.
