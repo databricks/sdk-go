@@ -934,6 +934,25 @@ func createKafkaConfigRequestToWire(v *CreateKafkaConfigRequest) (*createKafkaCo
 	}, nil
 }
 
+type createMaterializationSetRequestWire struct {
+	MaterializationSet *materializationSetWire `json:"materialization_set,omitempty"`
+	RequestId          *string                 `json:"request_id,omitempty"`
+}
+
+func createMaterializationSetRequestToWire(v *CreateMaterializationSetRequest) (*createMaterializationSetRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	materializationSetWireValue, err := materializationSetToWire(v.MaterializationSet)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateMaterializationSetRequest.MaterializationSet", err)
+	}
+	return &createMaterializationSetRequestWire{
+		MaterializationSet: materializationSetWireValue,
+		RequestId:          v.RequestId,
+	}, nil
+}
+
 type createMaterializedFeatureRequestWire struct {
 	MaterializedFeature *materializedFeatureWire `json:"materialized_feature,omitempty"`
 }
@@ -1189,6 +1208,23 @@ func dataSourceFromWire(w *dataSourceWire) (*DataSource, error) {
 	return &DataSource{
 		Lateness:   latenessPublicValue,
 		DataSource: dataSourceSelection,
+	}, nil
+}
+
+type deleteMaterializationSetRequestWire struct {
+	MaterializationSetId *string `json:"materialization_set_id,omitempty"`
+	AllowMissing         *bool   `json:"allow_missing,omitempty"`
+	RequestId            *string `json:"request_id,omitempty"`
+}
+
+func deleteMaterializationSetRequestToWire(v *DeleteMaterializationSetRequest) (*deleteMaterializationSetRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteMaterializationSetRequestWire{
+		MaterializationSetId: v.MaterializationSetId,
+		AllowMissing:         v.AllowMissing,
+		RequestId:            v.RequestId,
 	}, nil
 }
 
@@ -2607,6 +2643,126 @@ func materializationNotificationsFromWire(w *materializationNotificationsWire) (
 	}, nil
 }
 
+type materializationSetWire struct {
+	MaterializationSetId *string                   `json:"materialization_set_id,omitempty"`
+	MaterializedFeatures []materializedFeatureWire `json:"materialized_features,omitempty"`
+}
+
+func materializationSetToWire(v *MaterializationSet) (*materializationSetWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	materializedFeaturesWireValue, err := convertSlice(v.MaterializedFeatures, materializedFeatureToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializationSet.MaterializedFeatures", err)
+	}
+	return &materializationSetWire{
+		MaterializationSetId: v.MaterializationSetId,
+		MaterializedFeatures: materializedFeaturesWireValue,
+	}, nil
+}
+
+func materializationSetFromWire(w *materializationSetWire) (*MaterializationSet, error) {
+	if w == nil {
+		return nil, nil
+	}
+	materializedFeaturesPublicValue, err := convertSlice(w.MaterializedFeatures, materializedFeatureFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializationSet.MaterializedFeatures", err)
+	}
+	return &MaterializationSet{
+		MaterializationSetId: w.MaterializationSetId,
+		MaterializedFeatures: materializedFeaturesPublicValue,
+	}, nil
+}
+
+type materializationSetDeletionProgressWire struct {
+	DeletedMaterializedFeatureIds []string                               `json:"deleted_materialized_feature_ids,omitempty"`
+	FailedMaterializedFeatures    []materializedFeatureChangeFailureWire `json:"failed_materialized_features,omitempty"`
+}
+
+func materializationSetDeletionProgressFromWire(w *materializationSetDeletionProgressWire) (*MaterializationSetDeletionProgress, error) {
+	if w == nil {
+		return nil, nil
+	}
+	failedMaterializedFeaturesPublicValue, err := convertSlice(w.FailedMaterializedFeatures, materializedFeatureChangeFailureFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializationSetDeletionProgress.FailedMaterializedFeatures", err)
+	}
+	return &MaterializationSetDeletionProgress{
+		DeletedMaterializedFeatureIds: w.DeletedMaterializedFeatureIds,
+		FailedMaterializedFeatures:    failedMaterializedFeaturesPublicValue,
+	}, nil
+}
+
+type materializationSetOperationMetadataWire struct {
+	FeatureFullNames     []string                                  `json:"feature_full_names,omitempty"`
+	State                MaterializationSetOperationMetadata_State `json:"state,omitempty"`
+	CreateTime           *types.Time                               `json:"create_time,omitempty"`
+	MaterializationSetId *string                                   `json:"materialization_set_id,omitempty"`
+	DeletionProgress     *materializationSetDeletionProgressWire   `json:"deletion_progress,omitempty"`
+	UpdateProgress       *materializationSetUpdateProgressWire     `json:"update_progress,omitempty"`
+}
+
+func materializationSetOperationMetadataFromWire(w *materializationSetOperationMetadataWire) (*MaterializationSetOperationMetadata, error) {
+	if w == nil {
+		return nil, nil
+	}
+	progressMembers := 0
+	if w.DeletionProgress != nil {
+		progressMembers++
+	}
+	if w.UpdateProgress != nil {
+		progressMembers++
+	}
+	if progressMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "MaterializationSetOperationMetadata.Progress")
+	}
+	var progressSelection isMaterializationSetOperationMetadata_Progress
+	switch {
+	case w.DeletionProgress != nil:
+		progressDeletionProgressConverted, err := materializationSetDeletionProgressFromWire(w.DeletionProgress)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "MaterializationSetOperationMetadata.Progress.DeletionProgress", err)
+		}
+		progressSelection = &MaterializationSetOperationMetadata_Progress_DeletionProgress{DeletionProgress: *progressDeletionProgressConverted}
+	case w.UpdateProgress != nil:
+		progressUpdateProgressConverted, err := materializationSetUpdateProgressFromWire(w.UpdateProgress)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "MaterializationSetOperationMetadata.Progress.UpdateProgress", err)
+		}
+		progressSelection = &MaterializationSetOperationMetadata_Progress_UpdateProgress{UpdateProgress: *progressUpdateProgressConverted}
+	}
+	return &MaterializationSetOperationMetadata{
+		FeatureFullNames:     w.FeatureFullNames,
+		State:                w.State,
+		CreateTime:           w.CreateTime,
+		MaterializationSetId: w.MaterializationSetId,
+		Progress:             progressSelection,
+	}, nil
+}
+
+type materializationSetUpdateProgressWire struct {
+	UpdatedMaterializedFeatureIds []string                               `json:"updated_materialized_feature_ids,omitempty"`
+	DeletedMaterializedFeatureIds []string                               `json:"deleted_materialized_feature_ids,omitempty"`
+	FailedMaterializedFeatures    []materializedFeatureChangeFailureWire `json:"failed_materialized_features,omitempty"`
+}
+
+func materializationSetUpdateProgressFromWire(w *materializationSetUpdateProgressWire) (*MaterializationSetUpdateProgress, error) {
+	if w == nil {
+		return nil, nil
+	}
+	failedMaterializedFeaturesPublicValue, err := convertSlice(w.FailedMaterializedFeatures, materializedFeatureChangeFailureFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializationSetUpdateProgress.FailedMaterializedFeatures", err)
+	}
+	return &MaterializationSetUpdateProgress{
+		UpdatedMaterializedFeatureIds: w.UpdatedMaterializedFeatureIds,
+		DeletedMaterializedFeatureIds: w.DeletedMaterializedFeatureIds,
+		FailedMaterializedFeatures:    failedMaterializedFeaturesPublicValue,
+	}, nil
+}
+
 type materializationSuccessNotificationWire struct {
 	EmailAddresses []string `json:"email_addresses,omitempty"`
 	DestinationIds []string `json:"destination_ids,omitempty"`
@@ -2651,6 +2807,7 @@ type materializedFeatureWire struct {
 	PipelineId              *string                                   `json:"pipeline_id,omitempty"`
 	JobId                   *wireInt64                                `json:"job_id,omitempty"`
 	Notifications           *materializationNotificationsWire         `json:"notifications,omitempty"`
+	MaterializationSetId    *string                                   `json:"materialization_set_id,omitempty"`
 }
 
 func materializedFeatureToWire(v *MaterializedFeature) (*materializedFeatureWire, error) {
@@ -2739,6 +2896,7 @@ func materializedFeatureToWire(v *MaterializedFeature) (*materializedFeatureWire
 		PipelineId:              v.PipelineId,
 		JobId:                   jobIdWireValue,
 		Notifications:           notificationsWireValue,
+		MaterializationSetId:    v.MaterializationSetId,
 	}, nil
 }
 
@@ -2827,8 +2985,26 @@ func materializedFeatureFromWire(w *materializedFeatureWire) (*MaterializedFeatu
 		PipelineId:              w.PipelineId,
 		JobId:                   jobIdPublicValue,
 		Notifications:           notificationsPublicValue,
+		MaterializationSetId:    w.MaterializationSetId,
 		Destination:             destinationSelection,
 		Trigger:                 triggerSelection,
+	}, nil
+}
+
+type materializedFeatureChangeFailureWire struct {
+	MaterializedFeatureId *string `json:"materialized_feature_id,omitempty"`
+	ErrorCode             *string `json:"error_code,omitempty"`
+	Message               *string `json:"message,omitempty"`
+}
+
+func materializedFeatureChangeFailureFromWire(w *materializedFeatureChangeFailureWire) (*MaterializedFeatureChangeFailure, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &MaterializedFeatureChangeFailure{
+		MaterializedFeatureId: w.MaterializedFeatureId,
+		ErrorCode:             w.ErrorCode,
+		Message:               w.Message,
 	}, nil
 }
 
@@ -3069,6 +3245,7 @@ type purgeFeatureEntitiesMetadataWire struct {
 	CreateTime           *types.Time                        `json:"create_time,omitempty"`
 	State                PurgeFeatureEntitiesMetadata_State `json:"state,omitempty"`
 	JobId                *wireInt64                         `json:"job_id,omitempty"`
+	DeleteRows           *bool                              `json:"delete_rows,omitempty"`
 }
 
 func purgeFeatureEntitiesMetadataFromWire(w *purgeFeatureEntitiesMetadataWire) (*PurgeFeatureEntitiesMetadata, error) {
@@ -3086,6 +3263,7 @@ func purgeFeatureEntitiesMetadataFromWire(w *purgeFeatureEntitiesMetadataWire) (
 		CreateTime:           w.CreateTime,
 		State:                w.State,
 		JobId:                jobIdPublicValue,
+		DeleteRows:           w.DeleteRows,
 	}, nil
 }
 
@@ -3095,6 +3273,7 @@ type purgeFeatureEntitiesRequestWire struct {
 	RequestId      *string           `json:"request_id,omitempty"`
 	Tags           map[string]string `json:"tags,omitempty"`
 	BudgetPolicyId *string           `json:"budget_policy_id,omitempty"`
+	DeleteRows     *bool             `json:"delete_rows,omitempty"`
 }
 
 func purgeFeatureEntitiesRequestToWire(v *PurgeFeatureEntitiesRequest) (*purgeFeatureEntitiesRequestWire, error) {
@@ -3117,6 +3296,7 @@ func purgeFeatureEntitiesRequestToWire(v *PurgeFeatureEntitiesRequest) (*purgeFe
 		RequestId:      v.RequestId,
 		Tags:           v.Tags,
 		BudgetPolicyId: v.BudgetPolicyId,
+		DeleteRows:     v.DeleteRows,
 	}, nil
 }
 
@@ -4397,6 +4577,27 @@ func updateKafkaConfigRequestToWire(v *UpdateKafkaConfigRequest) (*updateKafkaCo
 	return &updateKafkaConfigRequestWire{
 		KafkaConfig: kafkaConfigWireValue,
 		UpdateMask:  fieldMaskToWire(v.UpdateMask),
+	}, nil
+}
+
+type updateMaterializationSetRequestWire struct {
+	MaterializationSet *materializationSetWire `json:"materialization_set,omitempty"`
+	UpdateMask         *string                 `json:"update_mask,omitempty"`
+	RequestId          *string                 `json:"request_id,omitempty"`
+}
+
+func updateMaterializationSetRequestToWire(v *UpdateMaterializationSetRequest) (*updateMaterializationSetRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	materializationSetWireValue, err := materializationSetToWire(v.MaterializationSet)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateMaterializationSetRequest.MaterializationSet", err)
+	}
+	return &updateMaterializationSetRequestWire{
+		MaterializationSet: materializationSetWireValue,
+		UpdateMask:         fieldMaskToWire(v.UpdateMask),
+		RequestId:          v.RequestId,
 	}, nil
 }
 

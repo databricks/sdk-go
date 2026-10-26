@@ -2294,7 +2294,11 @@ type Environment struct {
 	// List of java dependencies. Each dependency is a string representing a java
 	// library path. For example: `/Volumes/path/to/test.jar`.
 	JavaDependencies []string
-	// File path of pyproject.toml file that defines the project-scoped environment.
+	// Path to the `pyproject.toml` file that defines the project environment. This
+	// field cannot be combined with `environment_version`, `base_environment`,
+	// dependency fields, or any other environment-source fields. Set the
+	// environment version and dependencies in `pyproject.toml` instead. For more
+	// information, see the serverless dependencies documentation.
 	ProjectEnvironment *string
 }
 
@@ -5528,6 +5532,30 @@ type SqlConditionState struct {
 	LatestConditionEvaluationSqlSessionId *string
 }
 
+type SqlStatementQueryResult struct {
+	// The metadata for each column in the result set.
+	Columns []SqlStatementQueryResult_Column
+	// The rows returned by the query.
+	Rows []SqlStatementQueryResult_Row
+	// Whether the result set was truncated.
+	Truncated *bool
+}
+
+type SqlStatementQueryResult_Column struct {
+	// The name of the column.
+	Name *string
+}
+
+type SqlStatementQueryResult_Row struct {
+	// The values in the row, ordered to match the columns.
+	Values []SqlStatementQueryResult_Row_RowValue
+}
+
+type SqlStatementQueryResult_Row_RowValue struct {
+	// The value rendered as a string.
+	StringValue *string
+}
+
 type SqlTask struct {
 	// Parameters to be used for each run of this job. The SQL alert task does not
 	// support custom parameters.
@@ -5613,6 +5641,17 @@ type SqlTask_SqlDashboardWidgetOutput struct {
 	EndTime *int64
 }
 
+type SqlTask_SqlFileOutput struct {
+	// The text of the SQL query.
+	QueryText *string
+	// Information about SQL statements executed in the run.
+	SqlStatements []SqlTask_SqlStatementOutput
+	// The result of the executed SQL statement, if available.
+	QueryResult *SqlStatementQueryResult
+	// The canonical identifier of the SQL warehouse.
+	WarehouseId *string
+}
+
 type SqlTask_SqlOutput struct {
 	SqlOutputType isSqlTask_SqlOutput_SqlOutputType
 }
@@ -5645,6 +5684,14 @@ type SqlTask_SqlOutput_SqlOutputType_AlertOutput struct {
 
 func (*SqlTask_SqlOutput_SqlOutputType_AlertOutput) isSqlTask_SqlOutput_SqlOutputType() {}
 
+// SqlTask_SqlOutput_SqlOutputType_FileOutput selects FileOutput for SqlTask_SqlOutput.SqlOutputType.
+// The output of a SQL file task, if available.
+type SqlTask_SqlOutput_SqlOutputType_FileOutput struct {
+	FileOutput SqlTask_SqlFileOutput
+}
+
+func (*SqlTask_SqlOutput_SqlOutputType_FileOutput) isSqlTask_SqlOutput_SqlOutputType() {}
+
 type SqlTask_SqlOutputError struct {
 	// The error message when execution fails.
 	Message *string
@@ -5657,7 +5704,8 @@ type SqlTask_SqlQueryOutput struct {
 	EndpointId *string
 	// Information about SQL statements executed in the run.
 	SqlStatements []SqlTask_SqlStatementOutput
-	// The link to find the output results.
+	// Deprecated. The link to find the output results, which are only accessible
+	// from the UI.
 	OutputLink *string
 	// The canonical identifier of the SQL warehouse.
 	WarehouseId *string

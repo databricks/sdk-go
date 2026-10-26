@@ -6741,6 +6741,74 @@ func sqlConditionStateFromWire(w *sqlConditionStateWire) (*SqlConditionState, er
 	}, nil
 }
 
+type sqlStatementQueryResultWire struct {
+	Columns   []sqlStatementQueryResult_ColumnWire `json:"columns,omitempty"`
+	Rows      []sqlStatementQueryResult_RowWire    `json:"rows,omitempty"`
+	Truncated *bool                                `json:"truncated,omitempty"`
+}
+
+func sqlStatementQueryResultFromWire(w *sqlStatementQueryResultWire) (*SqlStatementQueryResult, error) {
+	if w == nil {
+		return nil, nil
+	}
+	columnsPublicValue, err := convertSlice(w.Columns, sqlStatementQueryResult_ColumnFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SqlStatementQueryResult.Columns", err)
+	}
+	rowsPublicValue, err := convertSlice(w.Rows, sqlStatementQueryResult_RowFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SqlStatementQueryResult.Rows", err)
+	}
+	return &SqlStatementQueryResult{
+		Columns:   columnsPublicValue,
+		Rows:      rowsPublicValue,
+		Truncated: w.Truncated,
+	}, nil
+}
+
+type sqlStatementQueryResult_ColumnWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func sqlStatementQueryResult_ColumnFromWire(w *sqlStatementQueryResult_ColumnWire) (*SqlStatementQueryResult_Column, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SqlStatementQueryResult_Column{
+		Name: w.Name,
+	}, nil
+}
+
+type sqlStatementQueryResult_RowWire struct {
+	Values []sqlStatementQueryResult_Row_RowValueWire `json:"values,omitempty"`
+}
+
+func sqlStatementQueryResult_RowFromWire(w *sqlStatementQueryResult_RowWire) (*SqlStatementQueryResult_Row, error) {
+	if w == nil {
+		return nil, nil
+	}
+	valuesPublicValue, err := convertSlice(w.Values, sqlStatementQueryResult_Row_RowValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SqlStatementQueryResult_Row.Values", err)
+	}
+	return &SqlStatementQueryResult_Row{
+		Values: valuesPublicValue,
+	}, nil
+}
+
+type sqlStatementQueryResult_Row_RowValueWire struct {
+	StringValue *string `json:"string_value,omitempty"`
+}
+
+func sqlStatementQueryResult_Row_RowValueFromWire(w *sqlStatementQueryResult_Row_RowValueWire) (*SqlStatementQueryResult_Row_RowValue, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SqlStatementQueryResult_Row_RowValue{
+		StringValue: w.StringValue,
+	}, nil
+}
+
 type sqlTaskWire struct {
 	Parameters  map[string]string     `json:"parameters,omitempty"`
 	Query       *sqlTaskQueryWire     `json:"query,omitempty"`
@@ -6940,10 +7008,38 @@ func sqlTask_SqlDashboardWidgetOutputFromWire(w *sqlTask_SqlDashboardWidgetOutpu
 	}, nil
 }
 
+type sqlTask_SqlFileOutputWire struct {
+	QueryText     *string                          `json:"query_text,omitempty"`
+	SqlStatements []sqlTask_SqlStatementOutputWire `json:"sql_statements,omitempty"`
+	QueryResult   *sqlStatementQueryResultWire     `json:"query_result,omitempty"`
+	WarehouseId   *string                          `json:"warehouse_id,omitempty"`
+}
+
+func sqlTask_SqlFileOutputFromWire(w *sqlTask_SqlFileOutputWire) (*SqlTask_SqlFileOutput, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sqlStatementsPublicValue, err := convertSlice(w.SqlStatements, sqlTask_SqlStatementOutputFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SqlTask_SqlFileOutput.SqlStatements", err)
+	}
+	queryResultPublicValue, err := sqlStatementQueryResultFromWire(w.QueryResult)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SqlTask_SqlFileOutput.QueryResult", err)
+	}
+	return &SqlTask_SqlFileOutput{
+		QueryText:     w.QueryText,
+		SqlStatements: sqlStatementsPublicValue,
+		QueryResult:   queryResultPublicValue,
+		WarehouseId:   w.WarehouseId,
+	}, nil
+}
+
 type sqlTask_SqlOutputWire struct {
 	QueryOutput     *sqlTask_SqlQueryOutputWire     `json:"query_output,omitempty"`
 	DashboardOutput *sqlTask_SqlDashboardOutputWire `json:"dashboard_output,omitempty"`
 	AlertOutput     *sqlTask_SqlAlertOutputWire     `json:"alert_output,omitempty"`
+	FileOutput      *sqlTask_SqlFileOutputWire      `json:"file_output,omitempty"`
 }
 
 func sqlTask_SqlOutputFromWire(w *sqlTask_SqlOutputWire) (*SqlTask_SqlOutput, error) {
@@ -6958,6 +7054,9 @@ func sqlTask_SqlOutputFromWire(w *sqlTask_SqlOutputWire) (*SqlTask_SqlOutput, er
 		sqlOutputTypeMembers++
 	}
 	if w.AlertOutput != nil {
+		sqlOutputTypeMembers++
+	}
+	if w.FileOutput != nil {
 		sqlOutputTypeMembers++
 	}
 	if sqlOutputTypeMembers > 1 {
@@ -6983,6 +7082,12 @@ func sqlTask_SqlOutputFromWire(w *sqlTask_SqlOutputWire) (*SqlTask_SqlOutput, er
 			return nil, fmt.Errorf("%s: %w", "SqlTask_SqlOutput.SqlOutputType.AlertOutput", err)
 		}
 		sqlOutputTypeSelection = &SqlTask_SqlOutput_SqlOutputType_AlertOutput{AlertOutput: *sqlOutputTypeAlertOutputConverted}
+	case w.FileOutput != nil:
+		sqlOutputTypeFileOutputConverted, err := sqlTask_SqlFileOutputFromWire(w.FileOutput)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "SqlTask_SqlOutput.SqlOutputType.FileOutput", err)
+		}
+		sqlOutputTypeSelection = &SqlTask_SqlOutput_SqlOutputType_FileOutput{FileOutput: *sqlOutputTypeFileOutputConverted}
 	}
 	return &SqlTask_SqlOutput{
 		SqlOutputType: sqlOutputTypeSelection,

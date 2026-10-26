@@ -115,6 +115,20 @@ const (
 type AnomalyDetectionConfig struct {
 	// List of fully qualified table names to exclude from anomaly detection.
 	ExcludedTableFullNames []string `fieldmask:"excluded_table_full_names"`
+	// Who to alert when anomaly detection finds unhealthy tables in this schema.
+	// Applicable to `schema` monitors only. This is the same schema alert you
+	// manage from **Manage alerts** in the Data Quality Monitoring UI, so a change
+	// made in either place shows in both.
+	//
+	// Set the recipients in `on_unhealthy_table`; `on_failure` is not supported
+	// here. Only `destination_ids` and `destination_user_ids` are supported.
+	//
+	// On update, an update mask of `*`, `anomaly_detection_config`, or
+	// `anomaly_detection_config.notification_settings` replaces the alert's
+	// recipients with the ones in the request; omitting the field, or leaving both
+	// recipient lists empty, removes the alert. Other masks leave the alert
+	// unchanged.
+	NotificationSettings *NotificationSettings `fieldmask:"notification_settings"`
 }
 
 // Request to cancel a refresh..
@@ -470,12 +484,26 @@ type NotificationDestination struct {
 	// The list of email addresses to send the notification to. A maximum of 5 email
 	// addresses is supported.
 	EmailAddresses []string `fieldmask:"email_addresses"`
+	// The notification-destination IDs (Slack / Teams / webhook) to send the
+	// notification to. The destinations must already exist in the workspace; a
+	// workspace admin creates them. A maximum of 25 destination IDs is supported.
+	// Only supported on schema monitors, via `anomaly_detection_config`; rejected
+	// on table monitors.
+	DestinationIds []string `fieldmask:"destination_ids"`
+	// The IDs of the workspace users to notify by email. A maximum of 25 user IDs
+	// is supported. Only supported on schema monitors, via
+	// `anomaly_detection_config`; rejected on table monitors.
+	DestinationUserIds []int64 `fieldmask:"destination_user_ids"`
 }
 
 // Settings for sending notifications on the data quality monitoring..
 type NotificationSettings struct {
 	// Destinations to send notifications on failure/timeout.
 	OnFailure *NotificationDestination `fieldmask:"on_failure"`
+	// Recipients to notify when anomaly detection finds unhealthy tables in the
+	// schema. Each recipient gets one notification per important unhealthy table.
+	// Only supported on schema monitors, via `anomaly_detection_config`.
+	OnUnhealthyTable *NotificationDestination `fieldmask:"on_unhealthy_table"`
 }
 
 // The Refresh object gives information on a refresh of the data quality

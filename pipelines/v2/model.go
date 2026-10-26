@@ -2818,6 +2818,10 @@ type StartUpdateRequest struct {
 	// on a table means that the states of the table will be reset before the
 	// refresh.
 	FullRefreshSelection []string
+	// A list of file paths that identify the tables to update.
+	RefreshSelectionByPath []string
+	// A list of file paths that identify the tables to update with a full refresh.
+	FullRefreshSelectionByPath []string
 	// A list of flows for which this update should reset the streaming checkpoint.
 	// This selection will not clear the data in the flow's target table. Flows in
 	// this list may also appear in refresh_selection and full_refresh_selection.
@@ -2981,6 +2985,10 @@ type UpdateInfo struct {
 	// on a table means that the states of the table will be reset before the
 	// refresh.
 	FullRefreshSelection []string
+	// A list of file paths that identify the tables to update.
+	RefreshSelectionByPath []string
+	// A list of file paths that identify the tables to update with a full refresh.
+	FullRefreshSelectionByPath []string
 	// If true, this update only validates the correctness of pipeline source code
 	// but does not materialize or publish any datasets.
 	ValidateOnly *bool

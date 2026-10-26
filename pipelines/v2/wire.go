@@ -4444,17 +4444,19 @@ func stackFrameFromWire(w *stackFrameWire) (*StackFrame, error) {
 }
 
 type startUpdateRequestWire struct {
-	PipelineId               *string                    `json:"pipeline_id,omitempty"`
-	FullRefresh              *bool                      `json:"full_refresh,omitempty"`
-	Cause                    UpdateCause                `json:"cause,omitempty"`
-	RefreshSelection         []string                   `json:"refresh_selection,omitempty"`
-	FullRefreshSelection     []string                   `json:"full_refresh_selection,omitempty"`
-	ResetCheckpointSelection []string                   `json:"reset_checkpoint_selection,omitempty"`
-	ValidateOnly             *bool                      `json:"validate_only,omitempty"`
-	Development              *bool                      `json:"development,omitempty"`
-	RewindSpec               *rewindSpecWire            `json:"rewind_spec,omitempty"`
-	Parameters               map[string]string          `json:"parameters,omitempty"`
-	ReplaceWhereOverrides    []replaceWhereOverrideWire `json:"replace_where_overrides,omitempty"`
+	PipelineId                 *string                    `json:"pipeline_id,omitempty"`
+	FullRefresh                *bool                      `json:"full_refresh,omitempty"`
+	Cause                      UpdateCause                `json:"cause,omitempty"`
+	RefreshSelection           []string                   `json:"refresh_selection,omitempty"`
+	FullRefreshSelection       []string                   `json:"full_refresh_selection,omitempty"`
+	RefreshSelectionByPath     []string                   `json:"refresh_selection_by_path,omitempty"`
+	FullRefreshSelectionByPath []string                   `json:"full_refresh_selection_by_path,omitempty"`
+	ResetCheckpointSelection   []string                   `json:"reset_checkpoint_selection,omitempty"`
+	ValidateOnly               *bool                      `json:"validate_only,omitempty"`
+	Development                *bool                      `json:"development,omitempty"`
+	RewindSpec                 *rewindSpecWire            `json:"rewind_spec,omitempty"`
+	Parameters                 map[string]string          `json:"parameters,omitempty"`
+	ReplaceWhereOverrides      []replaceWhereOverrideWire `json:"replace_where_overrides,omitempty"`
 }
 
 func startUpdateRequestToWire(v *StartUpdateRequest) (*startUpdateRequestWire, error) {
@@ -4470,17 +4472,19 @@ func startUpdateRequestToWire(v *StartUpdateRequest) (*startUpdateRequestWire, e
 		return nil, fmt.Errorf("%s: %w", "StartUpdateRequest.ReplaceWhereOverrides", err)
 	}
 	return &startUpdateRequestWire{
-		PipelineId:               v.PipelineId,
-		FullRefresh:              v.FullRefresh,
-		Cause:                    v.Cause,
-		RefreshSelection:         v.RefreshSelection,
-		FullRefreshSelection:     v.FullRefreshSelection,
-		ResetCheckpointSelection: v.ResetCheckpointSelection,
-		ValidateOnly:             v.ValidateOnly,
-		Development:              v.Development,
-		RewindSpec:               rewindSpecWireValue,
-		Parameters:               v.Parameters,
-		ReplaceWhereOverrides:    replaceWhereOverridesWireValue,
+		PipelineId:                 v.PipelineId,
+		FullRefresh:                v.FullRefresh,
+		Cause:                      v.Cause,
+		RefreshSelection:           v.RefreshSelection,
+		FullRefreshSelection:       v.FullRefreshSelection,
+		RefreshSelectionByPath:     v.RefreshSelectionByPath,
+		FullRefreshSelectionByPath: v.FullRefreshSelectionByPath,
+		ResetCheckpointSelection:   v.ResetCheckpointSelection,
+		ValidateOnly:               v.ValidateOnly,
+		Development:                v.Development,
+		RewindSpec:                 rewindSpecWireValue,
+		Parameters:                 v.Parameters,
+		ReplaceWhereOverrides:      replaceWhereOverridesWireValue,
 	}, nil
 }
 
@@ -4727,19 +4731,21 @@ func truncation_TruncationDetailFromWire(w *truncation_TruncationDetailWire) (*T
 }
 
 type updateInfoWire struct {
-	PipelineId           *string           `json:"pipeline_id,omitempty"`
-	UpdateId             *string           `json:"update_id,omitempty"`
-	Config               *pipelineSpecWire `json:"config,omitempty"`
-	Cause                UpdateCause       `json:"cause,omitempty"`
-	State                UpdateState       `json:"state,omitempty"`
-	ClusterId            *string           `json:"cluster_id,omitempty"`
-	CreationTime         *wireInt64        `json:"creation_time,omitempty"`
-	FullRefresh          *bool             `json:"full_refresh,omitempty"`
-	RefreshSelection     []string          `json:"refresh_selection,omitempty"`
-	FullRefreshSelection []string          `json:"full_refresh_selection,omitempty"`
-	ValidateOnly         *bool             `json:"validate_only,omitempty"`
-	Mode                 UpdateMode        `json:"mode,omitempty"`
-	Parameters           map[string]string `json:"parameters,omitempty"`
+	PipelineId                 *string           `json:"pipeline_id,omitempty"`
+	UpdateId                   *string           `json:"update_id,omitempty"`
+	Config                     *pipelineSpecWire `json:"config,omitempty"`
+	Cause                      UpdateCause       `json:"cause,omitempty"`
+	State                      UpdateState       `json:"state,omitempty"`
+	ClusterId                  *string           `json:"cluster_id,omitempty"`
+	CreationTime               *wireInt64        `json:"creation_time,omitempty"`
+	FullRefresh                *bool             `json:"full_refresh,omitempty"`
+	RefreshSelection           []string          `json:"refresh_selection,omitempty"`
+	FullRefreshSelection       []string          `json:"full_refresh_selection,omitempty"`
+	RefreshSelectionByPath     []string          `json:"refresh_selection_by_path,omitempty"`
+	FullRefreshSelectionByPath []string          `json:"full_refresh_selection_by_path,omitempty"`
+	ValidateOnly               *bool             `json:"validate_only,omitempty"`
+	Mode                       UpdateMode        `json:"mode,omitempty"`
+	Parameters                 map[string]string `json:"parameters,omitempty"`
 }
 
 func updateInfoFromWire(w *updateInfoWire) (*UpdateInfo, error) {
@@ -4755,19 +4761,21 @@ func updateInfoFromWire(w *updateInfoWire) (*UpdateInfo, error) {
 		return nil, fmt.Errorf("%s: %w", "UpdateInfo.CreationTime", err)
 	}
 	return &UpdateInfo{
-		PipelineId:           w.PipelineId,
-		UpdateId:             w.UpdateId,
-		Config:               configPublicValue,
-		Cause:                w.Cause,
-		State:                w.State,
-		ClusterId:            w.ClusterId,
-		CreationTime:         creationTimePublicValue,
-		FullRefresh:          w.FullRefresh,
-		RefreshSelection:     w.RefreshSelection,
-		FullRefreshSelection: w.FullRefreshSelection,
-		ValidateOnly:         w.ValidateOnly,
-		Mode:                 w.Mode,
-		Parameters:           w.Parameters,
+		PipelineId:                 w.PipelineId,
+		UpdateId:                   w.UpdateId,
+		Config:                     configPublicValue,
+		Cause:                      w.Cause,
+		State:                      w.State,
+		ClusterId:                  w.ClusterId,
+		CreationTime:               creationTimePublicValue,
+		FullRefresh:                w.FullRefresh,
+		RefreshSelection:           w.RefreshSelection,
+		FullRefreshSelection:       w.FullRefreshSelection,
+		RefreshSelectionByPath:     w.RefreshSelectionByPath,
+		FullRefreshSelectionByPath: w.FullRefreshSelectionByPath,
+		ValidateOnly:               w.ValidateOnly,
+		Mode:                       w.Mode,
+		Parameters:                 w.Parameters,
 	}, nil
 }
 

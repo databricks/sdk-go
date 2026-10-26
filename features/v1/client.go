@@ -519,6 +519,177 @@ func (c *internalClient) CreateKafkaConfig(ctx context.Context, req CreateKafkaC
 	return resp, nil
 }
 
+// Create a materialization set.
+func (c *internalClient) createMaterializationSetBase(ctx context.Context, req CreateMaterializationSetRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := createMaterializationSetRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	if wireReq.RequestId == nil || *wireReq.RequestId == "" {
+		wireReq.RequestId = new(generateRequestID())
+	}
+	body, err := json.Marshal(wireReq.MaterializationSet)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = "/api/2.0/feature-engineering/materialization-sets"
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "request_id", wireReq.RequestId); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Operation
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp operationWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = operationFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Create a materialization set.
+func (c *internalClient) CreateMaterializationSet(ctx context.Context, req CreateMaterializationSetRequest, opts ...call.Option) (*CreateMaterializationSetOperation, error) {
+	operation, err := c.createMaterializationSetBase(ctx, req, opts...)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateOperationName(operation.Name); err != nil {
+		return nil, err
+	}
+	return &CreateMaterializationSetOperation{
+		operation:    operation,
+		getOperation: c.getOperation,
+	}, nil
+}
+
+// CreateMaterializationSetOperation tracks the state of the long-running operation started by CreateMaterializationSet.
+type CreateMaterializationSetOperation struct {
+	operation    *Operation
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
+}
+
+// Name returns the server-assigned operation name.
+func (o *CreateMaterializationSetOperation) Name() *string {
+	return o.operation.Name
+}
+
+// Metadata returns metadata associated with the operation.
+func (o *CreateMaterializationSetOperation) Metadata() (*MaterializationSetOperationMetadata, error) {
+	if len(o.operation.Metadata) == 0 || bytes.Equal(bytes.TrimSpace(o.operation.Metadata), []byte("null")) {
+		return nil, nil
+	}
+	var metadata materializationSetOperationMetadataWire
+	if err := json.Unmarshal(o.operation.Metadata, &metadata); err != nil {
+		return nil, fmt.Errorf("decode operation metadata: %w", err)
+	}
+	converted, err := materializationSetOperationMetadataFromWire(&metadata)
+	if err != nil {
+		return nil, err
+	}
+	return converted, nil
+}
+
+// Done refreshes the operation and reports whether it has completed.
+func (o *CreateMaterializationSetOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
+	if err != nil {
+		return false, err
+	}
+	if err := validateOperationName(operation.Name); err != nil {
+		return false, err
+	}
+	o.operation = operation
+	if operation.Done == nil {
+		return false, fmt.Errorf("invalid operation response: missing done field")
+	}
+	return *operation.Done, nil
+}
+
+// Wait polls the operation until it completes.
+func (o *CreateMaterializationSetOperation) Wait(ctx context.Context, opts ...lro.Option) (*MaterializationSet, error) {
+	var result *MaterializationSet
+	poll := func(ctx context.Context) error {
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
+		if err != nil {
+			return err
+		}
+		if err := validateOperationName(operation.Name); err != nil {
+			return err
+		}
+		o.operation = operation
+		if operation.Done == nil {
+			return fmt.Errorf("invalid operation response: missing done field")
+		}
+		if !*operation.Done {
+			return errOperationStillRunning
+		}
+		if operationError, ok := operation.Result.(*Operation_Result_Error); ok && operationError != nil {
+			return fmt.Errorf("operation failed: %w", &operationError.Error)
+		}
+		operationResponse, ok := operation.Result.(*Operation_Result_Response)
+		if !ok || operationResponse == nil || len(operationResponse.Response) == 0 || bytes.Equal(bytes.TrimSpace(operationResponse.Response), []byte("null")) {
+			return fmt.Errorf("operation completed without a response")
+		}
+		var response materializationSetWire
+		if err := json.Unmarshal(operationResponse.Response, &response); err != nil {
+			return fmt.Errorf("decode operation response: %w", err)
+		}
+		result, err = materializationSetFromWire(&response)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	if err := executeWait(ctx, poll, opts...); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 // Create a materialized feature.
 func (c *internalClient) CreateMaterializedFeature(ctx context.Context, req CreateMaterializedFeatureRequest, opts ...call.Option) (*MaterializedFeature, error) {
 	wireReq, err := createMaterializedFeatureRequestToWire(&req)
@@ -762,6 +933,176 @@ func (c *internalClient) DeleteKafkaConfig(ctx context.Context, req DeleteKafkaC
 	return nil
 }
 
+// Delete a materialization set and every materialized feature in it. The set is
+// gone afterwards, so a later read returns NOT_FOUND and the set id is free to
+// use again.
+func (c *internalClient) deleteMaterializationSetBase(ctx context.Context, req DeleteMaterializationSetRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := deleteMaterializationSetRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	if wireReq.RequestId == nil || *wireReq.RequestId == "" {
+		wireReq.RequestId = new(generateRequestID())
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/feature-engineering/materialization-sets/")
+	if req.MaterializationSetId == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "materialization_set_id")
+	}
+	pb.singleSegment(*req.MaterializationSetId)
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "allow_missing", wireReq.AllowMissing); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "request_id", wireReq.RequestId); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Operation
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "DELETE",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp operationWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = operationFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Delete a materialization set and every materialized feature in it. The set is
+// gone afterwards, so a later read returns NOT_FOUND and the set id is free to
+// use again.
+func (c *internalClient) DeleteMaterializationSet(ctx context.Context, req DeleteMaterializationSetRequest, opts ...call.Option) (*DeleteMaterializationSetOperation, error) {
+	operation, err := c.deleteMaterializationSetBase(ctx, req, opts...)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateOperationName(operation.Name); err != nil {
+		return nil, err
+	}
+	return &DeleteMaterializationSetOperation{
+		operation:    operation,
+		getOperation: c.getOperation,
+	}, nil
+}
+
+// DeleteMaterializationSetOperation tracks the state of the long-running operation started by DeleteMaterializationSet.
+type DeleteMaterializationSetOperation struct {
+	operation    *Operation
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
+}
+
+// Name returns the server-assigned operation name.
+func (o *DeleteMaterializationSetOperation) Name() *string {
+	return o.operation.Name
+}
+
+// Metadata returns metadata associated with the operation.
+func (o *DeleteMaterializationSetOperation) Metadata() (*MaterializationSetOperationMetadata, error) {
+	if len(o.operation.Metadata) == 0 || bytes.Equal(bytes.TrimSpace(o.operation.Metadata), []byte("null")) {
+		return nil, nil
+	}
+	var metadata materializationSetOperationMetadataWire
+	if err := json.Unmarshal(o.operation.Metadata, &metadata); err != nil {
+		return nil, fmt.Errorf("decode operation metadata: %w", err)
+	}
+	converted, err := materializationSetOperationMetadataFromWire(&metadata)
+	if err != nil {
+		return nil, err
+	}
+	return converted, nil
+}
+
+// Done refreshes the operation and reports whether it has completed.
+func (o *DeleteMaterializationSetOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
+	if err != nil {
+		return false, err
+	}
+	if err := validateOperationName(operation.Name); err != nil {
+		return false, err
+	}
+	o.operation = operation
+	if operation.Done == nil {
+		return false, fmt.Errorf("invalid operation response: missing done field")
+	}
+	return *operation.Done, nil
+}
+
+// Wait polls the operation until it completes.
+func (o *DeleteMaterializationSetOperation) Wait(ctx context.Context, opts ...lro.Option) error {
+	poll := func(ctx context.Context) error {
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
+		if err != nil {
+			return err
+		}
+		if err := validateOperationName(operation.Name); err != nil {
+			return err
+		}
+		o.operation = operation
+		if operation.Done == nil {
+			return fmt.Errorf("invalid operation response: missing done field")
+		}
+		if !*operation.Done {
+			return errOperationStillRunning
+		}
+		if operationError, ok := operation.Result.(*Operation_Result_Error); ok && operationError != nil {
+			return fmt.Errorf("operation failed: %w", &operationError.Error)
+		}
+		operationResponse, ok := operation.Result.(*Operation_Result_Response)
+		if !ok || operationResponse == nil || len(operationResponse.Response) == 0 || bytes.Equal(bytes.TrimSpace(operationResponse.Response), []byte("null")) {
+			return fmt.Errorf("operation completed without a response")
+		}
+		return nil
+	}
+	if err := executeWait(ctx, poll, opts...); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Delete a materialized feature.
 func (c *internalClient) DeleteMaterializedFeature(ctx context.Context, req DeleteMaterializedFeatureRequest, opts ...call.Option) error {
 
@@ -986,6 +1327,71 @@ func (c *internalClient) GetKafkaConfig(ctx context.Context, req GetKafkaConfigR
 			return err
 		}
 		resp, err = kafkaConfigFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Get a materialization set and the materialized features in it. A set whose
+// materialized feature members have all been deleted is returned with an empty
+// member list.
+func (c *internalClient) GetMaterializationSet(ctx context.Context, req GetMaterializationSetRequest, opts ...call.Option) (*MaterializationSet, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/feature-engineering/materialization-sets/")
+	if req.MaterializationSetId == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "materialization_set_id")
+	}
+	pb.singleSegment(*req.MaterializationSetId)
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *MaterializationSet
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp materializationSetWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = materializationSetFromWire(&wireResp)
 		if err != nil {
 			return err
 		}
@@ -1952,6 +2358,191 @@ func (c *internalClient) UpdateKafkaConfig(ctx context.Context, req UpdateKafkaC
 		return nil, err
 	}
 	return resp, nil
+}
+
+// Update the materialization set's state to match the supplied materialization
+// set. Changes are applied member by member and are not atomic: when one member
+// fails, the error reports which members were already changed.
+func (c *internalClient) updateMaterializationSetBase(ctx context.Context, req UpdateMaterializationSetRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := updateMaterializationSetRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	if wireReq.RequestId == nil || *wireReq.RequestId == "" {
+		wireReq.RequestId = new(generateRequestID())
+	}
+	body, err := json.Marshal(wireReq.MaterializationSet)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/feature-engineering/materialization-sets/")
+	if req.MaterializationSet == nil || req.MaterializationSet.MaterializationSetId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.MaterializationSet.MaterializationSetId)
+	}
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "request_id", wireReq.RequestId); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Operation
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "PATCH",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp operationWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = operationFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Update the materialization set's state to match the supplied materialization
+// set. Changes are applied member by member and are not atomic: when one member
+// fails, the error reports which members were already changed.
+func (c *internalClient) UpdateMaterializationSet(ctx context.Context, req UpdateMaterializationSetRequest, opts ...call.Option) (*UpdateMaterializationSetOperation, error) {
+	operation, err := c.updateMaterializationSetBase(ctx, req, opts...)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateOperationName(operation.Name); err != nil {
+		return nil, err
+	}
+	return &UpdateMaterializationSetOperation{
+		operation:    operation,
+		getOperation: c.getOperation,
+	}, nil
+}
+
+// UpdateMaterializationSetOperation tracks the state of the long-running operation started by UpdateMaterializationSet.
+type UpdateMaterializationSetOperation struct {
+	operation    *Operation
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
+}
+
+// Name returns the server-assigned operation name.
+func (o *UpdateMaterializationSetOperation) Name() *string {
+	return o.operation.Name
+}
+
+// Metadata returns metadata associated with the operation.
+func (o *UpdateMaterializationSetOperation) Metadata() (*MaterializationSetOperationMetadata, error) {
+	if len(o.operation.Metadata) == 0 || bytes.Equal(bytes.TrimSpace(o.operation.Metadata), []byte("null")) {
+		return nil, nil
+	}
+	var metadata materializationSetOperationMetadataWire
+	if err := json.Unmarshal(o.operation.Metadata, &metadata); err != nil {
+		return nil, fmt.Errorf("decode operation metadata: %w", err)
+	}
+	converted, err := materializationSetOperationMetadataFromWire(&metadata)
+	if err != nil {
+		return nil, err
+	}
+	return converted, nil
+}
+
+// Done refreshes the operation and reports whether it has completed.
+func (o *UpdateMaterializationSetOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
+	if err != nil {
+		return false, err
+	}
+	if err := validateOperationName(operation.Name); err != nil {
+		return false, err
+	}
+	o.operation = operation
+	if operation.Done == nil {
+		return false, fmt.Errorf("invalid operation response: missing done field")
+	}
+	return *operation.Done, nil
+}
+
+// Wait polls the operation until it completes.
+func (o *UpdateMaterializationSetOperation) Wait(ctx context.Context, opts ...lro.Option) (*MaterializationSet, error) {
+	var result *MaterializationSet
+	poll := func(ctx context.Context) error {
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
+		if err != nil {
+			return err
+		}
+		if err := validateOperationName(operation.Name); err != nil {
+			return err
+		}
+		o.operation = operation
+		if operation.Done == nil {
+			return fmt.Errorf("invalid operation response: missing done field")
+		}
+		if !*operation.Done {
+			return errOperationStillRunning
+		}
+		if operationError, ok := operation.Result.(*Operation_Result_Error); ok && operationError != nil {
+			return fmt.Errorf("operation failed: %w", &operationError.Error)
+		}
+		operationResponse, ok := operation.Result.(*Operation_Result_Response)
+		if !ok || operationResponse == nil || len(operationResponse.Response) == 0 || bytes.Equal(bytes.TrimSpace(operationResponse.Response), []byte("null")) {
+			return fmt.Errorf("operation completed without a response")
+		}
+		var response materializationSetWire
+		if err := json.Unmarshal(operationResponse.Response, &response); err != nil {
+			return fmt.Errorf("decode operation response: %w", err)
+		}
+		result, err = materializationSetFromWire(&response)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	if err := executeWait(ctx, poll, opts...); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // Update a materialized feature (pause/resume).

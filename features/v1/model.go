@@ -493,6 +493,23 @@ const (
 	CronSchedule_Mode_Derived CronSchedule_Mode = "DERIVED"
 )
 
+// Lifecycle state of a materialization set operation.
+type MaterializationSetOperationMetadata_State string
+
+const (
+	MaterializationSetOperationMetadata_State_Unspecified MaterializationSetOperationMetadata_State = ""
+	// The operation is pending.
+	MaterializationSetOperationMetadata_State_Pending MaterializationSetOperationMetadata_State = "PENDING"
+	// The operation is running.
+	MaterializationSetOperationMetadata_State_Running MaterializationSetOperationMetadata_State = "RUNNING"
+	// The operation succeeded.
+	MaterializationSetOperationMetadata_State_Succeeded MaterializationSetOperationMetadata_State = "SUCCEEDED"
+	// The operation failed.
+	MaterializationSetOperationMetadata_State_Failed MaterializationSetOperationMetadata_State = "FAILED"
+	// The operation was cancelled.
+	MaterializationSetOperationMetadata_State_Cancelled MaterializationSetOperationMetadata_State = "CANCELLED"
+)
+
 type MaterializedFeature_PipelineScheduleState string
 
 const (
@@ -944,6 +961,18 @@ type CreateKafkaConfigRequest struct {
 	KafkaConfig *KafkaConfig
 }
 
+type CreateMaterializationSetRequest struct {
+	// The materialization set to create. Supply materialization_set_id to choose
+	// the identifier; leave it unset to have one assigned.
+	MaterializationSet *MaterializationSet
+	// Idempotency token for the request. A second request carrying a token that has
+	// already been used returns the operation the first one created, whatever state
+	// it reached, and creates no second set. The token is not checked against the
+	// rest of the request, so reusing one for a different set returns the original
+	// operation rather than an error. Omit it and each request creates its own set.
+	RequestId *string
+}
+
 type CreateMaterializedFeatureRequest struct {
 	// The materialized feature to create.
 	MaterializedFeature *MaterializedFeature
@@ -1063,6 +1092,19 @@ type DeleteFeatureRequest struct {
 type DeleteKafkaConfigRequest struct {
 	// Name of the Kafka config to delete.
 	Name *string
+}
+
+type DeleteMaterializationSetRequest struct {
+	// The ID of the materialization set to delete.
+	MaterializationSetId *string
+	// Return success instead of NOT_FOUND when the set does not exist, so a
+	// repeated destroy is idempotent.
+	AllowMissing *bool
+	// Idempotency token for the request. A second request carrying a token that has
+	// already been used returns the operation the first one created, whatever state
+	// it reached, and deletes nothing further. The token is not checked against the
+	// rest of the request. Omit it and each request deletes independently.
+	RequestId *string
 }
 
 type DeleteMaterializedFeatureRequest struct {
@@ -1282,6 +1324,11 @@ type GetFeatureRequest struct {
 type GetKafkaConfigRequest struct {
 	// Name of the Kafka config to get.
 	Name *string
+}
+
+type GetMaterializationSetRequest struct {
+	// The ID of the materialization set.
+	MaterializationSetId *string
 }
 
 type GetMaterializedFeatureRequest struct {
@@ -1683,6 +1730,81 @@ type MaterializationNotifications struct {
 	OnFailure *MaterializationFailureNotification `fieldmask:"on_failure"`
 }
 
+// A group of materialized features created and managed as a single unit..
+type MaterializationSet struct {
+	// Server-assigned unique identifier for the materialization set.
+	MaterializationSetId *string `fieldmask:"materialization_set_id"`
+	// The materialized features in this set. Order is not significant. Updating the
+	// set with a materialized feature removed from this set will cause it to be
+	// deleted.
+	MaterializedFeatures []MaterializedFeature `fieldmask:"materialized_features"`
+}
+
+// What a partly failed DeleteMaterializationSet got through, attached to the
+// error so a caller can tell which materialized feature members are gone and
+// which ones still need attention. The set itself is left in place whenever any
+// member failed, so a retry can still find the members..
+type MaterializationSetDeletionProgress struct {
+	// Members that are no longer materialized, including any that were already
+	// gone.
+	DeletedMaterializedFeatureIds []string
+	// Members that could not be deleted, one entry each.
+	FailedMaterializedFeatures []MaterializedFeatureChangeFailure
+}
+
+// Progress of a materialization set operation. Shared by create, update and
+// delete, because databricks.longrunning freezes a method's metadata type once
+// it ships..
+type MaterializationSetOperationMetadata struct {
+	// Full names of the features the set materializes, one entry per feature.
+	FeatureFullNames []string
+	// Current state of the operation.
+	State MaterializationSetOperationMetadata_State
+	// Time at which the operation was requested.
+	CreateTime *types.Time
+	// ID of the materialization set the operation targets.
+	MaterializationSetId *string
+	// Records which members a set change applied to and which it did not. It is
+	// written once the operation settles, so a polled operation shows the outcome
+	// of a partly failed change. Unset for a creation, which has no partial
+	// outcome.
+	Progress isMaterializationSetOperationMetadata_Progress
+}
+
+type isMaterializationSetOperationMetadata_Progress interface {
+	isMaterializationSetOperationMetadata_Progress()
+}
+
+// MaterializationSetOperationMetadata_Progress_DeletionProgress selects DeletionProgress for MaterializationSetOperationMetadata.Progress.
+// Set by a DeleteMaterializationSet operation.
+type MaterializationSetOperationMetadata_Progress_DeletionProgress struct {
+	DeletionProgress MaterializationSetDeletionProgress
+}
+
+func (*MaterializationSetOperationMetadata_Progress_DeletionProgress) isMaterializationSetOperationMetadata_Progress() {
+}
+
+// MaterializationSetOperationMetadata_Progress_UpdateProgress selects UpdateProgress for MaterializationSetOperationMetadata.Progress.
+// Set by an UpdateMaterializationSet operation.
+type MaterializationSetOperationMetadata_Progress_UpdateProgress struct {
+	UpdateProgress MaterializationSetUpdateProgress
+}
+
+func (*MaterializationSetOperationMetadata_Progress_UpdateProgress) isMaterializationSetOperationMetadata_Progress() {
+}
+
+// What a partly failed UpdateMaterializationSet got through, attached to the
+// error so a caller can tell which materialized feature members already changed
+// and which ones did not and why it failed..
+type MaterializationSetUpdateProgress struct {
+	// Materialized feature members whose mutable state was updated.
+	UpdatedMaterializedFeatureIds []string
+	// Materialized feature members that were deleted from the materialization set.
+	DeletedMaterializedFeatureIds []string
+	// Materialized feature members that could not be updated, one entry each.
+	FailedMaterializedFeatures []MaterializedFeatureChangeFailure
+}
+
 // Recipients to notify when a materialization run succeeds..
 type MaterializationSuccessNotification struct {
 	// Email addresses to notify.
@@ -1745,9 +1867,13 @@ type MaterializedFeature struct {
 	// lifecycle. They are applied to every job and pipeline that materializes this
 	// feature. Features which are materialized in the same pipeline will share the
 	// same notification.
-	Notifications *MaterializationNotifications                      `fieldmask:"notifications"`
-	_             [0]materializedFeatureDestinationFieldMaskMetadata `fieldmask_oneof:"Destination"`
-	_             [0]materializedFeatureTriggerFieldMaskMetadata     `fieldmask_oneof:"Trigger"`
+	Notifications *MaterializationNotifications `fieldmask:"notifications"`
+	// The materialization set this materialized feature was created for, through
+	// DABs or direct-engine creation. Unset for a materialized feature that was not
+	// created as part of a set.
+	MaterializationSetId *string                                            `fieldmask:"materialization_set_id"`
+	_                    [0]materializedFeatureDestinationFieldMaskMetadata `fieldmask_oneof:"Destination"`
+	_                    [0]materializedFeatureTriggerFieldMaskMetadata     `fieldmask_oneof:"Trigger"`
 }
 
 type isMaterializedFeature_Destination interface {
@@ -1811,6 +1937,16 @@ type materializedFeatureTriggerFieldMaskMetadata struct {
 	*MaterializedFeature_Trigger_CronScheduleTrigger
 	*MaterializedFeature_Trigger_TableTrigger
 	*MaterializedFeature_Trigger_StreamingMode
+}
+
+// Why one materialization set member could not be changed..
+type MaterializedFeatureChangeFailure struct {
+	// The member that could not be changed.
+	MaterializedFeatureId *string
+	// Databricks error code name of the failure, for example "RESOURCE_CONFLICT".
+	ErrorCode *string
+	// The failure's message.
+	Message *string
 }
 
 // Computes the maximum value..
@@ -1962,13 +2098,16 @@ type PurgeFeatureEntitiesMetadata struct {
 	State PurgeFeatureEntitiesMetadata_State
 	// ID of the job that executes this purge.
 	JobId *int64
+	// Whether this purge deletes matching rows instead of setting feature values to
+	// null.
+	DeleteRows *bool
 }
 
 // Request to purge materialized feature values for entities listed in a Unity
 // Catalog Delta table..
 type PurgeFeatureEntitiesRequest struct {
 	// Fully qualified names of the features to purge. At least one nonempty feature
-	// name is required. A request may contain at most 10000 features; submit
+	// name is required. A request may contain at most 500 features; submit
 	// additional features in separate requests. Duplicate features are rejected.
 	Features []string
 	// Source of the entity keys to purge.
@@ -1987,6 +2126,13 @@ type PurgeFeatureEntitiesRequest struct {
 	// compute cost of this purge. If not specified, a default budget policy may be
 	// applied.
 	BudgetPolicyId *string
+	// If false feature values are set to null on purge but rows are not deleted. If
+	// true then the full rows containing entities are deleted. Defaults to false.
+	// When true, the request must include every feature which shares the same
+	// `table_name` property in their MaterializedFeature. Features from multiple
+	// tables may be included if all features materialized in each table are
+	// included.
+	DeleteRows *bool
 }
 
 type isPurgeFeatureEntitiesRequest_Entities interface {
@@ -2205,9 +2351,9 @@ type SdpSource struct {
 	OutputTable *string `fieldmask:"output_table"`
 	// The full three-part names of the tables the pipeline reads from. Required to
 	// materialize this feature with a TableTrigger, which starts a run when these
-	// tables update. Each table must exist when the feature is created. After the
-	// pipeline runs, Feature Store checks that it reads from these tables, and the
-	// run fails if it doesn't. At most 100 tables.
+	// tables update. Each table must exist when the feature is created. Feature
+	// Store doesn't confirm that the pipeline reads from these tables. At most 100
+	// tables.
 	InputTables []string `fieldmask:"input_tables"`
 	// State tracking pipeline execution and output table validation. PENDING until
 	// the pipeline has run at least once and created the output table; then
@@ -2646,6 +2792,19 @@ type UpdateKafkaConfigRequest struct {
 	KafkaConfig *KafkaConfig
 	// The list of fields to update.
 	UpdateMask *types.FieldMask[KafkaConfig]
+}
+
+type UpdateMaterializationSetRequest struct {
+	// The desired state of the updated materialization set. materialization_set_id
+	// selects the set.
+	MaterializationSet *MaterializationSet
+	// The fields to update. Only 'materialized_features' is supported.
+	UpdateMask *types.FieldMask[MaterializationSet]
+	// Idempotency token for the request. A second request carrying a token that has
+	// already been used returns the operation the first one created, whatever state
+	// it reached, and changes nothing further. The token is not checked against the
+	// rest of the request. Omit it and each request updates independently.
+	RequestId *string
 }
 
 type UpdateMaterializedFeatureRequest struct {

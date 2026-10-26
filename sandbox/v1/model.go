@@ -240,6 +240,8 @@ type RenamePathResponse struct {
 
 // A Sandbox resource representing an execution environment..
 type Sandbox struct {
+	// Metadata associated with the sandbox.
+	Metadata *SandboxMetadata `fieldmask:"metadata"`
 	// The desired configuration of the sandbox, supplied by the caller at creation
 	// time.
 	Spec *SandboxSpec `fieldmask:"spec"`
@@ -270,6 +272,13 @@ type SandboxFileInfo struct {
 	// Nanosecond precision is preserved on the wire.
 	ModifyTime    *types.Time
 	SymlinkTarget *string
+}
+
+// Metadata associated with a sandbox..
+type SandboxMetadata struct {
+	// Key-value tags associated with the sandbox. Supports up to 54 tags. Keys must
+	// be between 1 and 512 characters, and values must not exceed 256 characters.
+	CustomTags map[string]string `fieldmask:"custom_tags"`
 }
 
 type SandboxSpec struct {
