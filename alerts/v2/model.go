@@ -105,9 +105,11 @@ type Alert struct {
 	Schedule      *CronSchedule    `fieldmask:"schedule"`
 	// Indicates whether the query is trashed.
 	LifecycleState AlertLifecycleState `fieldmask:"lifecycle_state"`
-	// Custom summary for the alert. support mustache template.
+	// Custom summary for the alert. Interpreted according to
+	// `custom_template_format`.
 	CustomSummary *string `fieldmask:"custom_summary"`
-	// Custom description for the alert. support mustache template.
+	// Custom description for the alert. Interpreted according to
+	// `custom_template_format`.
 	CustomDescription *string `fieldmask:"custom_description"`
 	// Specifies the identity that will be used to run the alert. This field allows
 	// you to configure alerts to run as a specific user or service principal. - For
