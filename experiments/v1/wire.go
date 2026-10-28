@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+
+	"github.com/databricks/sdk-go/core/types"
 )
 
 type wireInt64 int64
@@ -52,6 +54,14 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
+func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
+	if mask == nil {
+		return nil
+	}
+	value := mask.String()
+	return &value
+}
+
 type createExperimentRequestWire struct {
 	Name             *string                      `json:"name,omitempty"`
 	ArtifactLocation *string                      `json:"artifact_location,omitempty"`
@@ -89,6 +99,27 @@ func createExperimentResponseFromWire(w *createExperimentResponseWire) (*CreateE
 	}
 	return &CreateExperimentResponse{
 		ExperimentId: w.ExperimentId,
+	}, nil
+}
+
+type createIssueRequestWire struct {
+	Parent  *string    `json:"parent,omitempty"`
+	Issue   *issueWire `json:"issue,omitempty"`
+	IssueId *string    `json:"issue_id,omitempty"`
+}
+
+func createIssueRequestToWire(v *CreateIssueRequest) (*createIssueRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	issueWireValue, err := issueToWire(v.Issue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateIssueRequest.Issue", err)
+	}
+	return &createIssueRequestWire{
+		Parent:  v.Parent,
+		Issue:   issueWireValue,
+		IssueId: v.IssueId,
 	}, nil
 }
 
@@ -668,6 +699,88 @@ func inputTagFromWire(w *inputTagWire) (*InputTag, error) {
 	return &InputTag{
 		Key:   w.Key,
 		Value: w.Value,
+	}, nil
+}
+
+type issueWire struct {
+	Name          *string           `json:"name,omitempty"`
+	IssueId       *string           `json:"issue_id,omitempty"`
+	Title         *string           `json:"title,omitempty"`
+	Description   *string           `json:"description,omitempty"`
+	Status        IssueStatus       `json:"status,omitempty"`
+	Severity      IssueSeverity     `json:"severity,omitempty"`
+	Categories    []string          `json:"categories,omitempty"`
+	Tags          map[string]string `json:"tags,omitempty"`
+	LastSeenTime  *types.Time       `json:"last_seen_time,omitempty"`
+	SourceType    IssueSourceType   `json:"source_type,omitempty"`
+	SourceId      *string           `json:"source_id,omitempty"`
+	CreatedBy     *string           `json:"created_by,omitempty"`
+	CreateTime    *types.Time       `json:"create_time,omitempty"`
+	LastUpdatedBy *string           `json:"last_updated_by,omitempty"`
+	UpdateTime    *types.Time       `json:"update_time,omitempty"`
+	Metadata      map[string]string `json:"metadata,omitempty"`
+}
+
+func issueToWire(v *Issue) (*issueWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &issueWire{
+		Name:          v.Name,
+		IssueId:       v.IssueId,
+		Title:         v.Title,
+		Description:   v.Description,
+		Status:        v.Status,
+		Severity:      v.Severity,
+		Categories:    v.Categories,
+		Tags:          v.Tags,
+		LastSeenTime:  v.LastSeenTime,
+		SourceType:    v.SourceType,
+		SourceId:      v.SourceId,
+		CreatedBy:     v.CreatedBy,
+		CreateTime:    v.CreateTime,
+		LastUpdatedBy: v.LastUpdatedBy,
+		UpdateTime:    v.UpdateTime,
+		Metadata:      v.Metadata,
+	}, nil
+}
+
+func issueFromWire(w *issueWire) (*Issue, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &Issue{
+		Name:          w.Name,
+		IssueId:       w.IssueId,
+		Title:         w.Title,
+		Description:   w.Description,
+		Status:        w.Status,
+		Severity:      w.Severity,
+		Categories:    w.Categories,
+		Tags:          w.Tags,
+		LastSeenTime:  w.LastSeenTime,
+		SourceType:    w.SourceType,
+		SourceId:      w.SourceId,
+		CreatedBy:     w.CreatedBy,
+		CreateTime:    w.CreateTime,
+		LastUpdatedBy: w.LastUpdatedBy,
+		UpdateTime:    w.UpdateTime,
+		Metadata:      w.Metadata,
+	}, nil
+}
+
+type issueTagFilterWire struct {
+	Key    *string  `json:"key,omitempty"`
+	Values []string `json:"values,omitempty"`
+}
+
+func issueTagFilterToWire(v *IssueTagFilter) (*issueTagFilterWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &issueTagFilterWire{
+		Key:    v.Key,
+		Values: v.Values,
 	}, nil
 }
 
@@ -1458,6 +1571,64 @@ func searchExperimentsResponseFromWire(w *searchExperimentsResponseWire) (*Searc
 	}, nil
 }
 
+type searchIssuesRequestWire struct {
+	Parent     *string              `json:"parent,omitempty"`
+	Query      *string              `json:"query,omitempty"`
+	Statuses   []IssueStatus        `json:"statuses,omitempty"`
+	Severities []IssueSeverity      `json:"severities,omitempty"`
+	Categories []string             `json:"categories,omitempty"`
+	TagFilters []issueTagFilterWire `json:"tag_filters,omitempty"`
+	SortKey    IssueSortKey         `json:"sort_key,omitempty"`
+	SortOrder  SortOrder            `json:"sort_order,omitempty"`
+	PageSize   *int                 `json:"page_size,omitempty"`
+	PageToken  *string              `json:"page_token,omitempty"`
+	View       IssueView            `json:"view,omitempty"`
+}
+
+func searchIssuesRequestToWire(v *SearchIssuesRequest) (*searchIssuesRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tagFiltersWireValue, err := convertSlice(v.TagFilters, issueTagFilterToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SearchIssuesRequest.TagFilters", err)
+	}
+	return &searchIssuesRequestWire{
+		Parent:     v.Parent,
+		Query:      v.Query,
+		Statuses:   v.Statuses,
+		Severities: v.Severities,
+		Categories: v.Categories,
+		TagFilters: tagFiltersWireValue,
+		SortKey:    v.SortKey,
+		SortOrder:  v.SortOrder,
+		PageSize:   v.PageSize,
+		PageToken:  v.PageToken,
+		View:       v.View,
+	}, nil
+}
+
+type searchIssuesResponseWire struct {
+	Issues        []issueWire `json:"issues,omitempty"`
+	NextPageToken *string     `json:"next_page_token,omitempty"`
+	TotalSize     *int        `json:"total_size,omitempty"`
+}
+
+func searchIssuesResponseFromWire(w *searchIssuesResponseWire) (*SearchIssuesResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	issuesPublicValue, err := convertSlice(w.Issues, issueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SearchIssuesResponse.Issues", err)
+	}
+	return &SearchIssuesResponse{
+		Issues:        issuesPublicValue,
+		NextPageToken: w.NextPageToken,
+		TotalSize:     w.TotalSize,
+	}, nil
+}
+
 type searchLoggedModelsRequestWire struct {
 	ExperimentIds []string                                `json:"experiment_ids,omitempty"`
 	Filter        *string                                 `json:"filter,omitempty"`
@@ -1682,6 +1853,25 @@ func updateExperimentRequestToWire(v *UpdateExperimentRequest) (*updateExperimen
 	return &updateExperimentRequestWire{
 		ExperimentId: v.ExperimentId,
 		NewName:      v.NewName,
+	}, nil
+}
+
+type updateIssueRequestWire struct {
+	Issue      *issueWire `json:"issue,omitempty"`
+	UpdateMask *string    `json:"update_mask,omitempty"`
+}
+
+func updateIssueRequestToWire(v *UpdateIssueRequest) (*updateIssueRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	issueWireValue, err := issueToWire(v.Issue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateIssueRequest.Issue", err)
+	}
+	return &updateIssueRequestWire{
+		Issue:      issueWireValue,
+		UpdateMask: fieldMaskToWire(v.UpdateMask),
 	}, nil
 }
 

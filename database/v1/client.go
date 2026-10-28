@@ -80,6 +80,11 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Create a Database Catalog.
+//
+// For new workloads, Databricks recommends the Postgres API equivalent: [Create
+// a catalog].
+//
+// [Create a catalog]: https://docs.databricks.com/api/postgres/v1/create-catalog
 func (c *internalClient) CreateDatabaseCatalog(ctx context.Context, req CreateDatabaseCatalogRequest, opts ...call.Option) (*DatabaseCatalog, error) {
 	wireReq, err := createDatabaseCatalogRequestToWire(&req)
 	if err != nil {
@@ -146,6 +151,11 @@ func (c *internalClient) CreateDatabaseCatalog(ctx context.Context, req CreateDa
 }
 
 // Create a Database Instance.
+//
+// For new workloads, Databricks recommends the Postgres API equivalent: [Create
+// a project].
+//
+// [Create a project]: https://docs.databricks.com/api/postgres/v1/create-project
 func (c *internalClient) createDatabaseInstanceBase(ctx context.Context, req CreateDatabaseInstanceRequest, opts ...call.Option) (*DatabaseInstance, error) {
 	wireReq, err := createDatabaseInstanceRequestToWire(&req)
 	if err != nil {
@@ -212,6 +222,11 @@ func (c *internalClient) createDatabaseInstanceBase(ctx context.Context, req Cre
 }
 
 // Create a Database Instance.
+//
+// For new workloads, Databricks recommends the Postgres API equivalent: [Create
+// a project].
+//
+// [Create a project]: https://docs.databricks.com/api/postgres/v1/create-project
 func (c *internalClient) CreateDatabaseInstance(ctx context.Context, req CreateDatabaseInstanceRequest, opts ...call.Option) (*CreateDatabaseInstanceWaiter, error) {
 	resp, err := c.createDatabaseInstanceBase(ctx, req, opts...)
 	if err != nil {
@@ -292,6 +307,11 @@ func (w *CreateDatabaseInstanceWaiter) Wait(ctx context.Context, opts ...lro.Opt
 }
 
 // Create a role for a Database Instance.
+//
+// For new workloads, Databricks recommends the Postgres API equivalent: [Create
+// a role].
+//
+// [Create a role]: https://docs.databricks.com/api/postgres/v1/create-role
 func (c *internalClient) CreateDatabaseInstanceRole(ctx context.Context, req CreateDatabaseInstanceRoleRequest, opts ...call.Option) (*DatabaseInstanceRole, error) {
 	wireReq, err := createDatabaseInstanceRoleRequestToWire(&req)
 	if err != nil {
@@ -437,6 +457,11 @@ func (c *internalClient) CreateDatabaseTable(ctx context.Context, req CreateData
 }
 
 // Create a Synced Database Table.
+//
+// For new workloads, Databricks recommends the Postgres API equivalent: [Create
+// a synced table].
+//
+// [Create a synced table]: https://docs.databricks.com/api/postgres/v1/create-synced-table
 func (c *internalClient) CreateSyncedDatabaseTable(ctx context.Context, req CreateSyncedDatabaseTableRequest, opts ...call.Option) (*SyncedDatabaseTable, error) {
 	wireReq, err := createSyncedDatabaseTableRequestToWire(&req)
 	if err != nil {
@@ -503,6 +528,11 @@ func (c *internalClient) CreateSyncedDatabaseTable(ctx context.Context, req Crea
 }
 
 // Delete a Database Catalog.
+//
+// For new workloads, Databricks recommends the Postgres API equivalent: [Delete
+// a catalog].
+//
+// [Delete a catalog]: https://docs.databricks.com/api/postgres/v1/delete-catalog
 func (c *internalClient) DeleteDatabaseCatalog(ctx context.Context, req DeleteDatabaseCatalogRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
@@ -557,6 +587,11 @@ func (c *internalClient) DeleteDatabaseCatalog(ctx context.Context, req DeleteDa
 }
 
 // Delete a Database Instance.
+//
+// For new workloads, Databricks recommends the Postgres API equivalent: [Delete
+// a project].
+//
+// [Delete a project]: https://docs.databricks.com/api/postgres/v1/delete-project
 func (c *internalClient) DeleteDatabaseInstance(ctx context.Context, req DeleteDatabaseInstanceRequest, opts ...call.Option) error {
 	wireReq, err := deleteDatabaseInstanceRequestToWire(&req)
 	if err != nil {
@@ -622,6 +657,11 @@ func (c *internalClient) DeleteDatabaseInstance(ctx context.Context, req DeleteD
 }
 
 // Deletes a role for a Database Instance.
+//
+// For new workloads, Databricks recommends the Postgres API equivalent: [Delete
+// a role].
+//
+// [Delete a role]: https://docs.databricks.com/api/postgres/v1/delete-role
 func (c *internalClient) DeleteDatabaseInstanceRole(ctx context.Context, req DeleteDatabaseInstanceRoleRequest, opts ...call.Option) error {
 	wireReq, err := deleteDatabaseInstanceRoleRequestToWire(&req)
 	if err != nil {
@@ -745,6 +785,11 @@ func (c *internalClient) DeleteDatabaseTable(ctx context.Context, req DeleteData
 }
 
 // Delete a Synced Database Table.
+//
+// For new workloads, Databricks recommends the Postgres API equivalent: [Delete
+// a synced table].
+//
+// [Delete a synced table]: https://docs.databricks.com/api/postgres/v1/delete-synced-table
 func (c *internalClient) DeleteSyncedDatabaseTable(ctx context.Context, req DeleteSyncedDatabaseTableRequest, opts ...call.Option) error {
 	wireReq, err := deleteSyncedDatabaseTableRequestToWire(&req)
 	if err != nil {
@@ -870,6 +915,11 @@ func (c *internalClient) FindDatabaseInstanceByUid(ctx context.Context, req Find
 }
 
 // Generates a credential that can be used to access database instances.
+//
+// For new workloads, Databricks recommends the Postgres API equivalent:
+// [Generate a database credential].
+//
+// [Generate a database credential]: https://docs.databricks.com/api/postgres/v1/generate-database-credential
 func (c *internalClient) GenerateDatabaseCredential(ctx context.Context, req GenerateDatabaseCredentialRequest, opts ...call.Option) (*DatabaseCredential, error) {
 	wireReq, err := generateDatabaseCredentialRequestToWire(&req)
 	if err != nil {
@@ -939,6 +989,11 @@ func (c *internalClient) GenerateDatabaseCredential(ctx context.Context, req Gen
 }
 
 // Get a Database Catalog.
+//
+// For new workloads, Databricks recommends the Postgres API equivalent: [Get a
+// catalog].
+//
+// [Get a catalog]: https://docs.databricks.com/api/postgres/v1/get-catalog
 func (c *internalClient) GetDatabaseCatalog(ctx context.Context, req GetDatabaseCatalogRequest, opts ...call.Option) (*DatabaseCatalog, error) {
 
 	headers := http.Header{}
@@ -1002,6 +1057,11 @@ func (c *internalClient) GetDatabaseCatalog(ctx context.Context, req GetDatabase
 }
 
 // Get a Database Instance.
+//
+// For new workloads, Databricks recommends the Postgres API equivalent: [Get a
+// project].
+//
+// [Get a project]: https://docs.databricks.com/api/postgres/v1/get-project
 func (c *internalClient) GetDatabaseInstance(ctx context.Context, req GetDatabaseInstanceRequest, opts ...call.Option) (*DatabaseInstance, error) {
 
 	headers := http.Header{}
@@ -1066,6 +1126,11 @@ func (c *internalClient) GetDatabaseInstance(ctx context.Context, req GetDatabas
 }
 
 // Gets a role for a Database Instance.
+//
+// For new workloads, Databricks recommends the Postgres API equivalent: [Get a
+// role].
+//
+// [Get a role]: https://docs.databricks.com/api/postgres/v1/get-role
 func (c *internalClient) GetDatabaseInstanceRole(ctx context.Context, req GetDatabaseInstanceRoleRequest, opts ...call.Option) (*DatabaseInstanceRole, error) {
 
 	headers := http.Header{}
@@ -1199,6 +1264,11 @@ func (c *internalClient) GetDatabaseTable(ctx context.Context, req GetDatabaseTa
 }
 
 // Get a Synced Database Table.
+//
+// For new workloads, Databricks recommends the Postgres API equivalent: [Get a
+// synced table].
+//
+// [Get a synced table]: https://docs.databricks.com/api/postgres/v1/get-synced-table
 func (c *internalClient) GetSyncedDatabaseTable(ctx context.Context, req GetSyncedDatabaseTableRequest, opts ...call.Option) (*SyncedDatabaseTable, error) {
 
 	headers := http.Header{}
@@ -1377,11 +1447,12 @@ func (c *internalClient) ListDatabaseCatalogsIter(ctx context.Context, req ListD
 	}
 }
 
-// START OF PG ROLE APIs Section These APIs are marked a PUBLIC with stage <
-// PUBLIC_PREVIEW. With more recent Lakebase V2 plans, we don't plan to ever
-// advance these to PUBLIC_PREVIEW. These APIs will remain effectively
-// undocumented/UI-only and we'll aim for a new public roles API as part of V2
-// PuPr.
+// List roles for a Database Instance.
+//
+// For new workloads, Databricks recommends the Postgres API equivalent: [List
+// roles].
+//
+// [List roles]: https://docs.databricks.com/api/postgres/v1/list-roles
 func (c *internalClient) ListDatabaseInstanceRoles(ctx context.Context, req ListDatabaseInstanceRolesRequest, opts ...call.Option) (*ListDatabaseInstanceRolesResponse, error) {
 	wireReq, err := listDatabaseInstanceRolesRequestToWire(&req)
 	if err != nil {
@@ -1498,6 +1569,11 @@ func (c *internalClient) ListDatabaseInstanceRolesIter(ctx context.Context, req 
 }
 
 // List Database Instances.
+//
+// For new workloads, Databricks recommends the Postgres API equivalent: [List
+// projects].
+//
+// [List projects]: https://docs.databricks.com/api/postgres/v1/list-projects
 func (c *internalClient) ListDatabaseInstances(ctx context.Context, req ListDatabaseInstancesRequest, opts ...call.Option) (*ListDatabaseInstancesResponse, error) {
 	wireReq, err := listDatabaseInstancesRequestToWire(&req)
 	if err != nil {
@@ -1797,6 +1873,12 @@ func (c *internalClient) UpdateDatabaseCatalog(ctx context.Context, req UpdateDa
 }
 
 // Update a Database Instance.
+//
+// For new workloads, Databricks recommends the Postgres API equivalents:
+// [Update a project] and [Update an endpoint].
+//
+// [Update a project]: https://docs.databricks.com/api/postgres/v1/update-project
+// [Update an endpoint]: https://docs.databricks.com/api/postgres/v1/update-endpoint
 func (c *internalClient) UpdateDatabaseInstance(ctx context.Context, req UpdateDatabaseInstanceRequest, opts ...call.Option) (*DatabaseInstance, error) {
 	wireReq, err := updateDatabaseInstanceRequestToWire(&req)
 	if err != nil {

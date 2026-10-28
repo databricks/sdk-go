@@ -2,6 +2,69 @@
 
 package experiments
 
+import (
+	"github.com/databricks/sdk-go/core/types"
+)
+
+// How serious an Issue is, ordered LOW < MEDIUM < HIGH.
+type IssueSeverity string
+
+const (
+	IssueSeverity_Unspecified IssueSeverity = ""
+	IssueSeverity_Low         IssueSeverity = "LOW"
+	IssueSeverity_Medium      IssueSeverity = "MEDIUM"
+	IssueSeverity_High        IssueSeverity = "HIGH"
+)
+
+// The field that search results are ordered by. SEVERITY breaks ties by
+// last_seen_time, in the same direction. Results are grouped by status first
+// (PENDING, RESOLVED, then REJECTED, whatever the sort_order), and remaining
+// ties are broken by issue ID, so paging is stable.
+type IssueSortKey string
+
+const (
+	IssueSortKey_Unspecified  IssueSortKey = ""
+	IssueSortKey_Severity     IssueSortKey = "SEVERITY"
+	IssueSortKey_LastSeenTime IssueSortKey = "LAST_SEEN_TIME"
+	IssueSortKey_UpdateTime   IssueSortKey = "UPDATE_TIME"
+	IssueSortKey_CreateTime   IssueSortKey = "CREATE_TIME"
+)
+
+// What created an Issue: ADHOC_RUN, an issue detection run started on demand;
+// SCHEDULED_RUN, one started by a schedule; SINGLE_TRACE_ANALYSIS, an analysis
+// of a single trace; or MANUAL, a person.
+type IssueSourceType string
+
+const (
+	IssueSourceType_Unspecified         IssueSourceType = ""
+	IssueSourceType_AdhocRun            IssueSourceType = "ADHOC_RUN"
+	IssueSourceType_ScheduledRun        IssueSourceType = "SCHEDULED_RUN"
+	IssueSourceType_SingleTraceAnalysis IssueSourceType = "SINGLE_TRACE_ANALYSIS"
+	IssueSourceType_Manual              IssueSourceType = "MANUAL"
+)
+
+// The triage status of an Issue: PENDING means open and awaiting triage,
+// RESOLVED means judged real and addressed, and REJECTED means judged not to be
+// an issue.
+type IssueStatus string
+
+const (
+	IssueStatus_Unspecified IssueStatus = ""
+	IssueStatus_Pending     IssueStatus = "PENDING"
+	IssueStatus_Resolved    IssueStatus = "RESOLVED"
+	IssueStatus_Rejected    IssueStatus = "REJECTED"
+)
+
+// Which fields each search result includes: BASIC has every field except
+// `description`, and may omit large `metadata` entries; FULL has every field.
+type IssueView string
+
+const (
+	IssueView_Unspecified IssueView = ""
+	IssueView_Basic       IssueView = "BASIC"
+	IssueView_Full        IssueView = "FULL"
+)
+
 // A LoggedModelStatus enum value represents the status of a logged model.
 type LoggedModelStatus string
 
@@ -33,6 +96,15 @@ const (
 	RunStatus_Failed RunStatus = "FAILED"
 	// Run killed by user.
 	RunStatus_Killed RunStatus = "KILLED"
+)
+
+// The direction of the ordering.
+type SortOrder string
+
+const (
+	SortOrder_Unspecified SortOrder = ""
+	SortOrder_Descending  SortOrder = "DESCENDING"
+	SortOrder_Ascending   SortOrder = "ASCENDING"
 )
 
 // Qualifier for the view type.
@@ -70,6 +142,18 @@ type CreateExperimentRequest struct {
 type CreateExperimentResponse struct {
 	// Unique identifier for the experiment.
 	ExperimentId *string
+}
+
+// Request for CreateIssue..
+type CreateIssueRequest struct {
+	// experiments/{experiment}
+	Parent *string
+	// Output-only fields are ignored.
+	Issue *Issue
+	// Optional client-chosen ID: iss- followed by 32 lowercase hex digits. A retry
+	// with the same ID fails with ALREADY_EXISTS rather than making a duplicate.
+	// The server generates one if unset.
+	IssueId *string
 }
 
 type CreateLoggedModelRequest struct {
@@ -305,6 +389,12 @@ type GetExperimentResponse struct {
 	Runs []RunInfo
 }
 
+// Request for GetIssue..
+type GetIssueRequest struct {
+	// experiments/{experiment}/issues/{issue}
+	Name *string
+}
+
 type GetLoggedModelRequest struct {
 	// The ID of the logged model to retrieve.
 	ModelId *string
@@ -345,6 +435,63 @@ type InputTag struct {
 	Key *string
 	// The tag value.
 	Value *string
+}
+
+// A quality or operational problem found in an experiment's traces..
+type Issue struct {
+	// experiments/{experiment}/issues/{issue}
+	Name *string `fieldmask:"name"`
+	// The last segment of `name`. Issue assessments on traces reference the Issue
+	// by this ID.
+	IssueId *string `fieldmask:"issue_id"`
+	// Non-empty, at most 250 UTF-8 bytes.
+	Title *string `fieldmask:"title"`
+	// Markdown, at most 32 KiB.
+	Description *string `fieldmask:"description"`
+	// Defaults to PENDING on create, and can't be cleared.
+	Status IssueStatus `fieldmask:"status"`
+	// Cannot be cleared: an Issue without a severity would match no severity
+	// filter.
+	Severity IssueSeverity `fieldmask:"severity"`
+	// At most 10 values of at most 64 UTF-8 bytes each, unique case-insensitively.
+	// Leading and trailing whitespace is trimmed.
+	Categories []string `fieldmask:"categories"`
+	// Caller-owned; the server never writes system values here. At most 10 entries.
+	// Keys match ^[A-Za-z0-9_.:/-]+$ and are at most 128 UTF-8 bytes; values are at
+	// most 256 UTF-8 bytes.
+	Tags map[string]string `fieldmask:"tags"`
+	// The request time of the latest trace the Issue affects. Required, and can't
+	// be cleared, unless source_type is MANUAL. A MANUAL Issue without one returns
+	// its create_time.
+	LastSeenTime *types.Time `fieldmask:"last_seen_time"`
+	// Set once at create. Defaults to MANUAL.
+	SourceType IssueSourceType `fieldmask:"source_type"`
+	// Set once at create. For ADHOC_RUN and SCHEDULED_RUN, the ID of the issue
+	// detection run in the same experiment that created the Issue. Absent for
+	// MANUAL.
+	SourceId *string `fieldmask:"source_id"`
+	// The email of the user whose request created the Issue. source_type tells
+	// whether issue detection created it.
+	CreatedBy *string `fieldmask:"created_by"`
+	// When the Issue was created.
+	CreateTime *types.Time `fieldmask:"create_time"`
+	// The email of the user whose request last updated the Issue.
+	LastUpdatedBy *string `fieldmask:"last_updated_by"`
+	// When the Issue was last updated.
+	UpdateTime *types.Time `fieldmask:"update_time"`
+	// Additional details about the Issue, such as how issue detection observed it.
+	// Not a stable contract: keys and values can change without notice, so clients
+	// must tolerate unknown and missing keys. At most 20 entries, with keys of at
+	// most 64 UTF-8 bytes.
+	Metadata map[string]string `fieldmask:"metadata"`
+}
+
+// One predicate over Issue.tags..
+type IssueTagFilter struct {
+	// Matched exactly.
+	Key *string
+	// Matched exactly, and ORed together. Empty matches any Issue carrying the key.
+	Values []string
 }
 
 type ListArtifactsRequest struct {
@@ -744,6 +891,45 @@ type SearchExperimentsResponse struct {
 	NextPageToken *string
 }
 
+// Request for SearchIssues..
+type SearchIssuesRequest struct {
+	// experiments/{experiment}
+	Parent *string
+	// Case-insensitive substring match on title.
+	Query *string
+	// Matches Issues with any of these statuses. Different filters AND together,
+	// and an empty filter matches every Issue.
+	Statuses []IssueStatus
+	// Matches Issues with any of these severities.
+	Severities []IssueSeverity
+	// Matches Issues with any of these categories, case-insensitively.
+	Categories []string
+	// Matches Issues that satisfy every filter. At most 10 filters of 20 values
+	// each.
+	TagFilters []IssueTagFilter
+	// Defaults to SEVERITY.
+	SortKey IssueSortKey
+	// Defaults to DESCENDING.
+	SortOrder SortOrder
+	// Defaults to 20; values above 100 are clamped.
+	PageSize *int
+	// Expires after 15 minutes. Every other argument except `view` must match the
+	// request that returned the token.
+	PageToken *string
+	// Defaults to BASIC.
+	View IssueView
+}
+
+// One page of SearchIssues results..
+type SearchIssuesResponse struct {
+	// The page's Issues, in the requested order.
+	Issues []Issue
+	// Absent on the last page.
+	NextPageToken *string
+	// Exact number of matching Issues.
+	TotalSize *int
+}
+
 type SearchLoggedModelsRequest struct {
 	// The IDs of the experiments in which to search for logged models.
 	ExperimentIds []string
@@ -905,6 +1091,20 @@ type UpdateExperimentRequest struct {
 }
 
 type UpdateExperimentResponse struct {
+}
+
+// Request for UpdateIssue..
+type UpdateIssueRequest struct {
+	// `issue.name` identifies the target.
+	Issue *Issue
+	// Accepts title, description, status, severity, categories, tags,
+	// last_seen_time, and metadata.<key>. A path with an empty value clears the
+	// field, except that title, status, and severity can't be cleared, and
+	// last_seen_time can be cleared only when source_type is MANUAL. categories and
+	// tags are replaced whole. metadata is updated per key: a metadata.<key> path
+	// sets that key from issue.metadata, or removes it when issue.metadata lacks
+	// it, and leaves the other keys alone. A bare metadata path is rejected.
+	UpdateMask *types.FieldMask[Issue]
 }
 
 type UpdateRunRequest struct {
