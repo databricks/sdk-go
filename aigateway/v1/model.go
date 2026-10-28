@@ -465,20 +465,20 @@ type McpService struct {
 // tool selectors, and rate limits -- the fields that configure how the MCP
 // service behaves at invocation time..
 type McpServiceConfig struct {
-	// Polymorphic reference to where the MCP server lives. MCP_SERVICE is a
-	// single-kind securable (`MCP_SERVICE_STANDARD`) with two source variants:
-	// `source_connection` (a UC Connection FQN) and `internal` (a
-	// <Databricks>-hosted MCP server). (-- Future MANAGED variants (if introduced)
-	// would slot additional oneof entries here. --)
+	// Polymorphic reference to where the MCP server lives. (-- MCP_SERVICE is a
+	// single-kind securable (`MCP_SERVICE_STANDARD`) with three source variants:
+	// `source_connection` (a UC Connection FQN), `internal` (a Databricks-hosted
+	// MCP server), and `source_app` (a Databricks App). Future MANAGED variants (if
+	// introduced) would slot additional oneof entries here.
 	//
 	// JSON shape: the active oneof variant appears as a sibling field on `config`
 	// (proto JSON does not nest the oneof container name). E.g.: { "config": {
 	// "source_connection": {"name": "connections/main.default.gh"},
-	// "include_tool_selectors": ["read_*"], ... } } { "config": { "internal":
-	// {"server": "sandbox"}, ... } } Future variants slot in the same way:
-	// `{"config": {"app": {...}, ...}}`, `{"config": {"genie": {...}, ...}}`, etc.
-	// (-- The oneof shape lets future kinds add type-specific reference shapes
-	// without a wire-format bump. --)
+	// "include_tool_selectors": ["read_*"], ... } } { "config": { "internal": {},
+	// ... } } { "config": { "source_app": {"name": "my-mcp-app"}, ... } } Future
+	// variants slot in the same way, e.g. `{"config": {"genie": {...}}}`. The oneof
+	// shape lets future kinds add type-specific reference shapes without a
+	// wire-format bump. --)
 	Source isMcpServiceConfig_Source
 	// Tool names or prefix patterns to expose from the MCP server. Use exact tool
 	// names or prefix patterns such as `read_*`. An empty list exposes all tools.
@@ -622,16 +622,18 @@ type ModelProviderServiceConfig struct {
 	// breaking AIP-134 partial-Update. The user-facing javadoc on each field states
 	// which fields are required on Create. --)
 	Provider isModelProviderServiceConfig_Provider
-	// When true, accepts any model exposed by the upstream provider; `targets` is
-	// not required and does not restrict routability. When false, only models
-	// listed in `targets` are routable. Defaults to false.
+	// When true, allows models from the provider's built-in model catalog in
+	// addition to explicit `targets`. When false, only models listed in `targets`
+	// are routable. Defaults to false. CUSTOM providers have no built-in model
+	// catalog and must leave this false and list their models in `targets`.
 	AllowAllTargets *bool `fieldmask:"allow_all_targets"`
 	// Models and provider-native API types exposed by this provider service. Each
 	// entry must include at least one `native_api_types` value. When
 	// `allow_all_targets` is false, at least one entry is required and model
 	// service destinations can reference only listed models. When
-	// `allow_all_targets` is true, any upstream model is routable; entries in this
-	// list provide API-type metadata without restricting other models.
+	// `allow_all_targets` is true, models from the provider's built-in model
+	// catalog are also routable. CUSTOM providers must explicitly list their models
+	// here and cannot enable `allow_all_targets`.
 	Targets []ModelProviderServiceConfig_ModelTargetConfig `fieldmask:"targets"`
 	// Whether to forward incoming HTTP headers to the upstream provider. Defaults
 	// to false and is configured for the entire provider service, not per request.

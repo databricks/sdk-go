@@ -139,6 +139,27 @@ func alertConfigurationFromWire(w *alertConfigurationWire) (*AlertConfiguration,
 	}, nil
 }
 
+type alertSpendStatusWire struct {
+	ScopeType       AlertConfigurationScopeType  `json:"scope_type,omitempty"`
+	TimePeriod      AlertConfigurationTimePeriod `json:"time_period,omitempty"`
+	Spend           *string                      `json:"spend,omitempty"`
+	Threshold       *string                      `json:"threshold,omitempty"`
+	PercentConsumed *string                      `json:"percent_consumed,omitempty"`
+}
+
+func alertSpendStatusFromWire(w *alertSpendStatusWire) (*AlertSpendStatus, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AlertSpendStatus{
+		ScopeType:       w.ScopeType,
+		TimePeriod:      w.TimePeriod,
+		Spend:           w.Spend,
+		Threshold:       w.Threshold,
+		PercentConsumed: w.PercentConsumed,
+	}, nil
+}
+
 type budgetConfigurationWire struct {
 	BudgetConfigurationId *string                        `json:"budget_configuration_id,omitempty"`
 	AccountId             *string                        `json:"account_id,omitempty"`
@@ -316,6 +337,25 @@ func budgetConfigurationFilter_WorkspaceIdClauseFromWire(w *budgetConfigurationF
 	}, nil
 }
 
+type budgetSpendStatusWire struct {
+	Name               *string                `json:"name,omitempty"`
+	AlertSpendStatuses []alertSpendStatusWire `json:"alert_spend_statuses,omitempty"`
+}
+
+func budgetSpendStatusFromWire(w *budgetSpendStatusWire) (*BudgetSpendStatus, error) {
+	if w == nil {
+		return nil, nil
+	}
+	alertSpendStatusesPublicValue, err := convertSlice(w.AlertSpendStatuses, alertSpendStatusFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BudgetSpendStatus.AlertSpendStatuses", err)
+	}
+	return &BudgetSpendStatus{
+		Name:               w.Name,
+		AlertSpendStatuses: alertSpendStatusesPublicValue,
+	}, nil
+}
+
 type createBudgetConfigurationBudgetWire struct {
 	AccountId            *string                                                  `json:"account_id,omitempty"`
 	AlertConfigurations  []createBudgetConfigurationBudgetAlertConfigurationsWire `json:"alert_configurations,omitempty"`
@@ -477,6 +517,44 @@ func listBudgetConfigurationsResponseFromWire(w *listBudgetConfigurationsRespons
 	return &ListBudgetConfigurationsResponse{
 		Budgets:       budgetsPublicValue,
 		NextPageToken: w.NextPageToken,
+	}, nil
+}
+
+type listBudgetSpendStatusesRequestWire struct {
+	Parent    *string `json:"parent,omitempty"`
+	PageToken *string `json:"page_token,omitempty"`
+	PageSize  *int    `json:"page_size,omitempty"`
+	Filter    *string `json:"filter,omitempty"`
+}
+
+func listBudgetSpendStatusesRequestToWire(v *ListBudgetSpendStatusesRequest) (*listBudgetSpendStatusesRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listBudgetSpendStatusesRequestWire{
+		Parent:    v.Parent,
+		PageToken: v.PageToken,
+		PageSize:  v.PageSize,
+		Filter:    v.Filter,
+	}, nil
+}
+
+type listBudgetSpendStatusesResponseWire struct {
+	BudgetSpendStatuses []budgetSpendStatusWire `json:"budget_spend_statuses,omitempty"`
+	NextPageToken       *string                 `json:"next_page_token,omitempty"`
+}
+
+func listBudgetSpendStatusesResponseFromWire(w *listBudgetSpendStatusesResponseWire) (*ListBudgetSpendStatusesResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	budgetSpendStatusesPublicValue, err := convertSlice(w.BudgetSpendStatuses, budgetSpendStatusFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListBudgetSpendStatusesResponse.BudgetSpendStatuses", err)
+	}
+	return &ListBudgetSpendStatusesResponse{
+		BudgetSpendStatuses: budgetSpendStatusesPublicValue,
+		NextPageToken:       w.NextPageToken,
 	}, nil
 }
 

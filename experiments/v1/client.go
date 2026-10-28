@@ -78,6 +78,335 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	}, nil
 }
 
+// Creates an issue in an experiment.
+func (c *internalClient) CreateIssue(ctx context.Context, req CreateIssueRequest, opts ...call.Option) (*Issue, error) {
+	wireReq, err := createIssueRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq.Issue)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/mlflow/")
+	if req.Parent == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
+	}
+	pb.singleSegment(*req.Parent)
+	pb.literal("/issues")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "issue_id", wireReq.IssueId); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Issue
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp issueWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = issueFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Gets an issue.
+func (c *internalClient) GetIssue(ctx context.Context, req GetIssueRequest, opts ...call.Option) (*Issue, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/mlflow/")
+	if req.Name == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Issue
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp issueWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = issueFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Searches the issues in an experiment, filtered and sorted.
+func (c *internalClient) SearchIssues(ctx context.Context, req SearchIssuesRequest, opts ...call.Option) (*SearchIssuesResponse, error) {
+	wireReq, err := searchIssuesRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/mlflow/")
+	if req.Parent == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
+	}
+	pb.singleSegment(*req.Parent)
+	pb.literal("/issues:search")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *SearchIssuesResponse
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp searchIssuesResponseWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = searchIssuesResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// SearchIssuesIter returns an iterator that iterates
+// over the results of SearchIssues.
+//
+// For example:
+//
+//	for item, err := range c.SearchIssuesIter(ctx, SearchIssuesRequest{}) {
+//	  if err != nil {
+//	    return err
+//	  }
+//	  fmt.Println(item)
+//	}
+//
+// Options opts are passed to each SearchIssues call
+// made by the iterator under the hood.
+//
+// Callers who need custom pagination logic should use
+// SearchIssues directly.
+func (c *internalClient) SearchIssuesIter(ctx context.Context, req SearchIssuesRequest, opts ...call.Option) iter.Seq2[*Issue, error] {
+	return func(yield func(*Issue, error) bool) {
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
+		for {
+			resp, err := c.SearchIssues(ctx, pageReq, opts...)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			for i := range resp.Issues {
+				if !yield(&resp.Issues[i], nil) {
+					return
+				}
+			}
+			if resp.NextPageToken == nil || *resp.NextPageToken == "" {
+				return
+			}
+			pageReq.PageToken = resp.NextPageToken
+		}
+	}
+}
+
+// Updates the fields of an issue named in `update_mask`.
+func (c *internalClient) UpdateIssue(ctx context.Context, req UpdateIssueRequest, opts ...call.Option) (*Issue, error) {
+	wireReq, err := updateIssueRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq.Issue)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/mlflow/")
+	if req.Issue == nil || req.Issue.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Issue.Name)
+	}
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Issue
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "PATCH",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp issueWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = issueFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Creates an experiment with a name. Returns the ID of the newly created
 // experiment. Validates that another experiment with the same name does not
 // already exist and fails if another experiment with the same name already

@@ -281,6 +281,73 @@ func (c *internalClient) GetBudgetConfiguration(ctx context.Context, req GetBudg
 	return resp, nil
 }
 
+// Get the calling user's live spend against the blocking thresholds of a single
+// Unity Gateway budget. Any account user can call this for their own spend.
+// Spend is reported in USD at list price and is near-real-time, so it may
+// differ slightly from billing data. Returns NOT_FOUND if the budget doesn't
+// exist or has no blocking thresholds.
+func (c *internalClient) GetBudgetSpendStatus(ctx context.Context, req GetBudgetSpendStatusRequest, opts ...call.Option) (*BudgetSpendStatus, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.1/")
+	if req.Name == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *BudgetSpendStatus
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp budgetSpendStatusWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = budgetSpendStatusFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Gets all budgets associated with this account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
 func (c *internalClient) ListBudgetConfigurations(ctx context.Context, req ListBudgetConfigurationsRequest, opts ...call.Option) (*ListBudgetConfigurationsResponse, error) {
@@ -390,6 +457,88 @@ func (c *internalClient) ListBudgetConfigurationsIter(ctx context.Context, req L
 			pageReq.PageToken = resp.NextPageToken
 		}
 	}
+}
+
+// List the calling user's live spend against the blocking thresholds across the
+// account's Unity Gateway budgets. Any account user can call this for their own
+// spend. Spend is reported in USD at list price and is near-real-time, so it
+// may differ slightly from billing data. By default, returns every budget in
+// the account that has a blocking threshold. Use `filter` to narrow results by
+// workspace.
+func (c *internalClient) ListBudgetSpendStatuses(ctx context.Context, req ListBudgetSpendStatusesRequest, opts ...call.Option) (*ListBudgetSpendStatusesResponse, error) {
+	wireReq, err := listBudgetSpendStatusesRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.1/")
+	if req.Parent == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
+	}
+	pb.singleSegment(*req.Parent)
+	pb.literal("/budget-spend-statuses")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "page_token", wireReq.PageToken); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "page_size", wireReq.PageSize); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "filter", wireReq.Filter); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *ListBudgetSpendStatusesResponse
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp listBudgetSpendStatusesResponseWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = listBudgetSpendStatusesResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
 // Updates a budget configuration for an account. Both account and budget
