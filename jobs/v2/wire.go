@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+
+	"github.com/databricks/sdk-go/core/types"
 )
 
 type wireInt64 int64
@@ -110,6 +112,389 @@ func adlsgen2InfoFromWire(w *adlsgen2InfoWire) (*Adlsgen2Info, error) {
 	}
 	return &Adlsgen2Info{
 		Destination: w.Destination,
+	}, nil
+}
+
+type aiClassifyFunctionWire struct {
+	InlineLabels           *aiClassifyFunction_InlineLabelsWire `json:"inline_labels,omitempty"`
+	Instructions           *string                              `json:"instructions,omitempty"`
+	Version                *string                              `json:"version,omitempty"`
+	Multilabel             *bool                                `json:"multilabel,omitempty"`
+	EnableConfidenceScores *bool                                `json:"enable_confidence_scores,omitempty"`
+	EnableRationales       *bool                                `json:"enable_rationales,omitempty"`
+}
+
+func aiClassifyFunctionToWire(v *AiClassifyFunction) (*aiClassifyFunctionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var labelSourceInlineLabelsWire *aiClassifyFunction_InlineLabelsWire
+	switch value := v.LabelSource.(type) {
+	case nil:
+	case *AiClassifyFunction_LabelSource_InlineLabels:
+		if value != nil {
+			labelSourceInlineLabelsConverted, err := aiClassifyFunction_InlineLabelsToWire(&value.InlineLabels)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "AiClassifyFunction.LabelSource.InlineLabels", err)
+			}
+			labelSourceInlineLabelsWire = labelSourceInlineLabelsConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "AiClassifyFunction.LabelSource", value)
+	}
+	return &aiClassifyFunctionWire{
+		InlineLabels:           labelSourceInlineLabelsWire,
+		Instructions:           v.Instructions,
+		Version:                v.Version,
+		Multilabel:             v.Multilabel,
+		EnableConfidenceScores: v.EnableConfidenceScores,
+		EnableRationales:       v.EnableRationales,
+	}, nil
+}
+
+func aiClassifyFunctionFromWire(w *aiClassifyFunctionWire) (*AiClassifyFunction, error) {
+	if w == nil {
+		return nil, nil
+	}
+	labelSourceMembers := 0
+	if w.InlineLabels != nil {
+		labelSourceMembers++
+	}
+	if labelSourceMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "AiClassifyFunction.LabelSource")
+	}
+	var labelSourceSelection isAiClassifyFunction_LabelSource
+	switch {
+	case w.InlineLabels != nil:
+		labelSourceInlineLabelsConverted, err := aiClassifyFunction_InlineLabelsFromWire(w.InlineLabels)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "AiClassifyFunction.LabelSource.InlineLabels", err)
+		}
+		labelSourceSelection = &AiClassifyFunction_LabelSource_InlineLabels{InlineLabels: *labelSourceInlineLabelsConverted}
+	}
+	return &AiClassifyFunction{
+		Instructions:           w.Instructions,
+		Version:                w.Version,
+		Multilabel:             w.Multilabel,
+		EnableConfidenceScores: w.EnableConfidenceScores,
+		EnableRationales:       w.EnableRationales,
+		LabelSource:            labelSourceSelection,
+	}, nil
+}
+
+type aiClassifyFunction_InlineLabelsWire struct {
+	Labels []aiClassifyFunction_LabelWire `json:"labels,omitempty"`
+}
+
+func aiClassifyFunction_InlineLabelsToWire(v *AiClassifyFunction_InlineLabels) (*aiClassifyFunction_InlineLabelsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	labelsWireValue, err := convertSlice(v.Labels, aiClassifyFunction_LabelToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiClassifyFunction_InlineLabels.Labels", err)
+	}
+	return &aiClassifyFunction_InlineLabelsWire{
+		Labels: labelsWireValue,
+	}, nil
+}
+
+func aiClassifyFunction_InlineLabelsFromWire(w *aiClassifyFunction_InlineLabelsWire) (*AiClassifyFunction_InlineLabels, error) {
+	if w == nil {
+		return nil, nil
+	}
+	labelsPublicValue, err := convertSlice(w.Labels, aiClassifyFunction_LabelFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiClassifyFunction_InlineLabels.Labels", err)
+	}
+	return &AiClassifyFunction_InlineLabels{
+		Labels: labelsPublicValue,
+	}, nil
+}
+
+type aiClassifyFunction_LabelWire struct {
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
+}
+
+func aiClassifyFunction_LabelToWire(v *AiClassifyFunction_Label) (*aiClassifyFunction_LabelWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &aiClassifyFunction_LabelWire{
+		Name:        v.Name,
+		Description: v.Description,
+	}, nil
+}
+
+func aiClassifyFunction_LabelFromWire(w *aiClassifyFunction_LabelWire) (*AiClassifyFunction_Label, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AiClassifyFunction_Label{
+		Name:        w.Name,
+		Description: w.Description,
+	}, nil
+}
+
+type aiExtractFunctionWire struct {
+	Schema                 *string                `json:"schema,omitempty"`
+	Instructions           *string                `json:"instructions,omitempty"`
+	Version                *string                `json:"version,omitempty"`
+	Mode                   AiExtractFunction_Mode `json:"mode,omitempty"`
+	EnableCitations        *bool                  `json:"enable_citations,omitempty"`
+	EnableConfidenceScores *bool                  `json:"enable_confidence_scores,omitempty"`
+}
+
+func aiExtractFunctionToWire(v *AiExtractFunction) (*aiExtractFunctionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &aiExtractFunctionWire{
+		Schema:                 v.Schema,
+		Instructions:           v.Instructions,
+		Version:                v.Version,
+		Mode:                   v.Mode,
+		EnableCitations:        v.EnableCitations,
+		EnableConfidenceScores: v.EnableConfidenceScores,
+	}, nil
+}
+
+func aiExtractFunctionFromWire(w *aiExtractFunctionWire) (*AiExtractFunction, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AiExtractFunction{
+		Schema:                 w.Schema,
+		Instructions:           w.Instructions,
+		Version:                w.Version,
+		Mode:                   w.Mode,
+		EnableCitations:        w.EnableCitations,
+		EnableConfidenceScores: w.EnableConfidenceScores,
+	}, nil
+}
+
+type aiFunctionTaskWire struct {
+	DeltaTable      *deltaTableSourceWire        `json:"delta_table,omitempty"`
+	Volume          *volumeSourceWire            `json:"volume,omitempty"`
+	Output          *qualifiedNameWire           `json:"output,omitempty"`
+	AiParseDocument *aiParseDocumentFunctionWire `json:"ai_parse_document,omitempty"`
+	AiExtract       *aiExtractFunctionWire       `json:"ai_extract,omitempty"`
+	AiClassify      *aiClassifyFunctionWire      `json:"ai_classify,omitempty"`
+}
+
+func aiFunctionTaskToWire(v *AiFunctionTask) (*aiFunctionTaskWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	outputWireValue, err := qualifiedNameToWire(v.Output)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiFunctionTask.Output", err)
+	}
+	var sourceDeltaTableWire *deltaTableSourceWire
+	var sourceVolumeWire *volumeSourceWire
+	switch value := v.Source.(type) {
+	case nil:
+	case *AiFunctionTask_Source_DeltaTable:
+		if value != nil {
+			sourceDeltaTableConverted, err := deltaTableSourceToWire(&value.DeltaTable)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "AiFunctionTask.Source.DeltaTable", err)
+			}
+			sourceDeltaTableWire = sourceDeltaTableConverted
+		}
+	case *AiFunctionTask_Source_Volume:
+		if value != nil {
+			sourceVolumeConverted, err := volumeSourceToWire(&value.Volume)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "AiFunctionTask.Source.Volume", err)
+			}
+			sourceVolumeWire = sourceVolumeConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "AiFunctionTask.Source", value)
+	}
+	var functionAiParseDocumentWire *aiParseDocumentFunctionWire
+	var functionAiExtractWire *aiExtractFunctionWire
+	var functionAiClassifyWire *aiClassifyFunctionWire
+	switch value := v.Function.(type) {
+	case nil:
+	case *AiFunctionTask_Function_AiParseDocument:
+		if value != nil {
+			functionAiParseDocumentConverted, err := aiParseDocumentFunctionToWire(&value.AiParseDocument)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "AiFunctionTask.Function.AiParseDocument", err)
+			}
+			functionAiParseDocumentWire = functionAiParseDocumentConverted
+		}
+	case *AiFunctionTask_Function_AiExtract:
+		if value != nil {
+			functionAiExtractConverted, err := aiExtractFunctionToWire(&value.AiExtract)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "AiFunctionTask.Function.AiExtract", err)
+			}
+			functionAiExtractWire = functionAiExtractConverted
+		}
+	case *AiFunctionTask_Function_AiClassify:
+		if value != nil {
+			functionAiClassifyConverted, err := aiClassifyFunctionToWire(&value.AiClassify)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "AiFunctionTask.Function.AiClassify", err)
+			}
+			functionAiClassifyWire = functionAiClassifyConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "AiFunctionTask.Function", value)
+	}
+	return &aiFunctionTaskWire{
+		DeltaTable:      sourceDeltaTableWire,
+		Volume:          sourceVolumeWire,
+		Output:          outputWireValue,
+		AiParseDocument: functionAiParseDocumentWire,
+		AiExtract:       functionAiExtractWire,
+		AiClassify:      functionAiClassifyWire,
+	}, nil
+}
+
+func aiFunctionTaskFromWire(w *aiFunctionTaskWire) (*AiFunctionTask, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sourceMembers := 0
+	if w.DeltaTable != nil {
+		sourceMembers++
+	}
+	if w.Volume != nil {
+		sourceMembers++
+	}
+	if sourceMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "AiFunctionTask.Source")
+	}
+	functionMembers := 0
+	if w.AiParseDocument != nil {
+		functionMembers++
+	}
+	if w.AiExtract != nil {
+		functionMembers++
+	}
+	if w.AiClassify != nil {
+		functionMembers++
+	}
+	if functionMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "AiFunctionTask.Function")
+	}
+	outputPublicValue, err := qualifiedNameFromWire(w.Output)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiFunctionTask.Output", err)
+	}
+	var sourceSelection isAiFunctionTask_Source
+	switch {
+	case w.DeltaTable != nil:
+		sourceDeltaTableConverted, err := deltaTableSourceFromWire(w.DeltaTable)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "AiFunctionTask.Source.DeltaTable", err)
+		}
+		sourceSelection = &AiFunctionTask_Source_DeltaTable{DeltaTable: *sourceDeltaTableConverted}
+	case w.Volume != nil:
+		sourceVolumeConverted, err := volumeSourceFromWire(w.Volume)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "AiFunctionTask.Source.Volume", err)
+		}
+		sourceSelection = &AiFunctionTask_Source_Volume{Volume: *sourceVolumeConverted}
+	}
+	var functionSelection isAiFunctionTask_Function
+	switch {
+	case w.AiParseDocument != nil:
+		functionAiParseDocumentConverted, err := aiParseDocumentFunctionFromWire(w.AiParseDocument)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "AiFunctionTask.Function.AiParseDocument", err)
+		}
+		functionSelection = &AiFunctionTask_Function_AiParseDocument{AiParseDocument: *functionAiParseDocumentConverted}
+	case w.AiExtract != nil:
+		functionAiExtractConverted, err := aiExtractFunctionFromWire(w.AiExtract)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "AiFunctionTask.Function.AiExtract", err)
+		}
+		functionSelection = &AiFunctionTask_Function_AiExtract{AiExtract: *functionAiExtractConverted}
+	case w.AiClassify != nil:
+		functionAiClassifyConverted, err := aiClassifyFunctionFromWire(w.AiClassify)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "AiFunctionTask.Function.AiClassify", err)
+		}
+		functionSelection = &AiFunctionTask_Function_AiClassify{AiClassify: *functionAiClassifyConverted}
+	}
+	return &AiFunctionTask{
+		Output:   outputPublicValue,
+		Source:   sourceSelection,
+		Function: functionSelection,
+	}, nil
+}
+
+type aiFunctionTaskOutputWire struct {
+	TotalRowCount          *wireInt64         `json:"total_row_count,omitempty"`
+	SucceededRowCount      *wireInt64         `json:"succeeded_row_count,omitempty"`
+	FailedRowCount         *wireInt64         `json:"failed_row_count,omitempty"`
+	EstimatedTimeRemaining *types.Duration    `json:"estimated_time_remaining,omitempty"`
+	OutputTable            *qualifiedNameWire `json:"output_table,omitempty"`
+}
+
+func aiFunctionTaskOutputFromWire(w *aiFunctionTaskOutputWire) (*AiFunctionTaskOutput, error) {
+	if w == nil {
+		return nil, nil
+	}
+	totalRowCountPublicValue, err := int64FromWire(w.TotalRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiFunctionTaskOutput.TotalRowCount", err)
+	}
+	succeededRowCountPublicValue, err := int64FromWire(w.SucceededRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiFunctionTaskOutput.SucceededRowCount", err)
+	}
+	failedRowCountPublicValue, err := int64FromWire(w.FailedRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiFunctionTaskOutput.FailedRowCount", err)
+	}
+	outputTablePublicValue, err := qualifiedNameFromWire(w.OutputTable)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiFunctionTaskOutput.OutputTable", err)
+	}
+	return &AiFunctionTaskOutput{
+		TotalRowCount:          totalRowCountPublicValue,
+		SucceededRowCount:      succeededRowCountPublicValue,
+		FailedRowCount:         failedRowCountPublicValue,
+		EstimatedTimeRemaining: w.EstimatedTimeRemaining,
+		OutputTable:            outputTablePublicValue,
+	}, nil
+}
+
+type aiParseDocumentFunctionWire struct {
+	Version                 *string                                          `json:"version,omitempty"`
+	DescriptionElementTypes []AiParseDocumentFunction_DescriptionElementType `json:"description_element_types,omitempty"`
+	ImageOutputPath         *string                                          `json:"image_output_path,omitempty"`
+	PageRange               *string                                          `json:"page_range,omitempty"`
+}
+
+func aiParseDocumentFunctionToWire(v *AiParseDocumentFunction) (*aiParseDocumentFunctionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &aiParseDocumentFunctionWire{
+		Version:                 v.Version,
+		DescriptionElementTypes: v.DescriptionElementTypes,
+		ImageOutputPath:         v.ImageOutputPath,
+		PageRange:               v.PageRange,
+	}, nil
+}
+
+func aiParseDocumentFunctionFromWire(w *aiParseDocumentFunctionWire) (*AiParseDocumentFunction, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AiParseDocumentFunction{
+		Version:                 w.Version,
+		DescriptionElementTypes: w.DescriptionElementTypes,
+		ImageOutputPath:         w.ImageOutputPath,
+		PageRange:               w.PageRange,
 	}, nil
 }
 
@@ -1914,6 +2299,34 @@ func deleteRunRequestToWire(v *DeleteRunRequest) (*deleteRunRequestWire, error) 
 	}, nil
 }
 
+type deltaTableSourceWire struct {
+	TableName       *string  `json:"table_name,omitempty"`
+	InputColumn     *string  `json:"input_column,omitempty"`
+	MergeKeyColumns []string `json:"merge_key_columns,omitempty"`
+}
+
+func deltaTableSourceToWire(v *DeltaTableSource) (*deltaTableSourceWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deltaTableSourceWire{
+		TableName:       v.TableName,
+		InputColumn:     v.InputColumn,
+		MergeKeyColumns: v.MergeKeyColumns,
+	}, nil
+}
+
+func deltaTableSourceFromWire(w *deltaTableSourceWire) (*DeltaTableSource, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeltaTableSource{
+		TableName:       w.TableName,
+		InputColumn:     w.InputColumn,
+		MergeKeyColumns: w.MergeKeyColumns,
+	}, nil
+}
+
 type deploymentSpecWire struct {
 	CommandPath *string          `json:"command_path,omitempty"`
 	Compute     *computeSpecWire `json:"compute,omitempty"`
@@ -2494,6 +2907,7 @@ type getRunOutputResponseWire struct {
 	DbtPlatformOutput        *dbtPlatformTaskOutputWire                               `json:"dbt_platform_output,omitempty"`
 	AlertOutput              *alertTaskOutputWire                                     `json:"alert_output,omitempty"`
 	AiRuntimeTaskOutput      *aiRuntimeTaskOutputWire                                 `json:"ai_runtime_task_output,omitempty"`
+	AiFunctionTaskOutput     *aiFunctionTaskOutputWire                                `json:"ai_function_task_output,omitempty"`
 	Logs                     *string                                                  `json:"logs,omitempty"`
 	LogsTruncated            *bool                                                    `json:"logs_truncated,omitempty"`
 	ErrorTrace               *string                                                  `json:"error_trace,omitempty"`
@@ -2532,6 +2946,9 @@ func getRunOutputResponseFromWire(w *getRunOutputResponseWire) (*GetRunOutputRes
 		resultMembers++
 	}
 	if w.AiRuntimeTaskOutput != nil {
+		resultMembers++
+	}
+	if w.AiFunctionTaskOutput != nil {
 		resultMembers++
 	}
 	if resultMembers > 1 {
@@ -2603,6 +3020,12 @@ func getRunOutputResponseFromWire(w *getRunOutputResponseWire) (*GetRunOutputRes
 			return nil, fmt.Errorf("%s: %w", "GetRunOutputResponse.Result.AiRuntimeTaskOutput", err)
 		}
 		resultSelection = &GetRunOutputResponse_Result_AiRuntimeTaskOutput{AiRuntimeTaskOutput: *resultAiRuntimeTaskOutputConverted}
+	case w.AiFunctionTaskOutput != nil:
+		resultAiFunctionTaskOutputConverted, err := aiFunctionTaskOutputFromWire(w.AiFunctionTaskOutput)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "GetRunOutputResponse.Result.AiFunctionTaskOutput", err)
+		}
+		resultSelection = &GetRunOutputResponse_Result_AiFunctionTaskOutput{AiFunctionTaskOutput: *resultAiFunctionTaskOutputConverted}
 	}
 	return &GetRunOutputResponse{
 		Metadata:      metadataPublicValue,
@@ -4815,6 +5238,34 @@ func pythonWheelTaskFromWire(w *pythonWheelTaskWire) (*PythonWheelTask, error) {
 	}, nil
 }
 
+type qualifiedNameWire struct {
+	Catalog *string `json:"catalog,omitempty"`
+	Schema  *string `json:"schema,omitempty"`
+	Table   *string `json:"table,omitempty"`
+}
+
+func qualifiedNameToWire(v *QualifiedName) (*qualifiedNameWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &qualifiedNameWire{
+		Catalog: v.Catalog,
+		Schema:  v.Schema,
+		Table:   v.Table,
+	}, nil
+}
+
+func qualifiedNameFromWire(w *qualifiedNameWire) (*QualifiedName, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &QualifiedName{
+		Catalog: w.Catalog,
+		Schema:  w.Schema,
+		Table:   w.Table,
+	}, nil
+}
+
 type queueDetailsWire struct {
 	Code    QueueDetailsCode_Code `json:"code,omitempty"`
 	Message *string               `json:"message,omitempty"`
@@ -5036,6 +5487,7 @@ type resolvedValuesWire struct {
 	SimulationTask  *resolvedValues_SimulationTaskResolvedValuesWire  `json:"simulation_task,omitempty"`
 	PipelineTask    *resolvedValues_PipelineTaskResolvedValuesWire    `json:"pipeline_task,omitempty"`
 	AiRuntimeTask   *resolvedValues_AiRuntimeTaskResolvedValuesWire   `json:"ai_runtime_task,omitempty"`
+	AiFunctionTask  *resolvedValues_AiFunctionTaskResolvedValuesWire  `json:"ai_function_task,omitempty"`
 }
 
 func resolvedValuesFromWire(w *resolvedValuesWire) (*ResolvedValues, error) {
@@ -5077,6 +5529,9 @@ func resolvedValuesFromWire(w *resolvedValuesWire) (*ResolvedValues, error) {
 		resolvedMembers++
 	}
 	if w.AiRuntimeTask != nil {
+		resolvedMembers++
+	}
+	if w.AiFunctionTask != nil {
 		resolvedMembers++
 	}
 	if resolvedMembers > 1 {
@@ -5156,10 +5611,26 @@ func resolvedValuesFromWire(w *resolvedValuesWire) (*ResolvedValues, error) {
 			return nil, fmt.Errorf("%s: %w", "ResolvedValues.Resolved.AiRuntimeTask", err)
 		}
 		resolvedSelection = &ResolvedValues_Resolved_AiRuntimeTask{AiRuntimeTask: *resolvedAiRuntimeTaskConverted}
+	case w.AiFunctionTask != nil:
+		resolvedAiFunctionTaskConverted, err := resolvedValues_AiFunctionTaskResolvedValuesFromWire(w.AiFunctionTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "ResolvedValues.Resolved.AiFunctionTask", err)
+		}
+		resolvedSelection = &ResolvedValues_Resolved_AiFunctionTask{AiFunctionTask: *resolvedAiFunctionTaskConverted}
 	}
 	return &ResolvedValues{
 		Resolved: resolvedSelection,
 	}, nil
+}
+
+type resolvedValues_AiFunctionTaskResolvedValuesWire struct {
+}
+
+func resolvedValues_AiFunctionTaskResolvedValuesFromWire(w *resolvedValues_AiFunctionTaskResolvedValuesWire) (*ResolvedValues_AiFunctionTaskResolvedValues, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ResolvedValues_AiFunctionTaskResolvedValues{}, nil
 }
 
 type resolvedValues_AiRuntimeTaskResolvedValuesWire struct {
@@ -5797,6 +6268,7 @@ type runTaskWire struct {
 	DbtPlatformTask            *dbtPlatformTaskWire                `json:"dbt_platform_task,omitempty"`
 	PythonOperatorTask         *pythonOperatorTaskWire             `json:"python_operator_task,omitempty"`
 	AiRuntimeTask              *aiRuntimeTaskWire                  `json:"ai_runtime_task,omitempty"`
+	AiFunctionTask             *aiFunctionTaskWire                 `json:"ai_function_task,omitempty"`
 	ExistingClusterId          *string                             `json:"existing_cluster_id,omitempty"`
 	NewCluster                 *clusterSpec_NewClusterWire         `json:"new_cluster,omitempty"`
 	JobClusterKey              *string                             `json:"job_cluster_key,omitempty"`
@@ -5884,6 +6356,9 @@ func runTaskFromWire(w *runTaskWire) (*RunTask, error) {
 		taskMembers++
 	}
 	if w.AiRuntimeTask != nil {
+		taskMembers++
+	}
+	if w.AiFunctionTask != nil {
 		taskMembers++
 	}
 	if taskMembers > 1 {
@@ -6109,6 +6584,12 @@ func runTaskFromWire(w *runTaskWire) (*RunTask, error) {
 			return nil, fmt.Errorf("%s: %w", "RunTask.Task.AiRuntimeTask", err)
 		}
 		taskSelection = &RunTask_Task_AiRuntimeTask{AiRuntimeTask: *taskAiRuntimeTaskConverted}
+	case w.AiFunctionTask != nil:
+		taskAiFunctionTaskConverted, err := aiFunctionTaskFromWire(w.AiFunctionTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTask.Task.AiFunctionTask", err)
+		}
+		taskSelection = &RunTask_Task_AiFunctionTask{AiFunctionTask: *taskAiFunctionTaskConverted}
 	}
 	var specSelection isRunTask_Spec
 	switch {
@@ -6197,6 +6678,7 @@ type runTaskSettingsWire struct {
 	DbtPlatformTask         *dbtPlatformTaskWire        `json:"dbt_platform_task,omitempty"`
 	PythonOperatorTask      *pythonOperatorTaskWire     `json:"python_operator_task,omitempty"`
 	AiRuntimeTask           *aiRuntimeTaskWire          `json:"ai_runtime_task,omitempty"`
+	AiFunctionTask          *aiFunctionTaskWire         `json:"ai_function_task,omitempty"`
 	ExistingClusterId       *string                     `json:"existing_cluster_id,omitempty"`
 	NewCluster              *clusterSpec_NewClusterWire `json:"new_cluster,omitempty"`
 	JobClusterKey           *string                     `json:"job_cluster_key,omitempty"`
@@ -6269,6 +6751,7 @@ func runTaskSettingsToWire(v *RunTaskSettings) (*runTaskSettingsWire, error) {
 	var taskDbtPlatformTaskWire *dbtPlatformTaskWire
 	var taskPythonOperatorTaskWire *pythonOperatorTaskWire
 	var taskAiRuntimeTaskWire *aiRuntimeTaskWire
+	var taskAiFunctionTaskWire *aiFunctionTaskWire
 	switch value := v.Task.(type) {
 	case nil:
 	case *RunTaskSettings_Task_NotebookTask:
@@ -6431,6 +6914,14 @@ func runTaskSettingsToWire(v *RunTaskSettings) (*runTaskSettingsWire, error) {
 			}
 			taskAiRuntimeTaskWire = taskAiRuntimeTaskConverted
 		}
+	case *RunTaskSettings_Task_AiFunctionTask:
+		if value != nil {
+			taskAiFunctionTaskConverted, err := aiFunctionTaskToWire(&value.AiFunctionTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.AiFunctionTask", err)
+			}
+			taskAiFunctionTaskWire = taskAiFunctionTaskConverted
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "RunTaskSettings.Task", value)
 	}
@@ -6492,6 +6983,7 @@ func runTaskSettingsToWire(v *RunTaskSettings) (*runTaskSettingsWire, error) {
 		DbtPlatformTask:         taskDbtPlatformTaskWire,
 		PythonOperatorTask:      taskPythonOperatorTaskWire,
 		AiRuntimeTask:           taskAiRuntimeTaskWire,
+		AiFunctionTask:          taskAiFunctionTaskWire,
 		ExistingClusterId:       specExistingClusterIdWire,
 		NewCluster:              specNewClusterWire,
 		JobClusterKey:           specJobClusterKeyWire,
@@ -7807,6 +8299,7 @@ type taskSettingsWire struct {
 	DbtPlatformTask         *dbtPlatformTaskWire        `json:"dbt_platform_task,omitempty"`
 	PythonOperatorTask      *pythonOperatorTaskWire     `json:"python_operator_task,omitempty"`
 	AiRuntimeTask           *aiRuntimeTaskWire          `json:"ai_runtime_task,omitempty"`
+	AiFunctionTask          *aiFunctionTaskWire         `json:"ai_function_task,omitempty"`
 	ExistingClusterId       *string                     `json:"existing_cluster_id,omitempty"`
 	NewCluster              *clusterSpec_NewClusterWire `json:"new_cluster,omitempty"`
 	JobClusterKey           *string                     `json:"job_cluster_key,omitempty"`
@@ -7879,6 +8372,7 @@ func taskSettingsToWire(v *TaskSettings) (*taskSettingsWire, error) {
 	var taskDbtPlatformTaskWire *dbtPlatformTaskWire
 	var taskPythonOperatorTaskWire *pythonOperatorTaskWire
 	var taskAiRuntimeTaskWire *aiRuntimeTaskWire
+	var taskAiFunctionTaskWire *aiFunctionTaskWire
 	switch value := v.Task.(type) {
 	case nil:
 	case *TaskSettings_Task_NotebookTask:
@@ -8041,6 +8535,14 @@ func taskSettingsToWire(v *TaskSettings) (*taskSettingsWire, error) {
 			}
 			taskAiRuntimeTaskWire = taskAiRuntimeTaskConverted
 		}
+	case *TaskSettings_Task_AiFunctionTask:
+		if value != nil {
+			taskAiFunctionTaskConverted, err := aiFunctionTaskToWire(&value.AiFunctionTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "TaskSettings.Task.AiFunctionTask", err)
+			}
+			taskAiFunctionTaskWire = taskAiFunctionTaskConverted
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "TaskSettings.Task", value)
 	}
@@ -8102,6 +8604,7 @@ func taskSettingsToWire(v *TaskSettings) (*taskSettingsWire, error) {
 		DbtPlatformTask:         taskDbtPlatformTaskWire,
 		PythonOperatorTask:      taskPythonOperatorTaskWire,
 		AiRuntimeTask:           taskAiRuntimeTaskWire,
+		AiFunctionTask:          taskAiFunctionTaskWire,
 		ExistingClusterId:       specExistingClusterIdWire,
 		NewCluster:              specNewClusterWire,
 		JobClusterKey:           specJobClusterKeyWire,
@@ -8183,6 +8686,9 @@ func taskSettingsFromWire(w *taskSettingsWire) (*TaskSettings, error) {
 		taskMembers++
 	}
 	if w.AiRuntimeTask != nil {
+		taskMembers++
+	}
+	if w.AiFunctionTask != nil {
 		taskMembers++
 	}
 	if taskMembers > 1 {
@@ -8356,6 +8862,12 @@ func taskSettingsFromWire(w *taskSettingsWire) (*TaskSettings, error) {
 			return nil, fmt.Errorf("%s: %w", "TaskSettings.Task.AiRuntimeTask", err)
 		}
 		taskSelection = &TaskSettings_Task_AiRuntimeTask{AiRuntimeTask: *taskAiRuntimeTaskConverted}
+	case w.AiFunctionTask != nil:
+		taskAiFunctionTaskConverted, err := aiFunctionTaskFromWire(w.AiFunctionTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "TaskSettings.Task.AiFunctionTask", err)
+		}
+		taskSelection = &TaskSettings_Task_AiFunctionTask{AiFunctionTask: *taskAiFunctionTaskConverted}
 	}
 	var specSelection isTaskSettings_Spec
 	switch {
@@ -8799,6 +9311,28 @@ func viewItemFromWire(w *viewItemWire) (*ViewItem, error) {
 		Content: w.Content,
 		Name:    w.Name,
 		Type:    w.Type,
+	}, nil
+}
+
+type volumeSourceWire struct {
+	VolumePath *string `json:"volume_path,omitempty"`
+}
+
+func volumeSourceToWire(v *VolumeSource) (*volumeSourceWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &volumeSourceWire{
+		VolumePath: v.VolumePath,
+	}, nil
+}
+
+func volumeSourceFromWire(w *volumeSourceWire) (*VolumeSource, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &VolumeSource{
+		VolumePath: w.VolumePath,
 	}, nil
 }
 

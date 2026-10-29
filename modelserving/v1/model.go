@@ -916,7 +916,8 @@ type PtServedModel struct {
 	// **catalog_name.schema_name.model_name**.
 	EntityName    *string
 	EntityVersion *string
-	// The number of model units to be provisioned.
+	// The number of model units to be provisioned. Dedicated inference requires
+	// positive fixed capacity and does not support scale-to-zero.
 	ProvisionedModelUnits *int64
 	// Whether burst scaling is enabled. When enabled (default), the endpoint can
 	// automatically scale up beyond provisioned capacity to handle traffic spikes.
