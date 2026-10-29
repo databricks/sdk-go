@@ -2699,8 +2699,9 @@ type TimeWindow struct {
 	// window produces no output before start_time. If unset, tumbling and
 	// fixed-duration sliding windows first emit at an offset-aligned boundary after
 	// a full window can be formed. If unset, lifetime sliding windows and rolling
-	// windows emit as soon as eligible source data exists. Not currently supported
-	// for sawtooth windows or for Features with a stream source.
+	// windows emit as soon as eligible source data exists. For sawtooth windows,
+	// start_time must not be later than the time the Feature is created. Not
+	// supported for rolling windows on Features with a stream source.
 	StartTime *types.Time                              `fieldmask:"start_time"`
 	_         [0]timeWindowWindowTypeFieldMaskMetadata `fieldmask_oneof:"WindowType"`
 }
@@ -2798,7 +2799,7 @@ type UpdateMaterializationSetRequest struct {
 	// The desired state of the updated materialization set. materialization_set_id
 	// selects the set.
 	MaterializationSet *MaterializationSet
-	// The fields to update. Only 'materialized_features' is supported.
+	// The fields to update. Only 'materialized_features' or '*' is supported.
 	UpdateMask *types.FieldMask[MaterializationSet]
 	// Idempotency token for the request. A second request carrying a token that has
 	// already been used returns the operation the first one created, whatever state

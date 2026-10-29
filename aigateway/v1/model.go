@@ -333,7 +333,8 @@ type ListMcpServicesRequest struct {
 	// Required. Each `{...}` component is capped at 255 characters individually.
 	Parent *string
 	// Maximum number of MCP services to return. Defaults to 200 when unset or 0;
-	// the maximum is 200. Use `page_token` to retrieve additional pages.
+	// the maximum is 1000 for `view = BASIC` and 200 for `view = FULL`. Use
+	// `page_token` to retrieve additional pages.
 	PageSize *int
 	// Opaque pagination token from the previous response.
 	PageToken *string
@@ -358,7 +359,8 @@ type ListModelProviderServicesRequest struct {
 	// Required. Each `{...}` component is capped at 255 characters individually.
 	Parent *string
 	// Maximum number of provider services to return. Defaults to 200 when unset or
-	// 0; the maximum is 200. Use `page_token` to retrieve additional pages.
+	// 0; the maximum is 1000 for `view = BASIC` and 200 for `view = FULL`. Use
+	// `page_token` to retrieve additional pages.
 	PageSize *int
 	// Opaque pagination token from the previous response.
 	PageToken *string
@@ -384,7 +386,8 @@ type ListModelServicesRequest struct {
 	// Required. Each `{...}` component is capped at 255 characters individually.
 	Parent *string
 	// Maximum number of model services to return. Defaults to 200 when unset or 0;
-	// the maximum is 200. Use `page_token` to retrieve additional pages.
+	// the maximum is 1000 for `view = BASIC` and 200 for `view = FULL`. Use
+	// `page_token` to retrieve additional pages.
 	PageSize *int
 	// Opaque pagination token from the previous response.
 	PageToken *string
