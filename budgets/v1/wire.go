@@ -80,6 +80,30 @@ func actionConfigurationFromWire(w *actionConfigurationWire) (*ActionConfigurati
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ActionConfiguration) MarshalJSON() ([]byte, error) {
+	w, err := actionConfigurationToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ActionConfiguration) UnmarshalJSON(data []byte) error {
+	var w actionConfigurationWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := actionConfigurationFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type alertConfigurationWire struct {
 	AlertConfigurationId *string                        `json:"alert_configuration_id,omitempty"`
 	TimePeriod           AlertConfigurationTimePeriod   `json:"time_period,omitempty"`
@@ -139,12 +163,49 @@ func alertConfigurationFromWire(w *alertConfigurationWire) (*AlertConfiguration,
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AlertConfiguration) MarshalJSON() ([]byte, error) {
+	w, err := alertConfigurationToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AlertConfiguration) UnmarshalJSON(data []byte) error {
+	var w alertConfigurationWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := alertConfigurationFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type alertSpendStatusWire struct {
 	ScopeType       AlertConfigurationScopeType  `json:"scope_type,omitempty"`
 	TimePeriod      AlertConfigurationTimePeriod `json:"time_period,omitempty"`
 	Spend           *string                      `json:"spend,omitempty"`
 	Threshold       *string                      `json:"threshold,omitempty"`
 	PercentConsumed *string                      `json:"percent_consumed,omitempty"`
+}
+
+func alertSpendStatusToWire(v *AlertSpendStatus) (*alertSpendStatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &alertSpendStatusWire{
+		ScopeType:       v.ScopeType,
+		TimePeriod:      v.TimePeriod,
+		Spend:           v.Spend,
+		Threshold:       v.Threshold,
+		PercentConsumed: v.PercentConsumed,
+	}, nil
 }
 
 func alertSpendStatusFromWire(w *alertSpendStatusWire) (*AlertSpendStatus, error) {
@@ -160,6 +221,30 @@ func alertSpendStatusFromWire(w *alertSpendStatusWire) (*AlertSpendStatus, error
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AlertSpendStatus) MarshalJSON() ([]byte, error) {
+	w, err := alertSpendStatusToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AlertSpendStatus) UnmarshalJSON(data []byte) error {
+	var w alertSpendStatusWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := alertSpendStatusFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type budgetConfigurationWire struct {
 	BudgetConfigurationId *string                        `json:"budget_configuration_id,omitempty"`
 	AccountId             *string                        `json:"account_id,omitempty"`
@@ -170,6 +255,39 @@ type budgetConfigurationWire struct {
 	DisplayName           *string                        `json:"display_name,omitempty"`
 	IncludeExternalSpend  *bool                          `json:"include_external_spend,omitempty"`
 	ResourceType          BudgetResourceType             `json:"resource_type,omitempty"`
+}
+
+func budgetConfigurationToWire(v *BudgetConfiguration) (*budgetConfigurationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	createTimeWireValue, err := int64ToWire(v.CreateTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BudgetConfiguration.CreateTime", err)
+	}
+	updateTimeWireValue, err := int64ToWire(v.UpdateTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BudgetConfiguration.UpdateTime", err)
+	}
+	alertConfigurationsWireValue, err := convertSlice(v.AlertConfigurations, alertConfigurationToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BudgetConfiguration.AlertConfigurations", err)
+	}
+	filterWireValue, err := budgetConfigurationFilterToWire(v.Filter)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BudgetConfiguration.Filter", err)
+	}
+	return &budgetConfigurationWire{
+		BudgetConfigurationId: v.BudgetConfigurationId,
+		AccountId:             v.AccountId,
+		CreateTime:            createTimeWireValue,
+		UpdateTime:            updateTimeWireValue,
+		AlertConfigurations:   alertConfigurationsWireValue,
+		Filter:                filterWireValue,
+		DisplayName:           v.DisplayName,
+		IncludeExternalSpend:  v.IncludeExternalSpend,
+		ResourceType:          v.ResourceType,
+	}, nil
 }
 
 func budgetConfigurationFromWire(w *budgetConfigurationWire) (*BudgetConfiguration, error) {
@@ -203,6 +321,30 @@ func budgetConfigurationFromWire(w *budgetConfigurationWire) (*BudgetConfigurati
 		IncludeExternalSpend:  w.IncludeExternalSpend,
 		ResourceType:          w.ResourceType,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v BudgetConfiguration) MarshalJSON() ([]byte, error) {
+	w, err := budgetConfigurationToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *BudgetConfiguration) UnmarshalJSON(data []byte) error {
+	var w budgetConfigurationWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := budgetConfigurationFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type budgetConfigurationFilterWire struct {
@@ -246,6 +388,30 @@ func budgetConfigurationFilterFromWire(w *budgetConfigurationFilterWire) (*Budge
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v BudgetConfigurationFilter) MarshalJSON() ([]byte, error) {
+	w, err := budgetConfigurationFilterToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *BudgetConfigurationFilter) UnmarshalJSON(data []byte) error {
+	var w budgetConfigurationFilterWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := budgetConfigurationFilterFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type budgetConfigurationFilter_ClauseWire struct {
 	Operator BudgetConfigurationFilter_Operator `json:"operator,omitempty"`
 	Values   []string                           `json:"values,omitempty"`
@@ -269,6 +435,30 @@ func budgetConfigurationFilter_ClauseFromWire(w *budgetConfigurationFilter_Claus
 		Operator: w.Operator,
 		Values:   w.Values,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v BudgetConfigurationFilter_Clause) MarshalJSON() ([]byte, error) {
+	w, err := budgetConfigurationFilter_ClauseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *BudgetConfigurationFilter_Clause) UnmarshalJSON(data []byte) error {
+	var w budgetConfigurationFilter_ClauseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := budgetConfigurationFilter_ClauseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type budgetConfigurationFilter_TagClauseWire struct {
@@ -304,6 +494,30 @@ func budgetConfigurationFilter_TagClauseFromWire(w *budgetConfigurationFilter_Ta
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v BudgetConfigurationFilter_TagClause) MarshalJSON() ([]byte, error) {
+	w, err := budgetConfigurationFilter_TagClauseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *BudgetConfigurationFilter_TagClause) UnmarshalJSON(data []byte) error {
+	var w budgetConfigurationFilter_TagClauseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := budgetConfigurationFilter_TagClauseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type budgetConfigurationFilter_WorkspaceIdClauseWire struct {
 	Operator BudgetConfigurationFilter_Operator `json:"operator,omitempty"`
 	Values   []wireInt64                        `json:"values,omitempty"`
@@ -337,9 +551,47 @@ func budgetConfigurationFilter_WorkspaceIdClauseFromWire(w *budgetConfigurationF
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v BudgetConfigurationFilter_WorkspaceIdClause) MarshalJSON() ([]byte, error) {
+	w, err := budgetConfigurationFilter_WorkspaceIdClauseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *BudgetConfigurationFilter_WorkspaceIdClause) UnmarshalJSON(data []byte) error {
+	var w budgetConfigurationFilter_WorkspaceIdClauseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := budgetConfigurationFilter_WorkspaceIdClauseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type budgetSpendStatusWire struct {
 	Name               *string                `json:"name,omitempty"`
 	AlertSpendStatuses []alertSpendStatusWire `json:"alert_spend_statuses,omitempty"`
+}
+
+func budgetSpendStatusToWire(v *BudgetSpendStatus) (*budgetSpendStatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	alertSpendStatusesWireValue, err := convertSlice(v.AlertSpendStatuses, alertSpendStatusToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BudgetSpendStatus.AlertSpendStatuses", err)
+	}
+	return &budgetSpendStatusWire{
+		Name:               v.Name,
+		AlertSpendStatuses: alertSpendStatusesWireValue,
+	}, nil
 }
 
 func budgetSpendStatusFromWire(w *budgetSpendStatusWire) (*BudgetSpendStatus, error) {
@@ -354,6 +606,30 @@ func budgetSpendStatusFromWire(w *budgetSpendStatusWire) (*BudgetSpendStatus, er
 		Name:               w.Name,
 		AlertSpendStatuses: alertSpendStatusesPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v BudgetSpendStatus) MarshalJSON() ([]byte, error) {
+	w, err := budgetSpendStatusToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *BudgetSpendStatus) UnmarshalJSON(data []byte) error {
+	var w budgetSpendStatusWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := budgetSpendStatusFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createBudgetConfigurationBudgetWire struct {
@@ -387,6 +663,52 @@ func createBudgetConfigurationBudgetToWire(v *CreateBudgetConfigurationBudget) (
 	}, nil
 }
 
+func createBudgetConfigurationBudgetFromWire(w *createBudgetConfigurationBudgetWire) (*CreateBudgetConfigurationBudget, error) {
+	if w == nil {
+		return nil, nil
+	}
+	alertConfigurationsPublicValue, err := convertSlice(w.AlertConfigurations, createBudgetConfigurationBudgetAlertConfigurationsFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationBudget.AlertConfigurations", err)
+	}
+	filterPublicValue, err := budgetConfigurationFilterFromWire(w.Filter)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationBudget.Filter", err)
+	}
+	return &CreateBudgetConfigurationBudget{
+		AccountId:            w.AccountId,
+		AlertConfigurations:  alertConfigurationsPublicValue,
+		Filter:               filterPublicValue,
+		DisplayName:          w.DisplayName,
+		IncludeExternalSpend: w.IncludeExternalSpend,
+		ResourceType:         w.ResourceType,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateBudgetConfigurationBudget) MarshalJSON() ([]byte, error) {
+	w, err := createBudgetConfigurationBudgetToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateBudgetConfigurationBudget) UnmarshalJSON(data []byte) error {
+	var w createBudgetConfigurationBudgetWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createBudgetConfigurationBudgetFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createBudgetConfigurationBudgetActionConfigurationsWire struct {
 	ActionType ActionConfigurationType `json:"action_type,omitempty"`
 	Target     *string                 `json:"target,omitempty"`
@@ -400,6 +722,40 @@ func createBudgetConfigurationBudgetActionConfigurationsToWire(v *CreateBudgetCo
 		ActionType: v.ActionType,
 		Target:     v.Target,
 	}, nil
+}
+
+func createBudgetConfigurationBudgetActionConfigurationsFromWire(w *createBudgetConfigurationBudgetActionConfigurationsWire) (*CreateBudgetConfigurationBudgetActionConfigurations, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CreateBudgetConfigurationBudgetActionConfigurations{
+		ActionType: w.ActionType,
+		Target:     w.Target,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateBudgetConfigurationBudgetActionConfigurations) MarshalJSON() ([]byte, error) {
+	w, err := createBudgetConfigurationBudgetActionConfigurationsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateBudgetConfigurationBudgetActionConfigurations) UnmarshalJSON(data []byte) error {
+	var w createBudgetConfigurationBudgetActionConfigurationsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createBudgetConfigurationBudgetActionConfigurationsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createBudgetConfigurationBudgetAlertConfigurationsWire struct {
@@ -435,6 +791,53 @@ func createBudgetConfigurationBudgetAlertConfigurationsToWire(v *CreateBudgetCon
 	}, nil
 }
 
+func createBudgetConfigurationBudgetAlertConfigurationsFromWire(w *createBudgetConfigurationBudgetAlertConfigurationsWire) (*CreateBudgetConfigurationBudgetAlertConfigurations, error) {
+	if w == nil {
+		return nil, nil
+	}
+	actionConfigurationsPublicValue, err := convertSlice(w.ActionConfigurations, createBudgetConfigurationBudgetActionConfigurationsFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationBudgetAlertConfigurations.ActionConfigurations", err)
+	}
+	principalOverridesPublicValue, err := convertSlice(w.PrincipalOverrides, principalOverrideFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationBudgetAlertConfigurations.PrincipalOverrides", err)
+	}
+	return &CreateBudgetConfigurationBudgetAlertConfigurations{
+		TimePeriod:           w.TimePeriod,
+		TriggerType:          w.TriggerType,
+		QuantityType:         w.QuantityType,
+		QuantityThreshold:    w.QuantityThreshold,
+		ActionConfigurations: actionConfigurationsPublicValue,
+		ScopeType:            w.ScopeType,
+		PrincipalOverrides:   principalOverridesPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateBudgetConfigurationBudgetAlertConfigurations) MarshalJSON() ([]byte, error) {
+	w, err := createBudgetConfigurationBudgetAlertConfigurationsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateBudgetConfigurationBudgetAlertConfigurations) UnmarshalJSON(data []byte) error {
+	var w createBudgetConfigurationBudgetAlertConfigurationsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createBudgetConfigurationBudgetAlertConfigurationsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createBudgetConfigurationRequestWire struct {
 	Budget *createBudgetConfigurationBudgetWire `json:"budget,omitempty"`
 }
@@ -452,8 +855,58 @@ func createBudgetConfigurationRequestToWire(v *CreateBudgetConfigurationRequest)
 	}, nil
 }
 
+func createBudgetConfigurationRequestFromWire(w *createBudgetConfigurationRequestWire) (*CreateBudgetConfigurationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	budgetPublicValue, err := createBudgetConfigurationBudgetFromWire(w.Budget)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationRequest.Budget", err)
+	}
+	return &CreateBudgetConfigurationRequest{
+		Budget: budgetPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateBudgetConfigurationRequest) MarshalJSON() ([]byte, error) {
+	w, err := createBudgetConfigurationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateBudgetConfigurationRequest) UnmarshalJSON(data []byte) error {
+	var w createBudgetConfigurationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createBudgetConfigurationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createBudgetConfigurationResponseWire struct {
 	Budget *budgetConfigurationWire `json:"budget,omitempty"`
+}
+
+func createBudgetConfigurationResponseToWire(v *CreateBudgetConfigurationResponse) (*createBudgetConfigurationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	budgetWireValue, err := budgetConfigurationToWire(v.Budget)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationResponse.Budget", err)
+	}
+	return &createBudgetConfigurationResponseWire{
+		Budget: budgetWireValue,
+	}, nil
 }
 
 func createBudgetConfigurationResponseFromWire(w *createBudgetConfigurationResponseWire) (*CreateBudgetConfigurationResponse, error) {
@@ -469,8 +922,184 @@ func createBudgetConfigurationResponseFromWire(w *createBudgetConfigurationRespo
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateBudgetConfigurationResponse) MarshalJSON() ([]byte, error) {
+	w, err := createBudgetConfigurationResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateBudgetConfigurationResponse) UnmarshalJSON(data []byte) error {
+	var w createBudgetConfigurationResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createBudgetConfigurationResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteBudgetConfigurationRequestWire struct {
+	BudgetId  *string `json:"budget_id,omitempty"`
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func deleteBudgetConfigurationRequestToWire(v *DeleteBudgetConfigurationRequest) (*deleteBudgetConfigurationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteBudgetConfigurationRequestWire{
+		BudgetId:  v.BudgetId,
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func deleteBudgetConfigurationRequestFromWire(w *deleteBudgetConfigurationRequestWire) (*DeleteBudgetConfigurationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteBudgetConfigurationRequest{
+		BudgetId:  w.BudgetId,
+		AccountId: w.AccountId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteBudgetConfigurationRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteBudgetConfigurationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteBudgetConfigurationRequest) UnmarshalJSON(data []byte) error {
+	var w deleteBudgetConfigurationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteBudgetConfigurationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteBudgetConfigurationResponseWire struct {
+}
+
+func deleteBudgetConfigurationResponseToWire(v *DeleteBudgetConfigurationResponse) (*deleteBudgetConfigurationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteBudgetConfigurationResponseWire{}, nil
+}
+
+func deleteBudgetConfigurationResponseFromWire(w *deleteBudgetConfigurationResponseWire) (*DeleteBudgetConfigurationResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteBudgetConfigurationResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteBudgetConfigurationResponse) MarshalJSON() ([]byte, error) {
+	w, err := deleteBudgetConfigurationResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteBudgetConfigurationResponse) UnmarshalJSON(data []byte) error {
+	var w deleteBudgetConfigurationResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteBudgetConfigurationResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getBudgetConfigurationRequestWire struct {
+	BudgetId  *string `json:"budget_id,omitempty"`
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func getBudgetConfigurationRequestToWire(v *GetBudgetConfigurationRequest) (*getBudgetConfigurationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getBudgetConfigurationRequestWire{
+		BudgetId:  v.BudgetId,
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func getBudgetConfigurationRequestFromWire(w *getBudgetConfigurationRequestWire) (*GetBudgetConfigurationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetBudgetConfigurationRequest{
+		BudgetId:  w.BudgetId,
+		AccountId: w.AccountId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetBudgetConfigurationRequest) MarshalJSON() ([]byte, error) {
+	w, err := getBudgetConfigurationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetBudgetConfigurationRequest) UnmarshalJSON(data []byte) error {
+	var w getBudgetConfigurationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getBudgetConfigurationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getBudgetConfigurationResponseWire struct {
 	Budget *budgetConfigurationWire `json:"budget,omitempty"`
+}
+
+func getBudgetConfigurationResponseToWire(v *GetBudgetConfigurationResponse) (*getBudgetConfigurationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	budgetWireValue, err := budgetConfigurationToWire(v.Budget)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetBudgetConfigurationResponse.Budget", err)
+	}
+	return &getBudgetConfigurationResponseWire{
+		Budget: budgetWireValue,
+	}, nil
 }
 
 func getBudgetConfigurationResponseFromWire(w *getBudgetConfigurationResponseWire) (*GetBudgetConfigurationResponse, error) {
@@ -484,6 +1113,76 @@ func getBudgetConfigurationResponseFromWire(w *getBudgetConfigurationResponseWir
 	return &GetBudgetConfigurationResponse{
 		Budget: budgetPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetBudgetConfigurationResponse) MarshalJSON() ([]byte, error) {
+	w, err := getBudgetConfigurationResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetBudgetConfigurationResponse) UnmarshalJSON(data []byte) error {
+	var w getBudgetConfigurationResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getBudgetConfigurationResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getBudgetSpendStatusRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getBudgetSpendStatusRequestToWire(v *GetBudgetSpendStatusRequest) (*getBudgetSpendStatusRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getBudgetSpendStatusRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getBudgetSpendStatusRequestFromWire(w *getBudgetSpendStatusRequestWire) (*GetBudgetSpendStatusRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetBudgetSpendStatusRequest{
+		Name: w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetBudgetSpendStatusRequest) MarshalJSON() ([]byte, error) {
+	w, err := getBudgetSpendStatusRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetBudgetSpendStatusRequest) UnmarshalJSON(data []byte) error {
+	var w getBudgetSpendStatusRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getBudgetSpendStatusRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listBudgetConfigurationsRequestWire struct {
@@ -501,9 +1200,57 @@ func listBudgetConfigurationsRequestToWire(v *ListBudgetConfigurationsRequest) (
 	}, nil
 }
 
+func listBudgetConfigurationsRequestFromWire(w *listBudgetConfigurationsRequestWire) (*ListBudgetConfigurationsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListBudgetConfigurationsRequest{
+		AccountId: w.AccountId,
+		PageToken: w.PageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListBudgetConfigurationsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listBudgetConfigurationsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListBudgetConfigurationsRequest) UnmarshalJSON(data []byte) error {
+	var w listBudgetConfigurationsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listBudgetConfigurationsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listBudgetConfigurationsResponseWire struct {
 	Budgets       []budgetConfigurationWire `json:"budgets,omitempty"`
 	NextPageToken *string                   `json:"next_page_token,omitempty"`
+}
+
+func listBudgetConfigurationsResponseToWire(v *ListBudgetConfigurationsResponse) (*listBudgetConfigurationsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	budgetsWireValue, err := convertSlice(v.Budgets, budgetConfigurationToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListBudgetConfigurationsResponse.Budgets", err)
+	}
+	return &listBudgetConfigurationsResponseWire{
+		Budgets:       budgetsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listBudgetConfigurationsResponseFromWire(w *listBudgetConfigurationsResponseWire) (*ListBudgetConfigurationsResponse, error) {
@@ -518,6 +1265,30 @@ func listBudgetConfigurationsResponseFromWire(w *listBudgetConfigurationsRespons
 		Budgets:       budgetsPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListBudgetConfigurationsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listBudgetConfigurationsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListBudgetConfigurationsResponse) UnmarshalJSON(data []byte) error {
+	var w listBudgetConfigurationsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listBudgetConfigurationsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listBudgetSpendStatusesRequestWire struct {
@@ -539,9 +1310,59 @@ func listBudgetSpendStatusesRequestToWire(v *ListBudgetSpendStatusesRequest) (*l
 	}, nil
 }
 
+func listBudgetSpendStatusesRequestFromWire(w *listBudgetSpendStatusesRequestWire) (*ListBudgetSpendStatusesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListBudgetSpendStatusesRequest{
+		Parent:    w.Parent,
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+		Filter:    w.Filter,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListBudgetSpendStatusesRequest) MarshalJSON() ([]byte, error) {
+	w, err := listBudgetSpendStatusesRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListBudgetSpendStatusesRequest) UnmarshalJSON(data []byte) error {
+	var w listBudgetSpendStatusesRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listBudgetSpendStatusesRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listBudgetSpendStatusesResponseWire struct {
 	BudgetSpendStatuses []budgetSpendStatusWire `json:"budget_spend_statuses,omitempty"`
 	NextPageToken       *string                 `json:"next_page_token,omitempty"`
+}
+
+func listBudgetSpendStatusesResponseToWire(v *ListBudgetSpendStatusesResponse) (*listBudgetSpendStatusesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	budgetSpendStatusesWireValue, err := convertSlice(v.BudgetSpendStatuses, budgetSpendStatusToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListBudgetSpendStatusesResponse.BudgetSpendStatuses", err)
+	}
+	return &listBudgetSpendStatusesResponseWire{
+		BudgetSpendStatuses: budgetSpendStatusesWireValue,
+		NextPageToken:       v.NextPageToken,
+	}, nil
 }
 
 func listBudgetSpendStatusesResponseFromWire(w *listBudgetSpendStatusesResponseWire) (*ListBudgetSpendStatusesResponse, error) {
@@ -556,6 +1377,30 @@ func listBudgetSpendStatusesResponseFromWire(w *listBudgetSpendStatusesResponseW
 		BudgetSpendStatuses: budgetSpendStatusesPublicValue,
 		NextPageToken:       w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListBudgetSpendStatusesResponse) MarshalJSON() ([]byte, error) {
+	w, err := listBudgetSpendStatusesResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListBudgetSpendStatusesResponse) UnmarshalJSON(data []byte) error {
+	var w listBudgetSpendStatusesResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listBudgetSpendStatusesResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type principalOverrideWire struct {
@@ -591,6 +1436,30 @@ func principalOverrideFromWire(w *principalOverrideWire) (*PrincipalOverride, er
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PrincipalOverride) MarshalJSON() ([]byte, error) {
+	w, err := principalOverrideToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PrincipalOverride) UnmarshalJSON(data []byte) error {
+	var w principalOverrideWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := principalOverrideFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateBudgetConfigurationBudgetWire struct {
 	BudgetConfigurationId *string                        `json:"budget_configuration_id,omitempty"`
 	AccountId             *string                        `json:"account_id,omitempty"`
@@ -624,6 +1493,53 @@ func updateBudgetConfigurationBudgetToWire(v *UpdateBudgetConfigurationBudget) (
 	}, nil
 }
 
+func updateBudgetConfigurationBudgetFromWire(w *updateBudgetConfigurationBudgetWire) (*UpdateBudgetConfigurationBudget, error) {
+	if w == nil {
+		return nil, nil
+	}
+	alertConfigurationsPublicValue, err := convertSlice(w.AlertConfigurations, alertConfigurationFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateBudgetConfigurationBudget.AlertConfigurations", err)
+	}
+	filterPublicValue, err := budgetConfigurationFilterFromWire(w.Filter)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateBudgetConfigurationBudget.Filter", err)
+	}
+	return &UpdateBudgetConfigurationBudget{
+		BudgetConfigurationId: w.BudgetConfigurationId,
+		AccountId:             w.AccountId,
+		AlertConfigurations:   alertConfigurationsPublicValue,
+		Filter:                filterPublicValue,
+		DisplayName:           w.DisplayName,
+		IncludeExternalSpend:  w.IncludeExternalSpend,
+		ResourceType:          w.ResourceType,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateBudgetConfigurationBudget) MarshalJSON() ([]byte, error) {
+	w, err := updateBudgetConfigurationBudgetToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateBudgetConfigurationBudget) UnmarshalJSON(data []byte) error {
+	var w updateBudgetConfigurationBudgetWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateBudgetConfigurationBudgetFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateBudgetConfigurationRequestWire struct {
 	BudgetId *string                              `json:"budget_id,omitempty"`
 	Budget   *updateBudgetConfigurationBudgetWire `json:"budget,omitempty"`
@@ -643,8 +1559,59 @@ func updateBudgetConfigurationRequestToWire(v *UpdateBudgetConfigurationRequest)
 	}, nil
 }
 
+func updateBudgetConfigurationRequestFromWire(w *updateBudgetConfigurationRequestWire) (*UpdateBudgetConfigurationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	budgetPublicValue, err := updateBudgetConfigurationBudgetFromWire(w.Budget)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateBudgetConfigurationRequest.Budget", err)
+	}
+	return &UpdateBudgetConfigurationRequest{
+		BudgetId: w.BudgetId,
+		Budget:   budgetPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateBudgetConfigurationRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateBudgetConfigurationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateBudgetConfigurationRequest) UnmarshalJSON(data []byte) error {
+	var w updateBudgetConfigurationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateBudgetConfigurationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateBudgetConfigurationResponseWire struct {
 	Budget *budgetConfigurationWire `json:"budget,omitempty"`
+}
+
+func updateBudgetConfigurationResponseToWire(v *UpdateBudgetConfigurationResponse) (*updateBudgetConfigurationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	budgetWireValue, err := budgetConfigurationToWire(v.Budget)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateBudgetConfigurationResponse.Budget", err)
+	}
+	return &updateBudgetConfigurationResponseWire{
+		Budget: budgetWireValue,
+	}, nil
 }
 
 func updateBudgetConfigurationResponseFromWire(w *updateBudgetConfigurationResponseWire) (*UpdateBudgetConfigurationResponse, error) {
@@ -658,6 +1625,30 @@ func updateBudgetConfigurationResponseFromWire(w *updateBudgetConfigurationRespo
 	return &UpdateBudgetConfigurationResponse{
 		Budget: budgetPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateBudgetConfigurationResponse) MarshalJSON() ([]byte, error) {
+	w, err := updateBudgetConfigurationResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateBudgetConfigurationResponse) UnmarshalJSON(data []byte) error {
+	var w updateBudgetConfigurationResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateBudgetConfigurationResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

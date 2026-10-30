@@ -98,6 +98,30 @@ func continuousUpdateStatusFromWire(w *continuousUpdateStatusWire) (*ContinuousU
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ContinuousUpdateStatus) MarshalJSON() ([]byte, error) {
+	w, err := continuousUpdateStatusToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ContinuousUpdateStatus) UnmarshalJSON(data []byte) error {
+	var w continuousUpdateStatusWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := continuousUpdateStatusFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createOnlineTableRequestWire struct {
 	Table *onlineTableWire `json:"table,omitempty"`
 }
@@ -113,6 +137,89 @@ func createOnlineTableRequestToWire(v *CreateOnlineTableRequest) (*createOnlineT
 	return &createOnlineTableRequestWire{
 		Table: tableWireValue,
 	}, nil
+}
+
+func createOnlineTableRequestFromWire(w *createOnlineTableRequestWire) (*CreateOnlineTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tablePublicValue, err := onlineTableFromWire(w.Table)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateOnlineTableRequest.Table", err)
+	}
+	return &CreateOnlineTableRequest{
+		Table: tablePublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateOnlineTableRequest) MarshalJSON() ([]byte, error) {
+	w, err := createOnlineTableRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateOnlineTableRequest) UnmarshalJSON(data []byte) error {
+	var w createOnlineTableRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createOnlineTableRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteOnlineTableRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteOnlineTableRequestToWire(v *DeleteOnlineTableRequest) (*deleteOnlineTableRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteOnlineTableRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteOnlineTableRequestFromWire(w *deleteOnlineTableRequestWire) (*DeleteOnlineTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteOnlineTableRequest{
+		Name: w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteOnlineTableRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteOnlineTableRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteOnlineTableRequest) UnmarshalJSON(data []byte) error {
+	var w deleteOnlineTableRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteOnlineTableRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type failedStatusWire struct {
@@ -146,6 +253,76 @@ func failedStatusFromWire(w *failedStatusWire) (*FailedStatus, error) {
 		LastProcessedCommitVersion: lastProcessedCommitVersionPublicValue,
 		Timestamp:                  w.Timestamp,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v FailedStatus) MarshalJSON() ([]byte, error) {
+	w, err := failedStatusToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *FailedStatus) UnmarshalJSON(data []byte) error {
+	var w failedStatusWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := failedStatusFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getOnlineTableRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getOnlineTableRequestToWire(v *GetOnlineTableRequest) (*getOnlineTableRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getOnlineTableRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getOnlineTableRequestFromWire(w *getOnlineTableRequestWire) (*GetOnlineTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetOnlineTableRequest{
+		Name: w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetOnlineTableRequest) MarshalJSON() ([]byte, error) {
+	w, err := getOnlineTableRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetOnlineTableRequest) UnmarshalJSON(data []byte) error {
+	var w getOnlineTableRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getOnlineTableRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type onlineTableWire struct {
@@ -196,6 +373,30 @@ func onlineTableFromWire(w *onlineTableWire) (*OnlineTable, error) {
 		TableServingUrl:               w.TableServingUrl,
 		UnityCatalogProvisioningState: w.UnityCatalogProvisioningState,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v OnlineTable) MarshalJSON() ([]byte, error) {
+	w, err := onlineTableToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *OnlineTable) UnmarshalJSON(data []byte) error {
+	var w onlineTableWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := onlineTableFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type onlineTableSpecWire struct {
@@ -285,6 +486,30 @@ func onlineTableSpecFromWire(w *onlineTableSpecWire) (*OnlineTableSpec, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v OnlineTableSpec) MarshalJSON() ([]byte, error) {
+	w, err := onlineTableSpecToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *OnlineTableSpec) UnmarshalJSON(data []byte) error {
+	var w onlineTableSpecWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := onlineTableSpecFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type onlineTableSpec_ContinuousSchedulingPolicyWire struct {
 }
 
@@ -302,6 +527,30 @@ func onlineTableSpec_ContinuousSchedulingPolicyFromWire(w *onlineTableSpec_Conti
 	return &OnlineTableSpec_ContinuousSchedulingPolicy{}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v OnlineTableSpec_ContinuousSchedulingPolicy) MarshalJSON() ([]byte, error) {
+	w, err := onlineTableSpec_ContinuousSchedulingPolicyToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *OnlineTableSpec_ContinuousSchedulingPolicy) UnmarshalJSON(data []byte) error {
+	var w onlineTableSpec_ContinuousSchedulingPolicyWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := onlineTableSpec_ContinuousSchedulingPolicyFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type onlineTableSpec_TriggeredSchedulingPolicyWire struct {
 }
 
@@ -317,6 +566,30 @@ func onlineTableSpec_TriggeredSchedulingPolicyFromWire(w *onlineTableSpec_Trigge
 		return nil, nil
 	}
 	return &OnlineTableSpec_TriggeredSchedulingPolicy{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v OnlineTableSpec_TriggeredSchedulingPolicy) MarshalJSON() ([]byte, error) {
+	w, err := onlineTableSpec_TriggeredSchedulingPolicyToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *OnlineTableSpec_TriggeredSchedulingPolicy) UnmarshalJSON(data []byte) error {
+	var w onlineTableSpec_TriggeredSchedulingPolicyWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := onlineTableSpec_TriggeredSchedulingPolicyFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type onlineTableStatusWire struct {
@@ -437,6 +710,30 @@ func onlineTableStatusFromWire(w *onlineTableStatusWire) (*OnlineTableStatus, er
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v OnlineTableStatus) MarshalJSON() ([]byte, error) {
+	w, err := onlineTableStatusToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *OnlineTableStatus) UnmarshalJSON(data []byte) error {
+	var w onlineTableStatusWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := onlineTableStatusFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type pipelineProgressWire struct {
 	LatestVersionCurrentlyProcessing *wireInt64 `json:"latest_version_currently_processing,omitempty"`
 	SyncedRowCount                   *wireInt64 `json:"synced_row_count,omitempty"`
@@ -495,6 +792,71 @@ func pipelineProgressFromWire(w *pipelineProgressWire) (*PipelineProgress, error
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PipelineProgress) MarshalJSON() ([]byte, error) {
+	w, err := pipelineProgressToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PipelineProgress) UnmarshalJSON(data []byte) error {
+	var w pipelineProgressWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := pipelineProgressFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type provisioningInfoWire struct {
+}
+
+func provisioningInfoToWire(v *ProvisioningInfo) (*provisioningInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &provisioningInfoWire{}, nil
+}
+
+func provisioningInfoFromWire(w *provisioningInfoWire) (*ProvisioningInfo, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ProvisioningInfo{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ProvisioningInfo) MarshalJSON() ([]byte, error) {
+	w, err := provisioningInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ProvisioningInfo) UnmarshalJSON(data []byte) error {
+	var w provisioningInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := provisioningInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type provisioningStatusWire struct {
 	InitialPipelineSyncProgress *pipelineProgressWire `json:"initial_pipeline_sync_progress,omitempty"`
 }
@@ -523,6 +885,30 @@ func provisioningStatusFromWire(w *provisioningStatusWire) (*ProvisioningStatus,
 	return &ProvisioningStatus{
 		InitialPipelineSyncProgress: initialPipelineSyncProgressPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ProvisioningStatus) MarshalJSON() ([]byte, error) {
+	w, err := provisioningStatusToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ProvisioningStatus) UnmarshalJSON(data []byte) error {
+	var w provisioningStatusWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := provisioningStatusFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type triggeredUpdateStatusWire struct {
@@ -567,4 +953,28 @@ func triggeredUpdateStatusFromWire(w *triggeredUpdateStatusWire) (*TriggeredUpda
 		Timestamp:                  w.Timestamp,
 		TriggeredUpdateProgress:    triggeredUpdateProgressPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v TriggeredUpdateStatus) MarshalJSON() ([]byte, error) {
+	w, err := triggeredUpdateStatusToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *TriggeredUpdateStatus) UnmarshalJSON(data []byte) error {
+	var w triggeredUpdateStatusWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := triggeredUpdateStatusFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }

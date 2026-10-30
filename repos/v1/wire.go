@@ -81,6 +81,51 @@ func createRepoRequestToWire(v *CreateRepoRequest) (*createRepoRequestWire, erro
 	}, nil
 }
 
+func createRepoRequestFromWire(w *createRepoRequestWire) (*CreateRepoRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sparseCheckoutPublicValue, err := sparseCheckoutFromWire(w.SparseCheckout)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRepoRequest.SparseCheckout", err)
+	}
+	gitCredentialIdPublicValue, err := int64FromWire(w.GitCredentialId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRepoRequest.GitCredentialId", err)
+	}
+	return &CreateRepoRequest{
+		Url:             w.Url,
+		Provider:        w.Provider,
+		Path:            w.Path,
+		SparseCheckout:  sparseCheckoutPublicValue,
+		GitCredentialId: gitCredentialIdPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateRepoRequest) MarshalJSON() ([]byte, error) {
+	w, err := createRepoRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateRepoRequest) UnmarshalJSON(data []byte) error {
+	var w createRepoRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createRepoRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createRepoResponseWire struct {
 	Id             *wireInt64          `json:"id,omitempty"`
 	Path           *string             `json:"path,omitempty"`
@@ -89,6 +134,29 @@ type createRepoResponseWire struct {
 	Branch         *string             `json:"branch,omitempty"`
 	HeadCommitId   *string             `json:"head_commit_id,omitempty"`
 	SparseCheckout *sparseCheckoutWire `json:"sparse_checkout,omitempty"`
+}
+
+func createRepoResponseToWire(v *CreateRepoResponse) (*createRepoResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	idWireValue, err := int64ToWire(v.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRepoResponse.Id", err)
+	}
+	sparseCheckoutWireValue, err := sparseCheckoutToWire(v.SparseCheckout)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRepoResponse.SparseCheckout", err)
+	}
+	return &createRepoResponseWire{
+		Id:             idWireValue,
+		Path:           v.Path,
+		Url:            v.Url,
+		Provider:       v.Provider,
+		Branch:         v.Branch,
+		HeadCommitId:   v.HeadCommitId,
+		SparseCheckout: sparseCheckoutWireValue,
+	}, nil
 }
 
 func createRepoResponseFromWire(w *createRepoResponseWire) (*CreateRepoResponse, error) {
@@ -114,6 +182,179 @@ func createRepoResponseFromWire(w *createRepoResponseWire) (*CreateRepoResponse,
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateRepoResponse) MarshalJSON() ([]byte, error) {
+	w, err := createRepoResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateRepoResponse) UnmarshalJSON(data []byte) error {
+	var w createRepoResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createRepoResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteRepoRequestWire struct {
+	Id *wireInt64 `json:"id,omitempty"`
+}
+
+func deleteRepoRequestToWire(v *DeleteRepoRequest) (*deleteRepoRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	idWireValue, err := int64ToWire(v.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteRepoRequest.Id", err)
+	}
+	return &deleteRepoRequestWire{
+		Id: idWireValue,
+	}, nil
+}
+
+func deleteRepoRequestFromWire(w *deleteRepoRequestWire) (*DeleteRepoRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	idPublicValue, err := int64FromWire(w.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteRepoRequest.Id", err)
+	}
+	return &DeleteRepoRequest{
+		Id: idPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteRepoRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteRepoRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteRepoRequest) UnmarshalJSON(data []byte) error {
+	var w deleteRepoRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteRepoRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteRepoResponseWire struct {
+}
+
+func deleteRepoResponseToWire(v *DeleteRepoResponse) (*deleteRepoResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteRepoResponseWire{}, nil
+}
+
+func deleteRepoResponseFromWire(w *deleteRepoResponseWire) (*DeleteRepoResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRepoResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteRepoResponse) MarshalJSON() ([]byte, error) {
+	w, err := deleteRepoResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteRepoResponse) UnmarshalJSON(data []byte) error {
+	var w deleteRepoResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteRepoResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getRepoRequestWire struct {
+	Id *wireInt64 `json:"id,omitempty"`
+}
+
+func getRepoRequestToWire(v *GetRepoRequest) (*getRepoRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	idWireValue, err := int64ToWire(v.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRepoRequest.Id", err)
+	}
+	return &getRepoRequestWire{
+		Id: idWireValue,
+	}, nil
+}
+
+func getRepoRequestFromWire(w *getRepoRequestWire) (*GetRepoRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	idPublicValue, err := int64FromWire(w.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRepoRequest.Id", err)
+	}
+	return &GetRepoRequest{
+		Id: idPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetRepoRequest) MarshalJSON() ([]byte, error) {
+	w, err := getRepoRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetRepoRequest) UnmarshalJSON(data []byte) error {
+	var w getRepoRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getRepoRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getRepoResponseWire struct {
 	Id             *wireInt64          `json:"id,omitempty"`
 	Path           *string             `json:"path,omitempty"`
@@ -123,6 +364,30 @@ type getRepoResponseWire struct {
 	HeadCommitId   *string             `json:"head_commit_id,omitempty"`
 	SparseCheckout *sparseCheckoutWire `json:"sparse_checkout,omitempty"`
 	GitCliEnabled  *bool               `json:"git_cli_enabled,omitempty"`
+}
+
+func getRepoResponseToWire(v *GetRepoResponse) (*getRepoResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	idWireValue, err := int64ToWire(v.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRepoResponse.Id", err)
+	}
+	sparseCheckoutWireValue, err := sparseCheckoutToWire(v.SparseCheckout)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRepoResponse.SparseCheckout", err)
+	}
+	return &getRepoResponseWire{
+		Id:             idWireValue,
+		Path:           v.Path,
+		Url:            v.Url,
+		Provider:       v.Provider,
+		Branch:         v.Branch,
+		HeadCommitId:   v.HeadCommitId,
+		SparseCheckout: sparseCheckoutWireValue,
+		GitCliEnabled:  v.GitCliEnabled,
+	}, nil
 }
 
 func getRepoResponseFromWire(w *getRepoResponseWire) (*GetRepoResponse, error) {
@@ -149,6 +414,30 @@ func getRepoResponseFromWire(w *getRepoResponseWire) (*GetRepoResponse, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetRepoResponse) MarshalJSON() ([]byte, error) {
+	w, err := getRepoResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetRepoResponse) UnmarshalJSON(data []byte) error {
+	var w getRepoResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getRepoResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listReposRequestWire struct {
 	PathPrefix    *string `json:"path_prefix,omitempty"`
 	NextPageToken *string `json:"next_page_token,omitempty"`
@@ -164,9 +453,57 @@ func listReposRequestToWire(v *ListReposRequest) (*listReposRequestWire, error) 
 	}, nil
 }
 
+func listReposRequestFromWire(w *listReposRequestWire) (*ListReposRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListReposRequest{
+		PathPrefix:    w.PathPrefix,
+		NextPageToken: w.NextPageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListReposRequest) MarshalJSON() ([]byte, error) {
+	w, err := listReposRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListReposRequest) UnmarshalJSON(data []byte) error {
+	var w listReposRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listReposRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listReposResponseWire struct {
 	Repos         []repoInfoWire `json:"repos,omitempty"`
 	NextPageToken *string        `json:"next_page_token,omitempty"`
+}
+
+func listReposResponseToWire(v *ListReposResponse) (*listReposResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	reposWireValue, err := convertSlice(v.Repos, repoInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListReposResponse.Repos", err)
+	}
+	return &listReposResponseWire{
+		Repos:         reposWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listReposResponseFromWire(w *listReposResponseWire) (*ListReposResponse, error) {
@@ -183,6 +520,30 @@ func listReposResponseFromWire(w *listReposResponseWire) (*ListReposResponse, er
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListReposResponse) MarshalJSON() ([]byte, error) {
+	w, err := listReposResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListReposResponse) UnmarshalJSON(data []byte) error {
+	var w listReposResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listReposResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type repoInfoWire struct {
 	Id             *wireInt64          `json:"id,omitempty"`
 	Path           *string             `json:"path,omitempty"`
@@ -191,6 +552,29 @@ type repoInfoWire struct {
 	Branch         *string             `json:"branch,omitempty"`
 	HeadCommitId   *string             `json:"head_commit_id,omitempty"`
 	SparseCheckout *sparseCheckoutWire `json:"sparse_checkout,omitempty"`
+}
+
+func repoInfoToWire(v *RepoInfo) (*repoInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	idWireValue, err := int64ToWire(v.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RepoInfo.Id", err)
+	}
+	sparseCheckoutWireValue, err := sparseCheckoutToWire(v.SparseCheckout)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RepoInfo.SparseCheckout", err)
+	}
+	return &repoInfoWire{
+		Id:             idWireValue,
+		Path:           v.Path,
+		Url:            v.Url,
+		Provider:       v.Provider,
+		Branch:         v.Branch,
+		HeadCommitId:   v.HeadCommitId,
+		SparseCheckout: sparseCheckoutWireValue,
+	}, nil
 }
 
 func repoInfoFromWire(w *repoInfoWire) (*RepoInfo, error) {
@@ -216,6 +600,30 @@ func repoInfoFromWire(w *repoInfoWire) (*RepoInfo, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v RepoInfo) MarshalJSON() ([]byte, error) {
+	w, err := repoInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *RepoInfo) UnmarshalJSON(data []byte) error {
+	var w repoInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := repoInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type sparseCheckoutWire struct {
 	Patterns []string `json:"patterns,omitempty"`
 }
@@ -238,6 +646,30 @@ func sparseCheckoutFromWire(w *sparseCheckoutWire) (*SparseCheckout, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v SparseCheckout) MarshalJSON() ([]byte, error) {
+	w, err := sparseCheckoutToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *SparseCheckout) UnmarshalJSON(data []byte) error {
+	var w sparseCheckoutWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := sparseCheckoutFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type sparseCheckoutUpdateWire struct {
 	Patterns []string `json:"patterns,omitempty"`
 }
@@ -249,6 +681,39 @@ func sparseCheckoutUpdateToWire(v *SparseCheckoutUpdate) (*sparseCheckoutUpdateW
 	return &sparseCheckoutUpdateWire{
 		Patterns: v.Patterns,
 	}, nil
+}
+
+func sparseCheckoutUpdateFromWire(w *sparseCheckoutUpdateWire) (*SparseCheckoutUpdate, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SparseCheckoutUpdate{
+		Patterns: w.Patterns,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v SparseCheckoutUpdate) MarshalJSON() ([]byte, error) {
+	w, err := sparseCheckoutUpdateToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *SparseCheckoutUpdate) UnmarshalJSON(data []byte) error {
+	var w sparseCheckoutUpdateWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := sparseCheckoutUpdateFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateRepoRequestWire struct {
@@ -284,6 +749,97 @@ func updateRepoRequestToWire(v *UpdateRepoRequest) (*updateRepoRequestWire, erro
 		DangerouslyForceDiscardAll: v.DangerouslyForceDiscardAll,
 		GitCredentialId:            gitCredentialIdWireValue,
 	}, nil
+}
+
+func updateRepoRequestFromWire(w *updateRepoRequestWire) (*UpdateRepoRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	idPublicValue, err := int64FromWire(w.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRepoRequest.Id", err)
+	}
+	sparseCheckoutPublicValue, err := sparseCheckoutUpdateFromWire(w.SparseCheckout)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRepoRequest.SparseCheckout", err)
+	}
+	gitCredentialIdPublicValue, err := int64FromWire(w.GitCredentialId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRepoRequest.GitCredentialId", err)
+	}
+	return &UpdateRepoRequest{
+		Id:                         idPublicValue,
+		Branch:                     w.Branch,
+		Tag:                        w.Tag,
+		SparseCheckout:             sparseCheckoutPublicValue,
+		DangerouslyForceDiscardAll: w.DangerouslyForceDiscardAll,
+		GitCredentialId:            gitCredentialIdPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateRepoRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateRepoRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateRepoRequest) UnmarshalJSON(data []byte) error {
+	var w updateRepoRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateRepoRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type updateRepoResponseWire struct {
+}
+
+func updateRepoResponseToWire(v *UpdateRepoResponse) (*updateRepoResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &updateRepoResponseWire{}, nil
+}
+
+func updateRepoResponseFromWire(w *updateRepoResponseWire) (*UpdateRepoResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpdateRepoResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateRepoResponse) MarshalJSON() ([]byte, error) {
+	w, err := updateRepoResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateRepoResponse) UnmarshalJSON(data []byte) error {
+	var w updateRepoResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateRepoResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

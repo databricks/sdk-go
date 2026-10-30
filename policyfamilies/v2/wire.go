@@ -71,6 +71,44 @@ func getPolicyFamilyRequestToWire(v *GetPolicyFamilyRequest) (*getPolicyFamilyRe
 	}, nil
 }
 
+func getPolicyFamilyRequestFromWire(w *getPolicyFamilyRequestWire) (*GetPolicyFamilyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	versionPublicValue, err := int64FromWire(w.Version)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetPolicyFamilyRequest.Version", err)
+	}
+	return &GetPolicyFamilyRequest{
+		PolicyFamilyId: w.PolicyFamilyId,
+		Version:        versionPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetPolicyFamilyRequest) MarshalJSON() ([]byte, error) {
+	w, err := getPolicyFamilyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetPolicyFamilyRequest) UnmarshalJSON(data []byte) error {
+	var w getPolicyFamilyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getPolicyFamilyRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listPolicyFamiliesRequestWire struct {
 	MaxResults *wireInt64 `json:"max_results,omitempty"`
 	PageToken  *string    `json:"page_token,omitempty"`
@@ -90,9 +128,61 @@ func listPolicyFamiliesRequestToWire(v *ListPolicyFamiliesRequest) (*listPolicyF
 	}, nil
 }
 
+func listPolicyFamiliesRequestFromWire(w *listPolicyFamiliesRequestWire) (*ListPolicyFamiliesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	maxResultsPublicValue, err := int64FromWire(w.MaxResults)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListPolicyFamiliesRequest.MaxResults", err)
+	}
+	return &ListPolicyFamiliesRequest{
+		MaxResults: maxResultsPublicValue,
+		PageToken:  w.PageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListPolicyFamiliesRequest) MarshalJSON() ([]byte, error) {
+	w, err := listPolicyFamiliesRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListPolicyFamiliesRequest) UnmarshalJSON(data []byte) error {
+	var w listPolicyFamiliesRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listPolicyFamiliesRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listPolicyFamiliesResponseWire struct {
 	PolicyFamilies []policyFamilyWire `json:"policy_families,omitempty"`
 	NextPageToken  *string            `json:"next_page_token,omitempty"`
+}
+
+func listPolicyFamiliesResponseToWire(v *ListPolicyFamiliesResponse) (*listPolicyFamiliesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	policyFamiliesWireValue, err := convertSlice(v.PolicyFamilies, policyFamilyToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListPolicyFamiliesResponse.PolicyFamilies", err)
+	}
+	return &listPolicyFamiliesResponseWire{
+		PolicyFamilies: policyFamiliesWireValue,
+		NextPageToken:  v.NextPageToken,
+	}, nil
 }
 
 func listPolicyFamiliesResponseFromWire(w *listPolicyFamiliesResponseWire) (*ListPolicyFamiliesResponse, error) {
@@ -109,11 +199,47 @@ func listPolicyFamiliesResponseFromWire(w *listPolicyFamiliesResponseWire) (*Lis
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListPolicyFamiliesResponse) MarshalJSON() ([]byte, error) {
+	w, err := listPolicyFamiliesResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListPolicyFamiliesResponse) UnmarshalJSON(data []byte) error {
+	var w listPolicyFamiliesResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listPolicyFamiliesResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type policyFamilyWire struct {
 	PolicyFamilyId *string `json:"policy_family_id,omitempty"`
 	Name           *string `json:"name,omitempty"`
 	Description    *string `json:"description,omitempty"`
 	Definition     *string `json:"definition,omitempty"`
+}
+
+func policyFamilyToWire(v *PolicyFamily) (*policyFamilyWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &policyFamilyWire{
+		PolicyFamilyId: v.PolicyFamilyId,
+		Name:           v.Name,
+		Description:    v.Description,
+		Definition:     v.Definition,
+	}, nil
 }
 
 func policyFamilyFromWire(w *policyFamilyWire) (*PolicyFamily, error) {
@@ -126,6 +252,30 @@ func policyFamilyFromWire(w *policyFamilyWire) (*PolicyFamily, error) {
 		Description:    w.Description,
 		Definition:     w.Definition,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PolicyFamily) MarshalJSON() ([]byte, error) {
+	w, err := policyFamilyToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PolicyFamily) UnmarshalJSON(data []byte) error {
+	var w policyFamilyWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := policyFamilyFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

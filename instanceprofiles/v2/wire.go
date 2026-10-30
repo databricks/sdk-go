@@ -3,6 +3,7 @@
 package instanceprofiles
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
@@ -25,6 +26,83 @@ func addInstanceProfileRequestToWire(v *AddInstanceProfileRequest) (*addInstance
 	}, nil
 }
 
+func addInstanceProfileRequestFromWire(w *addInstanceProfileRequestWire) (*AddInstanceProfileRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AddInstanceProfileRequest{
+		SkipValidation:        w.SkipValidation,
+		InstanceProfileArn:    w.InstanceProfileArn,
+		IsMetaInstanceProfile: w.IsMetaInstanceProfile,
+		IamRoleArn:            w.IamRoleArn,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AddInstanceProfileRequest) MarshalJSON() ([]byte, error) {
+	w, err := addInstanceProfileRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AddInstanceProfileRequest) UnmarshalJSON(data []byte) error {
+	var w addInstanceProfileRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := addInstanceProfileRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type addInstanceProfileResponseWire struct {
+}
+
+func addInstanceProfileResponseToWire(v *AddInstanceProfileResponse) (*addInstanceProfileResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &addInstanceProfileResponseWire{}, nil
+}
+
+func addInstanceProfileResponseFromWire(w *addInstanceProfileResponseWire) (*AddInstanceProfileResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AddInstanceProfileResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AddInstanceProfileResponse) MarshalJSON() ([]byte, error) {
+	w, err := addInstanceProfileResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AddInstanceProfileResponse) UnmarshalJSON(data []byte) error {
+	var w addInstanceProfileResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := addInstanceProfileResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type editInstanceProfileRequestWire struct {
 	InstanceProfileArn    *string `json:"instance_profile_arn,omitempty"`
 	IsMetaInstanceProfile *bool   `json:"is_meta_instance_profile,omitempty"`
@@ -42,10 +120,97 @@ func editInstanceProfileRequestToWire(v *EditInstanceProfileRequest) (*editInsta
 	}, nil
 }
 
+func editInstanceProfileRequestFromWire(w *editInstanceProfileRequestWire) (*EditInstanceProfileRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &EditInstanceProfileRequest{
+		InstanceProfileArn:    w.InstanceProfileArn,
+		IsMetaInstanceProfile: w.IsMetaInstanceProfile,
+		IamRoleArn:            w.IamRoleArn,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v EditInstanceProfileRequest) MarshalJSON() ([]byte, error) {
+	w, err := editInstanceProfileRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *EditInstanceProfileRequest) UnmarshalJSON(data []byte) error {
+	var w editInstanceProfileRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := editInstanceProfileRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type editInstanceProfileResponseWire struct {
+}
+
+func editInstanceProfileResponseToWire(v *EditInstanceProfileResponse) (*editInstanceProfileResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &editInstanceProfileResponseWire{}, nil
+}
+
+func editInstanceProfileResponseFromWire(w *editInstanceProfileResponseWire) (*EditInstanceProfileResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &EditInstanceProfileResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v EditInstanceProfileResponse) MarshalJSON() ([]byte, error) {
+	w, err := editInstanceProfileResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *EditInstanceProfileResponse) UnmarshalJSON(data []byte) error {
+	var w editInstanceProfileResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := editInstanceProfileResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type instanceProfileWire struct {
 	InstanceProfileArn    *string `json:"instance_profile_arn,omitempty"`
 	IsMetaInstanceProfile *bool   `json:"is_meta_instance_profile,omitempty"`
 	IamRoleArn            *string `json:"iam_role_arn,omitempty"`
+}
+
+func instanceProfileToWire(v *InstanceProfile) (*instanceProfileWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &instanceProfileWire{
+		InstanceProfileArn:    v.InstanceProfileArn,
+		IsMetaInstanceProfile: v.IsMetaInstanceProfile,
+		IamRoleArn:            v.IamRoleArn,
+	}, nil
 }
 
 func instanceProfileFromWire(w *instanceProfileWire) (*InstanceProfile, error) {
@@ -59,8 +224,86 @@ func instanceProfileFromWire(w *instanceProfileWire) (*InstanceProfile, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v InstanceProfile) MarshalJSON() ([]byte, error) {
+	w, err := instanceProfileToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *InstanceProfile) UnmarshalJSON(data []byte) error {
+	var w instanceProfileWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := instanceProfileFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type listInstanceProfilesRequestWire struct {
+}
+
+func listInstanceProfilesRequestToWire(v *ListInstanceProfilesRequest) (*listInstanceProfilesRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listInstanceProfilesRequestWire{}, nil
+}
+
+func listInstanceProfilesRequestFromWire(w *listInstanceProfilesRequestWire) (*ListInstanceProfilesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListInstanceProfilesRequest{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListInstanceProfilesRequest) MarshalJSON() ([]byte, error) {
+	w, err := listInstanceProfilesRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListInstanceProfilesRequest) UnmarshalJSON(data []byte) error {
+	var w listInstanceProfilesRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listInstanceProfilesRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listInstanceProfilesResponseWire struct {
 	InstanceProfiles []instanceProfileWire `json:"instance_profiles,omitempty"`
+}
+
+func listInstanceProfilesResponseToWire(v *ListInstanceProfilesResponse) (*listInstanceProfilesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	instanceProfilesWireValue, err := convertSlice(v.InstanceProfiles, instanceProfileToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListInstanceProfilesResponse.InstanceProfiles", err)
+	}
+	return &listInstanceProfilesResponseWire{
+		InstanceProfiles: instanceProfilesWireValue,
+	}, nil
 }
 
 func listInstanceProfilesResponseFromWire(w *listInstanceProfilesResponseWire) (*ListInstanceProfilesResponse, error) {
@@ -76,6 +319,30 @@ func listInstanceProfilesResponseFromWire(w *listInstanceProfilesResponseWire) (
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListInstanceProfilesResponse) MarshalJSON() ([]byte, error) {
+	w, err := listInstanceProfilesResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListInstanceProfilesResponse) UnmarshalJSON(data []byte) error {
+	var w listInstanceProfilesResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listInstanceProfilesResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type removeInstanceProfileRequestWire struct {
 	InstanceProfileArn *string `json:"instance_profile_arn,omitempty"`
 }
@@ -87,6 +354,80 @@ func removeInstanceProfileRequestToWire(v *RemoveInstanceProfileRequest) (*remov
 	return &removeInstanceProfileRequestWire{
 		InstanceProfileArn: v.InstanceProfileArn,
 	}, nil
+}
+
+func removeInstanceProfileRequestFromWire(w *removeInstanceProfileRequestWire) (*RemoveInstanceProfileRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RemoveInstanceProfileRequest{
+		InstanceProfileArn: w.InstanceProfileArn,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v RemoveInstanceProfileRequest) MarshalJSON() ([]byte, error) {
+	w, err := removeInstanceProfileRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *RemoveInstanceProfileRequest) UnmarshalJSON(data []byte) error {
+	var w removeInstanceProfileRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := removeInstanceProfileRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type removeInstanceProfileResponseWire struct {
+}
+
+func removeInstanceProfileResponseToWire(v *RemoveInstanceProfileResponse) (*removeInstanceProfileResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &removeInstanceProfileResponseWire{}, nil
+}
+
+func removeInstanceProfileResponseFromWire(w *removeInstanceProfileResponseWire) (*RemoveInstanceProfileResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RemoveInstanceProfileResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v RemoveInstanceProfileResponse) MarshalJSON() ([]byte, error) {
+	w, err := removeInstanceProfileResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *RemoveInstanceProfileResponse) UnmarshalJSON(data []byte) error {
+	var w removeInstanceProfileResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := removeInstanceProfileResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

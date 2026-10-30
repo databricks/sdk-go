@@ -3,6 +3,7 @@
 package instancepools
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
@@ -73,8 +74,89 @@ func createInstancePoolRequestToWire(v *CreateInstancePoolRequest) (*createInsta
 	}, nil
 }
 
+func createInstancePoolRequestFromWire(w *createInstancePoolRequestWire) (*CreateInstancePoolRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	awsAttributesPublicValue, err := instancePoolAwsAttributesFromWire(w.AwsAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateInstancePoolRequest.AwsAttributes", err)
+	}
+	diskSpecPublicValue, err := diskSpecFromWire(w.DiskSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateInstancePoolRequest.DiskSpec", err)
+	}
+	preloadedDockerImagesPublicValue, err := convertSlice(w.PreloadedDockerImages, dockerImageFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateInstancePoolRequest.PreloadedDockerImages", err)
+	}
+	azureAttributesPublicValue, err := instancePoolAzureAttributesFromWire(w.AzureAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateInstancePoolRequest.AzureAttributes", err)
+	}
+	gcpAttributesPublicValue, err := instancePoolGcpAttributesFromWire(w.GcpAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateInstancePoolRequest.GcpAttributes", err)
+	}
+	nodeTypeFlexibilityPublicValue, err := nodeTypeFlexibilityFromWire(w.NodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateInstancePoolRequest.NodeTypeFlexibility", err)
+	}
+	return &CreateInstancePoolRequest{
+		InstancePoolName:                   w.InstancePoolName,
+		MinIdleInstances:                   w.MinIdleInstances,
+		MaxCapacity:                        w.MaxCapacity,
+		AwsAttributes:                      awsAttributesPublicValue,
+		NodeTypeId:                         w.NodeTypeId,
+		CustomTags:                         w.CustomTags,
+		IdleInstanceAutoterminationMinutes: w.IdleInstanceAutoterminationMinutes,
+		EnableElasticDisk:                  w.EnableElasticDisk,
+		DiskSpec:                           diskSpecPublicValue,
+		PreloadedDockerImages:              preloadedDockerImagesPublicValue,
+		PreloadedSparkVersions:             w.PreloadedSparkVersions,
+		AzureAttributes:                    azureAttributesPublicValue,
+		GcpAttributes:                      gcpAttributesPublicValue,
+		NodeTypeFlexibility:                nodeTypeFlexibilityPublicValue,
+		RemoteDiskThroughput:               w.RemoteDiskThroughput,
+		TotalInitialRemoteDiskSize:         w.TotalInitialRemoteDiskSize,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateInstancePoolRequest) MarshalJSON() ([]byte, error) {
+	w, err := createInstancePoolRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateInstancePoolRequest) UnmarshalJSON(data []byte) error {
+	var w createInstancePoolRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createInstancePoolRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createInstancePoolResponseWire struct {
 	InstancePoolId *string `json:"instance_pool_id,omitempty"`
+}
+
+func createInstancePoolResponseToWire(v *CreateInstancePoolResponse) (*createInstancePoolResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createInstancePoolResponseWire{
+		InstancePoolId: v.InstancePoolId,
+	}, nil
 }
 
 func createInstancePoolResponseFromWire(w *createInstancePoolResponseWire) (*CreateInstancePoolResponse, error) {
@@ -84,6 +166,30 @@ func createInstancePoolResponseFromWire(w *createInstancePoolResponseWire) (*Cre
 	return &CreateInstancePoolResponse{
 		InstancePoolId: w.InstancePoolId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateInstancePoolResponse) MarshalJSON() ([]byte, error) {
+	w, err := createInstancePoolResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateInstancePoolResponse) UnmarshalJSON(data []byte) error {
+	var w createInstancePoolResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createInstancePoolResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type deleteInstancePoolRequestWire struct {
@@ -97,6 +203,80 @@ func deleteInstancePoolRequestToWire(v *DeleteInstancePoolRequest) (*deleteInsta
 	return &deleteInstancePoolRequestWire{
 		InstancePoolId: v.InstancePoolId,
 	}, nil
+}
+
+func deleteInstancePoolRequestFromWire(w *deleteInstancePoolRequestWire) (*DeleteInstancePoolRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteInstancePoolRequest{
+		InstancePoolId: w.InstancePoolId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteInstancePoolRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteInstancePoolRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteInstancePoolRequest) UnmarshalJSON(data []byte) error {
+	var w deleteInstancePoolRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteInstancePoolRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteInstancePoolResponseWire struct {
+}
+
+func deleteInstancePoolResponseToWire(v *DeleteInstancePoolResponse) (*deleteInstancePoolResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteInstancePoolResponseWire{}, nil
+}
+
+func deleteInstancePoolResponseFromWire(w *deleteInstancePoolResponseWire) (*DeleteInstancePoolResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteInstancePoolResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteInstancePoolResponse) MarshalJSON() ([]byte, error) {
+	w, err := deleteInstancePoolResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteInstancePoolResponse) UnmarshalJSON(data []byte) error {
+	var w deleteInstancePoolResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteInstancePoolResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type diskSpecWire struct {
@@ -139,6 +319,30 @@ func diskSpecFromWire(w *diskSpecWire) (*DiskSpec, error) {
 		DiskIops:       w.DiskIops,
 		DiskThroughput: w.DiskThroughput,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DiskSpec) MarshalJSON() ([]byte, error) {
+	w, err := diskSpecToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DiskSpec) UnmarshalJSON(data []byte) error {
+	var w diskSpecWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := diskSpecFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type diskTypeWire struct {
@@ -197,6 +401,30 @@ func diskTypeFromWire(w *diskTypeWire) (*DiskType, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DiskType) MarshalJSON() ([]byte, error) {
+	w, err := diskTypeToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DiskType) UnmarshalJSON(data []byte) error {
+	var w diskTypeWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := diskTypeFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type dockerBasicAuthWire struct {
 	Username *string `json:"username,omitempty"`
 	Password *string `json:"password,omitempty"`
@@ -220,6 +448,30 @@ func dockerBasicAuthFromWire(w *dockerBasicAuthWire) (*DockerBasicAuth, error) {
 		Username: w.Username,
 		Password: w.Password,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DockerBasicAuth) MarshalJSON() ([]byte, error) {
+	w, err := dockerBasicAuthToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DockerBasicAuth) UnmarshalJSON(data []byte) error {
+	var w dockerBasicAuthWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := dockerBasicAuthFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type dockerImageWire struct {
@@ -275,6 +527,30 @@ func dockerImageFromWire(w *dockerImageWire) (*DockerImage, error) {
 		Url:        w.Url,
 		CredsOneof: credsOneofSelection,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DockerImage) MarshalJSON() ([]byte, error) {
+	w, err := dockerImageToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DockerImage) UnmarshalJSON(data []byte) error {
+	var w dockerImageWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := dockerImageFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type editInstancePoolRequestWire struct {
@@ -346,6 +622,120 @@ func editInstancePoolRequestToWire(v *EditInstancePoolRequest) (*editInstancePoo
 	}, nil
 }
 
+func editInstancePoolRequestFromWire(w *editInstancePoolRequestWire) (*EditInstancePoolRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	awsAttributesPublicValue, err := instancePoolAwsAttributesFromWire(w.AwsAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditInstancePoolRequest.AwsAttributes", err)
+	}
+	diskSpecPublicValue, err := diskSpecFromWire(w.DiskSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditInstancePoolRequest.DiskSpec", err)
+	}
+	preloadedDockerImagesPublicValue, err := convertSlice(w.PreloadedDockerImages, dockerImageFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditInstancePoolRequest.PreloadedDockerImages", err)
+	}
+	azureAttributesPublicValue, err := instancePoolAzureAttributesFromWire(w.AzureAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditInstancePoolRequest.AzureAttributes", err)
+	}
+	gcpAttributesPublicValue, err := instancePoolGcpAttributesFromWire(w.GcpAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditInstancePoolRequest.GcpAttributes", err)
+	}
+	nodeTypeFlexibilityPublicValue, err := nodeTypeFlexibilityFromWire(w.NodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditInstancePoolRequest.NodeTypeFlexibility", err)
+	}
+	return &EditInstancePoolRequest{
+		InstancePoolId:                     w.InstancePoolId,
+		InstancePoolName:                   w.InstancePoolName,
+		MinIdleInstances:                   w.MinIdleInstances,
+		MaxCapacity:                        w.MaxCapacity,
+		AwsAttributes:                      awsAttributesPublicValue,
+		NodeTypeId:                         w.NodeTypeId,
+		CustomTags:                         w.CustomTags,
+		IdleInstanceAutoterminationMinutes: w.IdleInstanceAutoterminationMinutes,
+		EnableElasticDisk:                  w.EnableElasticDisk,
+		DiskSpec:                           diskSpecPublicValue,
+		PreloadedDockerImages:              preloadedDockerImagesPublicValue,
+		PreloadedSparkVersions:             w.PreloadedSparkVersions,
+		AzureAttributes:                    azureAttributesPublicValue,
+		GcpAttributes:                      gcpAttributesPublicValue,
+		NodeTypeFlexibility:                nodeTypeFlexibilityPublicValue,
+		RemoteDiskThroughput:               w.RemoteDiskThroughput,
+		TotalInitialRemoteDiskSize:         w.TotalInitialRemoteDiskSize,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v EditInstancePoolRequest) MarshalJSON() ([]byte, error) {
+	w, err := editInstancePoolRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *EditInstancePoolRequest) UnmarshalJSON(data []byte) error {
+	var w editInstancePoolRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := editInstancePoolRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type editInstancePoolResponseWire struct {
+}
+
+func editInstancePoolResponseToWire(v *EditInstancePoolResponse) (*editInstancePoolResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &editInstancePoolResponseWire{}, nil
+}
+
+func editInstancePoolResponseFromWire(w *editInstancePoolResponseWire) (*EditInstancePoolResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &EditInstancePoolResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v EditInstancePoolResponse) MarshalJSON() ([]byte, error) {
+	w, err := editInstancePoolResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *EditInstancePoolResponse) UnmarshalJSON(data []byte) error {
+	var w editInstancePoolResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := editInstancePoolResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getInstancePoolRequestWire struct {
 	InstancePoolId *string `json:"instance_pool_id,omitempty"`
 }
@@ -357,6 +747,39 @@ func getInstancePoolRequestToWire(v *GetInstancePoolRequest) (*getInstancePoolRe
 	return &getInstancePoolRequestWire{
 		InstancePoolId: v.InstancePoolId,
 	}, nil
+}
+
+func getInstancePoolRequestFromWire(w *getInstancePoolRequestWire) (*GetInstancePoolRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetInstancePoolRequest{
+		InstancePoolId: w.InstancePoolId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetInstancePoolRequest) MarshalJSON() ([]byte, error) {
+	w, err := getInstancePoolRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetInstancePoolRequest) UnmarshalJSON(data []byte) error {
+	var w getInstancePoolRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getInstancePoolRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type getInstancePoolResponseWire struct {
@@ -381,6 +804,67 @@ type getInstancePoolResponseWire struct {
 	NodeTypeFlexibility                *nodeTypeFlexibilityWire         `json:"node_type_flexibility,omitempty"`
 	RemoteDiskThroughput               *int                             `json:"remote_disk_throughput,omitempty"`
 	TotalInitialRemoteDiskSize         *int                             `json:"total_initial_remote_disk_size,omitempty"`
+}
+
+func getInstancePoolResponseToWire(v *GetInstancePoolResponse) (*getInstancePoolResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	statsWireValue, err := instancePoolStatsToWire(v.Stats)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetInstancePoolResponse.Stats", err)
+	}
+	statusWireValue, err := instancePoolStatusToWire(v.Status)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetInstancePoolResponse.Status", err)
+	}
+	awsAttributesWireValue, err := instancePoolAwsAttributesToWire(v.AwsAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetInstancePoolResponse.AwsAttributes", err)
+	}
+	diskSpecWireValue, err := diskSpecToWire(v.DiskSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetInstancePoolResponse.DiskSpec", err)
+	}
+	preloadedDockerImagesWireValue, err := convertSlice(v.PreloadedDockerImages, dockerImageToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetInstancePoolResponse.PreloadedDockerImages", err)
+	}
+	azureAttributesWireValue, err := instancePoolAzureAttributesToWire(v.AzureAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetInstancePoolResponse.AzureAttributes", err)
+	}
+	gcpAttributesWireValue, err := instancePoolGcpAttributesToWire(v.GcpAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetInstancePoolResponse.GcpAttributes", err)
+	}
+	nodeTypeFlexibilityWireValue, err := nodeTypeFlexibilityToWire(v.NodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetInstancePoolResponse.NodeTypeFlexibility", err)
+	}
+	return &getInstancePoolResponseWire{
+		Stats:                              statsWireValue,
+		Status:                             statusWireValue,
+		InstancePoolId:                     v.InstancePoolId,
+		DefaultTags:                        v.DefaultTags,
+		State:                              v.State,
+		InstancePoolName:                   v.InstancePoolName,
+		MinIdleInstances:                   v.MinIdleInstances,
+		MaxCapacity:                        v.MaxCapacity,
+		AwsAttributes:                      awsAttributesWireValue,
+		NodeTypeId:                         v.NodeTypeId,
+		CustomTags:                         v.CustomTags,
+		IdleInstanceAutoterminationMinutes: v.IdleInstanceAutoterminationMinutes,
+		EnableElasticDisk:                  v.EnableElasticDisk,
+		DiskSpec:                           diskSpecWireValue,
+		PreloadedDockerImages:              preloadedDockerImagesWireValue,
+		PreloadedSparkVersions:             v.PreloadedSparkVersions,
+		AzureAttributes:                    azureAttributesWireValue,
+		GcpAttributes:                      gcpAttributesWireValue,
+		NodeTypeFlexibility:                nodeTypeFlexibilityWireValue,
+		RemoteDiskThroughput:               v.RemoteDiskThroughput,
+		TotalInitialRemoteDiskSize:         v.TotalInitialRemoteDiskSize,
+	}, nil
 }
 
 func getInstancePoolResponseFromWire(w *getInstancePoolResponseWire) (*GetInstancePoolResponse, error) {
@@ -444,6 +928,30 @@ func getInstancePoolResponseFromWire(w *getInstancePoolResponseWire) (*GetInstan
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetInstancePoolResponse) MarshalJSON() ([]byte, error) {
+	w, err := getInstancePoolResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetInstancePoolResponse) UnmarshalJSON(data []byte) error {
+	var w getInstancePoolResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getInstancePoolResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type instancePoolAndStatsWire struct {
 	Stats                              *instancePoolStatsWire           `json:"stats,omitempty"`
 	Status                             *instancePoolStatusWire          `json:"status,omitempty"`
@@ -466,6 +974,67 @@ type instancePoolAndStatsWire struct {
 	NodeTypeFlexibility                *nodeTypeFlexibilityWire         `json:"node_type_flexibility,omitempty"`
 	RemoteDiskThroughput               *int                             `json:"remote_disk_throughput,omitempty"`
 	TotalInitialRemoteDiskSize         *int                             `json:"total_initial_remote_disk_size,omitempty"`
+}
+
+func instancePoolAndStatsToWire(v *InstancePoolAndStats) (*instancePoolAndStatsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	statsWireValue, err := instancePoolStatsToWire(v.Stats)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstancePoolAndStats.Stats", err)
+	}
+	statusWireValue, err := instancePoolStatusToWire(v.Status)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstancePoolAndStats.Status", err)
+	}
+	awsAttributesWireValue, err := instancePoolAwsAttributesToWire(v.AwsAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstancePoolAndStats.AwsAttributes", err)
+	}
+	diskSpecWireValue, err := diskSpecToWire(v.DiskSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstancePoolAndStats.DiskSpec", err)
+	}
+	preloadedDockerImagesWireValue, err := convertSlice(v.PreloadedDockerImages, dockerImageToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstancePoolAndStats.PreloadedDockerImages", err)
+	}
+	azureAttributesWireValue, err := instancePoolAzureAttributesToWire(v.AzureAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstancePoolAndStats.AzureAttributes", err)
+	}
+	gcpAttributesWireValue, err := instancePoolGcpAttributesToWire(v.GcpAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstancePoolAndStats.GcpAttributes", err)
+	}
+	nodeTypeFlexibilityWireValue, err := nodeTypeFlexibilityToWire(v.NodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstancePoolAndStats.NodeTypeFlexibility", err)
+	}
+	return &instancePoolAndStatsWire{
+		Stats:                              statsWireValue,
+		Status:                             statusWireValue,
+		InstancePoolId:                     v.InstancePoolId,
+		DefaultTags:                        v.DefaultTags,
+		State:                              v.State,
+		InstancePoolName:                   v.InstancePoolName,
+		MinIdleInstances:                   v.MinIdleInstances,
+		MaxCapacity:                        v.MaxCapacity,
+		AwsAttributes:                      awsAttributesWireValue,
+		NodeTypeId:                         v.NodeTypeId,
+		CustomTags:                         v.CustomTags,
+		IdleInstanceAutoterminationMinutes: v.IdleInstanceAutoterminationMinutes,
+		EnableElasticDisk:                  v.EnableElasticDisk,
+		DiskSpec:                           diskSpecWireValue,
+		PreloadedDockerImages:              preloadedDockerImagesWireValue,
+		PreloadedSparkVersions:             v.PreloadedSparkVersions,
+		AzureAttributes:                    azureAttributesWireValue,
+		GcpAttributes:                      gcpAttributesWireValue,
+		NodeTypeFlexibility:                nodeTypeFlexibilityWireValue,
+		RemoteDiskThroughput:               v.RemoteDiskThroughput,
+		TotalInitialRemoteDiskSize:         v.TotalInitialRemoteDiskSize,
+	}, nil
 }
 
 func instancePoolAndStatsFromWire(w *instancePoolAndStatsWire) (*InstancePoolAndStats, error) {
@@ -529,6 +1098,30 @@ func instancePoolAndStatsFromWire(w *instancePoolAndStatsWire) (*InstancePoolAnd
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v InstancePoolAndStats) MarshalJSON() ([]byte, error) {
+	w, err := instancePoolAndStatsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *InstancePoolAndStats) UnmarshalJSON(data []byte) error {
+	var w instancePoolAndStatsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := instancePoolAndStatsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type instancePoolAwsAttributesWire struct {
 	Availability        AwsAvailability `json:"availability,omitempty"`
 	ZoneId              *string         `json:"zone_id,omitempty"`
@@ -560,6 +1153,30 @@ func instancePoolAwsAttributesFromWire(w *instancePoolAwsAttributesWire) (*Insta
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v InstancePoolAwsAttributes) MarshalJSON() ([]byte, error) {
+	w, err := instancePoolAwsAttributesToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *InstancePoolAwsAttributes) UnmarshalJSON(data []byte) error {
+	var w instancePoolAwsAttributesWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := instancePoolAwsAttributesFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type instancePoolAzureAttributesWire struct {
 	Availability             AzureAvailability `json:"availability,omitempty"`
 	SpotBidMaxPrice          *float64          `json:"spot_bid_max_price,omitempty"`
@@ -586,6 +1203,30 @@ func instancePoolAzureAttributesFromWire(w *instancePoolAzureAttributesWire) (*I
 		SpotBidMaxPrice:          w.SpotBidMaxPrice,
 		CapacityReservationGroup: w.CapacityReservationGroup,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v InstancePoolAzureAttributes) MarshalJSON() ([]byte, error) {
+	w, err := instancePoolAzureAttributesToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *InstancePoolAzureAttributes) UnmarshalJSON(data []byte) error {
+	var w instancePoolAzureAttributesWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := instancePoolAzureAttributesFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type instancePoolGcpAttributesWire struct {
@@ -616,11 +1257,47 @@ func instancePoolGcpAttributesFromWire(w *instancePoolGcpAttributesWire) (*Insta
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v InstancePoolGcpAttributes) MarshalJSON() ([]byte, error) {
+	w, err := instancePoolGcpAttributesToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *InstancePoolGcpAttributes) UnmarshalJSON(data []byte) error {
+	var w instancePoolGcpAttributesWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := instancePoolGcpAttributesFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type instancePoolStatsWire struct {
 	UsedCount        *int `json:"used_count,omitempty"`
 	IdleCount        *int `json:"idle_count,omitempty"`
 	PendingUsedCount *int `json:"pending_used_count,omitempty"`
 	PendingIdleCount *int `json:"pending_idle_count,omitempty"`
+}
+
+func instancePoolStatsToWire(v *InstancePoolStats) (*instancePoolStatsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &instancePoolStatsWire{
+		UsedCount:        v.UsedCount,
+		IdleCount:        v.IdleCount,
+		PendingUsedCount: v.PendingUsedCount,
+		PendingIdleCount: v.PendingIdleCount,
+	}, nil
 }
 
 func instancePoolStatsFromWire(w *instancePoolStatsWire) (*InstancePoolStats, error) {
@@ -635,8 +1312,45 @@ func instancePoolStatsFromWire(w *instancePoolStatsWire) (*InstancePoolStats, er
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v InstancePoolStats) MarshalJSON() ([]byte, error) {
+	w, err := instancePoolStatsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *InstancePoolStats) UnmarshalJSON(data []byte) error {
+	var w instancePoolStatsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := instancePoolStatsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type instancePoolStatusWire struct {
 	PendingInstanceErrors []pendingInstanceErrorWire `json:"pending_instance_errors,omitempty"`
+}
+
+func instancePoolStatusToWire(v *InstancePoolStatus) (*instancePoolStatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	pendingInstanceErrorsWireValue, err := convertSlice(v.PendingInstanceErrors, pendingInstanceErrorToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstancePoolStatus.PendingInstanceErrors", err)
+	}
+	return &instancePoolStatusWire{
+		PendingInstanceErrors: pendingInstanceErrorsWireValue,
+	}, nil
 }
 
 func instancePoolStatusFromWire(w *instancePoolStatusWire) (*InstancePoolStatus, error) {
@@ -652,8 +1366,86 @@ func instancePoolStatusFromWire(w *instancePoolStatusWire) (*InstancePoolStatus,
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v InstancePoolStatus) MarshalJSON() ([]byte, error) {
+	w, err := instancePoolStatusToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *InstancePoolStatus) UnmarshalJSON(data []byte) error {
+	var w instancePoolStatusWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := instancePoolStatusFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type listInstancePoolsRequestWire struct {
+}
+
+func listInstancePoolsRequestToWire(v *ListInstancePoolsRequest) (*listInstancePoolsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listInstancePoolsRequestWire{}, nil
+}
+
+func listInstancePoolsRequestFromWire(w *listInstancePoolsRequestWire) (*ListInstancePoolsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListInstancePoolsRequest{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListInstancePoolsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listInstancePoolsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListInstancePoolsRequest) UnmarshalJSON(data []byte) error {
+	var w listInstancePoolsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listInstancePoolsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listInstancePoolsResponseWire struct {
 	InstancePools []instancePoolAndStatsWire `json:"instance_pools,omitempty"`
+}
+
+func listInstancePoolsResponseToWire(v *ListInstancePoolsResponse) (*listInstancePoolsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	instancePoolsWireValue, err := convertSlice(v.InstancePools, instancePoolAndStatsToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListInstancePoolsResponse.InstancePools", err)
+	}
+	return &listInstancePoolsResponseWire{
+		InstancePools: instancePoolsWireValue,
+	}, nil
 }
 
 func listInstancePoolsResponseFromWire(w *listInstancePoolsResponseWire) (*ListInstancePoolsResponse, error) {
@@ -667,6 +1459,30 @@ func listInstancePoolsResponseFromWire(w *listInstancePoolsResponseWire) (*ListI
 	return &ListInstancePoolsResponse{
 		InstancePools: instancePoolsPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListInstancePoolsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listInstancePoolsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListInstancePoolsResponse) UnmarshalJSON(data []byte) error {
+	var w listInstancePoolsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listInstancePoolsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type nodeTypeFlexibilityWire struct {
@@ -694,9 +1510,43 @@ func nodeTypeFlexibilityFromWire(w *nodeTypeFlexibilityWire) (*NodeTypeFlexibili
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v NodeTypeFlexibility) MarshalJSON() ([]byte, error) {
+	w, err := nodeTypeFlexibilityToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *NodeTypeFlexibility) UnmarshalJSON(data []byte) error {
+	var w nodeTypeFlexibilityWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := nodeTypeFlexibilityFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type pendingInstanceErrorWire struct {
 	InstanceId *string `json:"instance_id,omitempty"`
 	Message    *string `json:"message,omitempty"`
+}
+
+func pendingInstanceErrorToWire(v *PendingInstanceError) (*pendingInstanceErrorWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &pendingInstanceErrorWire{
+		InstanceId: v.InstanceId,
+		Message:    v.Message,
+	}, nil
 }
 
 func pendingInstanceErrorFromWire(w *pendingInstanceErrorWire) (*PendingInstanceError, error) {
@@ -707,6 +1557,30 @@ func pendingInstanceErrorFromWire(w *pendingInstanceErrorWire) (*PendingInstance
 		InstanceId: w.InstanceId,
 		Message:    w.Message,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PendingInstanceError) MarshalJSON() ([]byte, error) {
+	w, err := pendingInstanceErrorToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PendingInstanceError) UnmarshalJSON(data []byte) error {
+	var w pendingInstanceErrorWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := pendingInstanceErrorFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

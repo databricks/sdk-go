@@ -3,8 +3,99 @@
 package systemschemas
 
 import (
+	"encoding/json"
 	"fmt"
 )
+
+type disableSystemSchemaRequestWire struct {
+	Schema      *string `json:"schema,omitempty"`
+	MetastoreId *string `json:"metastore_id,omitempty"`
+}
+
+func disableSystemSchemaRequestToWire(v *DisableSystemSchemaRequest) (*disableSystemSchemaRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &disableSystemSchemaRequestWire{
+		Schema:      v.Schema,
+		MetastoreId: v.MetastoreId,
+	}, nil
+}
+
+func disableSystemSchemaRequestFromWire(w *disableSystemSchemaRequestWire) (*DisableSystemSchemaRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DisableSystemSchemaRequest{
+		Schema:      w.Schema,
+		MetastoreId: w.MetastoreId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DisableSystemSchemaRequest) MarshalJSON() ([]byte, error) {
+	w, err := disableSystemSchemaRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DisableSystemSchemaRequest) UnmarshalJSON(data []byte) error {
+	var w disableSystemSchemaRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := disableSystemSchemaRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type disableSystemSchemaResponseWire struct {
+}
+
+func disableSystemSchemaResponseToWire(v *DisableSystemSchemaResponse) (*disableSystemSchemaResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &disableSystemSchemaResponseWire{}, nil
+}
+
+func disableSystemSchemaResponseFromWire(w *disableSystemSchemaResponseWire) (*DisableSystemSchemaResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DisableSystemSchemaResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DisableSystemSchemaResponse) MarshalJSON() ([]byte, error) {
+	w, err := disableSystemSchemaResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DisableSystemSchemaResponse) UnmarshalJSON(data []byte) error {
+	var w disableSystemSchemaResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := disableSystemSchemaResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
 
 type enableSystemSchemaRequestWire struct {
 	Schema      *string `json:"schema,omitempty"`
@@ -21,6 +112,82 @@ func enableSystemSchemaRequestToWire(v *EnableSystemSchemaRequest) (*enableSyste
 		MetastoreId: v.MetastoreId,
 		CatalogName: v.CatalogName,
 	}, nil
+}
+
+func enableSystemSchemaRequestFromWire(w *enableSystemSchemaRequestWire) (*EnableSystemSchemaRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &EnableSystemSchemaRequest{
+		Schema:      w.Schema,
+		MetastoreId: w.MetastoreId,
+		CatalogName: w.CatalogName,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v EnableSystemSchemaRequest) MarshalJSON() ([]byte, error) {
+	w, err := enableSystemSchemaRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *EnableSystemSchemaRequest) UnmarshalJSON(data []byte) error {
+	var w enableSystemSchemaRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := enableSystemSchemaRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type enableSystemSchemaResponseWire struct {
+}
+
+func enableSystemSchemaResponseToWire(v *EnableSystemSchemaResponse) (*enableSystemSchemaResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &enableSystemSchemaResponseWire{}, nil
+}
+
+func enableSystemSchemaResponseFromWire(w *enableSystemSchemaResponseWire) (*EnableSystemSchemaResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &EnableSystemSchemaResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v EnableSystemSchemaResponse) MarshalJSON() ([]byte, error) {
+	w, err := enableSystemSchemaResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *EnableSystemSchemaResponse) UnmarshalJSON(data []byte) error {
+	var w enableSystemSchemaResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := enableSystemSchemaResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listSystemSchemasRequestWire struct {
@@ -40,9 +207,58 @@ func listSystemSchemasRequestToWire(v *ListSystemSchemasRequest) (*listSystemSch
 	}, nil
 }
 
+func listSystemSchemasRequestFromWire(w *listSystemSchemasRequestWire) (*ListSystemSchemasRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSystemSchemasRequest{
+		MetastoreId: w.MetastoreId,
+		MaxResults:  w.MaxResults,
+		PageToken:   w.PageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListSystemSchemasRequest) MarshalJSON() ([]byte, error) {
+	w, err := listSystemSchemasRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListSystemSchemasRequest) UnmarshalJSON(data []byte) error {
+	var w listSystemSchemasRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listSystemSchemasRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listSystemSchemasResponseWire struct {
 	Schemas       []systemSchemaInfoWire `json:"schemas,omitempty"`
 	NextPageToken *string                `json:"next_page_token,omitempty"`
+}
+
+func listSystemSchemasResponseToWire(v *ListSystemSchemasResponse) (*listSystemSchemasResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	schemasWireValue, err := convertSlice(v.Schemas, systemSchemaInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSystemSchemasResponse.Schemas", err)
+	}
+	return &listSystemSchemasResponseWire{
+		Schemas:       schemasWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listSystemSchemasResponseFromWire(w *listSystemSchemasResponseWire) (*ListSystemSchemasResponse, error) {
@@ -59,9 +275,43 @@ func listSystemSchemasResponseFromWire(w *listSystemSchemasResponseWire) (*ListS
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListSystemSchemasResponse) MarshalJSON() ([]byte, error) {
+	w, err := listSystemSchemasResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListSystemSchemasResponse) UnmarshalJSON(data []byte) error {
+	var w listSystemSchemasResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listSystemSchemasResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type systemSchemaInfoWire struct {
 	Schema *string `json:"schema,omitempty"`
 	State  *string `json:"state,omitempty"`
+}
+
+func systemSchemaInfoToWire(v *SystemSchemaInfo) (*systemSchemaInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &systemSchemaInfoWire{
+		Schema: v.Schema,
+		State:  v.State,
+	}, nil
 }
 
 func systemSchemaInfoFromWire(w *systemSchemaInfoWire) (*SystemSchemaInfo, error) {
@@ -72,6 +322,30 @@ func systemSchemaInfoFromWire(w *systemSchemaInfoWire) (*SystemSchemaInfo, error
 		Schema: w.Schema,
 		State:  w.State,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v SystemSchemaInfo) MarshalJSON() ([]byte, error) {
+	w, err := systemSchemaInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *SystemSchemaInfo) UnmarshalJSON(data []byte) error {
+	var w systemSchemaInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := systemSchemaInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

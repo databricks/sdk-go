@@ -3,7 +3,9 @@
 package featurestore
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/databricks/sdk-go/core/types"
 )
@@ -14,6 +16,17 @@ func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	}
 	value := mask.String()
 	return &value
+}
+
+func fieldMaskFromWire[T any](value *string) (*types.FieldMask[T], error) {
+	if value == nil {
+		return nil, nil
+	}
+	var paths []string
+	if *value != "" {
+		paths = strings.Split(*value, ",")
+	}
+	return types.NewFieldMask[T](paths...)
 }
 
 type createOnlineStoreRequestWire struct {
@@ -33,6 +46,181 @@ func createOnlineStoreRequestToWire(v *CreateOnlineStoreRequest) (*createOnlineS
 	}, nil
 }
 
+func createOnlineStoreRequestFromWire(w *createOnlineStoreRequestWire) (*CreateOnlineStoreRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	onlineStorePublicValue, err := onlineStoreFromWire(w.OnlineStore)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateOnlineStoreRequest.OnlineStore", err)
+	}
+	return &CreateOnlineStoreRequest{
+		OnlineStore: onlineStorePublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateOnlineStoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := createOnlineStoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateOnlineStoreRequest) UnmarshalJSON(data []byte) error {
+	var w createOnlineStoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createOnlineStoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteOnlineStoreRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteOnlineStoreRequestToWire(v *DeleteOnlineStoreRequest) (*deleteOnlineStoreRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteOnlineStoreRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteOnlineStoreRequestFromWire(w *deleteOnlineStoreRequestWire) (*DeleteOnlineStoreRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteOnlineStoreRequest{
+		Name: w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteOnlineStoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteOnlineStoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteOnlineStoreRequest) UnmarshalJSON(data []byte) error {
+	var w deleteOnlineStoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteOnlineStoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteOnlineTableRequestWire struct {
+	OnlineTableName *string `json:"online_table_name,omitempty"`
+}
+
+func deleteOnlineTableRequestToWire(v *DeleteOnlineTableRequest) (*deleteOnlineTableRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteOnlineTableRequestWire{
+		OnlineTableName: v.OnlineTableName,
+	}, nil
+}
+
+func deleteOnlineTableRequestFromWire(w *deleteOnlineTableRequestWire) (*DeleteOnlineTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteOnlineTableRequest{
+		OnlineTableName: w.OnlineTableName,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteOnlineTableRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteOnlineTableRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteOnlineTableRequest) UnmarshalJSON(data []byte) error {
+	var w deleteOnlineTableRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteOnlineTableRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getOnlineStoreRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getOnlineStoreRequestToWire(v *GetOnlineStoreRequest) (*getOnlineStoreRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getOnlineStoreRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getOnlineStoreRequestFromWire(w *getOnlineStoreRequestWire) (*GetOnlineStoreRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetOnlineStoreRequest{
+		Name: w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetOnlineStoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := getOnlineStoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetOnlineStoreRequest) UnmarshalJSON(data []byte) error {
+	var w getOnlineStoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getOnlineStoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listOnlineStoresRequestWire struct {
 	PageToken *string `json:"page_token,omitempty"`
 	PageSize  *int    `json:"page_size,omitempty"`
@@ -48,9 +236,57 @@ func listOnlineStoresRequestToWire(v *ListOnlineStoresRequest) (*listOnlineStore
 	}, nil
 }
 
+func listOnlineStoresRequestFromWire(w *listOnlineStoresRequestWire) (*ListOnlineStoresRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListOnlineStoresRequest{
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListOnlineStoresRequest) MarshalJSON() ([]byte, error) {
+	w, err := listOnlineStoresRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListOnlineStoresRequest) UnmarshalJSON(data []byte) error {
+	var w listOnlineStoresRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listOnlineStoresRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listOnlineStoresResponseWire struct {
 	OnlineStores  []onlineStoreWire `json:"online_stores,omitempty"`
 	NextPageToken *string           `json:"next_page_token,omitempty"`
+}
+
+func listOnlineStoresResponseToWire(v *ListOnlineStoresResponse) (*listOnlineStoresResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	onlineStoresWireValue, err := convertSlice(v.OnlineStores, onlineStoreToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListOnlineStoresResponse.OnlineStores", err)
+	}
+	return &listOnlineStoresResponseWire{
+		OnlineStores:  onlineStoresWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listOnlineStoresResponseFromWire(w *listOnlineStoresResponseWire) (*ListOnlineStoresResponse, error) {
@@ -65,6 +301,30 @@ func listOnlineStoresResponseFromWire(w *listOnlineStoresResponseWire) (*ListOnl
 		OnlineStores:  onlineStoresPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListOnlineStoresResponse) MarshalJSON() ([]byte, error) {
+	w, err := listOnlineStoresResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListOnlineStoresResponse) UnmarshalJSON(data []byte) error {
+	var w listOnlineStoresResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listOnlineStoresResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type onlineStoreWire struct {
@@ -107,6 +367,30 @@ func onlineStoreFromWire(w *onlineStoreWire) (*OnlineStore, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v OnlineStore) MarshalJSON() ([]byte, error) {
+	w, err := onlineStoreToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *OnlineStore) UnmarshalJSON(data []byte) error {
+	var w onlineStoreWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := onlineStoreFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type publishSpecWire struct {
 	OnlineStore     *string                 `json:"online_store,omitempty"`
 	OnlineTableName *string                 `json:"online_table_name,omitempty"`
@@ -130,6 +414,44 @@ func publishSpecToWire(v *PublishSpec) (*publishSpecWire, error) {
 	}, nil
 }
 
+func publishSpecFromWire(w *publishSpecWire) (*PublishSpec, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PublishSpec{
+		OnlineStore:     w.OnlineStore,
+		OnlineTableName: w.OnlineTableName,
+		PublishMode:     w.PublishMode,
+		FullFeatureName: w.FullFeatureName,
+		Tags:            w.Tags,
+		BudgetPolicyId:  w.BudgetPolicyId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PublishSpec) MarshalJSON() ([]byte, error) {
+	w, err := publishSpecToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PublishSpec) UnmarshalJSON(data []byte) error {
+	var w publishSpecWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := publishSpecFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type publishTableRequestWire struct {
 	SourceTableName *string          `json:"source_table_name,omitempty"`
 	PublishSpec     *publishSpecWire `json:"publish_spec,omitempty"`
@@ -149,9 +471,57 @@ func publishTableRequestToWire(v *PublishTableRequest) (*publishTableRequestWire
 	}, nil
 }
 
+func publishTableRequestFromWire(w *publishTableRequestWire) (*PublishTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	publishSpecPublicValue, err := publishSpecFromWire(w.PublishSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PublishTableRequest.PublishSpec", err)
+	}
+	return &PublishTableRequest{
+		SourceTableName: w.SourceTableName,
+		PublishSpec:     publishSpecPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PublishTableRequest) MarshalJSON() ([]byte, error) {
+	w, err := publishTableRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PublishTableRequest) UnmarshalJSON(data []byte) error {
+	var w publishTableRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := publishTableRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type publishTableResponseWire struct {
 	OnlineTableName *string `json:"online_table_name,omitempty"`
 	PipelineId      *string `json:"pipeline_id,omitempty"`
+}
+
+func publishTableResponseToWire(v *PublishTableResponse) (*publishTableResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &publishTableResponseWire{
+		OnlineTableName: v.OnlineTableName,
+		PipelineId:      v.PipelineId,
+	}, nil
 }
 
 func publishTableResponseFromWire(w *publishTableResponseWire) (*PublishTableResponse, error) {
@@ -162,6 +532,30 @@ func publishTableResponseFromWire(w *publishTableResponseWire) (*PublishTableRes
 		OnlineTableName: w.OnlineTableName,
 		PipelineId:      w.PipelineId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PublishTableResponse) MarshalJSON() ([]byte, error) {
+	w, err := publishTableResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PublishTableResponse) UnmarshalJSON(data []byte) error {
+	var w publishTableResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := publishTableResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateOnlineStoreRequestWire struct {
@@ -181,6 +575,48 @@ func updateOnlineStoreRequestToWire(v *UpdateOnlineStoreRequest) (*updateOnlineS
 		OnlineStore: onlineStoreWireValue,
 		UpdateMask:  fieldMaskToWire(v.UpdateMask),
 	}, nil
+}
+
+func updateOnlineStoreRequestFromWire(w *updateOnlineStoreRequestWire) (*UpdateOnlineStoreRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	onlineStorePublicValue, err := onlineStoreFromWire(w.OnlineStore)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateOnlineStoreRequest.OnlineStore", err)
+	}
+	updateMaskPublicValue, err := fieldMaskFromWire[OnlineStore](w.UpdateMask)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateOnlineStoreRequest.UpdateMask", err)
+	}
+	return &UpdateOnlineStoreRequest{
+		OnlineStore: onlineStorePublicValue,
+		UpdateMask:  updateMaskPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateOnlineStoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateOnlineStoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateOnlineStoreRequest) UnmarshalJSON(data []byte) error {
+	var w updateOnlineStoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateOnlineStoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

@@ -3,7 +3,9 @@
 package customllms
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/databricks/sdk-go/core/types"
 )
@@ -14,6 +16,17 @@ func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	}
 	value := mask.String()
 	return &value
+}
+
+func fieldMaskFromWire[T any](value *string) (*types.FieldMask[T], error) {
+	if value == nil {
+		return nil, nil
+	}
+	var paths []string
+	if *value != "" {
+		paths = strings.Split(*value, ",")
+	}
+	return types.NewFieldMask[T](paths...)
 }
 
 type cancelCustomLlmOptimizationRunRequestWire struct {
@@ -27,6 +40,39 @@ func cancelCustomLlmOptimizationRunRequestToWire(v *CancelCustomLlmOptimizationR
 	return &cancelCustomLlmOptimizationRunRequestWire{
 		Id: v.Id,
 	}, nil
+}
+
+func cancelCustomLlmOptimizationRunRequestFromWire(w *cancelCustomLlmOptimizationRunRequestWire) (*CancelCustomLlmOptimizationRunRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CancelCustomLlmOptimizationRunRequest{
+		Id: w.Id,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CancelCustomLlmOptimizationRunRequest) MarshalJSON() ([]byte, error) {
+	w, err := cancelCustomLlmOptimizationRunRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CancelCustomLlmOptimizationRunRequest) UnmarshalJSON(data []byte) error {
+	var w cancelCustomLlmOptimizationRunRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cancelCustomLlmOptimizationRunRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createCustomLlmRequestWire struct {
@@ -52,6 +98,47 @@ func createCustomLlmRequestToWire(v *CreateCustomLlmRequest) (*createCustomLlmRe
 		Guidelines:        v.Guidelines,
 		AgentArtifactPath: v.AgentArtifactPath,
 	}, nil
+}
+
+func createCustomLlmRequestFromWire(w *createCustomLlmRequestWire) (*CreateCustomLlmRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	datasetsPublicValue, err := convertSlice(w.Datasets, datasetFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCustomLlmRequest.Datasets", err)
+	}
+	return &CreateCustomLlmRequest{
+		Name:              w.Name,
+		Instructions:      w.Instructions,
+		Datasets:          datasetsPublicValue,
+		Guidelines:        w.Guidelines,
+		AgentArtifactPath: w.AgentArtifactPath,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateCustomLlmRequest) MarshalJSON() ([]byte, error) {
+	w, err := createCustomLlmRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateCustomLlmRequest) UnmarshalJSON(data []byte) error {
+	var w createCustomLlmRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createCustomLlmRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type customLlmWire struct {
@@ -111,6 +198,30 @@ func customLlmFromWire(w *customLlmWire) (*CustomLlm, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CustomLlm) MarshalJSON() ([]byte, error) {
+	w, err := customLlmToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CustomLlm) UnmarshalJSON(data []byte) error {
+	var w customLlmWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := customLlmFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type datasetWire struct {
 	Table *tableWire `json:"table,omitempty"`
 }
@@ -141,6 +252,122 @@ func datasetFromWire(w *datasetWire) (*Dataset, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Dataset) MarshalJSON() ([]byte, error) {
+	w, err := datasetToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Dataset) UnmarshalJSON(data []byte) error {
+	var w datasetWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := datasetFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteCustomLlmRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func deleteCustomLlmRequestToWire(v *DeleteCustomLlmRequest) (*deleteCustomLlmRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCustomLlmRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func deleteCustomLlmRequestFromWire(w *deleteCustomLlmRequestWire) (*DeleteCustomLlmRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCustomLlmRequest{
+		Id: w.Id,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteCustomLlmRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteCustomLlmRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteCustomLlmRequest) UnmarshalJSON(data []byte) error {
+	var w deleteCustomLlmRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteCustomLlmRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getCustomLlmRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func getCustomLlmRequestToWire(v *GetCustomLlmRequest) (*getCustomLlmRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getCustomLlmRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func getCustomLlmRequestFromWire(w *getCustomLlmRequestWire) (*GetCustomLlmRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCustomLlmRequest{
+		Id: w.Id,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetCustomLlmRequest) MarshalJSON() ([]byte, error) {
+	w, err := getCustomLlmRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetCustomLlmRequest) UnmarshalJSON(data []byte) error {
+	var w getCustomLlmRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getCustomLlmRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type startCustomLlmOptimizationRunRequestWire struct {
 	Id *string `json:"id,omitempty"`
 }
@@ -152,6 +379,39 @@ func startCustomLlmOptimizationRunRequestToWire(v *StartCustomLlmOptimizationRun
 	return &startCustomLlmOptimizationRunRequestWire{
 		Id: v.Id,
 	}, nil
+}
+
+func startCustomLlmOptimizationRunRequestFromWire(w *startCustomLlmOptimizationRunRequestWire) (*StartCustomLlmOptimizationRunRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &StartCustomLlmOptimizationRunRequest{
+		Id: w.Id,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v StartCustomLlmOptimizationRunRequest) MarshalJSON() ([]byte, error) {
+	w, err := startCustomLlmOptimizationRunRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *StartCustomLlmOptimizationRunRequest) UnmarshalJSON(data []byte) error {
+	var w startCustomLlmOptimizationRunRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := startCustomLlmOptimizationRunRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type tableWire struct {
@@ -182,6 +442,30 @@ func tableFromWire(w *tableWire) (*Table, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Table) MarshalJSON() ([]byte, error) {
+	w, err := tableToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Table) UnmarshalJSON(data []byte) error {
+	var w tableWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := tableFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateCustomLlmRequestWire struct {
 	Id         *string        `json:"id,omitempty"`
 	CustomLlm  *customLlmWire `json:"custom_llm,omitempty"`
@@ -201,6 +485,49 @@ func updateCustomLlmRequestToWire(v *UpdateCustomLlmRequest) (*updateCustomLlmRe
 		CustomLlm:  customLlmWireValue,
 		UpdateMask: fieldMaskToWire(v.UpdateMask),
 	}, nil
+}
+
+func updateCustomLlmRequestFromWire(w *updateCustomLlmRequestWire) (*UpdateCustomLlmRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	customLlmPublicValue, err := customLlmFromWire(w.CustomLlm)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCustomLlmRequest.CustomLlm", err)
+	}
+	updateMaskPublicValue, err := fieldMaskFromWire[CustomLlm](w.UpdateMask)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCustomLlmRequest.UpdateMask", err)
+	}
+	return &UpdateCustomLlmRequest{
+		Id:         w.Id,
+		CustomLlm:  customLlmPublicValue,
+		UpdateMask: updateMaskPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateCustomLlmRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateCustomLlmRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateCustomLlmRequest) UnmarshalJSON(data []byte) error {
+	var w updateCustomLlmRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateCustomLlmRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

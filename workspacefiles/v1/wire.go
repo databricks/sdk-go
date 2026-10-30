@@ -67,8 +67,92 @@ func deleteRequestToWire(v *DeleteRequest) (*deleteRequestWire, error) {
 	}, nil
 }
 
+func deleteRequestFromWire(w *deleteRequestWire) (*DeleteRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRequest{
+		Path:      w.Path,
+		Recursive: w.Recursive,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteRequest) UnmarshalJSON(data []byte) error {
+	var w deleteRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteResponseWire struct {
+}
+
+func deleteResponseToWire(v *DeleteResponse) (*deleteResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteResponseWire{}, nil
+}
+
+func deleteResponseFromWire(w *deleteResponseWire) (*DeleteResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteResponse) MarshalJSON() ([]byte, error) {
+	w, err := deleteResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteResponse) UnmarshalJSON(data []byte) error {
+	var w deleteResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type directoryInfoWire struct {
 	IsGitFolder *bool `json:"is_git_folder,omitempty"`
+}
+
+func directoryInfoToWire(v *DirectoryInfo) (*directoryInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &directoryInfoWire{
+		IsGitFolder: v.IsGitFolder,
+	}, nil
 }
 
 func directoryInfoFromWire(w *directoryInfoWire) (*DirectoryInfo, error) {
@@ -78,6 +162,30 @@ func directoryInfoFromWire(w *directoryInfoWire) (*DirectoryInfo, error) {
 	return &DirectoryInfo{
 		IsGitFolder: w.IsGitFolder,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DirectoryInfo) MarshalJSON() ([]byte, error) {
+	w, err := directoryInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DirectoryInfo) UnmarshalJSON(data []byte) error {
+	var w directoryInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := directoryInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type exportRequestWire struct {
@@ -97,9 +205,54 @@ func exportRequestToWire(v *ExportRequest) (*exportRequestWire, error) {
 	}, nil
 }
 
+func exportRequestFromWire(w *exportRequestWire) (*ExportRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ExportRequest{
+		Path:           w.Path,
+		Format:         w.Format,
+		DirectDownload: w.DirectDownload,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExportRequest) MarshalJSON() ([]byte, error) {
+	w, err := exportRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExportRequest) UnmarshalJSON(data []byte) error {
+	var w exportRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := exportRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type exportResponseWire struct {
 	Content  []byte  `json:"content,omitempty"`
 	FileType *string `json:"file_type,omitempty"`
+}
+
+func exportResponseToWire(v *ExportResponse) (*exportResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &exportResponseWire{
+		Content:  v.Content,
+		FileType: v.FileType,
+	}, nil
 }
 
 func exportResponseFromWire(w *exportResponseWire) (*ExportResponse, error) {
@@ -110,6 +263,30 @@ func exportResponseFromWire(w *exportResponseWire) (*ExportResponse, error) {
 		Content:  w.Content,
 		FileType: w.FileType,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExportResponse) MarshalJSON() ([]byte, error) {
+	w, err := exportResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExportResponse) UnmarshalJSON(data []byte) error {
+	var w exportResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := exportResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type getStatusRequestWire struct {
@@ -123,6 +300,39 @@ func getStatusRequestToWire(v *GetStatusRequest) (*getStatusRequestWire, error) 
 	return &getStatusRequestWire{
 		Path: v.Path,
 	}, nil
+}
+
+func getStatusRequestFromWire(w *getStatusRequestWire) (*GetStatusRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetStatusRequest{
+		Path: w.Path,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetStatusRequest) MarshalJSON() ([]byte, error) {
+	w, err := getStatusRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetStatusRequest) UnmarshalJSON(data []byte) error {
+	var w getStatusRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getStatusRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type importRequestWire struct {
@@ -146,6 +356,84 @@ func importRequestToWire(v *ImportRequest) (*importRequestWire, error) {
 	}, nil
 }
 
+func importRequestFromWire(w *importRequestWire) (*ImportRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ImportRequest{
+		Path:      w.Path,
+		Format:    w.Format,
+		Language:  w.Language,
+		Content:   w.Content,
+		Overwrite: w.Overwrite,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ImportRequest) MarshalJSON() ([]byte, error) {
+	w, err := importRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ImportRequest) UnmarshalJSON(data []byte) error {
+	var w importRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := importRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type importResponseWire struct {
+}
+
+func importResponseToWire(v *ImportResponse) (*importResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &importResponseWire{}, nil
+}
+
+func importResponseFromWire(w *importResponseWire) (*ImportResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ImportResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ImportResponse) MarshalJSON() ([]byte, error) {
+	w, err := importResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ImportResponse) UnmarshalJSON(data []byte) error {
+	var w importResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := importResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listRequestWire struct {
 	Path                   *string    `json:"path,omitempty"`
 	NotebooksModifiedAfter *wireInt64 `json:"notebooks_modified_after,omitempty"`
@@ -165,8 +453,59 @@ func listRequestToWire(v *ListRequest) (*listRequestWire, error) {
 	}, nil
 }
 
+func listRequestFromWire(w *listRequestWire) (*ListRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	notebooksModifiedAfterPublicValue, err := int64FromWire(w.NotebooksModifiedAfter)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRequest.NotebooksModifiedAfter", err)
+	}
+	return &ListRequest{
+		Path:                   w.Path,
+		NotebooksModifiedAfter: notebooksModifiedAfterPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListRequest) MarshalJSON() ([]byte, error) {
+	w, err := listRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListRequest) UnmarshalJSON(data []byte) error {
+	var w listRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listResponseWire struct {
 	Objects []objectInfoWire `json:"objects,omitempty"`
+}
+
+func listResponseToWire(v *ListResponse) (*listResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	objectsWireValue, err := convertSlice(v.Objects, objectInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListResponse.Objects", err)
+	}
+	return &listResponseWire{
+		Objects: objectsWireValue,
+	}, nil
 }
 
 func listResponseFromWire(w *listResponseWire) (*ListResponse, error) {
@@ -182,6 +521,30 @@ func listResponseFromWire(w *listResponseWire) (*ListResponse, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListResponse) MarshalJSON() ([]byte, error) {
+	w, err := listResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListResponse) UnmarshalJSON(data []byte) error {
+	var w listResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type mkdirsRequestWire struct {
 	Path *string `json:"path,omitempty"`
 }
@@ -195,6 +558,80 @@ func mkdirsRequestToWire(v *MkdirsRequest) (*mkdirsRequestWire, error) {
 	}, nil
 }
 
+func mkdirsRequestFromWire(w *mkdirsRequestWire) (*MkdirsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &MkdirsRequest{
+		Path: w.Path,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v MkdirsRequest) MarshalJSON() ([]byte, error) {
+	w, err := mkdirsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *MkdirsRequest) UnmarshalJSON(data []byte) error {
+	var w mkdirsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := mkdirsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type mkdirsResponseWire struct {
+}
+
+func mkdirsResponseToWire(v *MkdirsResponse) (*mkdirsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &mkdirsResponseWire{}, nil
+}
+
+func mkdirsResponseFromWire(w *mkdirsResponseWire) (*MkdirsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &MkdirsResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v MkdirsResponse) MarshalJSON() ([]byte, error) {
+	w, err := mkdirsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *MkdirsResponse) UnmarshalJSON(data []byte) error {
+	var w mkdirsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := mkdirsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type objectInfoWire struct {
 	ObjectType    ObjectType         `json:"object_type,omitempty"`
 	Path          *string            `json:"path,omitempty"`
@@ -205,6 +642,43 @@ type objectInfoWire struct {
 	Size          *wireInt64         `json:"size,omitempty"`
 	ResourceId    *string            `json:"resource_id,omitempty"`
 	DirectoryInfo *directoryInfoWire `json:"directory_info,omitempty"`
+}
+
+func objectInfoToWire(v *ObjectInfo) (*objectInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ObjectInfo.CreatedAt", err)
+	}
+	modifiedAtWireValue, err := int64ToWire(v.ModifiedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ObjectInfo.ModifiedAt", err)
+	}
+	objectIdWireValue, err := int64ToWire(v.ObjectId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ObjectInfo.ObjectId", err)
+	}
+	sizeWireValue, err := int64ToWire(v.Size)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ObjectInfo.Size", err)
+	}
+	directoryInfoWireValue, err := directoryInfoToWire(v.DirectoryInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ObjectInfo.DirectoryInfo", err)
+	}
+	return &objectInfoWire{
+		ObjectType:    v.ObjectType,
+		Path:          v.Path,
+		Language:      v.Language,
+		CreatedAt:     createdAtWireValue,
+		ModifiedAt:    modifiedAtWireValue,
+		ObjectId:      objectIdWireValue,
+		Size:          sizeWireValue,
+		ResourceId:    v.ResourceId,
+		DirectoryInfo: directoryInfoWireValue,
+	}, nil
 }
 
 func objectInfoFromWire(w *objectInfoWire) (*ObjectInfo, error) {
@@ -242,6 +716,30 @@ func objectInfoFromWire(w *objectInfoWire) (*ObjectInfo, error) {
 		ResourceId:    w.ResourceId,
 		DirectoryInfo: directoryInfoPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ObjectInfo) MarshalJSON() ([]byte, error) {
+	w, err := objectInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ObjectInfo) UnmarshalJSON(data []byte) error {
+	var w objectInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := objectInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

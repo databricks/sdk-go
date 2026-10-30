@@ -2,10 +2,6 @@
 
 package jobs
 
-import (
-	"github.com/databricks/sdk-go/core/types"
-)
-
 type AuthenticationMethod string
 
 const (
@@ -465,27 +461,6 @@ const (
 	AccessControlRequest_JobPermission_CanManageRun AccessControlRequest_JobPermission = "CAN_MANAGE_RUN"
 	AccessControlRequest_JobPermission_IsOwner      AccessControlRequest_JobPermission = "IS_OWNER"
 	AccessControlRequest_JobPermission_CanManage    AccessControlRequest_JobPermission = "CAN_MANAGE"
-)
-
-// The extraction mode.
-type AiExtractFunction_Mode string
-
-const (
-	AiExtractFunction_Mode_Unspecified AiExtractFunction_Mode = ""
-	// More powerful extraction for complex schemas, long documents, and
-	// reasoning-heavy extractions.
-	AiExtractFunction_Mode_ModePrecision AiExtractFunction_Mode = "MODE_PRECISION"
-)
-
-// An element type that AI descriptions can be generated for.
-type AiParseDocumentFunction_DescriptionElementType string
-
-const (
-	AiParseDocumentFunction_DescriptionElementType_Unspecified AiParseDocumentFunction_DescriptionElementType = ""
-	// All supported element types.
-	AiParseDocumentFunction_DescriptionElementType_DescriptionElementTypeAll AiParseDocumentFunction_DescriptionElementType = "DESCRIPTION_ELEMENT_TYPE_ALL"
-	// Figures.
-	AiParseDocumentFunction_DescriptionElementType_DescriptionElementTypeFigure AiParseDocumentFunction_DescriptionElementType = "DESCRIPTION_ELEMENT_TYPE_FIGURE"
 )
 
 // Scheduling priority class for a workload — its priority and preemptability
@@ -960,178 +935,6 @@ type Adlsgen2Info struct {
 	// abfss destination, e.g.
 	// `abfss://<container-name>@<storage-account-name>.dfs.core.windows.net/<directory-name>`.
 	Destination *string
-}
-
-// Configuration for a task that runs the `ai_classify` function.
-//
-// The label set comes from exactly one of two places: `inline_labels`, which
-// holds up to 10 labels, or a Unity Catalog table named by `label_table`. Use
-// `label_table` for a larger label set..
-type AiClassifyFunction struct {
-	// Where the labels come from. Exactly one source must be set.
-	LabelSource isAiClassifyFunction_LabelSource
-	// Global description of the task and domain, passed to the model to improve
-	// classification quality.
-	Instructions *string
-	// The ai_classify function version to invoke (for example, `2.1`).
-	Version *string
-	// When true, more than one label can be returned for each input.
-	Multilabel *bool
-	// When true, includes a per-label confidence score in the response.
-	EnableConfidenceScores *bool
-	// When true, includes a rationale explaining each classification in the
-	// response.
-	EnableRationales *bool
-}
-
-type isAiClassifyFunction_LabelSource interface {
-	isAiClassifyFunction_LabelSource()
-}
-
-// AiClassifyFunction_LabelSource_InlineLabels selects InlineLabels for AiClassifyFunction.LabelSource.
-// Labels listed inline, for a small label set.
-type AiClassifyFunction_LabelSource_InlineLabels struct {
-	InlineLabels AiClassifyFunction_InlineLabels
-}
-
-func (*AiClassifyFunction_LabelSource_InlineLabels) isAiClassifyFunction_LabelSource() {}
-
-// A label set listed inline..
-type AiClassifyFunction_InlineLabels struct {
-	// The labels an input can be classified as. At least two labels are required
-	// unless `multilabel` is true, which also accepts a single label.
-	Labels []AiClassifyFunction_Label
-}
-
-// One label the input can be classified as..
-type AiClassifyFunction_Label struct {
-	// The name returned when an input is classified as this label.
-	Name *string
-	// Guidance describing what belongs under this label.
-	Description *string
-}
-
-// Configuration for a task that runs the `ai_extract` function.
-//
-// The fields to extract come from exactly one of two places: an existing AI
-// Extract agent, named by `agent_id`, or the inline `schema` and
-// `instructions`. Set `agent_id` or the inline fields, not both..
-type AiExtractFunction struct {
-	// The extraction schema defining the fields to extract, as a JSON string.
-	// Either an array of field names (e.g. ["company", "valuation"]) or an object
-	// mapping each field name to a type and an optional description. Supported
-	// types are string, integer, number, boolean, enum, object, and array; all
-	// fields are optional.
-	Schema *string
-	// Global description of the task and domain, passed to the model to improve
-	// extraction quality.
-	Instructions *string
-	// The ai_extract function version to invoke (for example, `2.1`).
-	Version *string
-	// The extraction mode. Defaults to standard extraction when unspecified.
-	Mode AiExtractFunction_Mode
-	// When true, includes citation metadata locating each extracted value in the
-	// source.
-	EnableCitations *bool
-	// When true, includes a per-field confidence score in the response.
-	EnableConfidenceScores *bool
-}
-
-// A task that applies an AI function to a set of input documents or rows..
-type AiFunctionTask struct {
-	// The input the function is applied to. Exactly one source must be set.
-	Source isAiFunctionTask_Source
-	// Output destination table. When `table` is unset the task generates a stable
-	// name from the function and task identity so a downstream task can reference
-	// it.
-	Output *QualifiedName
-	// The AI function this task runs. Exactly one function must be set. (--
-	// Modelled as a oneof rather than an enum because each function carries its own
-	// settings, which are added to these messages as they land. --)
-	Function isAiFunctionTask_Function
-}
-
-type isAiFunctionTask_Source interface {
-	isAiFunctionTask_Source()
-}
-
-// AiFunctionTask_Source_DeltaTable selects DeltaTable for AiFunctionTask.Source.
-// A Unity Catalog Delta table. The function is applied to each row.
-type AiFunctionTask_Source_DeltaTable struct {
-	DeltaTable DeltaTableSource
-}
-
-func (*AiFunctionTask_Source_DeltaTable) isAiFunctionTask_Source() {}
-
-// AiFunctionTask_Source_Volume selects Volume for AiFunctionTask.Source.
-// A Unity Catalog volume. The function is applied to each file.
-type AiFunctionTask_Source_Volume struct {
-	Volume VolumeSource
-}
-
-func (*AiFunctionTask_Source_Volume) isAiFunctionTask_Source() {}
-
-type isAiFunctionTask_Function interface {
-	isAiFunctionTask_Function()
-}
-
-// AiFunctionTask_Function_AiParseDocument selects AiParseDocument for AiFunctionTask.Function.
-// Parses the input documents into structured text.
-type AiFunctionTask_Function_AiParseDocument struct {
-	AiParseDocument AiParseDocumentFunction
-}
-
-func (*AiFunctionTask_Function_AiParseDocument) isAiFunctionTask_Function() {}
-
-// AiFunctionTask_Function_AiExtract selects AiExtract for AiFunctionTask.Function.
-// Extracts structured fields from the input documents or rows.
-type AiFunctionTask_Function_AiExtract struct {
-	AiExtract AiExtractFunction
-}
-
-func (*AiFunctionTask_Function_AiExtract) isAiFunctionTask_Function() {}
-
-// AiFunctionTask_Function_AiClassify selects AiClassify for AiFunctionTask.Function.
-// Classifies each input document or row into one or more labels.
-type AiFunctionTask_Function_AiClassify struct {
-	AiClassify AiClassifyFunction
-}
-
-func (*AiFunctionTask_Function_AiClassify) isAiFunctionTask_Function() {}
-
-// The result of an AI function task run. Also reported mid-run, so the counts
-// can be partial..
-type AiFunctionTaskOutput struct {
-	// Inputs to process: rows for a Delta table source, files for a volume source.
-	// Stays well inside 2^53, so a JavaScript client can hold it exactly.
-	TotalRowCount *int64
-	// Inputs with a result so far. Reported per batch, so it can lag mid-run.
-	SucceededRowCount *int64
-	// Inputs permanently failed so far. Each lands in the output table as an error
-	// row, and does not on its own fail the run.
-	FailedRowCount *int64
-	// Coarse estimate of the time left to run the function over the inputs, from
-	// the throughput so far. Covers that work only, not the merge into the output
-	// table that follows it.
-	EstimatedTimeRemaining *types.Duration
-	// The table the run writes its results to. Reported even when `output.table` is
-	// unset and the name is generated, so a client can read the table.
-	OutputTable *QualifiedName
-}
-
-// Configuration for a task that runs the `ai_parse_document` function..
-type AiParseDocumentFunction struct {
-	// The ai_parse_document output schema version to invoke (for example, `2.0`).
-	Version *string
-	// Element types to generate AI descriptions for. Leave empty to generate no
-	// descriptions; use ALL for every supported type, or list specific types to
-	// restrict generation to only those.
-	DescriptionElementTypes []AiParseDocumentFunction_DescriptionElementType
-	// Unity Catalog volume path where rendered page and element images are written.
-	ImageOutputPath *string
-	// Pages to parse (1-indexed), as a comma-separated list of page numbers or
-	// ranges (e.g. "1,3,5-10").
-	PageRange *string
 }
 
 // AiRuntimeTask: multi-node GPU compute task definition for Databricks AI
@@ -2362,22 +2165,6 @@ type DeleteRunRequest struct {
 type DeleteRunResponse struct {
 }
 
-// A Unity Catalog Delta table input source. The function is applied to each
-// row..
-type DeltaTableSource struct {
-	// Fully qualified three-part name of the source table (catalog.schema.table).
-	TableName *string
-	// Name of the column holding the content the function is applied to.
-	InputColumn *string
-	// Columns that together identify a row across incremental runs, so results can
-	// be matched back to their source rows. When unset, the task derives an
-	// implicit key from Delta row tracking. If row tracking is also disabled there
-	// is no stable key, so each run reprocesses the entire source (a full refresh)
-	// rather than only the changed rows; set a key column or enable row tracking to
-	// keep runs incremental.
-	MergeKeyColumns []string
-}
-
 // DeploymentSpec: configuration for one deployment within an AiRuntimeTask.
 // Each entry in `AiRuntimeTask.deployments` describes a group of nodes that
 // share the same command and compute. Many single-program training algorithms
@@ -2850,14 +2637,6 @@ type GetRunOutputResponse_Result_AiRuntimeTaskOutput struct {
 }
 
 func (*GetRunOutputResponse_Result_AiRuntimeTaskOutput) isGetRunOutputResponse_Result() {}
-
-// GetRunOutputResponse_Result_AiFunctionTaskOutput selects AiFunctionTaskOutput for GetRunOutputResponse.Result.
-// The output of an AI function task, if available
-type GetRunOutputResponse_Result_AiFunctionTaskOutput struct {
-	AiFunctionTaskOutput AiFunctionTaskOutput
-}
-
-func (*GetRunOutputResponse_Result_AiFunctionTaskOutput) isGetRunOutputResponse_Result() {}
 
 type GetRunRequest struct {
 	// The canonical identifier of the run for which to retrieve the metadata. This
@@ -4098,17 +3877,6 @@ type PythonWheelTask struct {
 	NamedParameters map[string]string
 }
 
-// A three-level Unity Catalog name (catalog.schema.table); any level may be
-// unset..
-type QualifiedName struct {
-	// Unity Catalog catalog.
-	Catalog *string
-	// Unity Catalog schema, within the catalog.
-	Schema *string
-	// Table, within the catalog and schema.
-	Table *string
-}
-
 type QueueDetails struct {
 	Code QueueDetailsCode_Code
 	// A descriptive message with the queuing details. This field is unstructured,
@@ -4394,19 +4162,6 @@ type ResolvedValues_Resolved_AiRuntimeTask struct {
 }
 
 func (*ResolvedValues_Resolved_AiRuntimeTask) isResolvedValues_Resolved() {}
-
-// ResolvedValues_Resolved_AiFunctionTask selects AiFunctionTask for ResolvedValues.Resolved.
-// Resolved values for an AI Function task: the Delta table input with
-// upstream-task references replaced by concrete values before the run.
-type ResolvedValues_Resolved_AiFunctionTask struct {
-	AiFunctionTask ResolvedValues_AiFunctionTaskResolvedValues
-}
-
-func (*ResolvedValues_Resolved_AiFunctionTask) isResolvedValues_Resolved() {}
-
-// Resolved values for an AI Function task's Delta table input..
-type ResolvedValues_AiFunctionTaskResolvedValues struct {
-}
 
 // Resolved values for an AiRuntimeTask after dynamic-value substitution, so
 // Jobs can expand `{{tasks.<key>.values.<name>}}` references before submission..
@@ -5303,14 +5058,6 @@ type RunTask_Task_AiRuntimeTask struct {
 
 func (*RunTask_Task_AiRuntimeTask) isRunTask_Task() {}
 
-// RunTask_Task_AiFunctionTask selects AiFunctionTask for RunTask.Task.
-// Applies an AI function to a set of input documents or rows.
-type RunTask_Task_AiFunctionTask struct {
-	AiFunctionTask AiFunctionTask
-}
-
-func (*RunTask_Task_AiFunctionTask) isRunTask_Task() {}
-
 type isRunTask_Spec interface {
 	isRunTask_Spec()
 }
@@ -5602,14 +5349,6 @@ type RunTaskSettings_Task_AiRuntimeTask struct {
 }
 
 func (*RunTaskSettings_Task_AiRuntimeTask) isRunTaskSettings_Task() {}
-
-// RunTaskSettings_Task_AiFunctionTask selects AiFunctionTask for RunTaskSettings.Task.
-// Applies an AI function to a set of input documents or rows.
-type RunTaskSettings_Task_AiFunctionTask struct {
-	AiFunctionTask AiFunctionTask
-}
-
-func (*RunTaskSettings_Task_AiFunctionTask) isRunTaskSettings_Task() {}
 
 type isRunTaskSettings_Spec interface {
 	isRunTaskSettings_Spec()
@@ -6549,14 +6288,6 @@ type TaskSettings_Task_AiRuntimeTask struct {
 
 func (*TaskSettings_Task_AiRuntimeTask) isTaskSettings_Task() {}
 
-// TaskSettings_Task_AiFunctionTask selects AiFunctionTask for TaskSettings.Task.
-// Applies an AI function to a set of input documents or rows.
-type TaskSettings_Task_AiFunctionTask struct {
-	AiFunctionTask AiFunctionTask
-}
-
-func (*TaskSettings_Task_AiFunctionTask) isTaskSettings_Task() {}
-
 type isTaskSettings_Spec interface {
 	isTaskSettings_Spec()
 }
@@ -6768,13 +6499,6 @@ type ViewItem struct {
 	Name *string
 	// Type of the view item.
 	Type ViewType
-}
-
-// A Unity Catalog volume input source. The function is applied to each file..
-type VolumeSource struct {
-	// Unity Catalog volume path to the input files (e.g.
-	// `/Volumes/<catalog>/<schema>/<volume>/...`).
-	VolumePath *string
 }
 
 // A storage location back by UC Volumes..

@@ -80,6 +80,30 @@ func azureEncryptionSettingsFromWire(w *azureEncryptionSettingsWire) (*AzureEncr
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AzureEncryptionSettings) MarshalJSON() ([]byte, error) {
+	w, err := azureEncryptionSettingsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AzureEncryptionSettings) UnmarshalJSON(data []byte) error {
+	var w azureEncryptionSettingsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := azureEncryptionSettingsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type catalogInfoWire struct {
 	Name                                *string                                  `json:"name,omitempty"`
 	Owner                               *string                                  `json:"owner,omitempty"`
@@ -106,6 +130,63 @@ type catalogInfoWire struct {
 	ManagedEncryptionSettings           *encryptionSettingsWire                  `json:"managed_encryption_settings,omitempty"`
 	Properties                          map[string]string                        `json:"properties,omitempty"`
 	Options                             map[string]string                        `json:"options,omitempty"`
+}
+
+func catalogInfoToWire(v *CatalogInfo) (*catalogInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CatalogInfo.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CatalogInfo.UpdatedAt", err)
+	}
+	effectivePredictiveOptimizationFlagWireValue, err := effectivePredictiveOptimizationFlagToWire(v.EffectivePredictiveOptimizationFlag)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CatalogInfo.EffectivePredictiveOptimizationFlag", err)
+	}
+	provisioningInfoWireValue, err := provisioningInfoToWire(v.ProvisioningInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CatalogInfo.ProvisioningInfo", err)
+	}
+	customMaxRetentionHoursWireValue, err := int64ToWire(v.CustomMaxRetentionHours)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CatalogInfo.CustomMaxRetentionHours", err)
+	}
+	managedEncryptionSettingsWireValue, err := encryptionSettingsToWire(v.ManagedEncryptionSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CatalogInfo.ManagedEncryptionSettings", err)
+	}
+	return &catalogInfoWire{
+		Name:                                v.Name,
+		Owner:                               v.Owner,
+		Comment:                             v.Comment,
+		StorageRoot:                         v.StorageRoot,
+		EnablePredictiveOptimization:        v.EnablePredictiveOptimization,
+		CatalogType:                         v.CatalogType,
+		ProviderName:                        v.ProviderName,
+		ShareName:                           v.ShareName,
+		ConnectionName:                      v.ConnectionName,
+		MetastoreId:                         v.MetastoreId,
+		CreatedAt:                           createdAtWireValue,
+		CreatedBy:                           v.CreatedBy,
+		UpdatedAt:                           updatedAtWireValue,
+		UpdatedBy:                           v.UpdatedBy,
+		StorageLocation:                     v.StorageLocation,
+		IsolationMode:                       v.IsolationMode,
+		EffectivePredictiveOptimizationFlag: effectivePredictiveOptimizationFlagWireValue,
+		BrowseOnly:                          v.BrowseOnly,
+		ProvisioningInfo:                    provisioningInfoWireValue,
+		FullName:                            v.FullName,
+		SecurableType:                       v.SecurableType,
+		CustomMaxRetentionHours:             customMaxRetentionHoursWireValue,
+		ManagedEncryptionSettings:           managedEncryptionSettingsWireValue,
+		Properties:                          v.Properties,
+		Options:                             v.Options,
+	}, nil
 }
 
 func catalogInfoFromWire(w *catalogInfoWire) (*CatalogInfo, error) {
@@ -163,6 +244,30 @@ func catalogInfoFromWire(w *catalogInfoWire) (*CatalogInfo, error) {
 		Properties:                          w.Properties,
 		Options:                             w.Options,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CatalogInfo) MarshalJSON() ([]byte, error) {
+	w, err := catalogInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CatalogInfo) UnmarshalJSON(data []byte) error {
+	var w catalogInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := catalogInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createCatalogRequestWire struct {
@@ -250,6 +355,87 @@ func createCatalogRequestToWire(v *CreateCatalogRequest) (*createCatalogRequestW
 	}, nil
 }
 
+func createCatalogRequestFromWire(w *createCatalogRequestWire) (*CreateCatalogRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCatalogRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCatalogRequest.UpdatedAt", err)
+	}
+	effectivePredictiveOptimizationFlagPublicValue, err := effectivePredictiveOptimizationFlagFromWire(w.EffectivePredictiveOptimizationFlag)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCatalogRequest.EffectivePredictiveOptimizationFlag", err)
+	}
+	provisioningInfoPublicValue, err := provisioningInfoFromWire(w.ProvisioningInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCatalogRequest.ProvisioningInfo", err)
+	}
+	customMaxRetentionHoursPublicValue, err := int64FromWire(w.CustomMaxRetentionHours)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCatalogRequest.CustomMaxRetentionHours", err)
+	}
+	managedEncryptionSettingsPublicValue, err := encryptionSettingsFromWire(w.ManagedEncryptionSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCatalogRequest.ManagedEncryptionSettings", err)
+	}
+	return &CreateCatalogRequest{
+		Name:                                w.Name,
+		Owner:                               w.Owner,
+		Comment:                             w.Comment,
+		StorageRoot:                         w.StorageRoot,
+		EnablePredictiveOptimization:        w.EnablePredictiveOptimization,
+		CatalogType:                         w.CatalogType,
+		ProviderName:                        w.ProviderName,
+		ShareName:                           w.ShareName,
+		ConnectionName:                      w.ConnectionName,
+		MetastoreId:                         w.MetastoreId,
+		CreatedAt:                           createdAtPublicValue,
+		CreatedBy:                           w.CreatedBy,
+		UpdatedAt:                           updatedAtPublicValue,
+		UpdatedBy:                           w.UpdatedBy,
+		StorageLocation:                     w.StorageLocation,
+		IsolationMode:                       w.IsolationMode,
+		EffectivePredictiveOptimizationFlag: effectivePredictiveOptimizationFlagPublicValue,
+		BrowseOnly:                          w.BrowseOnly,
+		ProvisioningInfo:                    provisioningInfoPublicValue,
+		FullName:                            w.FullName,
+		SecurableType:                       w.SecurableType,
+		CustomMaxRetentionHours:             customMaxRetentionHoursPublicValue,
+		ManagedEncryptionSettings:           managedEncryptionSettingsPublicValue,
+		Properties:                          w.Properties,
+		Options:                             w.Options,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateCatalogRequest) MarshalJSON() ([]byte, error) {
+	w, err := createCatalogRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateCatalogRequest) UnmarshalJSON(data []byte) error {
+	var w createCatalogRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createCatalogRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteCatalogRequestWire struct {
 	NameArg *string `json:"name_arg,omitempty"`
 	Force   *bool   `json:"force,omitempty"`
@@ -263,6 +449,81 @@ func deleteCatalogRequestToWire(v *DeleteCatalogRequest) (*deleteCatalogRequestW
 		NameArg: v.NameArg,
 		Force:   v.Force,
 	}, nil
+}
+
+func deleteCatalogRequestFromWire(w *deleteCatalogRequestWire) (*DeleteCatalogRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCatalogRequest{
+		NameArg: w.NameArg,
+		Force:   w.Force,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteCatalogRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteCatalogRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteCatalogRequest) UnmarshalJSON(data []byte) error {
+	var w deleteCatalogRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteCatalogRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteCatalogResponseWire struct {
+}
+
+func deleteCatalogResponseToWire(v *DeleteCatalogResponse) (*deleteCatalogResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCatalogResponseWire{}, nil
+}
+
+func deleteCatalogResponseFromWire(w *deleteCatalogResponseWire) (*DeleteCatalogResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCatalogResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteCatalogResponse) MarshalJSON() ([]byte, error) {
+	w, err := deleteCatalogResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteCatalogResponse) UnmarshalJSON(data []byte) error {
+	var w deleteCatalogResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteCatalogResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type effectivePredictiveOptimizationFlagWire struct {
@@ -291,6 +552,30 @@ func effectivePredictiveOptimizationFlagFromWire(w *effectivePredictiveOptimizat
 		InheritedFromType: w.InheritedFromType,
 		InheritedFromName: w.InheritedFromName,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v EffectivePredictiveOptimizationFlag) MarshalJSON() ([]byte, error) {
+	w, err := effectivePredictiveOptimizationFlagToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *EffectivePredictiveOptimizationFlag) UnmarshalJSON(data []byte) error {
+	var w effectivePredictiveOptimizationFlagWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := effectivePredictiveOptimizationFlagFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type encryptionSettingsWire struct {
@@ -329,6 +614,30 @@ func encryptionSettingsFromWire(w *encryptionSettingsWire) (*EncryptionSettings,
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v EncryptionSettings) MarshalJSON() ([]byte, error) {
+	w, err := encryptionSettingsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *EncryptionSettings) UnmarshalJSON(data []byte) error {
+	var w encryptionSettingsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := encryptionSettingsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getCatalogRequestWire struct {
 	NameArg       *string `json:"name_arg,omitempty"`
 	IncludeBrowse *bool   `json:"include_browse,omitempty"`
@@ -342,6 +651,40 @@ func getCatalogRequestToWire(v *GetCatalogRequest) (*getCatalogRequestWire, erro
 		NameArg:       v.NameArg,
 		IncludeBrowse: v.IncludeBrowse,
 	}, nil
+}
+
+func getCatalogRequestFromWire(w *getCatalogRequestWire) (*GetCatalogRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCatalogRequest{
+		NameArg:       w.NameArg,
+		IncludeBrowse: w.IncludeBrowse,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetCatalogRequest) MarshalJSON() ([]byte, error) {
+	w, err := getCatalogRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetCatalogRequest) UnmarshalJSON(data []byte) error {
+	var w getCatalogRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getCatalogRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listCatalogsRequestWire struct {
@@ -363,9 +706,59 @@ func listCatalogsRequestToWire(v *ListCatalogsRequest) (*listCatalogsRequestWire
 	}, nil
 }
 
+func listCatalogsRequestFromWire(w *listCatalogsRequestWire) (*ListCatalogsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListCatalogsRequest{
+		IncludeBrowse:  w.IncludeBrowse,
+		MaxResults:     w.MaxResults,
+		PageToken:      w.PageToken,
+		IncludeUnbound: w.IncludeUnbound,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCatalogsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listCatalogsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCatalogsRequest) UnmarshalJSON(data []byte) error {
+	var w listCatalogsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCatalogsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listCatalogsResponseWire struct {
 	Catalogs      []catalogInfoWire `json:"catalogs,omitempty"`
 	NextPageToken *string           `json:"next_page_token,omitempty"`
+}
+
+func listCatalogsResponseToWire(v *ListCatalogsResponse) (*listCatalogsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	catalogsWireValue, err := convertSlice(v.Catalogs, catalogInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCatalogsResponse.Catalogs", err)
+	}
+	return &listCatalogsResponseWire{
+		Catalogs:      catalogsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listCatalogsResponseFromWire(w *listCatalogsResponseWire) (*ListCatalogsResponse, error) {
@@ -380,6 +773,30 @@ func listCatalogsResponseFromWire(w *listCatalogsResponseWire) (*ListCatalogsRes
 		Catalogs:      catalogsPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCatalogsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listCatalogsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCatalogsResponse) UnmarshalJSON(data []byte) error {
+	var w listCatalogsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCatalogsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type provisioningInfoWire struct {
@@ -402,6 +819,30 @@ func provisioningInfoFromWire(w *provisioningInfoWire) (*ProvisioningInfo, error
 	return &ProvisioningInfo{
 		State: w.State,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ProvisioningInfo) MarshalJSON() ([]byte, error) {
+	w, err := provisioningInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ProvisioningInfo) UnmarshalJSON(data []byte) error {
+	var w provisioningInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := provisioningInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateCatalogRequestWire struct {
@@ -491,6 +932,89 @@ func updateCatalogRequestToWire(v *UpdateCatalogRequest) (*updateCatalogRequestW
 		Properties:                          v.Properties,
 		Options:                             v.Options,
 	}, nil
+}
+
+func updateCatalogRequestFromWire(w *updateCatalogRequestWire) (*UpdateCatalogRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogRequest.UpdatedAt", err)
+	}
+	effectivePredictiveOptimizationFlagPublicValue, err := effectivePredictiveOptimizationFlagFromWire(w.EffectivePredictiveOptimizationFlag)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogRequest.EffectivePredictiveOptimizationFlag", err)
+	}
+	provisioningInfoPublicValue, err := provisioningInfoFromWire(w.ProvisioningInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogRequest.ProvisioningInfo", err)
+	}
+	customMaxRetentionHoursPublicValue, err := int64FromWire(w.CustomMaxRetentionHours)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogRequest.CustomMaxRetentionHours", err)
+	}
+	managedEncryptionSettingsPublicValue, err := encryptionSettingsFromWire(w.ManagedEncryptionSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogRequest.ManagedEncryptionSettings", err)
+	}
+	return &UpdateCatalogRequest{
+		NameArg:                             w.NameArg,
+		NewName:                             w.NewName,
+		Name:                                w.Name,
+		Owner:                               w.Owner,
+		Comment:                             w.Comment,
+		StorageRoot:                         w.StorageRoot,
+		EnablePredictiveOptimization:        w.EnablePredictiveOptimization,
+		CatalogType:                         w.CatalogType,
+		ProviderName:                        w.ProviderName,
+		ShareName:                           w.ShareName,
+		ConnectionName:                      w.ConnectionName,
+		MetastoreId:                         w.MetastoreId,
+		CreatedAt:                           createdAtPublicValue,
+		CreatedBy:                           w.CreatedBy,
+		UpdatedAt:                           updatedAtPublicValue,
+		UpdatedBy:                           w.UpdatedBy,
+		StorageLocation:                     w.StorageLocation,
+		IsolationMode:                       w.IsolationMode,
+		EffectivePredictiveOptimizationFlag: effectivePredictiveOptimizationFlagPublicValue,
+		BrowseOnly:                          w.BrowseOnly,
+		ProvisioningInfo:                    provisioningInfoPublicValue,
+		FullName:                            w.FullName,
+		SecurableType:                       w.SecurableType,
+		CustomMaxRetentionHours:             customMaxRetentionHoursPublicValue,
+		ManagedEncryptionSettings:           managedEncryptionSettingsPublicValue,
+		Properties:                          w.Properties,
+		Options:                             w.Options,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateCatalogRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateCatalogRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateCatalogRequest) UnmarshalJSON(data []byte) error {
+	var w updateCatalogRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateCatalogRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {
