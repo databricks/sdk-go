@@ -105,8 +105,74 @@ func createForecastingExperimentRequestToWire(v *CreateForecastingExperimentRequ
 	}, nil
 }
 
+func createForecastingExperimentRequestFromWire(w *createForecastingExperimentRequestWire) (*CreateForecastingExperimentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	forecastHorizonPublicValue, err := int64FromWire(w.ForecastHorizon)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateForecastingExperimentRequest.ForecastHorizon", err)
+	}
+	maxRuntimePublicValue, err := int64FromWire(w.MaxRuntime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateForecastingExperimentRequest.MaxRuntime", err)
+	}
+	return &CreateForecastingExperimentRequest{
+		TrainDataPath:               w.TrainDataPath,
+		TargetColumn:                w.TargetColumn,
+		TimeColumn:                  w.TimeColumn,
+		ForecastGranularity:         w.ForecastGranularity,
+		ForecastHorizon:             forecastHorizonPublicValue,
+		PrimaryMetric:               w.PrimaryMetric,
+		TrainingFrameworks:          w.TrainingFrameworks,
+		ExperimentPath:              w.ExperimentPath,
+		MaxRuntime:                  maxRuntimePublicValue,
+		SplitColumn:                 w.SplitColumn,
+		CustomWeightsColumn:         w.CustomWeightsColumn,
+		RegisterTo:                  w.RegisterTo,
+		HolidayRegions:              w.HolidayRegions,
+		TimeseriesIdentifierColumns: w.TimeseriesIdentifierColumns,
+		PredictionDataPath:          w.PredictionDataPath,
+		IncludeFeatures:             w.IncludeFeatures,
+		FutureFeatureDataPath:       w.FutureFeatureDataPath,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateForecastingExperimentRequest) MarshalJSON() ([]byte, error) {
+	w, err := createForecastingExperimentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateForecastingExperimentRequest) UnmarshalJSON(data []byte) error {
+	var w createForecastingExperimentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createForecastingExperimentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createForecastingExperimentResponseWire struct {
 	ExperimentId *string `json:"experiment_id,omitempty"`
+}
+
+func createForecastingExperimentResponseToWire(v *CreateForecastingExperimentResponse) (*createForecastingExperimentResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createForecastingExperimentResponseWire{
+		ExperimentId: v.ExperimentId,
+	}, nil
 }
 
 func createForecastingExperimentResponseFromWire(w *createForecastingExperimentResponseWire) (*CreateForecastingExperimentResponse, error) {
@@ -118,10 +184,45 @@ func createForecastingExperimentResponseFromWire(w *createForecastingExperimentR
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateForecastingExperimentResponse) MarshalJSON() ([]byte, error) {
+	w, err := createForecastingExperimentResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateForecastingExperimentResponse) UnmarshalJSON(data []byte) error {
+	var w createForecastingExperimentResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createForecastingExperimentResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type forecastingExperimentWire struct {
 	ExperimentId      *string                     `json:"experiment_id,omitempty"`
 	ExperimentPageUrl *string                     `json:"experiment_page_url,omitempty"`
 	State             ForecastingExperiment_State `json:"state,omitempty"`
+}
+
+func forecastingExperimentToWire(v *ForecastingExperiment) (*forecastingExperimentWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &forecastingExperimentWire{
+		ExperimentId:      v.ExperimentId,
+		ExperimentPageUrl: v.ExperimentPageUrl,
+		State:             v.State,
+	}, nil
 }
 
 func forecastingExperimentFromWire(w *forecastingExperimentWire) (*ForecastingExperiment, error) {
@@ -133,4 +234,74 @@ func forecastingExperimentFromWire(w *forecastingExperimentWire) (*ForecastingEx
 		ExperimentPageUrl: w.ExperimentPageUrl,
 		State:             w.State,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ForecastingExperiment) MarshalJSON() ([]byte, error) {
+	w, err := forecastingExperimentToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ForecastingExperiment) UnmarshalJSON(data []byte) error {
+	var w forecastingExperimentWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := forecastingExperimentFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getForecastingExperimentRequestWire struct {
+	ExperimentId *string `json:"experiment_id,omitempty"`
+}
+
+func getForecastingExperimentRequestToWire(v *GetForecastingExperimentRequest) (*getForecastingExperimentRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getForecastingExperimentRequestWire{
+		ExperimentId: v.ExperimentId,
+	}, nil
+}
+
+func getForecastingExperimentRequestFromWire(w *getForecastingExperimentRequestWire) (*GetForecastingExperimentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetForecastingExperimentRequest{
+		ExperimentId: w.ExperimentId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetForecastingExperimentRequest) MarshalJSON() ([]byte, error) {
+	w, err := getForecastingExperimentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetForecastingExperimentRequest) UnmarshalJSON(data []byte) error {
+	var w getForecastingExperimentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getForecastingExperimentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }

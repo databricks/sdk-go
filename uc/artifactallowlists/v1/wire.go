@@ -59,6 +59,26 @@ type artifactAllowlistInfoWire struct {
 	CreatedAt        *wireInt64            `json:"created_at,omitempty"`
 }
 
+func artifactAllowlistInfoToWire(v *ArtifactAllowlistInfo) (*artifactAllowlistInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	artifactMatchersWireValue, err := convertSlice(v.ArtifactMatchers, artifactMatcherToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ArtifactAllowlistInfo.ArtifactMatchers", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ArtifactAllowlistInfo.CreatedAt", err)
+	}
+	return &artifactAllowlistInfoWire{
+		ArtifactMatchers: artifactMatchersWireValue,
+		MetastoreId:      v.MetastoreId,
+		CreatedBy:        v.CreatedBy,
+		CreatedAt:        createdAtWireValue,
+	}, nil
+}
+
 func artifactAllowlistInfoFromWire(w *artifactAllowlistInfoWire) (*ArtifactAllowlistInfo, error) {
 	if w == nil {
 		return nil, nil
@@ -77,6 +97,30 @@ func artifactAllowlistInfoFromWire(w *artifactAllowlistInfoWire) (*ArtifactAllow
 		CreatedBy:        w.CreatedBy,
 		CreatedAt:        createdAtPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ArtifactAllowlistInfo) MarshalJSON() ([]byte, error) {
+	w, err := artifactAllowlistInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ArtifactAllowlistInfo) UnmarshalJSON(data []byte) error {
+	var w artifactAllowlistInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := artifactAllowlistInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type artifactMatcherWire struct {
@@ -102,6 +146,76 @@ func artifactMatcherFromWire(w *artifactMatcherWire) (*ArtifactMatcher, error) {
 		Artifact:  w.Artifact,
 		MatchType: w.MatchType,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ArtifactMatcher) MarshalJSON() ([]byte, error) {
+	w, err := artifactMatcherToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ArtifactMatcher) UnmarshalJSON(data []byte) error {
+	var w artifactMatcherWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := artifactMatcherFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getArtifactAllowlistRequestWire struct {
+	ArtifactType ArtifactType `json:"artifact_type,omitempty"`
+}
+
+func getArtifactAllowlistRequestToWire(v *GetArtifactAllowlistRequest) (*getArtifactAllowlistRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getArtifactAllowlistRequestWire{
+		ArtifactType: v.ArtifactType,
+	}, nil
+}
+
+func getArtifactAllowlistRequestFromWire(w *getArtifactAllowlistRequestWire) (*GetArtifactAllowlistRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetArtifactAllowlistRequest{
+		ArtifactType: w.ArtifactType,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetArtifactAllowlistRequest) MarshalJSON() ([]byte, error) {
+	w, err := getArtifactAllowlistRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetArtifactAllowlistRequest) UnmarshalJSON(data []byte) error {
+	var w getArtifactAllowlistRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getArtifactAllowlistRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type setArtifactAllowlistRequestWire struct {
@@ -131,6 +245,51 @@ func setArtifactAllowlistRequestToWire(v *SetArtifactAllowlistRequest) (*setArti
 		CreatedBy:        v.CreatedBy,
 		CreatedAt:        createdAtWireValue,
 	}, nil
+}
+
+func setArtifactAllowlistRequestFromWire(w *setArtifactAllowlistRequestWire) (*SetArtifactAllowlistRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	artifactMatchersPublicValue, err := convertSlice(w.ArtifactMatchers, artifactMatcherFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SetArtifactAllowlistRequest.ArtifactMatchers", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SetArtifactAllowlistRequest.CreatedAt", err)
+	}
+	return &SetArtifactAllowlistRequest{
+		ArtifactType:     w.ArtifactType,
+		ArtifactMatchers: artifactMatchersPublicValue,
+		MetastoreId:      w.MetastoreId,
+		CreatedBy:        w.CreatedBy,
+		CreatedAt:        createdAtPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v SetArtifactAllowlistRequest) MarshalJSON() ([]byte, error) {
+	w, err := setArtifactAllowlistRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *SetArtifactAllowlistRequest) UnmarshalJSON(data []byte) error {
+	var w setArtifactAllowlistRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := setArtifactAllowlistRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

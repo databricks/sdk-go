@@ -3,7 +3,9 @@
 package tagpolicies
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/databricks/sdk-go/core/types"
 )
@@ -14,6 +16,17 @@ func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	}
 	value := mask.String()
 	return &value
+}
+
+func fieldMaskFromWire[T any](value *string) (*types.FieldMask[T], error) {
+	if value == nil {
+		return nil, nil
+	}
+	var paths []string
+	if *value != "" {
+		paths = strings.Split(*value, ",")
+	}
+	return types.NewFieldMask[T](paths...)
 }
 
 type createTagPolicyRequestWire struct {
@@ -33,6 +46,135 @@ func createTagPolicyRequestToWire(v *CreateTagPolicyRequest) (*createTagPolicyRe
 	}, nil
 }
 
+func createTagPolicyRequestFromWire(w *createTagPolicyRequestWire) (*CreateTagPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tagPolicyPublicValue, err := tagPolicyFromWire(w.TagPolicy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTagPolicyRequest.TagPolicy", err)
+	}
+	return &CreateTagPolicyRequest{
+		TagPolicy: tagPolicyPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateTagPolicyRequest) MarshalJSON() ([]byte, error) {
+	w, err := createTagPolicyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateTagPolicyRequest) UnmarshalJSON(data []byte) error {
+	var w createTagPolicyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createTagPolicyRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteTagPolicyRequestWire struct {
+	TagKey *string `json:"tag_key,omitempty"`
+}
+
+func deleteTagPolicyRequestToWire(v *DeleteTagPolicyRequest) (*deleteTagPolicyRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteTagPolicyRequestWire{
+		TagKey: v.TagKey,
+	}, nil
+}
+
+func deleteTagPolicyRequestFromWire(w *deleteTagPolicyRequestWire) (*DeleteTagPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteTagPolicyRequest{
+		TagKey: w.TagKey,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteTagPolicyRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteTagPolicyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteTagPolicyRequest) UnmarshalJSON(data []byte) error {
+	var w deleteTagPolicyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteTagPolicyRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getTagPolicyRequestWire struct {
+	TagKey *string `json:"tag_key,omitempty"`
+}
+
+func getTagPolicyRequestToWire(v *GetTagPolicyRequest) (*getTagPolicyRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getTagPolicyRequestWire{
+		TagKey: v.TagKey,
+	}, nil
+}
+
+func getTagPolicyRequestFromWire(w *getTagPolicyRequestWire) (*GetTagPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetTagPolicyRequest{
+		TagKey: w.TagKey,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetTagPolicyRequest) MarshalJSON() ([]byte, error) {
+	w, err := getTagPolicyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetTagPolicyRequest) UnmarshalJSON(data []byte) error {
+	var w getTagPolicyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getTagPolicyRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listTagPoliciesRequestWire struct {
 	PageSize  *int    `json:"page_size,omitempty"`
 	PageToken *string `json:"page_token,omitempty"`
@@ -48,9 +190,57 @@ func listTagPoliciesRequestToWire(v *ListTagPoliciesRequest) (*listTagPoliciesRe
 	}, nil
 }
 
+func listTagPoliciesRequestFromWire(w *listTagPoliciesRequestWire) (*ListTagPoliciesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListTagPoliciesRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListTagPoliciesRequest) MarshalJSON() ([]byte, error) {
+	w, err := listTagPoliciesRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListTagPoliciesRequest) UnmarshalJSON(data []byte) error {
+	var w listTagPoliciesRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listTagPoliciesRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listTagPoliciesResponseWire struct {
 	TagPolicies   []tagPolicyWire `json:"tag_policies,omitempty"`
 	NextPageToken *string         `json:"next_page_token,omitempty"`
+}
+
+func listTagPoliciesResponseToWire(v *ListTagPoliciesResponse) (*listTagPoliciesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tagPoliciesWireValue, err := convertSlice(v.TagPolicies, tagPolicyToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListTagPoliciesResponse.TagPolicies", err)
+	}
+	return &listTagPoliciesResponseWire{
+		TagPolicies:   tagPoliciesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listTagPoliciesResponseFromWire(w *listTagPoliciesResponseWire) (*ListTagPoliciesResponse, error) {
@@ -65,6 +255,30 @@ func listTagPoliciesResponseFromWire(w *listTagPoliciesResponseWire) (*ListTagPo
 		TagPolicies:   tagPoliciesPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListTagPoliciesResponse) MarshalJSON() ([]byte, error) {
+	w, err := listTagPoliciesResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListTagPoliciesResponse) UnmarshalJSON(data []byte) error {
+	var w listTagPoliciesResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listTagPoliciesResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type tagPolicyWire struct {
@@ -112,6 +326,30 @@ func tagPolicyFromWire(w *tagPolicyWire) (*TagPolicy, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v TagPolicy) MarshalJSON() ([]byte, error) {
+	w, err := tagPolicyToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *TagPolicy) UnmarshalJSON(data []byte) error {
+	var w tagPolicyWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := tagPolicyFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateTagPolicyRequestWire struct {
 	TagPolicy  *tagPolicyWire `json:"tag_policy,omitempty"`
 	UpdateMask *string        `json:"update_mask,omitempty"`
@@ -129,6 +367,48 @@ func updateTagPolicyRequestToWire(v *UpdateTagPolicyRequest) (*updateTagPolicyRe
 		TagPolicy:  tagPolicyWireValue,
 		UpdateMask: fieldMaskToWire(v.UpdateMask),
 	}, nil
+}
+
+func updateTagPolicyRequestFromWire(w *updateTagPolicyRequestWire) (*UpdateTagPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tagPolicyPublicValue, err := tagPolicyFromWire(w.TagPolicy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateTagPolicyRequest.TagPolicy", err)
+	}
+	updateMaskPublicValue, err := fieldMaskFromWire[TagPolicy](w.UpdateMask)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateTagPolicyRequest.UpdateMask", err)
+	}
+	return &UpdateTagPolicyRequest{
+		TagPolicy:  tagPolicyPublicValue,
+		UpdateMask: updateMaskPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateTagPolicyRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateTagPolicyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateTagPolicyRequest) UnmarshalJSON(data []byte) error {
+	var w updateTagPolicyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateTagPolicyRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type valueWire struct {
@@ -151,6 +431,30 @@ func valueFromWire(w *valueWire) (*Value, error) {
 	return &Value{
 		Name: w.Name,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Value) MarshalJSON() ([]byte, error) {
+	w, err := valueToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Value) UnmarshalJSON(data []byte) error {
+	var w valueWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := valueFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

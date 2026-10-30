@@ -3,12 +3,27 @@
 package clusterlibraries
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
 type clusterLibraryStatusesWire struct {
 	ClusterId       *string                 `json:"cluster_id,omitempty"`
 	LibraryStatuses []libraryFullStatusWire `json:"library_statuses,omitempty"`
+}
+
+func clusterLibraryStatusesToWire(v *ClusterLibraryStatuses) (*clusterLibraryStatusesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	libraryStatusesWireValue, err := convertSlice(v.LibraryStatuses, libraryFullStatusToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterLibraryStatuses.LibraryStatuses", err)
+	}
+	return &clusterLibraryStatusesWire{
+		ClusterId:       v.ClusterId,
+		LibraryStatuses: libraryStatusesWireValue,
+	}, nil
 }
 
 func clusterLibraryStatusesFromWire(w *clusterLibraryStatusesWire) (*ClusterLibraryStatuses, error) {
@@ -25,6 +40,30 @@ func clusterLibraryStatusesFromWire(w *clusterLibraryStatusesWire) (*ClusterLibr
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ClusterLibraryStatuses) MarshalJSON() ([]byte, error) {
+	w, err := clusterLibraryStatusesToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ClusterLibraryStatuses) UnmarshalJSON(data []byte) error {
+	var w clusterLibraryStatusesWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := clusterLibraryStatusesFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type clusterStatusRequestWire struct {
 	ClusterId *string `json:"cluster_id,omitempty"`
 }
@@ -36,6 +75,39 @@ func clusterStatusRequestToWire(v *ClusterStatusRequest) (*clusterStatusRequestW
 	return &clusterStatusRequestWire{
 		ClusterId: v.ClusterId,
 	}, nil
+}
+
+func clusterStatusRequestFromWire(w *clusterStatusRequestWire) (*ClusterStatusRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ClusterStatusRequest{
+		ClusterId: w.ClusterId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ClusterStatusRequest) MarshalJSON() ([]byte, error) {
+	w, err := clusterStatusRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ClusterStatusRequest) UnmarshalJSON(data []byte) error {
+	var w clusterStatusRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := clusterStatusRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type installLibrariesRequestWire struct {
@@ -55,6 +127,85 @@ func installLibrariesRequestToWire(v *InstallLibrariesRequest) (*installLibrarie
 		ClusterId: v.ClusterId,
 		Libraries: librariesWireValue,
 	}, nil
+}
+
+func installLibrariesRequestFromWire(w *installLibrariesRequestWire) (*InstallLibrariesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	librariesPublicValue, err := convertSlice(w.Libraries, libraryFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstallLibrariesRequest.Libraries", err)
+	}
+	return &InstallLibrariesRequest{
+		ClusterId: w.ClusterId,
+		Libraries: librariesPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v InstallLibrariesRequest) MarshalJSON() ([]byte, error) {
+	w, err := installLibrariesRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *InstallLibrariesRequest) UnmarshalJSON(data []byte) error {
+	var w installLibrariesRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := installLibrariesRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type installLibrariesResponseWire struct {
+}
+
+func installLibrariesResponseToWire(v *InstallLibrariesResponse) (*installLibrariesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &installLibrariesResponseWire{}, nil
+}
+
+func installLibrariesResponseFromWire(w *installLibrariesResponseWire) (*InstallLibrariesResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &InstallLibrariesResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v InstallLibrariesResponse) MarshalJSON() ([]byte, error) {
+	w, err := installLibrariesResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *InstallLibrariesResponse) UnmarshalJSON(data []byte) error {
+	var w installLibrariesResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := installLibrariesResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type libraryWire struct {
@@ -197,11 +348,51 @@ func libraryFromWire(w *libraryWire) (*Library, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Library) MarshalJSON() ([]byte, error) {
+	w, err := libraryToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Library) UnmarshalJSON(data []byte) error {
+	var w libraryWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := libraryFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type libraryFullStatusWire struct {
 	Library                 *libraryWire         `json:"library,omitempty"`
 	Status                  LibraryInstallStatus `json:"status,omitempty"`
 	Messages                []string             `json:"messages,omitempty"`
 	IsLibraryForAllClusters *bool                `json:"is_library_for_all_clusters,omitempty"`
+}
+
+func libraryFullStatusToWire(v *LibraryFullStatus) (*libraryFullStatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	libraryWireValue, err := libraryToWire(v.Library)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LibraryFullStatus.Library", err)
+	}
+	return &libraryFullStatusWire{
+		Library:                 libraryWireValue,
+		Status:                  v.Status,
+		Messages:                v.Messages,
+		IsLibraryForAllClusters: v.IsLibraryForAllClusters,
+	}, nil
 }
 
 func libraryFullStatusFromWire(w *libraryFullStatusWire) (*LibraryFullStatus, error) {
@@ -220,8 +411,86 @@ func libraryFullStatusFromWire(w *libraryFullStatusWire) (*LibraryFullStatus, er
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v LibraryFullStatus) MarshalJSON() ([]byte, error) {
+	w, err := libraryFullStatusToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *LibraryFullStatus) UnmarshalJSON(data []byte) error {
+	var w libraryFullStatusWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := libraryFullStatusFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type listAllClusterLibraryStatusesRequestWire struct {
+}
+
+func listAllClusterLibraryStatusesRequestToWire(v *ListAllClusterLibraryStatusesRequest) (*listAllClusterLibraryStatusesRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listAllClusterLibraryStatusesRequestWire{}, nil
+}
+
+func listAllClusterLibraryStatusesRequestFromWire(w *listAllClusterLibraryStatusesRequestWire) (*ListAllClusterLibraryStatusesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListAllClusterLibraryStatusesRequest{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListAllClusterLibraryStatusesRequest) MarshalJSON() ([]byte, error) {
+	w, err := listAllClusterLibraryStatusesRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListAllClusterLibraryStatusesRequest) UnmarshalJSON(data []byte) error {
+	var w listAllClusterLibraryStatusesRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listAllClusterLibraryStatusesRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listAllClusterLibraryStatusesResponseWire struct {
 	Statuses []clusterLibraryStatusesWire `json:"statuses,omitempty"`
+}
+
+func listAllClusterLibraryStatusesResponseToWire(v *ListAllClusterLibraryStatusesResponse) (*listAllClusterLibraryStatusesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	statusesWireValue, err := convertSlice(v.Statuses, clusterLibraryStatusesToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAllClusterLibraryStatusesResponse.Statuses", err)
+	}
+	return &listAllClusterLibraryStatusesResponseWire{
+		Statuses: statusesWireValue,
+	}, nil
 }
 
 func listAllClusterLibraryStatusesResponseFromWire(w *listAllClusterLibraryStatusesResponseWire) (*ListAllClusterLibraryStatusesResponse, error) {
@@ -235,6 +504,30 @@ func listAllClusterLibraryStatusesResponseFromWire(w *listAllClusterLibraryStatu
 	return &ListAllClusterLibraryStatusesResponse{
 		Statuses: statusesPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListAllClusterLibraryStatusesResponse) MarshalJSON() ([]byte, error) {
+	w, err := listAllClusterLibraryStatusesResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListAllClusterLibraryStatusesResponse) UnmarshalJSON(data []byte) error {
+	var w listAllClusterLibraryStatusesResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listAllClusterLibraryStatusesResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type mavenLibraryWire struct {
@@ -265,6 +558,30 @@ func mavenLibraryFromWire(w *mavenLibraryWire) (*MavenLibrary, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v MavenLibrary) MarshalJSON() ([]byte, error) {
+	w, err := mavenLibraryToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *MavenLibrary) UnmarshalJSON(data []byte) error {
+	var w mavenLibraryWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := mavenLibraryFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type pythonPyPiLibraryWire struct {
 	Package *string `json:"package,omitempty"`
 	Repo    *string `json:"repo,omitempty"`
@@ -288,6 +605,30 @@ func pythonPyPiLibraryFromWire(w *pythonPyPiLibraryWire) (*PythonPyPiLibrary, er
 		Package: w.Package,
 		Repo:    w.Repo,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PythonPyPiLibrary) MarshalJSON() ([]byte, error) {
+	w, err := pythonPyPiLibraryToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PythonPyPiLibrary) UnmarshalJSON(data []byte) error {
+	var w pythonPyPiLibraryWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := pythonPyPiLibraryFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type rCranLibraryWire struct {
@@ -315,6 +656,30 @@ func rCranLibraryFromWire(w *rCranLibraryWire) (*RCranLibrary, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v RCranLibrary) MarshalJSON() ([]byte, error) {
+	w, err := rCranLibraryToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *RCranLibrary) UnmarshalJSON(data []byte) error {
+	var w rCranLibraryWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := rCranLibraryFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type uninstallLibrariesRequestWire struct {
 	ClusterId *string       `json:"cluster_id,omitempty"`
 	Libraries []libraryWire `json:"libraries,omitempty"`
@@ -332,6 +697,85 @@ func uninstallLibrariesRequestToWire(v *UninstallLibrariesRequest) (*uninstallLi
 		ClusterId: v.ClusterId,
 		Libraries: librariesWireValue,
 	}, nil
+}
+
+func uninstallLibrariesRequestFromWire(w *uninstallLibrariesRequestWire) (*UninstallLibrariesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	librariesPublicValue, err := convertSlice(w.Libraries, libraryFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UninstallLibrariesRequest.Libraries", err)
+	}
+	return &UninstallLibrariesRequest{
+		ClusterId: w.ClusterId,
+		Libraries: librariesPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UninstallLibrariesRequest) MarshalJSON() ([]byte, error) {
+	w, err := uninstallLibrariesRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UninstallLibrariesRequest) UnmarshalJSON(data []byte) error {
+	var w uninstallLibrariesRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := uninstallLibrariesRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type uninstallLibrariesResponseWire struct {
+}
+
+func uninstallLibrariesResponseToWire(v *UninstallLibrariesResponse) (*uninstallLibrariesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &uninstallLibrariesResponseWire{}, nil
+}
+
+func uninstallLibrariesResponseFromWire(w *uninstallLibrariesResponseWire) (*UninstallLibrariesResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UninstallLibrariesResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UninstallLibrariesResponse) MarshalJSON() ([]byte, error) {
+	w, err := uninstallLibrariesResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UninstallLibrariesResponse) UnmarshalJSON(data []byte) error {
+	var w uninstallLibrariesResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := uninstallLibrariesResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

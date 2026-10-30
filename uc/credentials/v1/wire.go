@@ -75,8 +75,61 @@ func accountsCreateStorageCredentialRequestToWire(v *AccountsCreateStorageCreden
 	}, nil
 }
 
+func accountsCreateStorageCredentialRequestFromWire(w *accountsCreateStorageCredentialRequestWire) (*AccountsCreateStorageCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	credentialInfoPublicValue, err := createAccountsStorageCredentialFromWire(w.CredentialInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountsCreateStorageCredentialRequest.CredentialInfo", err)
+	}
+	return &AccountsCreateStorageCredentialRequest{
+		AccountId:      w.AccountId,
+		MetastoreId:    w.MetastoreId,
+		CredentialInfo: credentialInfoPublicValue,
+		SkipValidation: w.SkipValidation,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsCreateStorageCredentialRequest) MarshalJSON() ([]byte, error) {
+	w, err := accountsCreateStorageCredentialRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsCreateStorageCredentialRequest) UnmarshalJSON(data []byte) error {
+	var w accountsCreateStorageCredentialRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsCreateStorageCredentialRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type accountsCreateStorageCredentialResponseWire struct {
 	CredentialInfo *storageCredentialInfoWire `json:"credential_info,omitempty"`
+}
+
+func accountsCreateStorageCredentialResponseToWire(v *AccountsCreateStorageCredentialResponse) (*accountsCreateStorageCredentialResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	credentialInfoWireValue, err := storageCredentialInfoToWire(v.CredentialInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountsCreateStorageCredentialResponse.CredentialInfo", err)
+	}
+	return &accountsCreateStorageCredentialResponseWire{
+		CredentialInfo: credentialInfoWireValue,
+	}, nil
 }
 
 func accountsCreateStorageCredentialResponseFromWire(w *accountsCreateStorageCredentialResponseWire) (*AccountsCreateStorageCredentialResponse, error) {
@@ -90,6 +143,30 @@ func accountsCreateStorageCredentialResponseFromWire(w *accountsCreateStorageCre
 	return &AccountsCreateStorageCredentialResponse{
 		CredentialInfo: credentialInfoPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsCreateStorageCredentialResponse) MarshalJSON() ([]byte, error) {
+	w, err := accountsCreateStorageCredentialResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsCreateStorageCredentialResponse) UnmarshalJSON(data []byte) error {
+	var w accountsCreateStorageCredentialResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsCreateStorageCredentialResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type accountsDeleteStorageCredentialRequestWire struct {
@@ -111,8 +188,150 @@ func accountsDeleteStorageCredentialRequestToWire(v *AccountsDeleteStorageCreden
 	}, nil
 }
 
+func accountsDeleteStorageCredentialRequestFromWire(w *accountsDeleteStorageCredentialRequestWire) (*AccountsDeleteStorageCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AccountsDeleteStorageCredentialRequest{
+		AccountId:   w.AccountId,
+		MetastoreId: w.MetastoreId,
+		NameArg:     w.NameArg,
+		Force:       w.Force,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsDeleteStorageCredentialRequest) MarshalJSON() ([]byte, error) {
+	w, err := accountsDeleteStorageCredentialRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsDeleteStorageCredentialRequest) UnmarshalJSON(data []byte) error {
+	var w accountsDeleteStorageCredentialRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsDeleteStorageCredentialRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type accountsDeleteStorageCredentialResponseWire struct {
+}
+
+func accountsDeleteStorageCredentialResponseToWire(v *AccountsDeleteStorageCredentialResponse) (*accountsDeleteStorageCredentialResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &accountsDeleteStorageCredentialResponseWire{}, nil
+}
+
+func accountsDeleteStorageCredentialResponseFromWire(w *accountsDeleteStorageCredentialResponseWire) (*AccountsDeleteStorageCredentialResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AccountsDeleteStorageCredentialResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsDeleteStorageCredentialResponse) MarshalJSON() ([]byte, error) {
+	w, err := accountsDeleteStorageCredentialResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsDeleteStorageCredentialResponse) UnmarshalJSON(data []byte) error {
+	var w accountsDeleteStorageCredentialResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsDeleteStorageCredentialResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type accountsGetStorageCredentialRequestWire struct {
+	AccountId   *string `json:"account_id,omitempty"`
+	MetastoreId *string `json:"metastore_id,omitempty"`
+	NameArg     *string `json:"name_arg,omitempty"`
+}
+
+func accountsGetStorageCredentialRequestToWire(v *AccountsGetStorageCredentialRequest) (*accountsGetStorageCredentialRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &accountsGetStorageCredentialRequestWire{
+		AccountId:   v.AccountId,
+		MetastoreId: v.MetastoreId,
+		NameArg:     v.NameArg,
+	}, nil
+}
+
+func accountsGetStorageCredentialRequestFromWire(w *accountsGetStorageCredentialRequestWire) (*AccountsGetStorageCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AccountsGetStorageCredentialRequest{
+		AccountId:   w.AccountId,
+		MetastoreId: w.MetastoreId,
+		NameArg:     w.NameArg,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsGetStorageCredentialRequest) MarshalJSON() ([]byte, error) {
+	w, err := accountsGetStorageCredentialRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsGetStorageCredentialRequest) UnmarshalJSON(data []byte) error {
+	var w accountsGetStorageCredentialRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsGetStorageCredentialRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type accountsGetStorageCredentialResponseWire struct {
 	CredentialInfo *storageCredentialInfoWire `json:"credential_info,omitempty"`
+}
+
+func accountsGetStorageCredentialResponseToWire(v *AccountsGetStorageCredentialResponse) (*accountsGetStorageCredentialResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	credentialInfoWireValue, err := storageCredentialInfoToWire(v.CredentialInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountsGetStorageCredentialResponse.CredentialInfo", err)
+	}
+	return &accountsGetStorageCredentialResponseWire{
+		CredentialInfo: credentialInfoWireValue,
+	}, nil
 }
 
 func accountsGetStorageCredentialResponseFromWire(w *accountsGetStorageCredentialResponseWire) (*AccountsGetStorageCredentialResponse, error) {
@@ -128,8 +347,94 @@ func accountsGetStorageCredentialResponseFromWire(w *accountsGetStorageCredentia
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsGetStorageCredentialResponse) MarshalJSON() ([]byte, error) {
+	w, err := accountsGetStorageCredentialResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsGetStorageCredentialResponse) UnmarshalJSON(data []byte) error {
+	var w accountsGetStorageCredentialResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsGetStorageCredentialResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type accountsListStorageCredentialsRequestWire struct {
+	AccountId   *string `json:"account_id,omitempty"`
+	MetastoreId *string `json:"metastore_id,omitempty"`
+}
+
+func accountsListStorageCredentialsRequestToWire(v *AccountsListStorageCredentialsRequest) (*accountsListStorageCredentialsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &accountsListStorageCredentialsRequestWire{
+		AccountId:   v.AccountId,
+		MetastoreId: v.MetastoreId,
+	}, nil
+}
+
+func accountsListStorageCredentialsRequestFromWire(w *accountsListStorageCredentialsRequestWire) (*AccountsListStorageCredentialsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AccountsListStorageCredentialsRequest{
+		AccountId:   w.AccountId,
+		MetastoreId: w.MetastoreId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsListStorageCredentialsRequest) MarshalJSON() ([]byte, error) {
+	w, err := accountsListStorageCredentialsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsListStorageCredentialsRequest) UnmarshalJSON(data []byte) error {
+	var w accountsListStorageCredentialsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsListStorageCredentialsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type accountsListStorageCredentialsResponseWire struct {
 	StorageCredentials []storageCredentialInfoWire `json:"storage_credentials,omitempty"`
+}
+
+func accountsListStorageCredentialsResponseToWire(v *AccountsListStorageCredentialsResponse) (*accountsListStorageCredentialsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	storageCredentialsWireValue, err := convertSlice(v.StorageCredentials, storageCredentialInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountsListStorageCredentialsResponse.StorageCredentials", err)
+	}
+	return &accountsListStorageCredentialsResponseWire{
+		StorageCredentials: storageCredentialsWireValue,
+	}, nil
 }
 
 func accountsListStorageCredentialsResponseFromWire(w *accountsListStorageCredentialsResponseWire) (*AccountsListStorageCredentialsResponse, error) {
@@ -143,6 +448,30 @@ func accountsListStorageCredentialsResponseFromWire(w *accountsListStorageCreden
 	return &AccountsListStorageCredentialsResponse{
 		StorageCredentials: storageCredentialsPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsListStorageCredentialsResponse) MarshalJSON() ([]byte, error) {
+	w, err := accountsListStorageCredentialsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsListStorageCredentialsResponse) UnmarshalJSON(data []byte) error {
+	var w accountsListStorageCredentialsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsListStorageCredentialsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type accountsUpdateStorageCredentialRequestWire struct {
@@ -170,8 +499,62 @@ func accountsUpdateStorageCredentialRequestToWire(v *AccountsUpdateStorageCreden
 	}, nil
 }
 
+func accountsUpdateStorageCredentialRequestFromWire(w *accountsUpdateStorageCredentialRequestWire) (*AccountsUpdateStorageCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	credentialInfoPublicValue, err := updateAccountsStorageCredentialFromWire(w.CredentialInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountsUpdateStorageCredentialRequest.CredentialInfo", err)
+	}
+	return &AccountsUpdateStorageCredentialRequest{
+		AccountId:      w.AccountId,
+		MetastoreId:    w.MetastoreId,
+		NameArg:        w.NameArg,
+		CredentialInfo: credentialInfoPublicValue,
+		SkipValidation: w.SkipValidation,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsUpdateStorageCredentialRequest) MarshalJSON() ([]byte, error) {
+	w, err := accountsUpdateStorageCredentialRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsUpdateStorageCredentialRequest) UnmarshalJSON(data []byte) error {
+	var w accountsUpdateStorageCredentialRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsUpdateStorageCredentialRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type accountsUpdateStorageCredentialResponseWire struct {
 	CredentialInfo *storageCredentialInfoWire `json:"credential_info,omitempty"`
+}
+
+func accountsUpdateStorageCredentialResponseToWire(v *AccountsUpdateStorageCredentialResponse) (*accountsUpdateStorageCredentialResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	credentialInfoWireValue, err := storageCredentialInfoToWire(v.CredentialInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountsUpdateStorageCredentialResponse.CredentialInfo", err)
+	}
+	return &accountsUpdateStorageCredentialResponseWire{
+		CredentialInfo: credentialInfoWireValue,
+	}, nil
 }
 
 func accountsUpdateStorageCredentialResponseFromWire(w *accountsUpdateStorageCredentialResponseWire) (*AccountsUpdateStorageCredentialResponse, error) {
@@ -187,8 +570,55 @@ func accountsUpdateStorageCredentialResponseFromWire(w *accountsUpdateStorageCre
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsUpdateStorageCredentialResponse) MarshalJSON() ([]byte, error) {
+	w, err := accountsUpdateStorageCredentialResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsUpdateStorageCredentialResponse) UnmarshalJSON(data []byte) error {
+	var w accountsUpdateStorageCredentialResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsUpdateStorageCredentialResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type awsCredentialsWire struct {
 	StsRole *awsCredentials_StsRoleWire `json:"sts_role,omitempty"`
+}
+
+func awsCredentialsToWire(v *AwsCredentials) (*awsCredentialsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var credsStsRoleWire *awsCredentials_StsRoleWire
+	switch value := v.Creds.(type) {
+	case nil:
+	case *AwsCredentials_Creds_StsRole:
+		if value != nil {
+			credsStsRoleConverted, err := awsCredentials_StsRoleToWire(&value.StsRole)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "AwsCredentials.Creds.StsRole", err)
+			}
+			credsStsRoleWire = credsStsRoleConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "AwsCredentials.Creds", value)
+	}
+	return &awsCredentialsWire{
+		StsRole: credsStsRoleWire,
+	}, nil
 }
 
 func awsCredentialsFromWire(w *awsCredentialsWire) (*AwsCredentials, error) {
@@ -216,6 +646,30 @@ func awsCredentialsFromWire(w *awsCredentialsWire) (*AwsCredentials, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AwsCredentials) MarshalJSON() ([]byte, error) {
+	w, err := awsCredentialsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AwsCredentials) UnmarshalJSON(data []byte) error {
+	var w awsCredentialsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := awsCredentialsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type awsCredentials_StsRoleWire struct {
 	RoleArn *string `json:"role_arn,omitempty"`
 }
@@ -236,6 +690,30 @@ func awsCredentials_StsRoleFromWire(w *awsCredentials_StsRoleWire) (*AwsCredenti
 	return &AwsCredentials_StsRole{
 		RoleArn: w.RoleArn,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AwsCredentials_StsRole) MarshalJSON() ([]byte, error) {
+	w, err := awsCredentials_StsRoleToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AwsCredentials_StsRole) UnmarshalJSON(data []byte) error {
+	var w awsCredentials_StsRoleWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := awsCredentials_StsRoleFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type awsIamRoleWire struct {
@@ -266,8 +744,41 @@ func awsIamRoleFromWire(w *awsIamRoleWire) (*AwsIamRole, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AwsIamRole) MarshalJSON() ([]byte, error) {
+	w, err := awsIamRoleToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AwsIamRole) UnmarshalJSON(data []byte) error {
+	var w awsIamRoleWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := awsIamRoleFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type azureActiveDirectoryTokenWire struct {
 	AadToken *string `json:"aad_token,omitempty"`
+}
+
+func azureActiveDirectoryTokenToWire(v *AzureActiveDirectoryToken) (*azureActiveDirectoryTokenWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &azureActiveDirectoryTokenWire{
+		AadToken: v.AadToken,
+	}, nil
 }
 
 func azureActiveDirectoryTokenFromWire(w *azureActiveDirectoryTokenWire) (*AzureActiveDirectoryToken, error) {
@@ -277,6 +788,30 @@ func azureActiveDirectoryTokenFromWire(w *azureActiveDirectoryTokenWire) (*Azure
 	return &AzureActiveDirectoryToken{
 		AadToken: w.AadToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AzureActiveDirectoryToken) MarshalJSON() ([]byte, error) {
+	w, err := azureActiveDirectoryTokenToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AzureActiveDirectoryToken) UnmarshalJSON(data []byte) error {
+	var w azureActiveDirectoryTokenWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := azureActiveDirectoryTokenFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type azureManagedIdentityWire struct {
@@ -307,6 +842,30 @@ func azureManagedIdentityFromWire(w *azureManagedIdentityWire) (*AzureManagedIde
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AzureManagedIdentity) MarshalJSON() ([]byte, error) {
+	w, err := azureManagedIdentityToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AzureManagedIdentity) UnmarshalJSON(data []byte) error {
+	var w azureManagedIdentityWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := azureManagedIdentityFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type azureServicePrincipalWire struct {
 	DirectoryId   *string `json:"directory_id,omitempty"`
 	ApplicationId *string `json:"application_id,omitempty"`
@@ -335,8 +894,41 @@ func azureServicePrincipalFromWire(w *azureServicePrincipalWire) (*AzureServiceP
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AzureServicePrincipal) MarshalJSON() ([]byte, error) {
+	w, err := azureServicePrincipalToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AzureServicePrincipal) UnmarshalJSON(data []byte) error {
+	var w azureServicePrincipalWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := azureServicePrincipalFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type azureUserDelegationSasWire struct {
 	SasToken *string `json:"sas_token,omitempty"`
+}
+
+func azureUserDelegationSasToWire(v *AzureUserDelegationSas) (*azureUserDelegationSasWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &azureUserDelegationSasWire{
+		SasToken: v.SasToken,
+	}, nil
 }
 
 func azureUserDelegationSasFromWire(w *azureUserDelegationSasWire) (*AzureUserDelegationSas, error) {
@@ -346,6 +938,30 @@ func azureUserDelegationSasFromWire(w *azureUserDelegationSasWire) (*AzureUserDe
 	return &AzureUserDelegationSas{
 		SasToken: w.SasToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AzureUserDelegationSas) MarshalJSON() ([]byte, error) {
+	w, err := azureUserDelegationSasToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AzureUserDelegationSas) UnmarshalJSON(data []byte) error {
+	var w azureUserDelegationSasWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := azureUserDelegationSasFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type cloudflareApiTokenWire struct {
@@ -374,6 +990,30 @@ func cloudflareApiTokenFromWire(w *cloudflareApiTokenWire) (*CloudflareApiToken,
 		SecretAccessKey: w.SecretAccessKey,
 		AccountId:       w.AccountId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CloudflareApiToken) MarshalJSON() ([]byte, error) {
+	w, err := cloudflareApiTokenToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CloudflareApiToken) UnmarshalJSON(data []byte) error {
+	var w cloudflareApiTokenWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cloudflareApiTokenFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createAccountsStorageCredentialWire struct {
@@ -492,6 +1132,121 @@ func createAccountsStorageCredentialToWire(v *CreateAccountsStorageCredential) (
 	}, nil
 }
 
+func createAccountsStorageCredentialFromWire(w *createAccountsStorageCredentialWire) (*CreateAccountsStorageCredential, error) {
+	if w == nil {
+		return nil, nil
+	}
+	credentialMembers := 0
+	if w.AwsIamRole != nil {
+		credentialMembers++
+	}
+	if w.AzureServicePrincipal != nil {
+		credentialMembers++
+	}
+	if w.GcpServiceAccountKey != nil {
+		credentialMembers++
+	}
+	if w.AzureManagedIdentity != nil {
+		credentialMembers++
+	}
+	if w.DatabricksGcpServiceAccount != nil {
+		credentialMembers++
+	}
+	if w.CloudflareApiToken != nil {
+		credentialMembers++
+	}
+	if credentialMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "CreateAccountsStorageCredential.Credential")
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccountsStorageCredential.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccountsStorageCredential.UpdatedAt", err)
+	}
+	var credentialSelection isCreateAccountsStorageCredential_Credential
+	switch {
+	case w.AwsIamRole != nil:
+		credentialAwsIamRoleConverted, err := awsIamRoleFromWire(w.AwsIamRole)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateAccountsStorageCredential.Credential.AwsIamRole", err)
+		}
+		credentialSelection = &CreateAccountsStorageCredential_Credential_AwsIamRole{AwsIamRole: *credentialAwsIamRoleConverted}
+	case w.AzureServicePrincipal != nil:
+		credentialAzureServicePrincipalConverted, err := azureServicePrincipalFromWire(w.AzureServicePrincipal)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateAccountsStorageCredential.Credential.AzureServicePrincipal", err)
+		}
+		credentialSelection = &CreateAccountsStorageCredential_Credential_AzureServicePrincipal{AzureServicePrincipal: *credentialAzureServicePrincipalConverted}
+	case w.GcpServiceAccountKey != nil:
+		credentialGcpServiceAccountKeyConverted, err := gcpServiceAccountKeyFromWire(w.GcpServiceAccountKey)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateAccountsStorageCredential.Credential.GcpServiceAccountKey", err)
+		}
+		credentialSelection = &CreateAccountsStorageCredential_Credential_GcpServiceAccountKey{GcpServiceAccountKey: *credentialGcpServiceAccountKeyConverted}
+	case w.AzureManagedIdentity != nil:
+		credentialAzureManagedIdentityConverted, err := azureManagedIdentityFromWire(w.AzureManagedIdentity)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateAccountsStorageCredential.Credential.AzureManagedIdentity", err)
+		}
+		credentialSelection = &CreateAccountsStorageCredential_Credential_AzureManagedIdentity{AzureManagedIdentity: *credentialAzureManagedIdentityConverted}
+	case w.DatabricksGcpServiceAccount != nil:
+		credentialDatabricksGcpServiceAccountConverted, err := databricksGcpServiceAccountFromWire(w.DatabricksGcpServiceAccount)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateAccountsStorageCredential.Credential.DatabricksGcpServiceAccount", err)
+		}
+		credentialSelection = &CreateAccountsStorageCredential_Credential_DatabricksGcpServiceAccount{DatabricksGcpServiceAccount: *credentialDatabricksGcpServiceAccountConverted}
+	case w.CloudflareApiToken != nil:
+		credentialCloudflareApiTokenConverted, err := cloudflareApiTokenFromWire(w.CloudflareApiToken)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateAccountsStorageCredential.Credential.CloudflareApiToken", err)
+		}
+		credentialSelection = &CreateAccountsStorageCredential_Credential_CloudflareApiToken{CloudflareApiToken: *credentialCloudflareApiTokenConverted}
+	}
+	return &CreateAccountsStorageCredential{
+		Name:                  w.Name,
+		Comment:               w.Comment,
+		ReadOnly:              w.ReadOnly,
+		Owner:                 w.Owner,
+		Id:                    w.Id,
+		MetastoreId:           w.MetastoreId,
+		CreatedAt:             createdAtPublicValue,
+		CreatedBy:             w.CreatedBy,
+		UpdatedAt:             updatedAtPublicValue,
+		UpdatedBy:             w.UpdatedBy,
+		UsedForManagedStorage: w.UsedForManagedStorage,
+		FullName:              w.FullName,
+		IsolationMode:         w.IsolationMode,
+		Credential:            credentialSelection,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateAccountsStorageCredential) MarshalJSON() ([]byte, error) {
+	w, err := createAccountsStorageCredentialToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateAccountsStorageCredential) UnmarshalJSON(data []byte) error {
+	var w createAccountsStorageCredentialWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createAccountsStorageCredentialFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createCredentialAwsCredentialsWire struct {
 	StsRole *awsCredentials_StsRoleWire `json:"sts_role,omitempty"`
 }
@@ -517,6 +1272,55 @@ func createCredentialAwsCredentialsToWire(v *CreateCredentialAwsCredentials) (*c
 	return &createCredentialAwsCredentialsWire{
 		StsRole: credsStsRoleWire,
 	}, nil
+}
+
+func createCredentialAwsCredentialsFromWire(w *createCredentialAwsCredentialsWire) (*CreateCredentialAwsCredentials, error) {
+	if w == nil {
+		return nil, nil
+	}
+	credsMembers := 0
+	if w.StsRole != nil {
+		credsMembers++
+	}
+	if credsMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "CreateCredentialAwsCredentials.Creds")
+	}
+	var credsSelection isCreateCredentialAwsCredentials_Creds
+	switch {
+	case w.StsRole != nil:
+		credsStsRoleConverted, err := awsCredentials_StsRoleFromWire(w.StsRole)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateCredentialAwsCredentials.Creds.StsRole", err)
+		}
+		credsSelection = &CreateCredentialAwsCredentials_Creds_StsRole{StsRole: *credsStsRoleConverted}
+	}
+	return &CreateCredentialAwsCredentials{
+		Creds: credsSelection,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateCredentialAwsCredentials) MarshalJSON() ([]byte, error) {
+	w, err := createCredentialAwsCredentialsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateCredentialAwsCredentials) UnmarshalJSON(data []byte) error {
+	var w createCredentialAwsCredentialsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createCredentialAwsCredentialsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createCredentialRequestWire struct {
@@ -637,6 +1441,122 @@ func createCredentialRequestToWire(v *CreateCredentialRequest) (*createCredentia
 	}, nil
 }
 
+func createCredentialRequestFromWire(w *createCredentialRequestWire) (*CreateCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	credentialMembers := 0
+	if w.AwsIamRole != nil {
+		credentialMembers++
+	}
+	if w.AzureServicePrincipal != nil {
+		credentialMembers++
+	}
+	if w.GcpServiceAccountKey != nil {
+		credentialMembers++
+	}
+	if w.AzureManagedIdentity != nil {
+		credentialMembers++
+	}
+	if w.DatabricksGcpServiceAccount != nil {
+		credentialMembers++
+	}
+	if w.CloudflareApiToken != nil {
+		credentialMembers++
+	}
+	if credentialMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "CreateCredentialRequest.Credential")
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCredentialRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCredentialRequest.UpdatedAt", err)
+	}
+	var credentialSelection isCreateCredentialRequest_Credential
+	switch {
+	case w.AwsIamRole != nil:
+		credentialAwsIamRoleConverted, err := awsIamRoleFromWire(w.AwsIamRole)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateCredentialRequest.Credential.AwsIamRole", err)
+		}
+		credentialSelection = &CreateCredentialRequest_Credential_AwsIamRole{AwsIamRole: *credentialAwsIamRoleConverted}
+	case w.AzureServicePrincipal != nil:
+		credentialAzureServicePrincipalConverted, err := azureServicePrincipalFromWire(w.AzureServicePrincipal)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateCredentialRequest.Credential.AzureServicePrincipal", err)
+		}
+		credentialSelection = &CreateCredentialRequest_Credential_AzureServicePrincipal{AzureServicePrincipal: *credentialAzureServicePrincipalConverted}
+	case w.GcpServiceAccountKey != nil:
+		credentialGcpServiceAccountKeyConverted, err := gcpServiceAccountKeyFromWire(w.GcpServiceAccountKey)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateCredentialRequest.Credential.GcpServiceAccountKey", err)
+		}
+		credentialSelection = &CreateCredentialRequest_Credential_GcpServiceAccountKey{GcpServiceAccountKey: *credentialGcpServiceAccountKeyConverted}
+	case w.AzureManagedIdentity != nil:
+		credentialAzureManagedIdentityConverted, err := azureManagedIdentityFromWire(w.AzureManagedIdentity)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateCredentialRequest.Credential.AzureManagedIdentity", err)
+		}
+		credentialSelection = &CreateCredentialRequest_Credential_AzureManagedIdentity{AzureManagedIdentity: *credentialAzureManagedIdentityConverted}
+	case w.DatabricksGcpServiceAccount != nil:
+		credentialDatabricksGcpServiceAccountConverted, err := databricksGcpServiceAccountFromWire(w.DatabricksGcpServiceAccount)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateCredentialRequest.Credential.DatabricksGcpServiceAccount", err)
+		}
+		credentialSelection = &CreateCredentialRequest_Credential_DatabricksGcpServiceAccount{DatabricksGcpServiceAccount: *credentialDatabricksGcpServiceAccountConverted}
+	case w.CloudflareApiToken != nil:
+		credentialCloudflareApiTokenConverted, err := cloudflareApiTokenFromWire(w.CloudflareApiToken)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateCredentialRequest.Credential.CloudflareApiToken", err)
+		}
+		credentialSelection = &CreateCredentialRequest_Credential_CloudflareApiToken{CloudflareApiToken: *credentialCloudflareApiTokenConverted}
+	}
+	return &CreateCredentialRequest{
+		SkipValidation:        w.SkipValidation,
+		Name:                  w.Name,
+		Comment:               w.Comment,
+		ReadOnly:              w.ReadOnly,
+		Owner:                 w.Owner,
+		Id:                    w.Id,
+		MetastoreId:           w.MetastoreId,
+		CreatedAt:             createdAtPublicValue,
+		CreatedBy:             w.CreatedBy,
+		UpdatedAt:             updatedAtPublicValue,
+		UpdatedBy:             w.UpdatedBy,
+		UsedForManagedStorage: w.UsedForManagedStorage,
+		FullName:              w.FullName,
+		IsolationMode:         w.IsolationMode,
+		Credential:            credentialSelection,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateCredentialRequest) MarshalJSON() ([]byte, error) {
+	w, err := createCredentialRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateCredentialRequest) UnmarshalJSON(data []byte) error {
+	var w createCredentialRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createCredentialRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createCredentialsRequestWire struct {
 	AccountId       *string                             `json:"account_id,omitempty"`
 	CredentialsName *string                             `json:"credentials_name,omitempty"`
@@ -666,6 +1586,57 @@ func createCredentialsRequestToWire(v *CreateCredentialsRequest) (*createCredent
 		CredentialsName: v.CredentialsName,
 		AwsCredentials:  cloudCredentialsAwsCredentialsWire,
 	}, nil
+}
+
+func createCredentialsRequestFromWire(w *createCredentialsRequestWire) (*CreateCredentialsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	cloudCredentialsMembers := 0
+	if w.AwsCredentials != nil {
+		cloudCredentialsMembers++
+	}
+	if cloudCredentialsMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "CreateCredentialsRequest.CloudCredentials")
+	}
+	var cloudCredentialsSelection isCreateCredentialsRequest_CloudCredentials
+	switch {
+	case w.AwsCredentials != nil:
+		cloudCredentialsAwsCredentialsConverted, err := createCredentialAwsCredentialsFromWire(w.AwsCredentials)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateCredentialsRequest.CloudCredentials.AwsCredentials", err)
+		}
+		cloudCredentialsSelection = &CreateCredentialsRequest_CloudCredentials_AwsCredentials{AwsCredentials: *cloudCredentialsAwsCredentialsConverted}
+	}
+	return &CreateCredentialsRequest{
+		AccountId:        w.AccountId,
+		CredentialsName:  w.CredentialsName,
+		CloudCredentials: cloudCredentialsSelection,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateCredentialsRequest) MarshalJSON() ([]byte, error) {
+	w, err := createCredentialsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateCredentialsRequest) UnmarshalJSON(data []byte) error {
+	var w createCredentialsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createCredentialsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createStorageCredentialRequestWire struct {
@@ -786,6 +1757,122 @@ func createStorageCredentialRequestToWire(v *CreateStorageCredentialRequest) (*c
 	}, nil
 }
 
+func createStorageCredentialRequestFromWire(w *createStorageCredentialRequestWire) (*CreateStorageCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	credentialMembers := 0
+	if w.AwsIamRole != nil {
+		credentialMembers++
+	}
+	if w.AzureServicePrincipal != nil {
+		credentialMembers++
+	}
+	if w.GcpServiceAccountKey != nil {
+		credentialMembers++
+	}
+	if w.AzureManagedIdentity != nil {
+		credentialMembers++
+	}
+	if w.DatabricksGcpServiceAccount != nil {
+		credentialMembers++
+	}
+	if w.CloudflareApiToken != nil {
+		credentialMembers++
+	}
+	if credentialMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "CreateStorageCredentialRequest.Credential")
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateStorageCredentialRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateStorageCredentialRequest.UpdatedAt", err)
+	}
+	var credentialSelection isCreateStorageCredentialRequest_Credential
+	switch {
+	case w.AwsIamRole != nil:
+		credentialAwsIamRoleConverted, err := awsIamRoleFromWire(w.AwsIamRole)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateStorageCredentialRequest.Credential.AwsIamRole", err)
+		}
+		credentialSelection = &CreateStorageCredentialRequest_Credential_AwsIamRole{AwsIamRole: *credentialAwsIamRoleConverted}
+	case w.AzureServicePrincipal != nil:
+		credentialAzureServicePrincipalConverted, err := azureServicePrincipalFromWire(w.AzureServicePrincipal)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateStorageCredentialRequest.Credential.AzureServicePrincipal", err)
+		}
+		credentialSelection = &CreateStorageCredentialRequest_Credential_AzureServicePrincipal{AzureServicePrincipal: *credentialAzureServicePrincipalConverted}
+	case w.GcpServiceAccountKey != nil:
+		credentialGcpServiceAccountKeyConverted, err := gcpServiceAccountKeyFromWire(w.GcpServiceAccountKey)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateStorageCredentialRequest.Credential.GcpServiceAccountKey", err)
+		}
+		credentialSelection = &CreateStorageCredentialRequest_Credential_GcpServiceAccountKey{GcpServiceAccountKey: *credentialGcpServiceAccountKeyConverted}
+	case w.AzureManagedIdentity != nil:
+		credentialAzureManagedIdentityConverted, err := azureManagedIdentityFromWire(w.AzureManagedIdentity)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateStorageCredentialRequest.Credential.AzureManagedIdentity", err)
+		}
+		credentialSelection = &CreateStorageCredentialRequest_Credential_AzureManagedIdentity{AzureManagedIdentity: *credentialAzureManagedIdentityConverted}
+	case w.DatabricksGcpServiceAccount != nil:
+		credentialDatabricksGcpServiceAccountConverted, err := databricksGcpServiceAccountFromWire(w.DatabricksGcpServiceAccount)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateStorageCredentialRequest.Credential.DatabricksGcpServiceAccount", err)
+		}
+		credentialSelection = &CreateStorageCredentialRequest_Credential_DatabricksGcpServiceAccount{DatabricksGcpServiceAccount: *credentialDatabricksGcpServiceAccountConverted}
+	case w.CloudflareApiToken != nil:
+		credentialCloudflareApiTokenConverted, err := cloudflareApiTokenFromWire(w.CloudflareApiToken)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateStorageCredentialRequest.Credential.CloudflareApiToken", err)
+		}
+		credentialSelection = &CreateStorageCredentialRequest_Credential_CloudflareApiToken{CloudflareApiToken: *credentialCloudflareApiTokenConverted}
+	}
+	return &CreateStorageCredentialRequest{
+		SkipValidation:        w.SkipValidation,
+		Name:                  w.Name,
+		Comment:               w.Comment,
+		ReadOnly:              w.ReadOnly,
+		Owner:                 w.Owner,
+		Id:                    w.Id,
+		MetastoreId:           w.MetastoreId,
+		CreatedAt:             createdAtPublicValue,
+		CreatedBy:             w.CreatedBy,
+		UpdatedAt:             updatedAtPublicValue,
+		UpdatedBy:             w.UpdatedBy,
+		UsedForManagedStorage: w.UsedForManagedStorage,
+		FullName:              w.FullName,
+		IsolationMode:         w.IsolationMode,
+		Credential:            credentialSelection,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateStorageCredentialRequest) MarshalJSON() ([]byte, error) {
+	w, err := createStorageCredentialRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateStorageCredentialRequest) UnmarshalJSON(data []byte) error {
+	var w createStorageCredentialRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createStorageCredentialRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type credentialInfoWire struct {
 	Name                        *string                          `json:"name,omitempty"`
 	AwsIamRole                  *awsIamRoleWire                  `json:"aws_iam_role,omitempty"`
@@ -806,6 +1893,100 @@ type credentialInfoWire struct {
 	UsedForManagedStorage       *bool                            `json:"used_for_managed_storage,omitempty"`
 	FullName                    *string                          `json:"full_name,omitempty"`
 	IsolationMode               IsolationMode                    `json:"isolation_mode,omitempty"`
+}
+
+func credentialInfoToWire(v *CredentialInfo) (*credentialInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CredentialInfo.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CredentialInfo.UpdatedAt", err)
+	}
+	var credentialAwsIamRoleWire *awsIamRoleWire
+	var credentialAzureServicePrincipalWire *azureServicePrincipalWire
+	var credentialGcpServiceAccountKeyWire *gcpServiceAccountKeyWire
+	var credentialAzureManagedIdentityWire *azureManagedIdentityWire
+	var credentialDatabricksGcpServiceAccountWire *databricksGcpServiceAccountWire
+	var credentialCloudflareApiTokenWire *cloudflareApiTokenWire
+	switch value := v.Credential.(type) {
+	case nil:
+	case *CredentialInfo_Credential_AwsIamRole:
+		if value != nil {
+			credentialAwsIamRoleConverted, err := awsIamRoleToWire(&value.AwsIamRole)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "CredentialInfo.Credential.AwsIamRole", err)
+			}
+			credentialAwsIamRoleWire = credentialAwsIamRoleConverted
+		}
+	case *CredentialInfo_Credential_AzureServicePrincipal:
+		if value != nil {
+			credentialAzureServicePrincipalConverted, err := azureServicePrincipalToWire(&value.AzureServicePrincipal)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "CredentialInfo.Credential.AzureServicePrincipal", err)
+			}
+			credentialAzureServicePrincipalWire = credentialAzureServicePrincipalConverted
+		}
+	case *CredentialInfo_Credential_GcpServiceAccountKey:
+		if value != nil {
+			credentialGcpServiceAccountKeyConverted, err := gcpServiceAccountKeyToWire(&value.GcpServiceAccountKey)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "CredentialInfo.Credential.GcpServiceAccountKey", err)
+			}
+			credentialGcpServiceAccountKeyWire = credentialGcpServiceAccountKeyConverted
+		}
+	case *CredentialInfo_Credential_AzureManagedIdentity:
+		if value != nil {
+			credentialAzureManagedIdentityConverted, err := azureManagedIdentityToWire(&value.AzureManagedIdentity)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "CredentialInfo.Credential.AzureManagedIdentity", err)
+			}
+			credentialAzureManagedIdentityWire = credentialAzureManagedIdentityConverted
+		}
+	case *CredentialInfo_Credential_DatabricksGcpServiceAccount:
+		if value != nil {
+			credentialDatabricksGcpServiceAccountConverted, err := databricksGcpServiceAccountToWire(&value.DatabricksGcpServiceAccount)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "CredentialInfo.Credential.DatabricksGcpServiceAccount", err)
+			}
+			credentialDatabricksGcpServiceAccountWire = credentialDatabricksGcpServiceAccountConverted
+		}
+	case *CredentialInfo_Credential_CloudflareApiToken:
+		if value != nil {
+			credentialCloudflareApiTokenConverted, err := cloudflareApiTokenToWire(&value.CloudflareApiToken)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "CredentialInfo.Credential.CloudflareApiToken", err)
+			}
+			credentialCloudflareApiTokenWire = credentialCloudflareApiTokenConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "CredentialInfo.Credential", value)
+	}
+	return &credentialInfoWire{
+		Name:                        v.Name,
+		AwsIamRole:                  credentialAwsIamRoleWire,
+		AzureServicePrincipal:       credentialAzureServicePrincipalWire,
+		GcpServiceAccountKey:        credentialGcpServiceAccountKeyWire,
+		AzureManagedIdentity:        credentialAzureManagedIdentityWire,
+		DatabricksGcpServiceAccount: credentialDatabricksGcpServiceAccountWire,
+		CloudflareApiToken:          credentialCloudflareApiTokenWire,
+		Comment:                     v.Comment,
+		ReadOnly:                    v.ReadOnly,
+		Owner:                       v.Owner,
+		Id:                          v.Id,
+		MetastoreId:                 v.MetastoreId,
+		CreatedAt:                   createdAtWireValue,
+		CreatedBy:                   v.CreatedBy,
+		UpdatedAt:                   updatedAtWireValue,
+		UpdatedBy:                   v.UpdatedBy,
+		UsedForManagedStorage:       v.UsedForManagedStorage,
+		FullName:                    v.FullName,
+		IsolationMode:               v.IsolationMode,
+	}, nil
 }
 
 func credentialInfoFromWire(w *credentialInfoWire) (*CredentialInfo, error) {
@@ -899,12 +2080,67 @@ func credentialInfoFromWire(w *credentialInfoWire) (*CredentialInfo, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CredentialInfo) MarshalJSON() ([]byte, error) {
+	w, err := credentialInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CredentialInfo) UnmarshalJSON(data []byte) error {
+	var w credentialInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := credentialInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type credentialsWire struct {
 	CredentialsId   *string             `json:"credentials_id,omitempty"`
 	AccountId       *string             `json:"account_id,omitempty"`
 	AwsCredentials  *awsCredentialsWire `json:"aws_credentials,omitempty"`
 	CredentialsName *string             `json:"credentials_name,omitempty"`
 	CreationTime    *wireInt64          `json:"creation_time,omitempty"`
+}
+
+func credentialsToWire(v *Credentials) (*credentialsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	creationTimeWireValue, err := int64ToWire(v.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Credentials.CreationTime", err)
+	}
+	var cloudCredentialsAwsCredentialsWire *awsCredentialsWire
+	switch value := v.CloudCredentials.(type) {
+	case nil:
+	case *Credentials_CloudCredentials_AwsCredentials:
+		if value != nil {
+			cloudCredentialsAwsCredentialsConverted, err := awsCredentialsToWire(&value.AwsCredentials)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Credentials.CloudCredentials.AwsCredentials", err)
+			}
+			cloudCredentialsAwsCredentialsWire = cloudCredentialsAwsCredentialsConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Credentials.CloudCredentials", value)
+	}
+	return &credentialsWire{
+		CredentialsId:   v.CredentialsId,
+		AccountId:       v.AccountId,
+		AwsCredentials:  cloudCredentialsAwsCredentialsWire,
+		CredentialsName: v.CredentialsName,
+		CreationTime:    creationTimeWireValue,
+	}, nil
 }
 
 func credentialsFromWire(w *credentialsWire) (*Credentials, error) {
@@ -940,6 +2176,30 @@ func credentialsFromWire(w *credentialsWire) (*Credentials, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Credentials) MarshalJSON() ([]byte, error) {
+	w, err := credentialsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Credentials) UnmarshalJSON(data []byte) error {
+	var w credentialsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := credentialsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type databricksGcpServiceAccountWire struct {
 	Email        *string `json:"email,omitempty"`
 	PrivateKeyId *string `json:"private_key_id,omitempty"`
@@ -968,6 +2228,30 @@ func databricksGcpServiceAccountFromWire(w *databricksGcpServiceAccountWire) (*D
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DatabricksGcpServiceAccount) MarshalJSON() ([]byte, error) {
+	w, err := databricksGcpServiceAccountToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DatabricksGcpServiceAccount) UnmarshalJSON(data []byte) error {
+	var w databricksGcpServiceAccountWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := databricksGcpServiceAccountFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteCredentialRequestWire struct {
 	NameArg *string `json:"name_arg,omitempty"`
 	Force   *bool   `json:"force,omitempty"`
@@ -981,6 +2265,130 @@ func deleteCredentialRequestToWire(v *DeleteCredentialRequest) (*deleteCredentia
 		NameArg: v.NameArg,
 		Force:   v.Force,
 	}, nil
+}
+
+func deleteCredentialRequestFromWire(w *deleteCredentialRequestWire) (*DeleteCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCredentialRequest{
+		NameArg: w.NameArg,
+		Force:   w.Force,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteCredentialRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteCredentialRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteCredentialRequest) UnmarshalJSON(data []byte) error {
+	var w deleteCredentialRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteCredentialRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteCredentialResponseWire struct {
+}
+
+func deleteCredentialResponseToWire(v *DeleteCredentialResponse) (*deleteCredentialResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCredentialResponseWire{}, nil
+}
+
+func deleteCredentialResponseFromWire(w *deleteCredentialResponseWire) (*DeleteCredentialResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCredentialResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteCredentialResponse) MarshalJSON() ([]byte, error) {
+	w, err := deleteCredentialResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteCredentialResponse) UnmarshalJSON(data []byte) error {
+	var w deleteCredentialResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteCredentialResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteCredentialsRequestWire struct {
+	CredentialsId *string `json:"credentials_id,omitempty"`
+	AccountId     *string `json:"account_id,omitempty"`
+}
+
+func deleteCredentialsRequestToWire(v *DeleteCredentialsRequest) (*deleteCredentialsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCredentialsRequestWire{
+		CredentialsId: v.CredentialsId,
+		AccountId:     v.AccountId,
+	}, nil
+}
+
+func deleteCredentialsRequestFromWire(w *deleteCredentialsRequestWire) (*DeleteCredentialsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCredentialsRequest{
+		CredentialsId: w.CredentialsId,
+		AccountId:     w.AccountId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteCredentialsRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteCredentialsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteCredentialsRequest) UnmarshalJSON(data []byte) error {
+	var w deleteCredentialsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteCredentialsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type deleteStorageCredentialRequestWire struct {
@@ -998,8 +2406,92 @@ func deleteStorageCredentialRequestToWire(v *DeleteStorageCredentialRequest) (*d
 	}, nil
 }
 
+func deleteStorageCredentialRequestFromWire(w *deleteStorageCredentialRequestWire) (*DeleteStorageCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteStorageCredentialRequest{
+		NameArg: w.NameArg,
+		Force:   w.Force,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteStorageCredentialRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteStorageCredentialRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteStorageCredentialRequest) UnmarshalJSON(data []byte) error {
+	var w deleteStorageCredentialRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteStorageCredentialRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteStorageCredentialResponseWire struct {
+}
+
+func deleteStorageCredentialResponseToWire(v *DeleteStorageCredentialResponse) (*deleteStorageCredentialResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteStorageCredentialResponseWire{}, nil
+}
+
+func deleteStorageCredentialResponseFromWire(w *deleteStorageCredentialResponseWire) (*DeleteStorageCredentialResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteStorageCredentialResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteStorageCredentialResponse) MarshalJSON() ([]byte, error) {
+	w, err := deleteStorageCredentialResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteStorageCredentialResponse) UnmarshalJSON(data []byte) error {
+	var w deleteStorageCredentialResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteStorageCredentialResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type gcpOauthTokenWire struct {
 	OauthToken *string `json:"oauth_token,omitempty"`
+}
+
+func gcpOauthTokenToWire(v *GcpOauthToken) (*gcpOauthTokenWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &gcpOauthTokenWire{
+		OauthToken: v.OauthToken,
+	}, nil
 }
 
 func gcpOauthTokenFromWire(w *gcpOauthTokenWire) (*GcpOauthToken, error) {
@@ -1009,6 +2501,30 @@ func gcpOauthTokenFromWire(w *gcpOauthTokenWire) (*GcpOauthToken, error) {
 	return &GcpOauthToken{
 		OauthToken: w.OauthToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GcpOauthToken) MarshalJSON() ([]byte, error) {
+	w, err := gcpOauthTokenToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GcpOauthToken) UnmarshalJSON(data []byte) error {
+	var w gcpOauthTokenWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := gcpOauthTokenFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type gcpServiceAccountKeyWire struct {
@@ -1039,6 +2555,30 @@ func gcpServiceAccountKeyFromWire(w *gcpServiceAccountKeyWire) (*GcpServiceAccou
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GcpServiceAccountKey) MarshalJSON() ([]byte, error) {
+	w, err := gcpServiceAccountKeyToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GcpServiceAccountKey) UnmarshalJSON(data []byte) error {
+	var w gcpServiceAccountKeyWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := gcpServiceAccountKeyFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type generateTemporaryPathCredentialRequestWire struct {
 	Url       *string       `json:"url,omitempty"`
 	Operation PathOperation `json:"operation,omitempty"`
@@ -1056,6 +2596,41 @@ func generateTemporaryPathCredentialRequestToWire(v *GenerateTemporaryPathCreden
 	}, nil
 }
 
+func generateTemporaryPathCredentialRequestFromWire(w *generateTemporaryPathCredentialRequestWire) (*GenerateTemporaryPathCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GenerateTemporaryPathCredentialRequest{
+		Url:       w.Url,
+		Operation: w.Operation,
+		DryRun:    w.DryRun,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenerateTemporaryPathCredentialRequest) MarshalJSON() ([]byte, error) {
+	w, err := generateTemporaryPathCredentialRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenerateTemporaryPathCredentialRequest) UnmarshalJSON(data []byte) error {
+	var w generateTemporaryPathCredentialRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := generateTemporaryPathCredentialRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type generateTemporaryPathCredentialResponseWire struct {
 	AwsTempCredentials     *temporaryAwsCredentialsWire   `json:"aws_temp_credentials,omitempty"`
 	AzureUserDelegationSas *azureUserDelegationSasWire    `json:"azure_user_delegation_sas,omitempty"`
@@ -1064,6 +2639,75 @@ type generateTemporaryPathCredentialResponseWire struct {
 	R2TempCredentials      *r2CredentialsWire             `json:"r2_temp_credentials,omitempty"`
 	ExpirationTime         *wireInt64                     `json:"expiration_time,omitempty"`
 	Url                    *string                        `json:"url,omitempty"`
+}
+
+func generateTemporaryPathCredentialResponseToWire(v *GenerateTemporaryPathCredentialResponse) (*generateTemporaryPathCredentialResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	expirationTimeWireValue, err := int64ToWire(v.ExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenerateTemporaryPathCredentialResponse.ExpirationTime", err)
+	}
+	var credentialsAwsTempCredentialsWire *temporaryAwsCredentialsWire
+	var credentialsAzureUserDelegationSasWire *azureUserDelegationSasWire
+	var credentialsGcpOauthTokenWire *gcpOauthTokenWire
+	var credentialsAzureAadWire *azureActiveDirectoryTokenWire
+	var credentialsR2TempCredentialsWire *r2CredentialsWire
+	switch value := v.Credentials.(type) {
+	case nil:
+	case *GenerateTemporaryPathCredentialResponse_Credentials_AwsTempCredentials:
+		if value != nil {
+			credentialsAwsTempCredentialsConverted, err := temporaryAwsCredentialsToWire(&value.AwsTempCredentials)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GenerateTemporaryPathCredentialResponse.Credentials.AwsTempCredentials", err)
+			}
+			credentialsAwsTempCredentialsWire = credentialsAwsTempCredentialsConverted
+		}
+	case *GenerateTemporaryPathCredentialResponse_Credentials_AzureUserDelegationSas:
+		if value != nil {
+			credentialsAzureUserDelegationSasConverted, err := azureUserDelegationSasToWire(&value.AzureUserDelegationSas)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GenerateTemporaryPathCredentialResponse.Credentials.AzureUserDelegationSas", err)
+			}
+			credentialsAzureUserDelegationSasWire = credentialsAzureUserDelegationSasConverted
+		}
+	case *GenerateTemporaryPathCredentialResponse_Credentials_GcpOauthToken:
+		if value != nil {
+			credentialsGcpOauthTokenConverted, err := gcpOauthTokenToWire(&value.GcpOauthToken)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GenerateTemporaryPathCredentialResponse.Credentials.GcpOauthToken", err)
+			}
+			credentialsGcpOauthTokenWire = credentialsGcpOauthTokenConverted
+		}
+	case *GenerateTemporaryPathCredentialResponse_Credentials_AzureAad:
+		if value != nil {
+			credentialsAzureAadConverted, err := azureActiveDirectoryTokenToWire(&value.AzureAad)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GenerateTemporaryPathCredentialResponse.Credentials.AzureAad", err)
+			}
+			credentialsAzureAadWire = credentialsAzureAadConverted
+		}
+	case *GenerateTemporaryPathCredentialResponse_Credentials_R2TempCredentials:
+		if value != nil {
+			credentialsR2TempCredentialsConverted, err := r2CredentialsToWire(&value.R2TempCredentials)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GenerateTemporaryPathCredentialResponse.Credentials.R2TempCredentials", err)
+			}
+			credentialsR2TempCredentialsWire = credentialsR2TempCredentialsConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "GenerateTemporaryPathCredentialResponse.Credentials", value)
+	}
+	return &generateTemporaryPathCredentialResponseWire{
+		AwsTempCredentials:     credentialsAwsTempCredentialsWire,
+		AzureUserDelegationSas: credentialsAzureUserDelegationSasWire,
+		GcpOauthToken:          credentialsGcpOauthTokenWire,
+		AzureAad:               credentialsAzureAadWire,
+		R2TempCredentials:      credentialsR2TempCredentialsWire,
+		ExpirationTime:         expirationTimeWireValue,
+		Url:                    v.Url,
+	}, nil
 }
 
 func generateTemporaryPathCredentialResponseFromWire(w *generateTemporaryPathCredentialResponseWire) (*GenerateTemporaryPathCredentialResponse, error) {
@@ -1133,6 +2777,30 @@ func generateTemporaryPathCredentialResponseFromWire(w *generateTemporaryPathCre
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenerateTemporaryPathCredentialResponse) MarshalJSON() ([]byte, error) {
+	w, err := generateTemporaryPathCredentialResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenerateTemporaryPathCredentialResponse) UnmarshalJSON(data []byte) error {
+	var w generateTemporaryPathCredentialResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := generateTemporaryPathCredentialResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type generateTemporaryServiceCredentialRequestWire struct {
 	CredentialName *string                                                     `json:"credential_name,omitempty"`
 	AzureOptions   *generateTemporaryServiceCredentialRequest_AzureOptionsWire `json:"azure_options,omitempty"`
@@ -1173,6 +2841,65 @@ func generateTemporaryServiceCredentialRequestToWire(v *GenerateTemporaryService
 	}, nil
 }
 
+func generateTemporaryServiceCredentialRequestFromWire(w *generateTemporaryServiceCredentialRequestWire) (*GenerateTemporaryServiceCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	optionsMembers := 0
+	if w.AzureOptions != nil {
+		optionsMembers++
+	}
+	if w.GcpOptions != nil {
+		optionsMembers++
+	}
+	if optionsMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "GenerateTemporaryServiceCredentialRequest.Options")
+	}
+	var optionsSelection isGenerateTemporaryServiceCredentialRequest_Options
+	switch {
+	case w.AzureOptions != nil:
+		optionsAzureOptionsConverted, err := generateTemporaryServiceCredentialRequest_AzureOptionsFromWire(w.AzureOptions)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "GenerateTemporaryServiceCredentialRequest.Options.AzureOptions", err)
+		}
+		optionsSelection = &GenerateTemporaryServiceCredentialRequest_Options_AzureOptions{AzureOptions: *optionsAzureOptionsConverted}
+	case w.GcpOptions != nil:
+		optionsGcpOptionsConverted, err := generateTemporaryServiceCredentialRequest_GcpOptionsFromWire(w.GcpOptions)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "GenerateTemporaryServiceCredentialRequest.Options.GcpOptions", err)
+		}
+		optionsSelection = &GenerateTemporaryServiceCredentialRequest_Options_GcpOptions{GcpOptions: *optionsGcpOptionsConverted}
+	}
+	return &GenerateTemporaryServiceCredentialRequest{
+		CredentialName: w.CredentialName,
+		Options:        optionsSelection,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenerateTemporaryServiceCredentialRequest) MarshalJSON() ([]byte, error) {
+	w, err := generateTemporaryServiceCredentialRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenerateTemporaryServiceCredentialRequest) UnmarshalJSON(data []byte) error {
+	var w generateTemporaryServiceCredentialRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := generateTemporaryServiceCredentialRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type generateTemporaryServiceCredentialRequest_AzureOptionsWire struct {
 	Resources []string `json:"resources,omitempty"`
 }
@@ -1186,6 +2913,39 @@ func generateTemporaryServiceCredentialRequest_AzureOptionsToWire(v *GenerateTem
 	}, nil
 }
 
+func generateTemporaryServiceCredentialRequest_AzureOptionsFromWire(w *generateTemporaryServiceCredentialRequest_AzureOptionsWire) (*GenerateTemporaryServiceCredentialRequest_AzureOptions, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GenerateTemporaryServiceCredentialRequest_AzureOptions{
+		Resources: w.Resources,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenerateTemporaryServiceCredentialRequest_AzureOptions) MarshalJSON() ([]byte, error) {
+	w, err := generateTemporaryServiceCredentialRequest_AzureOptionsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenerateTemporaryServiceCredentialRequest_AzureOptions) UnmarshalJSON(data []byte) error {
+	var w generateTemporaryServiceCredentialRequest_AzureOptionsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := generateTemporaryServiceCredentialRequest_AzureOptionsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type generateTemporaryServiceCredentialRequest_GcpOptionsWire struct {
 	Scopes []string `json:"scopes,omitempty"`
 }
@@ -1197,6 +2957,39 @@ func generateTemporaryServiceCredentialRequest_GcpOptionsToWire(v *GenerateTempo
 	return &generateTemporaryServiceCredentialRequest_GcpOptionsWire{
 		Scopes: v.Scopes,
 	}, nil
+}
+
+func generateTemporaryServiceCredentialRequest_GcpOptionsFromWire(w *generateTemporaryServiceCredentialRequest_GcpOptionsWire) (*GenerateTemporaryServiceCredentialRequest_GcpOptions, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GenerateTemporaryServiceCredentialRequest_GcpOptions{
+		Scopes: w.Scopes,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenerateTemporaryServiceCredentialRequest_GcpOptions) MarshalJSON() ([]byte, error) {
+	w, err := generateTemporaryServiceCredentialRequest_GcpOptionsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenerateTemporaryServiceCredentialRequest_GcpOptions) UnmarshalJSON(data []byte) error {
+	var w generateTemporaryServiceCredentialRequest_GcpOptionsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := generateTemporaryServiceCredentialRequest_GcpOptionsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type generateTemporaryTableCredentialRequestWire struct {
@@ -1214,6 +3007,40 @@ func generateTemporaryTableCredentialRequestToWire(v *GenerateTemporaryTableCred
 	}, nil
 }
 
+func generateTemporaryTableCredentialRequestFromWire(w *generateTemporaryTableCredentialRequestWire) (*GenerateTemporaryTableCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GenerateTemporaryTableCredentialRequest{
+		TableId:   w.TableId,
+		Operation: w.Operation,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenerateTemporaryTableCredentialRequest) MarshalJSON() ([]byte, error) {
+	w, err := generateTemporaryTableCredentialRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenerateTemporaryTableCredentialRequest) UnmarshalJSON(data []byte) error {
+	var w generateTemporaryTableCredentialRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := generateTemporaryTableCredentialRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type generateTemporaryTableCredentialResponseWire struct {
 	AwsTempCredentials     *temporaryAwsCredentialsWire   `json:"aws_temp_credentials,omitempty"`
 	AzureUserDelegationSas *azureUserDelegationSasWire    `json:"azure_user_delegation_sas,omitempty"`
@@ -1222,6 +3049,75 @@ type generateTemporaryTableCredentialResponseWire struct {
 	R2TempCredentials      *r2CredentialsWire             `json:"r2_temp_credentials,omitempty"`
 	ExpirationTime         *wireInt64                     `json:"expiration_time,omitempty"`
 	Url                    *string                        `json:"url,omitempty"`
+}
+
+func generateTemporaryTableCredentialResponseToWire(v *GenerateTemporaryTableCredentialResponse) (*generateTemporaryTableCredentialResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	expirationTimeWireValue, err := int64ToWire(v.ExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenerateTemporaryTableCredentialResponse.ExpirationTime", err)
+	}
+	var credentialsAwsTempCredentialsWire *temporaryAwsCredentialsWire
+	var credentialsAzureUserDelegationSasWire *azureUserDelegationSasWire
+	var credentialsGcpOauthTokenWire *gcpOauthTokenWire
+	var credentialsAzureAadWire *azureActiveDirectoryTokenWire
+	var credentialsR2TempCredentialsWire *r2CredentialsWire
+	switch value := v.Credentials.(type) {
+	case nil:
+	case *GenerateTemporaryTableCredentialResponse_Credentials_AwsTempCredentials:
+		if value != nil {
+			credentialsAwsTempCredentialsConverted, err := temporaryAwsCredentialsToWire(&value.AwsTempCredentials)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GenerateTemporaryTableCredentialResponse.Credentials.AwsTempCredentials", err)
+			}
+			credentialsAwsTempCredentialsWire = credentialsAwsTempCredentialsConverted
+		}
+	case *GenerateTemporaryTableCredentialResponse_Credentials_AzureUserDelegationSas:
+		if value != nil {
+			credentialsAzureUserDelegationSasConverted, err := azureUserDelegationSasToWire(&value.AzureUserDelegationSas)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GenerateTemporaryTableCredentialResponse.Credentials.AzureUserDelegationSas", err)
+			}
+			credentialsAzureUserDelegationSasWire = credentialsAzureUserDelegationSasConverted
+		}
+	case *GenerateTemporaryTableCredentialResponse_Credentials_GcpOauthToken:
+		if value != nil {
+			credentialsGcpOauthTokenConverted, err := gcpOauthTokenToWire(&value.GcpOauthToken)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GenerateTemporaryTableCredentialResponse.Credentials.GcpOauthToken", err)
+			}
+			credentialsGcpOauthTokenWire = credentialsGcpOauthTokenConverted
+		}
+	case *GenerateTemporaryTableCredentialResponse_Credentials_AzureAad:
+		if value != nil {
+			credentialsAzureAadConverted, err := azureActiveDirectoryTokenToWire(&value.AzureAad)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GenerateTemporaryTableCredentialResponse.Credentials.AzureAad", err)
+			}
+			credentialsAzureAadWire = credentialsAzureAadConverted
+		}
+	case *GenerateTemporaryTableCredentialResponse_Credentials_R2TempCredentials:
+		if value != nil {
+			credentialsR2TempCredentialsConverted, err := r2CredentialsToWire(&value.R2TempCredentials)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GenerateTemporaryTableCredentialResponse.Credentials.R2TempCredentials", err)
+			}
+			credentialsR2TempCredentialsWire = credentialsR2TempCredentialsConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "GenerateTemporaryTableCredentialResponse.Credentials", value)
+	}
+	return &generateTemporaryTableCredentialResponseWire{
+		AwsTempCredentials:     credentialsAwsTempCredentialsWire,
+		AzureUserDelegationSas: credentialsAzureUserDelegationSasWire,
+		GcpOauthToken:          credentialsGcpOauthTokenWire,
+		AzureAad:               credentialsAzureAadWire,
+		R2TempCredentials:      credentialsR2TempCredentialsWire,
+		ExpirationTime:         expirationTimeWireValue,
+		Url:                    v.Url,
+	}, nil
 }
 
 func generateTemporaryTableCredentialResponseFromWire(w *generateTemporaryTableCredentialResponseWire) (*GenerateTemporaryTableCredentialResponse, error) {
@@ -1291,6 +3187,30 @@ func generateTemporaryTableCredentialResponseFromWire(w *generateTemporaryTableC
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenerateTemporaryTableCredentialResponse) MarshalJSON() ([]byte, error) {
+	w, err := generateTemporaryTableCredentialResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenerateTemporaryTableCredentialResponse) UnmarshalJSON(data []byte) error {
+	var w generateTemporaryTableCredentialResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := generateTemporaryTableCredentialResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type generateTemporaryVolumeCredentialRequestWire struct {
 	VolumeId  *string         `json:"volume_id,omitempty"`
 	Operation VolumeOperation `json:"operation,omitempty"`
@@ -1306,6 +3226,40 @@ func generateTemporaryVolumeCredentialRequestToWire(v *GenerateTemporaryVolumeCr
 	}, nil
 }
 
+func generateTemporaryVolumeCredentialRequestFromWire(w *generateTemporaryVolumeCredentialRequestWire) (*GenerateTemporaryVolumeCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GenerateTemporaryVolumeCredentialRequest{
+		VolumeId:  w.VolumeId,
+		Operation: w.Operation,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenerateTemporaryVolumeCredentialRequest) MarshalJSON() ([]byte, error) {
+	w, err := generateTemporaryVolumeCredentialRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenerateTemporaryVolumeCredentialRequest) UnmarshalJSON(data []byte) error {
+	var w generateTemporaryVolumeCredentialRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := generateTemporaryVolumeCredentialRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type generateTemporaryVolumeCredentialResponseWire struct {
 	AwsTempCredentials     *temporaryAwsCredentialsWire   `json:"aws_temp_credentials,omitempty"`
 	AzureUserDelegationSas *azureUserDelegationSasWire    `json:"azure_user_delegation_sas,omitempty"`
@@ -1314,6 +3268,75 @@ type generateTemporaryVolumeCredentialResponseWire struct {
 	R2TempCredentials      *r2CredentialsWire             `json:"r2_temp_credentials,omitempty"`
 	ExpirationTime         *wireInt64                     `json:"expiration_time,omitempty"`
 	Url                    *string                        `json:"url,omitempty"`
+}
+
+func generateTemporaryVolumeCredentialResponseToWire(v *GenerateTemporaryVolumeCredentialResponse) (*generateTemporaryVolumeCredentialResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	expirationTimeWireValue, err := int64ToWire(v.ExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenerateTemporaryVolumeCredentialResponse.ExpirationTime", err)
+	}
+	var credentialsAwsTempCredentialsWire *temporaryAwsCredentialsWire
+	var credentialsAzureUserDelegationSasWire *azureUserDelegationSasWire
+	var credentialsGcpOauthTokenWire *gcpOauthTokenWire
+	var credentialsAzureAadWire *azureActiveDirectoryTokenWire
+	var credentialsR2TempCredentialsWire *r2CredentialsWire
+	switch value := v.Credentials.(type) {
+	case nil:
+	case *GenerateTemporaryVolumeCredentialResponse_Credentials_AwsTempCredentials:
+		if value != nil {
+			credentialsAwsTempCredentialsConverted, err := temporaryAwsCredentialsToWire(&value.AwsTempCredentials)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GenerateTemporaryVolumeCredentialResponse.Credentials.AwsTempCredentials", err)
+			}
+			credentialsAwsTempCredentialsWire = credentialsAwsTempCredentialsConverted
+		}
+	case *GenerateTemporaryVolumeCredentialResponse_Credentials_AzureUserDelegationSas:
+		if value != nil {
+			credentialsAzureUserDelegationSasConverted, err := azureUserDelegationSasToWire(&value.AzureUserDelegationSas)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GenerateTemporaryVolumeCredentialResponse.Credentials.AzureUserDelegationSas", err)
+			}
+			credentialsAzureUserDelegationSasWire = credentialsAzureUserDelegationSasConverted
+		}
+	case *GenerateTemporaryVolumeCredentialResponse_Credentials_GcpOauthToken:
+		if value != nil {
+			credentialsGcpOauthTokenConverted, err := gcpOauthTokenToWire(&value.GcpOauthToken)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GenerateTemporaryVolumeCredentialResponse.Credentials.GcpOauthToken", err)
+			}
+			credentialsGcpOauthTokenWire = credentialsGcpOauthTokenConverted
+		}
+	case *GenerateTemporaryVolumeCredentialResponse_Credentials_AzureAad:
+		if value != nil {
+			credentialsAzureAadConverted, err := azureActiveDirectoryTokenToWire(&value.AzureAad)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GenerateTemporaryVolumeCredentialResponse.Credentials.AzureAad", err)
+			}
+			credentialsAzureAadWire = credentialsAzureAadConverted
+		}
+	case *GenerateTemporaryVolumeCredentialResponse_Credentials_R2TempCredentials:
+		if value != nil {
+			credentialsR2TempCredentialsConverted, err := r2CredentialsToWire(&value.R2TempCredentials)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GenerateTemporaryVolumeCredentialResponse.Credentials.R2TempCredentials", err)
+			}
+			credentialsR2TempCredentialsWire = credentialsR2TempCredentialsConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "GenerateTemporaryVolumeCredentialResponse.Credentials", value)
+	}
+	return &generateTemporaryVolumeCredentialResponseWire{
+		AwsTempCredentials:     credentialsAwsTempCredentialsWire,
+		AzureUserDelegationSas: credentialsAzureUserDelegationSasWire,
+		GcpOauthToken:          credentialsGcpOauthTokenWire,
+		AzureAad:               credentialsAzureAadWire,
+		R2TempCredentials:      credentialsR2TempCredentialsWire,
+		ExpirationTime:         expirationTimeWireValue,
+		Url:                    v.Url,
+	}, nil
 }
 
 func generateTemporaryVolumeCredentialResponseFromWire(w *generateTemporaryVolumeCredentialResponseWire) (*GenerateTemporaryVolumeCredentialResponse, error) {
@@ -1383,6 +3406,217 @@ func generateTemporaryVolumeCredentialResponseFromWire(w *generateTemporaryVolum
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenerateTemporaryVolumeCredentialResponse) MarshalJSON() ([]byte, error) {
+	w, err := generateTemporaryVolumeCredentialResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenerateTemporaryVolumeCredentialResponse) UnmarshalJSON(data []byte) error {
+	var w generateTemporaryVolumeCredentialResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := generateTemporaryVolumeCredentialResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getCredentialRequestWire struct {
+	NameArg *string `json:"name_arg,omitempty"`
+}
+
+func getCredentialRequestToWire(v *GetCredentialRequest) (*getCredentialRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getCredentialRequestWire{
+		NameArg: v.NameArg,
+	}, nil
+}
+
+func getCredentialRequestFromWire(w *getCredentialRequestWire) (*GetCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCredentialRequest{
+		NameArg: w.NameArg,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetCredentialRequest) MarshalJSON() ([]byte, error) {
+	w, err := getCredentialRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetCredentialRequest) UnmarshalJSON(data []byte) error {
+	var w getCredentialRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getCredentialRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getCredentialsRequestWire struct {
+	CredentialsId *string `json:"credentials_id,omitempty"`
+	AccountId     *string `json:"account_id,omitempty"`
+}
+
+func getCredentialsRequestToWire(v *GetCredentialsRequest) (*getCredentialsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getCredentialsRequestWire{
+		CredentialsId: v.CredentialsId,
+		AccountId:     v.AccountId,
+	}, nil
+}
+
+func getCredentialsRequestFromWire(w *getCredentialsRequestWire) (*GetCredentialsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCredentialsRequest{
+		CredentialsId: w.CredentialsId,
+		AccountId:     w.AccountId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetCredentialsRequest) MarshalJSON() ([]byte, error) {
+	w, err := getCredentialsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetCredentialsRequest) UnmarshalJSON(data []byte) error {
+	var w getCredentialsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getCredentialsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getStorageCredentialRequestWire struct {
+	NameArg *string `json:"name_arg,omitempty"`
+}
+
+func getStorageCredentialRequestToWire(v *GetStorageCredentialRequest) (*getStorageCredentialRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getStorageCredentialRequestWire{
+		NameArg: v.NameArg,
+	}, nil
+}
+
+func getStorageCredentialRequestFromWire(w *getStorageCredentialRequestWire) (*GetStorageCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetStorageCredentialRequest{
+		NameArg: w.NameArg,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetStorageCredentialRequest) MarshalJSON() ([]byte, error) {
+	w, err := getStorageCredentialRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetStorageCredentialRequest) UnmarshalJSON(data []byte) error {
+	var w getStorageCredentialRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getStorageCredentialRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type listCredentialsPublicRequestWire struct {
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func listCredentialsPublicRequestToWire(v *ListCredentialsPublicRequest) (*listCredentialsPublicRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listCredentialsPublicRequestWire{
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func listCredentialsPublicRequestFromWire(w *listCredentialsPublicRequestWire) (*ListCredentialsPublicRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListCredentialsPublicRequest{
+		AccountId: w.AccountId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCredentialsPublicRequest) MarshalJSON() ([]byte, error) {
+	w, err := listCredentialsPublicRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCredentialsPublicRequest) UnmarshalJSON(data []byte) error {
+	var w listCredentialsPublicRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCredentialsPublicRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listCredentialsRequestWire struct {
 	IncludeUnbound *bool   `json:"include_unbound,omitempty"`
 	MaxResults     *int    `json:"max_results,omitempty"`
@@ -1400,9 +3634,58 @@ func listCredentialsRequestToWire(v *ListCredentialsRequest) (*listCredentialsRe
 	}, nil
 }
 
+func listCredentialsRequestFromWire(w *listCredentialsRequestWire) (*ListCredentialsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListCredentialsRequest{
+		IncludeUnbound: w.IncludeUnbound,
+		MaxResults:     w.MaxResults,
+		PageToken:      w.PageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCredentialsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listCredentialsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCredentialsRequest) UnmarshalJSON(data []byte) error {
+	var w listCredentialsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCredentialsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listCredentialsRequest_ResponseWire struct {
 	Credentials   []credentialInfoWire `json:"credentials,omitempty"`
 	NextPageToken *string              `json:"next_page_token,omitempty"`
+}
+
+func listCredentialsRequest_ResponseToWire(v *ListCredentialsRequest_Response) (*listCredentialsRequest_ResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	credentialsWireValue, err := convertSlice(v.Credentials, credentialInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCredentialsRequest_Response.Credentials", err)
+	}
+	return &listCredentialsRequest_ResponseWire{
+		Credentials:   credentialsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listCredentialsRequest_ResponseFromWire(w *listCredentialsRequest_ResponseWire) (*ListCredentialsRequest_Response, error) {
@@ -1417,6 +3700,84 @@ func listCredentialsRequest_ResponseFromWire(w *listCredentialsRequest_ResponseW
 		Credentials:   credentialsPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCredentialsRequest_Response) MarshalJSON() ([]byte, error) {
+	w, err := listCredentialsRequest_ResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCredentialsRequest_Response) UnmarshalJSON(data []byte) error {
+	var w listCredentialsRequest_ResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCredentialsRequest_ResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type listCredentialsResponseWire struct {
+	Credentials []credentialsWire `json:"credentials,omitempty"`
+}
+
+func listCredentialsResponseToWire(v *ListCredentialsResponse) (*listCredentialsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	credentialsWireValue, err := convertSlice(v.Credentials, credentialsToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCredentialsResponse.Credentials", err)
+	}
+	return &listCredentialsResponseWire{
+		Credentials: credentialsWireValue,
+	}, nil
+}
+
+func listCredentialsResponseFromWire(w *listCredentialsResponseWire) (*ListCredentialsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	credentialsPublicValue, err := convertSlice(w.Credentials, credentialsFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCredentialsResponse.Credentials", err)
+	}
+	return &ListCredentialsResponse{
+		Credentials: credentialsPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCredentialsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listCredentialsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCredentialsResponse) UnmarshalJSON(data []byte) error {
+	var w listCredentialsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCredentialsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listStorageCredentialsRequestWire struct {
@@ -1436,9 +3797,58 @@ func listStorageCredentialsRequestToWire(v *ListStorageCredentialsRequest) (*lis
 	}, nil
 }
 
+func listStorageCredentialsRequestFromWire(w *listStorageCredentialsRequestWire) (*ListStorageCredentialsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListStorageCredentialsRequest{
+		IncludeUnbound: w.IncludeUnbound,
+		MaxResults:     w.MaxResults,
+		PageToken:      w.PageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListStorageCredentialsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listStorageCredentialsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListStorageCredentialsRequest) UnmarshalJSON(data []byte) error {
+	var w listStorageCredentialsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listStorageCredentialsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listStorageCredentialsResponseWire struct {
 	StorageCredentials []storageCredentialInfoWire `json:"storage_credentials,omitempty"`
 	NextPageToken      *string                     `json:"next_page_token,omitempty"`
+}
+
+func listStorageCredentialsResponseToWire(v *ListStorageCredentialsResponse) (*listStorageCredentialsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	storageCredentialsWireValue, err := convertSlice(v.StorageCredentials, storageCredentialInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListStorageCredentialsResponse.StorageCredentials", err)
+	}
+	return &listStorageCredentialsResponseWire{
+		StorageCredentials: storageCredentialsWireValue,
+		NextPageToken:      v.NextPageToken,
+	}, nil
 }
 
 func listStorageCredentialsResponseFromWire(w *listStorageCredentialsResponseWire) (*ListStorageCredentialsResponse, error) {
@@ -1455,10 +3865,45 @@ func listStorageCredentialsResponseFromWire(w *listStorageCredentialsResponseWir
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListStorageCredentialsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listStorageCredentialsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListStorageCredentialsResponse) UnmarshalJSON(data []byte) error {
+	var w listStorageCredentialsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listStorageCredentialsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type r2CredentialsWire struct {
 	AccessKeyId     *string `json:"access_key_id,omitempty"`
 	SecretAccessKey *string `json:"secret_access_key,omitempty"`
 	SessionToken    *string `json:"session_token,omitempty"`
+}
+
+func r2CredentialsToWire(v *R2Credentials) (*r2CredentialsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &r2CredentialsWire{
+		AccessKeyId:     v.AccessKeyId,
+		SecretAccessKey: v.SecretAccessKey,
+		SessionToken:    v.SessionToken,
+	}, nil
 }
 
 func r2CredentialsFromWire(w *r2CredentialsWire) (*R2Credentials, error) {
@@ -1470,6 +3915,30 @@ func r2CredentialsFromWire(w *r2CredentialsWire) (*R2Credentials, error) {
 		SecretAccessKey: w.SecretAccessKey,
 		SessionToken:    w.SessionToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v R2Credentials) MarshalJSON() ([]byte, error) {
+	w, err := r2CredentialsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *R2Credentials) UnmarshalJSON(data []byte) error {
+	var w r2CredentialsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := r2CredentialsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type storageCredentialInfoWire struct {
@@ -1492,6 +3961,100 @@ type storageCredentialInfoWire struct {
 	UsedForManagedStorage       *bool                            `json:"used_for_managed_storage,omitempty"`
 	FullName                    *string                          `json:"full_name,omitempty"`
 	IsolationMode               IsolationMode                    `json:"isolation_mode,omitempty"`
+}
+
+func storageCredentialInfoToWire(v *StorageCredentialInfo) (*storageCredentialInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "StorageCredentialInfo.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "StorageCredentialInfo.UpdatedAt", err)
+	}
+	var credentialAwsIamRoleWire *awsIamRoleWire
+	var credentialAzureServicePrincipalWire *azureServicePrincipalWire
+	var credentialGcpServiceAccountKeyWire *gcpServiceAccountKeyWire
+	var credentialAzureManagedIdentityWire *azureManagedIdentityWire
+	var credentialDatabricksGcpServiceAccountWire *databricksGcpServiceAccountWire
+	var credentialCloudflareApiTokenWire *cloudflareApiTokenWire
+	switch value := v.Credential.(type) {
+	case nil:
+	case *StorageCredentialInfo_Credential_AwsIamRole:
+		if value != nil {
+			credentialAwsIamRoleConverted, err := awsIamRoleToWire(&value.AwsIamRole)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "StorageCredentialInfo.Credential.AwsIamRole", err)
+			}
+			credentialAwsIamRoleWire = credentialAwsIamRoleConverted
+		}
+	case *StorageCredentialInfo_Credential_AzureServicePrincipal:
+		if value != nil {
+			credentialAzureServicePrincipalConverted, err := azureServicePrincipalToWire(&value.AzureServicePrincipal)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "StorageCredentialInfo.Credential.AzureServicePrincipal", err)
+			}
+			credentialAzureServicePrincipalWire = credentialAzureServicePrincipalConverted
+		}
+	case *StorageCredentialInfo_Credential_GcpServiceAccountKey:
+		if value != nil {
+			credentialGcpServiceAccountKeyConverted, err := gcpServiceAccountKeyToWire(&value.GcpServiceAccountKey)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "StorageCredentialInfo.Credential.GcpServiceAccountKey", err)
+			}
+			credentialGcpServiceAccountKeyWire = credentialGcpServiceAccountKeyConverted
+		}
+	case *StorageCredentialInfo_Credential_AzureManagedIdentity:
+		if value != nil {
+			credentialAzureManagedIdentityConverted, err := azureManagedIdentityToWire(&value.AzureManagedIdentity)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "StorageCredentialInfo.Credential.AzureManagedIdentity", err)
+			}
+			credentialAzureManagedIdentityWire = credentialAzureManagedIdentityConverted
+		}
+	case *StorageCredentialInfo_Credential_DatabricksGcpServiceAccount:
+		if value != nil {
+			credentialDatabricksGcpServiceAccountConverted, err := databricksGcpServiceAccountToWire(&value.DatabricksGcpServiceAccount)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "StorageCredentialInfo.Credential.DatabricksGcpServiceAccount", err)
+			}
+			credentialDatabricksGcpServiceAccountWire = credentialDatabricksGcpServiceAccountConverted
+		}
+	case *StorageCredentialInfo_Credential_CloudflareApiToken:
+		if value != nil {
+			credentialCloudflareApiTokenConverted, err := cloudflareApiTokenToWire(&value.CloudflareApiToken)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "StorageCredentialInfo.Credential.CloudflareApiToken", err)
+			}
+			credentialCloudflareApiTokenWire = credentialCloudflareApiTokenConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "StorageCredentialInfo.Credential", value)
+	}
+	return &storageCredentialInfoWire{
+		Name:                        v.Name,
+		AwsIamRole:                  credentialAwsIamRoleWire,
+		AzureServicePrincipal:       credentialAzureServicePrincipalWire,
+		GcpServiceAccountKey:        credentialGcpServiceAccountKeyWire,
+		AzureManagedIdentity:        credentialAzureManagedIdentityWire,
+		DatabricksGcpServiceAccount: credentialDatabricksGcpServiceAccountWire,
+		CloudflareApiToken:          credentialCloudflareApiTokenWire,
+		Comment:                     v.Comment,
+		ReadOnly:                    v.ReadOnly,
+		Owner:                       v.Owner,
+		Id:                          v.Id,
+		MetastoreId:                 v.MetastoreId,
+		CreatedAt:                   createdAtWireValue,
+		CreatedBy:                   v.CreatedBy,
+		UpdatedAt:                   updatedAtWireValue,
+		UpdatedBy:                   v.UpdatedBy,
+		UsedForManagedStorage:       v.UsedForManagedStorage,
+		FullName:                    v.FullName,
+		IsolationMode:               v.IsolationMode,
+	}, nil
 }
 
 func storageCredentialInfoFromWire(w *storageCredentialInfoWire) (*StorageCredentialInfo, error) {
@@ -1585,11 +4148,47 @@ func storageCredentialInfoFromWire(w *storageCredentialInfoWire) (*StorageCreden
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v StorageCredentialInfo) MarshalJSON() ([]byte, error) {
+	w, err := storageCredentialInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *StorageCredentialInfo) UnmarshalJSON(data []byte) error {
+	var w storageCredentialInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := storageCredentialInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type temporaryAwsCredentialsWire struct {
 	AccessKeyId     *string `json:"access_key_id,omitempty"`
 	SecretAccessKey *string `json:"secret_access_key,omitempty"`
 	SessionToken    *string `json:"session_token,omitempty"`
 	AccessPoint     *string `json:"access_point,omitempty"`
+}
+
+func temporaryAwsCredentialsToWire(v *TemporaryAwsCredentials) (*temporaryAwsCredentialsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &temporaryAwsCredentialsWire{
+		AccessKeyId:     v.AccessKeyId,
+		SecretAccessKey: v.SecretAccessKey,
+		SessionToken:    v.SessionToken,
+		AccessPoint:     v.AccessPoint,
+	}, nil
 }
 
 func temporaryAwsCredentialsFromWire(w *temporaryAwsCredentialsWire) (*TemporaryAwsCredentials, error) {
@@ -1604,6 +4203,30 @@ func temporaryAwsCredentialsFromWire(w *temporaryAwsCredentialsWire) (*Temporary
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v TemporaryAwsCredentials) MarshalJSON() ([]byte, error) {
+	w, err := temporaryAwsCredentialsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *TemporaryAwsCredentials) UnmarshalJSON(data []byte) error {
+	var w temporaryAwsCredentialsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := temporaryAwsCredentialsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type temporaryCredentialsWire struct {
 	AwsTempCredentials     *temporaryAwsCredentialsWire   `json:"aws_temp_credentials,omitempty"`
 	AzureUserDelegationSas *azureUserDelegationSasWire    `json:"azure_user_delegation_sas,omitempty"`
@@ -1612,6 +4235,75 @@ type temporaryCredentialsWire struct {
 	R2TempCredentials      *r2CredentialsWire             `json:"r2_temp_credentials,omitempty"`
 	ExpirationTime         *wireInt64                     `json:"expiration_time,omitempty"`
 	Url                    *string                        `json:"url,omitempty"`
+}
+
+func temporaryCredentialsToWire(v *TemporaryCredentials) (*temporaryCredentialsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	expirationTimeWireValue, err := int64ToWire(v.ExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TemporaryCredentials.ExpirationTime", err)
+	}
+	var credentialsAwsTempCredentialsWire *temporaryAwsCredentialsWire
+	var credentialsAzureUserDelegationSasWire *azureUserDelegationSasWire
+	var credentialsGcpOauthTokenWire *gcpOauthTokenWire
+	var credentialsAzureAadWire *azureActiveDirectoryTokenWire
+	var credentialsR2TempCredentialsWire *r2CredentialsWire
+	switch value := v.Credentials.(type) {
+	case nil:
+	case *TemporaryCredentials_Credentials_AwsTempCredentials:
+		if value != nil {
+			credentialsAwsTempCredentialsConverted, err := temporaryAwsCredentialsToWire(&value.AwsTempCredentials)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "TemporaryCredentials.Credentials.AwsTempCredentials", err)
+			}
+			credentialsAwsTempCredentialsWire = credentialsAwsTempCredentialsConverted
+		}
+	case *TemporaryCredentials_Credentials_AzureUserDelegationSas:
+		if value != nil {
+			credentialsAzureUserDelegationSasConverted, err := azureUserDelegationSasToWire(&value.AzureUserDelegationSas)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "TemporaryCredentials.Credentials.AzureUserDelegationSas", err)
+			}
+			credentialsAzureUserDelegationSasWire = credentialsAzureUserDelegationSasConverted
+		}
+	case *TemporaryCredentials_Credentials_GcpOauthToken:
+		if value != nil {
+			credentialsGcpOauthTokenConverted, err := gcpOauthTokenToWire(&value.GcpOauthToken)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "TemporaryCredentials.Credentials.GcpOauthToken", err)
+			}
+			credentialsGcpOauthTokenWire = credentialsGcpOauthTokenConverted
+		}
+	case *TemporaryCredentials_Credentials_AzureAad:
+		if value != nil {
+			credentialsAzureAadConverted, err := azureActiveDirectoryTokenToWire(&value.AzureAad)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "TemporaryCredentials.Credentials.AzureAad", err)
+			}
+			credentialsAzureAadWire = credentialsAzureAadConverted
+		}
+	case *TemporaryCredentials_Credentials_R2TempCredentials:
+		if value != nil {
+			credentialsR2TempCredentialsConverted, err := r2CredentialsToWire(&value.R2TempCredentials)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "TemporaryCredentials.Credentials.R2TempCredentials", err)
+			}
+			credentialsR2TempCredentialsWire = credentialsR2TempCredentialsConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "TemporaryCredentials.Credentials", value)
+	}
+	return &temporaryCredentialsWire{
+		AwsTempCredentials:     credentialsAwsTempCredentialsWire,
+		AzureUserDelegationSas: credentialsAzureUserDelegationSasWire,
+		GcpOauthToken:          credentialsGcpOauthTokenWire,
+		AzureAad:               credentialsAzureAadWire,
+		R2TempCredentials:      credentialsR2TempCredentialsWire,
+		ExpirationTime:         expirationTimeWireValue,
+		Url:                    v.Url,
+	}, nil
 }
 
 func temporaryCredentialsFromWire(w *temporaryCredentialsWire) (*TemporaryCredentials, error) {
@@ -1679,6 +4371,30 @@ func temporaryCredentialsFromWire(w *temporaryCredentialsWire) (*TemporaryCreden
 		Url:            w.Url,
 		Credentials:    credentialsSelection,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v TemporaryCredentials) MarshalJSON() ([]byte, error) {
+	w, err := temporaryCredentialsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *TemporaryCredentials) UnmarshalJSON(data []byte) error {
+	var w temporaryCredentialsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := temporaryCredentialsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateAccountsStorageCredentialWire struct {
@@ -1795,6 +4511,121 @@ func updateAccountsStorageCredentialToWire(v *UpdateAccountsStorageCredential) (
 		FullName:                    v.FullName,
 		IsolationMode:               v.IsolationMode,
 	}, nil
+}
+
+func updateAccountsStorageCredentialFromWire(w *updateAccountsStorageCredentialWire) (*UpdateAccountsStorageCredential, error) {
+	if w == nil {
+		return nil, nil
+	}
+	credentialMembers := 0
+	if w.AwsIamRole != nil {
+		credentialMembers++
+	}
+	if w.AzureServicePrincipal != nil {
+		credentialMembers++
+	}
+	if w.GcpServiceAccountKey != nil {
+		credentialMembers++
+	}
+	if w.AzureManagedIdentity != nil {
+		credentialMembers++
+	}
+	if w.DatabricksGcpServiceAccount != nil {
+		credentialMembers++
+	}
+	if w.CloudflareApiToken != nil {
+		credentialMembers++
+	}
+	if credentialMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "UpdateAccountsStorageCredential.Credential")
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccountsStorageCredential.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccountsStorageCredential.UpdatedAt", err)
+	}
+	var credentialSelection isUpdateAccountsStorageCredential_Credential
+	switch {
+	case w.AwsIamRole != nil:
+		credentialAwsIamRoleConverted, err := awsIamRoleFromWire(w.AwsIamRole)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "UpdateAccountsStorageCredential.Credential.AwsIamRole", err)
+		}
+		credentialSelection = &UpdateAccountsStorageCredential_Credential_AwsIamRole{AwsIamRole: *credentialAwsIamRoleConverted}
+	case w.AzureServicePrincipal != nil:
+		credentialAzureServicePrincipalConverted, err := azureServicePrincipalFromWire(w.AzureServicePrincipal)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "UpdateAccountsStorageCredential.Credential.AzureServicePrincipal", err)
+		}
+		credentialSelection = &UpdateAccountsStorageCredential_Credential_AzureServicePrincipal{AzureServicePrincipal: *credentialAzureServicePrincipalConverted}
+	case w.GcpServiceAccountKey != nil:
+		credentialGcpServiceAccountKeyConverted, err := gcpServiceAccountKeyFromWire(w.GcpServiceAccountKey)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "UpdateAccountsStorageCredential.Credential.GcpServiceAccountKey", err)
+		}
+		credentialSelection = &UpdateAccountsStorageCredential_Credential_GcpServiceAccountKey{GcpServiceAccountKey: *credentialGcpServiceAccountKeyConverted}
+	case w.AzureManagedIdentity != nil:
+		credentialAzureManagedIdentityConverted, err := azureManagedIdentityFromWire(w.AzureManagedIdentity)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "UpdateAccountsStorageCredential.Credential.AzureManagedIdentity", err)
+		}
+		credentialSelection = &UpdateAccountsStorageCredential_Credential_AzureManagedIdentity{AzureManagedIdentity: *credentialAzureManagedIdentityConverted}
+	case w.DatabricksGcpServiceAccount != nil:
+		credentialDatabricksGcpServiceAccountConverted, err := databricksGcpServiceAccountFromWire(w.DatabricksGcpServiceAccount)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "UpdateAccountsStorageCredential.Credential.DatabricksGcpServiceAccount", err)
+		}
+		credentialSelection = &UpdateAccountsStorageCredential_Credential_DatabricksGcpServiceAccount{DatabricksGcpServiceAccount: *credentialDatabricksGcpServiceAccountConverted}
+	case w.CloudflareApiToken != nil:
+		credentialCloudflareApiTokenConverted, err := cloudflareApiTokenFromWire(w.CloudflareApiToken)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "UpdateAccountsStorageCredential.Credential.CloudflareApiToken", err)
+		}
+		credentialSelection = &UpdateAccountsStorageCredential_Credential_CloudflareApiToken{CloudflareApiToken: *credentialCloudflareApiTokenConverted}
+	}
+	return &UpdateAccountsStorageCredential{
+		Name:                  w.Name,
+		Comment:               w.Comment,
+		ReadOnly:              w.ReadOnly,
+		Owner:                 w.Owner,
+		Id:                    w.Id,
+		MetastoreId:           w.MetastoreId,
+		CreatedAt:             createdAtPublicValue,
+		CreatedBy:             w.CreatedBy,
+		UpdatedAt:             updatedAtPublicValue,
+		UpdatedBy:             w.UpdatedBy,
+		UsedForManagedStorage: w.UsedForManagedStorage,
+		FullName:              w.FullName,
+		IsolationMode:         w.IsolationMode,
+		Credential:            credentialSelection,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateAccountsStorageCredential) MarshalJSON() ([]byte, error) {
+	w, err := updateAccountsStorageCredentialToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateAccountsStorageCredential) UnmarshalJSON(data []byte) error {
+	var w updateAccountsStorageCredentialWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateAccountsStorageCredentialFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateCredentialRequestWire struct {
@@ -1921,6 +4752,125 @@ func updateCredentialRequestToWire(v *UpdateCredentialRequest) (*updateCredentia
 	}, nil
 }
 
+func updateCredentialRequestFromWire(w *updateCredentialRequestWire) (*UpdateCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	credentialMembers := 0
+	if w.AwsIamRole != nil {
+		credentialMembers++
+	}
+	if w.AzureServicePrincipal != nil {
+		credentialMembers++
+	}
+	if w.GcpServiceAccountKey != nil {
+		credentialMembers++
+	}
+	if w.AzureManagedIdentity != nil {
+		credentialMembers++
+	}
+	if w.DatabricksGcpServiceAccount != nil {
+		credentialMembers++
+	}
+	if w.CloudflareApiToken != nil {
+		credentialMembers++
+	}
+	if credentialMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "UpdateCredentialRequest.Credential")
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCredentialRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCredentialRequest.UpdatedAt", err)
+	}
+	var credentialSelection isUpdateCredentialRequest_Credential
+	switch {
+	case w.AwsIamRole != nil:
+		credentialAwsIamRoleConverted, err := awsIamRoleFromWire(w.AwsIamRole)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "UpdateCredentialRequest.Credential.AwsIamRole", err)
+		}
+		credentialSelection = &UpdateCredentialRequest_Credential_AwsIamRole{AwsIamRole: *credentialAwsIamRoleConverted}
+	case w.AzureServicePrincipal != nil:
+		credentialAzureServicePrincipalConverted, err := azureServicePrincipalFromWire(w.AzureServicePrincipal)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "UpdateCredentialRequest.Credential.AzureServicePrincipal", err)
+		}
+		credentialSelection = &UpdateCredentialRequest_Credential_AzureServicePrincipal{AzureServicePrincipal: *credentialAzureServicePrincipalConverted}
+	case w.GcpServiceAccountKey != nil:
+		credentialGcpServiceAccountKeyConverted, err := gcpServiceAccountKeyFromWire(w.GcpServiceAccountKey)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "UpdateCredentialRequest.Credential.GcpServiceAccountKey", err)
+		}
+		credentialSelection = &UpdateCredentialRequest_Credential_GcpServiceAccountKey{GcpServiceAccountKey: *credentialGcpServiceAccountKeyConverted}
+	case w.AzureManagedIdentity != nil:
+		credentialAzureManagedIdentityConverted, err := azureManagedIdentityFromWire(w.AzureManagedIdentity)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "UpdateCredentialRequest.Credential.AzureManagedIdentity", err)
+		}
+		credentialSelection = &UpdateCredentialRequest_Credential_AzureManagedIdentity{AzureManagedIdentity: *credentialAzureManagedIdentityConverted}
+	case w.DatabricksGcpServiceAccount != nil:
+		credentialDatabricksGcpServiceAccountConverted, err := databricksGcpServiceAccountFromWire(w.DatabricksGcpServiceAccount)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "UpdateCredentialRequest.Credential.DatabricksGcpServiceAccount", err)
+		}
+		credentialSelection = &UpdateCredentialRequest_Credential_DatabricksGcpServiceAccount{DatabricksGcpServiceAccount: *credentialDatabricksGcpServiceAccountConverted}
+	case w.CloudflareApiToken != nil:
+		credentialCloudflareApiTokenConverted, err := cloudflareApiTokenFromWire(w.CloudflareApiToken)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "UpdateCredentialRequest.Credential.CloudflareApiToken", err)
+		}
+		credentialSelection = &UpdateCredentialRequest_Credential_CloudflareApiToken{CloudflareApiToken: *credentialCloudflareApiTokenConverted}
+	}
+	return &UpdateCredentialRequest{
+		NameArg:               w.NameArg,
+		NewName:               w.NewName,
+		SkipValidation:        w.SkipValidation,
+		Force:                 w.Force,
+		Name:                  w.Name,
+		Comment:               w.Comment,
+		ReadOnly:              w.ReadOnly,
+		Owner:                 w.Owner,
+		Id:                    w.Id,
+		MetastoreId:           w.MetastoreId,
+		CreatedAt:             createdAtPublicValue,
+		CreatedBy:             w.CreatedBy,
+		UpdatedAt:             updatedAtPublicValue,
+		UpdatedBy:             w.UpdatedBy,
+		UsedForManagedStorage: w.UsedForManagedStorage,
+		FullName:              w.FullName,
+		IsolationMode:         w.IsolationMode,
+		Credential:            credentialSelection,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateCredentialRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateCredentialRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateCredentialRequest) UnmarshalJSON(data []byte) error {
+	var w updateCredentialRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateCredentialRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateStorageCredentialRequestWire struct {
 	NameArg                     *string                          `json:"name_arg,omitempty"`
 	NewName                     *string                          `json:"new_name,omitempty"`
@@ -2045,6 +4995,125 @@ func updateStorageCredentialRequestToWire(v *UpdateStorageCredentialRequest) (*u
 	}, nil
 }
 
+func updateStorageCredentialRequestFromWire(w *updateStorageCredentialRequestWire) (*UpdateStorageCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	credentialMembers := 0
+	if w.AwsIamRole != nil {
+		credentialMembers++
+	}
+	if w.AzureServicePrincipal != nil {
+		credentialMembers++
+	}
+	if w.GcpServiceAccountKey != nil {
+		credentialMembers++
+	}
+	if w.AzureManagedIdentity != nil {
+		credentialMembers++
+	}
+	if w.DatabricksGcpServiceAccount != nil {
+		credentialMembers++
+	}
+	if w.CloudflareApiToken != nil {
+		credentialMembers++
+	}
+	if credentialMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "UpdateStorageCredentialRequest.Credential")
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateStorageCredentialRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateStorageCredentialRequest.UpdatedAt", err)
+	}
+	var credentialSelection isUpdateStorageCredentialRequest_Credential
+	switch {
+	case w.AwsIamRole != nil:
+		credentialAwsIamRoleConverted, err := awsIamRoleFromWire(w.AwsIamRole)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "UpdateStorageCredentialRequest.Credential.AwsIamRole", err)
+		}
+		credentialSelection = &UpdateStorageCredentialRequest_Credential_AwsIamRole{AwsIamRole: *credentialAwsIamRoleConverted}
+	case w.AzureServicePrincipal != nil:
+		credentialAzureServicePrincipalConverted, err := azureServicePrincipalFromWire(w.AzureServicePrincipal)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "UpdateStorageCredentialRequest.Credential.AzureServicePrincipal", err)
+		}
+		credentialSelection = &UpdateStorageCredentialRequest_Credential_AzureServicePrincipal{AzureServicePrincipal: *credentialAzureServicePrincipalConverted}
+	case w.GcpServiceAccountKey != nil:
+		credentialGcpServiceAccountKeyConverted, err := gcpServiceAccountKeyFromWire(w.GcpServiceAccountKey)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "UpdateStorageCredentialRequest.Credential.GcpServiceAccountKey", err)
+		}
+		credentialSelection = &UpdateStorageCredentialRequest_Credential_GcpServiceAccountKey{GcpServiceAccountKey: *credentialGcpServiceAccountKeyConverted}
+	case w.AzureManagedIdentity != nil:
+		credentialAzureManagedIdentityConverted, err := azureManagedIdentityFromWire(w.AzureManagedIdentity)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "UpdateStorageCredentialRequest.Credential.AzureManagedIdentity", err)
+		}
+		credentialSelection = &UpdateStorageCredentialRequest_Credential_AzureManagedIdentity{AzureManagedIdentity: *credentialAzureManagedIdentityConverted}
+	case w.DatabricksGcpServiceAccount != nil:
+		credentialDatabricksGcpServiceAccountConverted, err := databricksGcpServiceAccountFromWire(w.DatabricksGcpServiceAccount)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "UpdateStorageCredentialRequest.Credential.DatabricksGcpServiceAccount", err)
+		}
+		credentialSelection = &UpdateStorageCredentialRequest_Credential_DatabricksGcpServiceAccount{DatabricksGcpServiceAccount: *credentialDatabricksGcpServiceAccountConverted}
+	case w.CloudflareApiToken != nil:
+		credentialCloudflareApiTokenConverted, err := cloudflareApiTokenFromWire(w.CloudflareApiToken)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "UpdateStorageCredentialRequest.Credential.CloudflareApiToken", err)
+		}
+		credentialSelection = &UpdateStorageCredentialRequest_Credential_CloudflareApiToken{CloudflareApiToken: *credentialCloudflareApiTokenConverted}
+	}
+	return &UpdateStorageCredentialRequest{
+		NameArg:               w.NameArg,
+		NewName:               w.NewName,
+		SkipValidation:        w.SkipValidation,
+		Force:                 w.Force,
+		Name:                  w.Name,
+		Comment:               w.Comment,
+		ReadOnly:              w.ReadOnly,
+		Owner:                 w.Owner,
+		Id:                    w.Id,
+		MetastoreId:           w.MetastoreId,
+		CreatedAt:             createdAtPublicValue,
+		CreatedBy:             w.CreatedBy,
+		UpdatedAt:             updatedAtPublicValue,
+		UpdatedBy:             w.UpdatedBy,
+		UsedForManagedStorage: w.UsedForManagedStorage,
+		FullName:              w.FullName,
+		IsolationMode:         w.IsolationMode,
+		Credential:            credentialSelection,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateStorageCredentialRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateStorageCredentialRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateStorageCredentialRequest) UnmarshalJSON(data []byte) error {
+	var w updateStorageCredentialRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateStorageCredentialRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type validateCredentialRequestWire struct {
 	CredentialName              *string                          `json:"credential_name,omitempty"`
 	AwsIamRole                  *awsIamRoleWire                  `json:"aws_iam_role,omitempty"`
@@ -2107,9 +5176,94 @@ func validateCredentialRequestToWire(v *ValidateCredentialRequest) (*validateCre
 	}, nil
 }
 
+func validateCredentialRequestFromWire(w *validateCredentialRequestWire) (*ValidateCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	credentialMembers := 0
+	if w.CredentialName != nil {
+		credentialMembers++
+	}
+	if w.AwsIamRole != nil {
+		credentialMembers++
+	}
+	if w.AzureManagedIdentity != nil {
+		credentialMembers++
+	}
+	if w.DatabricksGcpServiceAccount != nil {
+		credentialMembers++
+	}
+	if credentialMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "ValidateCredentialRequest.Credential")
+	}
+	var credentialSelection isValidateCredentialRequest_Credential
+	switch {
+	case w.CredentialName != nil:
+		credentialSelection = &ValidateCredentialRequest_Credential_CredentialName{CredentialName: *w.CredentialName}
+	case w.AwsIamRole != nil:
+		credentialAwsIamRoleConverted, err := awsIamRoleFromWire(w.AwsIamRole)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "ValidateCredentialRequest.Credential.AwsIamRole", err)
+		}
+		credentialSelection = &ValidateCredentialRequest_Credential_AwsIamRole{AwsIamRole: *credentialAwsIamRoleConverted}
+	case w.AzureManagedIdentity != nil:
+		credentialAzureManagedIdentityConverted, err := azureManagedIdentityFromWire(w.AzureManagedIdentity)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "ValidateCredentialRequest.Credential.AzureManagedIdentity", err)
+		}
+		credentialSelection = &ValidateCredentialRequest_Credential_AzureManagedIdentity{AzureManagedIdentity: *credentialAzureManagedIdentityConverted}
+	case w.DatabricksGcpServiceAccount != nil:
+		credentialDatabricksGcpServiceAccountConverted, err := databricksGcpServiceAccountFromWire(w.DatabricksGcpServiceAccount)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "ValidateCredentialRequest.Credential.DatabricksGcpServiceAccount", err)
+		}
+		credentialSelection = &ValidateCredentialRequest_Credential_DatabricksGcpServiceAccount{DatabricksGcpServiceAccount: *credentialDatabricksGcpServiceAccountConverted}
+	}
+	return &ValidateCredentialRequest{
+		ExternalLocationName: w.ExternalLocationName,
+		Url:                  w.Url,
+		ReadOnly:             w.ReadOnly,
+		Credential:           credentialSelection,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ValidateCredentialRequest) MarshalJSON() ([]byte, error) {
+	w, err := validateCredentialRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ValidateCredentialRequest) UnmarshalJSON(data []byte) error {
+	var w validateCredentialRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := validateCredentialRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type validateCredentialRequest_ValidationResultWire struct {
 	Result  ValidateCredentialRequest_Result `json:"result,omitempty"`
 	Message *string                          `json:"message,omitempty"`
+}
+
+func validateCredentialRequest_ValidationResultToWire(v *ValidateCredentialRequest_ValidationResult) (*validateCredentialRequest_ValidationResultWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &validateCredentialRequest_ValidationResultWire{
+		Result:  v.Result,
+		Message: v.Message,
+	}, nil
 }
 
 func validateCredentialRequest_ValidationResultFromWire(w *validateCredentialRequest_ValidationResultWire) (*ValidateCredentialRequest_ValidationResult, error) {
@@ -2122,9 +5276,47 @@ func validateCredentialRequest_ValidationResultFromWire(w *validateCredentialReq
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ValidateCredentialRequest_ValidationResult) MarshalJSON() ([]byte, error) {
+	w, err := validateCredentialRequest_ValidationResultToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ValidateCredentialRequest_ValidationResult) UnmarshalJSON(data []byte) error {
+	var w validateCredentialRequest_ValidationResultWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := validateCredentialRequest_ValidationResultFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type validateCredentialResponseWire struct {
 	Results []validateCredentialRequest_ValidationResultWire `json:"results,omitempty"`
 	IsDir   *bool                                            `json:"isDir,omitempty"`
+}
+
+func validateCredentialResponseToWire(v *ValidateCredentialResponse) (*validateCredentialResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	resultsWireValue, err := convertSlice(v.Results, validateCredentialRequest_ValidationResultToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ValidateCredentialResponse.Results", err)
+	}
+	return &validateCredentialResponseWire{
+		Results: resultsWireValue,
+		IsDir:   v.IsDir,
+	}, nil
 }
 
 func validateCredentialResponseFromWire(w *validateCredentialResponseWire) (*ValidateCredentialResponse, error) {
@@ -2139,6 +5331,30 @@ func validateCredentialResponseFromWire(w *validateCredentialResponseWire) (*Val
 		Results: resultsPublicValue,
 		IsDir:   w.IsDir,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ValidateCredentialResponse) MarshalJSON() ([]byte, error) {
+	w, err := validateCredentialResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ValidateCredentialResponse) UnmarshalJSON(data []byte) error {
+	var w validateCredentialResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := validateCredentialResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type validateStorageCredentialRequestWire struct {
@@ -2225,10 +5441,114 @@ func validateStorageCredentialRequestToWire(v *ValidateStorageCredentialRequest)
 	}, nil
 }
 
+func validateStorageCredentialRequestFromWire(w *validateStorageCredentialRequestWire) (*ValidateStorageCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	credentialMembers := 0
+	if w.StorageCredentialName != nil {
+		credentialMembers++
+	}
+	if w.AwsIamRole != nil {
+		credentialMembers++
+	}
+	if w.AzureServicePrincipal != nil {
+		credentialMembers++
+	}
+	if w.AzureManagedIdentity != nil {
+		credentialMembers++
+	}
+	if w.DatabricksGcpServiceAccount != nil {
+		credentialMembers++
+	}
+	if w.CloudflareApiToken != nil {
+		credentialMembers++
+	}
+	if credentialMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "ValidateStorageCredentialRequest.Credential")
+	}
+	var credentialSelection isValidateStorageCredentialRequest_Credential
+	switch {
+	case w.StorageCredentialName != nil:
+		credentialSelection = &ValidateStorageCredentialRequest_Credential_StorageCredentialName{StorageCredentialName: *w.StorageCredentialName}
+	case w.AwsIamRole != nil:
+		credentialAwsIamRoleConverted, err := awsIamRoleFromWire(w.AwsIamRole)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "ValidateStorageCredentialRequest.Credential.AwsIamRole", err)
+		}
+		credentialSelection = &ValidateStorageCredentialRequest_Credential_AwsIamRole{AwsIamRole: *credentialAwsIamRoleConverted}
+	case w.AzureServicePrincipal != nil:
+		credentialAzureServicePrincipalConverted, err := azureServicePrincipalFromWire(w.AzureServicePrincipal)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "ValidateStorageCredentialRequest.Credential.AzureServicePrincipal", err)
+		}
+		credentialSelection = &ValidateStorageCredentialRequest_Credential_AzureServicePrincipal{AzureServicePrincipal: *credentialAzureServicePrincipalConverted}
+	case w.AzureManagedIdentity != nil:
+		credentialAzureManagedIdentityConverted, err := azureManagedIdentityFromWire(w.AzureManagedIdentity)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "ValidateStorageCredentialRequest.Credential.AzureManagedIdentity", err)
+		}
+		credentialSelection = &ValidateStorageCredentialRequest_Credential_AzureManagedIdentity{AzureManagedIdentity: *credentialAzureManagedIdentityConverted}
+	case w.DatabricksGcpServiceAccount != nil:
+		credentialDatabricksGcpServiceAccountConverted, err := databricksGcpServiceAccountFromWire(w.DatabricksGcpServiceAccount)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "ValidateStorageCredentialRequest.Credential.DatabricksGcpServiceAccount", err)
+		}
+		credentialSelection = &ValidateStorageCredentialRequest_Credential_DatabricksGcpServiceAccount{DatabricksGcpServiceAccount: *credentialDatabricksGcpServiceAccountConverted}
+	case w.CloudflareApiToken != nil:
+		credentialCloudflareApiTokenConverted, err := cloudflareApiTokenFromWire(w.CloudflareApiToken)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "ValidateStorageCredentialRequest.Credential.CloudflareApiToken", err)
+		}
+		credentialSelection = &ValidateStorageCredentialRequest_Credential_CloudflareApiToken{CloudflareApiToken: *credentialCloudflareApiTokenConverted}
+	}
+	return &ValidateStorageCredentialRequest{
+		ExternalLocationName: w.ExternalLocationName,
+		Url:                  w.Url,
+		ReadOnly:             w.ReadOnly,
+		Credential:           credentialSelection,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ValidateStorageCredentialRequest) MarshalJSON() ([]byte, error) {
+	w, err := validateStorageCredentialRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ValidateStorageCredentialRequest) UnmarshalJSON(data []byte) error {
+	var w validateStorageCredentialRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := validateStorageCredentialRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type validateStorageCredentialRequest_ValidationResultWire struct {
 	Operation ValidateStorageCredentialRequest_FileOperation `json:"operation,omitempty"`
 	Result    ValidateStorageCredentialRequest_Result        `json:"result,omitempty"`
 	Message   *string                                        `json:"message,omitempty"`
+}
+
+func validateStorageCredentialRequest_ValidationResultToWire(v *ValidateStorageCredentialRequest_ValidationResult) (*validateStorageCredentialRequest_ValidationResultWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &validateStorageCredentialRequest_ValidationResultWire{
+		Operation: v.Operation,
+		Result:    v.Result,
+		Message:   v.Message,
+	}, nil
 }
 
 func validateStorageCredentialRequest_ValidationResultFromWire(w *validateStorageCredentialRequest_ValidationResultWire) (*ValidateStorageCredentialRequest_ValidationResult, error) {
@@ -2242,9 +5562,47 @@ func validateStorageCredentialRequest_ValidationResultFromWire(w *validateStorag
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ValidateStorageCredentialRequest_ValidationResult) MarshalJSON() ([]byte, error) {
+	w, err := validateStorageCredentialRequest_ValidationResultToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ValidateStorageCredentialRequest_ValidationResult) UnmarshalJSON(data []byte) error {
+	var w validateStorageCredentialRequest_ValidationResultWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := validateStorageCredentialRequest_ValidationResultFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type validateStorageCredentialResponseWire struct {
 	IsDir   *bool                                                   `json:"isDir,omitempty"`
 	Results []validateStorageCredentialRequest_ValidationResultWire `json:"results,omitempty"`
+}
+
+func validateStorageCredentialResponseToWire(v *ValidateStorageCredentialResponse) (*validateStorageCredentialResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	resultsWireValue, err := convertSlice(v.Results, validateStorageCredentialRequest_ValidationResultToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ValidateStorageCredentialResponse.Results", err)
+	}
+	return &validateStorageCredentialResponseWire{
+		IsDir:   v.IsDir,
+		Results: resultsWireValue,
+	}, nil
 }
 
 func validateStorageCredentialResponseFromWire(w *validateStorageCredentialResponseWire) (*ValidateStorageCredentialResponse, error) {
@@ -2259,6 +5617,30 @@ func validateStorageCredentialResponseFromWire(w *validateStorageCredentialRespo
 		IsDir:   w.IsDir,
 		Results: resultsPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ValidateStorageCredentialResponse) MarshalJSON() ([]byte, error) {
+	w, err := validateStorageCredentialResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ValidateStorageCredentialResponse) UnmarshalJSON(data []byte) error {
+	var w validateStorageCredentialResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := validateStorageCredentialResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

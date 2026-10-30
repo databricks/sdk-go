@@ -3,7 +3,9 @@
 package disasterrecovery
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/databricks/sdk-go/core/types"
 )
@@ -14,6 +16,17 @@ func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	}
 	value := mask.String()
 	return &value
+}
+
+func fieldMaskFromWire[T any](value *string) (*types.FieldMask[T], error) {
+	if value == nil {
+		return nil, nil
+	}
+	var paths []string
+	if *value != "" {
+		paths = strings.Split(*value, ",")
+	}
+	return types.NewFieldMask[T](paths...)
 }
 
 type createFailoverGroupRequestWire struct {
@@ -39,6 +52,46 @@ func createFailoverGroupRequestToWire(v *CreateFailoverGroupRequest) (*createFai
 	}, nil
 }
 
+func createFailoverGroupRequestFromWire(w *createFailoverGroupRequestWire) (*CreateFailoverGroupRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	failoverGroupPublicValue, err := failoverGroupFromWire(w.FailoverGroup)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateFailoverGroupRequest.FailoverGroup", err)
+	}
+	return &CreateFailoverGroupRequest{
+		Parent:          w.Parent,
+		FailoverGroup:   failoverGroupPublicValue,
+		ValidateOnly:    w.ValidateOnly,
+		FailoverGroupId: w.FailoverGroupId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateFailoverGroupRequest) MarshalJSON() ([]byte, error) {
+	w, err := createFailoverGroupRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateFailoverGroupRequest) UnmarshalJSON(data []byte) error {
+	var w createFailoverGroupRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createFailoverGroupRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createStableUrlRequestWire struct {
 	Parent       *string        `json:"parent,omitempty"`
 	StableUrl    *stableUrlWire `json:"stable_url,omitempty"`
@@ -62,6 +115,46 @@ func createStableUrlRequestToWire(v *CreateStableUrlRequest) (*createStableUrlRe
 	}, nil
 }
 
+func createStableUrlRequestFromWire(w *createStableUrlRequestWire) (*CreateStableUrlRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	stableUrlPublicValue, err := stableUrlFromWire(w.StableUrl)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateStableUrlRequest.StableUrl", err)
+	}
+	return &CreateStableUrlRequest{
+		Parent:       w.Parent,
+		StableUrl:    stableUrlPublicValue,
+		ValidateOnly: w.ValidateOnly,
+		StableUrlId:  w.StableUrlId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateStableUrlRequest) MarshalJSON() ([]byte, error) {
+	w, err := createStableUrlRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateStableUrlRequest) UnmarshalJSON(data []byte) error {
+	var w createStableUrlRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createStableUrlRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteFailoverGroupRequestWire struct {
 	Name *string `json:"name,omitempty"`
 	Etag *string `json:"etag,omitempty"`
@@ -75,6 +168,86 @@ func deleteFailoverGroupRequestToWire(v *DeleteFailoverGroupRequest) (*deleteFai
 		Name: v.Name,
 		Etag: v.Etag,
 	}, nil
+}
+
+func deleteFailoverGroupRequestFromWire(w *deleteFailoverGroupRequestWire) (*DeleteFailoverGroupRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteFailoverGroupRequest{
+		Name: w.Name,
+		Etag: w.Etag,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteFailoverGroupRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteFailoverGroupRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteFailoverGroupRequest) UnmarshalJSON(data []byte) error {
+	var w deleteFailoverGroupRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteFailoverGroupRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteStableUrlRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteStableUrlRequestToWire(v *DeleteStableUrlRequest) (*deleteStableUrlRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteStableUrlRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteStableUrlRequestFromWire(w *deleteStableUrlRequestWire) (*DeleteStableUrlRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteStableUrlRequest{
+		Name: w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteStableUrlRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteStableUrlRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteStableUrlRequest) UnmarshalJSON(data []byte) error {
+	var w deleteStableUrlRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteStableUrlRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type failoverFailoverGroupRequestWire struct {
@@ -94,6 +267,42 @@ func failoverFailoverGroupRequestToWire(v *FailoverFailoverGroupRequest) (*failo
 		Etag:                v.Etag,
 		FailoverType:        v.FailoverType,
 	}, nil
+}
+
+func failoverFailoverGroupRequestFromWire(w *failoverFailoverGroupRequestWire) (*FailoverFailoverGroupRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &FailoverFailoverGroupRequest{
+		Name:                w.Name,
+		TargetPrimaryRegion: w.TargetPrimaryRegion,
+		Etag:                w.Etag,
+		FailoverType:        w.FailoverType,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v FailoverFailoverGroupRequest) MarshalJSON() ([]byte, error) {
+	w, err := failoverFailoverGroupRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *FailoverFailoverGroupRequest) UnmarshalJSON(data []byte) error {
+	var w failoverFailoverGroupRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := failoverFailoverGroupRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type failoverGroupWire struct {
@@ -178,6 +387,122 @@ func failoverGroupFromWire(w *failoverGroupWire) (*FailoverGroup, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v FailoverGroup) MarshalJSON() ([]byte, error) {
+	w, err := failoverGroupToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *FailoverGroup) UnmarshalJSON(data []byte) error {
+	var w failoverGroupWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := failoverGroupFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getFailoverGroupRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getFailoverGroupRequestToWire(v *GetFailoverGroupRequest) (*getFailoverGroupRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getFailoverGroupRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getFailoverGroupRequestFromWire(w *getFailoverGroupRequestWire) (*GetFailoverGroupRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetFailoverGroupRequest{
+		Name: w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetFailoverGroupRequest) MarshalJSON() ([]byte, error) {
+	w, err := getFailoverGroupRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetFailoverGroupRequest) UnmarshalJSON(data []byte) error {
+	var w getFailoverGroupRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getFailoverGroupRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getStableUrlRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getStableUrlRequestToWire(v *GetStableUrlRequest) (*getStableUrlRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getStableUrlRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getStableUrlRequestFromWire(w *getStableUrlRequestWire) (*GetStableUrlRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetStableUrlRequest{
+		Name: w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetStableUrlRequest) MarshalJSON() ([]byte, error) {
+	w, err := getStableUrlRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetStableUrlRequest) UnmarshalJSON(data []byte) error {
+	var w getStableUrlRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getStableUrlRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type initialReplicationProgressWire struct {
 	Completed *int `json:"completed,omitempty"`
 }
@@ -200,6 +525,30 @@ func initialReplicationProgressFromWire(w *initialReplicationProgressWire) (*Ini
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v InitialReplicationProgress) MarshalJSON() ([]byte, error) {
+	w, err := initialReplicationProgressToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *InitialReplicationProgress) UnmarshalJSON(data []byte) error {
+	var w initialReplicationProgressWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := initialReplicationProgressFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listFailoverGroupsRequestWire struct {
 	Parent    *string `json:"parent,omitempty"`
 	PageSize  *int    `json:"page_size,omitempty"`
@@ -217,9 +566,58 @@ func listFailoverGroupsRequestToWire(v *ListFailoverGroupsRequest) (*listFailove
 	}, nil
 }
 
+func listFailoverGroupsRequestFromWire(w *listFailoverGroupsRequestWire) (*ListFailoverGroupsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListFailoverGroupsRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListFailoverGroupsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listFailoverGroupsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListFailoverGroupsRequest) UnmarshalJSON(data []byte) error {
+	var w listFailoverGroupsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listFailoverGroupsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listFailoverGroupsResponseWire struct {
 	FailoverGroups []failoverGroupWire `json:"failover_groups,omitempty"`
 	NextPageToken  *string             `json:"next_page_token,omitempty"`
+}
+
+func listFailoverGroupsResponseToWire(v *ListFailoverGroupsResponse) (*listFailoverGroupsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	failoverGroupsWireValue, err := convertSlice(v.FailoverGroups, failoverGroupToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListFailoverGroupsResponse.FailoverGroups", err)
+	}
+	return &listFailoverGroupsResponseWire{
+		FailoverGroups: failoverGroupsWireValue,
+		NextPageToken:  v.NextPageToken,
+	}, nil
 }
 
 func listFailoverGroupsResponseFromWire(w *listFailoverGroupsResponseWire) (*ListFailoverGroupsResponse, error) {
@@ -234,6 +632,30 @@ func listFailoverGroupsResponseFromWire(w *listFailoverGroupsResponseWire) (*Lis
 		FailoverGroups: failoverGroupsPublicValue,
 		NextPageToken:  w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListFailoverGroupsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listFailoverGroupsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListFailoverGroupsResponse) UnmarshalJSON(data []byte) error {
+	var w listFailoverGroupsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listFailoverGroupsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listStableUrlsRequestWire struct {
@@ -253,9 +675,58 @@ func listStableUrlsRequestToWire(v *ListStableUrlsRequest) (*listStableUrlsReque
 	}, nil
 }
 
+func listStableUrlsRequestFromWire(w *listStableUrlsRequestWire) (*ListStableUrlsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListStableUrlsRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListStableUrlsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listStableUrlsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListStableUrlsRequest) UnmarshalJSON(data []byte) error {
+	var w listStableUrlsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listStableUrlsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listStableUrlsResponseWire struct {
 	StableUrls    []stableUrlWire `json:"stable_urls,omitempty"`
 	NextPageToken *string         `json:"next_page_token,omitempty"`
+}
+
+func listStableUrlsResponseToWire(v *ListStableUrlsResponse) (*listStableUrlsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	stableUrlsWireValue, err := convertSlice(v.StableUrls, stableUrlToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListStableUrlsResponse.StableUrls", err)
+	}
+	return &listStableUrlsResponseWire{
+		StableUrls:    stableUrlsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listStableUrlsResponseFromWire(w *listStableUrlsResponseWire) (*ListStableUrlsResponse, error) {
@@ -270,6 +741,30 @@ func listStableUrlsResponseFromWire(w *listStableUrlsResponseWire) (*ListStableU
 		StableUrls:    stableUrlsPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListStableUrlsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listStableUrlsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListStableUrlsResponse) UnmarshalJSON(data []byte) error {
+	var w listStableUrlsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listStableUrlsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type locationMappingWire struct {
@@ -305,6 +800,30 @@ func locationMappingFromWire(w *locationMappingWire) (*LocationMapping, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v LocationMapping) MarshalJSON() ([]byte, error) {
+	w, err := locationMappingToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *LocationMapping) UnmarshalJSON(data []byte) error {
+	var w locationMappingWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := locationMappingFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type locationMappingEntryWire struct {
 	Region *string `json:"region,omitempty"`
 	Uri    *string `json:"uri,omitempty"`
@@ -328,6 +847,30 @@ func locationMappingEntryFromWire(w *locationMappingEntryWire) (*LocationMapping
 		Region: w.Region,
 		Uri:    w.Uri,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v LocationMappingEntry) MarshalJSON() ([]byte, error) {
+	w, err := locationMappingEntryToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *LocationMappingEntry) UnmarshalJSON(data []byte) error {
+	var w locationMappingEntryWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := locationMappingEntryFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type stableUrlWire struct {
@@ -367,6 +910,30 @@ func stableUrlFromWire(w *stableUrlWire) (*StableUrl, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v StableUrl) MarshalJSON() ([]byte, error) {
+	w, err := stableUrlToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *StableUrl) UnmarshalJSON(data []byte) error {
+	var w stableUrlWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := stableUrlFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type ucCatalogWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -387,6 +954,30 @@ func ucCatalogFromWire(w *ucCatalogWire) (*UcCatalog, error) {
 	return &UcCatalog{
 		Name: w.Name,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UcCatalog) MarshalJSON() ([]byte, error) {
+	w, err := ucCatalogToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UcCatalog) UnmarshalJSON(data []byte) error {
+	var w ucCatalogWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := ucCatalogFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type ucReplicationConfigWire struct {
@@ -433,6 +1024,30 @@ func ucReplicationConfigFromWire(w *ucReplicationConfigWire) (*UcReplicationConf
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UcReplicationConfig) MarshalJSON() ([]byte, error) {
+	w, err := ucReplicationConfigToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UcReplicationConfig) UnmarshalJSON(data []byte) error {
+	var w ucReplicationConfigWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := ucReplicationConfigFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateFailoverGroupRequestWire struct {
 	FailoverGroup *failoverGroupWire `json:"failover_group,omitempty"`
 	UpdateMask    *string            `json:"update_mask,omitempty"`
@@ -452,6 +1067,49 @@ func updateFailoverGroupRequestToWire(v *UpdateFailoverGroupRequest) (*updateFai
 		UpdateMask:    fieldMaskToWire(v.UpdateMask),
 		Etag:          v.Etag,
 	}, nil
+}
+
+func updateFailoverGroupRequestFromWire(w *updateFailoverGroupRequestWire) (*UpdateFailoverGroupRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	failoverGroupPublicValue, err := failoverGroupFromWire(w.FailoverGroup)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateFailoverGroupRequest.FailoverGroup", err)
+	}
+	updateMaskPublicValue, err := fieldMaskFromWire[FailoverGroup](w.UpdateMask)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateFailoverGroupRequest.UpdateMask", err)
+	}
+	return &UpdateFailoverGroupRequest{
+		FailoverGroup: failoverGroupPublicValue,
+		UpdateMask:    updateMaskPublicValue,
+		Etag:          w.Etag,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateFailoverGroupRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateFailoverGroupRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateFailoverGroupRequest) UnmarshalJSON(data []byte) error {
+	var w updateFailoverGroupRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateFailoverGroupRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type workspaceSetWire struct {
@@ -483,6 +1141,30 @@ func workspaceSetFromWire(w *workspaceSetWire) (*WorkspaceSet, error) {
 		ReplicateWorkspaceAssets: w.ReplicateWorkspaceAssets,
 		StableUrlNames:           w.StableUrlNames,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v WorkspaceSet) MarshalJSON() ([]byte, error) {
+	w, err := workspaceSetToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *WorkspaceSet) UnmarshalJSON(data []byte) error {
+	var w workspaceSetWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := workspaceSetFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

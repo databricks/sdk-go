@@ -75,6 +75,244 @@ func createStorageConfigurationRequestToWire(v *CreateStorageConfigurationReques
 	}, nil
 }
 
+func createStorageConfigurationRequestFromWire(w *createStorageConfigurationRequestWire) (*CreateStorageConfigurationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	rootBucketInfoPublicValue, err := rootBucketInfoFromWire(w.RootBucketInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateStorageConfigurationRequest.RootBucketInfo", err)
+	}
+	return &CreateStorageConfigurationRequest{
+		AccountId:                w.AccountId,
+		StorageConfigurationName: w.StorageConfigurationName,
+		RootBucketInfo:           rootBucketInfoPublicValue,
+		RoleArn:                  w.RoleArn,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateStorageConfigurationRequest) MarshalJSON() ([]byte, error) {
+	w, err := createStorageConfigurationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateStorageConfigurationRequest) UnmarshalJSON(data []byte) error {
+	var w createStorageConfigurationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createStorageConfigurationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteStorageConfigurationRequestWire struct {
+	StorageConfigurationId *string `json:"storage_configuration_id,omitempty"`
+	AccountId              *string `json:"account_id,omitempty"`
+}
+
+func deleteStorageConfigurationRequestToWire(v *DeleteStorageConfigurationRequest) (*deleteStorageConfigurationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteStorageConfigurationRequestWire{
+		StorageConfigurationId: v.StorageConfigurationId,
+		AccountId:              v.AccountId,
+	}, nil
+}
+
+func deleteStorageConfigurationRequestFromWire(w *deleteStorageConfigurationRequestWire) (*DeleteStorageConfigurationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteStorageConfigurationRequest{
+		StorageConfigurationId: w.StorageConfigurationId,
+		AccountId:              w.AccountId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteStorageConfigurationRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteStorageConfigurationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteStorageConfigurationRequest) UnmarshalJSON(data []byte) error {
+	var w deleteStorageConfigurationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteStorageConfigurationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getStorageConfigurationRequestWire struct {
+	StorageConfigurationId *string `json:"storage_configuration_id,omitempty"`
+	AccountId              *string `json:"account_id,omitempty"`
+}
+
+func getStorageConfigurationRequestToWire(v *GetStorageConfigurationRequest) (*getStorageConfigurationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getStorageConfigurationRequestWire{
+		StorageConfigurationId: v.StorageConfigurationId,
+		AccountId:              v.AccountId,
+	}, nil
+}
+
+func getStorageConfigurationRequestFromWire(w *getStorageConfigurationRequestWire) (*GetStorageConfigurationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetStorageConfigurationRequest{
+		StorageConfigurationId: w.StorageConfigurationId,
+		AccountId:              w.AccountId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetStorageConfigurationRequest) MarshalJSON() ([]byte, error) {
+	w, err := getStorageConfigurationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetStorageConfigurationRequest) UnmarshalJSON(data []byte) error {
+	var w getStorageConfigurationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getStorageConfigurationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type listStorageConfigurationRequestWire struct {
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func listStorageConfigurationRequestToWire(v *ListStorageConfigurationRequest) (*listStorageConfigurationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listStorageConfigurationRequestWire{
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func listStorageConfigurationRequestFromWire(w *listStorageConfigurationRequestWire) (*ListStorageConfigurationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListStorageConfigurationRequest{
+		AccountId: w.AccountId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListStorageConfigurationRequest) MarshalJSON() ([]byte, error) {
+	w, err := listStorageConfigurationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListStorageConfigurationRequest) UnmarshalJSON(data []byte) error {
+	var w listStorageConfigurationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listStorageConfigurationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type listStorageConfigurationResponseWire struct {
+	StorageConfigurations []storageConfigurationWire `json:"storage_configurations,omitempty"`
+}
+
+func listStorageConfigurationResponseToWire(v *ListStorageConfigurationResponse) (*listStorageConfigurationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	storageConfigurationsWireValue, err := convertSlice(v.StorageConfigurations, storageConfigurationToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListStorageConfigurationResponse.StorageConfigurations", err)
+	}
+	return &listStorageConfigurationResponseWire{
+		StorageConfigurations: storageConfigurationsWireValue,
+	}, nil
+}
+
+func listStorageConfigurationResponseFromWire(w *listStorageConfigurationResponseWire) (*ListStorageConfigurationResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	storageConfigurationsPublicValue, err := convertSlice(w.StorageConfigurations, storageConfigurationFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListStorageConfigurationResponse.StorageConfigurations", err)
+	}
+	return &ListStorageConfigurationResponse{
+		StorageConfigurations: storageConfigurationsPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListStorageConfigurationResponse) MarshalJSON() ([]byte, error) {
+	w, err := listStorageConfigurationResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListStorageConfigurationResponse) UnmarshalJSON(data []byte) error {
+	var w listStorageConfigurationResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listStorageConfigurationResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type rootBucketInfoWire struct {
 	BucketName *string `json:"bucket_name,omitempty"`
 }
@@ -97,6 +335,30 @@ func rootBucketInfoFromWire(w *rootBucketInfoWire) (*RootBucketInfo, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v RootBucketInfo) MarshalJSON() ([]byte, error) {
+	w, err := rootBucketInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *RootBucketInfo) UnmarshalJSON(data []byte) error {
+	var w rootBucketInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := rootBucketInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type storageConfigurationWire struct {
 	StorageConfigurationId   *string             `json:"storage_configuration_id,omitempty"`
 	AccountId                *string             `json:"account_id,omitempty"`
@@ -104,6 +366,28 @@ type storageConfigurationWire struct {
 	StorageConfigurationName *string             `json:"storage_configuration_name,omitempty"`
 	CreationTime             *wireInt64          `json:"creation_time,omitempty"`
 	RoleArn                  *string             `json:"role_arn,omitempty"`
+}
+
+func storageConfigurationToWire(v *StorageConfiguration) (*storageConfigurationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	rootBucketInfoWireValue, err := rootBucketInfoToWire(v.RootBucketInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "StorageConfiguration.RootBucketInfo", err)
+	}
+	creationTimeWireValue, err := int64ToWire(v.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "StorageConfiguration.CreationTime", err)
+	}
+	return &storageConfigurationWire{
+		StorageConfigurationId:   v.StorageConfigurationId,
+		AccountId:                v.AccountId,
+		RootBucketInfo:           rootBucketInfoWireValue,
+		StorageConfigurationName: v.StorageConfigurationName,
+		CreationTime:             creationTimeWireValue,
+		RoleArn:                  v.RoleArn,
+	}, nil
 }
 
 func storageConfigurationFromWire(w *storageConfigurationWire) (*StorageConfiguration, error) {
@@ -126,6 +410,30 @@ func storageConfigurationFromWire(w *storageConfigurationWire) (*StorageConfigur
 		CreationTime:             creationTimePublicValue,
 		RoleArn:                  w.RoleArn,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v StorageConfiguration) MarshalJSON() ([]byte, error) {
+	w, err := storageConfigurationToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *StorageConfiguration) UnmarshalJSON(data []byte) error {
+	var w storageConfigurationWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := storageConfigurationFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

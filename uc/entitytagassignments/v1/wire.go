@@ -3,7 +3,9 @@
 package entitytagassignments
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/databricks/sdk-go/core/types"
 )
@@ -14,6 +16,17 @@ func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	}
 	value := mask.String()
 	return &value
+}
+
+func fieldMaskFromWire[T any](value *string) (*types.FieldMask[T], error) {
+	if value == nil {
+		return nil, nil
+	}
+	var paths []string
+	if *value != "" {
+		paths = strings.Split(*value, ",")
+	}
+	return types.NewFieldMask[T](paths...)
 }
 
 type createEntityTagAssignmentRequestWire struct {
@@ -31,6 +44,95 @@ func createEntityTagAssignmentRequestToWire(v *CreateEntityTagAssignmentRequest)
 	return &createEntityTagAssignmentRequestWire{
 		TagAssignment: tagAssignmentWireValue,
 	}, nil
+}
+
+func createEntityTagAssignmentRequestFromWire(w *createEntityTagAssignmentRequestWire) (*CreateEntityTagAssignmentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tagAssignmentPublicValue, err := entityTagAssignmentFromWire(w.TagAssignment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateEntityTagAssignmentRequest.TagAssignment", err)
+	}
+	return &CreateEntityTagAssignmentRequest{
+		TagAssignment: tagAssignmentPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateEntityTagAssignmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := createEntityTagAssignmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateEntityTagAssignmentRequest) UnmarshalJSON(data []byte) error {
+	var w createEntityTagAssignmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createEntityTagAssignmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteEntityTagAssignmentRequestWire struct {
+	EntityName *string `json:"entity_name,omitempty"`
+	TagKey     *string `json:"tag_key,omitempty"`
+	EntityType *string `json:"entity_type,omitempty"`
+}
+
+func deleteEntityTagAssignmentRequestToWire(v *DeleteEntityTagAssignmentRequest) (*deleteEntityTagAssignmentRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteEntityTagAssignmentRequestWire{
+		EntityName: v.EntityName,
+		TagKey:     v.TagKey,
+		EntityType: v.EntityType,
+	}, nil
+}
+
+func deleteEntityTagAssignmentRequestFromWire(w *deleteEntityTagAssignmentRequestWire) (*DeleteEntityTagAssignmentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteEntityTagAssignmentRequest{
+		EntityName: w.EntityName,
+		TagKey:     w.TagKey,
+		EntityType: w.EntityType,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteEntityTagAssignmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteEntityTagAssignmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteEntityTagAssignmentRequest) UnmarshalJSON(data []byte) error {
+	var w deleteEntityTagAssignmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteEntityTagAssignmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type entityTagAssignmentWire struct {
@@ -73,6 +175,82 @@ func entityTagAssignmentFromWire(w *entityTagAssignmentWire) (*EntityTagAssignme
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v EntityTagAssignment) MarshalJSON() ([]byte, error) {
+	w, err := entityTagAssignmentToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *EntityTagAssignment) UnmarshalJSON(data []byte) error {
+	var w entityTagAssignmentWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := entityTagAssignmentFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getEntityTagAssignmentRequestWire struct {
+	EntityName *string `json:"entity_name,omitempty"`
+	TagKey     *string `json:"tag_key,omitempty"`
+	EntityType *string `json:"entity_type,omitempty"`
+}
+
+func getEntityTagAssignmentRequestToWire(v *GetEntityTagAssignmentRequest) (*getEntityTagAssignmentRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getEntityTagAssignmentRequestWire{
+		EntityName: v.EntityName,
+		TagKey:     v.TagKey,
+		EntityType: v.EntityType,
+	}, nil
+}
+
+func getEntityTagAssignmentRequestFromWire(w *getEntityTagAssignmentRequestWire) (*GetEntityTagAssignmentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetEntityTagAssignmentRequest{
+		EntityName: w.EntityName,
+		TagKey:     w.TagKey,
+		EntityType: w.EntityType,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetEntityTagAssignmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := getEntityTagAssignmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetEntityTagAssignmentRequest) UnmarshalJSON(data []byte) error {
+	var w getEntityTagAssignmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getEntityTagAssignmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listEntityTagAssignmentsRequestWire struct {
 	EntityName *string `json:"entity_name,omitempty"`
 	MaxResults *int    `json:"max_results,omitempty"`
@@ -92,9 +270,59 @@ func listEntityTagAssignmentsRequestToWire(v *ListEntityTagAssignmentsRequest) (
 	}, nil
 }
 
+func listEntityTagAssignmentsRequestFromWire(w *listEntityTagAssignmentsRequestWire) (*ListEntityTagAssignmentsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListEntityTagAssignmentsRequest{
+		EntityName: w.EntityName,
+		MaxResults: w.MaxResults,
+		PageToken:  w.PageToken,
+		EntityType: w.EntityType,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListEntityTagAssignmentsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listEntityTagAssignmentsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListEntityTagAssignmentsRequest) UnmarshalJSON(data []byte) error {
+	var w listEntityTagAssignmentsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listEntityTagAssignmentsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listEntityTagAssignmentsResponseWire struct {
 	TagAssignments []entityTagAssignmentWire `json:"tag_assignments,omitempty"`
 	NextPageToken  *string                   `json:"next_page_token,omitempty"`
+}
+
+func listEntityTagAssignmentsResponseToWire(v *ListEntityTagAssignmentsResponse) (*listEntityTagAssignmentsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tagAssignmentsWireValue, err := convertSlice(v.TagAssignments, entityTagAssignmentToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListEntityTagAssignmentsResponse.TagAssignments", err)
+	}
+	return &listEntityTagAssignmentsResponseWire{
+		TagAssignments: tagAssignmentsWireValue,
+		NextPageToken:  v.NextPageToken,
+	}, nil
 }
 
 func listEntityTagAssignmentsResponseFromWire(w *listEntityTagAssignmentsResponseWire) (*ListEntityTagAssignmentsResponse, error) {
@@ -109,6 +337,30 @@ func listEntityTagAssignmentsResponseFromWire(w *listEntityTagAssignmentsRespons
 		TagAssignments: tagAssignmentsPublicValue,
 		NextPageToken:  w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListEntityTagAssignmentsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listEntityTagAssignmentsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListEntityTagAssignmentsResponse) UnmarshalJSON(data []byte) error {
+	var w listEntityTagAssignmentsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listEntityTagAssignmentsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateEntityTagAssignmentRequestWire struct {
@@ -128,6 +380,48 @@ func updateEntityTagAssignmentRequestToWire(v *UpdateEntityTagAssignmentRequest)
 		TagAssignment: tagAssignmentWireValue,
 		UpdateMask:    fieldMaskToWire(v.UpdateMask),
 	}, nil
+}
+
+func updateEntityTagAssignmentRequestFromWire(w *updateEntityTagAssignmentRequestWire) (*UpdateEntityTagAssignmentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tagAssignmentPublicValue, err := entityTagAssignmentFromWire(w.TagAssignment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateEntityTagAssignmentRequest.TagAssignment", err)
+	}
+	updateMaskPublicValue, err := fieldMaskFromWire[EntityTagAssignment](w.UpdateMask)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateEntityTagAssignmentRequest.UpdateMask", err)
+	}
+	return &UpdateEntityTagAssignmentRequest{
+		TagAssignment: tagAssignmentPublicValue,
+		UpdateMask:    updateMaskPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateEntityTagAssignmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateEntityTagAssignmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateEntityTagAssignmentRequest) UnmarshalJSON(data []byte) error {
+	var w updateEntityTagAssignmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateEntityTagAssignmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/databricks/sdk-go/core/types"
 )
@@ -62,6 +63,17 @@ func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	return &value
 }
 
+func fieldMaskFromWire[T any](value *string) (*types.FieldMask[T], error) {
+	if value == nil {
+		return nil, nil
+	}
+	var paths []string
+	if *value != "" {
+		paths = strings.Split(*value, ",")
+	}
+	return types.NewFieldMask[T](paths...)
+}
+
 type createDomainRequestWire struct {
 	Domain   *domainWire `json:"domain,omitempty"`
 	DomainId *string     `json:"domain_id,omitempty"`
@@ -81,6 +93,44 @@ func createDomainRequestToWire(v *CreateDomainRequest) (*createDomainRequestWire
 	}, nil
 }
 
+func createDomainRequestFromWire(w *createDomainRequestWire) (*CreateDomainRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	domainPublicValue, err := domainFromWire(w.Domain)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateDomainRequest.Domain", err)
+	}
+	return &CreateDomainRequest{
+		Domain:   domainPublicValue,
+		DomainId: w.DomainId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateDomainRequest) MarshalJSON() ([]byte, error) {
+	w, err := createDomainRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateDomainRequest) UnmarshalJSON(data []byte) error {
+	var w createDomainRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createDomainRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteDomainRequestWire struct {
 	Name  *string `json:"name,omitempty"`
 	Force *bool   `json:"force,omitempty"`
@@ -94,6 +144,40 @@ func deleteDomainRequestToWire(v *DeleteDomainRequest) (*deleteDomainRequestWire
 		Name:  v.Name,
 		Force: v.Force,
 	}, nil
+}
+
+func deleteDomainRequestFromWire(w *deleteDomainRequestWire) (*DeleteDomainRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteDomainRequest{
+		Name:  w.Name,
+		Force: w.Force,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteDomainRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteDomainRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteDomainRequest) UnmarshalJSON(data []byte) error {
+	var w deleteDomainRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteDomainRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type domainWire struct {
@@ -178,6 +262,30 @@ func domainFromWire(w *domainWire) (*Domain, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Domain) MarshalJSON() ([]byte, error) {
+	w, err := domainToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Domain) UnmarshalJSON(data []byte) error {
+	var w domainWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := domainFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type domainIconWire struct {
 	Name  DomainIcon_Name `json:"name,omitempty"`
 	Color *string         `json:"color,omitempty"`
@@ -203,6 +311,76 @@ func domainIconFromWire(w *domainIconWire) (*DomainIcon, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DomainIcon) MarshalJSON() ([]byte, error) {
+	w, err := domainIconToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DomainIcon) UnmarshalJSON(data []byte) error {
+	var w domainIconWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := domainIconFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getDomainRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getDomainRequestToWire(v *GetDomainRequest) (*getDomainRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getDomainRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getDomainRequestFromWire(w *getDomainRequestWire) (*GetDomainRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetDomainRequest{
+		Name: w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetDomainRequest) MarshalJSON() ([]byte, error) {
+	w, err := getDomainRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetDomainRequest) UnmarshalJSON(data []byte) error {
+	var w getDomainRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getDomainRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listDomainsRequestWire struct {
 	PageSize       *int    `json:"page_size,omitempty"`
 	PageToken      *string `json:"page_token,omitempty"`
@@ -220,9 +398,58 @@ func listDomainsRequestToWire(v *ListDomainsRequest) (*listDomainsRequestWire, e
 	}, nil
 }
 
+func listDomainsRequestFromWire(w *listDomainsRequestWire) (*ListDomainsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListDomainsRequest{
+		PageSize:       w.PageSize,
+		PageToken:      w.PageToken,
+		ParentDomainId: w.ParentDomainId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListDomainsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listDomainsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListDomainsRequest) UnmarshalJSON(data []byte) error {
+	var w listDomainsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listDomainsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listDomainsResponseWire struct {
 	Domains       []domainWire `json:"domains,omitempty"`
 	NextPageToken *string      `json:"next_page_token,omitempty"`
+}
+
+func listDomainsResponseToWire(v *ListDomainsResponse) (*listDomainsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	domainsWireValue, err := convertSlice(v.Domains, domainToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListDomainsResponse.Domains", err)
+	}
+	return &listDomainsResponseWire{
+		Domains:       domainsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listDomainsResponseFromWire(w *listDomainsResponseWire) (*ListDomainsResponse, error) {
@@ -237,6 +464,30 @@ func listDomainsResponseFromWire(w *listDomainsResponseWire) (*ListDomainsRespon
 		Domains:       domainsPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListDomainsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listDomainsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListDomainsResponse) UnmarshalJSON(data []byte) error {
+	var w listDomainsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listDomainsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateDomainRequestWire struct {
@@ -256,6 +507,48 @@ func updateDomainRequestToWire(v *UpdateDomainRequest) (*updateDomainRequestWire
 		Domain:     domainWireValue,
 		UpdateMask: fieldMaskToWire(v.UpdateMask),
 	}, nil
+}
+
+func updateDomainRequestFromWire(w *updateDomainRequestWire) (*UpdateDomainRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	domainPublicValue, err := domainFromWire(w.Domain)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateDomainRequest.Domain", err)
+	}
+	updateMaskPublicValue, err := fieldMaskFromWire[Domain](w.UpdateMask)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateDomainRequest.UpdateMask", err)
+	}
+	return &UpdateDomainRequest{
+		Domain:     domainPublicValue,
+		UpdateMask: updateMaskPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateDomainRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateDomainRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateDomainRequest) UnmarshalJSON(data []byte) error {
+	var w updateDomainRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateDomainRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

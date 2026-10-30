@@ -77,6 +77,30 @@ func awsSqsQueueFromWire(w *awsSqsQueueWire) (*AwsSqsQueue, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AwsSqsQueue) MarshalJSON() ([]byte, error) {
+	w, err := awsSqsQueueToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AwsSqsQueue) UnmarshalJSON(data []byte) error {
+	var w awsSqsQueueWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := awsSqsQueueFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type azureQueueStorageWire struct {
 	QueueUrl          *string `json:"queue_url,omitempty"`
 	SubscriptionId    *string `json:"subscription_id,omitempty"`
@@ -106,6 +130,30 @@ func azureQueueStorageFromWire(w *azureQueueStorageWire) (*AzureQueueStorage, er
 		ResourceGroup:     w.ResourceGroup,
 		ManagedResourceId: w.ManagedResourceId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AzureQueueStorage) MarshalJSON() ([]byte, error) {
+	w, err := azureQueueStorageToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AzureQueueStorage) UnmarshalJSON(data []byte) error {
+	var w azureQueueStorageWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := azureQueueStorageFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createExternalLocationRequestWire struct {
@@ -181,6 +229,79 @@ func createExternalLocationRequestToWire(v *CreateExternalLocationRequest) (*cre
 	}, nil
 }
 
+func createExternalLocationRequestFromWire(w *createExternalLocationRequestWire) (*CreateExternalLocationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	fileEventQueuePublicValue, err := fileEventQueueFromWire(w.FileEventQueue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateExternalLocationRequest.FileEventQueue", err)
+	}
+	encryptionDetailsPublicValue, err := encryptionDetailsFromWire(w.EncryptionDetails)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateExternalLocationRequest.EncryptionDetails", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateExternalLocationRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateExternalLocationRequest.UpdatedAt", err)
+	}
+	effectiveFileEventQueuePublicValue, err := fileEventQueueFromWire(w.EffectiveFileEventQueue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateExternalLocationRequest.EffectiveFileEventQueue", err)
+	}
+	return &CreateExternalLocationRequest{
+		SkipValidation:            w.SkipValidation,
+		Name:                      w.Name,
+		Url:                       w.Url,
+		CredentialName:            w.CredentialName,
+		ReadOnly:                  w.ReadOnly,
+		Comment:                   w.Comment,
+		EnableFileEvents:          w.EnableFileEvents,
+		FileEventQueue:            fileEventQueuePublicValue,
+		Owner:                     w.Owner,
+		EncryptionDetails:         encryptionDetailsPublicValue,
+		MetastoreId:               w.MetastoreId,
+		CredentialId:              w.CredentialId,
+		CreatedAt:                 createdAtPublicValue,
+		CreatedBy:                 w.CreatedBy,
+		UpdatedAt:                 updatedAtPublicValue,
+		UpdatedBy:                 w.UpdatedBy,
+		BrowseOnly:                w.BrowseOnly,
+		IsolationMode:             w.IsolationMode,
+		Fallback:                  w.Fallback,
+		EffectiveEnableFileEvents: w.EffectiveEnableFileEvents,
+		EffectiveFileEventQueue:   effectiveFileEventQueuePublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateExternalLocationRequest) MarshalJSON() ([]byte, error) {
+	w, err := createExternalLocationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateExternalLocationRequest) UnmarshalJSON(data []byte) error {
+	var w createExternalLocationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createExternalLocationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteExternalLocationRequestWire struct {
 	NameArg *string `json:"name_arg,omitempty"`
 	Force   *bool   `json:"force,omitempty"`
@@ -194,6 +315,81 @@ func deleteExternalLocationRequestToWire(v *DeleteExternalLocationRequest) (*del
 		NameArg: v.NameArg,
 		Force:   v.Force,
 	}, nil
+}
+
+func deleteExternalLocationRequestFromWire(w *deleteExternalLocationRequestWire) (*DeleteExternalLocationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteExternalLocationRequest{
+		NameArg: w.NameArg,
+		Force:   w.Force,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteExternalLocationRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteExternalLocationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteExternalLocationRequest) UnmarshalJSON(data []byte) error {
+	var w deleteExternalLocationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteExternalLocationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteExternalLocationResponseWire struct {
+}
+
+func deleteExternalLocationResponseToWire(v *DeleteExternalLocationResponse) (*deleteExternalLocationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteExternalLocationResponseWire{}, nil
+}
+
+func deleteExternalLocationResponseFromWire(w *deleteExternalLocationResponseWire) (*DeleteExternalLocationResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteExternalLocationResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteExternalLocationResponse) MarshalJSON() ([]byte, error) {
+	w, err := deleteExternalLocationResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteExternalLocationResponse) UnmarshalJSON(data []byte) error {
+	var w deleteExternalLocationResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteExternalLocationResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type encryptionDetailsWire struct {
@@ -248,6 +444,30 @@ func encryptionDetailsFromWire(w *encryptionDetailsWire) (*EncryptionDetails, er
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v EncryptionDetails) MarshalJSON() ([]byte, error) {
+	w, err := encryptionDetailsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *EncryptionDetails) UnmarshalJSON(data []byte) error {
+	var w encryptionDetailsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := encryptionDetailsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type externalLocationInfoWire struct {
 	Name                      *string                `json:"name,omitempty"`
 	Url                       *string                `json:"url,omitempty"`
@@ -269,6 +489,54 @@ type externalLocationInfoWire struct {
 	Fallback                  *bool                  `json:"fallback,omitempty"`
 	EffectiveEnableFileEvents *bool                  `json:"effective_enable_file_events,omitempty"`
 	EffectiveFileEventQueue   *fileEventQueueWire    `json:"effective_file_event_queue,omitempty"`
+}
+
+func externalLocationInfoToWire(v *ExternalLocationInfo) (*externalLocationInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	fileEventQueueWireValue, err := fileEventQueueToWire(v.FileEventQueue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLocationInfo.FileEventQueue", err)
+	}
+	encryptionDetailsWireValue, err := encryptionDetailsToWire(v.EncryptionDetails)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLocationInfo.EncryptionDetails", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLocationInfo.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLocationInfo.UpdatedAt", err)
+	}
+	effectiveFileEventQueueWireValue, err := fileEventQueueToWire(v.EffectiveFileEventQueue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLocationInfo.EffectiveFileEventQueue", err)
+	}
+	return &externalLocationInfoWire{
+		Name:                      v.Name,
+		Url:                       v.Url,
+		CredentialName:            v.CredentialName,
+		ReadOnly:                  v.ReadOnly,
+		Comment:                   v.Comment,
+		EnableFileEvents:          v.EnableFileEvents,
+		FileEventQueue:            fileEventQueueWireValue,
+		Owner:                     v.Owner,
+		EncryptionDetails:         encryptionDetailsWireValue,
+		MetastoreId:               v.MetastoreId,
+		CredentialId:              v.CredentialId,
+		CreatedAt:                 createdAtWireValue,
+		CreatedBy:                 v.CreatedBy,
+		UpdatedAt:                 updatedAtWireValue,
+		UpdatedBy:                 v.UpdatedBy,
+		BrowseOnly:                v.BrowseOnly,
+		IsolationMode:             v.IsolationMode,
+		Fallback:                  v.Fallback,
+		EffectiveEnableFileEvents: v.EffectiveEnableFileEvents,
+		EffectiveFileEventQueue:   effectiveFileEventQueueWireValue,
+	}, nil
 }
 
 func externalLocationInfoFromWire(w *externalLocationInfoWire) (*ExternalLocationInfo, error) {
@@ -317,6 +585,30 @@ func externalLocationInfoFromWire(w *externalLocationInfoWire) (*ExternalLocatio
 		EffectiveEnableFileEvents: w.EffectiveEnableFileEvents,
 		EffectiveFileEventQueue:   effectiveFileEventQueuePublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExternalLocationInfo) MarshalJSON() ([]byte, error) {
+	w, err := externalLocationInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExternalLocationInfo) UnmarshalJSON(data []byte) error {
+	var w externalLocationInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := externalLocationInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type fileEventQueueWire struct {
@@ -484,6 +776,30 @@ func fileEventQueueFromWire(w *fileEventQueueWire) (*FileEventQueue, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v FileEventQueue) MarshalJSON() ([]byte, error) {
+	w, err := fileEventQueueToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *FileEventQueue) UnmarshalJSON(data []byte) error {
+	var w fileEventQueueWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := fileEventQueueFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type gcpPubsubWire struct {
 	SubscriptionName  *string `json:"subscription_name,omitempty"`
 	ManagedResourceId *string `json:"managed_resource_id,omitempty"`
@@ -509,6 +825,30 @@ func gcpPubsubFromWire(w *gcpPubsubWire) (*GcpPubsub, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GcpPubsub) MarshalJSON() ([]byte, error) {
+	w, err := gcpPubsubToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GcpPubsub) UnmarshalJSON(data []byte) error {
+	var w gcpPubsubWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := gcpPubsubFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getExternalLocationRequestWire struct {
 	NameArg       *string `json:"name_arg,omitempty"`
 	IncludeBrowse *bool   `json:"include_browse,omitempty"`
@@ -522,6 +862,40 @@ func getExternalLocationRequestToWire(v *GetExternalLocationRequest) (*getExtern
 		NameArg:       v.NameArg,
 		IncludeBrowse: v.IncludeBrowse,
 	}, nil
+}
+
+func getExternalLocationRequestFromWire(w *getExternalLocationRequestWire) (*GetExternalLocationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetExternalLocationRequest{
+		NameArg:       w.NameArg,
+		IncludeBrowse: w.IncludeBrowse,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetExternalLocationRequest) MarshalJSON() ([]byte, error) {
+	w, err := getExternalLocationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetExternalLocationRequest) UnmarshalJSON(data []byte) error {
+	var w getExternalLocationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getExternalLocationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listExternalLocationsRequestWire struct {
@@ -543,9 +917,59 @@ func listExternalLocationsRequestToWire(v *ListExternalLocationsRequest) (*listE
 	}, nil
 }
 
+func listExternalLocationsRequestFromWire(w *listExternalLocationsRequestWire) (*ListExternalLocationsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListExternalLocationsRequest{
+		IncludeBrowse:  w.IncludeBrowse,
+		MaxResults:     w.MaxResults,
+		PageToken:      w.PageToken,
+		IncludeUnbound: w.IncludeUnbound,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListExternalLocationsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listExternalLocationsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListExternalLocationsRequest) UnmarshalJSON(data []byte) error {
+	var w listExternalLocationsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listExternalLocationsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listExternalLocationsResponseWire struct {
 	ExternalLocations []externalLocationInfoWire `json:"external_locations,omitempty"`
 	NextPageToken     *string                    `json:"next_page_token,omitempty"`
+}
+
+func listExternalLocationsResponseToWire(v *ListExternalLocationsResponse) (*listExternalLocationsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	externalLocationsWireValue, err := convertSlice(v.ExternalLocations, externalLocationInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListExternalLocationsResponse.ExternalLocations", err)
+	}
+	return &listExternalLocationsResponseWire{
+		ExternalLocations: externalLocationsWireValue,
+		NextPageToken:     v.NextPageToken,
+	}, nil
 }
 
 func listExternalLocationsResponseFromWire(w *listExternalLocationsResponseWire) (*ListExternalLocationsResponse, error) {
@@ -560,6 +984,30 @@ func listExternalLocationsResponseFromWire(w *listExternalLocationsResponseWire)
 		ExternalLocations: externalLocationsPublicValue,
 		NextPageToken:     w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListExternalLocationsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listExternalLocationsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListExternalLocationsResponse) UnmarshalJSON(data []byte) error {
+	var w listExternalLocationsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listExternalLocationsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type sseEncryptionDetailsWire struct {
@@ -585,6 +1033,30 @@ func sseEncryptionDetailsFromWire(w *sseEncryptionDetailsWire) (*SseEncryptionDe
 		Algorithm:    w.Algorithm,
 		AwsKmsKeyArn: w.AwsKmsKeyArn,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v SseEncryptionDetails) MarshalJSON() ([]byte, error) {
+	w, err := sseEncryptionDetailsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *SseEncryptionDetails) UnmarshalJSON(data []byte) error {
+	var w sseEncryptionDetailsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := sseEncryptionDetailsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateExternalLocationRequestWire struct {
@@ -664,6 +1136,82 @@ func updateExternalLocationRequestToWire(v *UpdateExternalLocationRequest) (*upd
 		EffectiveEnableFileEvents: v.EffectiveEnableFileEvents,
 		EffectiveFileEventQueue:   effectiveFileEventQueueWireValue,
 	}, nil
+}
+
+func updateExternalLocationRequestFromWire(w *updateExternalLocationRequestWire) (*UpdateExternalLocationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	fileEventQueuePublicValue, err := fileEventQueueFromWire(w.FileEventQueue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateExternalLocationRequest.FileEventQueue", err)
+	}
+	encryptionDetailsPublicValue, err := encryptionDetailsFromWire(w.EncryptionDetails)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateExternalLocationRequest.EncryptionDetails", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateExternalLocationRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateExternalLocationRequest.UpdatedAt", err)
+	}
+	effectiveFileEventQueuePublicValue, err := fileEventQueueFromWire(w.EffectiveFileEventQueue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateExternalLocationRequest.EffectiveFileEventQueue", err)
+	}
+	return &UpdateExternalLocationRequest{
+		NameArg:                   w.NameArg,
+		NewName:                   w.NewName,
+		Force:                     w.Force,
+		SkipValidation:            w.SkipValidation,
+		Name:                      w.Name,
+		Url:                       w.Url,
+		CredentialName:            w.CredentialName,
+		ReadOnly:                  w.ReadOnly,
+		Comment:                   w.Comment,
+		EnableFileEvents:          w.EnableFileEvents,
+		FileEventQueue:            fileEventQueuePublicValue,
+		Owner:                     w.Owner,
+		EncryptionDetails:         encryptionDetailsPublicValue,
+		MetastoreId:               w.MetastoreId,
+		CredentialId:              w.CredentialId,
+		CreatedAt:                 createdAtPublicValue,
+		CreatedBy:                 w.CreatedBy,
+		UpdatedAt:                 updatedAtPublicValue,
+		UpdatedBy:                 w.UpdatedBy,
+		BrowseOnly:                w.BrowseOnly,
+		IsolationMode:             w.IsolationMode,
+		Fallback:                  w.Fallback,
+		EffectiveEnableFileEvents: w.EffectiveEnableFileEvents,
+		EffectiveFileEventQueue:   effectiveFileEventQueuePublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateExternalLocationRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateExternalLocationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateExternalLocationRequest) UnmarshalJSON(data []byte) error {
+	var w updateExternalLocationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateExternalLocationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

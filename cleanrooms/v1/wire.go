@@ -136,6 +136,71 @@ func cleanRoomFromWire(w *cleanRoomWire) (*CleanRoom, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoom) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoom) UnmarshalJSON(data []byte) error {
+	var w cleanRoomWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type cleanRoom_StatusWire struct {
+}
+
+func cleanRoom_StatusToWire(v *CleanRoom_Status) (*cleanRoom_StatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &cleanRoom_StatusWire{}, nil
+}
+
+func cleanRoom_StatusFromWire(w *cleanRoom_StatusWire) (*CleanRoom_Status, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CleanRoom_Status{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoom_Status) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoom_StatusToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoom_Status) UnmarshalJSON(data []byte) error {
+	var w cleanRoom_StatusWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoom_StatusFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type cleanRoomAssetWire struct {
 	CleanRoomName            *string                                      `json:"clean_room_name,omitempty"`
 	Name                     *string                                      `json:"name,omitempty"`
@@ -387,6 +452,30 @@ func cleanRoomAssetFromWire(w *cleanRoomAssetWire) (*CleanRoomAsset, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomAsset) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomAssetToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomAsset) UnmarshalJSON(data []byte) error {
+	var w cleanRoomAssetWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomAssetFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type cleanRoomAsset_ForeignTableWire struct {
 	Columns []columnInfoWire `json:"columns,omitempty"`
 }
@@ -417,6 +506,30 @@ func cleanRoomAsset_ForeignTableFromWire(w *cleanRoomAsset_ForeignTableWire) (*C
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomAsset_ForeignTable) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomAsset_ForeignTableToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomAsset_ForeignTable) UnmarshalJSON(data []byte) error {
+	var w cleanRoomAsset_ForeignTableWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomAsset_ForeignTableFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type cleanRoomAsset_ForeignTableLocalDetailsWire struct {
 	LocalName *string `json:"local_name,omitempty"`
 }
@@ -437,6 +550,30 @@ func cleanRoomAsset_ForeignTableLocalDetailsFromWire(w *cleanRoomAsset_ForeignTa
 	return &CleanRoomAsset_ForeignTableLocalDetails{
 		LocalName: w.LocalName,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomAsset_ForeignTableLocalDetails) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomAsset_ForeignTableLocalDetailsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomAsset_ForeignTableLocalDetails) UnmarshalJSON(data []byte) error {
+	var w cleanRoomAsset_ForeignTableLocalDetailsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomAsset_ForeignTableLocalDetailsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type cleanRoomAsset_JarAnalysisWire struct {
@@ -490,6 +627,30 @@ func cleanRoomAsset_JarAnalysisFromWire(w *cleanRoomAsset_JarAnalysisWire) (*Cle
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomAsset_JarAnalysis) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomAsset_JarAnalysisToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomAsset_JarAnalysis) UnmarshalJSON(data []byte) error {
+	var w cleanRoomAsset_JarAnalysisWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomAsset_JarAnalysisFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type cleanRoomAsset_NotebookWire struct {
 	NotebookContent           *string                                     `json:"notebook_content,omitempty"`
 	Etag                      *string                                     `json:"etag,omitempty"`
@@ -538,6 +699,71 @@ func cleanRoomAsset_NotebookFromWire(w *cleanRoomAsset_NotebookWire) (*CleanRoom
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomAsset_Notebook) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomAsset_NotebookToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomAsset_Notebook) UnmarshalJSON(data []byte) error {
+	var w cleanRoomAsset_NotebookWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomAsset_NotebookFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type cleanRoomAsset_StatusWire struct {
+}
+
+func cleanRoomAsset_StatusToWire(v *CleanRoomAsset_Status) (*cleanRoomAsset_StatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &cleanRoomAsset_StatusWire{}, nil
+}
+
+func cleanRoomAsset_StatusFromWire(w *cleanRoomAsset_StatusWire) (*CleanRoomAsset_Status, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CleanRoomAsset_Status{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomAsset_Status) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomAsset_StatusToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomAsset_Status) UnmarshalJSON(data []byte) error {
+	var w cleanRoomAsset_StatusWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomAsset_StatusFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type cleanRoomAsset_TableWire struct {
 	Columns []columnInfoWire `json:"columns,omitempty"`
 }
@@ -566,6 +792,30 @@ func cleanRoomAsset_TableFromWire(w *cleanRoomAsset_TableWire) (*CleanRoomAsset_
 	return &CleanRoomAsset_Table{
 		Columns: columnsPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomAsset_Table) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomAsset_TableToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomAsset_Table) UnmarshalJSON(data []byte) error {
+	var w cleanRoomAsset_TableWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomAsset_TableFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type cleanRoomAsset_TableLocalDetailsWire struct {
@@ -601,6 +851,30 @@ func cleanRoomAsset_TableLocalDetailsFromWire(w *cleanRoomAsset_TableLocalDetail
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomAsset_TableLocalDetails) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomAsset_TableLocalDetailsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomAsset_TableLocalDetails) UnmarshalJSON(data []byte) error {
+	var w cleanRoomAsset_TableLocalDetailsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomAsset_TableLocalDetailsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type cleanRoomAsset_ViewWire struct {
 	Columns []columnInfoWire `json:"columns,omitempty"`
 }
@@ -631,6 +905,30 @@ func cleanRoomAsset_ViewFromWire(w *cleanRoomAsset_ViewWire) (*CleanRoomAsset_Vi
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomAsset_View) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomAsset_ViewToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomAsset_View) UnmarshalJSON(data []byte) error {
+	var w cleanRoomAsset_ViewWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomAsset_ViewFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type cleanRoomAsset_ViewLocalDetailsWire struct {
 	LocalName *string `json:"local_name,omitempty"`
 }
@@ -653,6 +951,30 @@ func cleanRoomAsset_ViewLocalDetailsFromWire(w *cleanRoomAsset_ViewLocalDetailsW
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomAsset_ViewLocalDetails) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomAsset_ViewLocalDetailsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomAsset_ViewLocalDetails) UnmarshalJSON(data []byte) error {
+	var w cleanRoomAsset_ViewLocalDetailsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomAsset_ViewLocalDetailsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type cleanRoomAsset_VolumeLocalDetailsWire struct {
 	LocalName *string `json:"local_name,omitempty"`
 }
@@ -673,6 +995,30 @@ func cleanRoomAsset_VolumeLocalDetailsFromWire(w *cleanRoomAsset_VolumeLocalDeta
 	return &CleanRoomAsset_VolumeLocalDetails{
 		LocalName: w.LocalName,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomAsset_VolumeLocalDetails) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomAsset_VolumeLocalDetailsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomAsset_VolumeLocalDetails) UnmarshalJSON(data []byte) error {
+	var w cleanRoomAsset_VolumeLocalDetailsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomAsset_VolumeLocalDetailsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type cleanRoomAutoApprovalRuleWire struct {
@@ -776,6 +1122,30 @@ func cleanRoomAutoApprovalRuleFromWire(w *cleanRoomAutoApprovalRuleWire) (*Clean
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomAutoApprovalRule) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomAutoApprovalRuleToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomAutoApprovalRule) UnmarshalJSON(data []byte) error {
+	var w cleanRoomAutoApprovalRuleWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomAutoApprovalRuleFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type cleanRoomCollaboratorWire struct {
 	GlobalMetastoreId          *string    `json:"global_metastore_id,omitempty"`
 	OrganizationName           *string    `json:"organization_name,omitempty"`
@@ -821,6 +1191,30 @@ func cleanRoomCollaboratorFromWire(w *cleanRoomCollaboratorWire) (*CleanRoomColl
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomCollaborator) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomCollaboratorToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomCollaborator) UnmarshalJSON(data []byte) error {
+	var w cleanRoomCollaboratorWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomCollaboratorFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type cleanRoomJarAnalysisReviewWire struct {
 	ReviewerCollaboratorAlias *string                                               `json:"reviewer_collaborator_alias,omitempty"`
 	CreatedAtMillis           *wireInt64                                            `json:"created_at_millis,omitempty"`
@@ -861,6 +1255,30 @@ func cleanRoomJarAnalysisReviewFromWire(w *cleanRoomJarAnalysisReviewWire) (*Cle
 		Comment:                   w.Comment,
 		ReviewSubReason:           w.ReviewSubReason,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomJarAnalysisReview) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomJarAnalysisReviewToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomJarAnalysisReview) UnmarshalJSON(data []byte) error {
+	var w cleanRoomJarAnalysisReviewWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomJarAnalysisReviewFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type cleanRoomNotebookReviewWire struct {
@@ -905,6 +1323,30 @@ func cleanRoomNotebookReviewFromWire(w *cleanRoomNotebookReviewWire) (*CleanRoom
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomNotebookReview) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomNotebookReviewToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomNotebookReview) UnmarshalJSON(data []byte) error {
+	var w cleanRoomNotebookReviewWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomNotebookReviewFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type cleanRoomNotebookTaskRunWire struct {
 	NotebookName                     *string                     `json:"notebook_name,omitempty"`
 	StartTime                        *wireInt64                  `json:"start_time,omitempty"`
@@ -917,6 +1359,53 @@ type cleanRoomNotebookTaskRunWire struct {
 	NotebookUpdatedAt                *wireInt64                  `json:"notebook_updated_at,omitempty"`
 	SharedOutputSchemaName           *string                     `json:"shared_output_schema_name,omitempty"`
 	SharedOutputSchemaExpirationTime *wireInt64                  `json:"shared_output_schema_expiration_time,omitempty"`
+}
+
+func cleanRoomNotebookTaskRunToWire(v *CleanRoomNotebookTaskRun) (*cleanRoomNotebookTaskRunWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	startTimeWireValue, err := int64ToWire(v.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookTaskRun.StartTime", err)
+	}
+	runDurationWireValue, err := int64ToWire(v.RunDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookTaskRun.RunDuration", err)
+	}
+	notebookJobRunStateWireValue, err := cleanRoomTaskRunStateToWire(v.NotebookJobRunState)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookTaskRun.NotebookJobRunState", err)
+	}
+	collaboratorJobRunInfoWireValue, err := collaboratorJobRunInfoToWire(v.CollaboratorJobRunInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookTaskRun.CollaboratorJobRunInfo", err)
+	}
+	outputSchemaExpirationTimeWireValue, err := int64ToWire(v.OutputSchemaExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookTaskRun.OutputSchemaExpirationTime", err)
+	}
+	notebookUpdatedAtWireValue, err := int64ToWire(v.NotebookUpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookTaskRun.NotebookUpdatedAt", err)
+	}
+	sharedOutputSchemaExpirationTimeWireValue, err := int64ToWire(v.SharedOutputSchemaExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookTaskRun.SharedOutputSchemaExpirationTime", err)
+	}
+	return &cleanRoomNotebookTaskRunWire{
+		NotebookName:                     v.NotebookName,
+		StartTime:                        startTimeWireValue,
+		RunDuration:                      runDurationWireValue,
+		NotebookJobRunState:              notebookJobRunStateWireValue,
+		CollaboratorJobRunInfo:           collaboratorJobRunInfoWireValue,
+		OutputSchemaName:                 v.OutputSchemaName,
+		OutputSchemaExpirationTime:       outputSchemaExpirationTimeWireValue,
+		NotebookEtag:                     v.NotebookEtag,
+		NotebookUpdatedAt:                notebookUpdatedAtWireValue,
+		SharedOutputSchemaName:           v.SharedOutputSchemaName,
+		SharedOutputSchemaExpirationTime: sharedOutputSchemaExpirationTimeWireValue,
+	}, nil
 }
 
 func cleanRoomNotebookTaskRunFromWire(w *cleanRoomNotebookTaskRunWire) (*CleanRoomNotebookTaskRun, error) {
@@ -966,6 +1455,30 @@ func cleanRoomNotebookTaskRunFromWire(w *cleanRoomNotebookTaskRunWire) (*CleanRo
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomNotebookTaskRun) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomNotebookTaskRunToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomNotebookTaskRun) UnmarshalJSON(data []byte) error {
+	var w cleanRoomNotebookTaskRunWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomNotebookTaskRunFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type cleanRoomOutputCatalogWire struct {
 	Status      CleanRoomOutputCatalog_OutputCatalogStatus `json:"status,omitempty"`
 	CatalogName *string                                    `json:"catalog_name,omitempty"`
@@ -989,6 +1502,30 @@ func cleanRoomOutputCatalogFromWire(w *cleanRoomOutputCatalogWire) (*CleanRoomOu
 		Status:      w.Status,
 		CatalogName: w.CatalogName,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomOutputCatalog) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomOutputCatalogToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomOutputCatalog) UnmarshalJSON(data []byte) error {
+	var w cleanRoomOutputCatalogWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomOutputCatalogFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type cleanRoomRemoteDetailWire struct {
@@ -1069,6 +1606,30 @@ func cleanRoomRemoteDetailFromWire(w *cleanRoomRemoteDetailWire) (*CleanRoomRemo
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomRemoteDetail) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomRemoteDetailToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomRemoteDetail) UnmarshalJSON(data []byte) error {
+	var w cleanRoomRemoteDetailWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomRemoteDetailFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type cleanRoomTaskRunWire struct {
 	Name                   *string                                            `json:"name,omitempty"`
 	TaskType               CleanRoomTaskType                                  `json:"task_type,omitempty"`
@@ -1079,6 +1640,51 @@ type cleanRoomTaskRunWire struct {
 	OutputInfo             *cleanRoomTaskRun_OutputInfoWire                   `json:"output_info,omitempty"`
 	AnalysisDetails        *cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsWire `json:"analysis_details,omitempty"`
 	SharedOutputInfo       *cleanRoomTaskRun_OutputInfoWire                   `json:"shared_output_info,omitempty"`
+}
+
+func cleanRoomTaskRunToWire(v *CleanRoomTaskRun) (*cleanRoomTaskRunWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	startTimeWireValue, err := int64ToWire(v.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun.StartTime", err)
+	}
+	runDurationWireValue, err := int64ToWire(v.RunDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun.RunDuration", err)
+	}
+	taskRunStateWireValue, err := cleanRoomTaskRunStateToWire(v.TaskRunState)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun.TaskRunState", err)
+	}
+	collaboratorJobRunInfoWireValue, err := collaboratorJobRunInfoToWire(v.CollaboratorJobRunInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun.CollaboratorJobRunInfo", err)
+	}
+	outputInfoWireValue, err := cleanRoomTaskRun_OutputInfoToWire(v.OutputInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun.OutputInfo", err)
+	}
+	analysisDetailsWireValue, err := cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsToWire(v.AnalysisDetails)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun.AnalysisDetails", err)
+	}
+	sharedOutputInfoWireValue, err := cleanRoomTaskRun_OutputInfoToWire(v.SharedOutputInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun.SharedOutputInfo", err)
+	}
+	return &cleanRoomTaskRunWire{
+		Name:                   v.Name,
+		TaskType:               v.TaskType,
+		StartTime:              startTimeWireValue,
+		RunDuration:            runDurationWireValue,
+		TaskRunState:           taskRunStateWireValue,
+		CollaboratorJobRunInfo: collaboratorJobRunInfoWireValue,
+		OutputInfo:             outputInfoWireValue,
+		AnalysisDetails:        analysisDetailsWireValue,
+		SharedOutputInfo:       sharedOutputInfoWireValue,
+	}, nil
 }
 
 func cleanRoomTaskRunFromWire(w *cleanRoomTaskRunWire) (*CleanRoomTaskRun, error) {
@@ -1126,9 +1732,47 @@ func cleanRoomTaskRunFromWire(w *cleanRoomTaskRunWire) (*CleanRoomTaskRun, error
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomTaskRun) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomTaskRunToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomTaskRun) UnmarshalJSON(data []byte) error {
+	var w cleanRoomTaskRunWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomTaskRunFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsWire struct {
 	Etag      *string    `json:"etag,omitempty"`
 	UpdatedAt *wireInt64 `json:"updated_at,omitempty"`
+}
+
+func cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsToWire(v *CleanRoomTaskRun_CleanRoomTaskAnalysisDetails) (*cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun_CleanRoomTaskAnalysisDetails.UpdatedAt", err)
+	}
+	return &cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsWire{
+		Etag:      v.Etag,
+		UpdatedAt: updatedAtWireValue,
+	}, nil
 }
 
 func cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsFromWire(w *cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsWire) (*CleanRoomTaskRun_CleanRoomTaskAnalysisDetails, error) {
@@ -1145,9 +1789,47 @@ func cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsFromWire(w *cleanRoomTaskRun_C
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomTaskRun_CleanRoomTaskAnalysisDetails) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomTaskRun_CleanRoomTaskAnalysisDetails) UnmarshalJSON(data []byte) error {
+	var w cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type cleanRoomTaskRun_OutputInfoWire struct {
 	OutputSchemaName           *string    `json:"output_schema_name,omitempty"`
 	OutputSchemaExpirationTime *wireInt64 `json:"output_schema_expiration_time,omitempty"`
+}
+
+func cleanRoomTaskRun_OutputInfoToWire(v *CleanRoomTaskRun_OutputInfo) (*cleanRoomTaskRun_OutputInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	outputSchemaExpirationTimeWireValue, err := int64ToWire(v.OutputSchemaExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun_OutputInfo.OutputSchemaExpirationTime", err)
+	}
+	return &cleanRoomTaskRun_OutputInfoWire{
+		OutputSchemaName:           v.OutputSchemaName,
+		OutputSchemaExpirationTime: outputSchemaExpirationTimeWireValue,
+	}, nil
 }
 
 func cleanRoomTaskRun_OutputInfoFromWire(w *cleanRoomTaskRun_OutputInfoWire) (*CleanRoomTaskRun_OutputInfo, error) {
@@ -1164,9 +1846,43 @@ func cleanRoomTaskRun_OutputInfoFromWire(w *cleanRoomTaskRun_OutputInfoWire) (*C
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomTaskRun_OutputInfo) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomTaskRun_OutputInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomTaskRun_OutputInfo) UnmarshalJSON(data []byte) error {
+	var w cleanRoomTaskRun_OutputInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomTaskRun_OutputInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type cleanRoomTaskRunStateWire struct {
 	LifeCycleState CleanRoomTaskRunLifeCycleState `json:"life_cycle_state,omitempty"`
 	ResultState    CleanRoomTaskRunResultState    `json:"result_state,omitempty"`
+}
+
+func cleanRoomTaskRunStateToWire(v *CleanRoomTaskRunState) (*cleanRoomTaskRunStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &cleanRoomTaskRunStateWire{
+		LifeCycleState: v.LifeCycleState,
+		ResultState:    v.ResultState,
+	}, nil
 }
 
 func cleanRoomTaskRunStateFromWire(w *cleanRoomTaskRunStateWire) (*CleanRoomTaskRunState, error) {
@@ -1179,12 +1895,65 @@ func cleanRoomTaskRunStateFromWire(w *cleanRoomTaskRunStateWire) (*CleanRoomTask
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CleanRoomTaskRunState) MarshalJSON() ([]byte, error) {
+	w, err := cleanRoomTaskRunStateToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CleanRoomTaskRunState) UnmarshalJSON(data []byte) error {
+	var w cleanRoomTaskRunStateWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cleanRoomTaskRunStateFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type collaboratorJobRunInfoWire struct {
 	CollaboratorJobId       *wireInt64 `json:"collaborator_job_id,omitempty"`
 	CollaboratorJobRunId    *wireInt64 `json:"collaborator_job_run_id,omitempty"`
 	CollaboratorTaskRunId   *wireInt64 `json:"collaborator_task_run_id,omitempty"`
 	CollaboratorWorkspaceId *wireInt64 `json:"collaborator_workspace_id,omitempty"`
 	CollaboratorAlias       *string    `json:"collaborator_alias,omitempty"`
+}
+
+func collaboratorJobRunInfoToWire(v *CollaboratorJobRunInfo) (*collaboratorJobRunInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	collaboratorJobIdWireValue, err := int64ToWire(v.CollaboratorJobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CollaboratorJobRunInfo.CollaboratorJobId", err)
+	}
+	collaboratorJobRunIdWireValue, err := int64ToWire(v.CollaboratorJobRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CollaboratorJobRunInfo.CollaboratorJobRunId", err)
+	}
+	collaboratorTaskRunIdWireValue, err := int64ToWire(v.CollaboratorTaskRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CollaboratorJobRunInfo.CollaboratorTaskRunId", err)
+	}
+	collaboratorWorkspaceIdWireValue, err := int64ToWire(v.CollaboratorWorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CollaboratorJobRunInfo.CollaboratorWorkspaceId", err)
+	}
+	return &collaboratorJobRunInfoWire{
+		CollaboratorJobId:       collaboratorJobIdWireValue,
+		CollaboratorJobRunId:    collaboratorJobRunIdWireValue,
+		CollaboratorTaskRunId:   collaboratorTaskRunIdWireValue,
+		CollaboratorWorkspaceId: collaboratorWorkspaceIdWireValue,
+		CollaboratorAlias:       v.CollaboratorAlias,
+	}, nil
 }
 
 func collaboratorJobRunInfoFromWire(w *collaboratorJobRunInfoWire) (*CollaboratorJobRunInfo, error) {
@@ -1214,6 +1983,30 @@ func collaboratorJobRunInfoFromWire(w *collaboratorJobRunInfoWire) (*Collaborato
 		CollaboratorWorkspaceId: collaboratorWorkspaceIdPublicValue,
 		CollaboratorAlias:       w.CollaboratorAlias,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CollaboratorJobRunInfo) MarshalJSON() ([]byte, error) {
+	w, err := collaboratorJobRunInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CollaboratorJobRunInfo) UnmarshalJSON(data []byte) error {
+	var w collaboratorJobRunInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := collaboratorJobRunInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type columnInfoWire struct {
@@ -1279,6 +2072,30 @@ func columnInfoFromWire(w *columnInfoWire) (*ColumnInfo, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ColumnInfo) MarshalJSON() ([]byte, error) {
+	w, err := columnInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ColumnInfo) UnmarshalJSON(data []byte) error {
+	var w columnInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := columnInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type columnMaskWire struct {
 	FunctionName     *string                      `json:"function_name,omitempty"`
 	UsingColumnNames []string                     `json:"using_column_names,omitempty"`
@@ -1315,6 +2132,30 @@ func columnMaskFromWire(w *columnMaskWire) (*ColumnMask, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ColumnMask) MarshalJSON() ([]byte, error) {
+	w, err := columnMaskToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ColumnMask) UnmarshalJSON(data []byte) error {
+	var w columnMaskWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := columnMaskFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type complianceSecurityProfileWire struct {
 	IsEnabled           *bool                `json:"is_enabled,omitempty"`
 	ComplianceStandards []ComplianceStandard `json:"compliance_standards,omitempty"`
@@ -1340,6 +2181,30 @@ func complianceSecurityProfileFromWire(w *complianceSecurityProfileWire) (*Compl
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ComplianceSecurityProfile) MarshalJSON() ([]byte, error) {
+	w, err := complianceSecurityProfileToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ComplianceSecurityProfile) UnmarshalJSON(data []byte) error {
+	var w complianceSecurityProfileWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := complianceSecurityProfileFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createCleanRoomAssetRequestWire struct {
 	Asset *cleanRoomAssetWire `json:"asset,omitempty"`
 }
@@ -1355,6 +2220,43 @@ func createCleanRoomAssetRequestToWire(v *CreateCleanRoomAssetRequest) (*createC
 	return &createCleanRoomAssetRequestWire{
 		Asset: assetWireValue,
 	}, nil
+}
+
+func createCleanRoomAssetRequestFromWire(w *createCleanRoomAssetRequestWire) (*CreateCleanRoomAssetRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	assetPublicValue, err := cleanRoomAssetFromWire(w.Asset)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCleanRoomAssetRequest.Asset", err)
+	}
+	return &CreateCleanRoomAssetRequest{
+		Asset: assetPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateCleanRoomAssetRequest) MarshalJSON() ([]byte, error) {
+	w, err := createCleanRoomAssetRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateCleanRoomAssetRequest) UnmarshalJSON(data []byte) error {
+	var w createCleanRoomAssetRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createCleanRoomAssetRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createCleanRoomAssetReviewRequestWire struct {
@@ -1401,11 +2303,107 @@ func createCleanRoomAssetReviewRequestToWire(v *CreateCleanRoomAssetReviewReques
 	}, nil
 }
 
+func createCleanRoomAssetReviewRequestFromWire(w *createCleanRoomAssetReviewRequestWire) (*CreateCleanRoomAssetReviewRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	reviewMembers := 0
+	if w.NotebookReview != nil {
+		reviewMembers++
+	}
+	if w.JarAnalysisReview != nil {
+		reviewMembers++
+	}
+	if reviewMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "CreateCleanRoomAssetReviewRequest.Review")
+	}
+	var reviewSelection isCreateCleanRoomAssetReviewRequest_Review
+	switch {
+	case w.NotebookReview != nil:
+		reviewNotebookReviewConverted, err := notebookVersionReviewFromWire(w.NotebookReview)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateCleanRoomAssetReviewRequest.Review.NotebookReview", err)
+		}
+		reviewSelection = &CreateCleanRoomAssetReviewRequest_Review_NotebookReview{NotebookReview: *reviewNotebookReviewConverted}
+	case w.JarAnalysisReview != nil:
+		reviewJarAnalysisReviewConverted, err := jarAnalysisVersionReviewFromWire(w.JarAnalysisReview)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateCleanRoomAssetReviewRequest.Review.JarAnalysisReview", err)
+		}
+		reviewSelection = &CreateCleanRoomAssetReviewRequest_Review_JarAnalysisReview{JarAnalysisReview: *reviewJarAnalysisReviewConverted}
+	}
+	return &CreateCleanRoomAssetReviewRequest{
+		CleanRoomName: w.CleanRoomName,
+		Name:          w.Name,
+		AssetType:     w.AssetType,
+		Review:        reviewSelection,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateCleanRoomAssetReviewRequest) MarshalJSON() ([]byte, error) {
+	w, err := createCleanRoomAssetReviewRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateCleanRoomAssetReviewRequest) UnmarshalJSON(data []byte) error {
+	var w createCleanRoomAssetReviewRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createCleanRoomAssetReviewRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createCleanRoomAssetReviewResponseWire struct {
 	NotebookReviews        []cleanRoomNotebookReviewWire                     `json:"notebook_reviews,omitempty"`
 	JarAnalysisReviews     []cleanRoomJarAnalysisReviewWire                  `json:"jar_analysis_reviews,omitempty"`
 	NotebookReviewState    CleanRoomNotebookReview_NotebookReviewState       `json:"notebook_review_state,omitempty"`
 	JarAnalysisReviewState CleanRoomJarAnalysisReview_JarAnalysisReviewState `json:"jar_analysis_review_state,omitempty"`
+}
+
+func createCleanRoomAssetReviewResponseToWire(v *CreateCleanRoomAssetReviewResponse) (*createCleanRoomAssetReviewResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	notebookReviewsWireValue, err := convertSlice(v.NotebookReviews, cleanRoomNotebookReviewToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCleanRoomAssetReviewResponse.NotebookReviews", err)
+	}
+	jarAnalysisReviewsWireValue, err := convertSlice(v.JarAnalysisReviews, cleanRoomJarAnalysisReviewToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCleanRoomAssetReviewResponse.JarAnalysisReviews", err)
+	}
+	var reviewStateNotebookReviewStateWire CleanRoomNotebookReview_NotebookReviewState
+	var reviewStateJarAnalysisReviewStateWire CleanRoomJarAnalysisReview_JarAnalysisReviewState
+	switch value := v.ReviewState.(type) {
+	case nil:
+	case *CreateCleanRoomAssetReviewResponse_ReviewState_NotebookReviewState:
+		if value != nil {
+			reviewStateNotebookReviewStateWire = value.NotebookReviewState
+		}
+	case *CreateCleanRoomAssetReviewResponse_ReviewState_JarAnalysisReviewState:
+		if value != nil {
+			reviewStateJarAnalysisReviewStateWire = value.JarAnalysisReviewState
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "CreateCleanRoomAssetReviewResponse.ReviewState", value)
+	}
+	return &createCleanRoomAssetReviewResponseWire{
+		NotebookReviews:        notebookReviewsWireValue,
+		JarAnalysisReviews:     jarAnalysisReviewsWireValue,
+		NotebookReviewState:    reviewStateNotebookReviewStateWire,
+		JarAnalysisReviewState: reviewStateJarAnalysisReviewStateWire,
+	}, nil
 }
 
 func createCleanRoomAssetReviewResponseFromWire(w *createCleanRoomAssetReviewResponseWire) (*CreateCleanRoomAssetReviewResponse, error) {
@@ -1444,6 +2442,30 @@ func createCleanRoomAssetReviewResponseFromWire(w *createCleanRoomAssetReviewRes
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateCleanRoomAssetReviewResponse) MarshalJSON() ([]byte, error) {
+	w, err := createCleanRoomAssetReviewResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateCleanRoomAssetReviewResponse) UnmarshalJSON(data []byte) error {
+	var w createCleanRoomAssetReviewResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createCleanRoomAssetReviewResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createCleanRoomAutoApprovalRuleRequestWire struct {
 	AutoApprovalRule *cleanRoomAutoApprovalRuleWire `json:"auto_approval_rule,omitempty"`
 }
@@ -1459,6 +2481,43 @@ func createCleanRoomAutoApprovalRuleRequestToWire(v *CreateCleanRoomAutoApproval
 	return &createCleanRoomAutoApprovalRuleRequestWire{
 		AutoApprovalRule: autoApprovalRuleWireValue,
 	}, nil
+}
+
+func createCleanRoomAutoApprovalRuleRequestFromWire(w *createCleanRoomAutoApprovalRuleRequestWire) (*CreateCleanRoomAutoApprovalRuleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	autoApprovalRulePublicValue, err := cleanRoomAutoApprovalRuleFromWire(w.AutoApprovalRule)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCleanRoomAutoApprovalRuleRequest.AutoApprovalRule", err)
+	}
+	return &CreateCleanRoomAutoApprovalRuleRequest{
+		AutoApprovalRule: autoApprovalRulePublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateCleanRoomAutoApprovalRuleRequest) MarshalJSON() ([]byte, error) {
+	w, err := createCleanRoomAutoApprovalRuleRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateCleanRoomAutoApprovalRuleRequest) UnmarshalJSON(data []byte) error {
+	var w createCleanRoomAutoApprovalRuleRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createCleanRoomAutoApprovalRuleRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createCleanRoomOutputCatalogRequestWire struct {
@@ -1480,8 +2539,59 @@ func createCleanRoomOutputCatalogRequestToWire(v *CreateCleanRoomOutputCatalogRe
 	}, nil
 }
 
+func createCleanRoomOutputCatalogRequestFromWire(w *createCleanRoomOutputCatalogRequestWire) (*CreateCleanRoomOutputCatalogRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	outputCatalogPublicValue, err := cleanRoomOutputCatalogFromWire(w.OutputCatalog)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCleanRoomOutputCatalogRequest.OutputCatalog", err)
+	}
+	return &CreateCleanRoomOutputCatalogRequest{
+		CleanRoomName: w.CleanRoomName,
+		OutputCatalog: outputCatalogPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateCleanRoomOutputCatalogRequest) MarshalJSON() ([]byte, error) {
+	w, err := createCleanRoomOutputCatalogRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateCleanRoomOutputCatalogRequest) UnmarshalJSON(data []byte) error {
+	var w createCleanRoomOutputCatalogRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createCleanRoomOutputCatalogRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createCleanRoomOutputCatalogResponseWire struct {
 	OutputCatalog *cleanRoomOutputCatalogWire `json:"output_catalog,omitempty"`
+}
+
+func createCleanRoomOutputCatalogResponseToWire(v *CreateCleanRoomOutputCatalogResponse) (*createCleanRoomOutputCatalogResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	outputCatalogWireValue, err := cleanRoomOutputCatalogToWire(v.OutputCatalog)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCleanRoomOutputCatalogResponse.OutputCatalog", err)
+	}
+	return &createCleanRoomOutputCatalogResponseWire{
+		OutputCatalog: outputCatalogWireValue,
+	}, nil
 }
 
 func createCleanRoomOutputCatalogResponseFromWire(w *createCleanRoomOutputCatalogResponseWire) (*CreateCleanRoomOutputCatalogResponse, error) {
@@ -1495,6 +2605,30 @@ func createCleanRoomOutputCatalogResponseFromWire(w *createCleanRoomOutputCatalo
 	return &CreateCleanRoomOutputCatalogResponse{
 		OutputCatalog: outputCatalogPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateCleanRoomOutputCatalogResponse) MarshalJSON() ([]byte, error) {
+	w, err := createCleanRoomOutputCatalogResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateCleanRoomOutputCatalogResponse) UnmarshalJSON(data []byte) error {
+	var w createCleanRoomOutputCatalogResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createCleanRoomOutputCatalogResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createCleanRoomRequestWire struct {
@@ -1512,6 +2646,231 @@ func createCleanRoomRequestToWire(v *CreateCleanRoomRequest) (*createCleanRoomRe
 	return &createCleanRoomRequestWire{
 		CleanRoom: cleanRoomWireValue,
 	}, nil
+}
+
+func createCleanRoomRequestFromWire(w *createCleanRoomRequestWire) (*CreateCleanRoomRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	cleanRoomPublicValue, err := cleanRoomFromWire(w.CleanRoom)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCleanRoomRequest.CleanRoom", err)
+	}
+	return &CreateCleanRoomRequest{
+		CleanRoom: cleanRoomPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateCleanRoomRequest) MarshalJSON() ([]byte, error) {
+	w, err := createCleanRoomRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateCleanRoomRequest) UnmarshalJSON(data []byte) error {
+	var w createCleanRoomRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createCleanRoomRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteCleanRoomAssetRequestWire struct {
+	CleanRoomName *string                  `json:"clean_room_name,omitempty"`
+	AssetType     CleanRoomAsset_AssetType `json:"asset_type,omitempty"`
+	Name          *string                  `json:"name,omitempty"`
+}
+
+func deleteCleanRoomAssetRequestToWire(v *DeleteCleanRoomAssetRequest) (*deleteCleanRoomAssetRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCleanRoomAssetRequestWire{
+		CleanRoomName: v.CleanRoomName,
+		AssetType:     v.AssetType,
+		Name:          v.Name,
+	}, nil
+}
+
+func deleteCleanRoomAssetRequestFromWire(w *deleteCleanRoomAssetRequestWire) (*DeleteCleanRoomAssetRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCleanRoomAssetRequest{
+		CleanRoomName: w.CleanRoomName,
+		AssetType:     w.AssetType,
+		Name:          w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteCleanRoomAssetRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteCleanRoomAssetRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteCleanRoomAssetRequest) UnmarshalJSON(data []byte) error {
+	var w deleteCleanRoomAssetRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteCleanRoomAssetRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteCleanRoomAssetResponseWire struct {
+}
+
+func deleteCleanRoomAssetResponseToWire(v *DeleteCleanRoomAssetResponse) (*deleteCleanRoomAssetResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCleanRoomAssetResponseWire{}, nil
+}
+
+func deleteCleanRoomAssetResponseFromWire(w *deleteCleanRoomAssetResponseWire) (*DeleteCleanRoomAssetResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCleanRoomAssetResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteCleanRoomAssetResponse) MarshalJSON() ([]byte, error) {
+	w, err := deleteCleanRoomAssetResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteCleanRoomAssetResponse) UnmarshalJSON(data []byte) error {
+	var w deleteCleanRoomAssetResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteCleanRoomAssetResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteCleanRoomAutoApprovalRuleRequestWire struct {
+	CleanRoomName *string `json:"clean_room_name,omitempty"`
+	RuleId        *string `json:"rule_id,omitempty"`
+}
+
+func deleteCleanRoomAutoApprovalRuleRequestToWire(v *DeleteCleanRoomAutoApprovalRuleRequest) (*deleteCleanRoomAutoApprovalRuleRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCleanRoomAutoApprovalRuleRequestWire{
+		CleanRoomName: v.CleanRoomName,
+		RuleId:        v.RuleId,
+	}, nil
+}
+
+func deleteCleanRoomAutoApprovalRuleRequestFromWire(w *deleteCleanRoomAutoApprovalRuleRequestWire) (*DeleteCleanRoomAutoApprovalRuleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCleanRoomAutoApprovalRuleRequest{
+		CleanRoomName: w.CleanRoomName,
+		RuleId:        w.RuleId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteCleanRoomAutoApprovalRuleRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteCleanRoomAutoApprovalRuleRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteCleanRoomAutoApprovalRuleRequest) UnmarshalJSON(data []byte) error {
+	var w deleteCleanRoomAutoApprovalRuleRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteCleanRoomAutoApprovalRuleRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteCleanRoomRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteCleanRoomRequestToWire(v *DeleteCleanRoomRequest) (*deleteCleanRoomRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCleanRoomRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteCleanRoomRequestFromWire(w *deleteCleanRoomRequestWire) (*DeleteCleanRoomRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCleanRoomRequest{
+		Name: w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteCleanRoomRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteCleanRoomRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteCleanRoomRequest) UnmarshalJSON(data []byte) error {
+	var w deleteCleanRoomRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteCleanRoomRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type egressNetworkPolicyWire struct {
@@ -1542,6 +2901,30 @@ func egressNetworkPolicyFromWire(w *egressNetworkPolicyWire) (*EgressNetworkPoli
 	return &EgressNetworkPolicy{
 		InternetAccess: internetAccessPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v EgressNetworkPolicy) MarshalJSON() ([]byte, error) {
+	w, err := egressNetworkPolicyToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *EgressNetworkPolicy) UnmarshalJSON(data []byte) error {
+	var w egressNetworkPolicyWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := egressNetworkPolicyFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type egressNetworkPolicy_InternetAccessPolicyWire struct {
@@ -1599,6 +2982,30 @@ func egressNetworkPolicy_InternetAccessPolicyFromWire(w *egressNetworkPolicy_Int
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v EgressNetworkPolicy_InternetAccessPolicy) MarshalJSON() ([]byte, error) {
+	w, err := egressNetworkPolicy_InternetAccessPolicyToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *EgressNetworkPolicy_InternetAccessPolicy) UnmarshalJSON(data []byte) error {
+	var w egressNetworkPolicy_InternetAccessPolicyWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := egressNetworkPolicy_InternetAccessPolicyFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type egressNetworkPolicy_InternetAccessPolicy_InternetDestinationWire struct {
 	Destination *string                                                                                           `json:"destination,omitempty"`
 	Type        EgressNetworkPolicy_InternetAccessPolicy_InternetDestination_InternetDestinationType              `json:"type,omitempty"`
@@ -1627,6 +3034,30 @@ func egressNetworkPolicy_InternetAccessPolicy_InternetDestinationFromWire(w *egr
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v EgressNetworkPolicy_InternetAccessPolicy_InternetDestination) MarshalJSON() ([]byte, error) {
+	w, err := egressNetworkPolicy_InternetAccessPolicy_InternetDestinationToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *EgressNetworkPolicy_InternetAccessPolicy_InternetDestination) UnmarshalJSON(data []byte) error {
+	var w egressNetworkPolicy_InternetAccessPolicy_InternetDestinationWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := egressNetworkPolicy_InternetAccessPolicy_InternetDestinationFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type egressNetworkPolicy_InternetAccessPolicy_LogOnlyModeWire struct {
 	LogOnlyModeType EgressNetworkPolicy_InternetAccessPolicy_LogOnlyMode_LogOnlyModeType `json:"log_only_mode_type,omitempty"`
 	Workloads       []EgressNetworkPolicy_InternetAccessPolicy_LogOnlyMode_WorkloadType  `json:"workloads,omitempty"`
@@ -1650,6 +3081,30 @@ func egressNetworkPolicy_InternetAccessPolicy_LogOnlyModeFromWire(w *egressNetwo
 		LogOnlyModeType: w.LogOnlyModeType,
 		Workloads:       w.Workloads,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v EgressNetworkPolicy_InternetAccessPolicy_LogOnlyMode) MarshalJSON() ([]byte, error) {
+	w, err := egressNetworkPolicy_InternetAccessPolicy_LogOnlyModeToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *EgressNetworkPolicy_InternetAccessPolicy_LogOnlyMode) UnmarshalJSON(data []byte) error {
+	var w egressNetworkPolicy_InternetAccessPolicy_LogOnlyModeWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := egressNetworkPolicy_InternetAccessPolicy_LogOnlyModeFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type egressNetworkPolicy_InternetAccessPolicy_StorageDestinationWire struct {
@@ -1695,6 +3150,232 @@ func egressNetworkPolicy_InternetAccessPolicy_StorageDestinationFromWire(w *egre
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v EgressNetworkPolicy_InternetAccessPolicy_StorageDestination) MarshalJSON() ([]byte, error) {
+	w, err := egressNetworkPolicy_InternetAccessPolicy_StorageDestinationToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *EgressNetworkPolicy_InternetAccessPolicy_StorageDestination) UnmarshalJSON(data []byte) error {
+	var w egressNetworkPolicy_InternetAccessPolicy_StorageDestinationWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := egressNetworkPolicy_InternetAccessPolicy_StorageDestinationFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getCleanRoomAssetRequestWire struct {
+	CleanRoomName *string                  `json:"clean_room_name,omitempty"`
+	AssetType     CleanRoomAsset_AssetType `json:"asset_type,omitempty"`
+	Name          *string                  `json:"name,omitempty"`
+}
+
+func getCleanRoomAssetRequestToWire(v *GetCleanRoomAssetRequest) (*getCleanRoomAssetRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getCleanRoomAssetRequestWire{
+		CleanRoomName: v.CleanRoomName,
+		AssetType:     v.AssetType,
+		Name:          v.Name,
+	}, nil
+}
+
+func getCleanRoomAssetRequestFromWire(w *getCleanRoomAssetRequestWire) (*GetCleanRoomAssetRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCleanRoomAssetRequest{
+		CleanRoomName: w.CleanRoomName,
+		AssetType:     w.AssetType,
+		Name:          w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetCleanRoomAssetRequest) MarshalJSON() ([]byte, error) {
+	w, err := getCleanRoomAssetRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetCleanRoomAssetRequest) UnmarshalJSON(data []byte) error {
+	var w getCleanRoomAssetRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getCleanRoomAssetRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getCleanRoomAssetRevisionRequestWire struct {
+	CleanRoomName *string                  `json:"clean_room_name,omitempty"`
+	Name          *string                  `json:"name,omitempty"`
+	AssetType     CleanRoomAsset_AssetType `json:"asset_type,omitempty"`
+	Etag          *string                  `json:"etag,omitempty"`
+}
+
+func getCleanRoomAssetRevisionRequestToWire(v *GetCleanRoomAssetRevisionRequest) (*getCleanRoomAssetRevisionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getCleanRoomAssetRevisionRequestWire{
+		CleanRoomName: v.CleanRoomName,
+		Name:          v.Name,
+		AssetType:     v.AssetType,
+		Etag:          v.Etag,
+	}, nil
+}
+
+func getCleanRoomAssetRevisionRequestFromWire(w *getCleanRoomAssetRevisionRequestWire) (*GetCleanRoomAssetRevisionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCleanRoomAssetRevisionRequest{
+		CleanRoomName: w.CleanRoomName,
+		Name:          w.Name,
+		AssetType:     w.AssetType,
+		Etag:          w.Etag,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetCleanRoomAssetRevisionRequest) MarshalJSON() ([]byte, error) {
+	w, err := getCleanRoomAssetRevisionRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetCleanRoomAssetRevisionRequest) UnmarshalJSON(data []byte) error {
+	var w getCleanRoomAssetRevisionRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getCleanRoomAssetRevisionRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getCleanRoomAutoApprovalRuleRequestWire struct {
+	CleanRoomName *string `json:"clean_room_name,omitempty"`
+	RuleId        *string `json:"rule_id,omitempty"`
+}
+
+func getCleanRoomAutoApprovalRuleRequestToWire(v *GetCleanRoomAutoApprovalRuleRequest) (*getCleanRoomAutoApprovalRuleRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getCleanRoomAutoApprovalRuleRequestWire{
+		CleanRoomName: v.CleanRoomName,
+		RuleId:        v.RuleId,
+	}, nil
+}
+
+func getCleanRoomAutoApprovalRuleRequestFromWire(w *getCleanRoomAutoApprovalRuleRequestWire) (*GetCleanRoomAutoApprovalRuleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCleanRoomAutoApprovalRuleRequest{
+		CleanRoomName: w.CleanRoomName,
+		RuleId:        w.RuleId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetCleanRoomAutoApprovalRuleRequest) MarshalJSON() ([]byte, error) {
+	w, err := getCleanRoomAutoApprovalRuleRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetCleanRoomAutoApprovalRuleRequest) UnmarshalJSON(data []byte) error {
+	var w getCleanRoomAutoApprovalRuleRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getCleanRoomAutoApprovalRuleRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getCleanRoomRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getCleanRoomRequestToWire(v *GetCleanRoomRequest) (*getCleanRoomRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getCleanRoomRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getCleanRoomRequestFromWire(w *getCleanRoomRequestWire) (*GetCleanRoomRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCleanRoomRequest{
+		Name: w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetCleanRoomRequest) MarshalJSON() ([]byte, error) {
+	w, err := getCleanRoomRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetCleanRoomRequest) UnmarshalJSON(data []byte) error {
+	var w getCleanRoomRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getCleanRoomRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type jarAnalysisVersionReviewWire struct {
 	Etag        *string                                           `json:"etag,omitempty"`
 	ReviewState CleanRoomJarAnalysisReview_JarAnalysisReviewState `json:"review_state,omitempty"`
@@ -1710,6 +3391,41 @@ func jarAnalysisVersionReviewToWire(v *JarAnalysisVersionReview) (*jarAnalysisVe
 		ReviewState: v.ReviewState,
 		Comment:     v.Comment,
 	}, nil
+}
+
+func jarAnalysisVersionReviewFromWire(w *jarAnalysisVersionReviewWire) (*JarAnalysisVersionReview, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &JarAnalysisVersionReview{
+		Etag:        w.Etag,
+		ReviewState: w.ReviewState,
+		Comment:     w.Comment,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v JarAnalysisVersionReview) MarshalJSON() ([]byte, error) {
+	w, err := jarAnalysisVersionReviewToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *JarAnalysisVersionReview) UnmarshalJSON(data []byte) error {
+	var w jarAnalysisVersionReviewWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := jarAnalysisVersionReviewFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listCleanRoomAssetRevisionsRequestWire struct {
@@ -1733,9 +3449,60 @@ func listCleanRoomAssetRevisionsRequestToWire(v *ListCleanRoomAssetRevisionsRequ
 	}, nil
 }
 
+func listCleanRoomAssetRevisionsRequestFromWire(w *listCleanRoomAssetRevisionsRequestWire) (*ListCleanRoomAssetRevisionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListCleanRoomAssetRevisionsRequest{
+		CleanRoomName: w.CleanRoomName,
+		Name:          w.Name,
+		AssetType:     w.AssetType,
+		PageSize:      w.PageSize,
+		PageToken:     w.PageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCleanRoomAssetRevisionsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listCleanRoomAssetRevisionsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCleanRoomAssetRevisionsRequest) UnmarshalJSON(data []byte) error {
+	var w listCleanRoomAssetRevisionsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCleanRoomAssetRevisionsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listCleanRoomAssetRevisionsResponseWire struct {
 	Revisions     []cleanRoomAssetWire `json:"revisions,omitempty"`
 	NextPageToken *string              `json:"next_page_token,omitempty"`
+}
+
+func listCleanRoomAssetRevisionsResponseToWire(v *ListCleanRoomAssetRevisionsResponse) (*listCleanRoomAssetRevisionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	revisionsWireValue, err := convertSlice(v.Revisions, cleanRoomAssetToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCleanRoomAssetRevisionsResponse.Revisions", err)
+	}
+	return &listCleanRoomAssetRevisionsResponseWire{
+		Revisions:     revisionsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listCleanRoomAssetRevisionsResponseFromWire(w *listCleanRoomAssetRevisionsResponseWire) (*ListCleanRoomAssetRevisionsResponse, error) {
@@ -1750,6 +3517,30 @@ func listCleanRoomAssetRevisionsResponseFromWire(w *listCleanRoomAssetRevisionsR
 		Revisions:     revisionsPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCleanRoomAssetRevisionsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listCleanRoomAssetRevisionsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCleanRoomAssetRevisionsResponse) UnmarshalJSON(data []byte) error {
+	var w listCleanRoomAssetRevisionsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCleanRoomAssetRevisionsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listCleanRoomAssetsRequestWire struct {
@@ -1767,9 +3558,57 @@ func listCleanRoomAssetsRequestToWire(v *ListCleanRoomAssetsRequest) (*listClean
 	}, nil
 }
 
+func listCleanRoomAssetsRequestFromWire(w *listCleanRoomAssetsRequestWire) (*ListCleanRoomAssetsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListCleanRoomAssetsRequest{
+		CleanRoomName: w.CleanRoomName,
+		PageToken:     w.PageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCleanRoomAssetsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listCleanRoomAssetsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCleanRoomAssetsRequest) UnmarshalJSON(data []byte) error {
+	var w listCleanRoomAssetsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCleanRoomAssetsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listCleanRoomAssetsResponseWire struct {
 	Assets        []cleanRoomAssetWire `json:"assets,omitempty"`
 	NextPageToken *string              `json:"next_page_token,omitempty"`
+}
+
+func listCleanRoomAssetsResponseToWire(v *ListCleanRoomAssetsResponse) (*listCleanRoomAssetsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	assetsWireValue, err := convertSlice(v.Assets, cleanRoomAssetToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCleanRoomAssetsResponse.Assets", err)
+	}
+	return &listCleanRoomAssetsResponseWire{
+		Assets:        assetsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listCleanRoomAssetsResponseFromWire(w *listCleanRoomAssetsResponseWire) (*ListCleanRoomAssetsResponse, error) {
@@ -1784,6 +3623,30 @@ func listCleanRoomAssetsResponseFromWire(w *listCleanRoomAssetsResponseWire) (*L
 		Assets:        assetsPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCleanRoomAssetsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listCleanRoomAssetsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCleanRoomAssetsResponse) UnmarshalJSON(data []byte) error {
+	var w listCleanRoomAssetsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCleanRoomAssetsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listCleanRoomAutoApprovalRulesRequestWire struct {
@@ -1803,9 +3666,58 @@ func listCleanRoomAutoApprovalRulesRequestToWire(v *ListCleanRoomAutoApprovalRul
 	}, nil
 }
 
+func listCleanRoomAutoApprovalRulesRequestFromWire(w *listCleanRoomAutoApprovalRulesRequestWire) (*ListCleanRoomAutoApprovalRulesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListCleanRoomAutoApprovalRulesRequest{
+		CleanRoomName: w.CleanRoomName,
+		PageSize:      w.PageSize,
+		PageToken:     w.PageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCleanRoomAutoApprovalRulesRequest) MarshalJSON() ([]byte, error) {
+	w, err := listCleanRoomAutoApprovalRulesRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCleanRoomAutoApprovalRulesRequest) UnmarshalJSON(data []byte) error {
+	var w listCleanRoomAutoApprovalRulesRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCleanRoomAutoApprovalRulesRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listCleanRoomAutoApprovalRulesResponseWire struct {
 	Rules         []cleanRoomAutoApprovalRuleWire `json:"rules,omitempty"`
 	NextPageToken *string                         `json:"next_page_token,omitempty"`
+}
+
+func listCleanRoomAutoApprovalRulesResponseToWire(v *ListCleanRoomAutoApprovalRulesResponse) (*listCleanRoomAutoApprovalRulesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	rulesWireValue, err := convertSlice(v.Rules, cleanRoomAutoApprovalRuleToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCleanRoomAutoApprovalRulesResponse.Rules", err)
+	}
+	return &listCleanRoomAutoApprovalRulesResponseWire{
+		Rules:         rulesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listCleanRoomAutoApprovalRulesResponseFromWire(w *listCleanRoomAutoApprovalRulesResponseWire) (*ListCleanRoomAutoApprovalRulesResponse, error) {
@@ -1820,6 +3732,30 @@ func listCleanRoomAutoApprovalRulesResponseFromWire(w *listCleanRoomAutoApproval
 		Rules:         rulesPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCleanRoomAutoApprovalRulesResponse) MarshalJSON() ([]byte, error) {
+	w, err := listCleanRoomAutoApprovalRulesResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCleanRoomAutoApprovalRulesResponse) UnmarshalJSON(data []byte) error {
+	var w listCleanRoomAutoApprovalRulesResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCleanRoomAutoApprovalRulesResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listCleanRoomNotebookTaskRunsRequestWire struct {
@@ -1841,9 +3777,59 @@ func listCleanRoomNotebookTaskRunsRequestToWire(v *ListCleanRoomNotebookTaskRuns
 	}, nil
 }
 
+func listCleanRoomNotebookTaskRunsRequestFromWire(w *listCleanRoomNotebookTaskRunsRequestWire) (*ListCleanRoomNotebookTaskRunsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListCleanRoomNotebookTaskRunsRequest{
+		CleanRoomName: w.CleanRoomName,
+		NotebookName:  w.NotebookName,
+		PageSize:      w.PageSize,
+		PageToken:     w.PageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCleanRoomNotebookTaskRunsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listCleanRoomNotebookTaskRunsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCleanRoomNotebookTaskRunsRequest) UnmarshalJSON(data []byte) error {
+	var w listCleanRoomNotebookTaskRunsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCleanRoomNotebookTaskRunsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listCleanRoomNotebookTaskRunsResponseWire struct {
 	Runs          []cleanRoomNotebookTaskRunWire `json:"runs,omitempty"`
 	NextPageToken *string                        `json:"next_page_token,omitempty"`
+}
+
+func listCleanRoomNotebookTaskRunsResponseToWire(v *ListCleanRoomNotebookTaskRunsResponse) (*listCleanRoomNotebookTaskRunsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	runsWireValue, err := convertSlice(v.Runs, cleanRoomNotebookTaskRunToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCleanRoomNotebookTaskRunsResponse.Runs", err)
+	}
+	return &listCleanRoomNotebookTaskRunsResponseWire{
+		Runs:          runsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listCleanRoomNotebookTaskRunsResponseFromWire(w *listCleanRoomNotebookTaskRunsResponseWire) (*ListCleanRoomNotebookTaskRunsResponse, error) {
@@ -1858,6 +3844,30 @@ func listCleanRoomNotebookTaskRunsResponseFromWire(w *listCleanRoomNotebookTaskR
 		Runs:          runsPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCleanRoomNotebookTaskRunsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listCleanRoomNotebookTaskRunsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCleanRoomNotebookTaskRunsResponse) UnmarshalJSON(data []byte) error {
+	var w listCleanRoomNotebookTaskRunsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCleanRoomNotebookTaskRunsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listCleanRoomTaskRunsRequestWire struct {
@@ -1881,9 +3891,60 @@ func listCleanRoomTaskRunsRequestToWire(v *ListCleanRoomTaskRunsRequest) (*listC
 	}, nil
 }
 
+func listCleanRoomTaskRunsRequestFromWire(w *listCleanRoomTaskRunsRequestWire) (*ListCleanRoomTaskRunsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListCleanRoomTaskRunsRequest{
+		CleanRoomName: w.CleanRoomName,
+		Name:          w.Name,
+		TaskType:      w.TaskType,
+		PageSize:      w.PageSize,
+		PageToken:     w.PageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCleanRoomTaskRunsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listCleanRoomTaskRunsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCleanRoomTaskRunsRequest) UnmarshalJSON(data []byte) error {
+	var w listCleanRoomTaskRunsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCleanRoomTaskRunsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listCleanRoomTaskRunsResponseWire struct {
 	Runs          []cleanRoomTaskRunWire `json:"runs,omitempty"`
 	NextPageToken *string                `json:"next_page_token,omitempty"`
+}
+
+func listCleanRoomTaskRunsResponseToWire(v *ListCleanRoomTaskRunsResponse) (*listCleanRoomTaskRunsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	runsWireValue, err := convertSlice(v.Runs, cleanRoomTaskRunToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCleanRoomTaskRunsResponse.Runs", err)
+	}
+	return &listCleanRoomTaskRunsResponseWire{
+		Runs:          runsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listCleanRoomTaskRunsResponseFromWire(w *listCleanRoomTaskRunsResponseWire) (*ListCleanRoomTaskRunsResponse, error) {
@@ -1898,6 +3959,30 @@ func listCleanRoomTaskRunsResponseFromWire(w *listCleanRoomTaskRunsResponseWire)
 		Runs:          runsPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCleanRoomTaskRunsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listCleanRoomTaskRunsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCleanRoomTaskRunsResponse) UnmarshalJSON(data []byte) error {
+	var w listCleanRoomTaskRunsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCleanRoomTaskRunsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listCleanRoomsRequestWire struct {
@@ -1915,9 +4000,57 @@ func listCleanRoomsRequestToWire(v *ListCleanRoomsRequest) (*listCleanRoomsReque
 	}, nil
 }
 
+func listCleanRoomsRequestFromWire(w *listCleanRoomsRequestWire) (*ListCleanRoomsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListCleanRoomsRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCleanRoomsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listCleanRoomsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCleanRoomsRequest) UnmarshalJSON(data []byte) error {
+	var w listCleanRoomsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCleanRoomsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listCleanRoomsResponseWire struct {
 	CleanRooms    []cleanRoomWire `json:"clean_rooms,omitempty"`
 	NextPageToken *string         `json:"next_page_token,omitempty"`
+}
+
+func listCleanRoomsResponseToWire(v *ListCleanRoomsResponse) (*listCleanRoomsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	cleanRoomsWireValue, err := convertSlice(v.CleanRooms, cleanRoomToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCleanRoomsResponse.CleanRooms", err)
+	}
+	return &listCleanRoomsResponseWire{
+		CleanRooms:    cleanRoomsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listCleanRoomsResponseFromWire(w *listCleanRoomsResponseWire) (*ListCleanRoomsResponse, error) {
@@ -1932,6 +4065,30 @@ func listCleanRoomsResponseFromWire(w *listCleanRoomsResponseWire) (*ListCleanRo
 		CleanRooms:    cleanRoomsPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCleanRoomsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listCleanRoomsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCleanRoomsResponse) UnmarshalJSON(data []byte) error {
+	var w listCleanRoomsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCleanRoomsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type notebookVersionReviewWire struct {
@@ -1949,6 +4106,82 @@ func notebookVersionReviewToWire(v *NotebookVersionReview) (*notebookVersionRevi
 		ReviewState: v.ReviewState,
 		Comment:     v.Comment,
 	}, nil
+}
+
+func notebookVersionReviewFromWire(w *notebookVersionReviewWire) (*NotebookVersionReview, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &NotebookVersionReview{
+		Etag:        w.Etag,
+		ReviewState: w.ReviewState,
+		Comment:     w.Comment,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v NotebookVersionReview) MarshalJSON() ([]byte, error) {
+	w, err := notebookVersionReviewToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *NotebookVersionReview) UnmarshalJSON(data []byte) error {
+	var w notebookVersionReviewWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := notebookVersionReviewFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type partitionSpecificationWire struct {
+}
+
+func partitionSpecificationToWire(v *PartitionSpecification) (*partitionSpecificationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &partitionSpecificationWire{}, nil
+}
+
+func partitionSpecificationFromWire(w *partitionSpecificationWire) (*PartitionSpecification, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PartitionSpecification{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PartitionSpecification) MarshalJSON() ([]byte, error) {
+	w, err := partitionSpecificationToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PartitionSpecification) UnmarshalJSON(data []byte) error {
+	var w partitionSpecificationWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := partitionSpecificationFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type partitionSpecification_PartitionWire struct {
@@ -1981,6 +4214,30 @@ func partitionSpecification_PartitionFromWire(w *partitionSpecification_Partitio
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PartitionSpecification_Partition) MarshalJSON() ([]byte, error) {
+	w, err := partitionSpecification_PartitionToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PartitionSpecification_Partition) UnmarshalJSON(data []byte) error {
+	var w partitionSpecification_PartitionWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := partitionSpecification_PartitionFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type partitionSpecification_Partition_PartitionValueWire struct {
 	Name                 *string                                                          `json:"name,omitempty"`
 	Value                *string                                                          `json:"value,omitempty"`
@@ -2010,6 +4267,30 @@ func partitionSpecification_Partition_PartitionValueFromWire(w *partitionSpecifi
 		RecipientPropertyKey: w.RecipientPropertyKey,
 		Op:                   w.Op,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PartitionSpecification_Partition_PartitionValue) MarshalJSON() ([]byte, error) {
+	w, err := partitionSpecification_Partition_PartitionValueToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PartitionSpecification_Partition_PartitionValue) UnmarshalJSON(data []byte) error {
+	var w partitionSpecification_Partition_PartitionValueWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := partitionSpecification_Partition_PartitionValueFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type policyFunctionArgumentWire struct {
@@ -2068,6 +4349,30 @@ func policyFunctionArgumentFromWire(w *policyFunctionArgumentWire) (*PolicyFunct
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PolicyFunctionArgument) MarshalJSON() ([]byte, error) {
+	w, err := policyFunctionArgumentToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PolicyFunctionArgument) UnmarshalJSON(data []byte) error {
+	var w policyFunctionArgumentWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := policyFunctionArgumentFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateCleanRoomAssetRequestWire struct {
 	CleanRoomName *string             `json:"clean_room_name,omitempty"`
 	Asset         *cleanRoomAssetWire `json:"asset,omitempty"`
@@ -2087,6 +4392,44 @@ func updateCleanRoomAssetRequestToWire(v *UpdateCleanRoomAssetRequest) (*updateC
 	}, nil
 }
 
+func updateCleanRoomAssetRequestFromWire(w *updateCleanRoomAssetRequestWire) (*UpdateCleanRoomAssetRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	assetPublicValue, err := cleanRoomAssetFromWire(w.Asset)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCleanRoomAssetRequest.Asset", err)
+	}
+	return &UpdateCleanRoomAssetRequest{
+		CleanRoomName: w.CleanRoomName,
+		Asset:         assetPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateCleanRoomAssetRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateCleanRoomAssetRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateCleanRoomAssetRequest) UnmarshalJSON(data []byte) error {
+	var w updateCleanRoomAssetRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateCleanRoomAssetRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateCleanRoomAutoApprovalRuleRequestWire struct {
 	AutoApprovalRule *cleanRoomAutoApprovalRuleWire `json:"auto_approval_rule,omitempty"`
 }
@@ -2102,6 +4445,43 @@ func updateCleanRoomAutoApprovalRuleRequestToWire(v *UpdateCleanRoomAutoApproval
 	return &updateCleanRoomAutoApprovalRuleRequestWire{
 		AutoApprovalRule: autoApprovalRuleWireValue,
 	}, nil
+}
+
+func updateCleanRoomAutoApprovalRuleRequestFromWire(w *updateCleanRoomAutoApprovalRuleRequestWire) (*UpdateCleanRoomAutoApprovalRuleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	autoApprovalRulePublicValue, err := cleanRoomAutoApprovalRuleFromWire(w.AutoApprovalRule)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCleanRoomAutoApprovalRuleRequest.AutoApprovalRule", err)
+	}
+	return &UpdateCleanRoomAutoApprovalRuleRequest{
+		AutoApprovalRule: autoApprovalRulePublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateCleanRoomAutoApprovalRuleRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateCleanRoomAutoApprovalRuleRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateCleanRoomAutoApprovalRuleRequest) UnmarshalJSON(data []byte) error {
+	var w updateCleanRoomAutoApprovalRuleRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateCleanRoomAutoApprovalRuleRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateCleanRoomRequestWire struct {
@@ -2121,6 +4501,44 @@ func updateCleanRoomRequestToWire(v *UpdateCleanRoomRequest) (*updateCleanRoomRe
 		Name:      v.Name,
 		CleanRoom: cleanRoomWireValue,
 	}, nil
+}
+
+func updateCleanRoomRequestFromWire(w *updateCleanRoomRequestWire) (*UpdateCleanRoomRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	cleanRoomPublicValue, err := cleanRoomFromWire(w.CleanRoom)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCleanRoomRequest.CleanRoom", err)
+	}
+	return &UpdateCleanRoomRequest{
+		Name:      w.Name,
+		CleanRoom: cleanRoomPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateCleanRoomRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateCleanRoomRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateCleanRoomRequest) UnmarshalJSON(data []byte) error {
+	var w updateCleanRoomRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateCleanRoomRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

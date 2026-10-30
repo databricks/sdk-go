@@ -52,8 +52,73 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
+type getQuotaRequestWire struct {
+	ParentSecurableType *string `json:"parent_securable_type,omitempty"`
+	ParentFullName      *string `json:"parent_full_name,omitempty"`
+	QuotaName           *string `json:"quota_name,omitempty"`
+}
+
+func getQuotaRequestToWire(v *GetQuotaRequest) (*getQuotaRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getQuotaRequestWire{
+		ParentSecurableType: v.ParentSecurableType,
+		ParentFullName:      v.ParentFullName,
+		QuotaName:           v.QuotaName,
+	}, nil
+}
+
+func getQuotaRequestFromWire(w *getQuotaRequestWire) (*GetQuotaRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetQuotaRequest{
+		ParentSecurableType: w.ParentSecurableType,
+		ParentFullName:      w.ParentFullName,
+		QuotaName:           w.QuotaName,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetQuotaRequest) MarshalJSON() ([]byte, error) {
+	w, err := getQuotaRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetQuotaRequest) UnmarshalJSON(data []byte) error {
+	var w getQuotaRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getQuotaRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getQuotaResponseWire struct {
 	QuotaInfo *quotaInfoWire `json:"quota_info,omitempty"`
+}
+
+func getQuotaResponseToWire(v *GetQuotaResponse) (*getQuotaResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	quotaInfoWireValue, err := quotaInfoToWire(v.QuotaInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetQuotaResponse.QuotaInfo", err)
+	}
+	return &getQuotaResponseWire{
+		QuotaInfo: quotaInfoWireValue,
+	}, nil
 }
 
 func getQuotaResponseFromWire(w *getQuotaResponseWire) (*GetQuotaResponse, error) {
@@ -67,6 +132,30 @@ func getQuotaResponseFromWire(w *getQuotaResponseWire) (*GetQuotaResponse, error
 	return &GetQuotaResponse{
 		QuotaInfo: quotaInfoPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetQuotaResponse) MarshalJSON() ([]byte, error) {
+	w, err := getQuotaResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetQuotaResponse) UnmarshalJSON(data []byte) error {
+	var w getQuotaResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getQuotaResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listQuotasRequestWire struct {
@@ -84,9 +173,57 @@ func listQuotasRequestToWire(v *ListQuotasRequest) (*listQuotasRequestWire, erro
 	}, nil
 }
 
+func listQuotasRequestFromWire(w *listQuotasRequestWire) (*ListQuotasRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListQuotasRequest{
+		MaxResults: w.MaxResults,
+		PageToken:  w.PageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListQuotasRequest) MarshalJSON() ([]byte, error) {
+	w, err := listQuotasRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListQuotasRequest) UnmarshalJSON(data []byte) error {
+	var w listQuotasRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listQuotasRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listQuotasResponseWire struct {
 	Quotas        []quotaInfoWire `json:"quotas,omitempty"`
 	NextPageToken *string         `json:"next_page_token,omitempty"`
+}
+
+func listQuotasResponseToWire(v *ListQuotasResponse) (*listQuotasResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	quotasWireValue, err := convertSlice(v.Quotas, quotaInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListQuotasResponse.Quotas", err)
+	}
+	return &listQuotasResponseWire{
+		Quotas:        quotasWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listQuotasResponseFromWire(w *listQuotasResponseWire) (*ListQuotasResponse, error) {
@@ -103,6 +240,30 @@ func listQuotasResponseFromWire(w *listQuotasResponseWire) (*ListQuotasResponse,
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListQuotasResponse) MarshalJSON() ([]byte, error) {
+	w, err := listQuotasResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListQuotasResponse) UnmarshalJSON(data []byte) error {
+	var w listQuotasResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listQuotasResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type quotaInfoWire struct {
 	ParentSecurableType SecurableType `json:"parent_securable_type,omitempty"`
 	ParentFullName      *string       `json:"parent_full_name,omitempty"`
@@ -110,6 +271,24 @@ type quotaInfoWire struct {
 	QuotaCount          *int          `json:"quota_count,omitempty"`
 	QuotaLimit          *int          `json:"quota_limit,omitempty"`
 	LastRefreshedAt     *wireInt64    `json:"last_refreshed_at,omitempty"`
+}
+
+func quotaInfoToWire(v *QuotaInfo) (*quotaInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	lastRefreshedAtWireValue, err := int64ToWire(v.LastRefreshedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QuotaInfo.LastRefreshedAt", err)
+	}
+	return &quotaInfoWire{
+		ParentSecurableType: v.ParentSecurableType,
+		ParentFullName:      v.ParentFullName,
+		QuotaName:           v.QuotaName,
+		QuotaCount:          v.QuotaCount,
+		QuotaLimit:          v.QuotaLimit,
+		LastRefreshedAt:     lastRefreshedAtWireValue,
+	}, nil
 }
 
 func quotaInfoFromWire(w *quotaInfoWire) (*QuotaInfo, error) {
@@ -128,6 +307,30 @@ func quotaInfoFromWire(w *quotaInfoWire) (*QuotaInfo, error) {
 		QuotaLimit:          w.QuotaLimit,
 		LastRefreshedAt:     lastRefreshedAtPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v QuotaInfo) MarshalJSON() ([]byte, error) {
+	w, err := quotaInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *QuotaInfo) UnmarshalJSON(data []byte) error {
+	var w quotaInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := quotaInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

@@ -57,6 +57,16 @@ type channelInfoWire struct {
 	DbsqlVersion *string     `json:"dbsql_version,omitempty"`
 }
 
+func channelInfoToWire(v *ChannelInfo) (*channelInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &channelInfoWire{
+		Name:         v.Name,
+		DbsqlVersion: v.DbsqlVersion,
+	}, nil
+}
+
 func channelInfoFromWire(w *channelInfoWire) (*ChannelInfo, error) {
 	if w == nil {
 		return nil, nil
@@ -67,6 +77,30 @@ func channelInfoFromWire(w *channelInfoWire) (*ChannelInfo, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ChannelInfo) MarshalJSON() ([]byte, error) {
+	w, err := channelInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ChannelInfo) UnmarshalJSON(data []byte) error {
+	var w channelInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := channelInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type externalQuerySourceWire struct {
 	DashboardId       *string                          `json:"dashboard_id,omitempty"`
 	LegacyDashboardId *string                          `json:"legacy_dashboard_id,omitempty"`
@@ -75,6 +109,25 @@ type externalQuerySourceWire struct {
 	SqlQueryId        *string                          `json:"sql_query_id,omitempty"`
 	JobInfo           *externalQuerySource_JobInfoWire `json:"job_info,omitempty"`
 	GenieSpaceId      *string                          `json:"genie_space_id,omitempty"`
+}
+
+func externalQuerySourceToWire(v *ExternalQuerySource) (*externalQuerySourceWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	jobInfoWireValue, err := externalQuerySource_JobInfoToWire(v.JobInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalQuerySource.JobInfo", err)
+	}
+	return &externalQuerySourceWire{
+		DashboardId:       v.DashboardId,
+		LegacyDashboardId: v.LegacyDashboardId,
+		AlertId:           v.AlertId,
+		NotebookId:        v.NotebookId,
+		SqlQueryId:        v.SqlQueryId,
+		JobInfo:           jobInfoWireValue,
+		GenieSpaceId:      v.GenieSpaceId,
+	}, nil
 }
 
 func externalQuerySourceFromWire(w *externalQuerySourceWire) (*ExternalQuerySource, error) {
@@ -96,10 +149,45 @@ func externalQuerySourceFromWire(w *externalQuerySourceWire) (*ExternalQuerySour
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExternalQuerySource) MarshalJSON() ([]byte, error) {
+	w, err := externalQuerySourceToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExternalQuerySource) UnmarshalJSON(data []byte) error {
+	var w externalQuerySourceWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := externalQuerySourceFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type externalQuerySource_JobInfoWire struct {
 	JobId        *string `json:"job_id,omitempty"`
 	JobRunId     *string `json:"job_run_id,omitempty"`
 	JobTaskRunId *string `json:"job_task_run_id,omitempty"`
+}
+
+func externalQuerySource_JobInfoToWire(v *ExternalQuerySource_JobInfo) (*externalQuerySource_JobInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &externalQuerySource_JobInfoWire{
+		JobId:        v.JobId,
+		JobRunId:     v.JobRunId,
+		JobTaskRunId: v.JobTaskRunId,
+	}, nil
 }
 
 func externalQuerySource_JobInfoFromWire(w *externalQuerySource_JobInfoWire) (*ExternalQuerySource_JobInfo, error) {
@@ -111,6 +199,30 @@ func externalQuerySource_JobInfoFromWire(w *externalQuerySource_JobInfoWire) (*E
 		JobRunId:     w.JobRunId,
 		JobTaskRunId: w.JobTaskRunId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExternalQuerySource_JobInfo) MarshalJSON() ([]byte, error) {
+	w, err := externalQuerySource_JobInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExternalQuerySource_JobInfo) UnmarshalJSON(data []byte) error {
+	var w externalQuerySource_JobInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := externalQuerySource_JobInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listQueriesRequestWire struct {
@@ -136,10 +248,65 @@ func listQueriesRequestToWire(v *ListQueriesRequest) (*listQueriesRequestWire, e
 	}, nil
 }
 
+func listQueriesRequestFromWire(w *listQueriesRequestWire) (*ListQueriesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	filterByPublicValue, err := queryFilterFromWire(w.FilterBy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListQueriesRequest.FilterBy", err)
+	}
+	return &ListQueriesRequest{
+		FilterBy:       filterByPublicValue,
+		MaxResults:     w.MaxResults,
+		PageToken:      w.PageToken,
+		IncludeMetrics: w.IncludeMetrics,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListQueriesRequest) MarshalJSON() ([]byte, error) {
+	w, err := listQueriesRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListQueriesRequest) UnmarshalJSON(data []byte) error {
+	var w listQueriesRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listQueriesRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listQueriesResponseWire struct {
 	NextPageToken *string         `json:"next_page_token,omitempty"`
 	HasNextPage   *bool           `json:"has_next_page,omitempty"`
 	Res           []queryInfoWire `json:"res,omitempty"`
+}
+
+func listQueriesResponseToWire(v *ListQueriesResponse) (*listQueriesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	resWireValue, err := convertSlice(v.Res, queryInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListQueriesResponse.Res", err)
+	}
+	return &listQueriesResponseWire{
+		NextPageToken: v.NextPageToken,
+		HasNextPage:   v.HasNextPage,
+		Res:           resWireValue,
+	}, nil
 }
 
 func listQueriesResponseFromWire(w *listQueriesResponseWire) (*ListQueriesResponse, error) {
@@ -155,6 +322,30 @@ func listQueriesResponseFromWire(w *listQueriesResponseWire) (*ListQueriesRespon
 		HasNextPage:   w.HasNextPage,
 		Res:           resPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListQueriesResponse) MarshalJSON() ([]byte, error) {
+	w, err := listQueriesResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListQueriesResponse) UnmarshalJSON(data []byte) error {
+	var w listQueriesResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listQueriesResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type queryFilterWire struct {
@@ -186,6 +377,51 @@ func queryFilterToWire(v *QueryFilter) (*queryFilterWire, error) {
 	}, nil
 }
 
+func queryFilterFromWire(w *queryFilterWire) (*QueryFilter, error) {
+	if w == nil {
+		return nil, nil
+	}
+	queryStartTimeRangePublicValue, err := timeRangeFromWire(w.QueryStartTimeRange)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryFilter.QueryStartTimeRange", err)
+	}
+	userIdsPublicValue, err := convertSlice(w.UserIds, int64FromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryFilter.UserIds", err)
+	}
+	return &QueryFilter{
+		QueryStartTimeRange: queryStartTimeRangePublicValue,
+		UserIds:             userIdsPublicValue,
+		Statuses:            w.Statuses,
+		WarehouseIds:        w.WarehouseIds,
+		StatementIds:        w.StatementIds,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v QueryFilter) MarshalJSON() ([]byte, error) {
+	w, err := queryFilterToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *QueryFilter) UnmarshalJSON(data []byte) error {
+	var w queryFilterWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := queryFilterFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type queryInfoWire struct {
 	QueryId            *string                  `json:"query_id,omitempty"`
 	Status             QueryStatus              `json:"status,omitempty"`
@@ -214,6 +450,85 @@ type queryInfoWire struct {
 	QuerySource        *externalQuerySourceWire `json:"query_source,omitempty"`
 	CacheQueryId       *string                  `json:"cache_query_id,omitempty"`
 	QueryTags          []queryTagWire           `json:"query_tags,omitempty"`
+}
+
+func queryInfoToWire(v *QueryInfo) (*queryInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	queryStartTimeMsWireValue, err := int64ToWire(v.QueryStartTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryInfo.QueryStartTimeMs", err)
+	}
+	executionEndTimeMsWireValue, err := int64ToWire(v.ExecutionEndTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryInfo.ExecutionEndTimeMs", err)
+	}
+	queryEndTimeMsWireValue, err := int64ToWire(v.QueryEndTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryInfo.QueryEndTimeMs", err)
+	}
+	userIdWireValue, err := int64ToWire(v.UserId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryInfo.UserId", err)
+	}
+	rowsProducedWireValue, err := int64ToWire(v.RowsProduced)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryInfo.RowsProduced", err)
+	}
+	metricsWireValue, err := queryMetricsToWire(v.Metrics)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryInfo.Metrics", err)
+	}
+	executedAsUserIdWireValue, err := int64ToWire(v.ExecutedAsUserId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryInfo.ExecutedAsUserId", err)
+	}
+	channelUsedWireValue, err := channelInfoToWire(v.ChannelUsed)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryInfo.ChannelUsed", err)
+	}
+	durationWireValue, err := int64ToWire(v.Duration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryInfo.Duration", err)
+	}
+	querySourceWireValue, err := externalQuerySourceToWire(v.QuerySource)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryInfo.QuerySource", err)
+	}
+	queryTagsWireValue, err := convertSlice(v.QueryTags, queryTagToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryInfo.QueryTags", err)
+	}
+	return &queryInfoWire{
+		QueryId:            v.QueryId,
+		Status:             v.Status,
+		QueryText:          v.QueryText,
+		QueryStartTimeMs:   queryStartTimeMsWireValue,
+		ExecutionEndTimeMs: executionEndTimeMsWireValue,
+		QueryEndTimeMs:     queryEndTimeMsWireValue,
+		UserId:             userIdWireValue,
+		UserName:           v.UserName,
+		SparkUiUrl:         v.SparkUiUrl,
+		EndpointId:         v.EndpointId,
+		RowsProduced:       rowsProducedWireValue,
+		ErrorMessage:       v.ErrorMessage,
+		LookupKey:          v.LookupKey,
+		Metrics:            metricsWireValue,
+		ExecutedAsUserId:   executedAsUserIdWireValue,
+		ExecutedAsUserName: v.ExecutedAsUserName,
+		SessionId:          v.SessionId,
+		IsFinal:            v.IsFinal,
+		ChannelUsed:        channelUsedWireValue,
+		PlansState:         v.PlansState,
+		StatementType:      v.StatementType,
+		WarehouseId:        v.WarehouseId,
+		Duration:           durationWireValue,
+		ClientApplication:  v.ClientApplication,
+		QuerySource:        querySourceWireValue,
+		CacheQueryId:       v.CacheQueryId,
+		QueryTags:          queryTagsWireValue,
+	}, nil
 }
 
 func queryInfoFromWire(w *queryInfoWire) (*QueryInfo, error) {
@@ -295,6 +610,30 @@ func queryInfoFromWire(w *queryInfoWire) (*QueryInfo, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v QueryInfo) MarshalJSON() ([]byte, error) {
+	w, err := queryInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *QueryInfo) UnmarshalJSON(data []byte) error {
+	var w queryInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := queryInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type queryMetricsWire struct {
 	TotalTimeMs                       *wireInt64             `json:"total_time_ms,omitempty"`
 	ReadBytes                         *wireInt64             `json:"read_bytes,omitempty"`
@@ -325,6 +664,155 @@ type queryMetricsWire struct {
 	RemainingTaskCount                *wireInt64             `json:"remaining_task_count,omitempty"`
 	ProjectedRemainingWallclockTimeMs *wireInt64             `json:"projected_remaining_wallclock_time_ms,omitempty"`
 	ReadFilesBytes                    *wireInt64             `json:"read_files_bytes,omitempty"`
+}
+
+func queryMetricsToWire(v *QueryMetrics) (*queryMetricsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	totalTimeMsWireValue, err := int64ToWire(v.TotalTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.TotalTimeMs", err)
+	}
+	readBytesWireValue, err := int64ToWire(v.ReadBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ReadBytes", err)
+	}
+	rowsProducedCountWireValue, err := int64ToWire(v.RowsProducedCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.RowsProducedCount", err)
+	}
+	compilationTimeMsWireValue, err := int64ToWire(v.CompilationTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.CompilationTimeMs", err)
+	}
+	executionTimeMsWireValue, err := int64ToWire(v.ExecutionTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ExecutionTimeMs", err)
+	}
+	readRemoteBytesWireValue, err := int64ToWire(v.ReadRemoteBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ReadRemoteBytes", err)
+	}
+	writeRemoteBytesWireValue, err := int64ToWire(v.WriteRemoteBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.WriteRemoteBytes", err)
+	}
+	readCacheBytesWireValue, err := int64ToWire(v.ReadCacheBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ReadCacheBytes", err)
+	}
+	spillToDiskBytesWireValue, err := int64ToWire(v.SpillToDiskBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.SpillToDiskBytes", err)
+	}
+	taskTotalTimeMsWireValue, err := int64ToWire(v.TaskTotalTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.TaskTotalTimeMs", err)
+	}
+	readFilesCountWireValue, err := int64ToWire(v.ReadFilesCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ReadFilesCount", err)
+	}
+	readPartitionsCountWireValue, err := int64ToWire(v.ReadPartitionsCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ReadPartitionsCount", err)
+	}
+	photonTotalTimeMsWireValue, err := int64ToWire(v.PhotonTotalTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.PhotonTotalTimeMs", err)
+	}
+	rowsReadCountWireValue, err := int64ToWire(v.RowsReadCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.RowsReadCount", err)
+	}
+	resultFetchTimeMsWireValue, err := int64ToWire(v.ResultFetchTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ResultFetchTimeMs", err)
+	}
+	networkSentBytesWireValue, err := int64ToWire(v.NetworkSentBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.NetworkSentBytes", err)
+	}
+	prunedBytesWireValue, err := int64ToWire(v.PrunedBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.PrunedBytes", err)
+	}
+	prunedFilesCountWireValue, err := int64ToWire(v.PrunedFilesCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.PrunedFilesCount", err)
+	}
+	provisioningQueueStartTimestampWireValue, err := int64ToWire(v.ProvisioningQueueStartTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ProvisioningQueueStartTimestamp", err)
+	}
+	overloadingQueueStartTimestampWireValue, err := int64ToWire(v.OverloadingQueueStartTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.OverloadingQueueStartTimestamp", err)
+	}
+	queryCompilationStartTimestampWireValue, err := int64ToWire(v.QueryCompilationStartTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.QueryCompilationStartTimestamp", err)
+	}
+	taskTimeOverTimeRangeWireValue, err := taskTimeOverRangeToWire(v.TaskTimeOverTimeRange)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.TaskTimeOverTimeRange", err)
+	}
+	workToBeDoneWireValue, err := int64ToWire(v.WorkToBeDone)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.WorkToBeDone", err)
+	}
+	runnableTasksWireValue, err := int64ToWire(v.RunnableTasks)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.RunnableTasks", err)
+	}
+	projectedRemainingTaskTotalTimeMsWireValue, err := int64ToWire(v.ProjectedRemainingTaskTotalTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ProjectedRemainingTaskTotalTimeMs", err)
+	}
+	remainingTaskCountWireValue, err := int64ToWire(v.RemainingTaskCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.RemainingTaskCount", err)
+	}
+	projectedRemainingWallclockTimeMsWireValue, err := int64ToWire(v.ProjectedRemainingWallclockTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ProjectedRemainingWallclockTimeMs", err)
+	}
+	readFilesBytesWireValue, err := int64ToWire(v.ReadFilesBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryMetrics.ReadFilesBytes", err)
+	}
+	return &queryMetricsWire{
+		TotalTimeMs:                       totalTimeMsWireValue,
+		ReadBytes:                         readBytesWireValue,
+		RowsProducedCount:                 rowsProducedCountWireValue,
+		CompilationTimeMs:                 compilationTimeMsWireValue,
+		ExecutionTimeMs:                   executionTimeMsWireValue,
+		ReadRemoteBytes:                   readRemoteBytesWireValue,
+		WriteRemoteBytes:                  writeRemoteBytesWireValue,
+		ReadCacheBytes:                    readCacheBytesWireValue,
+		SpillToDiskBytes:                  spillToDiskBytesWireValue,
+		TaskTotalTimeMs:                   taskTotalTimeMsWireValue,
+		ReadFilesCount:                    readFilesCountWireValue,
+		ReadPartitionsCount:               readPartitionsCountWireValue,
+		PhotonTotalTimeMs:                 photonTotalTimeMsWireValue,
+		RowsReadCount:                     rowsReadCountWireValue,
+		ResultFetchTimeMs:                 resultFetchTimeMsWireValue,
+		NetworkSentBytes:                  networkSentBytesWireValue,
+		ResultFromCache:                   v.ResultFromCache,
+		PrunedBytes:                       prunedBytesWireValue,
+		PrunedFilesCount:                  prunedFilesCountWireValue,
+		ProvisioningQueueStartTimestamp:   provisioningQueueStartTimestampWireValue,
+		OverloadingQueueStartTimestamp:    overloadingQueueStartTimestampWireValue,
+		QueryCompilationStartTimestamp:    queryCompilationStartTimestampWireValue,
+		TaskTimeOverTimeRange:             taskTimeOverTimeRangeWireValue,
+		WorkToBeDone:                      workToBeDoneWireValue,
+		RunnableTasks:                     runnableTasksWireValue,
+		ProjectedRemainingTaskTotalTimeMs: projectedRemainingTaskTotalTimeMsWireValue,
+		RemainingTaskCount:                remainingTaskCountWireValue,
+		ProjectedRemainingWallclockTimeMs: projectedRemainingWallclockTimeMsWireValue,
+		ReadFilesBytes:                    readFilesBytesWireValue,
+	}, nil
 }
 
 func queryMetricsFromWire(w *queryMetricsWire) (*QueryMetrics, error) {
@@ -476,9 +964,43 @@ func queryMetricsFromWire(w *queryMetricsWire) (*QueryMetrics, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v QueryMetrics) MarshalJSON() ([]byte, error) {
+	w, err := queryMetricsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *QueryMetrics) UnmarshalJSON(data []byte) error {
+	var w queryMetricsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := queryMetricsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type queryTagWire struct {
 	Key   *string `json:"key,omitempty"`
 	Value *string `json:"value,omitempty"`
+}
+
+func queryTagToWire(v *QueryTag) (*queryTagWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &queryTagWire{
+		Key:   v.Key,
+		Value: v.Value,
+	}, nil
 }
 
 func queryTagFromWire(w *queryTagWire) (*QueryTag, error) {
@@ -491,9 +1013,51 @@ func queryTagFromWire(w *queryTagWire) (*QueryTag, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v QueryTag) MarshalJSON() ([]byte, error) {
+	w, err := queryTagToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *QueryTag) UnmarshalJSON(data []byte) error {
+	var w queryTagWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := queryTagFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type taskTimeOverRangeWire struct {
 	Entries  []taskTimeOverRangeEntryWire `json:"entries,omitempty"`
 	Interval *wireInt64                   `json:"interval,omitempty"`
+}
+
+func taskTimeOverRangeToWire(v *TaskTimeOverRange) (*taskTimeOverRangeWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	entriesWireValue, err := convertSlice(v.Entries, taskTimeOverRangeEntryToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TaskTimeOverRange.Entries", err)
+	}
+	intervalWireValue, err := int64ToWire(v.Interval)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TaskTimeOverRange.Interval", err)
+	}
+	return &taskTimeOverRangeWire{
+		Entries:  entriesWireValue,
+		Interval: intervalWireValue,
+	}, nil
 }
 
 func taskTimeOverRangeFromWire(w *taskTimeOverRangeWire) (*TaskTimeOverRange, error) {
@@ -514,8 +1078,45 @@ func taskTimeOverRangeFromWire(w *taskTimeOverRangeWire) (*TaskTimeOverRange, er
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v TaskTimeOverRange) MarshalJSON() ([]byte, error) {
+	w, err := taskTimeOverRangeToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *TaskTimeOverRange) UnmarshalJSON(data []byte) error {
+	var w taskTimeOverRangeWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := taskTimeOverRangeFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type taskTimeOverRangeEntryWire struct {
 	TaskCompletedTimeMs *wireInt64 `json:"task_completed_time_ms,omitempty"`
+}
+
+func taskTimeOverRangeEntryToWire(v *TaskTimeOverRangeEntry) (*taskTimeOverRangeEntryWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	taskCompletedTimeMsWireValue, err := int64ToWire(v.TaskCompletedTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TaskTimeOverRangeEntry.TaskCompletedTimeMs", err)
+	}
+	return &taskTimeOverRangeEntryWire{
+		TaskCompletedTimeMs: taskCompletedTimeMsWireValue,
+	}, nil
 }
 
 func taskTimeOverRangeEntryFromWire(w *taskTimeOverRangeEntryWire) (*TaskTimeOverRangeEntry, error) {
@@ -529,6 +1130,30 @@ func taskTimeOverRangeEntryFromWire(w *taskTimeOverRangeEntryWire) (*TaskTimeOve
 	return &TaskTimeOverRangeEntry{
 		TaskCompletedTimeMs: taskCompletedTimeMsPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v TaskTimeOverRangeEntry) MarshalJSON() ([]byte, error) {
+	w, err := taskTimeOverRangeEntryToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *TaskTimeOverRangeEntry) UnmarshalJSON(data []byte) error {
+	var w taskTimeOverRangeEntryWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := taskTimeOverRangeEntryFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type timeRangeWire struct {
@@ -552,6 +1177,48 @@ func timeRangeToWire(v *TimeRange) (*timeRangeWire, error) {
 		StartTimeMs: startTimeMsWireValue,
 		EndTimeMs:   endTimeMsWireValue,
 	}, nil
+}
+
+func timeRangeFromWire(w *timeRangeWire) (*TimeRange, error) {
+	if w == nil {
+		return nil, nil
+	}
+	startTimeMsPublicValue, err := int64FromWire(w.StartTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TimeRange.StartTimeMs", err)
+	}
+	endTimeMsPublicValue, err := int64FromWire(w.EndTimeMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TimeRange.EndTimeMs", err)
+	}
+	return &TimeRange{
+		StartTimeMs: startTimeMsPublicValue,
+		EndTimeMs:   endTimeMsPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v TimeRange) MarshalJSON() ([]byte, error) {
+	w, err := timeRangeToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *TimeRange) UnmarshalJSON(data []byte) error {
+	var w timeRangeWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := timeRangeFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

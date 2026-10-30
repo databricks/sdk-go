@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/databricks/sdk-go/core/types"
 )
@@ -62,6 +63,17 @@ func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	return &value
 }
 
+func fieldMaskFromWire[T any](value *string) (*types.FieldMask[T], error) {
+	if value == nil {
+		return nil, nil
+	}
+	var paths []string
+	if *value != "" {
+		paths = strings.Split(*value, ",")
+	}
+	return types.NewFieldMask[T](paths...)
+}
+
 type createAccountFederationPolicyRequestWire struct {
 	AccountId          *string               `json:"account_id,omitempty"`
 	ServicePrincipalId *wireInt64            `json:"service_principal_id,omitempty"`
@@ -87,6 +99,50 @@ func createAccountFederationPolicyRequestToWire(v *CreateAccountFederationPolicy
 		PolicyId:           v.PolicyId,
 		Policy:             policyWireValue,
 	}, nil
+}
+
+func createAccountFederationPolicyRequestFromWire(w *createAccountFederationPolicyRequestWire) (*CreateAccountFederationPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccountFederationPolicyRequest.ServicePrincipalId", err)
+	}
+	policyPublicValue, err := federationPolicyFromWire(w.Policy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccountFederationPolicyRequest.Policy", err)
+	}
+	return &CreateAccountFederationPolicyRequest{
+		AccountId:          w.AccountId,
+		ServicePrincipalId: servicePrincipalIdPublicValue,
+		PolicyId:           w.PolicyId,
+		Policy:             policyPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateAccountFederationPolicyRequest) MarshalJSON() ([]byte, error) {
+	w, err := createAccountFederationPolicyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateAccountFederationPolicyRequest) UnmarshalJSON(data []byte) error {
+	var w createAccountFederationPolicyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createAccountFederationPolicyRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createServicePrincipalFederationPolicyRequestWire struct {
@@ -116,6 +172,50 @@ func createServicePrincipalFederationPolicyRequestToWire(v *CreateServicePrincip
 	}, nil
 }
 
+func createServicePrincipalFederationPolicyRequestFromWire(w *createServicePrincipalFederationPolicyRequestWire) (*CreateServicePrincipalFederationPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateServicePrincipalFederationPolicyRequest.ServicePrincipalId", err)
+	}
+	policyPublicValue, err := federationPolicyFromWire(w.Policy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateServicePrincipalFederationPolicyRequest.Policy", err)
+	}
+	return &CreateServicePrincipalFederationPolicyRequest{
+		AccountId:          w.AccountId,
+		ServicePrincipalId: servicePrincipalIdPublicValue,
+		PolicyId:           w.PolicyId,
+		Policy:             policyPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateServicePrincipalFederationPolicyRequest) MarshalJSON() ([]byte, error) {
+	w, err := createServicePrincipalFederationPolicyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateServicePrincipalFederationPolicyRequest) UnmarshalJSON(data []byte) error {
+	var w createServicePrincipalFederationPolicyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createServicePrincipalFederationPolicyRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createServicePrincipalSecretRequestWire struct {
 	AccountId        *string         `json:"account_id,omitempty"`
 	ServicePrincipal *string         `json:"service_principal,omitempty"`
@@ -135,6 +235,42 @@ func createServicePrincipalSecretRequestToWire(v *CreateServicePrincipalSecretRe
 	}, nil
 }
 
+func createServicePrincipalSecretRequestFromWire(w *createServicePrincipalSecretRequestWire) (*CreateServicePrincipalSecretRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CreateServicePrincipalSecretRequest{
+		AccountId:        w.AccountId,
+		ServicePrincipal: w.ServicePrincipal,
+		Lifetime:         w.Lifetime,
+		Scopes:           w.Scopes,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateServicePrincipalSecretRequest) MarshalJSON() ([]byte, error) {
+	w, err := createServicePrincipalSecretRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateServicePrincipalSecretRequest) UnmarshalJSON(data []byte) error {
+	var w createServicePrincipalSecretRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createServicePrincipalSecretRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createServicePrincipalSecretResponseWire struct {
 	Id         *string     `json:"id,omitempty"`
 	Secret     *string     `json:"secret,omitempty"`
@@ -144,6 +280,22 @@ type createServicePrincipalSecretResponseWire struct {
 	Status     *string     `json:"status,omitempty"`
 	ExpireTime *types.Time `json:"expire_time,omitempty"`
 	Scopes     []string    `json:"scopes,omitempty"`
+}
+
+func createServicePrincipalSecretResponseToWire(v *CreateServicePrincipalSecretResponse) (*createServicePrincipalSecretResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createServicePrincipalSecretResponseWire{
+		Id:         v.Id,
+		Secret:     v.Secret,
+		SecretHash: v.SecretHash,
+		CreateTime: v.CreateTime,
+		UpdateTime: v.UpdateTime,
+		Status:     v.Status,
+		ExpireTime: v.ExpireTime,
+		Scopes:     v.Scopes,
+	}, nil
 }
 
 func createServicePrincipalSecretResponseFromWire(w *createServicePrincipalSecretResponseWire) (*CreateServicePrincipalSecretResponse, error) {
@@ -160,6 +312,30 @@ func createServicePrincipalSecretResponseFromWire(w *createServicePrincipalSecre
 		ExpireTime: w.ExpireTime,
 		Scopes:     w.Scopes,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateServicePrincipalSecretResponse) MarshalJSON() ([]byte, error) {
+	w, err := createServicePrincipalSecretResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateServicePrincipalSecretResponse) UnmarshalJSON(data []byte) error {
+	var w createServicePrincipalSecretResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createServicePrincipalSecretResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type deleteAccountFederationPolicyRequestWire struct {
@@ -183,6 +359,105 @@ func deleteAccountFederationPolicyRequestToWire(v *DeleteAccountFederationPolicy
 	}, nil
 }
 
+func deleteAccountFederationPolicyRequestFromWire(w *deleteAccountFederationPolicyRequestWire) (*DeleteAccountFederationPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteAccountFederationPolicyRequest.ServicePrincipalId", err)
+	}
+	return &DeleteAccountFederationPolicyRequest{
+		AccountId:          w.AccountId,
+		ServicePrincipalId: servicePrincipalIdPublicValue,
+		PolicyId:           w.PolicyId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteAccountFederationPolicyRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteAccountFederationPolicyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteAccountFederationPolicyRequest) UnmarshalJSON(data []byte) error {
+	var w deleteAccountFederationPolicyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteAccountFederationPolicyRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteServicePrincipalFederationPolicyRequestWire struct {
+	AccountId          *string    `json:"account_id,omitempty"`
+	ServicePrincipalId *wireInt64 `json:"service_principal_id,omitempty"`
+	PolicyId           *string    `json:"policy_id,omitempty"`
+}
+
+func deleteServicePrincipalFederationPolicyRequestToWire(v *DeleteServicePrincipalFederationPolicyRequest) (*deleteServicePrincipalFederationPolicyRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	servicePrincipalIdWireValue, err := int64ToWire(v.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteServicePrincipalFederationPolicyRequest.ServicePrincipalId", err)
+	}
+	return &deleteServicePrincipalFederationPolicyRequestWire{
+		AccountId:          v.AccountId,
+		ServicePrincipalId: servicePrincipalIdWireValue,
+		PolicyId:           v.PolicyId,
+	}, nil
+}
+
+func deleteServicePrincipalFederationPolicyRequestFromWire(w *deleteServicePrincipalFederationPolicyRequestWire) (*DeleteServicePrincipalFederationPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteServicePrincipalFederationPolicyRequest.ServicePrincipalId", err)
+	}
+	return &DeleteServicePrincipalFederationPolicyRequest{
+		AccountId:          w.AccountId,
+		ServicePrincipalId: servicePrincipalIdPublicValue,
+		PolicyId:           w.PolicyId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteServicePrincipalFederationPolicyRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteServicePrincipalFederationPolicyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteServicePrincipalFederationPolicyRequest) UnmarshalJSON(data []byte) error {
+	var w deleteServicePrincipalFederationPolicyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteServicePrincipalFederationPolicyRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteServicePrincipalSecretRequestWire struct {
 	AccountId        *string `json:"account_id,omitempty"`
 	ServicePrincipal *string `json:"service_principal,omitempty"`
@@ -198,6 +473,82 @@ func deleteServicePrincipalSecretRequestToWire(v *DeleteServicePrincipalSecretRe
 		ServicePrincipal: v.ServicePrincipal,
 		SecretId:         v.SecretId,
 	}, nil
+}
+
+func deleteServicePrincipalSecretRequestFromWire(w *deleteServicePrincipalSecretRequestWire) (*DeleteServicePrincipalSecretRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteServicePrincipalSecretRequest{
+		AccountId:        w.AccountId,
+		ServicePrincipal: w.ServicePrincipal,
+		SecretId:         w.SecretId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteServicePrincipalSecretRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteServicePrincipalSecretRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteServicePrincipalSecretRequest) UnmarshalJSON(data []byte) error {
+	var w deleteServicePrincipalSecretRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteServicePrincipalSecretRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteServicePrincipalSecretResponseWire struct {
+}
+
+func deleteServicePrincipalSecretResponseToWire(v *DeleteServicePrincipalSecretResponse) (*deleteServicePrincipalSecretResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteServicePrincipalSecretResponseWire{}, nil
+}
+
+func deleteServicePrincipalSecretResponseFromWire(w *deleteServicePrincipalSecretResponseWire) (*DeleteServicePrincipalSecretResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteServicePrincipalSecretResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteServicePrincipalSecretResponse) MarshalJSON() ([]byte, error) {
+	w, err := deleteServicePrincipalSecretResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteServicePrincipalSecretResponse) UnmarshalJSON(data []byte) error {
+	var w deleteServicePrincipalSecretResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteServicePrincipalSecretResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type federationPolicyWire struct {
@@ -281,6 +632,30 @@ func federationPolicyFromWire(w *federationPolicyWire) (*FederationPolicy, error
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v FederationPolicy) MarshalJSON() ([]byte, error) {
+	w, err := federationPolicyToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *FederationPolicy) UnmarshalJSON(data []byte) error {
+	var w federationPolicyWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := federationPolicyFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getAccountFederationPolicyRequestWire struct {
 	AccountId          *string    `json:"account_id,omitempty"`
 	ServicePrincipalId *wireInt64 `json:"service_principal_id,omitempty"`
@@ -300,6 +675,105 @@ func getAccountFederationPolicyRequestToWire(v *GetAccountFederationPolicyReques
 		ServicePrincipalId: servicePrincipalIdWireValue,
 		PolicyId:           v.PolicyId,
 	}, nil
+}
+
+func getAccountFederationPolicyRequestFromWire(w *getAccountFederationPolicyRequestWire) (*GetAccountFederationPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetAccountFederationPolicyRequest.ServicePrincipalId", err)
+	}
+	return &GetAccountFederationPolicyRequest{
+		AccountId:          w.AccountId,
+		ServicePrincipalId: servicePrincipalIdPublicValue,
+		PolicyId:           w.PolicyId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetAccountFederationPolicyRequest) MarshalJSON() ([]byte, error) {
+	w, err := getAccountFederationPolicyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetAccountFederationPolicyRequest) UnmarshalJSON(data []byte) error {
+	var w getAccountFederationPolicyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getAccountFederationPolicyRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getServicePrincipalFederationPolicyRequestWire struct {
+	AccountId          *string    `json:"account_id,omitempty"`
+	ServicePrincipalId *wireInt64 `json:"service_principal_id,omitempty"`
+	PolicyId           *string    `json:"policy_id,omitempty"`
+}
+
+func getServicePrincipalFederationPolicyRequestToWire(v *GetServicePrincipalFederationPolicyRequest) (*getServicePrincipalFederationPolicyRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	servicePrincipalIdWireValue, err := int64ToWire(v.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetServicePrincipalFederationPolicyRequest.ServicePrincipalId", err)
+	}
+	return &getServicePrincipalFederationPolicyRequestWire{
+		AccountId:          v.AccountId,
+		ServicePrincipalId: servicePrincipalIdWireValue,
+		PolicyId:           v.PolicyId,
+	}, nil
+}
+
+func getServicePrincipalFederationPolicyRequestFromWire(w *getServicePrincipalFederationPolicyRequestWire) (*GetServicePrincipalFederationPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetServicePrincipalFederationPolicyRequest.ServicePrincipalId", err)
+	}
+	return &GetServicePrincipalFederationPolicyRequest{
+		AccountId:          w.AccountId,
+		ServicePrincipalId: servicePrincipalIdPublicValue,
+		PolicyId:           w.PolicyId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetServicePrincipalFederationPolicyRequest) MarshalJSON() ([]byte, error) {
+	w, err := getServicePrincipalFederationPolicyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetServicePrincipalFederationPolicyRequest) UnmarshalJSON(data []byte) error {
+	var w getServicePrincipalFederationPolicyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getServicePrincipalFederationPolicyRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listAccountFederationPoliciesRequestWire struct {
@@ -325,9 +799,63 @@ func listAccountFederationPoliciesRequestToWire(v *ListAccountFederationPolicies
 	}, nil
 }
 
+func listAccountFederationPoliciesRequestFromWire(w *listAccountFederationPoliciesRequestWire) (*ListAccountFederationPoliciesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountFederationPoliciesRequest.ServicePrincipalId", err)
+	}
+	return &ListAccountFederationPoliciesRequest{
+		AccountId:          w.AccountId,
+		ServicePrincipalId: servicePrincipalIdPublicValue,
+		PageSize:           w.PageSize,
+		PageToken:          w.PageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListAccountFederationPoliciesRequest) MarshalJSON() ([]byte, error) {
+	w, err := listAccountFederationPoliciesRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListAccountFederationPoliciesRequest) UnmarshalJSON(data []byte) error {
+	var w listAccountFederationPoliciesRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listAccountFederationPoliciesRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listFederationPoliciesResponseWire struct {
 	Policies      []federationPolicyWire `json:"policies,omitempty"`
 	NextPageToken *string                `json:"next_page_token,omitempty"`
+}
+
+func listFederationPoliciesResponseToWire(v *ListFederationPoliciesResponse) (*listFederationPoliciesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	policiesWireValue, err := convertSlice(v.Policies, federationPolicyToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListFederationPoliciesResponse.Policies", err)
+	}
+	return &listFederationPoliciesResponseWire{
+		Policies:      policiesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listFederationPoliciesResponseFromWire(w *listFederationPoliciesResponseWire) (*ListFederationPoliciesResponse, error) {
@@ -342,6 +870,30 @@ func listFederationPoliciesResponseFromWire(w *listFederationPoliciesResponseWir
 		Policies:      policiesPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListFederationPoliciesResponse) MarshalJSON() ([]byte, error) {
+	w, err := listFederationPoliciesResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListFederationPoliciesResponse) UnmarshalJSON(data []byte) error {
+	var w listFederationPoliciesResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listFederationPoliciesResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listServicePrincipalFederationPoliciesRequestWire struct {
@@ -367,6 +919,46 @@ func listServicePrincipalFederationPoliciesRequestToWire(v *ListServicePrincipal
 	}, nil
 }
 
+func listServicePrincipalFederationPoliciesRequestFromWire(w *listServicePrincipalFederationPoliciesRequestWire) (*ListServicePrincipalFederationPoliciesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListServicePrincipalFederationPoliciesRequest.ServicePrincipalId", err)
+	}
+	return &ListServicePrincipalFederationPoliciesRequest{
+		AccountId:          w.AccountId,
+		ServicePrincipalId: servicePrincipalIdPublicValue,
+		PageSize:           w.PageSize,
+		PageToken:          w.PageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListServicePrincipalFederationPoliciesRequest) MarshalJSON() ([]byte, error) {
+	w, err := listServicePrincipalFederationPoliciesRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListServicePrincipalFederationPoliciesRequest) UnmarshalJSON(data []byte) error {
+	var w listServicePrincipalFederationPoliciesRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listServicePrincipalFederationPoliciesRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listServicePrincipalSecretsRequestWire struct {
 	AccountId        *string `json:"account_id,omitempty"`
 	ServicePrincipal *string `json:"service_principal,omitempty"`
@@ -386,9 +978,59 @@ func listServicePrincipalSecretsRequestToWire(v *ListServicePrincipalSecretsRequ
 	}, nil
 }
 
+func listServicePrincipalSecretsRequestFromWire(w *listServicePrincipalSecretsRequestWire) (*ListServicePrincipalSecretsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListServicePrincipalSecretsRequest{
+		AccountId:        w.AccountId,
+		ServicePrincipal: w.ServicePrincipal,
+		PageToken:        w.PageToken,
+		PageSize:         w.PageSize,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListServicePrincipalSecretsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listServicePrincipalSecretsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListServicePrincipalSecretsRequest) UnmarshalJSON(data []byte) error {
+	var w listServicePrincipalSecretsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listServicePrincipalSecretsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listServicePrincipalSecretsResponseWire struct {
 	Secrets       []servicePrincipalSecretWire `json:"secrets,omitempty"`
 	NextPageToken *string                      `json:"next_page_token,omitempty"`
+}
+
+func listServicePrincipalSecretsResponseToWire(v *ListServicePrincipalSecretsResponse) (*listServicePrincipalSecretsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	secretsWireValue, err := convertSlice(v.Secrets, servicePrincipalSecretToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListServicePrincipalSecretsResponse.Secrets", err)
+	}
+	return &listServicePrincipalSecretsResponseWire{
+		Secrets:       secretsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listServicePrincipalSecretsResponseFromWire(w *listServicePrincipalSecretsResponseWire) (*ListServicePrincipalSecretsResponse, error) {
@@ -403,6 +1045,30 @@ func listServicePrincipalSecretsResponseFromWire(w *listServicePrincipalSecretsR
 		Secrets:       secretsPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListServicePrincipalSecretsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listServicePrincipalSecretsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListServicePrincipalSecretsResponse) UnmarshalJSON(data []byte) error {
+	var w listServicePrincipalSecretsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listServicePrincipalSecretsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type oidcFederationPolicyWire struct {
@@ -442,6 +1108,30 @@ func oidcFederationPolicyFromWire(w *oidcFederationPolicyWire) (*OidcFederationP
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v OidcFederationPolicy) MarshalJSON() ([]byte, error) {
+	w, err := oidcFederationPolicyToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *OidcFederationPolicy) UnmarshalJSON(data []byte) error {
+	var w oidcFederationPolicyWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := oidcFederationPolicyFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type servicePrincipalSecretWire struct {
 	Id         *string     `json:"id,omitempty"`
 	Secret     *string     `json:"secret,omitempty"`
@@ -451,6 +1141,22 @@ type servicePrincipalSecretWire struct {
 	Status     *string     `json:"status,omitempty"`
 	ExpireTime *types.Time `json:"expire_time,omitempty"`
 	Scopes     []string    `json:"scopes,omitempty"`
+}
+
+func servicePrincipalSecretToWire(v *ServicePrincipalSecret) (*servicePrincipalSecretWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &servicePrincipalSecretWire{
+		Id:         v.Id,
+		Secret:     v.Secret,
+		SecretHash: v.SecretHash,
+		CreateTime: v.CreateTime,
+		UpdateTime: v.UpdateTime,
+		Status:     v.Status,
+		ExpireTime: v.ExpireTime,
+		Scopes:     v.Scopes,
+	}, nil
 }
 
 func servicePrincipalSecretFromWire(w *servicePrincipalSecretWire) (*ServicePrincipalSecret, error) {
@@ -467,6 +1173,30 @@ func servicePrincipalSecretFromWire(w *servicePrincipalSecretWire) (*ServicePrin
 		ExpireTime: w.ExpireTime,
 		Scopes:     w.Scopes,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ServicePrincipalSecret) MarshalJSON() ([]byte, error) {
+	w, err := servicePrincipalSecretToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ServicePrincipalSecret) UnmarshalJSON(data []byte) error {
+	var w servicePrincipalSecretWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := servicePrincipalSecretFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateAccountFederationPolicyRequestWire struct {
@@ -498,6 +1228,55 @@ func updateAccountFederationPolicyRequestToWire(v *UpdateAccountFederationPolicy
 	}, nil
 }
 
+func updateAccountFederationPolicyRequestFromWire(w *updateAccountFederationPolicyRequestWire) (*UpdateAccountFederationPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccountFederationPolicyRequest.ServicePrincipalId", err)
+	}
+	policyPublicValue, err := federationPolicyFromWire(w.Policy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccountFederationPolicyRequest.Policy", err)
+	}
+	updateMaskPublicValue, err := fieldMaskFromWire[FederationPolicy](w.UpdateMask)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccountFederationPolicyRequest.UpdateMask", err)
+	}
+	return &UpdateAccountFederationPolicyRequest{
+		AccountId:          w.AccountId,
+		ServicePrincipalId: servicePrincipalIdPublicValue,
+		PolicyId:           w.PolicyId,
+		Policy:             policyPublicValue,
+		UpdateMask:         updateMaskPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateAccountFederationPolicyRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateAccountFederationPolicyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateAccountFederationPolicyRequest) UnmarshalJSON(data []byte) error {
+	var w updateAccountFederationPolicyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateAccountFederationPolicyRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateServicePrincipalFederationPolicyRequestWire struct {
 	AccountId          *string               `json:"account_id,omitempty"`
 	ServicePrincipalId *wireInt64            `json:"service_principal_id,omitempty"`
@@ -525,6 +1304,55 @@ func updateServicePrincipalFederationPolicyRequestToWire(v *UpdateServicePrincip
 		Policy:             policyWireValue,
 		UpdateMask:         fieldMaskToWire(v.UpdateMask),
 	}, nil
+}
+
+func updateServicePrincipalFederationPolicyRequestFromWire(w *updateServicePrincipalFederationPolicyRequestWire) (*UpdateServicePrincipalFederationPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateServicePrincipalFederationPolicyRequest.ServicePrincipalId", err)
+	}
+	policyPublicValue, err := federationPolicyFromWire(w.Policy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateServicePrincipalFederationPolicyRequest.Policy", err)
+	}
+	updateMaskPublicValue, err := fieldMaskFromWire[FederationPolicy](w.UpdateMask)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateServicePrincipalFederationPolicyRequest.UpdateMask", err)
+	}
+	return &UpdateServicePrincipalFederationPolicyRequest{
+		AccountId:          w.AccountId,
+		ServicePrincipalId: servicePrincipalIdPublicValue,
+		PolicyId:           w.PolicyId,
+		Policy:             policyPublicValue,
+		UpdateMask:         updateMaskPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateServicePrincipalFederationPolicyRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateServicePrincipalFederationPolicyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateServicePrincipalFederationPolicyRequest) UnmarshalJSON(data []byte) error {
+	var w updateServicePrincipalFederationPolicyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateServicePrincipalFederationPolicyRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {
