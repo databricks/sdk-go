@@ -724,8 +724,8 @@ type CreateWarehouseRequest struct {
 	// Compute version label for a REALTIME warehouse. This field is output only.
 	CustomerVersionLabel *string
 	// Maximum compute capacity of a real-time SQL warehouse, in DBU per hour. Must
-	// be a multiple of 3 between 3 and 960. The effective maximum cannot be lower
-	// than the warehouse's minimum capacity.
+	// be at least the minimum DBU for the selected warehouse size and no greater
+	// than the configured DBU limit. Actual capacity may be below this ceiling.
 	MaxDbu *int
 }
 
@@ -842,8 +842,8 @@ type EditWarehouseRequest struct {
 	// Compute version label for a REALTIME warehouse. This field is output only.
 	CustomerVersionLabel *string
 	// Maximum compute capacity of a real-time SQL warehouse, in DBU per hour. Must
-	// be a multiple of 3 between 3 and 960. The effective maximum cannot be lower
-	// than the warehouse's minimum capacity.
+	// be at least the minimum DBU for the selected warehouse size and no greater
+	// than the configured DBU limit. Actual capacity may be below this ceiling.
 	MaxDbu *int
 }
 
@@ -944,8 +944,8 @@ type EndpointInfo struct {
 	// Compute version label for a REALTIME warehouse. This field is output only.
 	CustomerVersionLabel *string
 	// Maximum compute capacity of a real-time SQL warehouse, in DBU per hour. Must
-	// be a multiple of 3 between 3 and 960. The effective maximum cannot be lower
-	// than the warehouse's minimum capacity.
+	// be at least the minimum DBU for the selected warehouse size and no greater
+	// than the configured DBU limit. Actual capacity may be below this ceiling.
 	MaxDbu *int
 	// current number of clusters running for the service
 	NumClusters *int
@@ -1061,8 +1061,8 @@ type GetWarehouseResponse struct {
 	// Compute version label for a REALTIME warehouse. This field is output only.
 	CustomerVersionLabel *string
 	// Maximum compute capacity of a real-time SQL warehouse, in DBU per hour. Must
-	// be a multiple of 3 between 3 and 960. The effective maximum cannot be lower
-	// than the warehouse's minimum capacity.
+	// be at least the minimum DBU for the selected warehouse size and no greater
+	// than the configured DBU limit. Actual capacity may be below this ceiling.
 	MaxDbu *int
 	// current number of clusters running for the service
 	NumClusters *int

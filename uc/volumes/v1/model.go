@@ -86,7 +86,7 @@ func (*EncryptionDetails_EncryptionDetailsType_SseEncryptionDetails) isEncryptio
 }
 
 type GetVolumeRequest struct {
-	// The three-level (fully qualified) name of the volume
+	// The fully qualified name of the volume.
 	FullNameArg *string
 	// Whether to include volumes in the response for which the principal can only
 	// access selective metadata for

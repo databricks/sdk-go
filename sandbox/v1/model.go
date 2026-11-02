@@ -3,6 +3,8 @@
 package sandbox
 
 import (
+	"io"
+
 	"github.com/databricks/sdk-go/core/types"
 )
 
@@ -103,6 +105,52 @@ type DeletePathResponse struct {
 // A request to delete a Sandbox..
 type DeleteSandboxRequest struct {
 	Name *string
+}
+
+// Parameters for a file download. Range and conditional parameters are aliases
+// for the corresponding HTTP headers..
+type DownloadFileRequest struct {
+	// The sandbox resource name, in the form sandboxes/{sandbox_id}.
+	Parent *string
+	// The absolute UTF-8 path of the file inside the sandbox.
+	Path *string
+	// A single byte range, such as bytes=0-1023 or bytes=-1024. Equivalent to the
+	// Range header.
+	Range *string
+	// A strong entity tag. A mismatch, weak entity tag, or HTTP-date causes a full
+	// download. Equivalent to the If-Range header.
+	IfRange *string
+	// Entity tags or *. A mismatch returns 412 Precondition Failed. Equivalent to
+	// the If-Match header.
+	IfMatch *string
+	// Entity tags or *. A match returns 304 Not Modified. Equivalent to the
+	// If-None-Match header.
+	IfNoneMatch *string
+	// An HTTP-date. Returns 304 if the file has not changed since this time.
+	// Ignored when If-None-Match is present. Equivalent to the If-Modified-Since
+	// header.
+	IfModifiedSince *string
+	// An HTTP-date. Returns 412 if the file has changed since this time. Ignored
+	// when If-Match is present. Equivalent to the If-Unmodified-Since header.
+	IfUnmodifiedSince *string
+}
+
+// A streamed file body and its HTTP response headers..
+type DownloadFileResponse struct {
+	// The full file or the requested byte range.
+	Contents io.ReadCloser
+	// The length of the response body in bytes.
+	ContentLength *int64
+	// The entity tag used for conditional requests.
+	Etag *string
+	// The modification time as an HTTP-date, when representable.
+	LastModified *string
+	// The returned byte range and full file length, for a partial response.
+	ContentRange *string
+	// The supported range unit: bytes.
+	AcceptRanges *string
+	// The media type of the response body: application/octet-stream.
+	ContentType *string
 }
 
 type EnvironmentSpec struct {
@@ -316,4 +364,18 @@ type UpdateSandboxRequest struct {
 	// spec.compute.inactivity_timeout Any other path returns
 	// INVALID_PARAMETER_VALUE.
 	UpdateMask *types.FieldMask[Sandbox]
+}
+
+// Parameters and streamed HTTP body for a whole-file upload..
+type UploadFileRequest struct {
+	// The sandbox resource name, in the form sandboxes/{sandbox_id}.
+	Parent *string
+	// The absolute UTF-8 destination path inside the sandbox.
+	Path *string
+	// The complete file contents. An empty body creates an empty file.
+	Contents io.ReadCloser
+}
+
+// A successful upload returns no response body..
+type UploadFileResponse struct {
 }

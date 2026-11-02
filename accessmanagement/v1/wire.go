@@ -364,6 +364,42 @@ func listWorkspacePermissionsResponseFromWire(w *listWorkspacePermissionsRespons
 	}, nil
 }
 
+type migratePermissionsRequestWire struct {
+	WorkspaceId            *wireInt64 `json:"workspace_id,omitempty"`
+	FromWorkspaceGroupName *string    `json:"from_workspace_group_name,omitempty"`
+	ToAccountGroupName     *string    `json:"to_account_group_name,omitempty"`
+	Size                   *int       `json:"size,omitempty"`
+}
+
+func migratePermissionsRequestToWire(v *MigratePermissionsRequest) (*migratePermissionsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MigratePermissionsRequest.WorkspaceId", err)
+	}
+	return &migratePermissionsRequestWire{
+		WorkspaceId:            workspaceIdWireValue,
+		FromWorkspaceGroupName: v.FromWorkspaceGroupName,
+		ToAccountGroupName:     v.ToAccountGroupName,
+		Size:                   v.Size,
+	}, nil
+}
+
+type migratePermissionsResponseWire struct {
+	PermissionsMigrated *int `json:"permissions_migrated,omitempty"`
+}
+
+func migratePermissionsResponseFromWire(w *migratePermissionsResponseWire) (*MigratePermissionsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &MigratePermissionsResponse{
+		PermissionsMigrated: w.PermissionsMigrated,
+	}, nil
+}
+
 type permissionWire struct {
 	PermissionLevel     PermissionLevel `json:"permission_level,omitempty"`
 	Inherited           *bool           `json:"inherited,omitempty"`

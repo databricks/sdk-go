@@ -5,7 +5,9 @@ package networking
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -19,6 +21,7 @@ import (
 	"github.com/databricks/sdk-go/core/ops"
 	"github.com/databricks/sdk-go/options/call"
 	"github.com/databricks/sdk-go/options/internaloptions"
+	"github.com/databricks/sdk-go/options/lro"
 )
 
 type httpCallOptions struct {
@@ -161,6 +164,32 @@ func executeResolvedCall(ctx context.Context, op func(context.Context) error, cf
 	)
 }
 
+func validateOperationName(operationName *string) error {
+	if operationName == nil || *operationName == "" {
+		return errors.New("invalid operation response: missing operation name")
+	}
+	return nil
+}
+
+var errOperationStillRunning = errors.New("operation is still running")
+
+func executeWait(ctx context.Context, operation func(context.Context) error, opts ...lro.Option) error {
+	cfg := internaloptions.LROOptions{}
+	for _, opt := range opts {
+		if err := opt(&cfg); err != nil {
+			return err
+		}
+	}
+	return ops.Execute(ctx, operation,
+		ops.WithTimeout(cfg.Timeout),
+		ops.WithRetrier(func() ops.Retrier {
+			return ops.RetryIf(ops.BackoffPolicy{}, func(err error) bool {
+				return errors.Is(err, errOperationStillRunning)
+			})
+		}),
+	)
+}
+
 func addQueryValue(params url.Values, key string, value any) error {
 	data, err := json.Marshal(value)
 	if err != nil {
@@ -191,6 +220,19 @@ func flattenQueryValue(params url.Values, key string, value any) {
 	default:
 		params.Add(key, fmt.Sprintf("%v", value))
 	}
+}
+
+// generateRequestID returns a random RFC 4122 version 4 UUID string, used as an
+// idempotency token when the caller does not supply one. It uses crypto/rand to
+// avoid a UUID dependency; a read failure is treated as unrecoverable.
+func generateRequestID() string {
+	var b [16]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		panic(fmt.Sprintf("generate request id: %v", err))
+	}
+	b[6] = (b[6] & 0x0f) | 0x40 // version 4
+	b[8] = (b[8] & 0x3f) | 0x80 // variant 10
+	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:16])
 }
 
 // pathBuilder assembles request paths so "/" in parameter values remains a

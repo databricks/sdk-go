@@ -167,6 +167,25 @@ func accountNetworkPolicyFromWire(w *accountNetworkPolicyWire) (*AccountNetworkP
 	}, nil
 }
 
+type apiErrorWire struct {
+	ErrorCode  ErrorCode         `json:"error_code,omitempty"`
+	Message    *string           `json:"message,omitempty"`
+	StackTrace *string           `json:"stack_trace,omitempty"`
+	Details    []json.RawMessage `json:"details,omitempty"`
+}
+
+func apiErrorFromWire(w *apiErrorWire) (*ApiError, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ApiError{
+		ErrorCode:  w.ErrorCode,
+		Message:    w.Message,
+		StackTrace: w.StackTrace,
+		Details:    w.Details,
+	}, nil
+}
+
 type awsVpcEndpointInfoWire struct {
 	AwsVpcEndpointId     *string `json:"aws_vpc_endpoint_id,omitempty"`
 	AwsEndpointServiceId *string `json:"aws_endpoint_service_id,omitempty"`
@@ -537,6 +556,27 @@ func createPrivateEndpointRuleToWire(v *CreatePrivateEndpointRule) (*createPriva
 		VpcEndpointId:               v.VpcEndpointId,
 		Enabled:                     v.Enabled,
 		GcpEndpoint:                 endpointGcpEndpointWire,
+	}, nil
+}
+
+type createPrivateNetworkGatewayRequestWire struct {
+	Parent                *string                    `json:"parent,omitempty"`
+	PrivateNetworkGateway *privateNetworkGatewayWire `json:"private_network_gateway,omitempty"`
+	RequestId             *string                    `json:"request_id,omitempty"`
+}
+
+func createPrivateNetworkGatewayRequestToWire(v *CreatePrivateNetworkGatewayRequest) (*createPrivateNetworkGatewayRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	privateNetworkGatewayWireValue, err := privateNetworkGatewayToWire(v.PrivateNetworkGateway)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePrivateNetworkGatewayRequest.PrivateNetworkGateway", err)
+	}
+	return &createPrivateNetworkGatewayRequestWire{
+		Parent:                v.Parent,
+		PrivateNetworkGateway: privateNetworkGatewayWireValue,
+		RequestId:             v.RequestId,
 	}, nil
 }
 
@@ -2442,6 +2482,40 @@ func listNetworkPoliciesResponseFromWire(w *listNetworkPoliciesResponseWire) (*L
 	}, nil
 }
 
+type listPrivateNetworkGatewaysRequestWire struct {
+	Parent    *string `json:"parent,omitempty"`
+	PageToken *string `json:"page_token,omitempty"`
+}
+
+func listPrivateNetworkGatewaysRequestToWire(v *ListPrivateNetworkGatewaysRequest) (*listPrivateNetworkGatewaysRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listPrivateNetworkGatewaysRequestWire{
+		Parent:    v.Parent,
+		PageToken: v.PageToken,
+	}, nil
+}
+
+type listPrivateNetworkGatewaysResponseWire struct {
+	PrivateNetworkGateways []privateNetworkGatewayWire `json:"private_network_gateways,omitempty"`
+	NextPageToken          *string                     `json:"next_page_token,omitempty"`
+}
+
+func listPrivateNetworkGatewaysResponseFromWire(w *listPrivateNetworkGatewaysResponseWire) (*ListPrivateNetworkGatewaysResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	privateNetworkGatewaysPublicValue, err := convertSlice(w.PrivateNetworkGateways, privateNetworkGatewayFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListPrivateNetworkGatewaysResponse.PrivateNetworkGateways", err)
+	}
+	return &ListPrivateNetworkGatewaysResponse{
+		PrivateNetworkGateways: privateNetworkGatewaysPublicValue,
+		NextPageToken:          w.NextPageToken,
+	}, nil
+}
+
 type nccPrivateEndpointRuleWire struct {
 	RuleId                      *string                                           `json:"rule_id,omitempty"`
 	NetworkConnectivityConfigId *string                                           `json:"network_connectivity_config_id,omitempty"`
@@ -2598,6 +2672,39 @@ type networkConnectivityConfigWire struct {
 	EgressConfig                *customerFacingNetworkConnectivityConfigEgressConfigWire `json:"egress_config,omitempty"`
 	UpdatedTime                 *wireInt64                                               `json:"updated_time,omitempty"`
 	CreationTime                *wireInt64                                               `json:"creation_time,omitempty"`
+	BillingWorkspaceId          *wireInt64                                               `json:"billing_workspace_id,omitempty"`
+}
+
+func networkConnectivityConfigToWire(v *NetworkConnectivityConfig) (*networkConnectivityConfigWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	egressConfigWireValue, err := customerFacingNetworkConnectivityConfigEgressConfigToWire(v.EgressConfig)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfig.EgressConfig", err)
+	}
+	updatedTimeWireValue, err := int64ToWire(v.UpdatedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfig.UpdatedTime", err)
+	}
+	creationTimeWireValue, err := int64ToWire(v.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfig.CreationTime", err)
+	}
+	billingWorkspaceIdWireValue, err := int64ToWire(v.BillingWorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfig.BillingWorkspaceId", err)
+	}
+	return &networkConnectivityConfigWire{
+		NetworkConnectivityConfigId: v.NetworkConnectivityConfigId,
+		AccountId:                   v.AccountId,
+		Name:                        v.Name,
+		Region:                      v.Region,
+		EgressConfig:                egressConfigWireValue,
+		UpdatedTime:                 updatedTimeWireValue,
+		CreationTime:                creationTimeWireValue,
+		BillingWorkspaceId:          billingWorkspaceIdWireValue,
+	}, nil
 }
 
 func networkConnectivityConfigFromWire(w *networkConnectivityConfigWire) (*NetworkConnectivityConfig, error) {
@@ -2616,6 +2723,10 @@ func networkConnectivityConfigFromWire(w *networkConnectivityConfigWire) (*Netwo
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfig.CreationTime", err)
 	}
+	billingWorkspaceIdPublicValue, err := int64FromWire(w.BillingWorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NetworkConnectivityConfig.BillingWorkspaceId", err)
+	}
 	return &NetworkConnectivityConfig{
 		NetworkConnectivityConfigId: w.NetworkConnectivityConfigId,
 		AccountId:                   w.AccountId,
@@ -2624,6 +2735,7 @@ func networkConnectivityConfigFromWire(w *networkConnectivityConfigWire) (*Netwo
 		EgressConfig:                egressConfigPublicValue,
 		UpdatedTime:                 updatedTimePublicValue,
 		CreationTime:                creationTimePublicValue,
+		BillingWorkspaceId:          billingWorkspaceIdPublicValue,
 	}, nil
 }
 
@@ -2937,6 +3049,47 @@ func networkWarningFromWire(w *networkWarningWire) (*NetworkWarning, error) {
 	}, nil
 }
 
+type operationWire struct {
+	Name     *string         `json:"name,omitempty"`
+	Metadata json.RawMessage `json:"metadata,omitempty"`
+	Done     *bool           `json:"done,omitempty"`
+	Error    *apiErrorWire   `json:"error,omitempty"`
+	Response json.RawMessage `json:"response,omitempty"`
+}
+
+func operationFromWire(w *operationWire) (*Operation, error) {
+	if w == nil {
+		return nil, nil
+	}
+	resultMembers := 0
+	if w.Error != nil {
+		resultMembers++
+	}
+	if w.Response != nil {
+		resultMembers++
+	}
+	if resultMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "Operation.Result")
+	}
+	var resultSelection isOperation_Result
+	switch {
+	case w.Error != nil:
+		resultErrorConverted, err := apiErrorFromWire(w.Error)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "Operation.Result.Error", err)
+		}
+		resultSelection = &Operation_Result_Error{Error: *resultErrorConverted}
+	case w.Response != nil:
+		resultSelection = &Operation_Result_Response{Response: w.Response}
+	}
+	return &Operation{
+		Name:     w.Name,
+		Metadata: w.Metadata,
+		Done:     w.Done,
+		Result:   resultSelection,
+	}, nil
+}
+
 type privateAccessSettingsWire struct {
 	PrivateAccessSettingsId   *string            `json:"private_access_settings_id,omitempty"`
 	AccountId                 *string            `json:"account_id,omitempty"`
@@ -2974,6 +3127,327 @@ func privateAccessSettingsFromWire(w *privateAccessSettingsWire) (*PrivateAccess
 		PublicAccessEnabled:       w.PublicAccessEnabled,
 		PrivateAccessLevel:        w.PrivateAccessLevel,
 		AllowedVpcEndpointIds:     w.AllowedVpcEndpointIds,
+	}, nil
+}
+
+type privateNetworkGatewayWire struct {
+	Name                           *string                                         `json:"name,omitempty"`
+	DisplayName                    *string                                         `json:"display_name,omitempty"`
+	AzureCloudConnection           *privateNetworkGateway_AzureCloudConnectionWire `json:"azure_cloud_connection,omitempty"`
+	AwsCloudConnection             *privateNetworkGateway_AwsCloudConnectionWire   `json:"aws_cloud_connection,omitempty"`
+	Destinations                   []privateNetworkGateway_DestinationWire         `json:"destinations,omitempty"`
+	PrivateDnsResolvers            []privateNetworkGateway_PrivateDnsResolverWire  `json:"private_dns_resolvers,omitempty"`
+	TrafficMode                    PrivateNetworkGateway_TrafficMode               `json:"traffic_mode,omitempty"`
+	CreateTime                     *types.Time                                     `json:"create_time,omitempty"`
+	UpdateTime                     *types.Time                                     `json:"update_time,omitempty"`
+	State                          PrivateNetworkGateway_GatewayState              `json:"state,omitempty"`
+	ErrorMessage                   *string                                         `json:"error_message,omitempty"`
+	BandwidthTierGigabitsPerSecond *int                                            `json:"bandwidth_tier_gigabits_per_second,omitempty"`
+}
+
+func privateNetworkGatewayToWire(v *PrivateNetworkGateway) (*privateNetworkGatewayWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	destinationsWireValue, err := convertSlice(v.Destinations, privateNetworkGateway_DestinationToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PrivateNetworkGateway.Destinations", err)
+	}
+	privateDnsResolversWireValue, err := convertSlice(v.PrivateDnsResolvers, privateNetworkGateway_PrivateDnsResolverToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PrivateNetworkGateway.PrivateDnsResolvers", err)
+	}
+	var cloudConnectionAzureCloudConnectionWire *privateNetworkGateway_AzureCloudConnectionWire
+	var cloudConnectionAwsCloudConnectionWire *privateNetworkGateway_AwsCloudConnectionWire
+	switch value := v.CloudConnection.(type) {
+	case nil:
+	case *PrivateNetworkGateway_CloudConnection_AzureCloudConnection:
+		if value != nil {
+			cloudConnectionAzureCloudConnectionConverted, err := privateNetworkGateway_AzureCloudConnectionToWire(&value.AzureCloudConnection)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "PrivateNetworkGateway.CloudConnection.AzureCloudConnection", err)
+			}
+			cloudConnectionAzureCloudConnectionWire = cloudConnectionAzureCloudConnectionConverted
+		}
+	case *PrivateNetworkGateway_CloudConnection_AwsCloudConnection:
+		if value != nil {
+			cloudConnectionAwsCloudConnectionConverted, err := privateNetworkGateway_AwsCloudConnectionToWire(&value.AwsCloudConnection)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "PrivateNetworkGateway.CloudConnection.AwsCloudConnection", err)
+			}
+			cloudConnectionAwsCloudConnectionWire = cloudConnectionAwsCloudConnectionConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "PrivateNetworkGateway.CloudConnection", value)
+	}
+	return &privateNetworkGatewayWire{
+		Name:                           v.Name,
+		DisplayName:                    v.DisplayName,
+		AzureCloudConnection:           cloudConnectionAzureCloudConnectionWire,
+		AwsCloudConnection:             cloudConnectionAwsCloudConnectionWire,
+		Destinations:                   destinationsWireValue,
+		PrivateDnsResolvers:            privateDnsResolversWireValue,
+		TrafficMode:                    v.TrafficMode,
+		CreateTime:                     v.CreateTime,
+		UpdateTime:                     v.UpdateTime,
+		State:                          v.State,
+		ErrorMessage:                   v.ErrorMessage,
+		BandwidthTierGigabitsPerSecond: v.BandwidthTierGigabitsPerSecond,
+	}, nil
+}
+
+func privateNetworkGatewayFromWire(w *privateNetworkGatewayWire) (*PrivateNetworkGateway, error) {
+	if w == nil {
+		return nil, nil
+	}
+	cloudConnectionMembers := 0
+	if w.AzureCloudConnection != nil {
+		cloudConnectionMembers++
+	}
+	if w.AwsCloudConnection != nil {
+		cloudConnectionMembers++
+	}
+	if cloudConnectionMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "PrivateNetworkGateway.CloudConnection")
+	}
+	destinationsPublicValue, err := convertSlice(w.Destinations, privateNetworkGateway_DestinationFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PrivateNetworkGateway.Destinations", err)
+	}
+	privateDnsResolversPublicValue, err := convertSlice(w.PrivateDnsResolvers, privateNetworkGateway_PrivateDnsResolverFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PrivateNetworkGateway.PrivateDnsResolvers", err)
+	}
+	var cloudConnectionSelection isPrivateNetworkGateway_CloudConnection
+	switch {
+	case w.AzureCloudConnection != nil:
+		cloudConnectionAzureCloudConnectionConverted, err := privateNetworkGateway_AzureCloudConnectionFromWire(w.AzureCloudConnection)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "PrivateNetworkGateway.CloudConnection.AzureCloudConnection", err)
+		}
+		cloudConnectionSelection = &PrivateNetworkGateway_CloudConnection_AzureCloudConnection{AzureCloudConnection: *cloudConnectionAzureCloudConnectionConverted}
+	case w.AwsCloudConnection != nil:
+		cloudConnectionAwsCloudConnectionConverted, err := privateNetworkGateway_AwsCloudConnectionFromWire(w.AwsCloudConnection)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "PrivateNetworkGateway.CloudConnection.AwsCloudConnection", err)
+		}
+		cloudConnectionSelection = &PrivateNetworkGateway_CloudConnection_AwsCloudConnection{AwsCloudConnection: *cloudConnectionAwsCloudConnectionConverted}
+	}
+	return &PrivateNetworkGateway{
+		Name:                           w.Name,
+		DisplayName:                    w.DisplayName,
+		Destinations:                   destinationsPublicValue,
+		PrivateDnsResolvers:            privateDnsResolversPublicValue,
+		TrafficMode:                    w.TrafficMode,
+		CreateTime:                     w.CreateTime,
+		UpdateTime:                     w.UpdateTime,
+		State:                          w.State,
+		ErrorMessage:                   w.ErrorMessage,
+		BandwidthTierGigabitsPerSecond: w.BandwidthTierGigabitsPerSecond,
+		CloudConnection:                cloudConnectionSelection,
+	}, nil
+}
+
+type privateNetworkGateway_AwsCloudConnectionWire struct {
+	GatewaySubnets   []privateNetworkGateway_AwsCloudConnection_AwsGatewaySubnetWire `json:"gateway_subnets,omitempty"`
+	CrossAccountRole *privateNetworkGateway_AwsCloudConnection_CrossAccountRoleWire  `json:"cross_account_role,omitempty"`
+	SecurityGroupIds []string                                                        `json:"security_group_ids,omitempty"`
+}
+
+func privateNetworkGateway_AwsCloudConnectionToWire(v *PrivateNetworkGateway_AwsCloudConnection) (*privateNetworkGateway_AwsCloudConnectionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	gatewaySubnetsWireValue, err := convertSlice(v.GatewaySubnets, privateNetworkGateway_AwsCloudConnection_AwsGatewaySubnetToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PrivateNetworkGateway_AwsCloudConnection.GatewaySubnets", err)
+	}
+	crossAccountRoleWireValue, err := privateNetworkGateway_AwsCloudConnection_CrossAccountRoleToWire(v.CrossAccountRole)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PrivateNetworkGateway_AwsCloudConnection.CrossAccountRole", err)
+	}
+	return &privateNetworkGateway_AwsCloudConnectionWire{
+		GatewaySubnets:   gatewaySubnetsWireValue,
+		CrossAccountRole: crossAccountRoleWireValue,
+		SecurityGroupIds: v.SecurityGroupIds,
+	}, nil
+}
+
+func privateNetworkGateway_AwsCloudConnectionFromWire(w *privateNetworkGateway_AwsCloudConnectionWire) (*PrivateNetworkGateway_AwsCloudConnection, error) {
+	if w == nil {
+		return nil, nil
+	}
+	gatewaySubnetsPublicValue, err := convertSlice(w.GatewaySubnets, privateNetworkGateway_AwsCloudConnection_AwsGatewaySubnetFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PrivateNetworkGateway_AwsCloudConnection.GatewaySubnets", err)
+	}
+	crossAccountRolePublicValue, err := privateNetworkGateway_AwsCloudConnection_CrossAccountRoleFromWire(w.CrossAccountRole)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PrivateNetworkGateway_AwsCloudConnection.CrossAccountRole", err)
+	}
+	return &PrivateNetworkGateway_AwsCloudConnection{
+		GatewaySubnets:   gatewaySubnetsPublicValue,
+		CrossAccountRole: crossAccountRolePublicValue,
+		SecurityGroupIds: w.SecurityGroupIds,
+	}, nil
+}
+
+type privateNetworkGateway_AwsCloudConnection_AwsGatewaySubnetWire struct {
+	SubnetId *string `json:"subnet_id,omitempty"`
+}
+
+func privateNetworkGateway_AwsCloudConnection_AwsGatewaySubnetToWire(v *PrivateNetworkGateway_AwsCloudConnection_AwsGatewaySubnet) (*privateNetworkGateway_AwsCloudConnection_AwsGatewaySubnetWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &privateNetworkGateway_AwsCloudConnection_AwsGatewaySubnetWire{
+		SubnetId: v.SubnetId,
+	}, nil
+}
+
+func privateNetworkGateway_AwsCloudConnection_AwsGatewaySubnetFromWire(w *privateNetworkGateway_AwsCloudConnection_AwsGatewaySubnetWire) (*PrivateNetworkGateway_AwsCloudConnection_AwsGatewaySubnet, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PrivateNetworkGateway_AwsCloudConnection_AwsGatewaySubnet{
+		SubnetId: w.SubnetId,
+	}, nil
+}
+
+type privateNetworkGateway_AwsCloudConnection_CrossAccountRoleWire struct {
+	RoleArn *string `json:"role_arn,omitempty"`
+}
+
+func privateNetworkGateway_AwsCloudConnection_CrossAccountRoleToWire(v *PrivateNetworkGateway_AwsCloudConnection_CrossAccountRole) (*privateNetworkGateway_AwsCloudConnection_CrossAccountRoleWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &privateNetworkGateway_AwsCloudConnection_CrossAccountRoleWire{
+		RoleArn: v.RoleArn,
+	}, nil
+}
+
+func privateNetworkGateway_AwsCloudConnection_CrossAccountRoleFromWire(w *privateNetworkGateway_AwsCloudConnection_CrossAccountRoleWire) (*PrivateNetworkGateway_AwsCloudConnection_CrossAccountRole, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PrivateNetworkGateway_AwsCloudConnection_CrossAccountRole{
+		RoleArn: w.RoleArn,
+	}, nil
+}
+
+type privateNetworkGateway_AzureCloudConnectionWire struct {
+	GatewaySubnet *privateNetworkGateway_AzureCloudConnection_AzureGatewaySubnetWire `json:"gateway_subnet,omitempty"`
+}
+
+func privateNetworkGateway_AzureCloudConnectionToWire(v *PrivateNetworkGateway_AzureCloudConnection) (*privateNetworkGateway_AzureCloudConnectionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	gatewaySubnetWireValue, err := privateNetworkGateway_AzureCloudConnection_AzureGatewaySubnetToWire(v.GatewaySubnet)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PrivateNetworkGateway_AzureCloudConnection.GatewaySubnet", err)
+	}
+	return &privateNetworkGateway_AzureCloudConnectionWire{
+		GatewaySubnet: gatewaySubnetWireValue,
+	}, nil
+}
+
+func privateNetworkGateway_AzureCloudConnectionFromWire(w *privateNetworkGateway_AzureCloudConnectionWire) (*PrivateNetworkGateway_AzureCloudConnection, error) {
+	if w == nil {
+		return nil, nil
+	}
+	gatewaySubnetPublicValue, err := privateNetworkGateway_AzureCloudConnection_AzureGatewaySubnetFromWire(w.GatewaySubnet)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PrivateNetworkGateway_AzureCloudConnection.GatewaySubnet", err)
+	}
+	return &PrivateNetworkGateway_AzureCloudConnection{
+		GatewaySubnet: gatewaySubnetPublicValue,
+	}, nil
+}
+
+type privateNetworkGateway_AzureCloudConnection_AzureGatewaySubnetWire struct {
+	ResourceId *string `json:"resource_id,omitempty"`
+}
+
+func privateNetworkGateway_AzureCloudConnection_AzureGatewaySubnetToWire(v *PrivateNetworkGateway_AzureCloudConnection_AzureGatewaySubnet) (*privateNetworkGateway_AzureCloudConnection_AzureGatewaySubnetWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &privateNetworkGateway_AzureCloudConnection_AzureGatewaySubnetWire{
+		ResourceId: v.ResourceId,
+	}, nil
+}
+
+func privateNetworkGateway_AzureCloudConnection_AzureGatewaySubnetFromWire(w *privateNetworkGateway_AzureCloudConnection_AzureGatewaySubnetWire) (*PrivateNetworkGateway_AzureCloudConnection_AzureGatewaySubnet, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PrivateNetworkGateway_AzureCloudConnection_AzureGatewaySubnet{
+		ResourceId: w.ResourceId,
+	}, nil
+}
+
+type privateNetworkGateway_DestinationWire struct {
+	DestinationType PrivateNetworkGateway_Destination_DestinationType `json:"destination_type,omitempty"`
+	Value           *string                                           `json:"value,omitempty"`
+}
+
+func privateNetworkGateway_DestinationToWire(v *PrivateNetworkGateway_Destination) (*privateNetworkGateway_DestinationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &privateNetworkGateway_DestinationWire{
+		DestinationType: v.DestinationType,
+		Value:           v.Value,
+	}, nil
+}
+
+func privateNetworkGateway_DestinationFromWire(w *privateNetworkGateway_DestinationWire) (*PrivateNetworkGateway_Destination, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PrivateNetworkGateway_Destination{
+		DestinationType: w.DestinationType,
+		Value:           w.Value,
+	}, nil
+}
+
+type privateNetworkGateway_PrivateDnsResolverWire struct {
+	ResolverType PrivateNetworkGateway_PrivateDnsResolver_ResolverType `json:"resolver_type,omitempty"`
+	Value        *string                                               `json:"value,omitempty"`
+}
+
+func privateNetworkGateway_PrivateDnsResolverToWire(v *PrivateNetworkGateway_PrivateDnsResolver) (*privateNetworkGateway_PrivateDnsResolverWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &privateNetworkGateway_PrivateDnsResolverWire{
+		ResolverType: v.ResolverType,
+		Value:        v.Value,
+	}, nil
+}
+
+func privateNetworkGateway_PrivateDnsResolverFromWire(w *privateNetworkGateway_PrivateDnsResolverWire) (*PrivateNetworkGateway_PrivateDnsResolver, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PrivateNetworkGateway_PrivateDnsResolver{
+		ResolverType: w.ResolverType,
+		Value:        w.Value,
+	}, nil
+}
+
+type privateNetworkGatewayOperationMetadataWire struct {
+	OperationType PrivateNetworkGatewayOperationMetadata_OperationType `json:"operation_type,omitempty"`
+}
+
+func privateNetworkGatewayOperationMetadataFromWire(w *privateNetworkGatewayOperationMetadataWire) (*PrivateNetworkGatewayOperationMetadata, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PrivateNetworkGatewayOperationMetadata{
+		OperationType: w.OperationType,
 	}, nil
 }
 
@@ -3158,6 +3632,29 @@ func updateNccPrivateEndpointRuleRequestToWire(v *UpdateNccPrivateEndpointRuleRe
 	}, nil
 }
 
+type updateNetworkConnectivityConfigRequestWire struct {
+	AccountId                   *string                        `json:"account_id,omitempty"`
+	NetworkConnectivityConfigId *string                        `json:"network_connectivity_config_id,omitempty"`
+	NetworkConnectivityConfig   *networkConnectivityConfigWire `json:"network_connectivity_config,omitempty"`
+	UpdateMask                  *string                        `json:"update_mask,omitempty"`
+}
+
+func updateNetworkConnectivityConfigRequestToWire(v *UpdateNetworkConnectivityConfigRequest) (*updateNetworkConnectivityConfigRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	networkConnectivityConfigWireValue, err := networkConnectivityConfigToWire(v.NetworkConnectivityConfig)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateNetworkConnectivityConfigRequest.NetworkConnectivityConfig", err)
+	}
+	return &updateNetworkConnectivityConfigRequestWire{
+		AccountId:                   v.AccountId,
+		NetworkConnectivityConfigId: v.NetworkConnectivityConfigId,
+		NetworkConnectivityConfig:   networkConnectivityConfigWireValue,
+		UpdateMask:                  fieldMaskToWire(v.UpdateMask),
+	}, nil
+}
+
 type updateNetworkPolicyRequestWire struct {
 	NetworkPolicyId *string                   `json:"network_policy_id,omitempty"`
 	AccountId       *string                   `json:"account_id,omitempty"`
@@ -3266,6 +3763,25 @@ func updatePrivateEndpointRuleToWire(v *UpdatePrivateEndpointRule) (*updatePriva
 		VpcEndpointId:               v.VpcEndpointId,
 		Enabled:                     v.Enabled,
 		GcpEndpoint:                 endpointGcpEndpointWire,
+	}, nil
+}
+
+type updatePrivateNetworkGatewayRequestWire struct {
+	PrivateNetworkGateway *privateNetworkGatewayWire `json:"private_network_gateway,omitempty"`
+	UpdateMask            *string                    `json:"update_mask,omitempty"`
+}
+
+func updatePrivateNetworkGatewayRequestToWire(v *UpdatePrivateNetworkGatewayRequest) (*updatePrivateNetworkGatewayRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	privateNetworkGatewayWireValue, err := privateNetworkGatewayToWire(v.PrivateNetworkGateway)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdatePrivateNetworkGatewayRequest.PrivateNetworkGateway", err)
+	}
+	return &updatePrivateNetworkGatewayRequestWire{
+		PrivateNetworkGateway: privateNetworkGatewayWireValue,
+		UpdateMask:            fieldMaskToWire(v.UpdateMask),
 	}, nil
 }
 

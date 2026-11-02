@@ -164,6 +164,33 @@ func deletePathRequestToWire(v *DeletePathRequest) (*deletePathRequestWire, erro
 	}, nil
 }
 
+type downloadFileRequestWire struct {
+	Parent            *string `json:"parent,omitempty"`
+	Path              *string `json:"path,omitempty"`
+	Range             *string `json:"byte_range,omitempty"`
+	IfRange           *string `json:"if_range,omitempty"`
+	IfMatch           *string `json:"if_match,omitempty"`
+	IfNoneMatch       *string `json:"if_none_match,omitempty"`
+	IfModifiedSince   *string `json:"if_modified_since,omitempty"`
+	IfUnmodifiedSince *string `json:"if_unmodified_since,omitempty"`
+}
+
+func downloadFileRequestToWire(v *DownloadFileRequest) (*downloadFileRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &downloadFileRequestWire{
+		Parent:            v.Parent,
+		Path:              v.Path,
+		Range:             v.Range,
+		IfRange:           v.IfRange,
+		IfMatch:           v.IfMatch,
+		IfNoneMatch:       v.IfNoneMatch,
+		IfModifiedSince:   v.IfModifiedSince,
+		IfUnmodifiedSince: v.IfUnmodifiedSince,
+	}, nil
+}
+
 type environmentSpecWire struct {
 	ImageUri *string `json:"image_uri,omitempty"`
 }
@@ -615,6 +642,21 @@ func updateSandboxRequestToWire(v *UpdateSandboxRequest) (*updateSandboxRequestW
 		Name:       v.Name,
 		Sandbox:    sandboxWireValue,
 		UpdateMask: fieldMaskToWire(v.UpdateMask),
+	}, nil
+}
+
+type uploadFileRequestWire struct {
+	Parent *string `json:"parent,omitempty"`
+	Path   *string `json:"path,omitempty"`
+}
+
+func uploadFileRequestToWire(v *UploadFileRequest) (*uploadFileRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &uploadFileRequestWire{
+		Parent: v.Parent,
+		Path:   v.Path,
 	}, nil
 }
 

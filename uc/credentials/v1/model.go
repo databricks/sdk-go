@@ -1532,6 +1532,7 @@ func (*ValidateCredentialRequest_Credential_CredentialName) isValidateCredential
 }
 
 // ValidateCredentialRequest_Credential_AwsIamRole selects AwsIamRole for ValidateCredentialRequest.Credential.
+// Deprecated: create a credential and pass its credential_name instead.
 type ValidateCredentialRequest_Credential_AwsIamRole struct {
 	AwsIamRole AwsIamRole
 }
@@ -1539,6 +1540,7 @@ type ValidateCredentialRequest_Credential_AwsIamRole struct {
 func (*ValidateCredentialRequest_Credential_AwsIamRole) isValidateCredentialRequest_Credential() {}
 
 // ValidateCredentialRequest_Credential_AzureManagedIdentity selects AzureManagedIdentity for ValidateCredentialRequest.Credential.
+// Deprecated: create a credential and pass its credential_name instead.
 type ValidateCredentialRequest_Credential_AzureManagedIdentity struct {
 	AzureManagedIdentity AzureManagedIdentity
 }
@@ -1547,6 +1549,7 @@ func (*ValidateCredentialRequest_Credential_AzureManagedIdentity) isValidateCred
 }
 
 // ValidateCredentialRequest_Credential_DatabricksGcpServiceAccount selects DatabricksGcpServiceAccount for ValidateCredentialRequest.Credential.
+// Deprecated: create a credential and pass its credential_name instead.
 type ValidateCredentialRequest_Credential_DatabricksGcpServiceAccount struct {
 	DatabricksGcpServiceAccount DatabricksGcpServiceAccount
 }
@@ -1594,7 +1597,8 @@ func (*ValidateStorageCredentialRequest_Credential_StorageCredentialName) isVali
 }
 
 // ValidateStorageCredentialRequest_Credential_AwsIamRole selects AwsIamRole for ValidateStorageCredentialRequest.Credential.
-// The AWS IAM role configuration.
+// Deprecated: create a storage credential and pass its storage_credential_name
+// instead. The AWS IAM role configuration.
 type ValidateStorageCredentialRequest_Credential_AwsIamRole struct {
 	AwsIamRole AwsIamRole
 }
@@ -1603,7 +1607,8 @@ func (*ValidateStorageCredentialRequest_Credential_AwsIamRole) isValidateStorage
 }
 
 // ValidateStorageCredentialRequest_Credential_AzureServicePrincipal selects AzureServicePrincipal for ValidateStorageCredentialRequest.Credential.
-// The Azure service principal configuration.
+// Deprecated: create a storage credential and pass its storage_credential_name
+// instead. The Azure service principal configuration.
 type ValidateStorageCredentialRequest_Credential_AzureServicePrincipal struct {
 	AzureServicePrincipal AzureServicePrincipal
 }
@@ -1612,7 +1617,8 @@ func (*ValidateStorageCredentialRequest_Credential_AzureServicePrincipal) isVali
 }
 
 // ValidateStorageCredentialRequest_Credential_AzureManagedIdentity selects AzureManagedIdentity for ValidateStorageCredentialRequest.Credential.
-// The Azure managed identity configuration.
+// Deprecated: create a storage credential and pass its storage_credential_name
+// instead. The Azure managed identity configuration.
 type ValidateStorageCredentialRequest_Credential_AzureManagedIdentity struct {
 	AzureManagedIdentity AzureManagedIdentity
 }
@@ -1621,7 +1627,8 @@ func (*ValidateStorageCredentialRequest_Credential_AzureManagedIdentity) isValid
 }
 
 // ValidateStorageCredentialRequest_Credential_DatabricksGcpServiceAccount selects DatabricksGcpServiceAccount for ValidateStorageCredentialRequest.Credential.
-// The <Databricks> created GCP service account configuration.
+// Deprecated: create a storage credential and pass its storage_credential_name
+// instead. The <Databricks> created GCP service account configuration.
 type ValidateStorageCredentialRequest_Credential_DatabricksGcpServiceAccount struct {
 	DatabricksGcpServiceAccount DatabricksGcpServiceAccount
 }
@@ -1630,7 +1637,8 @@ func (*ValidateStorageCredentialRequest_Credential_DatabricksGcpServiceAccount) 
 }
 
 // ValidateStorageCredentialRequest_Credential_CloudflareApiToken selects CloudflareApiToken for ValidateStorageCredentialRequest.Credential.
-// The Cloudflare API token configuration.
+// Deprecated: create a storage credential and pass its storage_credential_name
+// instead. The Cloudflare API token configuration.
 type ValidateStorageCredentialRequest_Credential_CloudflareApiToken struct {
 	CloudflareApiToken CloudflareApiToken
 }

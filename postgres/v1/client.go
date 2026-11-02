@@ -6490,7 +6490,13 @@ func (o *UpdateProjectOperation) Wait(ctx context.Context, opts ...lro.Option) (
 	return result, nil
 }
 
-// Update a role for a branch.
+// Updates the mutable fields of a Postgres role for a branch.
+//
+// The fields `spec.identity_type`, `spec.auth_method`, and `spec.postgres_role`
+// are fixed when the role is created. UpdateRole ignores values supplied for
+// these fields in the request body and retains their existing values.
+// Explicitly naming one of these fields in `update_mask` returns an
+// INVALID_PARAMETER_VALUE error.
 func (c *internalClient) updateRoleBase(ctx context.Context, req UpdateRoleRequest, opts ...call.Option) (*Operation, error) {
 	wireReq, err := updateRoleRequestToWire(&req)
 	if err != nil {
@@ -6566,7 +6572,13 @@ func (c *internalClient) updateRoleBase(ctx context.Context, req UpdateRoleReque
 	return resp, nil
 }
 
-// Update a role for a branch.
+// Updates the mutable fields of a Postgres role for a branch.
+//
+// The fields `spec.identity_type`, `spec.auth_method`, and `spec.postgres_role`
+// are fixed when the role is created. UpdateRole ignores values supplied for
+// these fields in the request body and retains their existing values.
+// Explicitly naming one of these fields in `update_mask` returns an
+// INVALID_PARAMETER_VALUE error.
 func (c *internalClient) UpdateRole(ctx context.Context, req UpdateRoleRequest, opts ...call.Option) (*UpdateRoleOperation, error) {
 	operation, err := c.updateRoleBase(ctx, req, opts...)
 	if err != nil {

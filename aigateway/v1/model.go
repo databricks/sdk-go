@@ -32,7 +32,8 @@ const (
 	// inference-table details and rate-limit principal names.
 	ListModelProviderServicesRequest_View_Full ListModelProviderServicesRequest_View = "FULL"
 	// Basic resource metadata and selected configuration fields. Service-credential
-	// and inference-table details and rate-limit principal names are unset.
+	// and inference-table details and rate-limit principal names are unset. Custom
+	// provider base URLs may be omitted; use FULL or Get for the current endpoint.
 	ListModelProviderServicesRequest_View_Basic ListModelProviderServicesRequest_View = "BASIC"
 )
 
@@ -114,7 +115,10 @@ const (
 	RateLimit_RateLimitKey_Unspecified RateLimit_RateLimitKey = ""
 	// Rate limit applies to a specific user (matched on `principal`).
 	RateLimit_RateLimitKey_RateLimitKeyUser RateLimit_RateLimitKey = "RATE_LIMIT_KEY_USER"
-	// Rate limit applies to all members of a group (matched on `principal`).
+	// Rate limit applies to direct members of a group (matched on `principal`), and
+	// to callers assuming the group directly or assuming a group that is a direct
+	// member of it (via role switching). Membership is not transitive, and a user
+	// assuming a role outside the group is not bound by it.
 	RateLimit_RateLimitKey_RateLimitKeyUserGroup RateLimit_RateLimitKey = "RATE_LIMIT_KEY_USER_GROUP"
 	// Rate limit applies to a specific service principal (matched on `principal`).
 	RateLimit_RateLimitKey_RateLimitKeyServicePrincipal RateLimit_RateLimitKey = "RATE_LIMIT_KEY_SERVICE_PRINCIPAL"

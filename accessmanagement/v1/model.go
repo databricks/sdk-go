@@ -284,6 +284,23 @@ type ListWorkspacePermissionsResponse struct {
 	Permissions []PermissionOutput
 }
 
+type MigratePermissionsRequest struct {
+	// WorkspaceId of the associated workspace where the permission migration will
+	// occur.
+	WorkspaceId *int64
+	// The name of the workspace group that permissions will be migrated from.
+	FromWorkspaceGroupName *string
+	// The name of the account group that permissions will be migrated to.
+	ToAccountGroupName *string
+	// The maximum number of permissions that will be migrated.
+	Size *int
+}
+
+type MigratePermissionsResponse struct {
+	// Number of permissions migrated.
+	PermissionsMigrated *int
+}
+
 type Permission struct {
 	PermissionLevel     PermissionLevel
 	Inherited           *bool
