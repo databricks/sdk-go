@@ -1534,6 +1534,27 @@ func clusterSpec_NewClusterFromWire(w *clusterSpec_NewClusterWire) (*ClusterSpec
 	}, nil
 }
 
+type completedJobWire struct {
+	WorkspaceId     *string              `json:"workspace_id,omitempty"`
+	JobId           *string              `json:"job_id,omitempty"`
+	RunId           *string              `json:"run_id,omitempty"`
+	TerminationCode TerminationCode_Code `json:"termination_code,omitempty"`
+	CompletionTime  *types.Time          `json:"completion_time,omitempty"`
+}
+
+func completedJobFromWire(w *completedJobWire) (*CompletedJob, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CompletedJob{
+		WorkspaceId:     w.WorkspaceId,
+		JobId:           w.JobId,
+		RunId:           w.RunId,
+		TerminationCode: w.TerminationCode,
+		CompletionTime:  w.CompletionTime,
+	}, nil
+}
+
 type computeWire struct {
 	HardwareAccelerator HardwareAcceleratorType `json:"hardware_accelerator,omitempty"`
 }
@@ -3552,9 +3573,10 @@ func initScriptInfoFromWire(w *initScriptInfoWire) (*InitScriptInfo, error) {
 }
 
 type jobClusterWire struct {
-	JobClusterKey       *string                     `json:"job_cluster_key,omitempty"`
-	NewCluster          *clusterSpec_NewClusterWire `json:"new_cluster,omitempty"`
-	ServerlessComputeId *string                     `json:"serverless_compute_id,omitempty"`
+	JobClusterKey       *string                           `json:"job_cluster_key,omitempty"`
+	NewCluster          *clusterSpec_NewClusterWire       `json:"new_cluster,omitempty"`
+	ServerlessComputeId *string                           `json:"serverless_compute_id,omitempty"`
+	ServerlessCompute   *jobCluster_ServerlessComputeWire `json:"serverless_compute,omitempty"`
 }
 
 func jobClusterToWire(v *JobCluster) (*jobClusterWire, error) {
@@ -3565,10 +3587,15 @@ func jobClusterToWire(v *JobCluster) (*jobClusterWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "JobCluster.NewCluster", err)
 	}
+	serverlessComputeWireValue, err := jobCluster_ServerlessComputeToWire(v.ServerlessCompute)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "JobCluster.ServerlessCompute", err)
+	}
 	return &jobClusterWire{
 		JobClusterKey:       v.JobClusterKey,
 		NewCluster:          newClusterWireValue,
 		ServerlessComputeId: v.ServerlessComputeId,
+		ServerlessCompute:   serverlessComputeWireValue,
 	}, nil
 }
 
@@ -3580,10 +3607,156 @@ func jobClusterFromWire(w *jobClusterWire) (*JobCluster, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "JobCluster.NewCluster", err)
 	}
+	serverlessComputePublicValue, err := jobCluster_ServerlessComputeFromWire(w.ServerlessCompute)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "JobCluster.ServerlessCompute", err)
+	}
 	return &JobCluster{
 		JobClusterKey:       w.JobClusterKey,
 		NewCluster:          newClusterPublicValue,
 		ServerlessComputeId: w.ServerlessComputeId,
+		ServerlessCompute:   serverlessComputePublicValue,
+	}, nil
+}
+
+type jobCluster_ServerlessComputeWire struct {
+	PolicyId *string `json:"policy_id,omitempty"`
+}
+
+func jobCluster_ServerlessComputeToWire(v *JobCluster_ServerlessCompute) (*jobCluster_ServerlessComputeWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &jobCluster_ServerlessComputeWire{
+		PolicyId: v.PolicyId,
+	}, nil
+}
+
+func jobCluster_ServerlessComputeFromWire(w *jobCluster_ServerlessComputeWire) (*JobCluster_ServerlessCompute, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &JobCluster_ServerlessCompute{
+		PolicyId: w.PolicyId,
+	}, nil
+}
+
+type jobCompletionTriggerConfigurationWire struct {
+	Jobs     []jobCompletionTriggerConfiguration_MonitoredJobWire `json:"jobs,omitempty"`
+	IfStatus JobCompletionTriggerConfiguration_IfStatus           `json:"if_status,omitempty"`
+}
+
+func jobCompletionTriggerConfigurationToWire(v *JobCompletionTriggerConfiguration) (*jobCompletionTriggerConfigurationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	jobsWireValue, err := convertSlice(v.Jobs, jobCompletionTriggerConfiguration_MonitoredJobToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "JobCompletionTriggerConfiguration.Jobs", err)
+	}
+	return &jobCompletionTriggerConfigurationWire{
+		Jobs:     jobsWireValue,
+		IfStatus: v.IfStatus,
+	}, nil
+}
+
+func jobCompletionTriggerConfigurationFromWire(w *jobCompletionTriggerConfigurationWire) (*JobCompletionTriggerConfiguration, error) {
+	if w == nil {
+		return nil, nil
+	}
+	jobsPublicValue, err := convertSlice(w.Jobs, jobCompletionTriggerConfiguration_MonitoredJobFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "JobCompletionTriggerConfiguration.Jobs", err)
+	}
+	return &JobCompletionTriggerConfiguration{
+		Jobs:     jobsPublicValue,
+		IfStatus: w.IfStatus,
+	}, nil
+}
+
+type jobCompletionTriggerConfiguration_MonitoredJobWire struct {
+	WorkspaceId *string `json:"workspace_id,omitempty"`
+	JobId       *string `json:"job_id,omitempty"`
+}
+
+func jobCompletionTriggerConfiguration_MonitoredJobToWire(v *JobCompletionTriggerConfiguration_MonitoredJob) (*jobCompletionTriggerConfiguration_MonitoredJobWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &jobCompletionTriggerConfiguration_MonitoredJobWire{
+		WorkspaceId: v.WorkspaceId,
+		JobId:       v.JobId,
+	}, nil
+}
+
+func jobCompletionTriggerConfiguration_MonitoredJobFromWire(w *jobCompletionTriggerConfiguration_MonitoredJobWire) (*JobCompletionTriggerConfiguration_MonitoredJob, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &JobCompletionTriggerConfiguration_MonitoredJob{
+		WorkspaceId: w.WorkspaceId,
+		JobId:       w.JobId,
+	}, nil
+}
+
+type jobCompletionTriggerRunInfoDetailsWire struct {
+	CompletedJobs []completedJobWire `json:"completed_jobs,omitempty"`
+}
+
+func jobCompletionTriggerRunInfoDetailsFromWire(w *jobCompletionTriggerRunInfoDetailsWire) (*JobCompletionTriggerRunInfoDetails, error) {
+	if w == nil {
+		return nil, nil
+	}
+	completedJobsPublicValue, err := convertSlice(w.CompletedJobs, completedJobFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "JobCompletionTriggerRunInfoDetails.CompletedJobs", err)
+	}
+	return &JobCompletionTriggerRunInfoDetails{
+		CompletedJobs: completedJobsPublicValue,
+	}, nil
+}
+
+type jobCompletionTriggerStateWire struct {
+	MonitoredJobStates []jobCompletionTriggerState_MonitoredJobStateWire `json:"monitored_job_states,omitempty"`
+}
+
+func jobCompletionTriggerStateFromWire(w *jobCompletionTriggerStateWire) (*JobCompletionTriggerState, error) {
+	if w == nil {
+		return nil, nil
+	}
+	monitoredJobStatesPublicValue, err := convertSlice(w.MonitoredJobStates, jobCompletionTriggerState_MonitoredJobStateFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "JobCompletionTriggerState.MonitoredJobStates", err)
+	}
+	return &JobCompletionTriggerState{
+		MonitoredJobStates: monitoredJobStatesPublicValue,
+	}, nil
+}
+
+type jobCompletionTriggerState_MonitoredJobStateWire struct {
+	WorkspaceId             *string              `json:"workspace_id,omitempty"`
+	JobId                   *string              `json:"job_id,omitempty"`
+	LastSeenCompletionTime  *types.Time          `json:"last_seen_completion_time,omitempty"`
+	LastSeenRunId           *string              `json:"last_seen_run_id,omitempty"`
+	HasSeenCompletion       *bool                `json:"has_seen_completion,omitempty"`
+	LastSeenResult          TerminationCode_Code `json:"last_seen_result,omitempty"`
+	IsDeleted               *bool                `json:"is_deleted,omitempty"`
+	LatestNonMatchingResult TerminationCode_Code `json:"latest_non_matching_result,omitempty"`
+}
+
+func jobCompletionTriggerState_MonitoredJobStateFromWire(w *jobCompletionTriggerState_MonitoredJobStateWire) (*JobCompletionTriggerState_MonitoredJobState, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &JobCompletionTriggerState_MonitoredJobState{
+		WorkspaceId:             w.WorkspaceId,
+		JobId:                   w.JobId,
+		LastSeenCompletionTime:  w.LastSeenCompletionTime,
+		LastSeenRunId:           w.LastSeenRunId,
+		HasSeenCompletion:       w.HasSeenCompletion,
+		LastSeenResult:          w.LastSeenResult,
+		IsDeleted:               w.IsDeleted,
+		LatestNonMatchingResult: w.LatestNonMatchingResult,
 	}, nil
 }
 
@@ -4807,14 +4980,15 @@ func outputSchemaInfoFromWire(w *outputSchemaInfoWire) (*OutputSchemaInfo, error
 }
 
 type perTriggerStateWire struct {
-	Periodic     *periodicTriggerStateWire    `json:"periodic,omitempty"`
-	Schedule     *scheduleTriggerStateWire    `json:"schedule,omitempty"`
-	Continuous   *continuousTriggerStateWire  `json:"continuous,omitempty"`
-	FileArrival  *fileArrivalTriggerStateWire `json:"file_arrival,omitempty"`
-	TableUpdate  *tableTriggerStateWire       `json:"table_update,omitempty"`
-	Model        *modelTriggerStateWire       `json:"model,omitempty"`
-	SqlCondition *sqlConditionStateWire       `json:"sql_condition,omitempty"`
-	PauseStatus  SchedulePauseStatus          `json:"pause_status,omitempty"`
+	Periodic      *periodicTriggerStateWire      `json:"periodic,omitempty"`
+	Schedule      *scheduleTriggerStateWire      `json:"schedule,omitempty"`
+	Continuous    *continuousTriggerStateWire    `json:"continuous,omitempty"`
+	FileArrival   *fileArrivalTriggerStateWire   `json:"file_arrival,omitempty"`
+	TableUpdate   *tableTriggerStateWire         `json:"table_update,omitempty"`
+	Model         *modelTriggerStateWire         `json:"model,omitempty"`
+	JobCompletion *jobCompletionTriggerStateWire `json:"job_completion,omitempty"`
+	SqlCondition  *sqlConditionStateWire         `json:"sql_condition,omitempty"`
+	PauseStatus   SchedulePauseStatus            `json:"pause_status,omitempty"`
 }
 
 func perTriggerStateFromWire(w *perTriggerStateWire) (*PerTriggerState, error) {
@@ -4838,6 +5012,9 @@ func perTriggerStateFromWire(w *perTriggerStateWire) (*PerTriggerState, error) {
 		triggerTypeMembers++
 	}
 	if w.Model != nil {
+		triggerTypeMembers++
+	}
+	if w.JobCompletion != nil {
 		triggerTypeMembers++
 	}
 	if triggerTypeMembers > 1 {
@@ -4885,6 +5062,12 @@ func perTriggerStateFromWire(w *perTriggerStateWire) (*PerTriggerState, error) {
 			return nil, fmt.Errorf("%s: %w", "PerTriggerState.TriggerType.Model", err)
 		}
 		triggerTypeSelection = &PerTriggerState_TriggerType_Model{Model: *triggerTypeModelConverted}
+	case w.JobCompletion != nil:
+		triggerTypeJobCompletionConverted, err := jobCompletionTriggerStateFromWire(w.JobCompletion)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "PerTriggerState.TriggerType.JobCompletion", err)
+		}
+		triggerTypeSelection = &PerTriggerState_TriggerType_JobCompletion{JobCompletion: *triggerTypeJobCompletionConverted}
 	}
 	return &PerTriggerState{
 		SqlCondition: sqlConditionPublicValue,
@@ -6996,8 +7179,9 @@ func runTaskSettingsToWire(v *RunTaskSettings) (*runTaskSettingsWire, error) {
 }
 
 type runTriggerInfoWire struct {
-	SqlCondition *sqlConditionRunInfoDetailsWire `json:"sql_condition,omitempty"`
-	RunId        *wireInt64                      `json:"run_id,omitempty"`
+	SqlCondition  *sqlConditionRunInfoDetailsWire         `json:"sql_condition,omitempty"`
+	JobCompletion *jobCompletionTriggerRunInfoDetailsWire `json:"job_completion,omitempty"`
+	RunId         *wireInt64                              `json:"run_id,omitempty"`
 }
 
 func runTriggerInfoFromWire(w *runTriggerInfoWire) (*RunTriggerInfo, error) {
@@ -7008,13 +7192,18 @@ func runTriggerInfoFromWire(w *runTriggerInfoWire) (*RunTriggerInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "RunTriggerInfo.SqlCondition", err)
 	}
+	jobCompletionPublicValue, err := jobCompletionTriggerRunInfoDetailsFromWire(w.JobCompletion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTriggerInfo.JobCompletion", err)
+	}
 	runIdPublicValue, err := int64FromWire(w.RunId)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "RunTriggerInfo.RunId", err)
 	}
 	return &RunTriggerInfo{
-		SqlCondition: sqlConditionPublicValue,
-		RunId:        runIdPublicValue,
+		SqlCondition:  sqlConditionPublicValue,
+		JobCompletion: jobCompletionPublicValue,
+		RunId:         runIdPublicValue,
 	}, nil
 }
 
@@ -8924,14 +9113,15 @@ func terminationDetailsFromWire(w *terminationDetailsWire) (*TerminationDetails,
 }
 
 type triggerConfigurationWire struct {
-	PauseStatus  SchedulePauseStatus                  `json:"pause_status,omitempty"`
-	Periodic     *periodicTriggerConfigurationWire    `json:"periodic,omitempty"`
-	Schedule     *cronTriggerConfigurationWire        `json:"schedule,omitempty"`
-	Continuous   *continuousTriggerConfigurationWire  `json:"continuous,omitempty"`
-	FileArrival  *fileArrivalTriggerConfigurationWire `json:"file_arrival,omitempty"`
-	TableUpdate  *tableTriggerConfigurationWire       `json:"table_update,omitempty"`
-	Model        *modelTriggerConfigurationWire       `json:"model,omitempty"`
-	SqlCondition *sqlConditionConfigurationWire       `json:"sql_condition,omitempty"`
+	PauseStatus   SchedulePauseStatus                    `json:"pause_status,omitempty"`
+	Periodic      *periodicTriggerConfigurationWire      `json:"periodic,omitempty"`
+	Schedule      *cronTriggerConfigurationWire          `json:"schedule,omitempty"`
+	Continuous    *continuousTriggerConfigurationWire    `json:"continuous,omitempty"`
+	FileArrival   *fileArrivalTriggerConfigurationWire   `json:"file_arrival,omitempty"`
+	TableUpdate   *tableTriggerConfigurationWire         `json:"table_update,omitempty"`
+	Model         *modelTriggerConfigurationWire         `json:"model,omitempty"`
+	JobCompletion *jobCompletionTriggerConfigurationWire `json:"job_completion,omitempty"`
+	SqlCondition  *sqlConditionConfigurationWire         `json:"sql_condition,omitempty"`
 }
 
 func triggerConfigurationToWire(v *TriggerConfiguration) (*triggerConfigurationWire, error) {
@@ -8962,19 +9152,24 @@ func triggerConfigurationToWire(v *TriggerConfiguration) (*triggerConfigurationW
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "TriggerConfiguration.Model", err)
 	}
+	jobCompletionWireValue, err := jobCompletionTriggerConfigurationToWire(v.JobCompletion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TriggerConfiguration.JobCompletion", err)
+	}
 	sqlConditionWireValue, err := sqlConditionConfigurationToWire(v.SqlCondition)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "TriggerConfiguration.SqlCondition", err)
 	}
 	return &triggerConfigurationWire{
-		PauseStatus:  v.PauseStatus,
-		Periodic:     periodicWireValue,
-		Schedule:     scheduleWireValue,
-		Continuous:   continuousWireValue,
-		FileArrival:  fileArrivalWireValue,
-		TableUpdate:  tableUpdateWireValue,
-		Model:        modelWireValue,
-		SqlCondition: sqlConditionWireValue,
+		PauseStatus:   v.PauseStatus,
+		Periodic:      periodicWireValue,
+		Schedule:      scheduleWireValue,
+		Continuous:    continuousWireValue,
+		FileArrival:   fileArrivalWireValue,
+		TableUpdate:   tableUpdateWireValue,
+		Model:         modelWireValue,
+		JobCompletion: jobCompletionWireValue,
+		SqlCondition:  sqlConditionWireValue,
 	}, nil
 }
 
@@ -9006,19 +9201,24 @@ func triggerConfigurationFromWire(w *triggerConfigurationWire) (*TriggerConfigur
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "TriggerConfiguration.Model", err)
 	}
+	jobCompletionPublicValue, err := jobCompletionTriggerConfigurationFromWire(w.JobCompletion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TriggerConfiguration.JobCompletion", err)
+	}
 	sqlConditionPublicValue, err := sqlConditionConfigurationFromWire(w.SqlCondition)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "TriggerConfiguration.SqlCondition", err)
 	}
 	return &TriggerConfiguration{
-		PauseStatus:  w.PauseStatus,
-		Periodic:     periodicPublicValue,
-		Schedule:     schedulePublicValue,
-		Continuous:   continuousPublicValue,
-		FileArrival:  fileArrivalPublicValue,
-		TableUpdate:  tableUpdatePublicValue,
-		Model:        modelPublicValue,
-		SqlCondition: sqlConditionPublicValue,
+		PauseStatus:   w.PauseStatus,
+		Periodic:      periodicPublicValue,
+		Schedule:      schedulePublicValue,
+		Continuous:    continuousPublicValue,
+		FileArrival:   fileArrivalPublicValue,
+		TableUpdate:   tableUpdatePublicValue,
+		Model:         modelPublicValue,
+		JobCompletion: jobCompletionPublicValue,
+		SqlCondition:  sqlConditionPublicValue,
 	}, nil
 }
 
@@ -9100,12 +9300,13 @@ func triggerHistoryFromWire(w *triggerHistoryWire) (*TriggerHistory, error) {
 }
 
 type triggerSettingsWire struct {
-	PauseStatus  SchedulePauseStatus                  `json:"pause_status,omitempty"`
-	FileArrival  *fileArrivalTriggerConfigurationWire `json:"file_arrival,omitempty"`
-	Periodic     *periodicTriggerConfigurationWire    `json:"periodic,omitempty"`
-	TableUpdate  *tableTriggerConfigurationWire       `json:"table_update,omitempty"`
-	Model        *modelTriggerConfigurationWire       `json:"model,omitempty"`
-	SqlCondition *sqlConditionConfigurationWire       `json:"sql_condition,omitempty"`
+	PauseStatus   SchedulePauseStatus                    `json:"pause_status,omitempty"`
+	FileArrival   *fileArrivalTriggerConfigurationWire   `json:"file_arrival,omitempty"`
+	Periodic      *periodicTriggerConfigurationWire      `json:"periodic,omitempty"`
+	TableUpdate   *tableTriggerConfigurationWire         `json:"table_update,omitempty"`
+	Model         *modelTriggerConfigurationWire         `json:"model,omitempty"`
+	JobCompletion *jobCompletionTriggerConfigurationWire `json:"job_completion,omitempty"`
+	SqlCondition  *sqlConditionConfigurationWire         `json:"sql_condition,omitempty"`
 }
 
 func triggerSettingsToWire(v *TriggerSettings) (*triggerSettingsWire, error) {
@@ -9120,6 +9321,7 @@ func triggerSettingsToWire(v *TriggerSettings) (*triggerSettingsWire, error) {
 	var configurationPeriodicWire *periodicTriggerConfigurationWire
 	var configurationTableUpdateWire *tableTriggerConfigurationWire
 	var configurationModelWire *modelTriggerConfigurationWire
+	var configurationJobCompletionWire *jobCompletionTriggerConfigurationWire
 	switch value := v.Configuration.(type) {
 	case nil:
 	case *TriggerSettings_Configuration_FileArrival:
@@ -9154,16 +9356,25 @@ func triggerSettingsToWire(v *TriggerSettings) (*triggerSettingsWire, error) {
 			}
 			configurationModelWire = configurationModelConverted
 		}
+	case *TriggerSettings_Configuration_JobCompletion:
+		if value != nil {
+			configurationJobCompletionConverted, err := jobCompletionTriggerConfigurationToWire(&value.JobCompletion)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "TriggerSettings.Configuration.JobCompletion", err)
+			}
+			configurationJobCompletionWire = configurationJobCompletionConverted
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "TriggerSettings.Configuration", value)
 	}
 	return &triggerSettingsWire{
-		PauseStatus:  v.PauseStatus,
-		FileArrival:  configurationFileArrivalWire,
-		Periodic:     configurationPeriodicWire,
-		TableUpdate:  configurationTableUpdateWire,
-		Model:        configurationModelWire,
-		SqlCondition: sqlConditionWireValue,
+		PauseStatus:   v.PauseStatus,
+		FileArrival:   configurationFileArrivalWire,
+		Periodic:      configurationPeriodicWire,
+		TableUpdate:   configurationTableUpdateWire,
+		Model:         configurationModelWire,
+		JobCompletion: configurationJobCompletionWire,
+		SqlCondition:  sqlConditionWireValue,
 	}, nil
 }
 
@@ -9182,6 +9393,9 @@ func triggerSettingsFromWire(w *triggerSettingsWire) (*TriggerSettings, error) {
 		configurationMembers++
 	}
 	if w.Model != nil {
+		configurationMembers++
+	}
+	if w.JobCompletion != nil {
 		configurationMembers++
 	}
 	if configurationMembers > 1 {
@@ -9217,6 +9431,12 @@ func triggerSettingsFromWire(w *triggerSettingsWire) (*TriggerSettings, error) {
 			return nil, fmt.Errorf("%s: %w", "TriggerSettings.Configuration.Model", err)
 		}
 		configurationSelection = &TriggerSettings_Configuration_Model{Model: *configurationModelConverted}
+	case w.JobCompletion != nil:
+		configurationJobCompletionConverted, err := jobCompletionTriggerConfigurationFromWire(w.JobCompletion)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "TriggerSettings.Configuration.JobCompletion", err)
+		}
+		configurationSelection = &TriggerSettings_Configuration_JobCompletion{JobCompletion: *configurationJobCompletionConverted}
 	}
 	return &TriggerSettings{
 		PauseStatus:   w.PauseStatus,
@@ -9226,10 +9446,11 @@ func triggerSettingsFromWire(w *triggerSettingsWire) (*TriggerSettings, error) {
 }
 
 type triggerStateWire struct {
-	Table        *tableTriggerStateWire       `json:"table,omitempty"`
-	FileArrival  *fileArrivalTriggerStateWire `json:"file_arrival,omitempty"`
-	SqlCondition *sqlConditionStateWire       `json:"sql_condition,omitempty"`
-	PauseStatus  SchedulePauseStatus          `json:"pause_status,omitempty"`
+	Table         *tableTriggerStateWire         `json:"table,omitempty"`
+	FileArrival   *fileArrivalTriggerStateWire   `json:"file_arrival,omitempty"`
+	JobCompletion *jobCompletionTriggerStateWire `json:"job_completion,omitempty"`
+	SqlCondition  *sqlConditionStateWire         `json:"sql_condition,omitempty"`
+	PauseStatus   SchedulePauseStatus            `json:"pause_status,omitempty"`
 }
 
 func triggerStateFromWire(w *triggerStateWire) (*TriggerState, error) {
@@ -9241,6 +9462,9 @@ func triggerStateFromWire(w *triggerStateWire) (*TriggerState, error) {
 		triggerTypeMembers++
 	}
 	if w.FileArrival != nil {
+		triggerTypeMembers++
+	}
+	if w.JobCompletion != nil {
 		triggerTypeMembers++
 	}
 	if triggerTypeMembers > 1 {
@@ -9264,6 +9488,12 @@ func triggerStateFromWire(w *triggerStateWire) (*TriggerState, error) {
 			return nil, fmt.Errorf("%s: %w", "TriggerState.TriggerType.FileArrival", err)
 		}
 		triggerTypeSelection = &TriggerState_TriggerType_FileArrival{FileArrival: *triggerTypeFileArrivalConverted}
+	case w.JobCompletion != nil:
+		triggerTypeJobCompletionConverted, err := jobCompletionTriggerStateFromWire(w.JobCompletion)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "TriggerState.TriggerType.JobCompletion", err)
+		}
+		triggerTypeSelection = &TriggerState_TriggerType_JobCompletion{JobCompletion: *triggerTypeJobCompletionConverted}
 	}
 	return &TriggerState{
 		SqlCondition: sqlConditionPublicValue,

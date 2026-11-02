@@ -52,6 +52,9 @@ const (
 	SecurableType_ModelProviderService SecurableType = "MODEL_PROVIDER_SERVICE"
 	SecurableType_AgentService         SecurableType = "AGENT_SERVICE"
 	SecurableType_Skill                SecurableType = "SKILL"
+	// A Feature Store feature in Unity Catalog. Three-level namespace
+	// catalog.schema.feature.
+	SecurableType_Feature SecurableType = "FEATURE"
 )
 
 type ProvisioningInfo_State string

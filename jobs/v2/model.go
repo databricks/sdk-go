@@ -435,6 +435,7 @@ const (
 	TriggerType_Continuous        TriggerType = "CONTINUOUS"
 	TriggerType_Table             TriggerType = "TABLE"
 	TriggerType_ContinuousRestart TriggerType = "CONTINUOUS_RESTART"
+	TriggerType_JobCompletion     TriggerType = "JOB_COMPLETION"
 )
 
 // * `NOTEBOOK`: Notebook view item. * `DASHBOARD`: Dashboard view item.
@@ -588,6 +589,22 @@ const (
 	ConditionTask_ConditionTaskOperator_LessThan           ConditionTask_ConditionTaskOperator = "LESS_THAN"
 	ConditionTask_ConditionTaskOperator_LessThanOrEqual    ConditionTask_ConditionTaskOperator = "LESS_THAN_OR_EQUAL"
 	ConditionTask_ConditionTaskOperator_NotEqual           ConditionTask_ConditionTaskOperator = "NOT_EQUAL"
+)
+
+// The status that all upstream jobs must have before a job completion trigger
+// fires.
+type JobCompletionTriggerConfiguration_IfStatus string
+
+const (
+	JobCompletionTriggerConfiguration_IfStatus_Unspecified JobCompletionTriggerConfiguration_IfStatus = ""
+	// All upstream jobs completed successfully. A run is considered successful when
+	// its termination code is `SUCCESS` or `SUCCESS_WITH_FAILURES`.
+	JobCompletionTriggerConfiguration_IfStatus_Success JobCompletionTriggerConfiguration_IfStatus = "SUCCESS"
+	// All upstream jobs completed unsuccessfully. A run is considered unsuccessful
+	// when its termination code is neither `SUCCESS` nor `SUCCESS_WITH_FAILURES`.
+	JobCompletionTriggerConfiguration_IfStatus_Failed JobCompletionTriggerConfiguration_IfStatus = "FAILED"
+	// All upstream jobs completed, regardless of their termination codes.
+	JobCompletionTriggerConfiguration_IfStatus_Done JobCompletionTriggerConfiguration_IfStatus = "DONE"
 )
 
 // * `BUNDLE`: The job is managed by Databricks Asset Bundle. *
@@ -1904,6 +1921,21 @@ type ClusterSpec_NewCluster_Size_Autoscale struct {
 
 func (*ClusterSpec_NewCluster_Size_Autoscale) isClusterSpec_NewCluster_Size() {}
 
+// A single upstream completion that contributed to triggering the run, captured
+// at trigger time.
+type CompletedJob struct {
+	// The ID of the workspace containing the upstream job
+	WorkspaceId *string
+	// The ID of the upstream job
+	JobId *string
+	// The ID of the upstream run whose completion contributed to the trigger
+	RunId *string
+	// The termination code of the upstream run
+	TerminationCode TerminationCode_Code
+	// The completion time of the upstream run
+	CompletionTime *types.Time
+}
+
 type Compute struct {
 	// Hardware accelerator configuration for Serverless GPU workloads.
 	HardwareAccelerator HardwareAcceleratorType
@@ -2086,13 +2118,16 @@ type CreateJobRequest struct {
 	Deployment *JobDeployment
 	// A list of task execution environment specifications that can be referenced by
 	// tasks that use serverless compute or a compute resource that uses
-	// Environments mode. For notebook tasks that use serverless compute or a
-	// compute resource that uses Environments mode, if the environment_key is not
-	// specified, the notebook environment will be used if present. If a jobs
-	// environment is specified, it will override the notebook environment. For
-	// other tasks that use serverless compute or a compute resource that uses
+	// Environments mode.
+	//
+	// For notebook tasks that use serverless compute or a compute resource that
+	// uses Environments mode, if the `environment_key` is not specified, the
+	// notebook environment will be used if present. If a jobs environment is
+	// specified, it will override the notebook environment.
+	//
+	// For other tasks that use serverless compute or a compute resource that uses
 	// Environments mode, the task environment is required to be specified using
-	// environment_key in the task settings.
+	// `environment_key` in the task settings.
 	Environments []JobEnvironment
 	// The id of the user specified budget policy to use for this job. If not
 	// specified, a default budget policy may be applied when creating or modifying
@@ -2481,37 +2516,41 @@ type Environment struct {
 	// Use `environment_version` instead.
 	Client *string
 	// List of pip dependencies, as supported by the version of pip in this
-	// environment. Each dependency is a valid pip requirements file line per
-	// https://pip.pypa.io/en/stable/reference/requirements-file-format/. Allowed
+	// environment. Each dependency is a valid [pip requirements file line]. Allowed
 	// dependencies include a requirement specifier, an archive URL, a local project
-	// path (such as WSFS or UC Volumes in <Databricks>), or a VCS project URL.
+	// path (such as WSFS or UC Volumes in Databricks), or a VCS project URL.
+	//
+	// [pip requirements file line]: https://pip.pypa.io/en/stable/reference/requirements-file-format/
 	Dependencies []string
 	// The base environment this environment is built on top of. A base environment
 	// defines the environment version and a list of dependencies for serverless
 	// compute. The value can be a file path to a custom `env.yaml` file (e.g.,
-	// `/Workspace/path/to/env.yaml`). Support for a <Databricks>-provided base
-	// environment ID (e.g., `workspace-base-environments/databricks_ai_v4`) and
-	// workspace base environment ID (e.g.,
+	// `/Workspace/path/to/env.yaml`).
+	//
+	// Support for a Databricks-provided base environment ID (e.g.,
+	// `workspace-base-environments/databricks_ai_v4`) and workspace base
+	// environment ID (e.g.,
 	// `workspace-base-environments/dbe_b849b66e-b31a-4cb5-b161-1f2b10877fb7`) is in
-	// Beta. Either `environment_version` or `base_environment` can be provided. For
-	// more information about <Databricks>-provided base environments, see the [list
-	// workspace base
-	// environments](:method:Environments/ListWorkspaceBaseEnvironments) API. For
-	// more information, see
+	// Beta.
+	//
+	// Either `environment_version` or `base_environment` can be provided.
+	//
+	// For more information about Databricks-provided base environments, see the
+	// [list workspace base
+	// environments](:method:Environments/ListWorkspaceBaseEnvironments) API.
 	BaseEnvironment *string
-	// Either `environment_version` or `base_environment` needs to be provided.
-	// Environment version used by the environment. Each version comes with a
-	// specific Python version and a set of Python packages. The version is a
-	// string, consisting of an integer.
+	// The environment version used by this environment. Either
+	// `environment_version` or `base_environment` must be provided. Each version
+	// comes with a specific Python version and a set of Python packages. The
+	// version is a string, consisting of an integer.
 	EnvironmentVersion *string
-	// List of java dependencies. Each dependency is a string representing a java
+	// List of Java dependencies. Each dependency is a string representing a Java
 	// library path. For example: `/Volumes/path/to/test.jar`.
 	JavaDependencies []string
 	// Path to the `pyproject.toml` file that defines the project environment. This
 	// field cannot be combined with `environment_version`, `base_environment`,
 	// dependency fields, or any other environment-source fields. Set the
-	// environment version and dependencies in `pyproject.toml` instead. For more
-	// information, see the serverless dependencies documentation.
+	// environment version and dependencies in `pyproject.toml` instead.
 	ProjectEnvironment *string
 }
 
@@ -3173,6 +3212,77 @@ type JobCluster struct {
 	// JobCluster per job may set this field; the rate limit defined on the
 	// referenced serverless compute applies across all tasks bound to this cluster.
 	ServerlessComputeId *string
+	// Serverless compute settings for this cluster. At most one job cluster per job
+	// may set this field; the rate limit defined on the referenced policy applies
+	// across all tasks bound to this cluster.
+	ServerlessCompute *JobCluster_ServerlessCompute
+}
+
+// Serverless compute settings for a job cluster..
+type JobCluster_ServerlessCompute struct {
+	// The ID of the serverless compute policy to apply to this cluster.
+	PolicyId *string
+}
+
+// A trigger that starts a run after every upstream job completes with a
+// configured status..
+type JobCompletionTriggerConfiguration struct {
+	// The upstream jobs to monitor. Each job must be in a workspace attached to the
+	// same Unity Catalog metastore as the downstream job. A maximum of 10 jobs can
+	// be monitored.
+	Jobs []JobCompletionTriggerConfiguration_MonitoredJob
+	// The status that all upstream jobs must have before this trigger fires.
+	// Defaults to SUCCESS.
+	IfStatus JobCompletionTriggerConfiguration_IfStatus
+}
+
+// An upstream job to monitor..
+type JobCompletionTriggerConfiguration_MonitoredJob struct {
+	// The ID of the workspace containing the upstream job. This can differ from the
+	// caller's workspace and downstream services enforce correct entitlements and
+	// CAN_VIEW permissions for the user + job combination. SDR:
+	// https://databricks.atlassian.net/browse/SDR-5267
+	WorkspaceId *string
+	// The ID of the upstream job.
+	JobId *string
+}
+
+// Contains the immutable set of upstream completions that triggered the run, in
+// configured jobs order.
+type JobCompletionTriggerRunInfoDetails struct {
+	CompletedJobs []CompletedJob
+}
+
+// Runtime state for a job completion trigger..
+type JobCompletionTriggerState struct {
+	// State for each configured upstream job, in the same order as `jobs`.
+	MonitoredJobStates []JobCompletionTriggerState_MonitoredJobState
+}
+
+type JobCompletionTriggerState_MonitoredJobState struct {
+	// The ID of the workspace containing the upstream job.
+	WorkspaceId *string
+	// The ID of the upstream job.
+	JobId *string
+	// The completion time of the latest matching upstream run observed by the
+	// trigger.
+	LastSeenCompletionTime *types.Time
+	// The ID of the latest matching upstream run observed by the trigger.
+	LastSeenRunId *string
+	// Whether this job has contributed a matching completion toward the next
+	// trigger fire.
+	HasSeenCompletion *bool
+	// The termination code of the latest matching upstream run observed by the
+	// trigger.
+	LastSeenResult TerminationCode_Code
+	// Whether the upstream job was missing or deleted when last observed by this
+	// trigger. Omitted when deletion status is unknown. This observation may become
+	// stale while the trigger is paused or evaluation cannot access the upstream
+	// job.
+	IsDeleted *bool
+	// The termination code of the latest upstream run if it does not satisfy
+	// `if_status`. Unset when the latest run matches or no run has been observed.
+	LatestNonMatchingResult TerminationCode_Code
 }
 
 type JobDeployment struct {
@@ -3431,13 +3541,16 @@ type JobSettings struct {
 	Deployment *JobDeployment
 	// A list of task execution environment specifications that can be referenced by
 	// tasks that use serverless compute or a compute resource that uses
-	// Environments mode. For notebook tasks that use serverless compute or a
-	// compute resource that uses Environments mode, if the environment_key is not
-	// specified, the notebook environment will be used if present. If a jobs
-	// environment is specified, it will override the notebook environment. For
-	// other tasks that use serverless compute or a compute resource that uses
+	// Environments mode.
+	//
+	// For notebook tasks that use serverless compute or a compute resource that
+	// uses Environments mode, if the `environment_key` is not specified, the
+	// notebook environment will be used if present. If a jobs environment is
+	// specified, it will override the notebook environment.
+	//
+	// For other tasks that use serverless compute or a compute resource that uses
 	// Environments mode, the task environment is required to be specified using
-	// environment_key in the task settings.
+	// `environment_key` in the task settings.
 	Environments []JobEnvironment
 	// The id of the user specified budget policy to use for this job. If not
 	// specified, a default budget policy may be applied when creating or modifying
@@ -3970,6 +4083,13 @@ type PerTriggerState_TriggerType_Model struct {
 }
 
 func (*PerTriggerState_TriggerType_Model) isPerTriggerState_TriggerType() {}
+
+// PerTriggerState_TriggerType_JobCompletion selects JobCompletion for PerTriggerState.TriggerType.
+type PerTriggerState_TriggerType_JobCompletion struct {
+	JobCompletion JobCompletionTriggerState
+}
+
+func (*PerTriggerState_TriggerType_JobCompletion) isPerTriggerState_TriggerType() {}
 
 type PerformanceTarget struct {
 }
@@ -5647,6 +5767,9 @@ func (*RunTaskSettings_Spec_JobClusterKey) isRunTaskSettings_Spec() {}
 type RunTriggerInfo struct {
 	// SQL condition evaluation details for this run
 	SqlCondition *SqlConditionRunInfoDetails
+	// Additional details for job runs triggered by a job completion trigger
+	// (trigger: "JOB_COMPLETION")
+	JobCompletion *JobCompletionTriggerRunInfoDetails
 	// The run id of the Run Job task run
 	RunId *int64
 }
@@ -6626,6 +6749,8 @@ type TriggerConfiguration struct {
 	TableUpdate *TableTriggerConfiguration
 	// Model trigger configuration.
 	Model *ModelTriggerConfiguration
+	// Job completion trigger configuration.
+	JobCompletion *JobCompletionTriggerConfiguration
 	// Optional SQL condition that gates whether this trigger fires.
 	SqlCondition *SqlConditionConfiguration
 }
@@ -6706,6 +6831,14 @@ type TriggerSettings_Configuration_Model struct {
 
 func (*TriggerSettings_Configuration_Model) isTriggerSettings_Configuration() {}
 
+// TriggerSettings_Configuration_JobCompletion selects JobCompletion for TriggerSettings.Configuration.
+// Job completion trigger settings.
+type TriggerSettings_Configuration_JobCompletion struct {
+	JobCompletion JobCompletionTriggerConfiguration
+}
+
+func (*TriggerSettings_Configuration_JobCompletion) isTriggerSettings_Configuration() {}
+
 type TriggerState struct {
 	// (-- Next ID: 8. --)
 	TriggerType isTriggerState_TriggerType
@@ -6734,6 +6867,13 @@ type TriggerState_TriggerType_FileArrival struct {
 }
 
 func (*TriggerState_TriggerType_FileArrival) isTriggerState_TriggerType() {}
+
+// TriggerState_TriggerType_JobCompletion selects JobCompletion for TriggerState.TriggerType.
+type TriggerState_TriggerType_JobCompletion struct {
+	JobCompletion JobCompletionTriggerState
+}
+
+func (*TriggerState_TriggerType_JobCompletion) isTriggerState_TriggerType() {}
 
 type UpdateJobRequest struct {
 	// The canonical identifier of the job to update. This field is required.

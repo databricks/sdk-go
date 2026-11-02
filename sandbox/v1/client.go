@@ -7,10 +7,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"iter"
 	"log/slog"
 	"net/http"
 	"net/url"
+	"strconv"
 	"sync"
 	"time"
 
@@ -987,6 +989,226 @@ func (c *internalClient) RenamePath(ctx context.Context, req RenamePathRequest, 
 	}
 
 	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Downloads a regular file from a sandbox as an application/octet-stream body.
+// The sandbox starts automatically if it is stopped. Filesystem access uses the
+// sandbox user's permissions and follows symbolic links.
+//
+// A full download returns 200 OK. A satisfiable single byte range returns 206
+// Partial Content. Multiple byte ranges are unsupported and return 400. Invalid
+// ranges are ignored; an unsatisfiable range returns 416 with Content-Range
+// describing the file length. Range is ignored for empty files.
+//
+// Conditional requests can return 304 Not Modified or 412 Precondition Failed.
+// If-Range selects a partial response only when its strong entity tag matches;
+// otherwise, the entire file is returned. HTTP-date validators in If-Range
+// cause a full download. Reads are not snapshots: concurrent in-place writes
+// can affect the returned bytes. HEAD is unsupported.
+//
+// Range and conditional options may be supplied as query parameters or HTTP
+// headers. A parameter and one header may both be supplied when their values
+// match exactly. Conflicting values or repeated parameters return 400.
+// A timeout configured with [client.WithTimeout] or [call.WithTimeout] applies
+// until this method returns. It does not apply while reading the response stream.
+func (c *internalClient) DownloadFile(ctx context.Context, req DownloadFileRequest, opts ...call.Option) (*DownloadFileResponse, error) {
+	wireReq, err := downloadFileRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	headers.Set("Accept", "application/octet-stream")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/sandbox-files/")
+	if req.Parent == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
+	}
+	pb.singleSegment(*req.Parent)
+	pb.literal("/content")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "path", wireReq.Path); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "byte_range", wireReq.Range); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "if_range", wireReq.IfRange); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "if_match", wireReq.IfMatch); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "if_none_match", wireReq.IfNoneMatch); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "if_modified_since", wireReq.IfModifiedSince); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "if_unmodified_since", wireReq.IfUnmodifiedSince); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *DownloadFileResponse
+
+	call := func(ctx context.Context) (io.ReadCloser, error) {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		httpResp, err := executeStreamingHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return nil, err
+		}
+		resp = &DownloadFileResponse{}
+		if v := httpResp.Header.Get("Content-Length"); v != "" {
+			n, err := strconv.ParseInt(v, 10, 64)
+			if err != nil {
+				httpResp.Body.Close() // avoid leaking the connection
+				return nil, err
+			}
+			resp.ContentLength = &n
+		}
+		if v := httpResp.Header.Get("etag"); v != "" {
+			h := v
+			resp.Etag = &h
+		}
+		if v := httpResp.Header.Get("Last-Modified"); v != "" {
+			h := v
+			resp.LastModified = &h
+		}
+		if v := httpResp.Header.Get("Content-Range"); v != "" {
+			h := v
+			resp.ContentRange = &h
+		}
+		if v := httpResp.Header.Get("Accept-Ranges"); v != "" {
+			h := v
+			resp.AcceptRanges = &h
+		}
+		if v := httpResp.Header.Get("Content-Type"); v != "" {
+			h := v
+			resp.ContentType = &h
+		}
+		return httpResp.Body, nil
+	}
+
+	contents, err := c.executeStreamingResponseCall(ctx, call, opts)
+	if err != nil {
+		return nil, err
+	}
+	resp.Contents = contents
+	return resp, nil
+}
+
+// Uploads an application/octet-stream body to a sandbox. The sandbox starts
+// automatically if it is stopped. Filesystem access uses the sandbox user's
+// permissions and follows symbolic links.
+//
+// Creates the file or replaces its entire contents, creating parent directories
+// if missing. The completed upload becomes visible atomically. A failure before
+// commit leaves an existing destination unchanged; a lost response after commit
+// does not undo the upload. Completion does not guarantee crash durability.
+//
+// Returns 201 Created for a new file or 204 No Content for a replacement.
+// Partial and conditional uploads are unsupported: Content-Range, If-Match,
+// If-None-Match, and If-Unmodified-Since return 400.
+//
+// This method has a one-hour SDK timeout by default. Use [client.WithTimeout]
+// to set a client default or [call.WithTimeout] to override it for this call.
+// A zero timeout disables the SDK timeout.
+//
+// The call returns an error if a retrier is configured because replaying the
+// request body is not supported.
+func (c *internalClient) UploadFile(ctx context.Context, req UploadFileRequest, opts ...call.Option) (*UploadFileResponse, error) {
+	wireReq, err := uploadFileRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/octet-stream")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/sandbox-files/")
+	if req.Parent == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
+	}
+	pb.singleSegment(*req.Parent)
+	pb.literal("/content")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "path", wireReq.Path); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *UploadFileResponse
+
+	call := func(ctx context.Context) error {
+		var reqBody io.Reader
+		if req.Contents != nil {
+			reqBody = req.Contents
+		}
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "PUT",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        reqBody,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		_ = respBody
+		resp = &UploadFileResponse{}
+		return nil
+	}
+
+	if err := c.executeStreamingRequestCall(ctx, call, opts); err != nil {
 		return nil, err
 	}
 	return resp, nil

@@ -3,6 +3,9 @@
 package networking
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/databricks/sdk-go/core/types"
 )
 
@@ -30,6 +33,402 @@ const (
 	// The endpoint was once established but later disconnected. This endpoint
 	// doesn't provide connectivity.
 	EndpointState_Disconnected EndpointState = "DISCONNECTED"
+)
+
+// Error codes returned by Databricks APIs to indicate specific failure
+// conditions.
+type ErrorCode string
+
+const (
+	ErrorCode_Unspecified ErrorCode = ""
+	// Internal error. This means that some invariants expected by the underlying
+	// system have been broken. This error code is reserved for serious errors,
+	// which generally cannot be resolved by the user.
+	//
+	// Prefer this over all kinds of detailed error messages (e.g IO_ERROR), unless
+	// there's some automation that relies on the custom error code.
+	//
+	// Maps to: - google.rpc.Code: INTERNAL = 13; - HTTP code: 500 Internal Server
+	// Error
+	ErrorCode_InternalError ErrorCode = "INTERNAL_ERROR"
+	// The service is currently unavailable. This is most likely a transient
+	// condition, which can be corrected by retrying with a backoff. Note that it is
+	// not always safe to retry non-idempotent operations.
+	//
+	// Prefer this over SERVICE_UNDER_MAINTENANCE,
+	// WORKSPACE_TEMPORARILY_UNAVAILABLE.
+	//
+	// See
+	// https://docs.google.com/document/d/1FL8p2sbYWqBPL-UvhzI7uXAw4EoLG7Rj6PAOQWZRSOk/edit#
+	// for guideline on how to pick this vs RESOURCE_EXHAUSTED.
+	//
+	// Maps to: - google.rpc.Code: UNAVAILABLE = 14; - HTTP code: 503 Service
+	// Unavailable
+	ErrorCode_TemporarilyUnavailable ErrorCode = "TEMPORARILY_UNAVAILABLE"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes. Indicates that an IOException has been internally
+	// thrown.
+	ErrorCode_IoError ErrorCode = "IO_ERROR"
+	// The request is invalid. Prefer more specific error code whenever possible.
+	// Also see similar recommendation for the google.rpc.Code.FAILED_PRECONDITION.
+	//
+	// Prefer this error code over MALFORMED_REQUEST, INVALID_STATE,
+	// UNPARSEABLE_HTTP_ERROR.
+	//
+	// Maps to: - google.rpc.Code: FAILED_PRECONDITION = 9; - HTTP code: 400 Bad
+	// Request
+	ErrorCode_BadRequest ErrorCode = "BAD_REQUEST"
+	// An external service is unavailable temporarily as it is being
+	// updated/re-deployed. Indicates gateway proxy to safely retry the request.
+	ErrorCode_ServiceUnderMaintenance ErrorCode = "SERVICE_UNDER_MAINTENANCE"
+	// A workspace is temporarily unavailable as the workspace is being re-assigned.
+	ErrorCode_WorkspaceTemporarilyUnavailable ErrorCode = "WORKSPACE_TEMPORARILY_UNAVAILABLE"
+	// The deadline expired before the operation could complete. For operations that
+	// change the state of the system, this error may be returned even if the
+	// operation has completed successfully. For example, a successful response from
+	// a server could have been delayed long enough for the deadline to expire. When
+	// possible - implementations should make sure further processing of the request
+	// is aborted, e.g. by throwing an exception instead of making the RPC request,
+	// making the database query, etc.
+	//
+	// Maps to: - google.rpc.Code: DEADLINE_EXCEEDED = 4; - HTTP code: 504 Gateway
+	// Timeout
+	ErrorCode_DeadlineExceeded ErrorCode = "DEADLINE_EXCEEDED"
+	// The operation was canceled by the caller. An example - client closed the
+	// connection without waiting for a response.
+	//
+	// Maps to: - google.rpc.Code: CANCELLED = 1; - HTTP code: 499 Client Closed
+	// Request
+	ErrorCode_Cancelled ErrorCode = "CANCELLED"
+	// The operation is rejected because of either rate limiting or resource quota,
+	// such as the client has sent too many requests recently or the client has
+	// allocated too many resources.
+	//
+	// See
+	// https://docs.google.com/document/d/1FL8p2sbYWqBPL-UvhzI7uXAw4EoLG7Rj6PAOQWZRSOk/edit#
+	// for guideline on how to pick this vs TEMPORARILY_UNAVAILABLE.
+	//
+	// Maps to: - google.rpc.Code: RESOURCE_EXHAUSTED = 8; - HTTP code: 429 Too Many
+	// Requests
+	ErrorCode_ResourceExhausted ErrorCode = "RESOURCE_EXHAUSTED"
+	// The operation was aborted, typically due to a concurrency issue such as a
+	// sequencer check failure, transaction abort, or transaction conflict.
+	//
+	// Maps to: - google.rpc.Code: ABORTED = 10; - HTTP code: 409 Conflict
+	ErrorCode_Aborted ErrorCode = "ABORTED"
+	// Operation was performed on a resource that does not exist, e.g. file or
+	// directory was not found.
+	//
+	// Maps to: - google.rpc.Code: NOT_FOUND = 5; - HTTP code: 404 Not Found
+	ErrorCode_NotFound ErrorCode = "NOT_FOUND"
+	// Operation was rejected due a conflict with an existing resource, e.g.
+	// attempted to create file or directory that already exists.
+	//
+	// Prefer this over RESOURCE_CONFLICT.
+	//
+	// Maps to: - google.rpc.Code: ALREADY_EXISTS = 6; - HTTP code: 409 Conflict
+	ErrorCode_AlreadyExists ErrorCode = "ALREADY_EXISTS"
+	// The request does not have valid authentication (AuthN) credentials for the
+	// operation.
+	//
+	// Prefer this over CUSTOMER_UNAUTHORIZED, unless you need to keep consistent
+	// behavior with legacy code. For authorization (AuthZ) errors use
+	// PERMISSION_DENIED. Maps to: - google.rpc.Code: UNAUTHENTICATED = 16; - HTTP
+	// code: 401 Unauthorized
+	ErrorCode_Unauthenticated ErrorCode = "UNAUTHENTICATED"
+	// The service is currently unavailable. Please note that the unavailability may
+	// or may not be transient. That means if this is a non-transient condition,
+	// retrying it does not work. If the unavailability is certainly a transient
+	// condition, pleases use `TEMPORARILY_UNAVAILABLE` which signals its transient
+	// nature explicitly. An example of this error code’s use case is that when
+	// DNS resolution fails, the DNS resolver does not know whether it is because
+	// the domain name is completely wrong (non-transient situation) or the domain
+	// name is valid but the DNS server does not have an entry for this domain name
+	// yet (transient situation). Hence, `UNAVAILABLE` is suitable for this case.
+	//
+	// Maps to: - google.rpc.Code: UNAVAILABLE = 14; - HTTP code: 503 Service
+	// Unavailable
+	ErrorCode_Unavailable ErrorCode = "UNAVAILABLE"
+	// Supplied value for a parameter was invalid (e.g., giving a number for a
+	// string parameter).
+	//
+	// Maps to: - google.rpc.Code: INVALID_ARGUMENT = 3; - HTTP code: 400 Bad
+	// Request
+	ErrorCode_InvalidParameterValue ErrorCode = "INVALID_PARAMETER_VALUE"
+	// Indicates that the given API endpoint does not exist. Legacy, when possible -
+	// NOT_IMPLEMENTED should be used instead to indicate that API doesn't exist.
+	//
+	// Maps to: - google.rpc.Code: NOT_FOUND = 5; - HTTP code: 404 Not Found
+	ErrorCode_EndpointNotFound ErrorCode = "ENDPOINT_NOT_FOUND"
+	// Indicates that the given API request was malformed.
+	ErrorCode_MalformedRequest ErrorCode = "MALFORMED_REQUEST"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes. If one or more of the inputs to a given RPC are not in
+	// a valid state for the action.
+	ErrorCode_InvalidState ErrorCode = "INVALID_STATE"
+	// The caller does not have permission to execute the specified operation.
+	// PERMISSION_DENIED must not be used for rejections caused by exhausting some
+	// resource, use RESOURCE_EXHAUSTED instead for those errors. PERMISSION_DENIED
+	// must not be used if the caller can not be identified, use
+	// CUSTOMER_UNAUTHORIZED instead for those errors. This error code does not
+	// imply the request is valid or the requested entity exists or satisfies other
+	// pre-conditions.
+	//
+	// Maps to: - google.rpc.Code: PERMISSION_DENIED = 7; - HTTP code: 403 Forbidden
+	ErrorCode_PermissionDenied ErrorCode = "PERMISSION_DENIED"
+	// NOTE: Deprecated due to inconsistent mapping in legacy code, see
+	// https://docs.google.com/document/d/17TZIKX_Y39cJMBr333lc-d5dTvvBLSu3DPUyGU5eMJg/edit?disco=AAAAzVGt6FA.
+	// Prefer using NOT_FOUND or PERMISSION_DENIED.
+	//
+	// If a given user/entity is trying to use a feature which has been disabled.
+	//
+	// Maps to: - google.rpc.Code: NOT_FOUND = 5; - HTTP code: 404 Not Found
+	ErrorCode_FeatureDisabled ErrorCode = "FEATURE_DISABLED"
+	// The request does not have valid authentication (AuthN) credentials for the
+	// operation.
+	//
+	// For authentication (AuthN) errors prefer using UNAUTHENTICATED, unless you
+	// need to keep consistent behavior with legacy code. For authorization (AuthZ)
+	// errors use PERMISSION_DENIED.
+	//
+	// Important: name is confusing, this error code is for authentication (AuthN)
+	// errors, not authorization (AuthZ) errors. It maps to 401 Unauthorized and
+	// suffers from the same confusing naming. See
+	// https://datatracker.ietf.org/doc/html/rfc7235#section-3.1 - "[...] status
+	// code indicates that the request has not been applied because it lacks valid
+	// authentication credentials for the target resource. [...] If the request
+	// included authentication credentials, then the 401 response indicates that
+	// authorization has been refused for those credentials."
+	//
+	// Also, see https://stackoverflow.com/a/6937030/16352922, it covers it pretty
+	// well.
+	//
+	// Maps to: - google.rpc.Code: UNAUTHENTICATED = 16; - HTTP code: 401
+	// Unauthorized
+	ErrorCode_CustomerUnauthorized ErrorCode = "CUSTOMER_UNAUTHORIZED"
+	// The operation is rejected because of request rate limit, for example rate
+	// limiting applied to users, workspaces, IP addresses, etc.
+	//
+	// Prefer a more generic RESOURCE_EXHAUSTED for the new use cases.
+	//
+	// See
+	// https://docs.google.com/document/d/1FL8p2sbYWqBPL-UvhzI7uXAw4EoLG7Rj6PAOQWZRSOk/edit#
+	// for guideline on the rate limiting vs throttling.
+	//
+	// Maps to: - google.rpc.Code: RESOURCE_EXHAUSTED = 8; - HTTP code: 429 Too Many
+	// Requests
+	ErrorCode_RequestLimitExceeded ErrorCode = "REQUEST_LIMIT_EXCEEDED"
+	// Indicates API request was rejected due a conflict with an existing resource.
+	ErrorCode_ResourceConflict ErrorCode = "RESOURCE_CONFLICT"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes. Indicates that the HTTP response cannot be correctly
+	// deserialized. This currently is only used in DUST test clients, and not by
+	// any real service code.
+	ErrorCode_UnparseableHttpError ErrorCode = "UNPARSEABLE_HTTP_ERROR"
+	// The operation is not implemented or is not supported/enabled in this service.
+	//
+	// Maps to: - google.rpc.Code: UNIMPLEMENTED = 12; - HTTP code: 501 Not
+	// Implemented
+	ErrorCode_NotImplemented ErrorCode = "NOT_IMPLEMENTED"
+	// Unrecoverable data loss or corruption.
+	//
+	// One of the major use cases is to indicate that server failed to validate the
+	// integrity of the request. This error can occur when the checksum specified in
+	// the `X-Databricks-Checksum` request header (or trailer) doesn't match the
+	// actual request content checksum.
+	//
+	// Note, in case of the severe corruption that results in a malformed request,
+	// the server may send a generic `400 Bad Request` response rather than sending
+	// this error code.
+	//
+	// Maps to: - google.rpc.Code: DATA_LOSS = 15; - HTTP code: 500 Internal Server
+	// Error
+	ErrorCode_DataLoss ErrorCode = "DATA_LOSS"
+	// If the user attempts to perform an invalid state transition on a shard.
+	ErrorCode_InvalidStateTransition ErrorCode = "INVALID_STATE_TRANSITION"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes. Unable to perform the operation because the shard was
+	// locked by some other operation.
+	ErrorCode_CouldNotAcquireLock ErrorCode = "COULD_NOT_ACQUIRE_LOCK"
+	// NOTE: Deprecated, prefer using ALREADY_EXISTS. Unlike ALREADY_EXISTS - this
+	// maps to HTTP code 400 Bad Request due to legacy reasons, remapping will be a
+	// backwards incompatible change.
+	//
+	// Operation was performed on a resource that already exists.
+	ErrorCode_ResourceAlreadyExists ErrorCode = "RESOURCE_ALREADY_EXISTS"
+	// NOTE: Deprecated, prefer using NOT_FOUND - see the note for the
+	// RESOURCE_ALREADY_EXISTS, because this pair of codes is related and
+	// RESOURCE_ALREADY_EXISTS has bad mapping to the HTTP codes we added new error
+	// codes NOT_FOUND and ALREADY_EXISTS, and recommend to use them instead.
+	//
+	// Operation was performed on a resource that does not exist.
+	ErrorCode_ResourceDoesNotExist ErrorCode = "RESOURCE_DOES_NOT_EXIST"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_QuotaExceeded ErrorCode = "QUOTA_EXCEEDED"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_MaxBlockSizeExceeded ErrorCode = "MAX_BLOCK_SIZE_EXCEEDED"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_MaxReadSizeExceeded ErrorCode = "MAX_READ_SIZE_EXCEEDED"
+	ErrorCode_PartialDelete       ErrorCode = "PARTIAL_DELETE"
+	ErrorCode_MaxListSizeExceeded ErrorCode = "MAX_LIST_SIZE_EXCEEDED"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_DryRunFailed ErrorCode = "DRY_RUN_FAILED"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes. Cluster request was rejected because it would exceed a
+	// resource limit.
+	ErrorCode_ResourceLimitExceeded ErrorCode = "RESOURCE_LIMIT_EXCEEDED"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_DirectoryNotEmpty ErrorCode = "DIRECTORY_NOT_EMPTY"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_DirectoryProtected ErrorCode = "DIRECTORY_PROTECTED"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_MaxNotebookSizeExceeded  ErrorCode = "MAX_NOTEBOOK_SIZE_EXCEEDED"
+	ErrorCode_MaxChildNodeSizeExceeded ErrorCode = "MAX_CHILD_NODE_SIZE_EXCEEDED"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_SearchQueryTooLong ErrorCode = "SEARCH_QUERY_TOO_LONG"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_SearchQueryTooShort ErrorCode = "SEARCH_QUERY_TOO_SHORT"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_ManagedResourceGroupDoesNotExist ErrorCode = "MANAGED_RESOURCE_GROUP_DOES_NOT_EXIST"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_PermissionNotPropagated ErrorCode = "PERMISSION_NOT_PROPAGATED"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_DeploymentTimeout ErrorCode = "DEPLOYMENT_TIMEOUT"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_GitConflict ErrorCode = "GIT_CONFLICT"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_GitUnknownRef ErrorCode = "GIT_UNKNOWN_REF"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_GitSensitiveTokenDetected ErrorCode = "GIT_SENSITIVE_TOKEN_DETECTED"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_GitUrlNotOnAllowList ErrorCode = "GIT_URL_NOT_ON_ALLOW_LIST"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_GitRemoteError ErrorCode = "GIT_REMOTE_ERROR"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_ProjectsOperationTimeout ErrorCode = "PROJECTS_OPERATION_TIMEOUT"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_IpynbFileInRepo ErrorCode = "IPYNB_FILE_IN_REPO"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_InsecurePartnerResponse ErrorCode = "INSECURE_PARTNER_RESPONSE"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_MalformedPartnerResponse ErrorCode = "MALFORMED_PARTNER_RESPONSE"
+	ErrorCode_MetastoreDoesNotExist    ErrorCode = "METASTORE_DOES_NOT_EXIST"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_DacDoesNotExist               ErrorCode = "DAC_DOES_NOT_EXIST"
+	ErrorCode_CatalogDoesNotExist           ErrorCode = "CATALOG_DOES_NOT_EXIST"
+	ErrorCode_SchemaDoesNotExist            ErrorCode = "SCHEMA_DOES_NOT_EXIST"
+	ErrorCode_TableDoesNotExist             ErrorCode = "TABLE_DOES_NOT_EXIST"
+	ErrorCode_ShareDoesNotExist             ErrorCode = "SHARE_DOES_NOT_EXIST"
+	ErrorCode_RecipientDoesNotExist         ErrorCode = "RECIPIENT_DOES_NOT_EXIST"
+	ErrorCode_StorageCredentialDoesNotExist ErrorCode = "STORAGE_CREDENTIAL_DOES_NOT_EXIST"
+	ErrorCode_ExternalLocationDoesNotExist  ErrorCode = "EXTERNAL_LOCATION_DOES_NOT_EXIST"
+	ErrorCode_PrincipalDoesNotExist         ErrorCode = "PRINCIPAL_DOES_NOT_EXIST"
+	ErrorCode_ProviderDoesNotExist          ErrorCode = "PROVIDER_DOES_NOT_EXIST"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_MetastoreAlreadyExists ErrorCode = "METASTORE_ALREADY_EXISTS"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_DacAlreadyExists ErrorCode = "DAC_ALREADY_EXISTS"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_CatalogAlreadyExists ErrorCode = "CATALOG_ALREADY_EXISTS"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_SchemaAlreadyExists ErrorCode = "SCHEMA_ALREADY_EXISTS"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_TableAlreadyExists ErrorCode = "TABLE_ALREADY_EXISTS"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_ShareAlreadyExists ErrorCode = "SHARE_ALREADY_EXISTS"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_RecipientAlreadyExists ErrorCode = "RECIPIENT_ALREADY_EXISTS"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_StorageCredentialAlreadyExists ErrorCode = "STORAGE_CREDENTIAL_ALREADY_EXISTS"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_ExternalLocationAlreadyExists ErrorCode = "EXTERNAL_LOCATION_ALREADY_EXISTS"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_ProviderAlreadyExists ErrorCode = "PROVIDER_ALREADY_EXISTS"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_CatalogNotEmpty ErrorCode = "CATALOG_NOT_EMPTY"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_SchemaNotEmpty ErrorCode = "SCHEMA_NOT_EMPTY"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_MetastoreNotEmpty ErrorCode = "METASTORE_NOT_EMPTY"
+	// NOTE: Deprecated and kept to maintain backwards compatibility for public APIs
+	// that use it, avoid using it in the new APIs, refer error codes listed in the
+	// http://go/error-codes.
+	ErrorCode_ProviderShareNotAccessible ErrorCode = "PROVIDER_SHARE_NOT_ACCESSIBLE"
 )
 
 // Type of IP access list. Valid values are as follows and are case-sensitive:
@@ -305,6 +704,58 @@ const (
 	NetworkConnectivityConfigAzurePrivateEndpointRule_PrivateLinkConnectionState_CreateFailed NetworkConnectivityConfigAzurePrivateEndpointRule_PrivateLinkConnectionState = "CREATE_FAILED"
 )
 
+// The supported destination types.
+type PrivateNetworkGateway_Destination_DestinationType string
+
+const (
+	PrivateNetworkGateway_Destination_DestinationType_Unspecified PrivateNetworkGateway_Destination_DestinationType = ""
+	// A DNS name such as `database.internal`.
+	PrivateNetworkGateway_Destination_DestinationType_DnsName PrivateNetworkGateway_Destination_DestinationType = "DNS_NAME"
+)
+
+// The lifecycle state of the gateway.
+type PrivateNetworkGateway_GatewayState string
+
+const (
+	PrivateNetworkGateway_GatewayState_Unspecified PrivateNetworkGateway_GatewayState = ""
+	// The gateway is being provisioned.
+	PrivateNetworkGateway_GatewayState_Creating PrivateNetworkGateway_GatewayState = "CREATING"
+	// The gateway is ready to route traffic.
+	PrivateNetworkGateway_GatewayState_Established PrivateNetworkGateway_GatewayState = "ESTABLISHED"
+	// The gateway could not be provisioned or encountered an unrecoverable error.
+	PrivateNetworkGateway_GatewayState_Failed PrivateNetworkGateway_GatewayState = "FAILED"
+	// The gateway is being permanently deleted.
+	PrivateNetworkGateway_GatewayState_Deleting PrivateNetworkGateway_GatewayState = "DELETING"
+)
+
+// The supported resolver types.
+type PrivateNetworkGateway_PrivateDnsResolver_ResolverType string
+
+const (
+	PrivateNetworkGateway_PrivateDnsResolver_ResolverType_Unspecified PrivateNetworkGateway_PrivateDnsResolver_ResolverType = ""
+	// An IPv4 address.
+	PrivateNetworkGateway_PrivateDnsResolver_ResolverType_IpAddress PrivateNetworkGateway_PrivateDnsResolver_ResolverType = "IP_ADDRESS"
+)
+
+// The traffic routed through the gateway.
+type PrivateNetworkGateway_TrafficMode string
+
+const (
+	PrivateNetworkGateway_TrafficMode_Unspecified PrivateNetworkGateway_TrafficMode = ""
+	// Route only the destinations configured on the gateway.
+	PrivateNetworkGateway_TrafficMode_SpecificDestinations PrivateNetworkGateway_TrafficMode = "SPECIFIC_DESTINATIONS"
+	// Route all traffic through the gateway.
+	PrivateNetworkGateway_TrafficMode_AllTraffic PrivateNetworkGateway_TrafficMode = "ALL_TRAFFIC"
+)
+
+type PrivateNetworkGatewayOperationMetadata_OperationType string
+
+const (
+	PrivateNetworkGatewayOperationMetadata_OperationType_Unspecified PrivateNetworkGatewayOperationMetadata_OperationType = ""
+	// A gateway create operation.
+	PrivateNetworkGatewayOperationMetadata_OperationType_Create PrivateNetworkGatewayOperationMetadata_OperationType = "CREATE"
+)
+
 // Definition of an IP Access list.
 type AccountIpAccessList struct {
 	// Universally unique identifier (UUID) of the IP access list.
@@ -345,6 +796,14 @@ type AccountNetworkPolicy struct {
 	// request is allowed by the ingress policy. When this field is set, the policy
 	// will be evaluated and emit logs only without blocking requests.
 	IngressDryRun *IngressNetworkPolicy
+}
+
+// Databricks Error that is returned by all Databricks APIs..
+type ApiError struct {
+	ErrorCode  ErrorCode
+	Message    *string
+	StackTrace *string
+	Details    []json.RawMessage
 }
 
 type AwsVpcEndpointInfo struct {
@@ -585,6 +1044,16 @@ type CreatePrivateEndpointRule_Endpoint_GcpEndpoint struct {
 
 func (*CreatePrivateEndpointRule_Endpoint_GcpEndpoint) isCreatePrivateEndpointRule_Endpoint() {}
 
+type CreatePrivateNetworkGatewayRequest struct {
+	// The network connectivity configuration that will contain the gateway.
+	Parent *string
+	// The gateway to create.
+	PrivateNetworkGateway *PrivateNetworkGateway
+	// A unique identifier for this request. The request is idempotent when this is
+	// provided.
+	RequestId *string
+}
+
 type CreateVpcEndpointRequest struct {
 	AccountId *string
 	// The human-readable name of the storage configuration.
@@ -613,19 +1082,19 @@ type CustomerFacingNetworkConnectivityConfigEgressConfig struct {
 	// The network connectivity rules that are applied by default without resource
 	// specific configurations. You can find the stable network information of your
 	// serverless compute resources here.
-	DefaultRules *NetworkConnectivityConfigEgressConfig_DefaultRule
+	DefaultRules *NetworkConnectivityConfigEgressConfig_DefaultRule `fieldmask:"default_rules"`
 	// The network connectivity rules that configured for each destinations. These
 	// rules override default rules.
-	TargetRules *CustomerFacingNetworkConnectivityConfigEgressConfig_CustomerFacingTargetRule
+	TargetRules *CustomerFacingNetworkConnectivityConfigEgressConfig_CustomerFacingTargetRule `fieldmask:"target_rules"`
 }
 
 // Target rule controls the egress rules that are dedicated to specific
 // resources..
 type CustomerFacingNetworkConnectivityConfigEgressConfig_CustomerFacingTargetRule struct {
-	AzurePrivateEndpointRules []NetworkConnectivityConfigAzurePrivateEndpointRule
+	AzurePrivateEndpointRules []NetworkConnectivityConfigAzurePrivateEndpointRule `fieldmask:"azure_private_endpoint_rules"`
 	// AWS private endpoint rule controls the AWS private endpoint based egress
 	// rules.
-	AwsPrivateEndpointRules []NetworkConnectivityConfigAwsPrivateEndpointRule
+	AwsPrivateEndpointRules []NetworkConnectivityConfigAwsPrivateEndpointRule `fieldmask:"aws_private_endpoint_rules"`
 }
 
 type DeleteAccountIpAccessListRequest struct {
@@ -692,6 +1161,11 @@ type DeleteNetworkRequest struct {
 type DeletePrivateAccessSettingsRequest struct {
 	PrivateAccessSettingsId *string
 	AccountId               *string
+}
+
+type DeletePrivateNetworkGatewayRequest struct {
+	// The canonical resource name of the gateway.
+	Name *string
 }
 
 type DeleteVpcEndpointRequest struct {
@@ -978,9 +1452,20 @@ type GetNetworkRequest struct {
 	AccountId *string
 }
 
+// The request message for `GetOperation` method..
+type GetOperationRequest struct {
+	// The name of the operation resource.
+	Name *string
+}
+
 type GetPrivateAccessSettingsRequest struct {
 	PrivateAccessSettingsId *string
 	AccountId               *string
+}
+
+type GetPrivateNetworkGatewayRequest struct {
+	// The canonical resource name of the gateway.
+	Name *string
 }
 
 type GetVpcEndpointRequest struct {
@@ -1424,6 +1909,19 @@ type ListPrivateAccessSettingsResponse struct {
 	PrivateAccessSettings []PrivateAccessSettings
 }
 
+type ListPrivateNetworkGatewaysRequest struct {
+	// The network connectivity configuration containing the gateways.
+	Parent *string
+	// An opaque token returned by a previous list request.
+	PageToken *string
+}
+
+type ListPrivateNetworkGatewaysResponse struct {
+	PrivateNetworkGateways []PrivateNetworkGateway
+	// An opaque token for the next page, or empty when there are no more results.
+	NextPageToken *string
+}
+
 type ListVpcEndpointRequest struct {
 	AccountId *string
 }
@@ -1555,25 +2053,29 @@ func (*Network_NetworkInfo_GcpNetworkInfo) isNetwork_NetworkInfo() {}
 // Properties of the new network connectivity configuration..
 type NetworkConnectivityConfig struct {
 	// <Databricks> network connectivity configuration ID.
-	NetworkConnectivityConfigId *string
+	NetworkConnectivityConfigId *string `fieldmask:"network_connectivity_config_id"`
 	// Your <Databricks> account ID. You can find your account ID in your
 	// <Databricks> accounts console.
-	AccountId *string
+	AccountId *string `fieldmask:"account_id"`
 	// The name of the network connectivity configuration. The name can contain
 	// alphanumeric characters, hyphens, and underscores. The length must be between
 	// 3 and 30 characters. The name must match the regular expression
 	// ^[0-9a-zA-Z-_]{3,30}$
-	Name *string
+	Name *string `fieldmask:"name"`
 	// The region for the network connectivity configuration. Only workspaces in the
 	// same region can be attached to the network connectivity configuration.
-	Region *string
+	Region *string `fieldmask:"region"`
 	// The network connectivity rules that apply to network traffic from your
 	// serverless compute resources.
-	EgressConfig *CustomerFacingNetworkConnectivityConfigEgressConfig
+	EgressConfig *CustomerFacingNetworkConnectivityConfigEgressConfig `fieldmask:"egress_config"`
 	// Time in epoch milliseconds when this object was updated.
-	UpdatedTime *int64
+	UpdatedTime *int64 `fieldmask:"updated_time"`
 	// Time in epoch milliseconds when this object was created.
-	CreationTime *int64
+	CreationTime *int64 `fieldmask:"creation_time"`
+	// The workspace to which charges for this network connectivity configuration
+	// are attributed. The workspace must be active and attached to this network
+	// connectivity configuration when set.
+	BillingWorkspaceId *int64 `fieldmask:"billing_workspace_id"`
 }
 
 // Properties of the new private endpoint rule. Note that for private endpoints
@@ -1688,8 +2190,8 @@ type NetworkConnectivityConfigEgressConfig struct {
 
 // Default rules don't have specific targets..
 type NetworkConnectivityConfigEgressConfig_DefaultRule struct {
-	AzureServiceEndpointRule *NetworkConnectivityConfigEgressConfig_DefaultRule_AzureServiceEndpointRule
-	AwsStableIpRule          *NetworkConnectivityConfigEgressConfig_DefaultRule_AwsStableIpRule
+	AzureServiceEndpointRule *NetworkConnectivityConfigEgressConfig_DefaultRule_AzureServiceEndpointRule `fieldmask:"azure_service_endpoint_rule"`
+	AwsStableIpRule          *NetworkConnectivityConfigEgressConfig_DefaultRule_AwsStableIpRule          `fieldmask:"aws_stable_ip_rule"`
 }
 
 // The stable AWS IP CIDR blocks. You can use these to configure the firewall of
@@ -1697,7 +2199,7 @@ type NetworkConnectivityConfigEgressConfig_DefaultRule struct {
 type NetworkConnectivityConfigEgressConfig_DefaultRule_AwsStableIpRule struct {
 	// The list of stable IP CIDR blocks from which <Databricks> network traffic
 	// originates when accessing your resources.
-	CidrBlocks []string
+	CidrBlocks []string `fieldmask:"cidr_blocks"`
 }
 
 // The stable Azure service endpoints. You can configure the firewall of your
@@ -1705,12 +2207,12 @@ type NetworkConnectivityConfigEgressConfig_DefaultRule_AwsStableIpRule struct {
 // resources..
 type NetworkConnectivityConfigEgressConfig_DefaultRule_AzureServiceEndpointRule struct {
 	// The Azure region in which this service endpoint rule applies..
-	TargetRegion *string
+	TargetRegion *string `fieldmask:"target_region"`
 	// The Azure services to which this service endpoint rule applies to.
-	TargetServices []EgressResourceType
+	TargetServices []EgressResourceType `fieldmask:"target_services"`
 	// The list of subnets from which <Databricks> network traffic originates when
 	// accessing your Azure resources.
-	Subnets []string
+	Subnets []string `fieldmask:"subnets"`
 }
 
 type NetworkHealth struct {
@@ -1732,6 +2234,48 @@ type NetworkWarning struct {
 	// Details of the warning.
 	WarningMessage *string
 }
+
+// This resource represents a long-running operation that is the result of a
+// network API call..
+type Operation struct {
+	// The server-assigned name, which is only unique within the same service that
+	// originally returns it. If you use the default HTTP mapping, the `name` should
+	// be a resource name ending with `operations/{unique_id}`.
+	Name *string
+	// Service-specific metadata associated with the operation. It typically
+	// contains progress information and common metadata such as create time. Some
+	// services might not provide such metadata.
+	Metadata json.RawMessage
+	// If the value is `false`, it means the operation is still in progress. If
+	// `true`, the operation is completed, and either `error` or `response` is
+	// available.
+	Done *bool
+	// The operation result, which can be either an `error` or a valid `response`.
+	// If `done` == `false`, neither `error` nor `response` is set. If `done` ==
+	// `true`, exactly one of `error` or `response` can be set. Some services might
+	// not provide the result.
+	Result isOperation_Result
+}
+
+type isOperation_Result interface {
+	isOperation_Result()
+}
+
+// Operation_Result_Error selects Error for Operation.Result.
+// The error result of the operation in case of failure or cancellation.
+type Operation_Result_Error struct {
+	Error ApiError
+}
+
+func (*Operation_Result_Error) isOperation_Result() {}
+
+// Operation_Result_Response selects Response for Operation.Result.
+// The normal, successful response of the operation.
+type Operation_Result_Response struct {
+	Response json.RawMessage
+}
+
+func (*Operation_Result_Response) isOperation_Result() {}
 
 // *.
 type PrivateAccessSettings struct {
@@ -1766,6 +2310,118 @@ type PrivateAccessSettings struct {
 	// connections. To control how your workspace is accessed via public internet,
 	// see IP access lists.
 	AllowedVpcEndpointIds []string
+}
+
+// A private network gateway connects serverless compute to destinations in a
+// customer-managed VPC or VNet..
+type PrivateNetworkGateway struct {
+	// The canonical resource name of the gateway, in the form
+	// `accounts/{account_id}/network-connectivity-configs/{ncc_id}/private-network-gateways/{gateway_id}`.
+	Name *string `fieldmask:"name"`
+	// The human-readable name of the gateway.
+	DisplayName *string `fieldmask:"display_name"`
+	// Exactly one cloud connection must be provided when creating a gateway.
+	CloudConnection isPrivateNetworkGateway_CloudConnection
+	// The destinations routed through this gateway.
+	Destinations []PrivateNetworkGateway_Destination `fieldmask:"destinations"`
+	// The DNS resolvers used for private name resolution.
+	PrivateDnsResolvers []PrivateNetworkGateway_PrivateDnsResolver `fieldmask:"private_dns_resolvers"`
+	// The traffic routed through this gateway.
+	TrafficMode PrivateNetworkGateway_TrafficMode `fieldmask:"traffic_mode"`
+	// The time when the gateway was created.
+	CreateTime *types.Time `fieldmask:"create_time"`
+	// The time when the gateway was last updated.
+	UpdateTime *types.Time `fieldmask:"update_time"`
+	// The current lifecycle state of the gateway.
+	State PrivateNetworkGateway_GatewayState `fieldmask:"state"`
+	// The failure reason when the gateway is in the FAILED state.
+	ErrorMessage *string `fieldmask:"error_message"`
+	// The provisioned bandwidth tier for an Azure gateway, in gigabits per second.
+	// Required when creating an Azure gateway.
+	BandwidthTierGigabitsPerSecond *int                                                     `fieldmask:"bandwidth_tier_gigabits_per_second"`
+	_                              [0]privateNetworkGatewayCloudConnectionFieldMaskMetadata `fieldmask_oneof:"CloudConnection"`
+}
+
+type isPrivateNetworkGateway_CloudConnection interface {
+	isPrivateNetworkGateway_CloudConnection()
+}
+
+// PrivateNetworkGateway_CloudConnection_AzureCloudConnection selects AzureCloudConnection for PrivateNetworkGateway.CloudConnection.
+// The Azure connection used by the gateway.
+type PrivateNetworkGateway_CloudConnection_AzureCloudConnection struct {
+	AzureCloudConnection PrivateNetworkGateway_AzureCloudConnection `fieldmask:"azure_cloud_connection"`
+}
+
+func (*PrivateNetworkGateway_CloudConnection_AzureCloudConnection) isPrivateNetworkGateway_CloudConnection() {
+}
+
+// PrivateNetworkGateway_CloudConnection_AwsCloudConnection selects AwsCloudConnection for PrivateNetworkGateway.CloudConnection.
+// The AWS connection used by the gateway.
+type PrivateNetworkGateway_CloudConnection_AwsCloudConnection struct {
+	AwsCloudConnection PrivateNetworkGateway_AwsCloudConnection `fieldmask:"aws_cloud_connection"`
+}
+
+func (*PrivateNetworkGateway_CloudConnection_AwsCloudConnection) isPrivateNetworkGateway_CloudConnection() {
+}
+
+type privateNetworkGatewayCloudConnectionFieldMaskMetadata struct {
+	*PrivateNetworkGateway_CloudConnection_AzureCloudConnection
+	*PrivateNetworkGateway_CloudConnection_AwsCloudConnection
+}
+
+// AWS connection configuration..
+type PrivateNetworkGateway_AwsCloudConnection struct {
+	// The subnets where the gateway establishes connectivity.
+	GatewaySubnets []PrivateNetworkGateway_AwsCloudConnection_AwsGatewaySubnet `fieldmask:"gateway_subnets"`
+	// The IAM role that <Databricks> assumes to manage gateway resources.
+	CrossAccountRole *PrivateNetworkGateway_AwsCloudConnection_CrossAccountRole `fieldmask:"cross_account_role"`
+	// The security groups attached to the gateway network interface.
+	SecurityGroupIds []string `fieldmask:"security_group_ids"`
+}
+
+// An AWS subnet used by the gateway..
+type PrivateNetworkGateway_AwsCloudConnection_AwsGatewaySubnet struct {
+	// The AWS subnet ID.
+	SubnetId *string
+}
+
+// A cross-account IAM role used to manage gateway resources..
+type PrivateNetworkGateway_AwsCloudConnection_CrossAccountRole struct {
+	// The ARN of the IAM role.
+	RoleArn *string `fieldmask:"role_arn"`
+}
+
+// Azure connection configuration..
+type PrivateNetworkGateway_AzureCloudConnection struct {
+	// The subnet where the gateway establishes connectivity.
+	GatewaySubnet *PrivateNetworkGateway_AzureCloudConnection_AzureGatewaySubnet `fieldmask:"gateway_subnet"`
+}
+
+// An Azure subnet used by the gateway..
+type PrivateNetworkGateway_AzureCloudConnection_AzureGatewaySubnet struct {
+	// The full Azure resource ID of the subnet.
+	ResourceId *string `fieldmask:"resource_id"`
+}
+
+// A destination routed through the gateway..
+type PrivateNetworkGateway_Destination struct {
+	// The destination type.
+	DestinationType PrivateNetworkGateway_Destination_DestinationType
+	// The destination value.
+	Value *string
+}
+
+// A private DNS resolver used by the gateway..
+type PrivateNetworkGateway_PrivateDnsResolver struct {
+	// The resolver type.
+	ResolverType PrivateNetworkGateway_PrivateDnsResolver_ResolverType
+	// The resolver value.
+	Value *string
+}
+
+type PrivateNetworkGatewayOperationMetadata struct {
+	// The operation performed on the gateway.
+	OperationType PrivateNetworkGatewayOperationMetadata_OperationType
 }
 
 // Details required to replace an IP access list..
@@ -1850,6 +2506,18 @@ type UpdateNccPrivateEndpointRuleRequest struct {
 	PrivateEndpointRuleId *string
 	PrivateEndpointRule   *UpdatePrivateEndpointRule
 	UpdateMask            *types.FieldMask[UpdatePrivateEndpointRule]
+}
+
+// Request to update a network connectivity configuration..
+type UpdateNetworkConnectivityConfigRequest struct {
+	// Your <Databricks> account ID.
+	AccountId *string
+	// Your Network Connectivity Configuration ID.
+	NetworkConnectivityConfigId *string
+	// The network connectivity configuration fields to update.
+	NetworkConnectivityConfig *NetworkConnectivityConfig
+	// Must contain at least one of `name` or `billing_workspace_id`.
+	UpdateMask *types.FieldMask[NetworkConnectivityConfig]
 }
 
 type UpdateNetworkPolicyRequest struct {
@@ -1952,6 +2620,13 @@ type updatePrivateEndpointRuleEndpointFieldMaskMetadata struct {
 	*UpdatePrivateEndpointRule_Endpoint_GcpEndpoint
 }
 
+type UpdatePrivateNetworkGatewayRequest struct {
+	// The gateway containing the desired mutable field values.
+	PrivateNetworkGateway *PrivateNetworkGateway
+	// The fields to update.
+	UpdateMask *types.FieldMask[PrivateNetworkGateway]
+}
+
 type UpdateWorkspaceNetworkOptionRequest struct {
 	// Your <Databricks> account ID. You can find your account ID in your
 	// <Databricks> accounts console.
@@ -2021,4 +2696,16 @@ type WorkspaceNetworkOption struct {
 	NetworkPolicyId *string
 	// The workspace ID.
 	WorkspaceId *int64
+}
+
+// Error returns the LRO error code and message.
+func (e *ApiError) Error() string {
+	message := "unknown error"
+	if e.Message != nil && *e.Message != "" {
+		message = *e.Message
+	}
+	if e.ErrorCode != "" {
+		return fmt.Sprintf("[%v] %s", e.ErrorCode, message)
+	}
+	return message
 }

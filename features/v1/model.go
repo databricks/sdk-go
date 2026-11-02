@@ -831,9 +831,12 @@ type AvgFunction struct {
 }
 
 type BackfillFeaturesRequest struct {
-	// Full names of the features to backfill.
+	// Full names of the features to backfill. All features must share the same
+	// interval between values and the same offset. The interval is the
+	// slide_duration of a sliding window or the window_duration of a tumbling
+	// window.
 	FeatureFullNames []string
-	// Output ranges to backfill.
+	// Time ranges of source data to backfill. Ranges must not overlap.
 	BackfillRanges []BackfillRange
 	// Idempotency token for the request.
 	RequestId *string
@@ -859,18 +862,27 @@ type BackfillFeaturesResponse struct {
 type BackfillOperationMetadata struct {
 	// Full names of the features targeted by the backfill.
 	FeatureFullNames []string
-	// Output ranges targeted by the backfill.
+	// The requested time ranges, each aligned outward to the boundaries at which
+	// the features emit values. Ranges that overlap after alignment are combined
+	// into one. The backfill stops at the most recent materialized values, so a
+	// range may extend past the values that it recomputed.
 	BackfillRanges []BackfillRange
 	// Current state of the backfill.
 	State BackfillOperationMetadata_State
 }
 
-// A time range for a backfill..
+// A time range of source data for a backfill. The range is aligned outward to
+// the boundaries at which the feature emits values: every slide_duration for a
+// sliding window or every window_duration for a tumbling window, shifted by
+// offset. Feature values up to one window_duration after the aligned end may
+// change. The backfill stops at the most recent materialized values and leaves
+// later values to materialization..
 type BackfillRange struct {
 	// Start of the backfill range, inclusive. If unset, defaults to the earliest
 	// source timestamp of the feature.
 	StartTime *types.Time
-	// End of the backfill range, exclusive. If unset, defaults to the current time.
+	// End of the backfill range, exclusive. If unset, defaults to the most recent
+	// materialized values.
 	EndTime *types.Time
 }
 
@@ -1721,8 +1733,8 @@ type MaterializationFailureNotification struct {
 	FinalAttemptOnly *bool `fieldmask:"final_attempt_only"`
 }
 
-// Notifications for the jobs and pipelines that materialize a feature, one
-// field per trigger..
+// Notifications for the jobs and pipelines that materialize the features in a
+// set, one field per trigger..
 type MaterializationNotifications struct {
 	// Who to notify when a run succeeds.
 	OnSuccess *MaterializationSuccessNotification `fieldmask:"on_success"`
@@ -1829,8 +1841,8 @@ type MaterializedFeature struct {
 	// The fully qualified Unity Catalog path to the table containing the
 	// materialized feature (Delta table or Lakebase table). Output only.
 	TableName *string `fieldmask:"table_name"`
-	// The schedule state of the materialization pipeline. Hidden from GraphQL:
-	// being deprecated, so not exposed to Catalog Explorer.
+	// Deprecated: This legacy pipeline setting does not control batch job
+	// scheduling.
 	PipelineScheduleState MaterializedFeature_PipelineScheduleState `fieldmask:"pipeline_schedule_state"`
 	// The timestamp when the pipeline last ran and updated the materialized feature
 	// values. If the pipeline has not run yet, this field will be null.
@@ -1863,14 +1875,11 @@ type MaterializedFeature struct {
 	// The ID of the job that materializes the feature. This is present for both
 	// batch and streaming features.
 	JobId *int64 `fieldmask:"job_id"`
-	// Notification configuration around the materialization job or pipeline
-	// lifecycle. They are applied to every job and pipeline that materializes this
-	// feature. Features which are materialized in the same pipeline will share the
-	// same notification.
+	// Notification configuration for the jobs and pipelines that materialize this
+	// feature.
 	Notifications *MaterializationNotifications `fieldmask:"notifications"`
-	// The materialization set this materialized feature was created for, through
-	// DABs or direct-engine creation. Unset for a materialized feature that was not
-	// created as part of a set.
+	// The ID of the materialization set containing this materialized feature. Unset
+	// for a materialized feature that is not part of a set.
 	MaterializationSetId *string                                            `fieldmask:"materialization_set_id"`
 	_                    [0]materializedFeatureDestinationFieldMaskMetadata `fieldmask_oneof:"Destination"`
 	_                    [0]materializedFeatureTriggerFieldMaskMetadata     `fieldmask_oneof:"Trigger"`
@@ -2811,8 +2820,7 @@ type UpdateMaterializationSetRequest struct {
 type UpdateMaterializedFeatureRequest struct {
 	// The materialized feature to update.
 	MaterializedFeature *MaterializedFeature
-	// Provide the materialization feature fields which should be updated.
-	// Currently, only the pipeline_state field can be updated.
+	// The fields to update. Only `pipeline_schedule_state` is supported.
 	UpdateMask *types.FieldMask[MaterializedFeature]
 }
 

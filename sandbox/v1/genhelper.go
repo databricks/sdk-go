@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -153,12 +154,102 @@ func (c *internalClient) executeCall(
 	return executeResolvedCall(ctx, op, cfg)
 }
 
+func (c *internalClient) executeStreamingRequestCall(
+	ctx context.Context,
+	op func(context.Context) error,
+	opts []call.Option,
+) error {
+	cfg, err := c.resolveCallOptions(opts, time.Hour)
+	if err != nil {
+		return err
+	}
+	if cfg.Retrier != nil {
+		return errors.New("retries are unsupported for client-side streaming methods")
+	}
+	return executeResolvedCall(ctx, op, cfg)
+}
+
 func executeResolvedCall(ctx context.Context, op func(context.Context) error, cfg internaloptions.CallOptions) error {
 	return ops.Execute(ctx, op,
 		ops.WithRetrier(cfg.Retrier),
 		ops.WithLimiter(cfg.RateLimiter),
 		ops.WithTimeout(cfg.Timeout),
 	)
+}
+
+var errNilStream = errors.New("streaming operation returned a nil stream")
+
+// executeStreamingResponseCall runs a call whose response body is returned as a
+// stream. The context and options apply until the stream is returned. After
+// that handoff, the caller owns the stream and must close it.
+func (c *internalClient) executeStreamingResponseCall(
+	ctx context.Context,
+	op func(context.Context) (io.ReadCloser, error),
+	opts []call.Option,
+) (io.ReadCloser, error) {
+	cfg, err := c.resolveCallOptions(opts, 5*time.Minute)
+	if err != nil {
+		return nil, err
+	}
+
+	executionCtx := ctx
+	cancelExecution := context.CancelFunc(func() {})
+	if cfg.Timeout != 0 {
+		executionCtx, cancelExecution = context.WithTimeout(ctx, cfg.Timeout)
+	}
+	defer cancelExecution()
+
+	// Preserve context values while allowing the request to outlive the call.
+	requestCtx, cancelRequest := context.WithCancelCause(context.WithoutCancel(ctx))
+	stopForwarding := context.AfterFunc(executionCtx, func() {
+		cancelRequest(context.Cause(executionCtx))
+	})
+
+	var stream io.ReadCloser
+	err = ops.Execute(executionCtx, func(context.Context) error {
+		var opErr error
+		stream, opErr = op(requestCtx)
+		return opErr
+	},
+		ops.WithRetrier(cfg.Retrier),
+		ops.WithLimiter(cfg.RateLimiter),
+	)
+
+	// Disconnect before deferred cleanup cancels executionCtx. A timeout that
+	// already started cancellation must fail the handoff instead of returning a broken body.
+	stopForwarding()
+	if cause := context.Cause(executionCtx); cause != nil {
+		err = cause
+	}
+	if err == nil && stream == nil {
+		err = errNilStream
+	}
+	if err != nil {
+		cancelRequest(err)
+		if stream != nil {
+			stream.Close()
+		}
+		return nil, err
+	}
+	return &cancelingReadCloser{ReadCloser: stream, cancel: func() { cancelRequest(nil) }}, nil
+}
+
+type cancelingReadCloser struct {
+	io.ReadCloser
+	cancel context.CancelFunc
+}
+
+func (r *cancelingReadCloser) Read(p []byte) (int, error) {
+	n, err := r.ReadCloser.Read(p)
+	if err != nil {
+		r.cancel()
+	}
+	return n, err
+}
+
+func (r *cancelingReadCloser) Close() error {
+	r.cancel()
+	return r.ReadCloser.Close()
 }
 
 func addQueryValue(params url.Values, key string, value any) error {
@@ -236,4 +327,30 @@ func (b *pathBuilder) multiSegments(v any) {
 
 func (b *pathBuilder) build() (path, rawPath string) {
 	return b.path.String(), b.raw.String()
+}
+
+// executeStreamingHTTPCall executes an HTTP call whose response body is a raw
+// byte stream. On success it returns the response with its body still open, so
+// the caller can stream and close it. On a non-2xx status it reads and closes
+// the body to build the API error; the returned response is nil in that case.
+func executeStreamingHTTPCall(opts httpCallOptions) (*http.Response, error) {
+	opts.logger.Debug("HTTP request", "request", lazyRequest{opts.req})
+	resp, err := opts.client.Do(opts.req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode >= 400 {
+		defer resp.Body.Close()
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			opts.logger.Debug("HTTP response", "response", lazyResponse{resp, nil})
+			return nil, err
+		}
+		opts.logger.Debug("HTTP response", "response", lazyResponse{resp, body})
+		if apiErr := apierr.FromHTTPError(resp.StatusCode, resp.Header, body); apiErr != nil {
+			return nil, apiErr
+		}
+	}
+	opts.logger.Debug("HTTP response", "response", lazyResponse{resp, []byte("<streaming body>")})
+	return resp, nil
 }

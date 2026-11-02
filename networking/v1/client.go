@@ -20,6 +20,7 @@ import (
 	"github.com/databricks/sdk-go/options/call"
 	"github.com/databricks/sdk-go/options/client"
 	"github.com/databricks/sdk-go/options/internaloptions"
+	"github.com/databricks/sdk-go/options/lro"
 )
 
 type Client struct {
@@ -1607,6 +1608,87 @@ func (c *internalClient) ListNetworkConnectivityConfigsPublicIter(ctx context.Co
 	}
 }
 
+// Updates the name or billing workspace for a network connectivity
+// configuration.
+// Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
+func (c *internalClient) UpdateNetworkConnectivityConfig(ctx context.Context, req UpdateNetworkConnectivityConfigRequest, opts ...call.Option) (*NetworkConnectivityConfig, error) {
+	wireReq, err := updateNetworkConnectivityConfigRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq.NetworkConnectivityConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	accountID := c.accountID
+	if req.AccountId != nil && *req.AccountId != "" {
+		accountID = *req.AccountId
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/accounts/")
+	pb.singleSegment(accountID)
+	pb.literal("/network-connectivity-configs/")
+	if req.NetworkConnectivityConfigId == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.NetworkConnectivityConfigId)
+	}
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *NetworkConnectivityConfig
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "PATCH",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp networkConnectivityConfigWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = networkConnectivityConfigFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Create a private endpoint rule for the specified network connectivity config
 // object. Once the object is created, <Databricks> asynchronously provisions a
 // new Azure private endpoint to your specified Azure resource.
@@ -2425,6 +2507,553 @@ func (c *internalClient) UpdateNetworkPolicyRpc(ctx context.Context, req UpdateN
 			return err
 		}
 		resp, err = accountNetworkPolicyFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Creates a private network gateway.
+func (c *internalClient) createPrivateNetworkGatewayBase(ctx context.Context, req CreatePrivateNetworkGatewayRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := createPrivateNetworkGatewayRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	if wireReq.RequestId == nil || *wireReq.RequestId == "" {
+		wireReq.RequestId = new(generateRequestID())
+	}
+	body, err := json.Marshal(wireReq.PrivateNetworkGateway)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/networking/v1/")
+	if req.Parent == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
+	}
+	pb.singleSegment(*req.Parent)
+	pb.literal("/private-network-gateways")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "request_id", wireReq.RequestId); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Operation
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp operationWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = operationFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Creates a private network gateway.
+func (c *internalClient) CreatePrivateNetworkGateway(ctx context.Context, req CreatePrivateNetworkGatewayRequest, opts ...call.Option) (*CreatePrivateNetworkGatewayOperation, error) {
+	operation, err := c.createPrivateNetworkGatewayBase(ctx, req, opts...)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateOperationName(operation.Name); err != nil {
+		return nil, err
+	}
+	return &CreatePrivateNetworkGatewayOperation{
+		operation:    operation,
+		getOperation: c.getPrivateNetworkGatewayOperation,
+	}, nil
+}
+
+// CreatePrivateNetworkGatewayOperation tracks the state of the long-running operation started by CreatePrivateNetworkGateway.
+type CreatePrivateNetworkGatewayOperation struct {
+	operation    *Operation
+	getOperation func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
+}
+
+// Name returns the server-assigned operation name.
+func (o *CreatePrivateNetworkGatewayOperation) Name() *string {
+	return o.operation.Name
+}
+
+// Metadata returns metadata associated with the operation.
+func (o *CreatePrivateNetworkGatewayOperation) Metadata() (*PrivateNetworkGatewayOperationMetadata, error) {
+	if len(o.operation.Metadata) == 0 || bytes.Equal(bytes.TrimSpace(o.operation.Metadata), []byte("null")) {
+		return nil, nil
+	}
+	var metadata privateNetworkGatewayOperationMetadataWire
+	if err := json.Unmarshal(o.operation.Metadata, &metadata); err != nil {
+		return nil, fmt.Errorf("decode operation metadata: %w", err)
+	}
+	converted, err := privateNetworkGatewayOperationMetadataFromWire(&metadata)
+	if err != nil {
+		return nil, err
+	}
+	return converted, nil
+}
+
+// Done refreshes the operation and reports whether it has completed.
+func (o *CreatePrivateNetworkGatewayOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
+	if err != nil {
+		return false, err
+	}
+	if err := validateOperationName(operation.Name); err != nil {
+		return false, err
+	}
+	o.operation = operation
+	if operation.Done == nil {
+		return false, fmt.Errorf("invalid operation response: missing done field")
+	}
+	return *operation.Done, nil
+}
+
+// Wait polls the operation until it completes.
+func (o *CreatePrivateNetworkGatewayOperation) Wait(ctx context.Context, opts ...lro.Option) (*PrivateNetworkGateway, error) {
+	var result *PrivateNetworkGateway
+	poll := func(ctx context.Context) error {
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
+		if err != nil {
+			return err
+		}
+		if err := validateOperationName(operation.Name); err != nil {
+			return err
+		}
+		o.operation = operation
+		if operation.Done == nil {
+			return fmt.Errorf("invalid operation response: missing done field")
+		}
+		if !*operation.Done {
+			return errOperationStillRunning
+		}
+		if operationError, ok := operation.Result.(*Operation_Result_Error); ok && operationError != nil {
+			return fmt.Errorf("operation failed: %w", &operationError.Error)
+		}
+		operationResponse, ok := operation.Result.(*Operation_Result_Response)
+		if !ok || operationResponse == nil || len(operationResponse.Response) == 0 || bytes.Equal(bytes.TrimSpace(operationResponse.Response), []byte("null")) {
+			return fmt.Errorf("operation completed without a response")
+		}
+		var response privateNetworkGatewayWire
+		if err := json.Unmarshal(operationResponse.Response, &response); err != nil {
+			return fmt.Errorf("decode operation response: %w", err)
+		}
+		result, err = privateNetworkGatewayFromWire(&response)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	if err := executeWait(ctx, poll, opts...); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Permanently deletes a private network gateway.
+func (c *internalClient) DeletePrivateNetworkGateway(ctx context.Context, req DeletePrivateNetworkGatewayRequest, opts ...call.Option) error {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/networking/v1/")
+	if req.Name == nil {
+		return fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "DELETE",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		_ = respBody
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Gets a private network gateway.
+func (c *internalClient) GetPrivateNetworkGateway(ctx context.Context, req GetPrivateNetworkGatewayRequest, opts ...call.Option) (*PrivateNetworkGateway, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/networking/v1/")
+	if req.Name == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *PrivateNetworkGateway
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp privateNetworkGatewayWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = privateNetworkGatewayFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Gets the status of a private network gateway create operation.
+func (c *internalClient) getPrivateNetworkGatewayOperation(ctx context.Context, req GetOperationRequest, opts ...call.Option) (*Operation, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/networking/v1/")
+	if req.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.Name)
+	}
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Operation
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp operationWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = operationFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Lists private network gateways under a network connectivity configuration.
+func (c *internalClient) ListPrivateNetworkGateways(ctx context.Context, req ListPrivateNetworkGatewaysRequest, opts ...call.Option) (*ListPrivateNetworkGatewaysResponse, error) {
+	wireReq, err := listPrivateNetworkGatewaysRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/networking/v1/")
+	if req.Parent == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
+	}
+	pb.singleSegment(*req.Parent)
+	pb.literal("/private-network-gateways")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "page_token", wireReq.PageToken); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *ListPrivateNetworkGatewaysResponse
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp listPrivateNetworkGatewaysResponseWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = listPrivateNetworkGatewaysResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// ListPrivateNetworkGatewaysIter returns an iterator that iterates
+// over the results of ListPrivateNetworkGateways.
+//
+// For example:
+//
+//	for item, err := range c.ListPrivateNetworkGatewaysIter(ctx, ListPrivateNetworkGatewaysRequest{}) {
+//	  if err != nil {
+//	    return err
+//	  }
+//	  fmt.Println(item)
+//	}
+//
+// Options opts are passed to each ListPrivateNetworkGateways call
+// made by the iterator under the hood.
+//
+// Callers who need custom pagination logic should use
+// ListPrivateNetworkGateways directly.
+func (c *internalClient) ListPrivateNetworkGatewaysIter(ctx context.Context, req ListPrivateNetworkGatewaysRequest, opts ...call.Option) iter.Seq2[*PrivateNetworkGateway, error] {
+	return func(yield func(*PrivateNetworkGateway, error) bool) {
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
+		for {
+			resp, err := c.ListPrivateNetworkGateways(ctx, pageReq, opts...)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			for i := range resp.PrivateNetworkGateways {
+				if !yield(&resp.PrivateNetworkGateways[i], nil) {
+					return
+				}
+			}
+			if resp.NextPageToken == nil || *resp.NextPageToken == "" {
+				return
+			}
+			pageReq.PageToken = resp.NextPageToken
+		}
+	}
+}
+
+// Updates a private network gateway.
+func (c *internalClient) UpdatePrivateNetworkGateway(ctx context.Context, req UpdatePrivateNetworkGatewayRequest, opts ...call.Option) (*PrivateNetworkGateway, error) {
+	wireReq, err := updatePrivateNetworkGatewayRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq.PrivateNetworkGateway)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/networking/v1/")
+	if req.PrivateNetworkGateway == nil || req.PrivateNetworkGateway.Name == nil {
+		pb.singleSegment("")
+	} else {
+		pb.singleSegment(*req.PrivateNetworkGateway.Name)
+	}
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *PrivateNetworkGateway
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "PATCH",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp privateNetworkGatewayWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = privateNetworkGatewayFromWire(&wireResp)
 		if err != nil {
 			return err
 		}

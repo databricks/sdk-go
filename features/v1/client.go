@@ -2545,7 +2545,7 @@ func (o *UpdateMaterializationSetOperation) Wait(ctx context.Context, opts ...lr
 	return result, nil
 }
 
-// Update a materialized feature (pause/resume).
+// Updates a materialized feature.
 func (c *internalClient) UpdateMaterializedFeature(ctx context.Context, req UpdateMaterializedFeatureRequest, opts ...call.Option) (*MaterializedFeature, error) {
 	wireReq, err := updateMaterializedFeatureRequestToWire(&req)
 	if err != nil {

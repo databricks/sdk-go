@@ -17,6 +17,7 @@ use (
 	./clusterpolicies
 	./clusters
 	./commandexecution
+	./computemigrations
 	./core
 	./customllms
 	./database
@@ -32,6 +33,7 @@ use (
 	./files
 	./forecasting
 	./genie
+	./genieagents
 	./gitcredentials
 	./globalinitscripts
 	./instancepools
