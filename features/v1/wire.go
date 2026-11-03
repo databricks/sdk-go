@@ -1876,6 +1876,7 @@ func ingestionConfigFromWire(w *ingestionConfigWire) (*IngestionConfig, error) {
 
 type ingestionDestinationWire struct {
 	DeltaTableName *string `json:"delta_table_name,omitempty"`
+	ViewName       *string `json:"view_name,omitempty"`
 }
 
 func ingestionDestinationToWire(v *IngestionDestination) (*ingestionDestinationWire, error) {
@@ -1883,17 +1884,23 @@ func ingestionDestinationToWire(v *IngestionDestination) (*ingestionDestinationW
 		return nil, nil
 	}
 	var ingestionDestinationDeltaTableNameWire *string
+	var ingestionDestinationViewNameWire *string
 	switch value := v.IngestionDestination.(type) {
 	case nil:
 	case *IngestionDestination_IngestionDestination_DeltaTableName:
 		if value != nil {
 			ingestionDestinationDeltaTableNameWire = new(value.DeltaTableName)
 		}
+	case *IngestionDestination_IngestionDestination_ViewName:
+		if value != nil {
+			ingestionDestinationViewNameWire = new(value.ViewName)
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "IngestionDestination.IngestionDestination", value)
 	}
 	return &ingestionDestinationWire{
 		DeltaTableName: ingestionDestinationDeltaTableNameWire,
+		ViewName:       ingestionDestinationViewNameWire,
 	}, nil
 }
 
@@ -1905,6 +1912,9 @@ func ingestionDestinationFromWire(w *ingestionDestinationWire) (*IngestionDestin
 	if w.DeltaTableName != nil {
 		ingestionDestinationMembers++
 	}
+	if w.ViewName != nil {
+		ingestionDestinationMembers++
+	}
 	if ingestionDestinationMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "IngestionDestination.IngestionDestination")
 	}
@@ -1912,6 +1922,8 @@ func ingestionDestinationFromWire(w *ingestionDestinationWire) (*IngestionDestin
 	switch {
 	case w.DeltaTableName != nil:
 		ingestionDestinationSelection = &IngestionDestination_IngestionDestination_DeltaTableName{DeltaTableName: *w.DeltaTableName}
+	case w.ViewName != nil:
+		ingestionDestinationSelection = &IngestionDestination_IngestionDestination_ViewName{ViewName: *w.ViewName}
 	}
 	return &IngestionDestination{
 		IngestionDestination: ingestionDestinationSelection,
@@ -2644,8 +2656,9 @@ func materializationNotificationsFromWire(w *materializationNotificationsWire) (
 }
 
 type materializationSetWire struct {
-	MaterializationSetId *string                   `json:"materialization_set_id,omitempty"`
-	MaterializedFeatures []materializedFeatureWire `json:"materialized_features,omitempty"`
+	MaterializationSetId *string                           `json:"materialization_set_id,omitempty"`
+	MaterializedFeatures []materializedFeatureWire         `json:"materialized_features,omitempty"`
+	Notifications        *materializationNotificationsWire `json:"notifications,omitempty"`
 }
 
 func materializationSetToWire(v *MaterializationSet) (*materializationSetWire, error) {
@@ -2656,9 +2669,14 @@ func materializationSetToWire(v *MaterializationSet) (*materializationSetWire, e
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "MaterializationSet.MaterializedFeatures", err)
 	}
+	notificationsWireValue, err := materializationNotificationsToWire(v.Notifications)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializationSet.Notifications", err)
+	}
 	return &materializationSetWire{
 		MaterializationSetId: v.MaterializationSetId,
 		MaterializedFeatures: materializedFeaturesWireValue,
+		Notifications:        notificationsWireValue,
 	}, nil
 }
 
@@ -2670,9 +2688,14 @@ func materializationSetFromWire(w *materializationSetWire) (*MaterializationSet,
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "MaterializationSet.MaterializedFeatures", err)
 	}
+	notificationsPublicValue, err := materializationNotificationsFromWire(w.Notifications)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializationSet.Notifications", err)
+	}
 	return &MaterializationSet{
 		MaterializationSetId: w.MaterializationSetId,
 		MaterializedFeatures: materializedFeaturesPublicValue,
+		Notifications:        notificationsPublicValue,
 	}, nil
 }
 

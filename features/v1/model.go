@@ -1424,8 +1424,20 @@ type IngestionDestination_IngestionDestination_DeltaTableName struct {
 func (*IngestionDestination_IngestionDestination_DeltaTableName) isIngestionDestination_IngestionDestination() {
 }
 
+// IngestionDestination_IngestionDestination_ViewName selects ViewName for IngestionDestination.IngestionDestination.
+// The full three-part name (catalog, schema, name) of an existing view to use
+// instead of creating a Delta table. The view is dropped when the Stream is
+// deleted.
+type IngestionDestination_IngestionDestination_ViewName struct {
+	ViewName string `fieldmask:"view_name"`
+}
+
+func (*IngestionDestination_IngestionDestination_ViewName) isIngestionDestination_IngestionDestination() {
+}
+
 type ingestionDestinationIngestionDestinationFieldMaskMetadata struct {
 	*IngestionDestination_IngestionDestination_DeltaTableName
+	*IngestionDestination_IngestionDestination_ViewName
 }
 
 // Binds a single UC function parameter to a source column..
@@ -1750,6 +1762,11 @@ type MaterializationSet struct {
 	// set with a materialized feature removed from this set will cause it to be
 	// deleted.
 	MaterializedFeatures []MaterializedFeature `fieldmask:"materialized_features"`
+	// Notification configuration around the materialization job or pipeline
+	// lifecycle. They are applied to every job and pipeline that materializes a
+	// feature in this set. Features which are materialized in the same pipeline
+	// will share the same notification.
+	Notifications *MaterializationNotifications `fieldmask:"notifications"`
 }
 
 // What a partly failed DeleteMaterializationSet got through, attached to the
