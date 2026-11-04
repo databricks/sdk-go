@@ -3,10 +3,15 @@
 package aifunctions
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/databricks/sdk-go/auth"
@@ -154,4 +159,81 @@ func executeResolvedCall(ctx context.Context, op func(context.Context) error, cf
 		ops.WithLimiter(cfg.RateLimiter),
 		ops.WithTimeout(cfg.Timeout),
 	)
+}
+
+func addQueryValue(params url.Values, key string, value any) error {
+	data, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.UseNumber()
+	var decoded any
+	if err := decoder.Decode(&decoded); err != nil {
+		return err
+	}
+	flattenQueryValue(params, key, decoded)
+	return nil
+}
+
+func flattenQueryValue(params url.Values, key string, value any) {
+	switch value := value.(type) {
+	case nil:
+		// JSON null represents an absent query value.
+	case map[string]any:
+		for childKey, child := range value {
+			flattenQueryValue(params, key+"."+childKey, child)
+		}
+	case []any:
+		for _, item := range value {
+			params.Add(key, fmt.Sprintf("%v", item))
+		}
+	default:
+		params.Add(key, fmt.Sprintf("%v", value))
+	}
+}
+
+// pathBuilder assembles request paths so "/" in parameter values remains a
+// path separator while characters that cannot appear literally in a URL path
+// are percent-encoded when the request URL is serialized.
+//
+// It builds url.URL.Path and url.URL.RawPath together. net/url uses RawPath only
+// when it is a valid encoding of Path; otherwise it escapes Path.
+type pathBuilder struct {
+	path strings.Builder
+	raw  strings.Builder
+}
+
+// literal appends a static path segment, identical on the decoded and escaped
+// paths.
+func (b *pathBuilder) literal(s string) {
+	b.path.WriteString(s)
+	b.raw.WriteString(s)
+}
+
+// singleSegment appends the value unchanged to Path and RawPath. When the URL
+// is serialized, net/url keeps "/" literal and percent-encodes characters such
+// as spaces, "?", and "#".
+// The value is formatted with %v so strings, enums, and numbers all work.
+func (b *pathBuilder) singleSegment(v any) {
+	s := fmt.Sprintf("%v", v)
+	b.path.WriteString(s)
+	b.raw.WriteString(s)
+}
+
+// multiSegments appends a multi-segment path parameter: the value spans several
+// path segments, so each segment is escaped but the "/" separators are kept.
+// The value is formatted with %v so strings, enums, and numbers all work.
+func (b *pathBuilder) multiSegments(v any) {
+	s := fmt.Sprintf("%v", v)
+	b.path.WriteString(s)
+	segments := strings.Split(s, "/")
+	for i, seg := range segments {
+		segments[i] = url.PathEscape(seg)
+	}
+	b.raw.WriteString(strings.Join(segments, "/"))
+}
+
+func (b *pathBuilder) build() (path, rawPath string) {
+	return b.path.String(), b.raw.String()
 }

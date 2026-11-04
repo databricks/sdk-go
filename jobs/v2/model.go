@@ -499,8 +499,6 @@ const (
 	AiRuntimeTask_PriorityClass_BestEffort AiRuntimeTask_PriorityClass = "BEST_EFFORT"
 	// Medium priority; not preemptable.
 	AiRuntimeTask_PriorityClass_Normal AiRuntimeTask_PriorityClass = "NORMAL"
-	// Highest priority; not preemptable.
-	AiRuntimeTask_PriorityClass_Critical AiRuntimeTask_PriorityClass = "CRITICAL"
 )
 
 // Same alert evaluation state as in redash-v2/api/proto/alertsv2/alerts.proto

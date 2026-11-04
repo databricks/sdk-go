@@ -451,6 +451,72 @@ func (c *internalClient) CreateFeature(ctx context.Context, req CreateFeatureReq
 	return resp, nil
 }
 
+// Create a feature spec.
+func (c *internalClient) CreateFeatureSpec(ctx context.Context, req CreateFeatureSpecRequest, opts ...call.Option) (*FeatureSpec, error) {
+	wireReq, err := createFeatureSpecRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq.FeatureSpec)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = "/api/2.0/feature-engineering/feature-specs"
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *FeatureSpec
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp featureSpecWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = featureSpecFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Create a Kafka config. During PrPr, Kafka configs can be read and used when
 // creating features under the entire metastore. Only the creator of the Kafka
 // config can delete it.
@@ -877,6 +943,60 @@ func (c *internalClient) DeleteFeature(ctx context.Context, req DeleteFeatureReq
 	return nil
 }
 
+// Delete a feature spec.
+func (c *internalClient) DeleteFeatureSpec(ctx context.Context, req DeleteFeatureSpecRequest, opts ...call.Option) error {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/feature-engineering/feature-specs/")
+	if req.Name == nil {
+		return fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "DELETE",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		_ = respBody
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Delete a Kafka config. During PrPr, Kafka configs can be read and used when
 // creating features under the entire metastore. Only the creator of the Kafka
 // config can delete it.
@@ -1262,6 +1382,69 @@ func (c *internalClient) GetFeature(ctx context.Context, req GetFeatureRequest, 
 			return err
 		}
 		resp, err = featureFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Get a feature spec.
+func (c *internalClient) GetFeatureSpec(ctx context.Context, req GetFeatureSpecRequest, opts ...call.Option) (*FeatureSpec, error) {
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/feature-engineering/feature-specs/")
+	if req.Name == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *FeatureSpec
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp featureSpecWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = featureSpecFromWire(&wireResp)
 		if err != nil {
 			return err
 		}

@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+
+	"github.com/databricks/sdk-go/core/types"
 )
 
 type wireInt64 int64
@@ -457,6 +459,176 @@ func aiParseDocumentResponseMetadataFromWire(w *aiParseDocumentResponseMetadataW
 		Id:           w.Id,
 		Version:      w.Version,
 		FileMetadata: fileMetadataPublicValue,
+	}, nil
+}
+
+type batchWire struct {
+	Name            *string                    `json:"name,omitempty"`
+	Endpoint        *string                    `json:"endpoint,omitempty"`
+	InputRef        *string                    `json:"input_ref,omitempty"`
+	Params          map[string]json.RawMessage `json:"params,omitempty"`
+	OutputRef       *string                    `json:"output_ref,omitempty"`
+	Status          BatchStatus                `json:"status,omitempty"`
+	CreateTime      *types.Time                `json:"create_time,omitempty"`
+	RequestCounts   *batchRequestCountsWire    `json:"request_counts,omitempty"`
+	PercentComplete *float64                   `json:"percent_complete,omitempty"`
+}
+
+func batchToWire(v *Batch) (*batchWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	requestCountsWireValue, err := batchRequestCountsToWire(v.RequestCounts)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Batch.RequestCounts", err)
+	}
+	return &batchWire{
+		Name:            v.Name,
+		Endpoint:        v.Endpoint,
+		InputRef:        v.InputRef,
+		Params:          v.Params,
+		OutputRef:       v.OutputRef,
+		Status:          v.Status,
+		CreateTime:      v.CreateTime,
+		RequestCounts:   requestCountsWireValue,
+		PercentComplete: v.PercentComplete,
+	}, nil
+}
+
+func batchFromWire(w *batchWire) (*Batch, error) {
+	if w == nil {
+		return nil, nil
+	}
+	requestCountsPublicValue, err := batchRequestCountsFromWire(w.RequestCounts)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Batch.RequestCounts", err)
+	}
+	return &Batch{
+		Name:            w.Name,
+		Endpoint:        w.Endpoint,
+		InputRef:        w.InputRef,
+		Params:          w.Params,
+		OutputRef:       w.OutputRef,
+		Status:          w.Status,
+		CreateTime:      w.CreateTime,
+		RequestCounts:   requestCountsPublicValue,
+		PercentComplete: w.PercentComplete,
+	}, nil
+}
+
+type batchRequestCountsWire struct {
+	Total     *wireInt64 `json:"total,omitempty"`
+	Succeeded *wireInt64 `json:"succeeded,omitempty"`
+	Failed    *wireInt64 `json:"failed,omitempty"`
+}
+
+func batchRequestCountsToWire(v *BatchRequestCounts) (*batchRequestCountsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	totalWireValue, err := int64ToWire(v.Total)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BatchRequestCounts.Total", err)
+	}
+	succeededWireValue, err := int64ToWire(v.Succeeded)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BatchRequestCounts.Succeeded", err)
+	}
+	failedWireValue, err := int64ToWire(v.Failed)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BatchRequestCounts.Failed", err)
+	}
+	return &batchRequestCountsWire{
+		Total:     totalWireValue,
+		Succeeded: succeededWireValue,
+		Failed:    failedWireValue,
+	}, nil
+}
+
+func batchRequestCountsFromWire(w *batchRequestCountsWire) (*BatchRequestCounts, error) {
+	if w == nil {
+		return nil, nil
+	}
+	totalPublicValue, err := int64FromWire(w.Total)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BatchRequestCounts.Total", err)
+	}
+	succeededPublicValue, err := int64FromWire(w.Succeeded)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BatchRequestCounts.Succeeded", err)
+	}
+	failedPublicValue, err := int64FromWire(w.Failed)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BatchRequestCounts.Failed", err)
+	}
+	return &BatchRequestCounts{
+		Total:     totalPublicValue,
+		Succeeded: succeededPublicValue,
+		Failed:    failedPublicValue,
+	}, nil
+}
+
+type cancelBatchRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func cancelBatchRequestToWire(v *CancelBatchRequest) (*cancelBatchRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &cancelBatchRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+type createBatchRequestWire struct {
+	Batch *batchWire `json:"batch,omitempty"`
+}
+
+func createBatchRequestToWire(v *CreateBatchRequest) (*createBatchRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	batchWireValue, err := batchToWire(v.Batch)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBatchRequest.Batch", err)
+	}
+	return &createBatchRequestWire{
+		Batch: batchWireValue,
+	}, nil
+}
+
+type listBatchesRequestWire struct {
+	PageSize  *int    `json:"page_size,omitempty"`
+	PageToken *string `json:"page_token,omitempty"`
+}
+
+func listBatchesRequestToWire(v *ListBatchesRequest) (*listBatchesRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listBatchesRequestWire{
+		PageSize:  v.PageSize,
+		PageToken: v.PageToken,
+	}, nil
+}
+
+type listBatchesResponseWire struct {
+	Batches       []batchWire `json:"batches,omitempty"`
+	NextPageToken *string     `json:"next_page_token,omitempty"`
+}
+
+func listBatchesResponseFromWire(w *listBatchesResponseWire) (*ListBatchesResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	batchesPublicValue, err := convertSlice(w.Batches, batchFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListBatchesResponse.Batches", err)
+	}
+	return &ListBatchesResponse{
+		Batches:       batchesPublicValue,
+		NextPageToken: w.NextPageToken,
 	}, nil
 }
 

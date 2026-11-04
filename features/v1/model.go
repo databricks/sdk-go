@@ -537,6 +537,16 @@ const (
 	PurgeFeatureEntitiesMetadata_State_Failed PurgeFeatureEntitiesMetadata_State = "FAILED"
 	// The feature entity purge was cancelled.
 	PurgeFeatureEntitiesMetadata_State_Cancelled PurgeFeatureEntitiesMetadata_State = "CANCELLED"
+	// The purge was accepted, and deletion or nulling has not started.
+	PurgeFeatureEntitiesMetadata_State_PendingPurge PurgeFeatureEntitiesMetadata_State = "PENDING_PURGE"
+	// The purge is deleting rows or nulling feature values, including online
+	// synchronization.
+	PurgeFeatureEntitiesMetadata_State_RunningPurge PurgeFeatureEntitiesMetadata_State = "RUNNING_PURGE"
+	// Deletion or nulling completed, and the purge is waiting for offline retention
+	// to expire.
+	PurgeFeatureEntitiesMetadata_State_PendingCleanup PurgeFeatureEntitiesMetadata_State = "PENDING_CLEANUP"
+	// The purge is removing eligible residual offline files and metadata.
+	PurgeFeatureEntitiesMetadata_State_RunningCleanup PurgeFeatureEntitiesMetadata_State = "RUNNING_CLEANUP"
 )
 
 // Terminal state of a purge for one store type.
@@ -969,6 +979,13 @@ type CreateFeatureRequest struct {
 	Feature *Feature
 }
 
+// Request to create a Unity Catalog feature spec with the supplied
+// configuration..
+type CreateFeatureSpecRequest struct {
+	// The feature spec to create.
+	FeatureSpec *FeatureSpec
+}
+
 type CreateKafkaConfigRequest struct {
 	KafkaConfig *KafkaConfig
 }
@@ -1096,9 +1113,30 @@ type dataSourceDataSourceFieldMaskMetadata struct {
 	*DataSource_DataSource_SdpSource
 }
 
+// A reference to a Feature..
+type DeclarativeFeature struct {
+	// Three-part Unity Catalog name (catalog.schema.feature) of the Feature.
+	Feature *string
+}
+
+// A default value for a looked-up feature..
+type DefaultValue struct {
+	// Name of the feature: its output name if it is renamed, otherwise its name in
+	// the feature table.
+	Feature *string
+	// Default value for the feature.
+	DefaultValue *string
+}
+
 type DeleteFeatureRequest struct {
 	// Name of the feature to delete.
 	FullName *string
+}
+
+// Request to delete a feature spec by its three-part Unity Catalog name..
+type DeleteFeatureSpecRequest struct {
+	// Three-part name (catalog.schema.feature_spec) of the feature spec to delete.
+	Name *string
 }
 
 type DeleteKafkaConfigRequest struct {
@@ -1226,6 +1264,43 @@ type Feature struct {
 	CreatedBy *string `fieldmask:"created_by"`
 }
 
+// A Python UDF that computes a feature..
+type FeatureFunction struct {
+	// Three-part name of the Python UDF.
+	Udf *string
+	// Bindings of the UDF's parameters to features.
+	InputBindings []FeatureFunction_InputBinding
+	// Output name of the feature that the UDF computes.
+	Output *string
+}
+
+// Binds one parameter of the UDF to a feature..
+type FeatureFunction_InputBinding struct {
+	// Name of the UDF parameter.
+	Parameter *string
+	// Name of the feature bound to the parameter.
+	BoundFeature *string
+}
+
+// Features to look up from a feature table..
+type FeatureLookup struct {
+	// Three-part name of the feature table.
+	Table *string
+	// Keys to use when joining with the feature table.
+	LookupKeys []string
+	// Names of the features to look up, or empty to look up every feature in the
+	// table.
+	FeatureNames []string
+	// Output names for features, in place of their names in the feature table.
+	RenameOutputs []RenameOutput
+	// Keys to use when performing point-in-time lookup.
+	TimestampLookupKeys []string
+	// Lookback window to use when performing point-in-time lookup.
+	LookbackWindow *types.Duration
+	// Default values for features.
+	DefaultValues []DefaultValue
+}
+
 // A reference to one registered upstream Feature. A message rather than a bare
 // name so an upstream can later be pinned more precisely (e.g. by version)
 // without a breaking type change..
@@ -1234,11 +1309,73 @@ type FeatureReference struct {
 	Feature *string
 }
 
+// A named set of features to serve, stored as a Unity Catalog function..
+type FeatureSpec struct {
+	// Three-part name (catalog.schema.feature_spec) of the feature spec.
+	Name *string
+	// The Features (either a declarative one, or a lookup from a feature table, or
+	// a feature function) to serve. A declarative feature (`DeclarativeFeature`)
+	// cannot be combined with lookups (`FeatureLookup`) and functions
+	// (`FeatureFunction`) in one feature spec.
+	Features []Features
+	// Output names of columns to leave out of the feature spec.
+	ExcludeColumns []string
+	// How pip requirements for the serving container are specified.
+	PipRequirementsSpec isFeatureSpec_PipRequirementsSpec
+}
+
+type isFeatureSpec_PipRequirementsSpec interface {
+	isFeatureSpec_PipRequirementsSpec()
+}
+
+// FeatureSpec_PipRequirementsSpec_ExtraPipRequirements selects ExtraPipRequirements for FeatureSpec.PipRequirementsSpec.
+// Extra pip requirements to install in the serving container, in addition to
+// the defaults and those resolved from the features.
+type FeatureSpec_PipRequirementsSpec_ExtraPipRequirements struct {
+	ExtraPipRequirements PipRequirements
+}
+
+func (*FeatureSpec_PipRequirementsSpec_ExtraPipRequirements) isFeatureSpec_PipRequirementsSpec() {}
+
 // A data source composed from registered upstream Features..
 type FeatureViewSource struct {
 	// The upstream Features this source reads. Must include at least one feature.
 	FeatureReferences []FeatureReference `fieldmask:"feature_references"`
 }
+
+// One entry of a feature spec: a Feature, a feature table lookup, or a feature
+// function..
+type Features struct {
+	Feature isFeatures_Feature
+}
+
+type isFeatures_Feature interface {
+	isFeatures_Feature()
+}
+
+// Features_Feature_FeatureLookup selects FeatureLookup for Features.Feature.
+// A feature table lookup.
+type Features_Feature_FeatureLookup struct {
+	FeatureLookup FeatureLookup
+}
+
+func (*Features_Feature_FeatureLookup) isFeatures_Feature() {}
+
+// Features_Feature_FeatureFunction selects FeatureFunction for Features.Feature.
+// A feature function.
+type Features_Feature_FeatureFunction struct {
+	FeatureFunction FeatureFunction
+}
+
+func (*Features_Feature_FeatureFunction) isFeatures_Feature() {}
+
+// Features_Feature_DeclarativeFeature selects DeclarativeFeature for Features.Feature.
+// A Feature, referenced by its three-part Unity Catalog name.
+type Features_Feature_DeclarativeFeature struct {
+	DeclarativeFeature DeclarativeFeature
+}
+
+func (*Features_Feature_DeclarativeFeature) isFeatures_Feature() {}
 
 // A single field definition within a FlatSchema, specifying the field name and
 // its scalar data type. Does not support nested or complex types (arrays, maps,
@@ -1331,6 +1468,12 @@ type FunctionExtraParameter struct {
 type GetFeatureRequest struct {
 	// Name of the feature to get.
 	FullName *string
+}
+
+// Request to get a feature spec by its three-part Unity Catalog name..
+type GetFeatureSpecRequest struct {
+	// Three-part name (catalog.schema.feature_spec) of the feature spec to get.
+	Name *string
 }
 
 type GetKafkaConfigRequest struct {
@@ -1781,9 +1924,7 @@ type MaterializationSetDeletionProgress struct {
 	FailedMaterializedFeatures []MaterializedFeatureChangeFailure
 }
 
-// Progress of a materialization set operation. Shared by create, update and
-// delete, because databricks.longrunning freezes a method's metadata type once
-// it ships..
+// Progress of a materialization set operation..
 type MaterializationSetOperationMetadata struct {
 	// Full names of the features the set materializes, one entry per feature.
 	FeatureFullNames []string
@@ -1793,10 +1934,7 @@ type MaterializationSetOperationMetadata struct {
 	CreateTime *types.Time
 	// ID of the materialization set the operation targets.
 	MaterializationSetId *string
-	// Records which members a set change applied to and which it did not. It is
-	// written once the operation settles, so a polled operation shows the outcome
-	// of a partly failed change. Unset for a creation, which has no partial
-	// outcome.
+	// Progress and outcomes specific to the operation type. Unset for creation.
 	Progress isMaterializationSetOperationMetadata_Progress
 }
 
@@ -1805,7 +1943,7 @@ type isMaterializationSetOperationMetadata_Progress interface {
 }
 
 // MaterializationSetOperationMetadata_Progress_DeletionProgress selects DeletionProgress for MaterializationSetOperationMetadata.Progress.
-// Set by a DeleteMaterializationSet operation.
+// Set by a `DeleteMaterializationSet` operation.
 type MaterializationSetOperationMetadata_Progress_DeletionProgress struct {
 	DeletionProgress MaterializationSetDeletionProgress
 }
@@ -1814,7 +1952,7 @@ func (*MaterializationSetOperationMetadata_Progress_DeletionProgress) isMaterial
 }
 
 // MaterializationSetOperationMetadata_Progress_UpdateProgress selects UpdateProgress for MaterializationSetOperationMetadata.Progress.
-// Set by an UpdateMaterializationSet operation.
+// Set by an `UpdateMaterializationSet` operation.
 type MaterializationSetOperationMetadata_Progress_UpdateProgress struct {
 	UpdateProgress MaterializationSetUpdateProgress
 }
@@ -2093,6 +2231,12 @@ type Operation_Result_Response struct {
 
 func (*Operation_Result_Response) isOperation_Result() {}
 
+// Pip requirements to install in a serving container..
+type PipRequirements struct {
+	// Pip requirement strings (PEP 508) or UC Volume whl paths (/Volumes/...).
+	Requirements []string
+}
+
 // A Protocol Buffer schema paired with the name of the message within it that
 // describes the Kafka payload. A .proto file may declare multiple messages;
 // message_name disambiguates..
@@ -2199,6 +2343,14 @@ type PurgeFeatureEntitiesResult struct {
 	OnlineState PurgeFeatureEntitiesResult_State
 	// Error encountered while purging this feature, if any.
 	Error *ApiError
+}
+
+// An output name for a looked-up feature..
+type RenameOutput struct {
+	// Name of the feature in the feature table.
+	Feature *string
+	// Output name for the feature.
+	Output *string
 }
 
 // A request-time data source whose value is provided at inference time: offline
