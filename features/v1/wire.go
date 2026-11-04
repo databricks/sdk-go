@@ -917,6 +917,23 @@ func createFeatureRequestToWire(v *CreateFeatureRequest) (*createFeatureRequestW
 	}, nil
 }
 
+type createFeatureSpecRequestWire struct {
+	FeatureSpec *featureSpecWire `json:"feature_spec,omitempty"`
+}
+
+func createFeatureSpecRequestToWire(v *CreateFeatureSpecRequest) (*createFeatureSpecRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	featureSpecWireValue, err := featureSpecToWire(v.FeatureSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateFeatureSpecRequest.FeatureSpec", err)
+	}
+	return &createFeatureSpecRequestWire{
+		FeatureSpec: featureSpecWireValue,
+	}, nil
+}
+
 type createKafkaConfigRequestWire struct {
 	KafkaConfig *kafkaConfigWire `json:"kafka_config,omitempty"`
 }
@@ -1211,6 +1228,53 @@ func dataSourceFromWire(w *dataSourceWire) (*DataSource, error) {
 	}, nil
 }
 
+type declarativeFeatureWire struct {
+	Feature *string `json:"feature,omitempty"`
+}
+
+func declarativeFeatureToWire(v *DeclarativeFeature) (*declarativeFeatureWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &declarativeFeatureWire{
+		Feature: v.Feature,
+	}, nil
+}
+
+func declarativeFeatureFromWire(w *declarativeFeatureWire) (*DeclarativeFeature, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeclarativeFeature{
+		Feature: w.Feature,
+	}, nil
+}
+
+type defaultValueWire struct {
+	Feature      *string `json:"feature,omitempty"`
+	DefaultValue *string `json:"default_value,omitempty"`
+}
+
+func defaultValueToWire(v *DefaultValue) (*defaultValueWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &defaultValueWire{
+		Feature:      v.Feature,
+		DefaultValue: v.DefaultValue,
+	}, nil
+}
+
+func defaultValueFromWire(w *defaultValueWire) (*DefaultValue, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DefaultValue{
+		Feature:      w.Feature,
+		DefaultValue: w.DefaultValue,
+	}, nil
+}
+
 type deleteMaterializationSetRequestWire struct {
 	MaterializationSetId *string `json:"materialization_set_id,omitempty"`
 	AllowMissing         *bool   `json:"allow_missing,omitempty"`
@@ -1473,6 +1537,123 @@ func featureFromWire(w *featureWire) (*Feature, error) {
 	}, nil
 }
 
+type featureFunctionWire struct {
+	Udf           *string                            `json:"udf,omitempty"`
+	InputBindings []featureFunction_InputBindingWire `json:"input_bindings,omitempty"`
+	Output        *string                            `json:"output,omitempty"`
+}
+
+func featureFunctionToWire(v *FeatureFunction) (*featureFunctionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	inputBindingsWireValue, err := convertSlice(v.InputBindings, featureFunction_InputBindingToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FeatureFunction.InputBindings", err)
+	}
+	return &featureFunctionWire{
+		Udf:           v.Udf,
+		InputBindings: inputBindingsWireValue,
+		Output:        v.Output,
+	}, nil
+}
+
+func featureFunctionFromWire(w *featureFunctionWire) (*FeatureFunction, error) {
+	if w == nil {
+		return nil, nil
+	}
+	inputBindingsPublicValue, err := convertSlice(w.InputBindings, featureFunction_InputBindingFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FeatureFunction.InputBindings", err)
+	}
+	return &FeatureFunction{
+		Udf:           w.Udf,
+		InputBindings: inputBindingsPublicValue,
+		Output:        w.Output,
+	}, nil
+}
+
+type featureFunction_InputBindingWire struct {
+	Parameter    *string `json:"parameter,omitempty"`
+	BoundFeature *string `json:"bound_feature,omitempty"`
+}
+
+func featureFunction_InputBindingToWire(v *FeatureFunction_InputBinding) (*featureFunction_InputBindingWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &featureFunction_InputBindingWire{
+		Parameter:    v.Parameter,
+		BoundFeature: v.BoundFeature,
+	}, nil
+}
+
+func featureFunction_InputBindingFromWire(w *featureFunction_InputBindingWire) (*FeatureFunction_InputBinding, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &FeatureFunction_InputBinding{
+		Parameter:    w.Parameter,
+		BoundFeature: w.BoundFeature,
+	}, nil
+}
+
+type featureLookupWire struct {
+	Table               *string            `json:"table,omitempty"`
+	LookupKeys          []string           `json:"lookup_keys,omitempty"`
+	FeatureNames        []string           `json:"feature_names,omitempty"`
+	RenameOutputs       []renameOutputWire `json:"rename_outputs,omitempty"`
+	TimestampLookupKeys []string           `json:"timestamp_lookup_keys,omitempty"`
+	LookbackWindow      *types.Duration    `json:"lookback_window,omitempty"`
+	DefaultValues       []defaultValueWire `json:"default_values,omitempty"`
+}
+
+func featureLookupToWire(v *FeatureLookup) (*featureLookupWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	renameOutputsWireValue, err := convertSlice(v.RenameOutputs, renameOutputToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FeatureLookup.RenameOutputs", err)
+	}
+	defaultValuesWireValue, err := convertSlice(v.DefaultValues, defaultValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FeatureLookup.DefaultValues", err)
+	}
+	return &featureLookupWire{
+		Table:               v.Table,
+		LookupKeys:          v.LookupKeys,
+		FeatureNames:        v.FeatureNames,
+		RenameOutputs:       renameOutputsWireValue,
+		TimestampLookupKeys: v.TimestampLookupKeys,
+		LookbackWindow:      v.LookbackWindow,
+		DefaultValues:       defaultValuesWireValue,
+	}, nil
+}
+
+func featureLookupFromWire(w *featureLookupWire) (*FeatureLookup, error) {
+	if w == nil {
+		return nil, nil
+	}
+	renameOutputsPublicValue, err := convertSlice(w.RenameOutputs, renameOutputFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FeatureLookup.RenameOutputs", err)
+	}
+	defaultValuesPublicValue, err := convertSlice(w.DefaultValues, defaultValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FeatureLookup.DefaultValues", err)
+	}
+	return &FeatureLookup{
+		Table:               w.Table,
+		LookupKeys:          w.LookupKeys,
+		FeatureNames:        w.FeatureNames,
+		RenameOutputs:       renameOutputsPublicValue,
+		TimestampLookupKeys: w.TimestampLookupKeys,
+		LookbackWindow:      w.LookbackWindow,
+		DefaultValues:       defaultValuesPublicValue,
+	}, nil
+}
+
 type featureReferenceWire struct {
 	Feature *string `json:"feature,omitempty"`
 }
@@ -1492,6 +1673,75 @@ func featureReferenceFromWire(w *featureReferenceWire) (*FeatureReference, error
 	}
 	return &FeatureReference{
 		Feature: w.Feature,
+	}, nil
+}
+
+type featureSpecWire struct {
+	Name                 *string              `json:"name,omitempty"`
+	Features             []featuresWire       `json:"features,omitempty"`
+	ExcludeColumns       []string             `json:"exclude_columns,omitempty"`
+	ExtraPipRequirements *pipRequirementsWire `json:"extra_pip_requirements,omitempty"`
+}
+
+func featureSpecToWire(v *FeatureSpec) (*featureSpecWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	featuresWireValue, err := convertSlice(v.Features, featuresToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FeatureSpec.Features", err)
+	}
+	var pipRequirementsSpecExtraPipRequirementsWire *pipRequirementsWire
+	switch value := v.PipRequirementsSpec.(type) {
+	case nil:
+	case *FeatureSpec_PipRequirementsSpec_ExtraPipRequirements:
+		if value != nil {
+			pipRequirementsSpecExtraPipRequirementsConverted, err := pipRequirementsToWire(&value.ExtraPipRequirements)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "FeatureSpec.PipRequirementsSpec.ExtraPipRequirements", err)
+			}
+			pipRequirementsSpecExtraPipRequirementsWire = pipRequirementsSpecExtraPipRequirementsConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "FeatureSpec.PipRequirementsSpec", value)
+	}
+	return &featureSpecWire{
+		Name:                 v.Name,
+		Features:             featuresWireValue,
+		ExcludeColumns:       v.ExcludeColumns,
+		ExtraPipRequirements: pipRequirementsSpecExtraPipRequirementsWire,
+	}, nil
+}
+
+func featureSpecFromWire(w *featureSpecWire) (*FeatureSpec, error) {
+	if w == nil {
+		return nil, nil
+	}
+	pipRequirementsSpecMembers := 0
+	if w.ExtraPipRequirements != nil {
+		pipRequirementsSpecMembers++
+	}
+	if pipRequirementsSpecMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "FeatureSpec.PipRequirementsSpec")
+	}
+	featuresPublicValue, err := convertSlice(w.Features, featuresFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FeatureSpec.Features", err)
+	}
+	var pipRequirementsSpecSelection isFeatureSpec_PipRequirementsSpec
+	switch {
+	case w.ExtraPipRequirements != nil:
+		pipRequirementsSpecExtraPipRequirementsConverted, err := pipRequirementsFromWire(w.ExtraPipRequirements)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "FeatureSpec.PipRequirementsSpec.ExtraPipRequirements", err)
+		}
+		pipRequirementsSpecSelection = &FeatureSpec_PipRequirementsSpec_ExtraPipRequirements{ExtraPipRequirements: *pipRequirementsSpecExtraPipRequirementsConverted}
+	}
+	return &FeatureSpec{
+		Name:                w.Name,
+		Features:            featuresPublicValue,
+		ExcludeColumns:      w.ExcludeColumns,
+		PipRequirementsSpec: pipRequirementsSpecSelection,
 	}, nil
 }
 
@@ -1522,6 +1772,98 @@ func featureViewSourceFromWire(w *featureViewSourceWire) (*FeatureViewSource, er
 	}
 	return &FeatureViewSource{
 		FeatureReferences: featureReferencesPublicValue,
+	}, nil
+}
+
+type featuresWire struct {
+	FeatureLookup      *featureLookupWire      `json:"feature_lookup,omitempty"`
+	FeatureFunction    *featureFunctionWire    `json:"feature_function,omitempty"`
+	DeclarativeFeature *declarativeFeatureWire `json:"declarative_feature,omitempty"`
+}
+
+func featuresToWire(v *Features) (*featuresWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var featureFeatureLookupWire *featureLookupWire
+	var featureFeatureFunctionWire *featureFunctionWire
+	var featureDeclarativeFeatureWire *declarativeFeatureWire
+	switch value := v.Feature.(type) {
+	case nil:
+	case *Features_Feature_FeatureLookup:
+		if value != nil {
+			featureFeatureLookupConverted, err := featureLookupToWire(&value.FeatureLookup)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Features.Feature.FeatureLookup", err)
+			}
+			featureFeatureLookupWire = featureFeatureLookupConverted
+		}
+	case *Features_Feature_FeatureFunction:
+		if value != nil {
+			featureFeatureFunctionConverted, err := featureFunctionToWire(&value.FeatureFunction)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Features.Feature.FeatureFunction", err)
+			}
+			featureFeatureFunctionWire = featureFeatureFunctionConverted
+		}
+	case *Features_Feature_DeclarativeFeature:
+		if value != nil {
+			featureDeclarativeFeatureConverted, err := declarativeFeatureToWire(&value.DeclarativeFeature)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Features.Feature.DeclarativeFeature", err)
+			}
+			featureDeclarativeFeatureWire = featureDeclarativeFeatureConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Features.Feature", value)
+	}
+	return &featuresWire{
+		FeatureLookup:      featureFeatureLookupWire,
+		FeatureFunction:    featureFeatureFunctionWire,
+		DeclarativeFeature: featureDeclarativeFeatureWire,
+	}, nil
+}
+
+func featuresFromWire(w *featuresWire) (*Features, error) {
+	if w == nil {
+		return nil, nil
+	}
+	featureMembers := 0
+	if w.FeatureLookup != nil {
+		featureMembers++
+	}
+	if w.FeatureFunction != nil {
+		featureMembers++
+	}
+	if w.DeclarativeFeature != nil {
+		featureMembers++
+	}
+	if featureMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "Features.Feature")
+	}
+	var featureSelection isFeatures_Feature
+	switch {
+	case w.FeatureLookup != nil:
+		featureFeatureLookupConverted, err := featureLookupFromWire(w.FeatureLookup)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "Features.Feature.FeatureLookup", err)
+		}
+		featureSelection = &Features_Feature_FeatureLookup{FeatureLookup: *featureFeatureLookupConverted}
+	case w.FeatureFunction != nil:
+		featureFeatureFunctionConverted, err := featureFunctionFromWire(w.FeatureFunction)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "Features.Feature.FeatureFunction", err)
+		}
+		featureSelection = &Features_Feature_FeatureFunction{FeatureFunction: *featureFeatureFunctionConverted}
+	case w.DeclarativeFeature != nil:
+		featureDeclarativeFeatureConverted, err := declarativeFeatureFromWire(w.DeclarativeFeature)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "Features.Feature.DeclarativeFeature", err)
+		}
+		featureSelection = &Features_Feature_DeclarativeFeature{DeclarativeFeature: *featureDeclarativeFeatureConverted}
+	}
+	return &Features{
+		Feature: featureSelection,
 	}, nil
 }
 
@@ -3236,6 +3578,28 @@ func operationFromWire(w *operationWire) (*Operation, error) {
 	}, nil
 }
 
+type pipRequirementsWire struct {
+	Requirements []string `json:"requirements,omitempty"`
+}
+
+func pipRequirementsToWire(v *PipRequirements) (*pipRequirementsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &pipRequirementsWire{
+		Requirements: v.Requirements,
+	}, nil
+}
+
+func pipRequirementsFromWire(w *pipRequirementsWire) (*PipRequirements, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PipRequirements{
+		Requirements: w.Requirements,
+	}, nil
+}
+
 type protoSchemaSpecWire struct {
 	SchemaText  *string `json:"schema_text,omitempty"`
 	MessageName *string `json:"message_name,omitempty"`
@@ -3374,6 +3738,31 @@ func purgeFeatureEntitiesResultFromWire(w *purgeFeatureEntitiesResultWire) (*Pur
 		OfflineState: w.OfflineState,
 		OnlineState:  w.OnlineState,
 		Error:        errorPublicValue,
+	}, nil
+}
+
+type renameOutputWire struct {
+	Feature *string `json:"feature,omitempty"`
+	Output  *string `json:"output,omitempty"`
+}
+
+func renameOutputToWire(v *RenameOutput) (*renameOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &renameOutputWire{
+		Feature: v.Feature,
+		Output:  v.Output,
+	}, nil
+}
+
+func renameOutputFromWire(w *renameOutputWire) (*RenameOutput, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RenameOutput{
+		Feature: w.Feature,
+		Output:  w.Output,
 	}, nil
 }
 

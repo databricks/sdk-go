@@ -42,6 +42,7 @@ use (
 	./keyconfigurations
 	./knowledgeassistants
 	./lakeview
+	./lakewatch
 	./logdelivery
 	./marketplaces
 	./modelregistry

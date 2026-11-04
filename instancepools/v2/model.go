@@ -107,7 +107,8 @@ type CreateInstancePoolRequest struct {
 	// of the Spark nodes in this cluster. For example, the Spark nodes can be
 	// provisioned and optimized for memory or compute intensive workloads. A list
 	// of available node types can be retrieved by using the
-	// [clusters/listNodeTypes] API call.
+	// [clusters/listNodeTypes] API call. The node type cannot be changed after the
+	// pool is created.
 	//
 	// [clusters/listNodeTypes]: https://docs.databricks.com/api/workspace/clusters/listnodetypes
 	NodeTypeId *string
@@ -273,7 +274,8 @@ type EditInstancePoolRequest struct {
 	// of the Spark nodes in this cluster. For example, the Spark nodes can be
 	// provisioned and optimized for memory or compute intensive workloads. A list
 	// of available node types can be retrieved by using the
-	// [clusters/listNodeTypes] API call.
+	// [clusters/listNodeTypes] API call. The node type cannot be changed after the
+	// pool is created.
 	//
 	// [clusters/listNodeTypes]: https://docs.databricks.com/api/workspace/clusters/listnodetypes
 	NodeTypeId *string
@@ -367,7 +369,8 @@ type GetInstancePoolResponse struct {
 	// of the Spark nodes in this cluster. For example, the Spark nodes can be
 	// provisioned and optimized for memory or compute intensive workloads. A list
 	// of available node types can be retrieved by using the
-	// [clusters/listNodeTypes] API call.
+	// [clusters/listNodeTypes] API call. The node type cannot be changed after the
+	// pool is created.
 	//
 	// [clusters/listNodeTypes]: https://docs.databricks.com/api/workspace/clusters/listnodetypes
 	NodeTypeId *string
@@ -453,7 +456,8 @@ type InstancePoolAndStats struct {
 	// of the Spark nodes in this cluster. For example, the Spark nodes can be
 	// provisioned and optimized for memory or compute intensive workloads. A list
 	// of available node types can be retrieved by using the
-	// [clusters/listNodeTypes] API call.
+	// [clusters/listNodeTypes] API call. The node type cannot be changed after the
+	// pool is created.
 	//
 	// [clusters/listNodeTypes]: https://docs.databricks.com/api/workspace/clusters/listnodetypes
 	NodeTypeId *string

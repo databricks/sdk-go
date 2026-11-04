@@ -2,7 +2,35 @@
 
 package aifunctions
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/databricks/sdk-go/core/types"
+)
+
+// The status of a batch.
+type BatchStatus string
+
+const (
+	BatchStatus_Unspecified BatchStatus = ""
+	// Accepted, not started yet.
+	BatchStatus_Pending BatchStatus = "PENDING"
+	// Requests are being processed.
+	BatchStatus_InProgress BatchStatus = "IN_PROGRESS"
+	// Every request is processed and the output file is being written.
+	BatchStatus_Finalizing BatchStatus = "FINALIZING"
+	// The output is written and available.
+	BatchStatus_Completed BatchStatus = "COMPLETED"
+	// The completion window elapsed. The output holds the requests that finished in
+	// time.
+	BatchStatus_Expired BatchStatus = "EXPIRED"
+	// Cancellation was accepted and requests in flight are draining.
+	BatchStatus_Cancelling BatchStatus = "CANCELLING"
+	// Cancellation finished. No output file is written.
+	BatchStatus_Cancelled BatchStatus = "CANCELLED"
+	// The batch failed.
+	BatchStatus_Failed BatchStatus = "FAILED"
+)
 
 // ai_classify.
 type AiClassifyOptions struct {
@@ -321,4 +349,74 @@ type AiParseDocumentResponseMetadata struct {
 	Version *string
 	// Describes the source file; present only for file-path input.
 	FileMetadata *AiParseDocumentFileMetadata
+}
+
+// An asynchronous run of one AI function over a file of requests..
+type Batch struct {
+	// ID of the batch, in the form `batch_<id>`. The service assigns it.
+	Name *string
+	// The AI function to run for every request, for example `ai_extract`.
+	Endpoint *string
+	// Path of the JSONL input file on a Unity Catalog volume. Each line is one
+	// request.
+	InputRef *string
+	// Function options applied to every request in the batch, for example the
+	// extraction schema.
+	Params map[string]json.RawMessage
+	// Path on a Unity Catalog volume to write the JSONL output to. When it is
+	// omitted, the output stays on Databricks-managed storage and a finished batch
+	// returns a short-lived download URL in this field instead.
+	OutputRef *string
+	// Output only. Status of the batch.
+	Status BatchStatus
+	// Output only. Time the batch was created.
+	CreateTime *types.Time
+	// Output only. Request counts. Returned when one batch is read, not when
+	// batches are listed.
+	RequestCounts *BatchRequestCounts
+	// Output only. Percentage of the requests that finished, from 0 to 100.
+	// Returned when one batch is read, not when batches are listed.
+	PercentComplete *float64
+}
+
+// Counts of the requests in a batch..
+type BatchRequestCounts struct {
+	// Output only. Number of requests in the input file.
+	Total *int64
+	// Output only. Number of requests that finished successfully.
+	Succeeded *int64
+	// Output only. Number of requests that failed and will not be retried.
+	Failed *int64
+}
+
+type CancelBatchRequest struct {
+	// ID of the batch, in the form `batch_<id>`.
+	Name *string
+}
+
+type CancelBatchResponse struct {
+}
+
+type CreateBatchRequest struct {
+	// The batch to create.
+	Batch *Batch
+}
+
+type GetBatchRequest struct {
+	// ID of the batch, in the form `batch_<id>`.
+	Name *string
+}
+
+type ListBatchesRequest struct {
+	// Maximum number of batches to return in one page.
+	PageSize *int
+	// Page token from an earlier response. Omit it to read the first page.
+	PageToken *string
+}
+
+type ListBatchesResponse struct {
+	// The batches in this page.
+	Batches []Batch
+	// Token that reads the next page. It is empty on the last page.
+	NextPageToken *string
 }
