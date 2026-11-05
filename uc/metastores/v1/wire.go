@@ -634,6 +634,19 @@ func metastoreInfoFromWire(w *metastoreInfoWire) (*MetastoreInfo, error) {
 	}, nil
 }
 
+type undropMetastoreByIdRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func undropMetastoreByIdRequestToWire(v *UndropMetastoreByIdRequest) (*undropMetastoreByIdRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &undropMetastoreByIdRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
 type updateAccountsMetastoreWire struct {
 	Name                                        *string                `json:"name,omitempty"`
 	StorageRoot                                 *string                `json:"storage_root,omitempty"`

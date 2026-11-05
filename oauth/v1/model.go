@@ -2,6 +2,25 @@
 
 package oauth
 
+// The type of token request. As of now, only `AZURE_ACTIVE_DIRECTORY_TOKEN` is
+// supported.
+type ExchangeTokenType string
+
+const (
+	ExchangeTokenType_Unspecified ExchangeTokenType = ""
+	// Azure Active Directory token
+	ExchangeTokenType_AzureActiveDirectoryToken ExchangeTokenType = "AZURE_ACTIVE_DIRECTORY_TOKEN"
+	// Exchange for an Azure Active Directory token for Arclight Single-tenant
+	ExchangeTokenType_ArclightAzureExchangeToken ExchangeTokenType = "ARCLIGHT_AZURE_EXCHANGE_TOKEN"
+	// Exchange for an Azure Active Directory token and user delegation key for
+	// Arclight Single tenant
+	ExchangeTokenType_ArclightAzureExchangeTokenWithUserDelegationKey ExchangeTokenType = "ARCLIGHT_AZURE_EXCHANGE_TOKEN_WITH_USER_DELEGATION_KEY"
+	// Deprecated: Use ARCLIGHT_AZURE_EXCHANGE_TOKEN
+	ExchangeTokenType_ArclightMultiTenantAzureExchangeToken ExchangeTokenType = "ARCLIGHT_MULTI_TENANT_AZURE_EXCHANGE_TOKEN"
+	// Deprecated: Use ARCLIGHT_AZURE_EXCHANGE_TOKEN_WITH_USER_DELEGATION_KEY
+	ExchangeTokenType_ArclightMultiTenantAzureExchangeTokenWithUserDelegationKey ExchangeTokenType = "ARCLIGHT_MULTI_TENANT_AZURE_EXCHANGE_TOKEN_WITH_USER_DELEGATION_KEY"
+)
+
 type CreateCustomOAuthAppIntegrationRequest struct {
 	AccountId *string
 	// List of OAuth redirect urls
@@ -34,6 +53,12 @@ type CreatePublishedOAuthAppIntegrationRequest struct {
 type CreatePublishedOAuthAppIntegrationResponse struct {
 	// Unique integration id for the published OAuth app
 	IntegrationId *string
+}
+
+// Partition by workspace or account.
+type CredentialPartitionId struct {
+	// The ID of the workspace.
+	WorkspaceId *int64
 }
 
 type CustomOAuthAppIntegration struct {
@@ -84,6 +109,36 @@ type DeletePublishedOAuthAppIntegrationRequest struct {
 }
 
 type DeletePublishedOAuthAppIntegrationResponse struct {
+}
+
+// The exchange token is the result of the token exchange with the IdP.
+type ExchangeToken struct {
+	// The type of this exchange token
+	TokenType ExchangeTokenType
+	// The requested token.
+	Credential *string
+	// The scopes of access granted in the token.
+	Scopes []string
+	// The end-of-life timestamp of the token. The value is in milliseconds since
+	// the Unix epoch.
+	CredentialEolTime *int64
+	// User ID of the user that owns this token.
+	OwnerId *int64
+}
+
+// Exchange a token with the IdP.
+type ExchangeTokenExchangeRequest struct {
+	// The partition of Credentials store
+	PartitionId *CredentialPartitionId
+	// A list of token types being requested
+	TokenType []ExchangeTokenType
+	// Array of scopes for the token request.
+	Scopes []string
+}
+
+// Exhanged tokens were successfully returned..
+type ExchangeTokenExchangeRequest_Response struct {
+	Values []ExchangeToken
 }
 
 type GetCustomOAuthAppIntegrationRequest struct {

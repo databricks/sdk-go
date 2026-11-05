@@ -115,6 +115,23 @@ func createPublishedOAuthAppIntegrationResponseFromWire(w *createPublishedOAuthA
 	}, nil
 }
 
+type credentialPartitionIdWire struct {
+	WorkspaceId *wireInt64 `json:"workspaceId,omitempty"`
+}
+
+func credentialPartitionIdToWire(v *CredentialPartitionId) (*credentialPartitionIdWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CredentialPartitionId.WorkspaceId", err)
+	}
+	return &credentialPartitionIdWire{
+		WorkspaceId: workspaceIdWireValue,
+	}, nil
+}
+
 type customOAuthAppIntegrationWire struct {
 	IntegrationId        *string                `json:"integration_id,omitempty"`
 	ClientId             *string                `json:"client_id,omitempty"`
@@ -170,6 +187,73 @@ func customOAuthAppIntegrationSecretFromWire(w *customOAuthAppIntegrationSecretW
 		IntegrationId: w.IntegrationId,
 		ClientId:      w.ClientId,
 		ClientSecret:  w.ClientSecret,
+	}, nil
+}
+
+type exchangeTokenWire struct {
+	TokenType         ExchangeTokenType `json:"tokenType,omitempty"`
+	Credential        *string           `json:"credential,omitempty"`
+	Scopes            []string          `json:"scopes,omitempty"`
+	CredentialEolTime *wireInt64        `json:"credentialEolTime,omitempty"`
+	OwnerId           *wireInt64        `json:"ownerId,omitempty"`
+}
+
+func exchangeTokenFromWire(w *exchangeTokenWire) (*ExchangeToken, error) {
+	if w == nil {
+		return nil, nil
+	}
+	credentialEolTimePublicValue, err := int64FromWire(w.CredentialEolTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExchangeToken.CredentialEolTime", err)
+	}
+	ownerIdPublicValue, err := int64FromWire(w.OwnerId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExchangeToken.OwnerId", err)
+	}
+	return &ExchangeToken{
+		TokenType:         w.TokenType,
+		Credential:        w.Credential,
+		Scopes:            w.Scopes,
+		CredentialEolTime: credentialEolTimePublicValue,
+		OwnerId:           ownerIdPublicValue,
+	}, nil
+}
+
+type exchangeTokenExchangeRequestWire struct {
+	PartitionId *credentialPartitionIdWire `json:"partitionId,omitempty"`
+	TokenType   []ExchangeTokenType        `json:"tokenType,omitempty"`
+	Scopes      []string                   `json:"scopes,omitempty"`
+}
+
+func exchangeTokenExchangeRequestToWire(v *ExchangeTokenExchangeRequest) (*exchangeTokenExchangeRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	partitionIdWireValue, err := credentialPartitionIdToWire(v.PartitionId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExchangeTokenExchangeRequest.PartitionId", err)
+	}
+	return &exchangeTokenExchangeRequestWire{
+		PartitionId: partitionIdWireValue,
+		TokenType:   v.TokenType,
+		Scopes:      v.Scopes,
+	}, nil
+}
+
+type exchangeTokenExchangeRequest_ResponseWire struct {
+	Values []exchangeTokenWire `json:"values,omitempty"`
+}
+
+func exchangeTokenExchangeRequest_ResponseFromWire(w *exchangeTokenExchangeRequest_ResponseWire) (*ExchangeTokenExchangeRequest_Response, error) {
+	if w == nil {
+		return nil, nil
+	}
+	valuesPublicValue, err := convertSlice(w.Values, exchangeTokenFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExchangeTokenExchangeRequest_Response.Values", err)
+	}
+	return &ExchangeTokenExchangeRequest_Response{
+		Values: valuesPublicValue,
 	}, nil
 }
 

@@ -1350,6 +1350,75 @@ func (c *internalClient) ListMetastoresIter(ctx context.Context, req ListMetasto
 	}
 }
 
+// Restores a soft-deleted metastore identified by its ID. The caller must be an
+// account admin. A metastore may be eligible for restoration for up to five
+// days after deletion. Restoration may become unavailable earlier once
+// permanent deletion begins. Returns the restored metastore.
+func (c *internalClient) UndropMetastoreById(ctx context.Context, req UndropMetastoreByIdRequest, opts ...call.Option) (*MetastoreInfo, error) {
+	wireReq, err := undropMetastoreByIdRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = "/api/2.1/unity-catalog/metastores:undropById"
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *MetastoreInfo
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp metastoreInfoWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = metastoreInfoFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Updates information for a specific metastore. The caller must be a metastore
 // admin. If the __owner__ field is set to the empty string (**""**), the
 // ownership is updated to the System User.
