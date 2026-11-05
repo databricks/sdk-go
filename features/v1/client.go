@@ -2543,9 +2543,12 @@ func (c *internalClient) UpdateKafkaConfig(ctx context.Context, req UpdateKafkaC
 	return resp, nil
 }
 
-// Update the materialization set's state to match the supplied materialization
-// set. Changes are applied member by member and are not atomic: when one member
-// fails, the error reports which members were already changed.
+// Updates a materialization set. Supports changing pause settings and deleting
+// materialized features from the set.
+//
+// Changes are not atomic. Some updates or deletions may succeed even if the
+// operation fails. Individual outcomes are available in
+// `MaterializationSetUpdateProgress`.
 func (c *internalClient) updateMaterializationSetBase(ctx context.Context, req UpdateMaterializationSetRequest, opts ...call.Option) (*Operation, error) {
 	wireReq, err := updateMaterializationSetRequestToWire(&req)
 	if err != nil {
@@ -2627,9 +2630,12 @@ func (c *internalClient) updateMaterializationSetBase(ctx context.Context, req U
 	return resp, nil
 }
 
-// Update the materialization set's state to match the supplied materialization
-// set. Changes are applied member by member and are not atomic: when one member
-// fails, the error reports which members were already changed.
+// Updates a materialization set. Supports changing pause settings and deleting
+// materialized features from the set.
+//
+// Changes are not atomic. Some updates or deletions may succeed even if the
+// operation fails. Individual outcomes are available in
+// `MaterializationSetUpdateProgress`.
 func (c *internalClient) UpdateMaterializationSet(ctx context.Context, req UpdateMaterializationSetRequest, opts ...call.Option) (*UpdateMaterializationSetOperation, error) {
 	operation, err := c.updateMaterializationSetBase(ctx, req, opts...)
 	if err != nil {

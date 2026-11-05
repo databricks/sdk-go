@@ -77,6 +77,84 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	}, nil
 }
 
+// Exchange tokens with an Identity Provider to get a new access token. It
+// allows specifying scopes to determine token permissions.
+//
+// POST /exchange-tokens/token is the documented public form, expressed via
+// `google.api.http` below. GET /exchange-tokens/$exchange is a legacy alias
+// used by the Spark driver's OAuth refresh path (DBHttpClient#get sends a body
+// via HttpGetWithEntity) and stays on the legacy `option (rpc).endpoints`
+// annotation: its path contains a literal `$`, which `google.api.http`'s
+// LITERAL grammar does not allow, and `HttpPathParser` does not percent-decode
+// template segments (so encoding as `%24exchange` would not match the literal
+// `$exchange` path the Spark driver sends). Per-endpoint `visibility:
+// PUBLIC_UNDOCUMENTED` preserves the DECO-7732 intent of suppressing the GET
+// alias from the public API spec.
+func (c *internalClient) Exchange(ctx context.Context, req ExchangeTokenExchangeRequest, opts ...call.Option) (*ExchangeTokenExchangeRequest_Response, error) {
+	wireReq, err := exchangeTokenExchangeRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = "/api/2.0/credentials-manager/exchange-tokens/token"
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *ExchangeTokenExchangeRequest_Response
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp exchangeTokenExchangeRequest_ResponseWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = exchangeTokenExchangeRequest_ResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Create Custom OAuth App Integration.
 //
 // You can retrieve the custom OAuth app integration via

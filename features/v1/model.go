@@ -1014,7 +1014,7 @@ type CreateStreamRequest struct {
 	Stream *Stream
 }
 
-// A cron-based schedule trigger for the materialization pipeline..
+// A cron-based schedule trigger for batch materialization..
 type CronSchedule struct {
 	// The cron expression defining the schedule (e.g., "0 0 * * *" for daily at
 	// midnight). The schedule is interpreted in timezone_id (defaults to UTC).
@@ -1901,9 +1901,9 @@ type MaterializationNotifications struct {
 type MaterializationSet struct {
 	// Server-assigned unique identifier for the materialization set.
 	MaterializationSetId *string `fieldmask:"materialization_set_id"`
-	// The materialized features in this set. Order is not significant. Updating the
-	// set with a materialized feature removed from this set will cause it to be
-	// deleted.
+	// The materialized features in this set. Order is not significant. An
+	// `UpdateMaterializationSet` request with `materialized_features` or `*` in its
+	// update mask deletes omitted materialized features.
 	MaterializedFeatures []MaterializedFeature `fieldmask:"materialized_features"`
 	// Notification configuration around the materialization job or pipeline
 	// lifecycle. They are applied to every job and pipeline that materializes a
@@ -1960,15 +1960,13 @@ type MaterializationSetOperationMetadata_Progress_UpdateProgress struct {
 func (*MaterializationSetOperationMetadata_Progress_UpdateProgress) isMaterializationSetOperationMetadata_Progress() {
 }
 
-// What a partly failed UpdateMaterializationSet got through, attached to the
-// error so a caller can tell which materialized feature members already changed
-// and which ones did not and why it failed..
+// Progress and outcomes of an `UpdateMaterializationSet` operation..
 type MaterializationSetUpdateProgress struct {
-	// Materialized feature members whose mutable state was updated.
+	// IDs of materialized features whose mutable state was updated.
 	UpdatedMaterializedFeatureIds []string
-	// Materialized feature members that were deleted from the materialization set.
+	// IDs of materialized features that were deleted.
 	DeletedMaterializedFeatureIds []string
-	// Materialized feature members that could not be updated, one entry each.
+	// Materialized features that could not be updated or deleted, one entry each.
 	FailedMaterializedFeatures []MaterializedFeatureChangeFailure
 }
 
@@ -2067,7 +2065,7 @@ type isMaterializedFeature_Trigger interface {
 }
 
 // MaterializedFeature_Trigger_CronScheduleTrigger selects CronScheduleTrigger for MaterializedFeature.Trigger.
-// A cron-based schedule trigger for the materialization pipeline.
+// A cron-based schedule trigger for batch materialization.
 type MaterializedFeature_Trigger_CronScheduleTrigger struct {
 	CronScheduleTrigger CronSchedule `fieldmask:"cron_schedule_trigger"`
 }
@@ -2075,7 +2073,8 @@ type MaterializedFeature_Trigger_CronScheduleTrigger struct {
 func (*MaterializedFeature_Trigger_CronScheduleTrigger) isMaterializedFeature_Trigger() {}
 
 // MaterializedFeature_Trigger_TableTrigger selects TableTrigger for MaterializedFeature.Trigger.
-// A trigger that fires when the upstream source table changes.
+// A trigger that starts batch materialization when the upstream source table
+// changes.
 type MaterializedFeature_Trigger_TableTrigger struct {
 	TableTrigger TableTrigger `fieldmask:"table_trigger"`
 }
@@ -2850,8 +2849,8 @@ type SumFunction struct {
 	Input *string `fieldmask:"input"`
 }
 
-// A trigger that fires when the feature's source table changes: a
-// DeltaTableSource's table, or an SdpSource's input_tables..
+// A trigger that starts batch materialization when the feature's source table
+// changes: a DeltaTableSource's table, or an SdpSource's input_tables..
 type TableTrigger struct {
 	// The minimum time between two triggered runs, so a frequently updated source
 	// table does not trigger runs too often. If not set, a feature with a sliding
@@ -2974,10 +2973,24 @@ type UpdateKafkaConfigRequest struct {
 }
 
 type UpdateMaterializationSetRequest struct {
-	// The desired state of the updated materialization set. materialization_set_id
-	// selects the set.
+	// The desired state of the materialization set. `materialization_set_id`
+	// identifies the set.
+	//
+	// A request that changes pause settings must request the same `paused` value
+	// for all retained members with a cron schedule or table trigger.
 	MaterializationSet *MaterializationSet
-	// The fields to update. Only 'materialized_features' or '*' is supported.
+	// The fields to update, relative to the materialization set. Supported values
+	// are `materialized_features` and `*`.
+	//
+	// The `materialized_features` mask updates retained members and deletes omitted
+	// materialized features. The `*` mask selects all fields of the set and follows
+	// the same membership rules. Adding members is not supported.
+	//
+	// To change pause settings without changing membership, include every member of
+	// the set. An omitted `paused` is reset to `false`.
+	//
+	// Fields outside the mask are unchanged. Trigger types and settings other than
+	// `paused` must remain unchanged.
 	UpdateMask *types.FieldMask[MaterializationSet]
 	// Idempotency token for the request. A second request carrying a token that has
 	// already been used returns the operation the first one created, whatever state

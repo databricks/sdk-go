@@ -443,6 +443,12 @@ type MetastoreInfo struct {
 	ExternalAccessEnabled *bool
 }
 
+// Request to restore a soft-deleted metastore by ID..
+type UndropMetastoreByIdRequest struct {
+	// Required. Id of the metastore to undrop.
+	Id *string
+}
+
 type UpdateAccountsMetastore struct {
 	// The user-specified name of the metastore.
 	Name *string

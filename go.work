@@ -40,6 +40,7 @@ use (
 	./instanceprofiles
 	./jobs
 	./keyconfigurations
+	./knowledge
 	./knowledgeassistants
 	./lakeview
 	./lakewatch
