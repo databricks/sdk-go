@@ -5807,13 +5807,20 @@ func resolvedValuesFromWire(w *resolvedValuesWire) (*ResolvedValues, error) {
 }
 
 type resolvedValues_AiFunctionTaskResolvedValuesWire struct {
+	DeltaTable *deltaTableSourceWire `json:"delta_table,omitempty"`
 }
 
 func resolvedValues_AiFunctionTaskResolvedValuesFromWire(w *resolvedValues_AiFunctionTaskResolvedValuesWire) (*ResolvedValues_AiFunctionTaskResolvedValues, error) {
 	if w == nil {
 		return nil, nil
 	}
-	return &ResolvedValues_AiFunctionTaskResolvedValues{}, nil
+	deltaTablePublicValue, err := deltaTableSourceFromWire(w.DeltaTable)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ResolvedValues_AiFunctionTaskResolvedValues.DeltaTable", err)
+	}
+	return &ResolvedValues_AiFunctionTaskResolvedValues{
+		DeltaTable: deltaTablePublicValue,
+	}, nil
 }
 
 type resolvedValues_AiRuntimeTaskResolvedValuesWire struct {

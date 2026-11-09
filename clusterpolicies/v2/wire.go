@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+
+	"github.com/databricks/sdk-go/core/types"
 )
 
 type wireInt64 int64
@@ -50,6 +52,77 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	}
 	converted := int64(*v)
 	return &converted, nil
+}
+
+type allowedComputeProductsWire struct {
+	Automated *automatedConstraintsWire `json:"automated,omitempty"`
+	Lakebase  *lakebaseConstraintsWire  `json:"lakebase,omitempty"`
+}
+
+func allowedComputeProductsFromWire(w *allowedComputeProductsWire) (*AllowedComputeProducts, error) {
+	if w == nil {
+		return nil, nil
+	}
+	automatedPublicValue, err := automatedConstraintsFromWire(w.Automated)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AllowedComputeProducts.Automated", err)
+	}
+	lakebasePublicValue, err := lakebaseConstraintsFromWire(w.Lakebase)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AllowedComputeProducts.Lakebase", err)
+	}
+	return &AllowedComputeProducts{
+		Automated: automatedPublicValue,
+		Lakebase:  lakebasePublicValue,
+	}, nil
+}
+
+type automatedConstraintsWire struct {
+	PerWorkloadMax *rateLimitConfigWire `json:"per_workload_max,omitempty"`
+}
+
+func automatedConstraintsFromWire(w *automatedConstraintsWire) (*AutomatedConstraints, error) {
+	if w == nil {
+		return nil, nil
+	}
+	perWorkloadMaxPublicValue, err := rateLimitConfigFromWire(w.PerWorkloadMax)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AutomatedConstraints.PerWorkloadMax", err)
+	}
+	return &AutomatedConstraints{
+		PerWorkloadMax: perWorkloadMaxPublicValue,
+	}, nil
+}
+
+type computePolicyWire struct {
+	ComputePolicyId        *string                     `json:"compute_policy_id,omitempty"`
+	DisplayName            *string                     `json:"display_name,omitempty"`
+	AllowedComputeProducts *allowedComputeProductsWire `json:"allowed_compute_products,omitempty"`
+	Tags                   map[string]string           `json:"tags,omitempty"`
+	IsDefault              *bool                       `json:"is_default,omitempty"`
+	CreateTime             *types.Time                 `json:"create_time,omitempty"`
+	CanUse                 *bool                       `json:"can_use,omitempty"`
+	CanManage              *bool                       `json:"can_manage,omitempty"`
+}
+
+func computePolicyFromWire(w *computePolicyWire) (*ComputePolicy, error) {
+	if w == nil {
+		return nil, nil
+	}
+	allowedComputeProductsPublicValue, err := allowedComputeProductsFromWire(w.AllowedComputeProducts)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ComputePolicy.AllowedComputeProducts", err)
+	}
+	return &ComputePolicy{
+		ComputePolicyId:        w.ComputePolicyId,
+		DisplayName:            w.DisplayName,
+		AllowedComputeProducts: allowedComputeProductsPublicValue,
+		Tags:                   w.Tags,
+		IsDefault:              w.IsDefault,
+		CreateTime:             w.CreateTime,
+		CanUse:                 w.CanUse,
+		CanManage:              w.CanManage,
+	}, nil
 }
 
 type createPolicyRequestWire struct {
@@ -156,6 +229,29 @@ func getPolicyRequestToWire(v *GetPolicyRequest) (*getPolicyRequestWire, error) 
 	}
 	return &getPolicyRequestWire{
 		PolicyId: v.PolicyId,
+	}, nil
+}
+
+type lakebaseConstraintsWire struct {
+	MaxCapacityUnitsPerInstance     *wireInt64 `json:"max_capacity_units_per_instance,omitempty"`
+	MaxIdleMinutesBeforeScaleToZero *wireInt64 `json:"max_idle_minutes_before_scale_to_zero,omitempty"`
+}
+
+func lakebaseConstraintsFromWire(w *lakebaseConstraintsWire) (*LakebaseConstraints, error) {
+	if w == nil {
+		return nil, nil
+	}
+	maxCapacityUnitsPerInstancePublicValue, err := int64FromWire(w.MaxCapacityUnitsPerInstance)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LakebaseConstraints.MaxCapacityUnitsPerInstance", err)
+	}
+	maxIdleMinutesBeforeScaleToZeroPublicValue, err := int64FromWire(w.MaxIdleMinutesBeforeScaleToZero)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LakebaseConstraints.MaxIdleMinutesBeforeScaleToZero", err)
+	}
+	return &LakebaseConstraints{
+		MaxCapacityUnitsPerInstance:     maxCapacityUnitsPerInstancePublicValue,
+		MaxIdleMinutesBeforeScaleToZero: maxIdleMinutesBeforeScaleToZeroPublicValue,
 	}, nil
 }
 
@@ -299,6 +395,40 @@ func libraryFromWire(w *libraryWire) (*Library, error) {
 	}, nil
 }
 
+type listComputePoliciesRequestWire struct {
+	PageSize  *int    `json:"page_size,omitempty"`
+	PageToken *string `json:"page_token,omitempty"`
+}
+
+func listComputePoliciesRequestToWire(v *ListComputePoliciesRequest) (*listComputePoliciesRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listComputePoliciesRequestWire{
+		PageSize:  v.PageSize,
+		PageToken: v.PageToken,
+	}, nil
+}
+
+type listComputePoliciesResponseWire struct {
+	ComputePolicies []computePolicyWire `json:"compute_policies,omitempty"`
+	NextPageToken   *string             `json:"next_page_token,omitempty"`
+}
+
+func listComputePoliciesResponseFromWire(w *listComputePoliciesResponseWire) (*ListComputePoliciesResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	computePoliciesPublicValue, err := convertSlice(w.ComputePolicies, computePolicyFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListComputePoliciesResponse.ComputePolicies", err)
+	}
+	return &ListComputePoliciesResponse{
+		ComputePolicies: computePoliciesPublicValue,
+		NextPageToken:   w.NextPageToken,
+	}, nil
+}
+
 type listPoliciesRequestWire struct {
 	SortOrder  ListOrder        `json:"sort_order,omitempty"`
 	SortColumn PolicySortColumn `json:"sort_column,omitempty"`
@@ -328,6 +458,40 @@ func listPoliciesResponseFromWire(w *listPoliciesResponseWire) (*ListPoliciesRes
 	}
 	return &ListPoliciesResponse{
 		Policies: policiesPublicValue,
+	}, nil
+}
+
+type listServerlessComputesRequestWire struct {
+	PageSize  *int    `json:"page_size,omitempty"`
+	PageToken *string `json:"page_token,omitempty"`
+}
+
+func listServerlessComputesRequestToWire(v *ListServerlessComputesRequest) (*listServerlessComputesRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listServerlessComputesRequestWire{
+		PageSize:  v.PageSize,
+		PageToken: v.PageToken,
+	}, nil
+}
+
+type listServerlessComputesResponseWire struct {
+	ServerlessComputes []serverlessComputeWire `json:"serverless_computes,omitempty"`
+	NextPageToken      *string                 `json:"next_page_token,omitempty"`
+}
+
+func listServerlessComputesResponseFromWire(w *listServerlessComputesResponseWire) (*ListServerlessComputesResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	serverlessComputesPublicValue, err := convertSlice(w.ServerlessComputes, serverlessComputeFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListServerlessComputesResponse.ServerlessComputes", err)
+	}
+	return &ListServerlessComputesResponse{
+		ServerlessComputes: serverlessComputesPublicValue,
+		NextPageToken:      w.NextPageToken,
 	}, nil
 }
 
@@ -451,6 +615,44 @@ func rCranLibraryFromWire(w *rCranLibraryWire) (*RCranLibrary, error) {
 	return &RCranLibrary{
 		Package: w.Package,
 		Repo:    w.Repo,
+	}, nil
+}
+
+type rateLimitConfigWire struct {
+	TShirtSize     TshirtSize `json:"t_shirt_size,omitempty"`
+	TShirtSizeName *string    `json:"t_shirt_size_name,omitempty"`
+}
+
+func rateLimitConfigFromWire(w *rateLimitConfigWire) (*RateLimitConfig, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RateLimitConfig{
+		TShirtSize:     w.TShirtSize,
+		TShirtSizeName: w.TShirtSizeName,
+	}, nil
+}
+
+type serverlessComputeWire struct {
+	ServerlessComputeId *string     `json:"serverless_compute_id,omitempty"`
+	Name                *string     `json:"name,omitempty"`
+	IsDefault           *bool       `json:"is_default,omitempty"`
+	CreateTime          *types.Time `json:"create_time,omitempty"`
+	CanUse              *bool       `json:"can_use,omitempty"`
+	CanManage           *bool       `json:"can_manage,omitempty"`
+}
+
+func serverlessComputeFromWire(w *serverlessComputeWire) (*ServerlessCompute, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ServerlessCompute{
+		ServerlessComputeId: w.ServerlessComputeId,
+		Name:                w.Name,
+		IsDefault:           w.IsDefault,
+		CreateTime:          w.CreateTime,
+		CanUse:              w.CanUse,
+		CanManage:           w.CanManage,
 	}, nil
 }
 

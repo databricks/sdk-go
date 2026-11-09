@@ -9,6 +9,45 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
+// The verdict of a single assessment check.
+type AssessmentCheckVerdict string
+
+const (
+	AssessmentCheckVerdict_Unspecified AssessmentCheckVerdict = ""
+	// The check passed.
+	AssessmentCheckVerdict_AssessmentCheckVerdictPass AssessmentCheckVerdict = "ASSESSMENT_CHECK_VERDICT_PASS"
+	// The check produced a non-blocking warning.
+	AssessmentCheckVerdict_AssessmentCheckVerdictWarning AssessmentCheckVerdict = "ASSESSMENT_CHECK_VERDICT_WARNING"
+	// The check found a condition that requires user action before the migration
+	// can start.
+	AssessmentCheckVerdict_AssessmentCheckVerdictActionRequired AssessmentCheckVerdict = "ASSESSMENT_CHECK_VERDICT_ACTION_REQUIRED"
+	// The check found a configuration that the migration does not support.
+	AssessmentCheckVerdict_AssessmentCheckVerdictUnsupported AssessmentCheckVerdict = "ASSESSMENT_CHECK_VERDICT_UNSUPPORTED"
+	// The check could not run because of an internal error.
+	AssessmentCheckVerdict_AssessmentCheckVerdictError AssessmentCheckVerdict = "ASSESSMENT_CHECK_VERDICT_ERROR"
+)
+
+// The aggregate state of an assessment run.
+type AssessmentState string
+
+const (
+	AssessmentState_Unspecified AssessmentState = ""
+	// The assessment is running.
+	AssessmentState_AssessmentStateAssessing AssessmentState = "ASSESSMENT_STATE_ASSESSING"
+	// The assessment completed with no blocking findings.
+	AssessmentState_AssessmentStateReady AssessmentState = "ASSESSMENT_STATE_READY"
+	// The assessment completed with non-blocking warnings awaiting acknowledgement.
+	AssessmentState_AssessmentStateAwaitingAck AssessmentState = "ASSESSMENT_STATE_AWAITING_ACK"
+	// The assessment could not be completed because of an internal error.
+	AssessmentState_AssessmentStateFailed AssessmentState = "ASSESSMENT_STATE_FAILED"
+	// The assessment is no longer valid and must be re-run.
+	AssessmentState_AssessmentStateExpired AssessmentState = "ASSESSMENT_STATE_EXPIRED"
+	// The assessment completed with findings that require user remediation.
+	AssessmentState_AssessmentStateNeedsAction AssessmentState = "ASSESSMENT_STATE_NEEDS_ACTION"
+	// The assessment completed with findings that the migration does not support.
+	AssessmentState_AssessmentStateBlocked AssessmentState = "ASSESSMENT_STATE_BLOCKED"
+)
+
 // The replication state of a single replicated table (CdfStatus).
 type CdfState string
 
@@ -454,6 +493,43 @@ const (
 	ErrorCode_ProviderShareNotAccessible ErrorCode = "PROVIDER_SHARE_NOT_ACCESSIBLE"
 )
 
+// The lifecycle state of a migration.
+type MigrationState string
+
+const (
+	MigrationState_Unspecified MigrationState = ""
+	// The migration is being configured and has not been assessed yet.
+	MigrationState_MigrationStateDraft MigrationState = "MIGRATION_STATE_DRAFT"
+	// An assessment of the migration's source configuration is running.
+	MigrationState_MigrationStateAssessing MigrationState = "MIGRATION_STATE_ASSESSING"
+	// The assessment found issues (blocking findings, or warnings awaiting
+	// acknowledgement) that need user action before the migration can continue.
+	MigrationState_MigrationStateAssessmentNeedsAction MigrationState = "MIGRATION_STATE_ASSESSMENT_NEEDS_ACTION"
+	// The migration has passed assessment and is ready to start.
+	MigrationState_MigrationStateReadyToStart MigrationState = "MIGRATION_STATE_READY_TO_START"
+	// The migration is creating the target databases and schema, without copying
+	// table data.
+	MigrationState_MigrationStateSchemaLoad MigrationState = "MIGRATION_STATE_SCHEMA_LOAD"
+	// The migration is copying the initial table data.
+	MigrationState_MigrationStateInitialDataLoad MigrationState = "MIGRATION_STATE_INITIAL_DATA_LOAD"
+	// The migration has successfully finished all execution stages.
+	MigrationState_MigrationStateCompleted MigrationState = "MIGRATION_STATE_COMPLETED"
+	// The migration stopped because an execution step failed.
+	MigrationState_MigrationStateFailed MigrationState = "MIGRATION_STATE_FAILED"
+)
+
+// The intended data transfer mode of a migration.
+type MigrationType string
+
+const (
+	MigrationType_Unspecified MigrationType = ""
+	// Intended for a single copy of the source data, without ongoing replication.
+	MigrationType_MigrationTypeOneTimeCopy MigrationType = "MIGRATION_TYPE_ONE_TIME_COPY"
+	// Intended for an initial copy followed by ongoing replication of source
+	// changes.
+	MigrationType_MigrationTypeOnline MigrationType = "MIGRATION_TYPE_ONLINE"
+)
+
 // Controls how the Data API exposes the OpenAPI documentation endpoint. Only
 // IGNORE_PRIVILEGES and DISABLED are supported today; "follow-privileges" is
 // not implemented yet (it may be added later as value 3 — adding new enum
@@ -673,6 +749,19 @@ const (
 	SyncedTable_SyncedTableSpec_SyncedTableSchedulingPolicy_Snapshot SyncedTable_SyncedTableSpec_SyncedTableSchedulingPolicy = "SNAPSHOT"
 )
 
+// Request to acknowledge assessment warnings..
+type AcknowledgeAssessmentWarningsRequest struct {
+	// Required. The assessment resource name, in the format
+	// `migrations/{migration}/assessments/{assessment}`.
+	Name *string
+}
+
+// Response produced after assessment warnings are acknowledged..
+type AcknowledgeAssessmentWarningsResponse struct {
+	// The assessment after its warnings are acknowledged.
+	Assessment *Assessment
+}
+
 // Databricks Error that is returned by all Databricks APIs..
 type ApiError struct {
 	ErrorCode  ErrorCode
@@ -680,6 +769,80 @@ type ApiError struct {
 	StackTrace *string
 	Details    []json.RawMessage
 }
+
+// Request to assess a migration..
+type AssessMigrationRequest struct {
+	// Required. The migration resource name, in the format
+	// `migrations/{migration}`.
+	Name *string
+}
+
+// Response produced after an assessment run is created..
+type AssessMigrationResponse struct {
+	// The assessment run created for the migration.
+	Assessment *Assessment
+}
+
+// A server-managed assessment of a migration's source configuration. Completed
+// check results are immutable..
+type Assessment struct {
+	// The assessment resource name, in the format
+	// `migrations/{migration}/assessments/{assessment}`.
+	Name *string
+	// Output-only. The aggregate assessment state.
+	State AssessmentState
+	// Output-only. Results of the checks performed by this assessment.
+	Checks []AssessmentCheck
+	// Output-only. The time when the assessment started.
+	CreateTime *types.Time
+	// Output-only. The time when the assessment completed.
+	CompleteTime *types.Time
+	// Output-only. The time when the assessment expires.
+	ExpireTime *types.Time
+}
+
+// The result of one assessment check..
+type AssessmentCheck struct {
+	// Output-only. Stable identifier of the check.
+	CheckId *string
+	// Output-only. The check verdict.
+	Verdict AssessmentCheckVerdict
+	// Output-only. Whether this result blocks migration from starting.
+	BlocksMigration *bool
+	// Output-only. Explanation of the result.
+	Reason *string
+	// Output-only. The source database the check evaluated. Unset for checks that
+	// assess the whole source server rather than a single database.
+	Database *string
+	// Output-only. Measurements observed by this check. Absent when unavailable.
+	Details *AssessmentCheckDetails
+}
+
+// Measurements observed when an assessment check ran. Unset for older
+// assessments..
+type AssessmentCheckDetails struct {
+	Kind isAssessmentCheckDetails_Kind
+}
+
+type isAssessmentCheckDetails_Kind interface {
+	isAssessmentCheckDetails_Kind()
+}
+
+// AssessmentCheckDetails_Kind_DatabaseSize selects DatabaseSize for AssessmentCheckDetails.Kind.
+// Output-only. Physical size of the source database observed by this check.
+type AssessmentCheckDetails_Kind_DatabaseSize struct {
+	DatabaseSize DatabaseSizeDetails
+}
+
+func (*AssessmentCheckDetails_Kind_DatabaseSize) isAssessmentCheckDetails_Kind() {}
+
+// AssessmentCheckDetails_Kind_LongTransaction selects LongTransaction for AssessmentCheckDetails.Kind.
+// Output-only. Age of the oldest source transaction observed by this check.
+type AssessmentCheckDetails_Kind_LongTransaction struct {
+	LongTransaction LongTransactionDetails
+}
+
+func (*AssessmentCheckDetails_Kind_LongTransaction) isAssessmentCheckDetails_Kind() {}
 
 type Branch struct {
 	// Output only. The full resource path of the branch. Format:
@@ -1016,6 +1179,16 @@ type CreateEndpointRequest struct {
 	ReplaceExisting *bool
 }
 
+type CreateMigrationRequest struct {
+	// Required. The ID to use for the migration. It becomes the final component of
+	// the resource name (`migrations/{migration_id}`). It must be 1-63 characters
+	// long, start with a lowercase letter, and contain only lowercase letters,
+	// numbers, and hyphens.
+	MigrationId *string
+	// Required. The migration to create.
+	Migration *Migration
+}
+
 type CreateProjectRequest struct {
 	// The ID to use for the Project. This becomes the final component of the
 	// project's resource name. The ID is required and must be 1-63 characters long,
@@ -1047,8 +1220,10 @@ type CreateRoleRequest struct {
 	// When the role already exists, only mutable fields are updated. Attributes
 	// omitted from the request retain their current values. Set an attribute
 	// explicitly to false to disable it. `identity_type`, `auth_method`, and
-	// `postgres_role` retain their existing values; supplied values for these
-	// fields are ignored. `membership_roles` is overwritten, not merged. Leaving
+	// `postgres_role` retain their existing values. Omit these fields or supply
+	// their current values. A differing supplied value returns
+	// INVALID_PARAMETER_VALUE and rejects the entire request, including changes to
+	// mutable fields. `membership_roles` is overwritten, not merged. Leaving
 	// `membership_roles` empty clears all of the role's existing memberships,
 	// including `DATABRICKS_SUPERUSER`. Always send the complete desired list of
 	// memberships when using this field.
@@ -1222,7 +1397,26 @@ type DatabaseCredential struct {
 	ExpireTime *types.Time
 }
 
+// A mapping between one source and target database..
+type DatabaseMapping struct {
+	// Required. The exact PostgreSQL database name on the source server.
+	SourceDatabase *string
+	// The PostgreSQL database name to create on the target branch. When omitted,
+	// the source database name is preserved.
+	TargetDatabase *string
+	// Output-only. The resolved target PostgreSQL database name. Equal to
+	// `target_database` when provided; otherwise equal to `source_database`.
+	EffectiveTargetDatabase *string
+}
+
 type DatabaseOperationMetadata struct {
+}
+
+// Physical database size, including indexes and bloat; not a dump archive size
+// estimate..
+type DatabaseSizeDetails struct {
+	// Size reported by pg_database_size, in bytes. Zero is a measured empty size.
+	SizeBytes *int64
 }
 
 type DeleteBranchRequest struct {
@@ -1267,6 +1461,13 @@ type DeleteDatabaseRequest struct {
 type DeleteEndpointRequest struct {
 	// The full resource path of the endpoint to delete. Format:
 	// projects/{project_id}/branches/{branch_id}/endpoints/{endpoint_id}
+	Name *string
+}
+
+// Request to soft-delete a migration..
+type DeleteMigrationRequest struct {
+	// Required. The migration resource name, in the format
+	// `migrations/{migration}`.
 	Name *string
 }
 
@@ -1512,6 +1713,13 @@ type GenerateDatabaseCredentialRequest_Expiration_ExpireTime struct {
 func (*GenerateDatabaseCredentialRequest_Expiration_ExpireTime) isGenerateDatabaseCredentialRequest_Expiration() {
 }
 
+// Request to get a migration assessment run..
+type GetAssessmentRequest struct {
+	// Required. The assessment resource name, in the format
+	// `migrations/{migration}/assessments/{assessment}`.
+	Name *string
+}
+
 type GetBranchRequest struct {
 	// The full resource path of the branch to retrieve. Format:
 	// projects/{project_id}/branches/{branch_id}
@@ -1555,6 +1763,13 @@ type GetDatabaseRequest struct {
 type GetEndpointRequest struct {
 	// The full resource path of the endpoint to retrieve. Format:
 	// projects/{project_id}/branches/{branch_id}/endpoints/{endpoint_id}
+	Name *string
+}
+
+// Request to get a migration..
+type GetMigrationRequest struct {
+	// Required. The migration resource name, in the format
+	// `migrations/{migration}`.
 	Name *string
 }
 
@@ -1642,6 +1857,26 @@ func (*InitialEndpointSpec_Suspension_NoSuspension) isInitialEndpointSpec_Suspen
 type initialEndpointSpecSuspensionFieldMaskMetadata struct {
 	*InitialEndpointSpec_Suspension_SuspendTimeoutDuration
 	*InitialEndpointSpec_Suspension_NoSuspension
+}
+
+// Request to list a migration's assessment runs..
+type ListAssessmentsRequest struct {
+	// Required. The parent migration resource name, in the format
+	// `migrations/{migration}`.
+	Parent *string
+	// The maximum number of assessments to return. The server default is 100;
+	// values above 1000 are capped to 1000.
+	PageSize *int
+	// A page token from a previous call.
+	PageToken *string
+}
+
+// Response to list assessments..
+type ListAssessmentsResponse struct {
+	// Assessment runs ordered from newest to oldest.
+	Assessments []Assessment
+	// A token for retrieving the next page. Empty when there are no more results.
+	NextPageToken *string
 }
 
 type ListBranchesRequest struct {
@@ -1745,6 +1980,26 @@ type ListEndpointsResponse struct {
 	NextPageToken *string
 }
 
+// Request to list migrations..
+type ListMigrationsRequest struct {
+	// The maximum number of migrations to return. The server default is 100; values
+	// above 1000 are capped to 1000.
+	PageSize *int
+	// A page token from a previous call.
+	PageToken *string
+	// Whether to include soft-deleted migrations in the response. Hard-deleted and
+	// already-purged migrations are never returned.
+	ShowDeleted *bool
+}
+
+// Response to list migrations..
+type ListMigrationsResponse struct {
+	// Migrations visible to the caller.
+	Migrations []Migration
+	// A token for retrieving the next page. Empty when there are no more results.
+	NextPageToken *string
+}
+
 type ListProjectsRequest struct {
 	// Page token from a previous response. If not provided, returns the first page.
 	PageToken *string
@@ -1794,6 +2049,58 @@ type ListSnapshotsResponse struct {
 	Snapshots []Snapshot
 	// Token to retrieve the next page; empty if there are no more pages.
 	NextPageToken *string
+}
+
+// Oldest active source transaction at assessment time..
+type LongTransactionDetails struct {
+	// Age of the oldest active transaction when assessed. Zero when none is active.
+	OldestTransactionAge *types.Duration
+}
+
+// A managed migration of PostgreSQL databases into a Lakebase branch..
+type Migration struct {
+	// The migration resource name, in the format `migrations/{migration}`.
+	Name *string `fieldmask:"name"`
+	// Required. The name of the Unity Catalog connection (a UC securable name, such
+	// as `my_postgres_connection`) used to connect to the source PostgreSQL server.
+	SourceConnection *string `fieldmask:"source_connection"`
+	// Required. Mappings from source databases to target databases.
+	DatabaseMappings []DatabaseMapping `fieldmask:"database_mappings"`
+	// The Lakebase branch receiving the migrated databases, in the format
+	// `projects/{project_id}/branches/{branch_id}`. May be omitted during
+	// assessment, but must be set before the migration starts, and may be changed
+	// until then.
+	TargetBranch *string `fieldmask:"target_branch"`
+	// Output-only. The authoritative migration lifecycle state.
+	State MigrationState `fieldmask:"state"`
+	// Output-only. The time when the migration was created.
+	CreateTime *types.Time `fieldmask:"create_time"`
+	// Output-only. The time when the migration was last updated.
+	UpdateTime *types.Time `fieldmask:"update_time"`
+	// Output-only. The time when the migration was soft-deleted. Empty if the
+	// migration is active.
+	DeleteTime *types.Time `fieldmask:"delete_time"`
+	// Output-only. The time when the soft-deleted migration is scheduled for
+	// permanent deletion. Empty if the migration is active or permanent deletion is
+	// not scheduled.
+	PurgeTime *types.Time `fieldmask:"purge_time"`
+	// Output-only. The current error preventing migration progress, if any.
+	Error *MigrationError `fieldmask:"error"`
+	// Required. Immutable. The intended migration mode, selected when the migration
+	// is created.
+	MigrationType MigrationType `fieldmask:"migration_type"`
+}
+
+// An error that prevents migration progress..
+type MigrationError struct {
+	// A stable machine-readable error code.
+	Code *string `fieldmask:"code"`
+	// A concise explanation of the failure.
+	Message *string `fieldmask:"message"`
+}
+
+// Metadata for a long-running operation that applies an action to a migration..
+type MigrationOperationMetadata struct {
 }
 
 // Take a snapshot once per month, on the configured day at the configured hour..
@@ -2095,10 +2402,13 @@ type Role_RoleSpec struct {
 	// * application ID for SERVICE_PRINCIPAL * user email for USER * group name for
 	// GROUP
 	//
-	// This field is set when the role is created and cannot be changed by
-	// UpdateRole. If provided in an UpdateRole request body, its value is ignored
-	// and the existing value is retained. Do not include this field as an explicit
-	// path in update_mask.
+	// This field is set when the role is created and cannot be changed. When
+	// replacing an existing role with replace_existing=true, omit this field or
+	// supply its current value. A differing value returns INVALID_PARAMETER_VALUE
+	// and rejects the entire request, including changes to mutable fields. With `*`
+	// or masks containing only mutable fields, supplied values are ignored.
+	// Including this field as an explicit path in update_mask returns
+	// INVALID_PARAMETER_VALUE.
 	IdentityType Role_IdentityType `fieldmask:"identity_type"`
 	// The desired API-exposed Postgres role attribute to associate with the role.
 	// Optional.
@@ -2124,10 +2434,13 @@ type Role_RoleSpec struct {
 	// NOTE: for the <Databricks> identity type GROUP, LAKEBASE_OAUTH_V1 is the
 	// default auth method (group can login as well).
 	//
-	// This field is set when the role is created and cannot be changed by
-	// UpdateRole. If provided in an UpdateRole request body, its value is ignored
-	// and the existing value is retained. Do not include this field as an explicit
-	// path in update_mask.
+	// This field is set when the role is created and cannot be changed. When
+	// replacing an existing role with replace_existing=true, omit this field or
+	// supply its current value. A differing value returns INVALID_PARAMETER_VALUE
+	// and rejects the entire request, including changes to mutable fields. With `*`
+	// or masks containing only mutable fields, supplied values are ignored.
+	// Including this field as an explicit path in update_mask returns
+	// INVALID_PARAMETER_VALUE.
 	AuthMethod Role_AuthMethod `fieldmask:"auth_method"`
 	// The name of the Postgres role.
 	//
@@ -2142,10 +2455,13 @@ type Role_RoleSpec struct {
 	// 1. user email for IdentityType.USER 2. app ID for
 	// IdentityType.SERVICE_PRINCIPAL 2. group name for IdentityType.GROUP
 	//
-	// This field is set when the role is created and cannot be changed by
-	// UpdateRole. If provided in an UpdateRole request body, its value is ignored
-	// and the existing value is retained. Do not include this field as an explicit
-	// path in update_mask.
+	// This field is set when the role is created and cannot be changed. When
+	// replacing an existing role with replace_existing=true, omit this field or
+	// supply its current value. A differing value returns INVALID_PARAMETER_VALUE
+	// and rejects the entire request, including changes to mutable fields. With `*`
+	// or masks containing only mutable fields, supplied values are ignored.
+	// Including this field as an explicit path in update_mask returns
+	// INVALID_PARAMETER_VALUE.
 	PostgresRole *string `fieldmask:"postgres_role"`
 }
 
@@ -2347,6 +2663,19 @@ type SnapshotStatus_Expiration_NoExpiry struct {
 
 func (*SnapshotStatus_Expiration_NoExpiry) isSnapshotStatus_Expiration() {}
 
+// Request to start a migration..
+type StartMigrationRequest struct {
+	// Required. The migration resource name, in the format
+	// `migrations/{migration}`.
+	Name *string
+}
+
+// Response produced after migration preparation has started..
+type StartMigrationResponse struct {
+	// The migration after the start action is applied.
+	Migration *Migration
+}
+
 type SyncedTable struct {
 	// Output only. The Full resource name of the synced table in Postgres where
 	// (catalog, schema, table) are the UC entity names.
@@ -2527,6 +2856,19 @@ type UndeleteBranchRequest struct {
 	Name *string
 }
 
+// Request to restore a soft-deleted migration before it is permanently purged..
+type UndeleteMigrationRequest struct {
+	// Required. The migration resource name, in the format
+	// `migrations/{migration}`.
+	Name *string
+}
+
+// Response produced after a soft-deleted migration is restored..
+type UndeleteMigrationResponse struct {
+	// The restored migration.
+	Migration *Migration
+}
+
 // Request to restore a soft-deleted project within its retention period..
 type UndeleteProjectRequest struct {
 	// The full resource path of the project to undelete. Format:
@@ -2573,6 +2915,14 @@ type UpdateEndpointRequest struct {
 	UpdateMask *types.FieldMask[Endpoint]
 }
 
+// Request to update migration configuration..
+type UpdateMigrationRequest struct {
+	// Required. The migration containing the user-owned fields to update.
+	Migration *Migration
+	// Required. The fields to update.
+	UpdateMask *types.FieldMask[Migration]
+}
+
 type UpdateProjectRequest struct {
 	// The Project to update.
 	//
@@ -2594,14 +2944,12 @@ type UpdateRoleRequest struct {
 	// `spec.attributes.bypassrls`.
 	//
 	// `spec.identity_type`, `spec.auth_method`, and `spec.postgres_role` cannot be
-	// changed. Values supplied for these fields in the request body are ignored.
-	// Including one of these fields as an explicit path in update_mask returns an
-	// INVALID_PARAMETER_VALUE error. When `spec` is the only path in the mask, only
-	// the supplied mutable attributes are updated. `*` by itself, or `spec`
-	// combined with other supported paths, selects all supported mutable fields.
-	// For these masks, all three attributes (`createdb`, `createrole`, and
-	// `bypassrls`) must be supplied; omitting any returns an
-	// INVALID_PARAMETER_VALUE error. Each of these mask forms replaces
+	// changed. Including an immutable field as an explicit path in update_mask
+	// returns INVALID_PARAMETER_VALUE. With `*` or masks containing only mutable
+	// fields, supplied values for these immutable fields are ignored. `*` by itself
+	// selects all supported mutable fields. For this mask, all three attributes
+	// (`createdb`, `createrole`, and `bypassrls`) must be supplied; omitting any
+	// returns an INVALID_PARAMETER_VALUE error. The `*` mask replaces
 	// `membership_roles`. Omitting it or supplying an empty list clears all
 	// memberships, including `DATABRICKS_SUPERUSER`.
 	UpdateMask *types.FieldMask[Role]

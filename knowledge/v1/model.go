@@ -15,8 +15,9 @@ const (
 	// fully qualified name (FQN, `catalog.schema.table`). Create and Get return the
 	// table's current FQN. `asset_scope_id` is the metastore UUID.
 	AssetType_AssetTypeUcTable AssetType = "ASSET_TYPE_UC_TABLE"
-	// Lakeview dashboard. Create accepts its UUID as 32 hexadecimal characters or
-	// in hyphenated form. `asset_scope_id` is the decimal workspace ID string.
+	// Workspace dashboard. Create accepts a numeric tree ID or a Lakeview UUID (32
+	// hex digits or hyphenated). Create and Get return the tree ID.
+	// `asset_scope_id` is the decimal workspace ID string.
 	AssetType_AssetTypeWorkspaceDashboard AssetType = "ASSET_TYPE_WORKSPACE_DASHBOARD"
 	// Genie agent (space). `asset_id` is the native space ID: 32 lowercase
 	// hexadecimal characters without hyphens. `asset_scope_id` is the decimal

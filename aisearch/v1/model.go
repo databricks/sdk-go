@@ -108,6 +108,34 @@ const (
 	ThroughputChangeRequestState_ChangeAdjusted ThroughputChangeRequestState = "CHANGE_ADJUSTED"
 )
 
+// Reason an in-progress scaling change is delayed.
+type EndpointScalingInfo_DelayReason string
+
+const (
+	EndpointScalingInfo_DelayReason_Unspecified EndpointScalingInfo_DelayReason = ""
+	// The additional capacity required for the change is not currently available.
+	EndpointScalingInfo_DelayReason_CapacityUnavailable EndpointScalingInfo_DelayReason = "CAPACITY_UNAVAILABLE"
+	// The endpoint cannot be scaled down safely right now, so it remains at its
+	// current size.
+	EndpointScalingInfo_DelayReason_ScaleDownBlocked EndpointScalingInfo_DelayReason = "SCALE_DOWN_BLOCKED"
+	// The change is taking longer than expected.
+	EndpointScalingInfo_DelayReason_TakingLongerThanExpected EndpointScalingInfo_DelayReason = "TAKING_LONGER_THAN_EXPECTED"
+)
+
+// Phase of an in-progress scaling change.
+type EndpointScalingInfo_Phase string
+
+const (
+	EndpointScalingInfo_Phase_Unspecified EndpointScalingInfo_Phase = ""
+	// Capacity is being added to or removed from the endpoint.
+	EndpointScalingInfo_Phase_AdjustingCapacity EndpointScalingInfo_Phase = "ADJUSTING_CAPACITY"
+	// The new capacity is in place and index replicas are being initialized on it.
+	EndpointScalingInfo_Phase_InitializingIndex EndpointScalingInfo_Phase = "INITIALIZING_INDEX"
+	// The completion time is being estimated, for example just after the change is
+	// requested or updated.
+	EndpointScalingInfo_Phase_Estimating EndpointScalingInfo_Phase = "ESTIMATING"
+)
+
 // Lifecycle state of an AI Search endpoint, used by both Standard and Storage
 // Optimized SKUs.
 type EndpointStatus_State string
@@ -341,6 +369,26 @@ type EndpointScalingInfo struct {
 	// The requested QPS target for the endpoint. Best-effort; the system does not
 	// guarantee this QPS will be achieved.
 	RequestedTargetQps *int64 `fieldmask:"requested_target_qps"`
+	// Estimated time at which the in-progress scaling change will complete. The
+	// estimate may change as the scaling change progresses. Unset when no scaling
+	// change is in progress, when no estimate is available, or when the change is
+	// delayed (see `delayed_reason`).
+	EstimatedCompletionTime *types.Time `fieldmask:"estimated_completion_time"`
+	// Current phase of the in-progress scaling change. Unset when no scaling change
+	// is in progress or the phase is not available.
+	Phase EndpointScalingInfo_Phase `fieldmask:"phase"`
+	// Percentage of index initialization completed, from 0 to 100. Set only during
+	// the `INITIALIZING_INDEX` phase; unset in other phases or when progress is not
+	// available.
+	IndexInitializationPercentage *int `fieldmask:"index_initialization_percentage"`
+	// Reason the in-progress scaling change is delayed. When set,
+	// `estimated_completion_time` is unset. Unset when the change is not delayed or
+	// no scaling change is in progress.
+	DelayedReason EndpointScalingInfo_DelayReason `fieldmask:"delayed_reason"`
+	// Earliest time a new Target QPS change is accepted. Set only while a scaling
+	// change is in progress, the change lock is on, and the endpoint has a recorded
+	// last throughput change; may be in the past once the lock has expired.
+	TargetQpsChangeAllowedAfterTime *types.Time `fieldmask:"target_qps_change_allowed_after_time"`
 }
 
 // Lifecycle and health state of an AI Search endpoint, along with any

@@ -493,6 +493,23 @@ const (
 	CronSchedule_Mode_Derived CronSchedule_Mode = "DERIVED"
 )
 
+// Lifecycle state of a requested materialization run.
+type MaterializationRunProgress_State string
+
+const (
+	MaterializationRunProgress_State_Unspecified MaterializationRunProgress_State = ""
+	// The run is awaiting submission or execution, including time spent in a queue.
+	MaterializationRunProgress_State_Pending MaterializationRunProgress_State = "PENDING"
+	// The run is materializing features or waiting for online synchronization.
+	MaterializationRunProgress_State_Running MaterializationRunProgress_State = "RUNNING"
+	// Materialization and any required online synchronization succeeded.
+	MaterializationRunProgress_State_Succeeded MaterializationRunProgress_State = "SUCCEEDED"
+	// Submission, queueing, execution, or online synchronization failed.
+	MaterializationRunProgress_State_Failed MaterializationRunProgress_State = "FAILED"
+	// The run was cancelled.
+	MaterializationRunProgress_State_Cancelled MaterializationRunProgress_State = "CANCELLED"
+)
+
 // Lifecycle state of a materialization set operation.
 type MaterializationSetOperationMetadata_State string
 
@@ -1028,6 +1045,14 @@ type CronSchedule struct {
 	// Defaults to UTC when omitted. Can only be configured for MANUAL schedules;
 	// DERIVED schedules are always aligned to UTC.
 	TimezoneId *string `fieldmask:"timezone_id"`
+	// Whether automatic materialization is paused. Defaults to `false`. Supported
+	// only for materializations in a materialization set. Use the
+	// `UpdateMaterializationSet` API to pause or resume the set.
+	//
+	// Pausing does not cancel running or queued runs. Runs can still be triggered
+	// through the `TriggerMaterializationSet` API. Resuming does not submit a run.
+	// Creating a paused materialization skips its initial run.
+	Paused *bool `fieldmask:"paused"`
 }
 
 // A CustomUdf function applies a registered Unity Catalog function row-wise to
@@ -1221,6 +1246,13 @@ type EntityColumn struct {
 	// notation (e.g., "value:user_id") is supported for backwards compatibility but
 	// is deprecated; migrate to dot notation.
 	Name *string
+}
+
+// A trigger that disables automatic materialization, including the initial run
+// at creation. Runs are instead triggered through the
+// `TriggerMaterializationSet` API. Supported only for batch materializations in
+// a materialization set..
+type ExternalTrigger struct {
 }
 
 type Feature struct {
@@ -1897,6 +1929,19 @@ type MaterializationNotifications struct {
 	OnFailure *MaterializationFailureNotification `fieldmask:"on_failure"`
 }
 
+// Progress of a requested run, which may materialize multiple members of the
+// set..
+type MaterializationRunProgress struct {
+	// IDs of the materialized features assigned to this run when the operation was
+	// created.
+	MaterializedFeatureIds []string
+	// Current state of the requested run.
+	State MaterializationRunProgress_State
+	// The failure, including a failure to submit the run. Present when `state` is
+	// `FAILED`.
+	Error *ApiError
+}
+
 // A group of materialized features created and managed as a single unit..
 type MaterializationSet struct {
 	// Server-assigned unique identifier for the materialization set.
@@ -1958,6 +2003,27 @@ type MaterializationSetOperationMetadata_Progress_UpdateProgress struct {
 }
 
 func (*MaterializationSetOperationMetadata_Progress_UpdateProgress) isMaterializationSetOperationMetadata_Progress() {
+}
+
+// MaterializationSetOperationMetadata_Progress_TriggerProgress selects TriggerProgress for MaterializationSetOperationMetadata.Progress.
+// Set by a `TriggerMaterializationSet` operation.
+type MaterializationSetOperationMetadata_Progress_TriggerProgress struct {
+	TriggerProgress MaterializationSetTriggerProgress
+}
+
+func (*MaterializationSetOperationMetadata_Progress_TriggerProgress) isMaterializationSetOperationMetadata_Progress() {
+}
+
+// Progress and outcomes of the runs requested by `TriggerMaterializationSet`.
+// Entries remain available after the operation finishes.
+//
+// Once all requested runs have finished, the operation fails if any run failed.
+// Otherwise, it is cancelled if any run was cancelled, and succeeds if all runs
+// succeeded..
+type MaterializationSetTriggerProgress struct {
+	// One entry per requested run, including runs that fail or are cancelled before
+	// submission.
+	Runs []MaterializationRunProgress
 }
 
 // Progress and outcomes of an `UpdateMaterializationSet` operation..
@@ -2091,6 +2157,17 @@ type MaterializedFeature_Trigger_StreamingMode struct {
 
 func (*MaterializedFeature_Trigger_StreamingMode) isMaterializedFeature_Trigger() {}
 
+// MaterializedFeature_Trigger_ExternalTrigger selects ExternalTrigger for MaterializedFeature.Trigger.
+// A trigger that disables automatic materialization, including the initial run
+// at creation. Runs are instead triggered through the
+// `TriggerMaterializationSet` API. Supported only for batch materializations in
+// a materialization set.
+type MaterializedFeature_Trigger_ExternalTrigger struct {
+	ExternalTrigger ExternalTrigger `fieldmask:"external_trigger"`
+}
+
+func (*MaterializedFeature_Trigger_ExternalTrigger) isMaterializedFeature_Trigger() {}
+
 type materializedFeatureDestinationFieldMaskMetadata struct {
 	*MaterializedFeature_Destination_OfflineStoreConfig
 	*MaterializedFeature_Destination_OnlineStoreConfig
@@ -2100,6 +2177,7 @@ type materializedFeatureTriggerFieldMaskMetadata struct {
 	*MaterializedFeature_Trigger_CronScheduleTrigger
 	*MaterializedFeature_Trigger_TableTrigger
 	*MaterializedFeature_Trigger_StreamingMode
+	*MaterializedFeature_Trigger_ExternalTrigger
 }
 
 // Why one materialization set member could not be changed..
@@ -2529,7 +2607,7 @@ type SdpSource struct {
 	// The full three-part names of the tables the pipeline reads from. Required to
 	// materialize this feature with a TableTrigger, which starts a run when these
 	// tables update. Each table must exist when the feature is created. Feature
-	// Store doesn't confirm that the pipeline reads from these tables. At most 100
+	// Store doesn't confirm that the pipeline reads from these tables. At most 25
 	// tables.
 	InputTables []string `fieldmask:"input_tables"`
 	// State tracking pipeline execution and output table validation. PENDING until
@@ -2865,6 +2943,14 @@ type TableTrigger struct {
 	// Which source table updates trigger a materialization run. If not set, any
 	// source table update triggers a run.
 	Condition TableTrigger_TableTriggerCondition `fieldmask:"condition"`
+	// Whether automatic materialization is paused. Defaults to `false`. Supported
+	// only for materializations in a materialization set. Use the
+	// `UpdateMaterializationSet` API to pause or resume the set.
+	//
+	// Pausing does not cancel running or queued runs. Runs can still be triggered
+	// through the `TriggerMaterializationSet` API. Resuming does not submit a run.
+	// Creating a paused materialization skips its initial run.
+	Paused *bool `fieldmask:"paused"`
 }
 
 type TimeWindow struct {
@@ -2940,6 +3026,20 @@ type TimeseriesColumn struct {
 	// Colon-prefixed notation (e.g., "value:event_timestamp") is supported for
 	// backwards compatibility but is deprecated; migrate to dot notation.
 	Name *string `fieldmask:"name"`
+}
+
+// Request to trigger materialization for a materialization set..
+type TriggerMaterializationSetRequest struct {
+	// The ID of the materialization set to trigger.
+	MaterializationSetId *string
+	// Idempotency token in UUID format. Reusing it returns the original operation
+	// without starting additional runs, even if the request differs or the
+	// operation has finished. If omitted, each request triggers independently.
+	RequestId *string
+}
+
+// Result of a successful `TriggerMaterializationSet` operation..
+type TriggerMaterializationSetResponse struct {
 }
 
 type TumblingWindow struct {

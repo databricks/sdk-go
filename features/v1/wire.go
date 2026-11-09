@@ -1008,6 +1008,7 @@ type cronScheduleWire struct {
 	CronExpression *string           `json:"cron_expression,omitempty"`
 	Mode           CronSchedule_Mode `json:"mode,omitempty"`
 	TimezoneId     *string           `json:"timezone_id,omitempty"`
+	Paused         *bool             `json:"paused,omitempty"`
 }
 
 func cronScheduleToWire(v *CronSchedule) (*cronScheduleWire, error) {
@@ -1018,6 +1019,7 @@ func cronScheduleToWire(v *CronSchedule) (*cronScheduleWire, error) {
 		CronExpression: v.CronExpression,
 		Mode:           v.Mode,
 		TimezoneId:     v.TimezoneId,
+		Paused:         v.Paused,
 	}, nil
 }
 
@@ -1029,6 +1031,7 @@ func cronScheduleFromWire(w *cronScheduleWire) (*CronSchedule, error) {
 		CronExpression: w.CronExpression,
 		Mode:           w.Mode,
 		TimezoneId:     w.TimezoneId,
+		Paused:         w.Paused,
 	}, nil
 }
 
@@ -1423,6 +1426,23 @@ func entityColumnFromWire(w *entityColumnWire) (*EntityColumn, error) {
 	return &EntityColumn{
 		Name: w.Name,
 	}, nil
+}
+
+type externalTriggerWire struct {
+}
+
+func externalTriggerToWire(v *ExternalTrigger) (*externalTriggerWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &externalTriggerWire{}, nil
+}
+
+func externalTriggerFromWire(w *externalTriggerWire) (*ExternalTrigger, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ExternalTrigger{}, nil
 }
 
 type featureWire struct {
@@ -2997,6 +3017,27 @@ func materializationNotificationsFromWire(w *materializationNotificationsWire) (
 	}, nil
 }
 
+type materializationRunProgressWire struct {
+	MaterializedFeatureIds []string                         `json:"materialized_feature_ids,omitempty"`
+	State                  MaterializationRunProgress_State `json:"state,omitempty"`
+	Error                  *apiErrorWire                    `json:"error,omitempty"`
+}
+
+func materializationRunProgressFromWire(w *materializationRunProgressWire) (*MaterializationRunProgress, error) {
+	if w == nil {
+		return nil, nil
+	}
+	errorPublicValue, err := apiErrorFromWire(w.Error)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializationRunProgress.Error", err)
+	}
+	return &MaterializationRunProgress{
+		MaterializedFeatureIds: w.MaterializedFeatureIds,
+		State:                  w.State,
+		Error:                  errorPublicValue,
+	}, nil
+}
+
 type materializationSetWire struct {
 	MaterializationSetId *string                           `json:"materialization_set_id,omitempty"`
 	MaterializedFeatures []materializedFeatureWire         `json:"materialized_features,omitempty"`
@@ -3067,6 +3108,7 @@ type materializationSetOperationMetadataWire struct {
 	MaterializationSetId *string                                   `json:"materialization_set_id,omitempty"`
 	DeletionProgress     *materializationSetDeletionProgressWire   `json:"deletion_progress,omitempty"`
 	UpdateProgress       *materializationSetUpdateProgressWire     `json:"update_progress,omitempty"`
+	TriggerProgress      *materializationSetTriggerProgressWire    `json:"trigger_progress,omitempty"`
 }
 
 func materializationSetOperationMetadataFromWire(w *materializationSetOperationMetadataWire) (*MaterializationSetOperationMetadata, error) {
@@ -3078,6 +3120,9 @@ func materializationSetOperationMetadataFromWire(w *materializationSetOperationM
 		progressMembers++
 	}
 	if w.UpdateProgress != nil {
+		progressMembers++
+	}
+	if w.TriggerProgress != nil {
 		progressMembers++
 	}
 	if progressMembers > 1 {
@@ -3097,6 +3142,12 @@ func materializationSetOperationMetadataFromWire(w *materializationSetOperationM
 			return nil, fmt.Errorf("%s: %w", "MaterializationSetOperationMetadata.Progress.UpdateProgress", err)
 		}
 		progressSelection = &MaterializationSetOperationMetadata_Progress_UpdateProgress{UpdateProgress: *progressUpdateProgressConverted}
+	case w.TriggerProgress != nil:
+		progressTriggerProgressConverted, err := materializationSetTriggerProgressFromWire(w.TriggerProgress)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "MaterializationSetOperationMetadata.Progress.TriggerProgress", err)
+		}
+		progressSelection = &MaterializationSetOperationMetadata_Progress_TriggerProgress{TriggerProgress: *progressTriggerProgressConverted}
 	}
 	return &MaterializationSetOperationMetadata{
 		FeatureFullNames:     w.FeatureFullNames,
@@ -3104,6 +3155,23 @@ func materializationSetOperationMetadataFromWire(w *materializationSetOperationM
 		CreateTime:           w.CreateTime,
 		MaterializationSetId: w.MaterializationSetId,
 		Progress:             progressSelection,
+	}, nil
+}
+
+type materializationSetTriggerProgressWire struct {
+	Runs []materializationRunProgressWire `json:"runs,omitempty"`
+}
+
+func materializationSetTriggerProgressFromWire(w *materializationSetTriggerProgressWire) (*MaterializationSetTriggerProgress, error) {
+	if w == nil {
+		return nil, nil
+	}
+	runsPublicValue, err := convertSlice(w.Runs, materializationRunProgressFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializationSetTriggerProgress.Runs", err)
+	}
+	return &MaterializationSetTriggerProgress{
+		Runs: runsPublicValue,
 	}, nil
 }
 
@@ -3166,6 +3234,7 @@ type materializedFeatureWire struct {
 	CronScheduleTrigger     *cronScheduleWire                         `json:"cron_schedule_trigger,omitempty"`
 	TableTrigger            *tableTriggerWire                         `json:"table_trigger,omitempty"`
 	StreamingMode           *streamingModeWire                        `json:"streaming_mode,omitempty"`
+	ExternalTrigger         *externalTriggerWire                      `json:"external_trigger,omitempty"`
 	LatestBackfillOperation *string                                   `json:"latest_backfill_operation,omitempty"`
 	Tags                    map[string]string                         `json:"tags,omitempty"`
 	BudgetPolicyId          *string                                   `json:"budget_policy_id,omitempty"`
@@ -3213,6 +3282,7 @@ func materializedFeatureToWire(v *MaterializedFeature) (*materializedFeatureWire
 	var triggerCronScheduleTriggerWire *cronScheduleWire
 	var triggerTableTriggerWire *tableTriggerWire
 	var triggerStreamingModeWire *streamingModeWire
+	var triggerExternalTriggerWire *externalTriggerWire
 	switch value := v.Trigger.(type) {
 	case nil:
 	case *MaterializedFeature_Trigger_CronScheduleTrigger:
@@ -3239,6 +3309,14 @@ func materializedFeatureToWire(v *MaterializedFeature) (*materializedFeatureWire
 			}
 			triggerStreamingModeWire = triggerStreamingModeConverted
 		}
+	case *MaterializedFeature_Trigger_ExternalTrigger:
+		if value != nil {
+			triggerExternalTriggerConverted, err := externalTriggerToWire(&value.ExternalTrigger)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "MaterializedFeature.Trigger.ExternalTrigger", err)
+			}
+			triggerExternalTriggerWire = triggerExternalTriggerConverted
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "MaterializedFeature.Trigger", value)
 	}
@@ -3255,6 +3333,7 @@ func materializedFeatureToWire(v *MaterializedFeature) (*materializedFeatureWire
 		CronScheduleTrigger:     triggerCronScheduleTriggerWire,
 		TableTrigger:            triggerTableTriggerWire,
 		StreamingMode:           triggerStreamingModeWire,
+		ExternalTrigger:         triggerExternalTriggerWire,
 		LatestBackfillOperation: v.LatestBackfillOperation,
 		Tags:                    v.Tags,
 		BudgetPolicyId:          v.BudgetPolicyId,
@@ -3287,6 +3366,9 @@ func materializedFeatureFromWire(w *materializedFeatureWire) (*MaterializedFeatu
 		triggerMembers++
 	}
 	if w.StreamingMode != nil {
+		triggerMembers++
+	}
+	if w.ExternalTrigger != nil {
 		triggerMembers++
 	}
 	if triggerMembers > 1 {
@@ -3335,6 +3417,12 @@ func materializedFeatureFromWire(w *materializedFeatureWire) (*MaterializedFeatu
 			return nil, fmt.Errorf("%s: %w", "MaterializedFeature.Trigger.StreamingMode", err)
 		}
 		triggerSelection = &MaterializedFeature_Trigger_StreamingMode{StreamingMode: *triggerStreamingModeConverted}
+	case w.ExternalTrigger != nil:
+		triggerExternalTriggerConverted, err := externalTriggerFromWire(w.ExternalTrigger)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "MaterializedFeature.Trigger.ExternalTrigger", err)
+		}
+		triggerSelection = &MaterializedFeature_Trigger_ExternalTrigger{ExternalTrigger: *triggerExternalTriggerConverted}
 	}
 	return &MaterializedFeature{
 		MaterializedFeatureId:   w.MaterializedFeatureId,
@@ -4745,6 +4833,7 @@ type tableTriggerWire struct {
 	MinTimeBetweenTriggers *types.Duration                    `json:"min_time_between_triggers,omitempty"`
 	WaitAfterLastChange    *types.Duration                    `json:"wait_after_last_change,omitempty"`
 	Condition              TableTrigger_TableTriggerCondition `json:"condition,omitempty"`
+	Paused                 *bool                              `json:"paused,omitempty"`
 }
 
 func tableTriggerToWire(v *TableTrigger) (*tableTriggerWire, error) {
@@ -4755,6 +4844,7 @@ func tableTriggerToWire(v *TableTrigger) (*tableTriggerWire, error) {
 		MinTimeBetweenTriggers: v.MinTimeBetweenTriggers,
 		WaitAfterLastChange:    v.WaitAfterLastChange,
 		Condition:              v.Condition,
+		Paused:                 v.Paused,
 	}, nil
 }
 
@@ -4766,6 +4856,7 @@ func tableTriggerFromWire(w *tableTriggerWire) (*TableTrigger, error) {
 		MinTimeBetweenTriggers: w.MinTimeBetweenTriggers,
 		WaitAfterLastChange:    w.WaitAfterLastChange,
 		Condition:              w.Condition,
+		Paused:                 w.Paused,
 	}, nil
 }
 
@@ -4924,6 +5015,31 @@ func timeseriesColumnFromWire(w *timeseriesColumnWire) (*TimeseriesColumn, error
 	return &TimeseriesColumn{
 		Name: w.Name,
 	}, nil
+}
+
+type triggerMaterializationSetRequestWire struct {
+	MaterializationSetId *string `json:"materialization_set_id,omitempty"`
+	RequestId            *string `json:"request_id,omitempty"`
+}
+
+func triggerMaterializationSetRequestToWire(v *TriggerMaterializationSetRequest) (*triggerMaterializationSetRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &triggerMaterializationSetRequestWire{
+		MaterializationSetId: v.MaterializationSetId,
+		RequestId:            v.RequestId,
+	}, nil
+}
+
+type triggerMaterializationSetResponseWire struct {
+}
+
+func triggerMaterializationSetResponseFromWire(w *triggerMaterializationSetResponseWire) (*TriggerMaterializationSetResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &TriggerMaterializationSetResponse{}, nil
 }
 
 type tumblingWindowWire struct {

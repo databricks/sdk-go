@@ -62,6 +62,36 @@ func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
 	return &value
 }
 
+type acknowledgeAssessmentWarningsRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func acknowledgeAssessmentWarningsRequestToWire(v *AcknowledgeAssessmentWarningsRequest) (*acknowledgeAssessmentWarningsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &acknowledgeAssessmentWarningsRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+type acknowledgeAssessmentWarningsResponseWire struct {
+	Assessment *assessmentWire `json:"assessment,omitempty"`
+}
+
+func acknowledgeAssessmentWarningsResponseFromWire(w *acknowledgeAssessmentWarningsResponseWire) (*AcknowledgeAssessmentWarningsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	assessmentPublicValue, err := assessmentFromWire(w.Assessment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AcknowledgeAssessmentWarningsResponse.Assessment", err)
+	}
+	return &AcknowledgeAssessmentWarningsResponse{
+		Assessment: assessmentPublicValue,
+	}, nil
+}
+
 type apiErrorWire struct {
 	ErrorCode  ErrorCode         `json:"error_code,omitempty"`
 	Message    *string           `json:"message,omitempty"`
@@ -78,6 +108,129 @@ func apiErrorFromWire(w *apiErrorWire) (*ApiError, error) {
 		Message:    w.Message,
 		StackTrace: w.StackTrace,
 		Details:    w.Details,
+	}, nil
+}
+
+type assessMigrationRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func assessMigrationRequestToWire(v *AssessMigrationRequest) (*assessMigrationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &assessMigrationRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+type assessMigrationResponseWire struct {
+	Assessment *assessmentWire `json:"assessment,omitempty"`
+}
+
+func assessMigrationResponseFromWire(w *assessMigrationResponseWire) (*AssessMigrationResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	assessmentPublicValue, err := assessmentFromWire(w.Assessment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AssessMigrationResponse.Assessment", err)
+	}
+	return &AssessMigrationResponse{
+		Assessment: assessmentPublicValue,
+	}, nil
+}
+
+type assessmentWire struct {
+	Name         *string               `json:"name,omitempty"`
+	State        AssessmentState       `json:"state,omitempty"`
+	Checks       []assessmentCheckWire `json:"checks,omitempty"`
+	CreateTime   *types.Time           `json:"create_time,omitempty"`
+	CompleteTime *types.Time           `json:"complete_time,omitempty"`
+	ExpireTime   *types.Time           `json:"expire_time,omitempty"`
+}
+
+func assessmentFromWire(w *assessmentWire) (*Assessment, error) {
+	if w == nil {
+		return nil, nil
+	}
+	checksPublicValue, err := convertSlice(w.Checks, assessmentCheckFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Assessment.Checks", err)
+	}
+	return &Assessment{
+		Name:         w.Name,
+		State:        w.State,
+		Checks:       checksPublicValue,
+		CreateTime:   w.CreateTime,
+		CompleteTime: w.CompleteTime,
+		ExpireTime:   w.ExpireTime,
+	}, nil
+}
+
+type assessmentCheckWire struct {
+	CheckId         *string                     `json:"check_id,omitempty"`
+	Verdict         AssessmentCheckVerdict      `json:"verdict,omitempty"`
+	BlocksMigration *bool                       `json:"blocks_migration,omitempty"`
+	Reason          *string                     `json:"reason,omitempty"`
+	Database        *string                     `json:"database,omitempty"`
+	Details         *assessmentCheckDetailsWire `json:"details,omitempty"`
+}
+
+func assessmentCheckFromWire(w *assessmentCheckWire) (*AssessmentCheck, error) {
+	if w == nil {
+		return nil, nil
+	}
+	detailsPublicValue, err := assessmentCheckDetailsFromWire(w.Details)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AssessmentCheck.Details", err)
+	}
+	return &AssessmentCheck{
+		CheckId:         w.CheckId,
+		Verdict:         w.Verdict,
+		BlocksMigration: w.BlocksMigration,
+		Reason:          w.Reason,
+		Database:        w.Database,
+		Details:         detailsPublicValue,
+	}, nil
+}
+
+type assessmentCheckDetailsWire struct {
+	DatabaseSize    *databaseSizeDetailsWire    `json:"database_size,omitempty"`
+	LongTransaction *longTransactionDetailsWire `json:"long_transaction,omitempty"`
+}
+
+func assessmentCheckDetailsFromWire(w *assessmentCheckDetailsWire) (*AssessmentCheckDetails, error) {
+	if w == nil {
+		return nil, nil
+	}
+	kindMembers := 0
+	if w.DatabaseSize != nil {
+		kindMembers++
+	}
+	if w.LongTransaction != nil {
+		kindMembers++
+	}
+	if kindMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "AssessmentCheckDetails.Kind")
+	}
+	var kindSelection isAssessmentCheckDetails_Kind
+	switch {
+	case w.DatabaseSize != nil:
+		kindDatabaseSizeConverted, err := databaseSizeDetailsFromWire(w.DatabaseSize)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "AssessmentCheckDetails.Kind.DatabaseSize", err)
+		}
+		kindSelection = &AssessmentCheckDetails_Kind_DatabaseSize{DatabaseSize: *kindDatabaseSizeConverted}
+	case w.LongTransaction != nil:
+		kindLongTransactionConverted, err := longTransactionDetailsFromWire(w.LongTransaction)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "AssessmentCheckDetails.Kind.LongTransaction", err)
+		}
+		kindSelection = &AssessmentCheckDetails_Kind_LongTransaction{LongTransaction: *kindLongTransactionConverted}
+	}
+	return &AssessmentCheckDetails{
+		Kind: kindSelection,
 	}, nil
 }
 
@@ -626,6 +779,25 @@ func createEndpointRequestToWire(v *CreateEndpointRequest) (*createEndpointReque
 	}, nil
 }
 
+type createMigrationRequestWire struct {
+	MigrationId *string        `json:"migration_id,omitempty"`
+	Migration   *migrationWire `json:"migration,omitempty"`
+}
+
+func createMigrationRequestToWire(v *CreateMigrationRequest) (*createMigrationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	migrationWireValue, err := migrationToWire(v.Migration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateMigrationRequest.Migration", err)
+	}
+	return &createMigrationRequestWire{
+		MigrationId: v.MigrationId,
+		Migration:   migrationWireValue,
+	}, nil
+}
+
 type createProjectRequestWire struct {
 	ProjectId *string      `json:"project_id,omitempty"`
 	Project   *projectWire `json:"project,omitempty"`
@@ -1015,6 +1187,34 @@ func databaseCredentialFromWire(w *databaseCredentialWire) (*DatabaseCredential,
 	}, nil
 }
 
+type databaseMappingWire struct {
+	SourceDatabase          *string `json:"source_database,omitempty"`
+	TargetDatabase          *string `json:"target_database,omitempty"`
+	EffectiveTargetDatabase *string `json:"effective_target_database,omitempty"`
+}
+
+func databaseMappingToWire(v *DatabaseMapping) (*databaseMappingWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &databaseMappingWire{
+		SourceDatabase:          v.SourceDatabase,
+		TargetDatabase:          v.TargetDatabase,
+		EffectiveTargetDatabase: v.EffectiveTargetDatabase,
+	}, nil
+}
+
+func databaseMappingFromWire(w *databaseMappingWire) (*DatabaseMapping, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DatabaseMapping{
+		SourceDatabase:          w.SourceDatabase,
+		TargetDatabase:          w.TargetDatabase,
+		EffectiveTargetDatabase: w.EffectiveTargetDatabase,
+	}, nil
+}
+
 type databaseOperationMetadataWire struct {
 }
 
@@ -1023,6 +1223,23 @@ func databaseOperationMetadataFromWire(w *databaseOperationMetadataWire) (*Datab
 		return nil, nil
 	}
 	return &DatabaseOperationMetadata{}, nil
+}
+
+type databaseSizeDetailsWire struct {
+	SizeBytes *wireInt64 `json:"size_bytes,omitempty"`
+}
+
+func databaseSizeDetailsFromWire(w *databaseSizeDetailsWire) (*DatabaseSizeDetails, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sizeBytesPublicValue, err := int64FromWire(w.SizeBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DatabaseSizeDetails.SizeBytes", err)
+	}
+	return &DatabaseSizeDetails{
+		SizeBytes: sizeBytesPublicValue,
+	}, nil
 }
 
 type deleteBranchRequestWire struct {
@@ -1598,6 +1815,42 @@ func initialEndpointSpecFromWire(w *initialEndpointSpecWire) (*InitialEndpointSp
 	}, nil
 }
 
+type listAssessmentsRequestWire struct {
+	Parent    *string `json:"parent,omitempty"`
+	PageSize  *int    `json:"page_size,omitempty"`
+	PageToken *string `json:"page_token,omitempty"`
+}
+
+func listAssessmentsRequestToWire(v *ListAssessmentsRequest) (*listAssessmentsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listAssessmentsRequestWire{
+		Parent:    v.Parent,
+		PageSize:  v.PageSize,
+		PageToken: v.PageToken,
+	}, nil
+}
+
+type listAssessmentsResponseWire struct {
+	Assessments   []assessmentWire `json:"assessments,omitempty"`
+	NextPageToken *string          `json:"next_page_token,omitempty"`
+}
+
+func listAssessmentsResponseFromWire(w *listAssessmentsResponseWire) (*ListAssessmentsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	assessmentsPublicValue, err := convertSlice(w.Assessments, assessmentFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAssessmentsResponse.Assessments", err)
+	}
+	return &ListAssessmentsResponse{
+		Assessments:   assessmentsPublicValue,
+		NextPageToken: w.NextPageToken,
+	}, nil
+}
+
 type listBranchesRequestWire struct {
 	Parent      *string `json:"parent,omitempty"`
 	PageToken   *string `json:"page_token,omitempty"`
@@ -1780,6 +2033,42 @@ func listEndpointsResponseFromWire(w *listEndpointsResponseWire) (*ListEndpoints
 	}, nil
 }
 
+type listMigrationsRequestWire struct {
+	PageSize    *int    `json:"page_size,omitempty"`
+	PageToken   *string `json:"page_token,omitempty"`
+	ShowDeleted *bool   `json:"show_deleted,omitempty"`
+}
+
+func listMigrationsRequestToWire(v *ListMigrationsRequest) (*listMigrationsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listMigrationsRequestWire{
+		PageSize:    v.PageSize,
+		PageToken:   v.PageToken,
+		ShowDeleted: v.ShowDeleted,
+	}, nil
+}
+
+type listMigrationsResponseWire struct {
+	Migrations    []migrationWire `json:"migrations,omitempty"`
+	NextPageToken *string         `json:"next_page_token,omitempty"`
+}
+
+func listMigrationsResponseFromWire(w *listMigrationsResponseWire) (*ListMigrationsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	migrationsPublicValue, err := convertSlice(w.Migrations, migrationFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListMigrationsResponse.Migrations", err)
+	}
+	return &ListMigrationsResponse{
+		Migrations:    migrationsPublicValue,
+		NextPageToken: w.NextPageToken,
+	}, nil
+}
+
 type listProjectsRequestWire struct {
 	PageToken   *string `json:"page_token,omitempty"`
 	PageSize    *int    `json:"page_size,omitempty"`
@@ -1886,6 +2175,122 @@ func listSnapshotsResponseFromWire(w *listSnapshotsResponseWire) (*ListSnapshots
 		Snapshots:     snapshotsPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+type longTransactionDetailsWire struct {
+	OldestTransactionAge *types.Duration `json:"oldest_transaction_age,omitempty"`
+}
+
+func longTransactionDetailsFromWire(w *longTransactionDetailsWire) (*LongTransactionDetails, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &LongTransactionDetails{
+		OldestTransactionAge: w.OldestTransactionAge,
+	}, nil
+}
+
+type migrationWire struct {
+	Name             *string               `json:"name,omitempty"`
+	SourceConnection *string               `json:"source_connection,omitempty"`
+	DatabaseMappings []databaseMappingWire `json:"database_mappings,omitempty"`
+	TargetBranch     *string               `json:"target_branch,omitempty"`
+	State            MigrationState        `json:"state,omitempty"`
+	CreateTime       *types.Time           `json:"create_time,omitempty"`
+	UpdateTime       *types.Time           `json:"update_time,omitempty"`
+	DeleteTime       *types.Time           `json:"delete_time,omitempty"`
+	PurgeTime        *types.Time           `json:"purge_time,omitempty"`
+	Error            *migrationErrorWire   `json:"error,omitempty"`
+	MigrationType    MigrationType         `json:"migration_type,omitempty"`
+}
+
+func migrationToWire(v *Migration) (*migrationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	databaseMappingsWireValue, err := convertSlice(v.DatabaseMappings, databaseMappingToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Migration.DatabaseMappings", err)
+	}
+	errorWireValue, err := migrationErrorToWire(v.Error)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Migration.Error", err)
+	}
+	return &migrationWire{
+		Name:             v.Name,
+		SourceConnection: v.SourceConnection,
+		DatabaseMappings: databaseMappingsWireValue,
+		TargetBranch:     v.TargetBranch,
+		State:            v.State,
+		CreateTime:       v.CreateTime,
+		UpdateTime:       v.UpdateTime,
+		DeleteTime:       v.DeleteTime,
+		PurgeTime:        v.PurgeTime,
+		Error:            errorWireValue,
+		MigrationType:    v.MigrationType,
+	}, nil
+}
+
+func migrationFromWire(w *migrationWire) (*Migration, error) {
+	if w == nil {
+		return nil, nil
+	}
+	databaseMappingsPublicValue, err := convertSlice(w.DatabaseMappings, databaseMappingFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Migration.DatabaseMappings", err)
+	}
+	errorPublicValue, err := migrationErrorFromWire(w.Error)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Migration.Error", err)
+	}
+	return &Migration{
+		Name:             w.Name,
+		SourceConnection: w.SourceConnection,
+		DatabaseMappings: databaseMappingsPublicValue,
+		TargetBranch:     w.TargetBranch,
+		State:            w.State,
+		CreateTime:       w.CreateTime,
+		UpdateTime:       w.UpdateTime,
+		DeleteTime:       w.DeleteTime,
+		PurgeTime:        w.PurgeTime,
+		Error:            errorPublicValue,
+		MigrationType:    w.MigrationType,
+	}, nil
+}
+
+type migrationErrorWire struct {
+	Code    *string `json:"code,omitempty"`
+	Message *string `json:"message,omitempty"`
+}
+
+func migrationErrorToWire(v *MigrationError) (*migrationErrorWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &migrationErrorWire{
+		Code:    v.Code,
+		Message: v.Message,
+	}, nil
+}
+
+func migrationErrorFromWire(w *migrationErrorWire) (*MigrationError, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &MigrationError{
+		Code:    w.Code,
+		Message: w.Message,
+	}, nil
+}
+
+type migrationOperationMetadataWire struct {
+}
+
+func migrationOperationMetadataFromWire(w *migrationOperationMetadataWire) (*MigrationOperationMetadata, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &MigrationOperationMetadata{}, nil
 }
 
 type monthlyScheduleWire struct {
@@ -2957,6 +3362,36 @@ func snapshotStatusFromWire(w *snapshotStatusWire) (*SnapshotStatus, error) {
 	}, nil
 }
 
+type startMigrationRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func startMigrationRequestToWire(v *StartMigrationRequest) (*startMigrationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &startMigrationRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+type startMigrationResponseWire struct {
+	Migration *migrationWire `json:"migration,omitempty"`
+}
+
+func startMigrationResponseFromWire(w *startMigrationResponseWire) (*StartMigrationResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	migrationPublicValue, err := migrationFromWire(w.Migration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "StartMigrationResponse.Migration", err)
+	}
+	return &StartMigrationResponse{
+		Migration: migrationPublicValue,
+	}, nil
+}
+
 type syncedTableWire struct {
 	Name          *string                            `json:"name,omitempty"`
 	Uid           *string                            `json:"uid,omitempty"`
@@ -3360,6 +3795,36 @@ func undeleteBranchRequestToWire(v *UndeleteBranchRequest) (*undeleteBranchReque
 	}, nil
 }
 
+type undeleteMigrationRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func undeleteMigrationRequestToWire(v *UndeleteMigrationRequest) (*undeleteMigrationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &undeleteMigrationRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+type undeleteMigrationResponseWire struct {
+	Migration *migrationWire `json:"migration,omitempty"`
+}
+
+func undeleteMigrationResponseFromWire(w *undeleteMigrationResponseWire) (*UndeleteMigrationResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	migrationPublicValue, err := migrationFromWire(w.Migration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UndeleteMigrationResponse.Migration", err)
+	}
+	return &UndeleteMigrationResponse{
+		Migration: migrationPublicValue,
+	}, nil
+}
+
 type undeleteProjectRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -3445,6 +3910,25 @@ func updateEndpointRequestToWire(v *UpdateEndpointRequest) (*updateEndpointReque
 	}
 	return &updateEndpointRequestWire{
 		Endpoint:   endpointWireValue,
+		UpdateMask: fieldMaskToWire(v.UpdateMask),
+	}, nil
+}
+
+type updateMigrationRequestWire struct {
+	Migration  *migrationWire `json:"migration,omitempty"`
+	UpdateMask *string        `json:"update_mask,omitempty"`
+}
+
+func updateMigrationRequestToWire(v *UpdateMigrationRequest) (*updateMigrationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	migrationWireValue, err := migrationToWire(v.Migration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateMigrationRequest.Migration", err)
+	}
+	return &updateMigrationRequestWire{
+		Migration:  migrationWireValue,
 		UpdateMask: fieldMaskToWire(v.UpdateMask),
 	}, nil
 }

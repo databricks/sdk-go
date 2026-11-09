@@ -344,9 +344,9 @@ type Datasource struct {
 	// create, and update responses; list responses omit it.
 	EffectiveSchemaName *string `fieldmask:"effective_schema_name"`
 	// Name of the datasource in Unity Catalog, unique within its schema. Required
-	// on create and cannot be changed afterward. Reads return the value as
-	// supplied; the datasource's current Unity Catalog name, which reflects
-	// renames, is reported in `effective_datasource_name`.
+	// on create and can be updated within the same catalog and schema. Get
+	// synchronizes this field with the current Unity Catalog name, also reported in
+	// `effective_datasource_name`.
 	DatasourceName *string `fieldmask:"datasource_name"`
 	// Current UC leaf name of the datasource (server-owned). Tracks UC renames so
 	// callers can observe the live name without having to update the client-owned
@@ -410,10 +410,10 @@ type Datasource struct {
 	Status *DatasourceStatus `fieldmask:"status"`
 	// ID of the SQL warehouse that runs the checks Lakewatch performs to validate a
 	// create or update request, such as source and destination access checks.
-	// Required and non-blank on every create and update request; there is no
-	// default warehouse. The requester must be able to use the warehouse. Used only
-	// for those checks: it is not stored, is not returned on reads, and does not
-	// affect the compute that runs the ingestion job.
+	// Required and non-blank on every create and update request except a
+	// rename-only PATCH; there is no default warehouse. The requester must be able
+	// to use the warehouse. It is not stored, is not returned on reads, and does
+	// not affect the compute that runs the ingestion job.
 	WarehouseId *string `fieldmask:"warehouse_id"`
 	// ID of the workspace whose compute runs this datasource's ingestion job and
 	// owns its associated resources, such as the storage the ingested data lands
@@ -838,9 +838,9 @@ type Rule struct {
 	// Current name of the Unity Catalog schema that contains the rule. Reflects
 	// schema renames, which do not change `schema_name`. Unset until resolved.
 	EffectiveSchemaName *string `fieldmask:"effective_schema_name"`
-	// Name of the rule within its Unity Catalog schema. Required. Cannot be changed
-	// after creation. Reads return the value as supplied; the current UC name is
-	// reported in `effective_rule_name`.
+	// Name of the rule within its Unity Catalog schema. Required on create; can be
+	// updated within the same catalog and schema. Get synchronizes this field with
+	// the current Unity Catalog name, also reported in `effective_rule_name`.
 	RuleName *string `fieldmask:"rule_name"`
 	// Current UC leaf name of the rule (server-owned). Tracks UC renames so callers
 	// can observe the live name without having to update the client-owned
