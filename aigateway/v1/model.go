@@ -1543,9 +1543,7 @@ func (*ModelServiceConfig_DestinationConfig_TypeConfig_ExternalModelConfig) isMo
 // platform resolves the provider at invocation time..
 type ModelServiceConfig_ExternalModelConfig struct {
 	// Resource name of the governed ModelProviderService that owns provider auth
-	// and provider-specific configuration. The referenced ModelProviderService also
-	// carries the provider type, so this message does not surface it directly.
-	// Format:
+	// and provider-specific configuration. Format:
 	// `model-provider-services/{catalog}.{schema}.{model_provider_service}`. Each
 	// `{...}` component is capped at 255 characters individually.
 	ModelProviderService *string

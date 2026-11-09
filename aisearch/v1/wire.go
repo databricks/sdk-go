@@ -419,8 +419,13 @@ func endpointFromWire(w *endpointWire) (*Endpoint, error) {
 }
 
 type endpointScalingInfoWire struct {
-	State              ScalingChangeState `json:"state,omitempty"`
-	RequestedTargetQps *wireInt64         `json:"requested_target_qps,omitempty"`
+	State                           ScalingChangeState              `json:"state,omitempty"`
+	RequestedTargetQps              *wireInt64                      `json:"requested_target_qps,omitempty"`
+	EstimatedCompletionTime         *types.Time                     `json:"estimated_completion_time,omitempty"`
+	Phase                           EndpointScalingInfo_Phase       `json:"phase,omitempty"`
+	IndexInitializationPercentage   *int                            `json:"index_initialization_percentage,omitempty"`
+	DelayedReason                   EndpointScalingInfo_DelayReason `json:"delayed_reason,omitempty"`
+	TargetQpsChangeAllowedAfterTime *types.Time                     `json:"target_qps_change_allowed_after_time,omitempty"`
 }
 
 func endpointScalingInfoToWire(v *EndpointScalingInfo) (*endpointScalingInfoWire, error) {
@@ -432,8 +437,13 @@ func endpointScalingInfoToWire(v *EndpointScalingInfo) (*endpointScalingInfoWire
 		return nil, fmt.Errorf("%s: %w", "EndpointScalingInfo.RequestedTargetQps", err)
 	}
 	return &endpointScalingInfoWire{
-		State:              v.State,
-		RequestedTargetQps: requestedTargetQpsWireValue,
+		State:                           v.State,
+		RequestedTargetQps:              requestedTargetQpsWireValue,
+		EstimatedCompletionTime:         v.EstimatedCompletionTime,
+		Phase:                           v.Phase,
+		IndexInitializationPercentage:   v.IndexInitializationPercentage,
+		DelayedReason:                   v.DelayedReason,
+		TargetQpsChangeAllowedAfterTime: v.TargetQpsChangeAllowedAfterTime,
 	}, nil
 }
 
@@ -446,8 +456,13 @@ func endpointScalingInfoFromWire(w *endpointScalingInfoWire) (*EndpointScalingIn
 		return nil, fmt.Errorf("%s: %w", "EndpointScalingInfo.RequestedTargetQps", err)
 	}
 	return &EndpointScalingInfo{
-		State:              w.State,
-		RequestedTargetQps: requestedTargetQpsPublicValue,
+		State:                           w.State,
+		RequestedTargetQps:              requestedTargetQpsPublicValue,
+		EstimatedCompletionTime:         w.EstimatedCompletionTime,
+		Phase:                           w.Phase,
+		IndexInitializationPercentage:   w.IndexInitializationPercentage,
+		DelayedReason:                   w.DelayedReason,
+		TargetQpsChangeAllowedAfterTime: w.TargetQpsChangeAllowedAfterTime,
 	}, nil
 }
 

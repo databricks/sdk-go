@@ -71,6 +71,34 @@ const (
 	VectorIndexType_DirectAccess VectorIndexType = "DIRECT_ACCESS"
 )
 
+// Reason an in-progress scaling change is delayed.
+type EndpointScalingInfo_ScalingDelayReason string
+
+const (
+	EndpointScalingInfo_ScalingDelayReason_Unspecified EndpointScalingInfo_ScalingDelayReason = ""
+	// The additional capacity required for the change is not currently available.
+	EndpointScalingInfo_ScalingDelayReason_CapacityUnavailable EndpointScalingInfo_ScalingDelayReason = "CAPACITY_UNAVAILABLE"
+	// The endpoint cannot be scaled down safely right now, so it remains at its
+	// current size.
+	EndpointScalingInfo_ScalingDelayReason_ScaleDownBlocked EndpointScalingInfo_ScalingDelayReason = "SCALE_DOWN_BLOCKED"
+	// The change is taking longer than expected.
+	EndpointScalingInfo_ScalingDelayReason_TakingLongerThanExpected EndpointScalingInfo_ScalingDelayReason = "TAKING_LONGER_THAN_EXPECTED"
+)
+
+// Phase of an in-progress scaling change.
+type EndpointScalingInfo_ScalingPhase string
+
+const (
+	EndpointScalingInfo_ScalingPhase_Unspecified EndpointScalingInfo_ScalingPhase = ""
+	// Capacity is being added to or removed from the endpoint.
+	EndpointScalingInfo_ScalingPhase_AdjustingCapacity EndpointScalingInfo_ScalingPhase = "ADJUSTING_CAPACITY"
+	// The new capacity is in place and index replicas are being initialized on it.
+	EndpointScalingInfo_ScalingPhase_InitializingIndex EndpointScalingInfo_ScalingPhase = "INITIALIZING_INDEX"
+	// The completion time is being estimated, for example just after the change is
+	// requested or updated.
+	EndpointScalingInfo_ScalingPhase_Estimating EndpointScalingInfo_ScalingPhase = "ESTIMATING"
+)
+
 // Current state of the endpoint
 type EndpointStatus_State string
 
@@ -339,6 +367,27 @@ type EndpointScalingInfo struct {
 	// The requested QPS target for the endpoint. Best-effort; the system does not
 	// guarantee this QPS will be achieved.
 	RequestedTargetQps *int64
+	// Estimated time at which the in-progress scaling change will complete, in
+	// milliseconds since the Unix epoch. The estimate may change as the scaling
+	// change progresses. Unset when no scaling change is in progress, when no
+	// estimate is available, or when the change is delayed (see `delayed_reason`).
+	EstimatedCompletionTimestamp *int64
+	// Current phase of the in-progress scaling change. Unset when no scaling change
+	// is in progress or the phase is not available.
+	Phase EndpointScalingInfo_ScalingPhase
+	// Percentage of index initialization completed, from 0 to 100. Set only during
+	// the `INITIALIZING_INDEX` phase; unset in other phases or when progress is not
+	// available.
+	IndexInitializationPercentage *int
+	// Reason the in-progress scaling change is delayed. When set,
+	// `estimated_completion_timestamp` is unset. Unset when the change is not
+	// delayed or no scaling change is in progress.
+	DelayedReason EndpointScalingInfo_ScalingDelayReason
+	// Earliest time a new Target QPS change is accepted, in milliseconds since the
+	// Unix epoch. Set only while a scaling change is in progress, the change lock
+	// is on, and the endpoint has a recorded last throughput change; may be in the
+	// past once the lock has expired.
+	TargetQpsChangeAllowedAfterTimestamp *int64
 }
 
 // Status information of an endpoint.

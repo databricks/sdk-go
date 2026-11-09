@@ -2,6 +2,10 @@
 
 package clusterpolicies
 
+import (
+	"github.com/databricks/sdk-go/core/types"
+)
+
 type ListOrder string
 
 const (
@@ -19,6 +23,70 @@ const (
 	// Sort result list by policy name.
 	PolicySortColumn_PolicyName PolicySortColumn = "POLICY_NAME"
 )
+
+// T-shirt size for per-workload Spark executor limits.
+type TshirtSize string
+
+const (
+	TshirtSize_Unspecified TshirtSize = ""
+	// Small per-workload Spark executor limit.
+	TshirtSize_TShirtSizeSmall TshirtSize = "T_SHIRT_SIZE_SMALL"
+	// Medium per-workload Spark executor limit.
+	TshirtSize_TShirtSizeMedium TshirtSize = "T_SHIRT_SIZE_MEDIUM"
+	// Large per-workload Spark executor limit.
+	TshirtSize_TShirtSizeLarge TshirtSize = "T_SHIRT_SIZE_LARGE"
+	// Extra-large per-workload Spark executor limit.
+	TshirtSize_TShirtSizeXLarge TshirtSize = "T_SHIRT_SIZE_X_LARGE"
+	// Double extra-large per-workload Spark executor limit.
+	TshirtSize_TShirtSize2xLarge TshirtSize = "T_SHIRT_SIZE_2X_LARGE"
+	// Triple extra-large per-workload Spark executor limit.
+	TshirtSize_TShirtSize3xLarge TshirtSize = "T_SHIRT_SIZE_3X_LARGE"
+	// Quadruple extra-large per-workload Spark executor limit.
+	TshirtSize_TShirtSize4xLarge TshirtSize = "T_SHIRT_SIZE_4X_LARGE"
+)
+
+// Compute products allowed by a policy and their product-specific constraints.
+// At least one product must be set..
+type AllowedComputeProducts struct {
+	// Constraints for serverless automated compute. Absence disallows automated
+	// compute.
+	Automated *AutomatedConstraints
+	// Constraints for Lakebase instances. Absence disallows Lakebase.
+	Lakebase *LakebaseConstraints
+}
+
+// Constraints applied to serverless automated workloads by a compute policy..
+type AutomatedConstraints struct {
+	// Maximum per-workload Spark executor allocation. Absence imposes no limit.
+	PerWorkloadMax *RateLimitConfig
+}
+
+// A compute policy resource. A workspace-scoped policy that allows one or more
+// compute products, each with product-specific constraints..
+type ComputePolicy struct {
+	// The unique identifier of the compute policy (UUID). Server-assigned on
+	// create.
+	ComputePolicyId *string
+	// The display name of the compute policy.
+	DisplayName *string
+	// The compute products allowed by this policy and their constraints. At least
+	// one product must be set.
+	AllowedComputeProducts *AllowedComputeProducts
+	// User-defined key/value tags on the compute policy, provided at creation and
+	// validated. unified-tagging is the system of record for tag assignments.
+	Tags map[string]string
+	// Whether this is the workspace default policy for its single allowed compute
+	// product. Default policies are system-provisioned and cannot be deleted or
+	// renamed.
+	IsDefault *bool
+	// The creation timestamp.
+	CreateTime *types.Time
+	// Whether the calling user has use permission on this compute policy.
+	CanUse *bool
+	// Whether the calling user has manage permission on this compute policy. Manage
+	// includes use, so can_use is also true whenever this is true.
+	CanManage *bool
+}
 
 type CreatePolicyRequest struct {
 	// Cluster Policy name requested by the user. This has to be unique. Length must
@@ -113,6 +181,15 @@ type GetPolicyRequest struct {
 	PolicyId *string
 }
 
+// Constraints applied to Lakebase instances by a compute policy..
+type LakebaseConstraints struct {
+	// Maximum capacity units permitted per instance. Absence imposes no limit.
+	MaxCapacityUnitsPerInstance *int64
+	// Maximum idle time in minutes before scale-to-zero. Absence imposes no
+	// requirement.
+	MaxIdleMinutesBeforeScaleToZero *int64
+}
+
 type Library struct {
 	Lib isLibrary_Lib
 }
@@ -195,6 +272,23 @@ type Library_Lib_Requirements struct {
 
 func (*Library_Lib_Requirements) isLibrary_Lib() {}
 
+// Request to list compute policies in a workspace..
+type ListComputePoliciesRequest struct {
+	// Maximum number of policies to return per response. Unset or zero defaults to
+	// 100. The server caps requests above 150.
+	PageSize *int
+	// Token for cursor-based pagination.
+	PageToken *string
+}
+
+// Response for listing compute policies..
+type ListComputePoliciesResponse struct {
+	// The list of compute policies.
+	ComputePolicies []ComputePolicy
+	// Token for the next page of results. Empty if no more results.
+	NextPageToken *string
+}
+
 type ListPoliciesRequest struct {
 	// The order in which the policies get listed. * `DESC` - Sort result list in
 	// descending order. * `ASC` - Sort result list in ascending order.
@@ -208,6 +302,23 @@ type ListPoliciesRequest struct {
 type ListPoliciesResponse struct {
 	// List of policies.
 	Policies []Policy
+}
+
+// Request to list serverless computes in a workspace..
+type ListServerlessComputesRequest struct {
+	// Maximum number of computes to return per response. Unset or zero defaults to
+	// 100. The server caps requests above 150 to bound per-request RBAC fan-out.
+	PageSize *int
+	// Token for cursor-based pagination.
+	PageToken *string
+}
+
+// Response for listing serverless computes..
+type ListServerlessComputesResponse struct {
+	// The list of serverless computes.
+	ServerlessComputes []ServerlessCompute
+	// Token for the next page of results. Empty if no more results.
+	NextPageToken *string
 }
 
 type MavenLibrary struct {
@@ -288,4 +399,31 @@ type RCranLibrary struct {
 	// The repository where the package can be found. If not specified, the default
 	// CRAN repo is used.
 	Repo *string
+}
+
+// Rate-limit configuration for serverless compute workloads..
+type RateLimitConfig struct {
+	TShirtSize TshirtSize
+	// Proto enum name of t_shirt_size (e.g. T_SHIRT_SIZE_SMALL). Output-only;
+	// derived on read so a minting client that does not know a new enum value can
+	// still put the name on the cost-control token.
+	TShirtSizeName *string
+}
+
+// A serverless compute resource..
+type ServerlessCompute struct {
+	// The unique identifier of the serverless compute (UUID).
+	ServerlessComputeId *string
+	// The display name of the serverless compute.
+	Name *string
+	// Whether this is the workspace default compute for its compute_type. Default
+	// computes are system-provisioned and cannot be deleted or renamed.
+	IsDefault *bool
+	// The creation timestamp.
+	CreateTime *types.Time
+	// Whether the calling user has UseServerlessComputePermission on this compute.
+	CanUse *bool
+	// Whether the calling user has ManageServerlessComputePermission on this
+	// compute.
+	CanManage *bool
 }

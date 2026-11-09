@@ -70,6 +70,67 @@ const (
 	CollaborationPlatformConnectivityMessage_Connectivity_DenyAll     CollaborationPlatformConnectivityMessage_Connectivity = "DENY_ALL"
 )
 
+// Horizontal alignment options for widget titles and descriptions.
+type DashboardTheme_Alignment string
+
+const (
+	DashboardTheme_Alignment_Unspecified DashboardTheme_Alignment = ""
+	// Aligns content to the left.
+	DashboardTheme_Alignment_Left DashboardTheme_Alignment = "LEFT"
+	// Centers content horizontally.
+	DashboardTheme_Alignment_Center DashboardTheme_Alignment = "CENTER"
+	// Aligns content to the right.
+	DashboardTheme_Alignment_Right DashboardTheme_Alignment = "RIGHT"
+)
+
+// Defines the font style (slant) applied to rendered text.
+type DashboardTheme_FontStyle string
+
+const (
+	DashboardTheme_FontStyle_Unspecified DashboardTheme_FontStyle = ""
+	// Renders text upright (no slant).
+	DashboardTheme_FontStyle_FontStyleNormal DashboardTheme_FontStyle = "FONT_STYLE_NORMAL"
+	// Renders text in italic (slanted).
+	DashboardTheme_FontStyle_FontStyleItalic DashboardTheme_FontStyle = "FONT_STYLE_ITALIC"
+)
+
+// Defines the text case transformation applied to rendered text.
+type DashboardTheme_TextCase string
+
+const (
+	DashboardTheme_TextCase_Unspecified DashboardTheme_TextCase = ""
+	// Renders all letters in uppercase.
+	DashboardTheme_TextCase_TextCaseUppercase DashboardTheme_TextCase = "TEXT_CASE_UPPERCASE"
+	// Capitalizes the first letter of each word.
+	DashboardTheme_TextCase_TextCaseCapitalize DashboardTheme_TextCase = "TEXT_CASE_CAPITALIZE"
+	// Renders all letters in lowercase.
+	DashboardTheme_TextCase_TextCaseLowercase DashboardTheme_TextCase = "TEXT_CASE_LOWERCASE"
+)
+
+// Defines the decoration line applied to rendered text.
+type DashboardTheme_TextDecoration string
+
+const (
+	DashboardTheme_TextDecoration_Unspecified DashboardTheme_TextDecoration = ""
+	// Renders text with no decoration line.
+	DashboardTheme_TextDecoration_TextDecorationNone DashboardTheme_TextDecoration = "TEXT_DECORATION_NONE"
+	// Renders text with an underline.
+	DashboardTheme_TextDecoration_TextDecorationUnderline DashboardTheme_TextDecoration = "TEXT_DECORATION_UNDERLINE"
+)
+
+// Vertical alignment options for text box content.
+type DashboardTheme_VerticalAlign string
+
+const (
+	DashboardTheme_VerticalAlign_Unspecified DashboardTheme_VerticalAlign = ""
+	// Aligns content to the top of the text box.
+	DashboardTheme_VerticalAlign_VerticalAlignTop DashboardTheme_VerticalAlign = "VERTICAL_ALIGN_TOP"
+	// Centers content vertically in the text box.
+	DashboardTheme_VerticalAlign_VerticalAlignCenter DashboardTheme_VerticalAlign = "VERTICAL_ALIGN_CENTER"
+	// Aligns content to the bottom of the text box.
+	DashboardTheme_VerticalAlign_VerticalAlignBottom DashboardTheme_VerticalAlign = "VERTICAL_ALIGN_BOTTOM"
+)
+
 // ON: Grants all users in all workspaces access to the Personal Compute default
 // policy, allowing all users to create single-machine compute resources.
 // DELEGATE: Moves access control for the Personal Compute default policy to
@@ -155,6 +216,206 @@ type ClusterAutoRestartMessage_MaintenanceWindow_WindowStartTime struct {
 // connect to a workspace. Defaults to ALLOW_ALL..
 type CollaborationPlatformConnectivityMessage struct {
 	Connectivity CollaborationPlatformConnectivityMessage_Connectivity
+}
+
+// Theme settings for customizing AI/BI dashboard UI, including visualization
+// colors, font colors, background colors, and more..
+type DashboardTheme struct {
+	// The background color of the dashboard canvas.
+	CanvasBackgroundColor *DashboardTheme_DashboardThemeColor
+	// The background color of widgets.
+	WidgetBackgroundColor *DashboardTheme_DashboardThemeColor
+	// The border color of widgets.
+	WidgetBorderColor *DashboardTheme_DashboardThemeColor
+	// The default font color applied to all text in the dashboard. Superseded by
+	// font_settings.base.font_color when font_settings is set. More specific font
+	// settings in turn override base.
+	FontColor *DashboardTheme_DashboardThemeColor
+	// The highlight color for selected elements in widgets.
+	SelectionColor *DashboardTheme_DashboardThemeColor
+	// Color palette for visualizations. Colors are applied in order
+	// (visualization_color_01, visualization_color_02, etc.). Invalid color values
+	// are preserved but ignored during rendering.
+	VisualizationColor01 *string
+	// The color at position 2 in the visualization color palette.
+	VisualizationColor02 *string
+	// The color at position 3 in the visualization color palette.
+	VisualizationColor03 *string
+	// The color at position 4 in the visualization color palette.
+	VisualizationColor04 *string
+	// The color at position 5 in the visualization color palette.
+	VisualizationColor05 *string
+	// The color at position 6 in the visualization color palette.
+	VisualizationColor06 *string
+	// The color at position 7 in the visualization color palette.
+	VisualizationColor07 *string
+	// The color at position 8 in the visualization color palette.
+	VisualizationColor08 *string
+	// The color at position 9 in the visualization color palette.
+	VisualizationColor09 *string
+	// The color at position 10 in the visualization color palette.
+	VisualizationColor10 *string
+	// The color at position 11 in the visualization color palette.
+	VisualizationColor11 *string
+	// The color at position 12 in the visualization color palette.
+	VisualizationColor12 *string
+	// The color at position 13 in the visualization color palette.
+	VisualizationColor13 *string
+	// The color at position 14 in the visualization color palette.
+	VisualizationColor14 *string
+	// The color at position 15 in the visualization color palette.
+	VisualizationColor15 *string
+	// The color at position 16 in the visualization color palette.
+	VisualizationColor16 *string
+	// The color at position 17 in the visualization color palette.
+	VisualizationColor17 *string
+	// The color at position 18 in the visualization color palette.
+	VisualizationColor18 *string
+	// The color at position 19 in the visualization color palette.
+	VisualizationColor19 *string
+	// The color at position 20 in the visualization color palette.
+	VisualizationColor20 *string
+	// Alignment setting for all widget titles and descriptions at the dashboard
+	// level.
+	WidgetHeaderAlignment DashboardTheme_Alignment
+	// Font family to customize all text within the dashboard. Unsupported font
+	// names fall back to the default font. Superseded by
+	// font_settings.base.font_family when font_settings is set.
+	FontFamily *string
+	// The default vertical alignment for all text box widgets in the dashboard.
+	// Individual text box widgets can override this.
+	TextBoxVerticalAlign DashboardTheme_VerticalAlign
+	// The content padding inside each widget in pixels.
+	WidgetPadding *int
+	// The gap between widgets in pixels.
+	WidgetMargin *int
+	// The widget border radius in pixels.
+	WidgetCornerRadius *int
+	// The shadow intensity level applied to widgets (0 = no shadow, 100 = maximum).
+	// The actual CSS box-shadow is computed at render time from this value,
+	// factoring in background colors and color mode.
+	WidgetShadow *int
+	// The sentiment color palette for the dashboard.
+	SentimentColors *DashboardTheme_SentimentColors
+	// The continuous gradient configuration for the dashboard.
+	ContinuousGradient *DashboardTheme_ContinuousGradient
+	// The per-category typography overrides for the dashboard.
+	FontSettings *DashboardTheme_FontSettings
+	// The corner radius in pixels for rectangular marks in visualizations (bars,
+	// columns, histogram bins, etc.).
+	MarkCornerRadius *int
+	// Color of chart grid lines in visualizations (horizontal and vertical guide
+	// lines).
+	GridLineColor *DashboardTheme_DashboardThemeColor
+	// Color of the zero-value grid line, making it visually distinct from other
+	// grid lines.
+	AxisLineColor *DashboardTheme_DashboardThemeColor
+}
+
+// Configuration for continuous color gradients, with separate values for light
+// and dark mode. Each mode's gradient can reference the visualization color
+// palette via from_categorical_index, use a named color scheme, or define a
+// custom sequential or diverging ramp..
+type DashboardTheme_ContinuousGradient struct {
+	// Gradient value used when the dashboard is rendered in light mode.
+	LightMode *DashboardTheme_ContinuousGradient_GradientValue
+	// Gradient value used when the dashboard is rendered in dark mode.
+	DarkMode *DashboardTheme_ContinuousGradient_GradientValue
+}
+
+// A custom three-stop diverging gradient ramp..
+type DashboardTheme_ContinuousGradient_CustomDivergingRamp struct {
+	// The color at the start of the gradient (lowest value).
+	Start *DashboardTheme_DashboardThemeColor
+	// The color at the midpoint of the gradient.
+	Mid *DashboardTheme_DashboardThemeColor
+	// The color at the end of the gradient (highest value).
+	End *DashboardTheme_DashboardThemeColor
+}
+
+// A custom two-stop sequential gradient ramp..
+type DashboardTheme_ContinuousGradient_CustomSequentialRamp struct {
+	// The color at the start of the gradient (lowest value).
+	Start *DashboardTheme_DashboardThemeColor
+	// The color at the end of the gradient (highest value).
+	End *DashboardTheme_DashboardThemeColor
+}
+
+// The gradient for one color mode. Set at most one field..
+type DashboardTheme_ContinuousGradient_GradientValue struct {
+	// A 0-based index into the visualization color palette, where 0 is
+	// visualization_color_01. Valid values are 0 to 19.
+	FromCategoricalIndex *int
+	// A static color string (for example, '#FF0000').
+	Color *string
+	// A named color scheme (for example, 'blues', 'viridis', 'spectral').
+	ColorScheme *string
+	// A custom two-stop sequential gradient.
+	CustomSequential *DashboardTheme_ContinuousGradient_CustomSequentialRamp
+	// A custom three-stop diverging gradient.
+	CustomDiverging *DashboardTheme_ContinuousGradient_CustomDivergingRamp
+}
+
+// Represents a color value with optional overrides for light and dark modes.
+// Authors can customize colors separately to cater to each mode, based on the
+// viewer's user-level theme preference..
+type DashboardTheme_DashboardThemeColor struct {
+	// The color used when the dashboard is rendered in light mode (for example,
+	// '#FF0000').
+	Light *string
+	// The color used when the dashboard is rendered in dark mode (for example,
+	// '#FF0000').
+	Dark *string
+}
+
+// Defines the typography settings for a single text category..
+type DashboardTheme_FontConfig struct {
+	// The font family name used for text in this category.
+	FontFamily *string
+	// The text case transformation applied to text in this category.
+	TextCase DashboardTheme_TextCase
+	// The font color applied to text in this category.
+	FontColor *DashboardTheme_DashboardThemeColor
+	// The font size in pixels.
+	FontSize *int
+	// The font weight value (for example, 400 for normal, 700 for bold).
+	FontWeight *int
+	// The font style (slant) applied to text in this category.
+	FontStyle DashboardTheme_FontStyle
+	// The text decoration applied to text in this category.
+	TextDecoration DashboardTheme_TextDecoration
+}
+
+// Per-category typography overrides. When font_settings.base is set, it takes
+// precedence over the top-level font_family and font_color. More specific
+// categories (widget_title, widget_description, field_title, field_value) in
+// turn override base..
+type DashboardTheme_FontSettings struct {
+	// The default font config applied to all text unless overridden by a more
+	// specific category.
+	Base *DashboardTheme_FontConfig
+	// The font config applied to widget titles.
+	WidgetTitle *DashboardTheme_FontConfig
+	// The font config applied to widget descriptions.
+	WidgetDescription *DashboardTheme_FontConfig
+	// The font config applied to field titles (for example, axis titles, table
+	// heading titles).
+	FieldTitle *DashboardTheme_FontConfig
+	// The font config applied to field values (for example, axis tick labels, table
+	// cell values, tooltip values).
+	FieldValue *DashboardTheme_FontConfig
+}
+
+// Shared sentiment colors reusable across visualizations, primarily for
+// conditional formatting, ensuring consistent positive, negative, and neutral
+// meaning throughout the dashboard..
+type DashboardTheme_SentimentColors struct {
+	// The color applied to negative sentiment values.
+	Negative *DashboardTheme_DashboardThemeColor
+	// The color applied to positive sentiment values.
+	Positive *DashboardTheme_DashboardThemeColor
+	// The color applied to neutral sentiment values.
+	Neutral *DashboardTheme_DashboardThemeColor
 }
 
 type GetPublicAccountSettingRequest struct {
@@ -422,6 +683,16 @@ type Setting_Value_CollaborationPlatformConnectivity struct {
 
 func (*Setting_Value_CollaborationPlatformConnectivity) isSetting_Value() {}
 
+// Setting_Value_WorkspaceDashboardTheme selects WorkspaceDashboardTheme for Setting.Value.
+// Setting value for the workspace_dashboard_theme setting. This is the setting
+// value set by consumers. Check effective_workspace_dashboard_theme for the
+// final setting value.
+type Setting_Value_WorkspaceDashboardTheme struct {
+	WorkspaceDashboardTheme DashboardTheme
+}
+
+func (*Setting_Value_WorkspaceDashboardTheme) isSetting_Value() {}
+
 type isSetting_EffectiveValue interface {
 	isSetting_EffectiveValue()
 }
@@ -543,6 +814,16 @@ type Setting_EffectiveValue_EffectiveCollaborationPlatformConnectivity struct {
 
 func (*Setting_EffectiveValue_EffectiveCollaborationPlatformConnectivity) isSetting_EffectiveValue() {
 }
+
+// Setting_EffectiveValue_EffectiveWorkspaceDashboardTheme selects EffectiveWorkspaceDashboardTheme for Setting.EffectiveValue.
+// Effective setting value for the workspace_dashboard_theme setting. This is
+// the final effective value of the setting. To set a value, use
+// workspace_dashboard_theme.
+type Setting_EffectiveValue_EffectiveWorkspaceDashboardTheme struct {
+	EffectiveWorkspaceDashboardTheme DashboardTheme
+}
+
+func (*Setting_EffectiveValue_EffectiveWorkspaceDashboardTheme) isSetting_EffectiveValue() {}
 
 type SettingsMetadata struct {
 	// Name of the setting.

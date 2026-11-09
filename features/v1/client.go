@@ -2391,6 +2391,216 @@ func (o *PurgeFeatureEntitiesOperation) Wait(ctx context.Context, opts ...lro.Op
 	return result, nil
 }
 
+// Requests materialization of all members of the set. The set must be nonempty
+// and contain only batch materializations. Runs are allowed while automatic
+// scheduling is paused. Requested runs may wait in a queue, subject to queue
+// limits and expiry.
+//
+// Returns a long-running operation that completes when every requested run
+// reaches a terminal state. Success requires all runs and any required online
+// synchronization to succeed. Individual outcomes are available in
+// `MaterializationSetTriggerProgress`.
+//
+// Use `CancelOperation` to request cancellation of this operation's unfinished
+// work. Cancellation is best effort and does not undo completed writes. Online
+// synchronization already in progress may continue.
+//
+// Runs use the features' configured windows and settling delay.
+func (c *internalClient) triggerMaterializationSetBase(ctx context.Context, req TriggerMaterializationSetRequest, opts ...call.Option) (*Operation, error) {
+	wireReq, err := triggerMaterializationSetRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	if wireReq.RequestId == nil || *wireReq.RequestId == "" {
+		wireReq.RequestId = new(generateRequestID())
+	}
+	body, err := json.Marshal(wireReq)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/feature-engineering/materialization-sets/")
+	if req.MaterializationSetId == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "materialization_set_id")
+	}
+	pb.singleSegment(*req.MaterializationSetId)
+	pb.literal("/trigger")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Operation
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp operationWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = operationFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Requests materialization of all members of the set. The set must be nonempty
+// and contain only batch materializations. Runs are allowed while automatic
+// scheduling is paused. Requested runs may wait in a queue, subject to queue
+// limits and expiry.
+//
+// Returns a long-running operation that completes when every requested run
+// reaches a terminal state. Success requires all runs and any required online
+// synchronization to succeed. Individual outcomes are available in
+// `MaterializationSetTriggerProgress`.
+//
+// Use `CancelOperation` to request cancellation of this operation's unfinished
+// work. Cancellation is best effort and does not undo completed writes. Online
+// synchronization already in progress may continue.
+//
+// Runs use the features' configured windows and settling delay.
+func (c *internalClient) TriggerMaterializationSet(ctx context.Context, req TriggerMaterializationSetRequest, opts ...call.Option) (*TriggerMaterializationSetOperation, error) {
+	operation, err := c.triggerMaterializationSetBase(ctx, req, opts...)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateOperationName(operation.Name); err != nil {
+		return nil, err
+	}
+	return &TriggerMaterializationSetOperation{
+		operation:       operation,
+		getOperation:    c.getOperation,
+		cancelOperation: c.cancelOperation,
+	}, nil
+}
+
+// TriggerMaterializationSetOperation tracks the state of the long-running operation started by TriggerMaterializationSet.
+type TriggerMaterializationSetOperation struct {
+	operation       *Operation
+	getOperation    func(context.Context, GetOperationRequest, ...call.Option) (*Operation, error)
+	cancelOperation func(context.Context, CancelOperationRequest, ...call.Option) error
+}
+
+// Name returns the server-assigned operation name.
+func (o *TriggerMaterializationSetOperation) Name() *string {
+	return o.operation.Name
+}
+
+// Metadata returns metadata associated with the operation.
+func (o *TriggerMaterializationSetOperation) Metadata() (*MaterializationSetOperationMetadata, error) {
+	if len(o.operation.Metadata) == 0 || bytes.Equal(bytes.TrimSpace(o.operation.Metadata), []byte("null")) {
+		return nil, nil
+	}
+	var metadata materializationSetOperationMetadataWire
+	if err := json.Unmarshal(o.operation.Metadata, &metadata); err != nil {
+		return nil, fmt.Errorf("decode operation metadata: %w", err)
+	}
+	converted, err := materializationSetOperationMetadataFromWire(&metadata)
+	if err != nil {
+		return nil, err
+	}
+	return converted, nil
+}
+
+// Done refreshes the operation and reports whether it has completed.
+func (o *TriggerMaterializationSetOperation) Done(ctx context.Context, opts ...call.Option) (bool, error) {
+	operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name}, opts...)
+	if err != nil {
+		return false, err
+	}
+	if err := validateOperationName(operation.Name); err != nil {
+		return false, err
+	}
+	o.operation = operation
+	if operation.Done == nil {
+		return false, fmt.Errorf("invalid operation response: missing done field")
+	}
+	return *operation.Done, nil
+}
+
+// Wait polls the operation until it completes.
+func (o *TriggerMaterializationSetOperation) Wait(ctx context.Context, opts ...lro.Option) (*TriggerMaterializationSetResponse, error) {
+	var result *TriggerMaterializationSetResponse
+	poll := func(ctx context.Context) error {
+		operation, err := o.getOperation(ctx, GetOperationRequest{Name: o.operation.Name})
+		if err != nil {
+			return err
+		}
+		if err := validateOperationName(operation.Name); err != nil {
+			return err
+		}
+		o.operation = operation
+		if operation.Done == nil {
+			return fmt.Errorf("invalid operation response: missing done field")
+		}
+		if !*operation.Done {
+			return errOperationStillRunning
+		}
+		if operationError, ok := operation.Result.(*Operation_Result_Error); ok && operationError != nil {
+			return fmt.Errorf("operation failed: %w", &operationError.Error)
+		}
+		operationResponse, ok := operation.Result.(*Operation_Result_Response)
+		if !ok || operationResponse == nil || len(operationResponse.Response) == 0 || bytes.Equal(bytes.TrimSpace(operationResponse.Response), []byte("null")) {
+			return fmt.Errorf("operation completed without a response")
+		}
+		var response triggerMaterializationSetResponseWire
+		if err := json.Unmarshal(operationResponse.Response, &response); err != nil {
+			return fmt.Errorf("decode operation response: %w", err)
+		}
+		result, err = triggerMaterializationSetResponseFromWire(&response)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	if err := executeWait(ctx, poll, opts...); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Cancel starts asynchronous cancellation of the operation.
+func (o *TriggerMaterializationSetOperation) Cancel(ctx context.Context, opts ...call.Option) error {
+	return o.cancelOperation(ctx, CancelOperationRequest{Name: o.operation.Name}, opts...)
+}
+
 // Update a Feature.
 func (c *internalClient) UpdateFeature(ctx context.Context, req UpdateFeatureRequest, opts ...call.Option) (*Feature, error) {
 	wireReq, err := updateFeatureRequestToWire(&req)

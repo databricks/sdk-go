@@ -448,8 +448,13 @@ func endpointFromWire(w *endpointWire) (*Endpoint, error) {
 }
 
 type endpointScalingInfoWire struct {
-	State              ScalingChangeState `json:"state,omitempty"`
-	RequestedTargetQps *wireInt64         `json:"requested_target_qps,omitempty"`
+	State                                ScalingChangeState                     `json:"state,omitempty"`
+	RequestedTargetQps                   *wireInt64                             `json:"requested_target_qps,omitempty"`
+	EstimatedCompletionTimestamp         *wireInt64                             `json:"estimated_completion_timestamp,omitempty"`
+	Phase                                EndpointScalingInfo_ScalingPhase       `json:"phase,omitempty"`
+	IndexInitializationPercentage        *int                                   `json:"index_initialization_percentage,omitempty"`
+	DelayedReason                        EndpointScalingInfo_ScalingDelayReason `json:"delayed_reason,omitempty"`
+	TargetQpsChangeAllowedAfterTimestamp *wireInt64                             `json:"target_qps_change_allowed_after_timestamp,omitempty"`
 }
 
 func endpointScalingInfoFromWire(w *endpointScalingInfoWire) (*EndpointScalingInfo, error) {
@@ -460,9 +465,22 @@ func endpointScalingInfoFromWire(w *endpointScalingInfoWire) (*EndpointScalingIn
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "EndpointScalingInfo.RequestedTargetQps", err)
 	}
+	estimatedCompletionTimestampPublicValue, err := int64FromWire(w.EstimatedCompletionTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EndpointScalingInfo.EstimatedCompletionTimestamp", err)
+	}
+	targetQpsChangeAllowedAfterTimestampPublicValue, err := int64FromWire(w.TargetQpsChangeAllowedAfterTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EndpointScalingInfo.TargetQpsChangeAllowedAfterTimestamp", err)
+	}
 	return &EndpointScalingInfo{
-		State:              w.State,
-		RequestedTargetQps: requestedTargetQpsPublicValue,
+		State:                                w.State,
+		RequestedTargetQps:                   requestedTargetQpsPublicValue,
+		EstimatedCompletionTimestamp:         estimatedCompletionTimestampPublicValue,
+		Phase:                                w.Phase,
+		IndexInitializationPercentage:        w.IndexInitializationPercentage,
+		DelayedReason:                        w.DelayedReason,
+		TargetQpsChangeAllowedAfterTimestamp: targetQpsChangeAllowedAfterTimestampPublicValue,
 	}, nil
 }
 

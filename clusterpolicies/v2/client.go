@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"iter"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -398,4 +399,223 @@ func (c *internalClient) ListPolicies(ctx context.Context, req ListPoliciesReque
 		return nil, err
 	}
 	return resp, nil
+}
+
+// Lists compute policies in the workspace. Results are returned in an
+// unspecified order; callers should sort client-side if a specific order is
+// needed.
+func (c *internalClient) ListComputePolicies(ctx context.Context, req ListComputePoliciesRequest, opts ...call.Option) (*ListComputePoliciesResponse, error) {
+	wireReq, err := listComputePoliciesRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = "/api/2.0/policies/compute"
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "page_size", wireReq.PageSize); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "page_token", wireReq.PageToken); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *ListComputePoliciesResponse
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp listComputePoliciesResponseWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = listComputePoliciesResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// ListComputePoliciesIter returns an iterator that iterates
+// over the results of ListComputePolicies.
+//
+// For example:
+//
+//	for item, err := range c.ListComputePoliciesIter(ctx, ListComputePoliciesRequest{}) {
+//	  if err != nil {
+//	    return err
+//	  }
+//	  fmt.Println(item)
+//	}
+//
+// Options opts are passed to each ListComputePolicies call
+// made by the iterator under the hood.
+//
+// Callers who need custom pagination logic should use
+// ListComputePolicies directly.
+func (c *internalClient) ListComputePoliciesIter(ctx context.Context, req ListComputePoliciesRequest, opts ...call.Option) iter.Seq2[*ComputePolicy, error] {
+	return func(yield func(*ComputePolicy, error) bool) {
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
+		for {
+			resp, err := c.ListComputePolicies(ctx, pageReq, opts...)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			for i := range resp.ComputePolicies {
+				if !yield(&resp.ComputePolicies[i], nil) {
+					return
+				}
+			}
+			if resp.NextPageToken == nil || *resp.NextPageToken == "" {
+				return
+			}
+			pageReq.PageToken = resp.NextPageToken
+		}
+	}
+}
+
+// Lists Interactive serverless computes that the caller can use or manage.
+// Results are returned in an unspecified order.
+func (c *internalClient) ListServerlessComputes(ctx context.Context, req ListServerlessComputesRequest, opts ...call.Option) (*ListServerlessComputesResponse, error) {
+	wireReq, err := listServerlessComputesRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = "/api/2.0/serverless-compute"
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "page_size", wireReq.PageSize); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "page_token", wireReq.PageToken); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *ListServerlessComputesResponse
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp listServerlessComputesResponseWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = listServerlessComputesResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// ListServerlessComputesIter returns an iterator that iterates
+// over the results of ListServerlessComputes.
+//
+// For example:
+//
+//	for item, err := range c.ListServerlessComputesIter(ctx, ListServerlessComputesRequest{}) {
+//	  if err != nil {
+//	    return err
+//	  }
+//	  fmt.Println(item)
+//	}
+//
+// Options opts are passed to each ListServerlessComputes call
+// made by the iterator under the hood.
+//
+// Callers who need custom pagination logic should use
+// ListServerlessComputes directly.
+func (c *internalClient) ListServerlessComputesIter(ctx context.Context, req ListServerlessComputesRequest, opts ...call.Option) iter.Seq2[*ServerlessCompute, error] {
+	return func(yield func(*ServerlessCompute, error) bool) {
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
+		for {
+			resp, err := c.ListServerlessComputes(ctx, pageReq, opts...)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			for i := range resp.ServerlessComputes {
+				if !yield(&resp.ServerlessComputes[i], nil) {
+					return
+				}
+			}
+			if resp.NextPageToken == nil || *resp.NextPageToken == "" {
+				return
+			}
+			pageReq.PageToken = resp.NextPageToken
+		}
+	}
 }

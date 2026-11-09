@@ -285,6 +285,602 @@ func collaborationPlatformConnectivityMessageFromWire(w *collaborationPlatformCo
 	}, nil
 }
 
+type dashboardThemeWire struct {
+	CanvasBackgroundColor *dashboardTheme_DashboardThemeColorWire `json:"canvas_background_color,omitempty"`
+	WidgetBackgroundColor *dashboardTheme_DashboardThemeColorWire `json:"widget_background_color,omitempty"`
+	WidgetBorderColor     *dashboardTheme_DashboardThemeColorWire `json:"widget_border_color,omitempty"`
+	FontColor             *dashboardTheme_DashboardThemeColorWire `json:"font_color,omitempty"`
+	SelectionColor        *dashboardTheme_DashboardThemeColorWire `json:"selection_color,omitempty"`
+	VisualizationColor01  *string                                 `json:"visualization_color_01,omitempty"`
+	VisualizationColor02  *string                                 `json:"visualization_color_02,omitempty"`
+	VisualizationColor03  *string                                 `json:"visualization_color_03,omitempty"`
+	VisualizationColor04  *string                                 `json:"visualization_color_04,omitempty"`
+	VisualizationColor05  *string                                 `json:"visualization_color_05,omitempty"`
+	VisualizationColor06  *string                                 `json:"visualization_color_06,omitempty"`
+	VisualizationColor07  *string                                 `json:"visualization_color_07,omitempty"`
+	VisualizationColor08  *string                                 `json:"visualization_color_08,omitempty"`
+	VisualizationColor09  *string                                 `json:"visualization_color_09,omitempty"`
+	VisualizationColor10  *string                                 `json:"visualization_color_10,omitempty"`
+	VisualizationColor11  *string                                 `json:"visualization_color_11,omitempty"`
+	VisualizationColor12  *string                                 `json:"visualization_color_12,omitempty"`
+	VisualizationColor13  *string                                 `json:"visualization_color_13,omitempty"`
+	VisualizationColor14  *string                                 `json:"visualization_color_14,omitempty"`
+	VisualizationColor15  *string                                 `json:"visualization_color_15,omitempty"`
+	VisualizationColor16  *string                                 `json:"visualization_color_16,omitempty"`
+	VisualizationColor17  *string                                 `json:"visualization_color_17,omitempty"`
+	VisualizationColor18  *string                                 `json:"visualization_color_18,omitempty"`
+	VisualizationColor19  *string                                 `json:"visualization_color_19,omitempty"`
+	VisualizationColor20  *string                                 `json:"visualization_color_20,omitempty"`
+	WidgetHeaderAlignment DashboardTheme_Alignment                `json:"widget_header_alignment,omitempty"`
+	FontFamily            *string                                 `json:"font_family,omitempty"`
+	TextBoxVerticalAlign  DashboardTheme_VerticalAlign            `json:"text_box_vertical_align,omitempty"`
+	WidgetPadding         *int                                    `json:"widget_padding,omitempty"`
+	WidgetMargin          *int                                    `json:"widget_margin,omitempty"`
+	WidgetCornerRadius    *int                                    `json:"widget_corner_radius,omitempty"`
+	WidgetShadow          *int                                    `json:"widget_shadow,omitempty"`
+	SentimentColors       *dashboardTheme_SentimentColorsWire     `json:"sentiment_colors,omitempty"`
+	ContinuousGradient    *dashboardTheme_ContinuousGradientWire  `json:"continuous_gradient,omitempty"`
+	FontSettings          *dashboardTheme_FontSettingsWire        `json:"font_settings,omitempty"`
+	MarkCornerRadius      *int                                    `json:"mark_corner_radius,omitempty"`
+	GridLineColor         *dashboardTheme_DashboardThemeColorWire `json:"grid_line_color,omitempty"`
+	AxisLineColor         *dashboardTheme_DashboardThemeColorWire `json:"axis_line_color,omitempty"`
+}
+
+func dashboardThemeToWire(v *DashboardTheme) (*dashboardThemeWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	canvasBackgroundColorWireValue, err := dashboardTheme_DashboardThemeColorToWire(v.CanvasBackgroundColor)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme.CanvasBackgroundColor", err)
+	}
+	widgetBackgroundColorWireValue, err := dashboardTheme_DashboardThemeColorToWire(v.WidgetBackgroundColor)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme.WidgetBackgroundColor", err)
+	}
+	widgetBorderColorWireValue, err := dashboardTheme_DashboardThemeColorToWire(v.WidgetBorderColor)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme.WidgetBorderColor", err)
+	}
+	fontColorWireValue, err := dashboardTheme_DashboardThemeColorToWire(v.FontColor)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme.FontColor", err)
+	}
+	selectionColorWireValue, err := dashboardTheme_DashboardThemeColorToWire(v.SelectionColor)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme.SelectionColor", err)
+	}
+	sentimentColorsWireValue, err := dashboardTheme_SentimentColorsToWire(v.SentimentColors)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme.SentimentColors", err)
+	}
+	continuousGradientWireValue, err := dashboardTheme_ContinuousGradientToWire(v.ContinuousGradient)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme.ContinuousGradient", err)
+	}
+	fontSettingsWireValue, err := dashboardTheme_FontSettingsToWire(v.FontSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme.FontSettings", err)
+	}
+	gridLineColorWireValue, err := dashboardTheme_DashboardThemeColorToWire(v.GridLineColor)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme.GridLineColor", err)
+	}
+	axisLineColorWireValue, err := dashboardTheme_DashboardThemeColorToWire(v.AxisLineColor)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme.AxisLineColor", err)
+	}
+	return &dashboardThemeWire{
+		CanvasBackgroundColor: canvasBackgroundColorWireValue,
+		WidgetBackgroundColor: widgetBackgroundColorWireValue,
+		WidgetBorderColor:     widgetBorderColorWireValue,
+		FontColor:             fontColorWireValue,
+		SelectionColor:        selectionColorWireValue,
+		VisualizationColor01:  v.VisualizationColor01,
+		VisualizationColor02:  v.VisualizationColor02,
+		VisualizationColor03:  v.VisualizationColor03,
+		VisualizationColor04:  v.VisualizationColor04,
+		VisualizationColor05:  v.VisualizationColor05,
+		VisualizationColor06:  v.VisualizationColor06,
+		VisualizationColor07:  v.VisualizationColor07,
+		VisualizationColor08:  v.VisualizationColor08,
+		VisualizationColor09:  v.VisualizationColor09,
+		VisualizationColor10:  v.VisualizationColor10,
+		VisualizationColor11:  v.VisualizationColor11,
+		VisualizationColor12:  v.VisualizationColor12,
+		VisualizationColor13:  v.VisualizationColor13,
+		VisualizationColor14:  v.VisualizationColor14,
+		VisualizationColor15:  v.VisualizationColor15,
+		VisualizationColor16:  v.VisualizationColor16,
+		VisualizationColor17:  v.VisualizationColor17,
+		VisualizationColor18:  v.VisualizationColor18,
+		VisualizationColor19:  v.VisualizationColor19,
+		VisualizationColor20:  v.VisualizationColor20,
+		WidgetHeaderAlignment: v.WidgetHeaderAlignment,
+		FontFamily:            v.FontFamily,
+		TextBoxVerticalAlign:  v.TextBoxVerticalAlign,
+		WidgetPadding:         v.WidgetPadding,
+		WidgetMargin:          v.WidgetMargin,
+		WidgetCornerRadius:    v.WidgetCornerRadius,
+		WidgetShadow:          v.WidgetShadow,
+		SentimentColors:       sentimentColorsWireValue,
+		ContinuousGradient:    continuousGradientWireValue,
+		FontSettings:          fontSettingsWireValue,
+		MarkCornerRadius:      v.MarkCornerRadius,
+		GridLineColor:         gridLineColorWireValue,
+		AxisLineColor:         axisLineColorWireValue,
+	}, nil
+}
+
+func dashboardThemeFromWire(w *dashboardThemeWire) (*DashboardTheme, error) {
+	if w == nil {
+		return nil, nil
+	}
+	canvasBackgroundColorPublicValue, err := dashboardTheme_DashboardThemeColorFromWire(w.CanvasBackgroundColor)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme.CanvasBackgroundColor", err)
+	}
+	widgetBackgroundColorPublicValue, err := dashboardTheme_DashboardThemeColorFromWire(w.WidgetBackgroundColor)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme.WidgetBackgroundColor", err)
+	}
+	widgetBorderColorPublicValue, err := dashboardTheme_DashboardThemeColorFromWire(w.WidgetBorderColor)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme.WidgetBorderColor", err)
+	}
+	fontColorPublicValue, err := dashboardTheme_DashboardThemeColorFromWire(w.FontColor)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme.FontColor", err)
+	}
+	selectionColorPublicValue, err := dashboardTheme_DashboardThemeColorFromWire(w.SelectionColor)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme.SelectionColor", err)
+	}
+	sentimentColorsPublicValue, err := dashboardTheme_SentimentColorsFromWire(w.SentimentColors)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme.SentimentColors", err)
+	}
+	continuousGradientPublicValue, err := dashboardTheme_ContinuousGradientFromWire(w.ContinuousGradient)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme.ContinuousGradient", err)
+	}
+	fontSettingsPublicValue, err := dashboardTheme_FontSettingsFromWire(w.FontSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme.FontSettings", err)
+	}
+	gridLineColorPublicValue, err := dashboardTheme_DashboardThemeColorFromWire(w.GridLineColor)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme.GridLineColor", err)
+	}
+	axisLineColorPublicValue, err := dashboardTheme_DashboardThemeColorFromWire(w.AxisLineColor)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme.AxisLineColor", err)
+	}
+	return &DashboardTheme{
+		CanvasBackgroundColor: canvasBackgroundColorPublicValue,
+		WidgetBackgroundColor: widgetBackgroundColorPublicValue,
+		WidgetBorderColor:     widgetBorderColorPublicValue,
+		FontColor:             fontColorPublicValue,
+		SelectionColor:        selectionColorPublicValue,
+		VisualizationColor01:  w.VisualizationColor01,
+		VisualizationColor02:  w.VisualizationColor02,
+		VisualizationColor03:  w.VisualizationColor03,
+		VisualizationColor04:  w.VisualizationColor04,
+		VisualizationColor05:  w.VisualizationColor05,
+		VisualizationColor06:  w.VisualizationColor06,
+		VisualizationColor07:  w.VisualizationColor07,
+		VisualizationColor08:  w.VisualizationColor08,
+		VisualizationColor09:  w.VisualizationColor09,
+		VisualizationColor10:  w.VisualizationColor10,
+		VisualizationColor11:  w.VisualizationColor11,
+		VisualizationColor12:  w.VisualizationColor12,
+		VisualizationColor13:  w.VisualizationColor13,
+		VisualizationColor14:  w.VisualizationColor14,
+		VisualizationColor15:  w.VisualizationColor15,
+		VisualizationColor16:  w.VisualizationColor16,
+		VisualizationColor17:  w.VisualizationColor17,
+		VisualizationColor18:  w.VisualizationColor18,
+		VisualizationColor19:  w.VisualizationColor19,
+		VisualizationColor20:  w.VisualizationColor20,
+		WidgetHeaderAlignment: w.WidgetHeaderAlignment,
+		FontFamily:            w.FontFamily,
+		TextBoxVerticalAlign:  w.TextBoxVerticalAlign,
+		WidgetPadding:         w.WidgetPadding,
+		WidgetMargin:          w.WidgetMargin,
+		WidgetCornerRadius:    w.WidgetCornerRadius,
+		WidgetShadow:          w.WidgetShadow,
+		SentimentColors:       sentimentColorsPublicValue,
+		ContinuousGradient:    continuousGradientPublicValue,
+		FontSettings:          fontSettingsPublicValue,
+		MarkCornerRadius:      w.MarkCornerRadius,
+		GridLineColor:         gridLineColorPublicValue,
+		AxisLineColor:         axisLineColorPublicValue,
+	}, nil
+}
+
+type dashboardTheme_ContinuousGradientWire struct {
+	LightMode *dashboardTheme_ContinuousGradient_GradientValueWire `json:"light_mode,omitempty"`
+	DarkMode  *dashboardTheme_ContinuousGradient_GradientValueWire `json:"dark_mode,omitempty"`
+}
+
+func dashboardTheme_ContinuousGradientToWire(v *DashboardTheme_ContinuousGradient) (*dashboardTheme_ContinuousGradientWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	lightModeWireValue, err := dashboardTheme_ContinuousGradient_GradientValueToWire(v.LightMode)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_ContinuousGradient.LightMode", err)
+	}
+	darkModeWireValue, err := dashboardTheme_ContinuousGradient_GradientValueToWire(v.DarkMode)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_ContinuousGradient.DarkMode", err)
+	}
+	return &dashboardTheme_ContinuousGradientWire{
+		LightMode: lightModeWireValue,
+		DarkMode:  darkModeWireValue,
+	}, nil
+}
+
+func dashboardTheme_ContinuousGradientFromWire(w *dashboardTheme_ContinuousGradientWire) (*DashboardTheme_ContinuousGradient, error) {
+	if w == nil {
+		return nil, nil
+	}
+	lightModePublicValue, err := dashboardTheme_ContinuousGradient_GradientValueFromWire(w.LightMode)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_ContinuousGradient.LightMode", err)
+	}
+	darkModePublicValue, err := dashboardTheme_ContinuousGradient_GradientValueFromWire(w.DarkMode)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_ContinuousGradient.DarkMode", err)
+	}
+	return &DashboardTheme_ContinuousGradient{
+		LightMode: lightModePublicValue,
+		DarkMode:  darkModePublicValue,
+	}, nil
+}
+
+type dashboardTheme_ContinuousGradient_CustomDivergingRampWire struct {
+	Start *dashboardTheme_DashboardThemeColorWire `json:"start,omitempty"`
+	Mid   *dashboardTheme_DashboardThemeColorWire `json:"mid,omitempty"`
+	End   *dashboardTheme_DashboardThemeColorWire `json:"end,omitempty"`
+}
+
+func dashboardTheme_ContinuousGradient_CustomDivergingRampToWire(v *DashboardTheme_ContinuousGradient_CustomDivergingRamp) (*dashboardTheme_ContinuousGradient_CustomDivergingRampWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	startWireValue, err := dashboardTheme_DashboardThemeColorToWire(v.Start)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_ContinuousGradient_CustomDivergingRamp.Start", err)
+	}
+	midWireValue, err := dashboardTheme_DashboardThemeColorToWire(v.Mid)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_ContinuousGradient_CustomDivergingRamp.Mid", err)
+	}
+	endWireValue, err := dashboardTheme_DashboardThemeColorToWire(v.End)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_ContinuousGradient_CustomDivergingRamp.End", err)
+	}
+	return &dashboardTheme_ContinuousGradient_CustomDivergingRampWire{
+		Start: startWireValue,
+		Mid:   midWireValue,
+		End:   endWireValue,
+	}, nil
+}
+
+func dashboardTheme_ContinuousGradient_CustomDivergingRampFromWire(w *dashboardTheme_ContinuousGradient_CustomDivergingRampWire) (*DashboardTheme_ContinuousGradient_CustomDivergingRamp, error) {
+	if w == nil {
+		return nil, nil
+	}
+	startPublicValue, err := dashboardTheme_DashboardThemeColorFromWire(w.Start)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_ContinuousGradient_CustomDivergingRamp.Start", err)
+	}
+	midPublicValue, err := dashboardTheme_DashboardThemeColorFromWire(w.Mid)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_ContinuousGradient_CustomDivergingRamp.Mid", err)
+	}
+	endPublicValue, err := dashboardTheme_DashboardThemeColorFromWire(w.End)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_ContinuousGradient_CustomDivergingRamp.End", err)
+	}
+	return &DashboardTheme_ContinuousGradient_CustomDivergingRamp{
+		Start: startPublicValue,
+		Mid:   midPublicValue,
+		End:   endPublicValue,
+	}, nil
+}
+
+type dashboardTheme_ContinuousGradient_CustomSequentialRampWire struct {
+	Start *dashboardTheme_DashboardThemeColorWire `json:"start,omitempty"`
+	End   *dashboardTheme_DashboardThemeColorWire `json:"end,omitempty"`
+}
+
+func dashboardTheme_ContinuousGradient_CustomSequentialRampToWire(v *DashboardTheme_ContinuousGradient_CustomSequentialRamp) (*dashboardTheme_ContinuousGradient_CustomSequentialRampWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	startWireValue, err := dashboardTheme_DashboardThemeColorToWire(v.Start)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_ContinuousGradient_CustomSequentialRamp.Start", err)
+	}
+	endWireValue, err := dashboardTheme_DashboardThemeColorToWire(v.End)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_ContinuousGradient_CustomSequentialRamp.End", err)
+	}
+	return &dashboardTheme_ContinuousGradient_CustomSequentialRampWire{
+		Start: startWireValue,
+		End:   endWireValue,
+	}, nil
+}
+
+func dashboardTheme_ContinuousGradient_CustomSequentialRampFromWire(w *dashboardTheme_ContinuousGradient_CustomSequentialRampWire) (*DashboardTheme_ContinuousGradient_CustomSequentialRamp, error) {
+	if w == nil {
+		return nil, nil
+	}
+	startPublicValue, err := dashboardTheme_DashboardThemeColorFromWire(w.Start)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_ContinuousGradient_CustomSequentialRamp.Start", err)
+	}
+	endPublicValue, err := dashboardTheme_DashboardThemeColorFromWire(w.End)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_ContinuousGradient_CustomSequentialRamp.End", err)
+	}
+	return &DashboardTheme_ContinuousGradient_CustomSequentialRamp{
+		Start: startPublicValue,
+		End:   endPublicValue,
+	}, nil
+}
+
+type dashboardTheme_ContinuousGradient_GradientValueWire struct {
+	FromCategoricalIndex *int                                                        `json:"from_categorical_index,omitempty"`
+	Color                *string                                                     `json:"color,omitempty"`
+	ColorScheme          *string                                                     `json:"color_scheme,omitempty"`
+	CustomSequential     *dashboardTheme_ContinuousGradient_CustomSequentialRampWire `json:"custom_sequential,omitempty"`
+	CustomDiverging      *dashboardTheme_ContinuousGradient_CustomDivergingRampWire  `json:"custom_diverging,omitempty"`
+}
+
+func dashboardTheme_ContinuousGradient_GradientValueToWire(v *DashboardTheme_ContinuousGradient_GradientValue) (*dashboardTheme_ContinuousGradient_GradientValueWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	customSequentialWireValue, err := dashboardTheme_ContinuousGradient_CustomSequentialRampToWire(v.CustomSequential)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_ContinuousGradient_GradientValue.CustomSequential", err)
+	}
+	customDivergingWireValue, err := dashboardTheme_ContinuousGradient_CustomDivergingRampToWire(v.CustomDiverging)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_ContinuousGradient_GradientValue.CustomDiverging", err)
+	}
+	return &dashboardTheme_ContinuousGradient_GradientValueWire{
+		FromCategoricalIndex: v.FromCategoricalIndex,
+		Color:                v.Color,
+		ColorScheme:          v.ColorScheme,
+		CustomSequential:     customSequentialWireValue,
+		CustomDiverging:      customDivergingWireValue,
+	}, nil
+}
+
+func dashboardTheme_ContinuousGradient_GradientValueFromWire(w *dashboardTheme_ContinuousGradient_GradientValueWire) (*DashboardTheme_ContinuousGradient_GradientValue, error) {
+	if w == nil {
+		return nil, nil
+	}
+	customSequentialPublicValue, err := dashboardTheme_ContinuousGradient_CustomSequentialRampFromWire(w.CustomSequential)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_ContinuousGradient_GradientValue.CustomSequential", err)
+	}
+	customDivergingPublicValue, err := dashboardTheme_ContinuousGradient_CustomDivergingRampFromWire(w.CustomDiverging)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_ContinuousGradient_GradientValue.CustomDiverging", err)
+	}
+	return &DashboardTheme_ContinuousGradient_GradientValue{
+		FromCategoricalIndex: w.FromCategoricalIndex,
+		Color:                w.Color,
+		ColorScheme:          w.ColorScheme,
+		CustomSequential:     customSequentialPublicValue,
+		CustomDiverging:      customDivergingPublicValue,
+	}, nil
+}
+
+type dashboardTheme_DashboardThemeColorWire struct {
+	Light *string `json:"light,omitempty"`
+	Dark  *string `json:"dark,omitempty"`
+}
+
+func dashboardTheme_DashboardThemeColorToWire(v *DashboardTheme_DashboardThemeColor) (*dashboardTheme_DashboardThemeColorWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &dashboardTheme_DashboardThemeColorWire{
+		Light: v.Light,
+		Dark:  v.Dark,
+	}, nil
+}
+
+func dashboardTheme_DashboardThemeColorFromWire(w *dashboardTheme_DashboardThemeColorWire) (*DashboardTheme_DashboardThemeColor, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DashboardTheme_DashboardThemeColor{
+		Light: w.Light,
+		Dark:  w.Dark,
+	}, nil
+}
+
+type dashboardTheme_FontConfigWire struct {
+	FontFamily     *string                                 `json:"font_family,omitempty"`
+	TextCase       DashboardTheme_TextCase                 `json:"text_case,omitempty"`
+	FontColor      *dashboardTheme_DashboardThemeColorWire `json:"font_color,omitempty"`
+	FontSize       *int                                    `json:"font_size,omitempty"`
+	FontWeight     *int                                    `json:"font_weight,omitempty"`
+	FontStyle      DashboardTheme_FontStyle                `json:"font_style,omitempty"`
+	TextDecoration DashboardTheme_TextDecoration           `json:"text_decoration,omitempty"`
+}
+
+func dashboardTheme_FontConfigToWire(v *DashboardTheme_FontConfig) (*dashboardTheme_FontConfigWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	fontColorWireValue, err := dashboardTheme_DashboardThemeColorToWire(v.FontColor)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_FontConfig.FontColor", err)
+	}
+	return &dashboardTheme_FontConfigWire{
+		FontFamily:     v.FontFamily,
+		TextCase:       v.TextCase,
+		FontColor:      fontColorWireValue,
+		FontSize:       v.FontSize,
+		FontWeight:     v.FontWeight,
+		FontStyle:      v.FontStyle,
+		TextDecoration: v.TextDecoration,
+	}, nil
+}
+
+func dashboardTheme_FontConfigFromWire(w *dashboardTheme_FontConfigWire) (*DashboardTheme_FontConfig, error) {
+	if w == nil {
+		return nil, nil
+	}
+	fontColorPublicValue, err := dashboardTheme_DashboardThemeColorFromWire(w.FontColor)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_FontConfig.FontColor", err)
+	}
+	return &DashboardTheme_FontConfig{
+		FontFamily:     w.FontFamily,
+		TextCase:       w.TextCase,
+		FontColor:      fontColorPublicValue,
+		FontSize:       w.FontSize,
+		FontWeight:     w.FontWeight,
+		FontStyle:      w.FontStyle,
+		TextDecoration: w.TextDecoration,
+	}, nil
+}
+
+type dashboardTheme_FontSettingsWire struct {
+	Base              *dashboardTheme_FontConfigWire `json:"base,omitempty"`
+	WidgetTitle       *dashboardTheme_FontConfigWire `json:"widget_title,omitempty"`
+	WidgetDescription *dashboardTheme_FontConfigWire `json:"widget_description,omitempty"`
+	FieldTitle        *dashboardTheme_FontConfigWire `json:"field_title,omitempty"`
+	FieldValue        *dashboardTheme_FontConfigWire `json:"field_value,omitempty"`
+}
+
+func dashboardTheme_FontSettingsToWire(v *DashboardTheme_FontSettings) (*dashboardTheme_FontSettingsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	baseWireValue, err := dashboardTheme_FontConfigToWire(v.Base)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_FontSettings.Base", err)
+	}
+	widgetTitleWireValue, err := dashboardTheme_FontConfigToWire(v.WidgetTitle)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_FontSettings.WidgetTitle", err)
+	}
+	widgetDescriptionWireValue, err := dashboardTheme_FontConfigToWire(v.WidgetDescription)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_FontSettings.WidgetDescription", err)
+	}
+	fieldTitleWireValue, err := dashboardTheme_FontConfigToWire(v.FieldTitle)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_FontSettings.FieldTitle", err)
+	}
+	fieldValueWireValue, err := dashboardTheme_FontConfigToWire(v.FieldValue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_FontSettings.FieldValue", err)
+	}
+	return &dashboardTheme_FontSettingsWire{
+		Base:              baseWireValue,
+		WidgetTitle:       widgetTitleWireValue,
+		WidgetDescription: widgetDescriptionWireValue,
+		FieldTitle:        fieldTitleWireValue,
+		FieldValue:        fieldValueWireValue,
+	}, nil
+}
+
+func dashboardTheme_FontSettingsFromWire(w *dashboardTheme_FontSettingsWire) (*DashboardTheme_FontSettings, error) {
+	if w == nil {
+		return nil, nil
+	}
+	basePublicValue, err := dashboardTheme_FontConfigFromWire(w.Base)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_FontSettings.Base", err)
+	}
+	widgetTitlePublicValue, err := dashboardTheme_FontConfigFromWire(w.WidgetTitle)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_FontSettings.WidgetTitle", err)
+	}
+	widgetDescriptionPublicValue, err := dashboardTheme_FontConfigFromWire(w.WidgetDescription)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_FontSettings.WidgetDescription", err)
+	}
+	fieldTitlePublicValue, err := dashboardTheme_FontConfigFromWire(w.FieldTitle)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_FontSettings.FieldTitle", err)
+	}
+	fieldValuePublicValue, err := dashboardTheme_FontConfigFromWire(w.FieldValue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_FontSettings.FieldValue", err)
+	}
+	return &DashboardTheme_FontSettings{
+		Base:              basePublicValue,
+		WidgetTitle:       widgetTitlePublicValue,
+		WidgetDescription: widgetDescriptionPublicValue,
+		FieldTitle:        fieldTitlePublicValue,
+		FieldValue:        fieldValuePublicValue,
+	}, nil
+}
+
+type dashboardTheme_SentimentColorsWire struct {
+	Negative *dashboardTheme_DashboardThemeColorWire `json:"negative,omitempty"`
+	Positive *dashboardTheme_DashboardThemeColorWire `json:"positive,omitempty"`
+	Neutral  *dashboardTheme_DashboardThemeColorWire `json:"neutral,omitempty"`
+}
+
+func dashboardTheme_SentimentColorsToWire(v *DashboardTheme_SentimentColors) (*dashboardTheme_SentimentColorsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	negativeWireValue, err := dashboardTheme_DashboardThemeColorToWire(v.Negative)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_SentimentColors.Negative", err)
+	}
+	positiveWireValue, err := dashboardTheme_DashboardThemeColorToWire(v.Positive)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_SentimentColors.Positive", err)
+	}
+	neutralWireValue, err := dashboardTheme_DashboardThemeColorToWire(v.Neutral)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_SentimentColors.Neutral", err)
+	}
+	return &dashboardTheme_SentimentColorsWire{
+		Negative: negativeWireValue,
+		Positive: positiveWireValue,
+		Neutral:  neutralWireValue,
+	}, nil
+}
+
+func dashboardTheme_SentimentColorsFromWire(w *dashboardTheme_SentimentColorsWire) (*DashboardTheme_SentimentColors, error) {
+	if w == nil {
+		return nil, nil
+	}
+	negativePublicValue, err := dashboardTheme_DashboardThemeColorFromWire(w.Negative)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_SentimentColors.Negative", err)
+	}
+	positivePublicValue, err := dashboardTheme_DashboardThemeColorFromWire(w.Positive)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_SentimentColors.Positive", err)
+	}
+	neutralPublicValue, err := dashboardTheme_DashboardThemeColorFromWire(w.Neutral)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTheme_SentimentColors.Neutral", err)
+	}
+	return &DashboardTheme_SentimentColors{
+		Negative: negativePublicValue,
+		Positive: positivePublicValue,
+		Neutral:  neutralPublicValue,
+	}, nil
+}
+
 type integerMessageWire struct {
 	Value *int `json:"value,omitempty"`
 }
@@ -561,6 +1157,7 @@ type settingWire struct {
 	AllowedAppsUserApiScopes                       *allowedAppsUserApiScopesMessageWire          `json:"allowed_apps_user_api_scopes,omitempty"`
 	OperationalEmailCustomRecipient                *operationalEmailCustomRecipientMessageWire   `json:"operational_email_custom_recipient,omitempty"`
 	CollaborationPlatformConnectivity              *collaborationPlatformConnectivityMessageWire `json:"collaboration_platform_connectivity,omitempty"`
+	WorkspaceDashboardTheme                        *dashboardThemeWire                           `json:"workspace_dashboard_theme,omitempty"`
 	EffectiveBooleanVal                            *booleanMessageWire                           `json:"effective_boolean_val,omitempty"`
 	EffectiveStringVal                             *stringMessageWire                            `json:"effective_string_val,omitempty"`
 	EffectiveIntegerVal                            *integerMessageWire                           `json:"effective_integer_val,omitempty"`
@@ -573,6 +1170,7 @@ type settingWire struct {
 	EffectiveAllowedAppsUserApiScopes              *allowedAppsUserApiScopesMessageWire          `json:"effective_allowed_apps_user_api_scopes,omitempty"`
 	EffectiveOperationalEmailCustomRecipient       *operationalEmailCustomRecipientMessageWire   `json:"effective_operational_email_custom_recipient,omitempty"`
 	EffectiveCollaborationPlatformConnectivity     *collaborationPlatformConnectivityMessageWire `json:"effective_collaboration_platform_connectivity,omitempty"`
+	EffectiveWorkspaceDashboardTheme               *dashboardThemeWire                           `json:"effective_workspace_dashboard_theme,omitempty"`
 }
 
 func settingToWire(v *Setting) (*settingWire, error) {
@@ -591,6 +1189,7 @@ func settingToWire(v *Setting) (*settingWire, error) {
 	var valueAllowedAppsUserApiScopesWire *allowedAppsUserApiScopesMessageWire
 	var valueOperationalEmailCustomRecipientWire *operationalEmailCustomRecipientMessageWire
 	var valueCollaborationPlatformConnectivityWire *collaborationPlatformConnectivityMessageWire
+	var valueWorkspaceDashboardThemeWire *dashboardThemeWire
 	switch value := v.Value.(type) {
 	case nil:
 	case *Setting_Value_BooleanVal:
@@ -689,6 +1288,14 @@ func settingToWire(v *Setting) (*settingWire, error) {
 			}
 			valueCollaborationPlatformConnectivityWire = valueCollaborationPlatformConnectivityConverted
 		}
+	case *Setting_Value_WorkspaceDashboardTheme:
+		if value != nil {
+			valueWorkspaceDashboardThemeConverted, err := dashboardThemeToWire(&value.WorkspaceDashboardTheme)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Setting.Value.WorkspaceDashboardTheme", err)
+			}
+			valueWorkspaceDashboardThemeWire = valueWorkspaceDashboardThemeConverted
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Setting.Value", value)
 	}
@@ -704,6 +1311,7 @@ func settingToWire(v *Setting) (*settingWire, error) {
 	var effectiveValueEffectiveAllowedAppsUserApiScopesWire *allowedAppsUserApiScopesMessageWire
 	var effectiveValueEffectiveOperationalEmailCustomRecipientWire *operationalEmailCustomRecipientMessageWire
 	var effectiveValueEffectiveCollaborationPlatformConnectivityWire *collaborationPlatformConnectivityMessageWire
+	var effectiveValueEffectiveWorkspaceDashboardThemeWire *dashboardThemeWire
 	switch value := v.EffectiveValue.(type) {
 	case nil:
 	case *Setting_EffectiveValue_EffectiveBooleanVal:
@@ -802,6 +1410,14 @@ func settingToWire(v *Setting) (*settingWire, error) {
 			}
 			effectiveValueEffectiveCollaborationPlatformConnectivityWire = effectiveValueEffectiveCollaborationPlatformConnectivityConverted
 		}
+	case *Setting_EffectiveValue_EffectiveWorkspaceDashboardTheme:
+		if value != nil {
+			effectiveValueEffectiveWorkspaceDashboardThemeConverted, err := dashboardThemeToWire(&value.EffectiveWorkspaceDashboardTheme)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Setting.EffectiveValue.EffectiveWorkspaceDashboardTheme", err)
+			}
+			effectiveValueEffectiveWorkspaceDashboardThemeWire = effectiveValueEffectiveWorkspaceDashboardThemeConverted
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Setting.EffectiveValue", value)
 	}
@@ -819,6 +1435,7 @@ func settingToWire(v *Setting) (*settingWire, error) {
 		AllowedAppsUserApiScopes:                       valueAllowedAppsUserApiScopesWire,
 		OperationalEmailCustomRecipient:                valueOperationalEmailCustomRecipientWire,
 		CollaborationPlatformConnectivity:              valueCollaborationPlatformConnectivityWire,
+		WorkspaceDashboardTheme:                        valueWorkspaceDashboardThemeWire,
 		EffectiveBooleanVal:                            effectiveValueEffectiveBooleanValWire,
 		EffectiveStringVal:                             effectiveValueEffectiveStringValWire,
 		EffectiveIntegerVal:                            effectiveValueEffectiveIntegerValWire,
@@ -831,6 +1448,7 @@ func settingToWire(v *Setting) (*settingWire, error) {
 		EffectiveAllowedAppsUserApiScopes:              effectiveValueEffectiveAllowedAppsUserApiScopesWire,
 		EffectiveOperationalEmailCustomRecipient:       effectiveValueEffectiveOperationalEmailCustomRecipientWire,
 		EffectiveCollaborationPlatformConnectivity:     effectiveValueEffectiveCollaborationPlatformConnectivityWire,
+		EffectiveWorkspaceDashboardTheme:               effectiveValueEffectiveWorkspaceDashboardThemeWire,
 	}, nil
 }
 
@@ -875,6 +1493,9 @@ func settingFromWire(w *settingWire) (*Setting, error) {
 	if w.CollaborationPlatformConnectivity != nil {
 		valueMembers++
 	}
+	if w.WorkspaceDashboardTheme != nil {
+		valueMembers++
+	}
 	if valueMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "Setting.Value")
 	}
@@ -913,6 +1534,9 @@ func settingFromWire(w *settingWire) (*Setting, error) {
 		effectiveValueMembers++
 	}
 	if w.EffectiveCollaborationPlatformConnectivity != nil {
+		effectiveValueMembers++
+	}
+	if w.EffectiveWorkspaceDashboardTheme != nil {
 		effectiveValueMembers++
 	}
 	if effectiveValueMembers > 1 {
@@ -992,6 +1616,12 @@ func settingFromWire(w *settingWire) (*Setting, error) {
 			return nil, fmt.Errorf("%s: %w", "Setting.Value.CollaborationPlatformConnectivity", err)
 		}
 		valueSelection = &Setting_Value_CollaborationPlatformConnectivity{CollaborationPlatformConnectivity: *valueCollaborationPlatformConnectivityConverted}
+	case w.WorkspaceDashboardTheme != nil:
+		valueWorkspaceDashboardThemeConverted, err := dashboardThemeFromWire(w.WorkspaceDashboardTheme)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "Setting.Value.WorkspaceDashboardTheme", err)
+		}
+		valueSelection = &Setting_Value_WorkspaceDashboardTheme{WorkspaceDashboardTheme: *valueWorkspaceDashboardThemeConverted}
 	}
 	var effectiveValueSelection isSetting_EffectiveValue
 	switch {
@@ -1067,6 +1697,12 @@ func settingFromWire(w *settingWire) (*Setting, error) {
 			return nil, fmt.Errorf("%s: %w", "Setting.EffectiveValue.EffectiveCollaborationPlatformConnectivity", err)
 		}
 		effectiveValueSelection = &Setting_EffectiveValue_EffectiveCollaborationPlatformConnectivity{EffectiveCollaborationPlatformConnectivity: *effectiveValueEffectiveCollaborationPlatformConnectivityConverted}
+	case w.EffectiveWorkspaceDashboardTheme != nil:
+		effectiveValueEffectiveWorkspaceDashboardThemeConverted, err := dashboardThemeFromWire(w.EffectiveWorkspaceDashboardTheme)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "Setting.EffectiveValue.EffectiveWorkspaceDashboardTheme", err)
+		}
+		effectiveValueSelection = &Setting_EffectiveValue_EffectiveWorkspaceDashboardTheme{EffectiveWorkspaceDashboardTheme: *effectiveValueEffectiveWorkspaceDashboardThemeConverted}
 	}
 	return &Setting{
 		Name:           w.Name,

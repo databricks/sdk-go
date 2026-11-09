@@ -355,8 +355,9 @@ const (
 // `QUERY_RETURNS_ROWS`: Fires whenever the result set has at least one row.
 // Zero rows means the condition is not met. This is the original SQL condition
 // behavior. * `RESULT_VALUE_CHANGES`: Fires whenever the query's single result
-// value differs from the previous evaluation. The first evaluation always
-// fires. Queries must return exactly one cell (one row, one column).
+// value differs from the previous evaluation. The first evaluation stores the
+// result as a baseline and does not fire. Queries must return exactly one cell
+// (one row, one column).
 type SqlConditionTriggerMode string
 
 const (
@@ -4524,6 +4525,10 @@ func (*ResolvedValues_Resolved_AiFunctionTask) isResolvedValues_Resolved() {}
 
 // Resolved values for an AI Function task's Delta table input..
 type ResolvedValues_AiFunctionTaskResolvedValues struct {
+	// The Delta table source with any upstream-task references (such as
+	// `{{tasks.<task_key>.values.output_table_name}}`) in the table name replaced
+	// by concrete values before the run.
+	DeltaTable *DeltaTableSource
 }
 
 // Resolved values for an AiRuntimeTask after dynamic-value substitution, so
@@ -5889,28 +5894,29 @@ type SqlConditionConfiguration struct {
 
 // SQL condition evaluation details captured at the time the run was triggered.
 type SqlConditionRunInfoDetails struct {
-	// The SQL statement ID of the condition evaluation, set when the condition is
-	// evaluated by running a single SQL statement (the RESULT_VALUE_CHANGES trigger
-	// mode). The UI uses it to link to the query execution details.
+	// The SQL statement ID of the condition evaluation. Set for both the
+	// QUERY_RETURNS_ROWS and RESULT_VALUE_CHANGES trigger modes.
 	ConditionEvaluationSqlStatementId *string
-	// Whether the last condition evaluation was satisfied (query returned truthy
-	// result).
+	// Whether the last condition evaluation was satisfied. For QUERY_RETURNS_ROWS,
+	// the query returned at least one row. For RESULT_VALUE_CHANGES, the result
+	// value changed.
 	ConditionEvaluationSatisfied *bool
-	// The ID of the SQL session, used by the UI to track session context. Set for
-	// the QUERY_RETURNS_ROWS trigger mode.
+	// The ID of the SQL session of the condition evaluation. Not set by current
+	// evaluations. Use condition_evaluation_sql_statement_id instead.
 	ConditionEvaluationSqlSessionId *string
 }
 
 type SqlConditionState struct {
-	// The SEA statement ID of the SQL statement executed for the latest condition
-	// evaluation. Populated for RESULT_VALUE_CHANGES, which executes the query
-	// through the SQL execution API.
+	// The ID of the SQL statement executed for the latest condition evaluation.
+	// Populated for both QUERY_RETURNS_ROWS and RESULT_VALUE_CHANGES.
 	LatestConditionEvaluationSqlStatementId *string
-	// Whether the last condition evaluation was satisfied (query returned truthy
-	// result).
+	// Whether the last condition evaluation was satisfied. For QUERY_RETURNS_ROWS,
+	// the query returned at least one row. For RESULT_VALUE_CHANGES, the result
+	// value changed.
 	LatestConditionEvaluationSatisfied *bool
-	// The ID of the SQL session, used by UI to track session context. Populated for
-	// QUERY_RETURNS_ROWS, which executes the query through Redash.
+	// The ID of the SQL session of the latest condition evaluation. Not set by
+	// current evaluations. Use latest_condition_evaluation_sql_statement_id
+	// instead.
 	LatestConditionEvaluationSqlSessionId *string
 }
 

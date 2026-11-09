@@ -537,7 +537,9 @@ const (
 	// A clarifying question Genie asks back to the user, not the answer.
 	TextAttachmentPurpose_FollowUpQuestion TextAttachmentPurpose = "FOLLOW_UP_QUESTION"
 	// The final answer / summary for the message. Consumers reading the Get Message
-	// API can use this to identify which text attachment holds the answer.
+	// API can use this to identify which text attachment holds the answer. A
+	// completed agent-mode message has exactly one text attachment with this
+	// purpose.
 	TextAttachmentPurpose_TextAttachmentPurposeAnswer TextAttachmentPurpose = "TEXT_ATTACHMENT_PURPOSE_ANSWER"
 )
 
@@ -1649,7 +1651,8 @@ type TextAttachment struct {
 	// one text attachment (for example a clarifying follow-up question alongside
 	// the final answer); use this field to tell them apart.
 	// `TEXT_ATTACHMENT_PURPOSE_ANSWER` marks the final answer/summary and
-	// `FOLLOW_UP_QUESTION` marks a clarifying question.
+	// `FOLLOW_UP_QUESTION` marks a clarifying question. Agent-mode messages return
+	// the answer as their only text attachment.
 	Purpose TextAttachmentPurpose
 }
 
