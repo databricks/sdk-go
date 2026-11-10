@@ -319,7 +319,6 @@ func (w *CreateWorkspacePublicWaiter) Wait(ctx context.Context, opts ...lro.Opti
 func (c *internalClient) DeleteWorkspacePublic(ctx context.Context, req DeleteWorkspaceRequest, opts ...call.Option) (*Workspace, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -394,7 +393,6 @@ func (c *internalClient) DeleteWorkspacePublic(ctx context.Context, req DeleteWo
 func (c *internalClient) GetWorkspacePublic(ctx context.Context, req GetWorkspaceRequest, opts ...call.Option) (*Workspace, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -461,7 +459,6 @@ func (c *internalClient) GetWorkspacePublic(ctx context.Context, req GetWorkspac
 func (c *internalClient) ListWorkspacesPublic(ctx context.Context, req ListWorkspacesRequest, opts ...call.Option) (*ListWorkspacesResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {

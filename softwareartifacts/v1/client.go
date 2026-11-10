@@ -82,7 +82,6 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 func (c *internalClient) GetSoftwareArtifact(ctx context.Context, req GetSoftwareArtifactRequest, opts ...call.Option) (*SoftwareArtifact, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -145,7 +144,6 @@ func (c *internalClient) GetSoftwareArtifact(ctx context.Context, req GetSoftwar
 func (c *internalClient) GetSoftwareArtifactVersion(ctx context.Context, req GetSoftwareArtifactVersionRequest, opts ...call.Option) (*SoftwareArtifactVersion, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -212,7 +210,6 @@ func (c *internalClient) ListSoftwareArtifactVersions(ctx context.Context, req L
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -327,7 +324,6 @@ func (c *internalClient) ListSoftwareArtifacts(ctx context.Context, req ListSoft
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

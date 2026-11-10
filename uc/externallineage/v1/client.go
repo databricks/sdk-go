@@ -153,7 +153,6 @@ func (c *internalClient) DeleteExternalLineageRelationship(ctx context.Context, 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -209,7 +208,6 @@ func (c *internalClient) ListExternalLineageRelationships(ctx context.Context, r
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

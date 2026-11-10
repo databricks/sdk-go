@@ -265,7 +265,6 @@ func (o *CreateWorkspaceBaseEnvironmentOperation) Wait(ctx context.Context, opts
 func (c *internalClient) DeleteWorkspaceBaseEnvironment(ctx context.Context, req DeleteWorkspaceBaseEnvironmentRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -321,7 +320,6 @@ func (c *internalClient) DeleteWorkspaceBaseEnvironment(ctx context.Context, req
 func (c *internalClient) GetDefaultWorkspaceBaseEnvironment(ctx context.Context, req GetDefaultWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*DefaultWorkspaceBaseEnvironment, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -385,7 +383,6 @@ func (c *internalClient) GetDefaultWorkspaceBaseEnvironment(ctx context.Context,
 func (c *internalClient) getOperation(ctx context.Context, req GetOperationRequest, opts ...call.Option) (*Operation, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -449,7 +446,6 @@ func (c *internalClient) getOperation(ctx context.Context, req GetOperationReque
 func (c *internalClient) GetWorkspaceBaseEnvironment(ctx context.Context, req GetWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*WorkspaceBaseEnvironment, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -527,7 +523,6 @@ func (c *internalClient) ListWorkspaceBaseEnvironments(ctx context.Context, req 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

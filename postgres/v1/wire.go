@@ -578,12 +578,13 @@ func catalogOperationMetadataFromWire(w *catalogOperationMetadataWire) (*Catalog
 }
 
 type cdfConfigWire struct {
-	Name           *string     `json:"name,omitempty"`
-	Catalog        *string     `json:"catalog,omitempty"`
-	Schema         *string     `json:"schema,omitempty"`
-	CreateTime     *types.Time `json:"create_time,omitempty"`
-	CdfConfigId    *string     `json:"cdf_config_id,omitempty"`
-	PostgresSchema *string     `json:"postgres_schema,omitempty"`
+	Name             *string     `json:"name,omitempty"`
+	Catalog          *string     `json:"catalog,omitempty"`
+	Schema           *string     `json:"schema,omitempty"`
+	CreateTime       *types.Time `json:"create_time,omitempty"`
+	CdfConfigId      *string     `json:"cdf_config_id,omitempty"`
+	PostgresSchema   *string     `json:"postgres_schema,omitempty"`
+	ServicePrincipal *string     `json:"service_principal,omitempty"`
 }
 
 func cdfConfigToWire(v *CdfConfig) (*cdfConfigWire, error) {
@@ -591,12 +592,13 @@ func cdfConfigToWire(v *CdfConfig) (*cdfConfigWire, error) {
 		return nil, nil
 	}
 	return &cdfConfigWire{
-		Name:           v.Name,
-		Catalog:        v.Catalog,
-		Schema:         v.Schema,
-		CreateTime:     v.CreateTime,
-		CdfConfigId:    v.CdfConfigId,
-		PostgresSchema: v.PostgresSchema,
+		Name:             v.Name,
+		Catalog:          v.Catalog,
+		Schema:           v.Schema,
+		CreateTime:       v.CreateTime,
+		CdfConfigId:      v.CdfConfigId,
+		PostgresSchema:   v.PostgresSchema,
+		ServicePrincipal: v.ServicePrincipal,
 	}, nil
 }
 
@@ -605,12 +607,13 @@ func cdfConfigFromWire(w *cdfConfigWire) (*CdfConfig, error) {
 		return nil, nil
 	}
 	return &CdfConfig{
-		Name:           w.Name,
-		Catalog:        w.Catalog,
-		Schema:         w.Schema,
-		CreateTime:     w.CreateTime,
-		CdfConfigId:    w.CdfConfigId,
-		PostgresSchema: w.PostgresSchema,
+		Name:             w.Name,
+		Catalog:          w.Catalog,
+		Schema:           w.Schema,
+		CreateTime:       w.CreateTime,
+		CdfConfigId:      w.CdfConfigId,
+		PostgresSchema:   w.PostgresSchema,
+		ServicePrincipal: w.ServicePrincipal,
 	}, nil
 }
 
@@ -1685,6 +1688,7 @@ func endpointStatusFromWire(w *endpointStatusWire) (*EndpointStatus, error) {
 type generateDatabaseCredentialRequestWire struct {
 	Claims     []requestedClaimsWire `json:"claims,omitempty"`
 	Endpoint   *string               `json:"endpoint,omitempty"`
+	GroupName  *string               `json:"group_name,omitempty"`
 	Ttl        *types.Duration       `json:"ttl,omitempty"`
 	ExpireTime *types.Time           `json:"expire_time,omitempty"`
 }
@@ -1715,6 +1719,7 @@ func generateDatabaseCredentialRequestToWire(v *GenerateDatabaseCredentialReques
 	return &generateDatabaseCredentialRequestWire{
 		Claims:     claimsWireValue,
 		Endpoint:   v.Endpoint,
+		GroupName:  v.GroupName,
 		Ttl:        expirationTtlWire,
 		ExpireTime: expirationExpireTimeWire,
 	}, nil

@@ -153,7 +153,6 @@ func (c *internalClient) CreateSpace(ctx context.Context, req GenieCreateSpaceRe
 func (c *internalClient) DownloadMessageAttachmentVisualization(ctx context.Context, req DownloadMessageAttachmentVisualizationRequest, opts ...call.Option) (*DownloadMessageAttachmentVisualizationResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	headers.Set("Accept", "application/octet-stream")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
@@ -646,7 +645,6 @@ func (c *internalClient) GenieCreateMessageComment(ctx context.Context, req Geni
 func (c *internalClient) GenieDeleteConversation(ctx context.Context, req GenieDeleteConversationRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -705,7 +703,6 @@ func (c *internalClient) GenieDeleteConversation(ctx context.Context, req GenieD
 func (c *internalClient) GenieDeleteConversationMessage(ctx context.Context, req GenieDeleteConversationMessageRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1051,7 +1048,6 @@ func (c *internalClient) GenieGenerateDownloadFullQueryResult(ctx context.Contex
 func (c *internalClient) GenieGetConversationMessage(ctx context.Context, req GenieGetConversationMessageRequest, opts ...call.Option) (*GenieMessage, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1149,7 +1145,6 @@ func (c *internalClient) GenieGetDownloadFullQueryResult(ctx context.Context, re
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1235,7 +1230,6 @@ func (c *internalClient) GenieGetDownloadFullQueryResult(ctx context.Context, re
 func (c *internalClient) GenieGetEvalResultDetails(ctx context.Context, req GenieGetEvalResultDetailsRequest, opts ...call.Option) (*GenieEvalResultDetails, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1308,7 +1302,6 @@ func (c *internalClient) GenieGetEvalResultDetails(ctx context.Context, req Geni
 func (c *internalClient) GenieGetEvalRun(ctx context.Context, req GenieGetEvalRunRequest, opts ...call.Option) (*GenieEvalRunResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1378,7 +1371,6 @@ func (c *internalClient) GenieGetEvalRun(ctx context.Context, req GenieGetEvalRu
 func (c *internalClient) GenieGetMessageAttachmentQueryResult(ctx context.Context, req GenieGetMessageAttachmentQueryResultRequest, opts ...call.Option) (*GenieGetMessageQueryResultResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1458,7 +1450,6 @@ func (c *internalClient) GenieGetMessageAttachmentQueryResult(ctx context.Contex
 func (c *internalClient) GenieGetMessageQueryResult(ctx context.Context, req GenieGetMessageQueryResultRequest, opts ...call.Option) (*GenieGetMessageQueryResultResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1533,7 +1524,6 @@ func (c *internalClient) GenieGetMessageQueryResult(ctx context.Context, req Gen
 func (c *internalClient) GenieGetQueryResultByAttachment(ctx context.Context, req GenieGetQueryResultByAttachmentRequest, opts ...call.Option) (*GenieGetMessageQueryResultResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1615,7 +1605,6 @@ func (c *internalClient) GenieGetSpace(ctx context.Context, req GenieGetSpaceReq
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1685,7 +1674,6 @@ func (c *internalClient) GenieListConversationComments(ctx context.Context, req 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1766,7 +1754,6 @@ func (c *internalClient) GenieListConversationMessages(ctx context.Context, req 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1845,7 +1832,6 @@ func (c *internalClient) GenieListConversations(ctx context.Context, req GenieLi
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1922,7 +1908,6 @@ func (c *internalClient) GenieListEvalResults(ctx context.Context, req GenieList
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2001,7 +1986,6 @@ func (c *internalClient) GenieListEvalRuns(ctx context.Context, req GenieListEva
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2075,7 +2059,6 @@ func (c *internalClient) GenieListMessageComments(ctx context.Context, req Genie
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2159,7 +2142,6 @@ func (c *internalClient) GenieListSpaces(ctx context.Context, req GenieListSpace
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2477,7 +2459,6 @@ func (w *GenieStartConversationWaiter) Wait(ctx context.Context, opts ...lro.Opt
 func (c *internalClient) GenieTrashSpace(ctx context.Context, req GenieTrashSpaceRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

@@ -159,7 +159,6 @@ func (c *internalClient) GetPolicyComplianceForJob(ctx context.Context, req GetP
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -226,7 +225,6 @@ func (c *internalClient) ListJobComplianceForPolicy(ctx context.Context, req Lis
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -739,7 +737,6 @@ func (c *internalClient) ExportRun(ctx context.Context, req ExportRunRequest, op
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -817,7 +814,6 @@ func (c *internalClient) GetJob(ctx context.Context, req GetJobRequest, opts ...
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -896,7 +892,6 @@ func (c *internalClient) GetRun(ctx context.Context, req GetRunRequest, opts ...
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -978,7 +973,6 @@ func (c *internalClient) GetRunOutput(ctx context.Context, req GetRunOutputReque
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1042,7 +1036,6 @@ func (c *internalClient) ListJobs(ctx context.Context, req ListJobsRequest, opts
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1159,7 +1152,6 @@ func (c *internalClient) ListRuns(ctx context.Context, req ListRunsRequest, opts
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

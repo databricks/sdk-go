@@ -170,7 +170,6 @@ func (c *internalClient) CreateVolume(ctx context.Context, req CreateVolumeReque
 func (c *internalClient) DeleteVolume(ctx context.Context, req DeleteVolumeRequest, opts ...call.Option) (*DeleteVolumeResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -236,7 +235,6 @@ func (c *internalClient) GetVolume(ctx context.Context, req GetVolumeRequest, op
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -321,7 +319,6 @@ func (c *internalClient) ListVolumes(ctx context.Context, req ListVolumesRequest
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

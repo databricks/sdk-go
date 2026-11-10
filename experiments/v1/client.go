@@ -158,7 +158,6 @@ func (c *internalClient) CreateIssue(ctx context.Context, req CreateIssueRequest
 func (c *internalClient) GetIssue(ctx context.Context, req GetIssueRequest, opts ...call.Option) (*Issue, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -681,7 +680,6 @@ func (c *internalClient) DeleteExperiment(ctx context.Context, req DeleteExperim
 func (c *internalClient) DeleteLoggedModel(ctx context.Context, req DeleteLoggedModelRequest, opts ...call.Option) (*DeleteLoggedModelResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -738,7 +736,6 @@ func (c *internalClient) DeleteLoggedModel(ctx context.Context, req DeleteLogged
 func (c *internalClient) DeleteLoggedModelTag(ctx context.Context, req DeleteLoggedModelTagRequest, opts ...call.Option) (*DeleteLoggedModelTagResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1065,7 +1062,6 @@ func (c *internalClient) GetExperiment(ctx context.Context, req GetExperimentReq
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1137,7 +1133,6 @@ func (c *internalClient) GetExperimentByName(ctx context.Context, req GetExperim
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1197,7 +1192,6 @@ func (c *internalClient) GetExperimentByName(ctx context.Context, req GetExperim
 func (c *internalClient) GetLoggedModel(ctx context.Context, req GetLoggedModelRequest, opts ...call.Option) (*GetLoggedModelResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1269,7 +1263,6 @@ func (c *internalClient) GetRun(ctx context.Context, req GetRunRequest, opts ...
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1341,7 +1334,6 @@ func (c *internalClient) ListArtifacts(ctx context.Context, req ListArtifactsReq
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1455,7 +1447,6 @@ func (c *internalClient) ListExperiments(ctx context.Context, req ListExperiment
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1568,7 +1559,6 @@ func (c *internalClient) ListMetricHistory(ctx context.Context, req ListMetricHi
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

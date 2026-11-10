@@ -245,7 +245,6 @@ func (c *internalClient) DeleteAccountFederationPolicy(ctx context.Context, req 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -306,7 +305,6 @@ func (c *internalClient) DeleteAccountFederationPolicy(ctx context.Context, req 
 func (c *internalClient) DeleteServicePrincipalFederationPolicy(ctx context.Context, req DeleteServicePrincipalFederationPolicyRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -373,7 +371,6 @@ func (c *internalClient) GetAccountFederationPolicy(ctx context.Context, req Get
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -443,7 +440,6 @@ func (c *internalClient) GetAccountFederationPolicy(ctx context.Context, req Get
 func (c *internalClient) GetServicePrincipalFederationPolicy(ctx context.Context, req GetServicePrincipalFederationPolicyRequest, opts ...call.Option) (*FederationPolicy, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -519,7 +515,6 @@ func (c *internalClient) ListAccountFederationPolicies(ctx context.Context, req 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -636,7 +631,6 @@ func (c *internalClient) ListServicePrincipalFederationPolicies(ctx context.Cont
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -1069,7 +1063,6 @@ func (c *internalClient) CreateServicePrincipalSecretProxy(ctx context.Context, 
 func (c *internalClient) DeleteServicePrincipalSecret(ctx context.Context, req DeleteServicePrincipalSecretRequest, opts ...call.Option) (*DeleteServicePrincipalSecretResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -1140,7 +1133,6 @@ func (c *internalClient) DeleteServicePrincipalSecretProxy(ctx context.Context, 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1214,7 +1206,6 @@ func (c *internalClient) ListServicePrincipalSecrets(ctx context.Context, req Li
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -1335,7 +1326,6 @@ func (c *internalClient) ListServicePrincipalSecretsProxy(ctx context.Context, r
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

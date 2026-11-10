@@ -155,7 +155,6 @@ func (c *internalClient) DeleteExternalLocation(ctx context.Context, req DeleteE
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -221,7 +220,6 @@ func (c *internalClient) GetExternalLocation(ctx context.Context, req GetExterna
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -303,7 +301,6 @@ func (c *internalClient) ListExternalLocations(ctx context.Context, req ListExte
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

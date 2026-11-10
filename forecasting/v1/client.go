@@ -231,7 +231,6 @@ func (w *CreateForecastingExperimentWaiter) Wait(ctx context.Context, opts ...lr
 func (c *internalClient) GetForecastingExperiment(ctx context.Context, req GetForecastingExperimentRequest, opts ...call.Option) (*ForecastingExperiment, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

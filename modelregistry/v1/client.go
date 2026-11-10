@@ -351,7 +351,6 @@ func (c *internalClient) DeleteComment(ctx context.Context, req DeleteCommentReq
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -409,7 +408,6 @@ func (c *internalClient) DeleteRegistryWebhook(ctx context.Context, req DeleteRe
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -467,7 +465,6 @@ func (c *internalClient) DeleteTransitionRequest(ctx context.Context, req Delete
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -547,7 +544,6 @@ func (c *internalClient) GetRegisteredModelDatabricks(ctx context.Context, req G
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -611,7 +607,6 @@ func (c *internalClient) ListRegistryWebhooks(ctx context.Context, req ListRegis
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -725,7 +720,6 @@ func (c *internalClient) ListTransitionRequests(ctx context.Context, req ListTra
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1260,7 +1254,6 @@ func (c *internalClient) DeleteModelVersion(ctx context.Context, req DeleteModel
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1321,7 +1314,6 @@ func (c *internalClient) DeleteModelVersionTag(ctx context.Context, req DeleteMo
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1385,7 +1377,6 @@ func (c *internalClient) DeleteRegisteredModel(ctx context.Context, req DeleteRe
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1443,7 +1434,6 @@ func (c *internalClient) DeleteRegisteredModelTag(ctx context.Context, req Delet
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1504,7 +1494,6 @@ func (c *internalClient) GetModelVersion(ctx context.Context, req GetModelVersio
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1571,7 +1560,6 @@ func (c *internalClient) GetModelVersionDownloadUri(ctx context.Context, req Get
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1705,7 +1693,6 @@ func (c *internalClient) ListRegisteredModels(ctx context.Context, req ListRegis
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1879,7 +1866,6 @@ func (c *internalClient) SearchModelVersions(ctx context.Context, req SearchMode
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1993,7 +1979,6 @@ func (c *internalClient) SearchRegisteredModels(ctx context.Context, req SearchR
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

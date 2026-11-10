@@ -147,7 +147,6 @@ func (c *internalClient) CreateAlert(ctx context.Context, req CreateAlertRequest
 func (c *internalClient) GetAlert(ctx context.Context, req GetAlertRequest, opts ...call.Option) (*Alert, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -217,7 +216,6 @@ func (c *internalClient) ListAlerts(ctx context.Context, req ListAlertsRequest, 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -323,7 +321,6 @@ func (c *internalClient) ListAlertsIter(ctx context.Context, req ListAlertsReque
 func (c *internalClient) TrashAlert(ctx context.Context, req TrashAlertRequest, opts ...call.Option) (*Empty, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

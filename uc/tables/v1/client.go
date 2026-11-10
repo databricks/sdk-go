@@ -250,7 +250,6 @@ func (c *internalClient) CreateTableConstraint(ctx context.Context, req CreateTa
 func (c *internalClient) DeleteTable(ctx context.Context, req DeleteTableRequest, opts ...call.Option) (*DeleteTableResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -319,7 +318,6 @@ func (c *internalClient) DeleteTableConstraint(ctx context.Context, req DeleteTa
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -392,7 +390,6 @@ func (c *internalClient) GetTable(ctx context.Context, req GetTableRequest, opts
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -483,7 +480,6 @@ func (c *internalClient) ListTableSummaries(ctx context.Context, req ListTableSu
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -619,7 +615,6 @@ func (c *internalClient) ListTables(ctx context.Context, req ListTablesRequest, 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -751,7 +746,6 @@ func (c *internalClient) ListTablesIter(ctx context.Context, req ListTablesReque
 func (c *internalClient) TableExists(ctx context.Context, req TableExistsRequest, opts ...call.Option) (*TableExistsResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

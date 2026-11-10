@@ -157,7 +157,6 @@ func (c *internalClient) CreateSecret(ctx context.Context, req CreateSecretReque
 func (c *internalClient) DeleteSecret(ctx context.Context, req DeleteSecretRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -222,7 +221,6 @@ func (c *internalClient) GetSecret(ctx context.Context, req GetSecretRequest, op
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -299,7 +297,6 @@ func (c *internalClient) ListSecrets(ctx context.Context, req ListSecretsRequest
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

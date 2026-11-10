@@ -154,7 +154,6 @@ func (c *internalClient) Export(ctx context.Context, req ExportRequest, opts ...
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -227,7 +226,6 @@ func (c *internalClient) GetStatus(ctx context.Context, req GetStatusRequest, op
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -358,7 +356,6 @@ func (c *internalClient) List(ctx context.Context, req ListRequest, opts ...call
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

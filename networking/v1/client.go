@@ -169,7 +169,6 @@ func (c *internalClient) CreateAccountIpAccessList(ctx context.Context, req Crea
 func (c *internalClient) DeleteAccountIpAccessList(ctx context.Context, req DeleteAccountIpAccessListRequest, opts ...call.Option) (*DeleteAccountIpAccessListResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -231,7 +230,6 @@ func (c *internalClient) DeleteAccountIpAccessList(ctx context.Context, req Dele
 func (c *internalClient) GetAccountIpAccessList(ctx context.Context, req GetAccountIpAccessListRequest, opts ...call.Option) (*GetAccountIpAccessListResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -299,7 +297,6 @@ func (c *internalClient) GetAccountIpAccessList(ctx context.Context, req GetAcco
 func (c *internalClient) ListAccountIpAccessLists(ctx context.Context, req ListAccountIpAccessListsRequest, opts ...call.Option) (*ListAccountIpAccessListsResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -620,7 +617,6 @@ func (c *internalClient) CreateEndpoint(ctx context.Context, req CreateEndpointR
 func (c *internalClient) DeleteEndpoint(ctx context.Context, req DeleteEndpointRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -674,7 +670,6 @@ func (c *internalClient) DeleteEndpoint(ctx context.Context, req DeleteEndpointR
 func (c *internalClient) GetEndpoint(ctx context.Context, req GetEndpointRequest, opts ...call.Option) (*Endpoint, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -741,7 +736,6 @@ func (c *internalClient) ListEndpoints(ctx context.Context, req ListEndpointsReq
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -935,7 +929,6 @@ func (c *internalClient) CreateIpAccessList(ctx context.Context, req CreateIpAcc
 func (c *internalClient) DeleteIpAccessList(ctx context.Context, req DeleteIpAccessListRequest, opts ...call.Option) (*DeleteIpAccessListResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -993,7 +986,6 @@ func (c *internalClient) DeleteIpAccessList(ctx context.Context, req DeleteIpAcc
 func (c *internalClient) GetIpAccessList(ctx context.Context, req GetIpAccessListRequest, opts ...call.Option) (*GetIpAccessListResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1057,7 +1049,6 @@ func (c *internalClient) GetIpAccessList(ctx context.Context, req GetIpAccessLis
 func (c *internalClient) ListIpAccessLists(ctx context.Context, req ListIpAccessLists, opts ...call.Option) (*ListIpAccessListsResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1375,7 +1366,6 @@ func (c *internalClient) CreateNetworkConnectivityConfigPublic(ctx context.Conte
 func (c *internalClient) DeleteNetworkConnectivityConfigPublic(ctx context.Context, req DeleteNetworkConnectivityConfigRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -1434,7 +1424,6 @@ func (c *internalClient) DeleteNetworkConnectivityConfigPublic(ctx context.Conte
 func (c *internalClient) GetNetworkConnectivityConfigPublic(ctx context.Context, req GetNetworkConnectivityConfigRequest, opts ...call.Option) (*NetworkConnectivityConfig, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -1506,7 +1495,6 @@ func (c *internalClient) ListNetworkConnectivityConfigsPublic(ctx context.Contex
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -1786,7 +1774,6 @@ func (c *internalClient) CreateNccPrivateEndpointRule(ctx context.Context, req C
 func (c *internalClient) DeleteNccPrivateEndpointRule(ctx context.Context, req DeleteNccPrivateEndpointRuleRequest, opts ...call.Option) (*NccPrivateEndpointRule, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -1860,7 +1847,6 @@ func (c *internalClient) DeleteNccPrivateEndpointRule(ctx context.Context, req D
 func (c *internalClient) GetNccPrivateEndpointRule(ctx context.Context, req GetNccPrivateEndpointRuleRequest, opts ...call.Option) (*NccPrivateEndpointRule, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -1938,7 +1924,6 @@ func (c *internalClient) ListNccPrivateEndpointRules(ctx context.Context, req Li
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -2211,7 +2196,6 @@ func (c *internalClient) CreateNetworkPolicyRpc(ctx context.Context, req CreateN
 func (c *internalClient) DeleteNetworkPolicyRpc(ctx context.Context, req DeleteNetworkPolicyRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -2269,7 +2253,6 @@ func (c *internalClient) DeleteNetworkPolicyRpc(ctx context.Context, req DeleteN
 func (c *internalClient) GetNetworkPolicyRpc(ctx context.Context, req GetNetworkPolicyRequest, opts ...call.Option) (*AccountNetworkPolicy, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -2340,7 +2323,6 @@ func (c *internalClient) ListNetworkPoliciesRpc(ctx context.Context, req ListNet
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -2701,7 +2683,6 @@ func (o *CreatePrivateNetworkGatewayOperation) Wait(ctx context.Context, opts ..
 func (c *internalClient) DeletePrivateNetworkGateway(ctx context.Context, req DeletePrivateNetworkGatewayRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2755,7 +2736,6 @@ func (c *internalClient) DeletePrivateNetworkGateway(ctx context.Context, req De
 func (c *internalClient) GetPrivateNetworkGateway(ctx context.Context, req GetPrivateNetworkGatewayRequest, opts ...call.Option) (*PrivateNetworkGateway, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2818,7 +2798,6 @@ func (c *internalClient) GetPrivateNetworkGateway(ctx context.Context, req GetPr
 func (c *internalClient) getPrivateNetworkGatewayOperation(ctx context.Context, req GetOperationRequest, opts ...call.Option) (*Operation, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2886,7 +2865,6 @@ func (c *internalClient) ListPrivateNetworkGateways(ctx context.Context, req Lis
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -3310,7 +3288,6 @@ func (c *internalClient) CreateVpcEndpointPublic(ctx context.Context, req Create
 func (c *internalClient) DeleteNetworkPublic(ctx context.Context, req DeleteNetworkRequest, opts ...call.Option) (*Network, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -3378,7 +3355,6 @@ func (c *internalClient) DeleteNetworkPublic(ctx context.Context, req DeleteNetw
 func (c *internalClient) DeletePrivateAccessSettingsPublic(ctx context.Context, req DeletePrivateAccessSettingsRequest, opts ...call.Option) (*PrivateAccessSettings, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -3446,7 +3422,6 @@ func (c *internalClient) DeletePrivateAccessSettingsPublic(ctx context.Context, 
 func (c *internalClient) DeleteVpcEndpointPublic(ctx context.Context, req DeleteVpcEndpointRequest, opts ...call.Option) (*VpcEndpoint, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -3514,7 +3489,6 @@ func (c *internalClient) DeleteVpcEndpointPublic(ctx context.Context, req Delete
 func (c *internalClient) GetNetworkPublic(ctx context.Context, req GetNetworkRequest, opts ...call.Option) (*Network, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -3582,7 +3556,6 @@ func (c *internalClient) GetNetworkPublic(ctx context.Context, req GetNetworkReq
 func (c *internalClient) GetPrivateAccessSettingsPublic(ctx context.Context, req GetPrivateAccessSettingsRequest, opts ...call.Option) (*PrivateAccessSettings, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -3654,7 +3627,6 @@ func (c *internalClient) GetPrivateAccessSettingsPublic(ctx context.Context, req
 func (c *internalClient) GetVpcEndpointPublic(ctx context.Context, req GetVpcEndpointRequest, opts ...call.Option) (*VpcEndpoint, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -3721,7 +3693,6 @@ func (c *internalClient) GetVpcEndpointPublic(ctx context.Context, req GetVpcEnd
 func (c *internalClient) ListNetworkPublic(ctx context.Context, req ListNetworkRequest, opts ...call.Option) (*ListNetworkResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -3787,7 +3758,6 @@ func (c *internalClient) ListNetworkPublic(ctx context.Context, req ListNetworkR
 func (c *internalClient) ListPrivateAccessSettingsPublic(ctx context.Context, req ListPrivateAccessSettingsRequest, opts ...call.Option) (*ListPrivateAccessSettingsResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -3853,7 +3823,6 @@ func (c *internalClient) ListPrivateAccessSettingsPublic(ctx context.Context, re
 func (c *internalClient) ListVpcEndpointPublic(ctx context.Context, req ListVpcEndpointRequest, opts ...call.Option) (*ListVpcEndpointResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -4010,7 +3979,6 @@ func (c *internalClient) UpdatePrivateAccessSettingsPublic(ctx context.Context, 
 func (c *internalClient) GetWorkspaceNetworkOptionRpc(ctx context.Context, req GetWorkspaceNetworkOptionRequest, opts ...call.Option) (*WorkspaceNetworkOption, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {

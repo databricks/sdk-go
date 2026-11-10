@@ -157,7 +157,6 @@ func (c *internalClient) CreateTagPolicy(ctx context.Context, req CreateTagPolic
 func (c *internalClient) DeleteTagPolicy(ctx context.Context, req DeleteTagPolicyRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -216,7 +215,6 @@ func (c *internalClient) DeleteTagPolicy(ctx context.Context, req DeleteTagPolic
 func (c *internalClient) GetTagPolicy(ctx context.Context, req GetTagPolicyRequest, opts ...call.Option) (*TagPolicy, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -288,7 +286,6 @@ func (c *internalClient) ListTagPolicies(ctx context.Context, req ListTagPolicie
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

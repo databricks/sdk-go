@@ -1461,6 +1461,7 @@ type featureWire struct {
 	Name             *string               `json:"name,omitempty"`
 	CreatedAt        *types.Time           `json:"created_at,omitempty"`
 	CreatedBy        *string               `json:"created_by,omitempty"`
+	OutputTypeText   *string               `json:"output_type_text,omitempty"`
 }
 
 func featureToWire(v *Feature) (*featureWire, error) {
@@ -1491,6 +1492,16 @@ func featureToWire(v *Feature) (*featureWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Feature.TimeseriesColumn", err)
 	}
+	var outputDataTypeOutputTypeTextWire *string
+	switch value := v.OutputDataType.(type) {
+	case nil:
+	case *Feature_OutputDataType_OutputTypeText:
+		if value != nil {
+			outputDataTypeOutputTypeTextWire = new(value.OutputTypeText)
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Feature.OutputDataType", value)
+	}
 	return &featureWire{
 		FullName:         v.FullName,
 		Source:           sourceWireValue,
@@ -1507,12 +1518,20 @@ func featureToWire(v *Feature) (*featureWire, error) {
 		Name:             v.Name,
 		CreatedAt:        v.CreatedAt,
 		CreatedBy:        v.CreatedBy,
+		OutputTypeText:   outputDataTypeOutputTypeTextWire,
 	}, nil
 }
 
 func featureFromWire(w *featureWire) (*Feature, error) {
 	if w == nil {
 		return nil, nil
+	}
+	outputDataTypeMembers := 0
+	if w.OutputTypeText != nil {
+		outputDataTypeMembers++
+	}
+	if outputDataTypeMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "Feature.OutputDataType")
 	}
 	sourcePublicValue, err := dataSourceFromWire(w.Source)
 	if err != nil {
@@ -1538,6 +1557,11 @@ func featureFromWire(w *featureWire) (*Feature, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Feature.TimeseriesColumn", err)
 	}
+	var outputDataTypeSelection isFeature_OutputDataType
+	switch {
+	case w.OutputTypeText != nil:
+		outputDataTypeSelection = &Feature_OutputDataType_OutputTypeText{OutputTypeText: *w.OutputTypeText}
+	}
 	return &Feature{
 		FullName:         w.FullName,
 		Source:           sourcePublicValue,
@@ -1554,6 +1578,7 @@ func featureFromWire(w *featureWire) (*Feature, error) {
 		Name:             w.Name,
 		CreatedAt:        w.CreatedAt,
 		CreatedBy:        w.CreatedBy,
+		OutputDataType:   outputDataTypeSelection,
 	}, nil
 }
 

@@ -395,7 +395,6 @@ func (w *CreateProvisionedThroughputInferenceEndpointWaiter) Wait(ctx context.Co
 func (c *internalClient) DeleteInferenceEndpoint(ctx context.Context, req DeleteInferenceEndpointRequest, opts ...call.Option) (*DeleteInferenceEndpointResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -455,7 +454,6 @@ func (c *internalClient) DeleteInferenceEndpoint(ctx context.Context, req Delete
 func (c *internalClient) GetExportEndpointMetrics(ctx context.Context, req GetExportEndpointMetricsRequest, opts ...call.Option) (*ExportMetricsResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	headers.Set("Accept", "text/plain")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
@@ -515,7 +513,6 @@ func (c *internalClient) GetExportEndpointMetrics(ctx context.Context, req GetEx
 func (c *internalClient) GetInferenceEndpoint(ctx context.Context, req GetInferenceEndpointRequest, opts ...call.Option) (*InferenceEndpointDetailed, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -582,7 +579,6 @@ func (c *internalClient) GetInferenceEndpoint(ctx context.Context, req GetInfere
 func (c *internalClient) GetInferenceEndpointSchema(ctx context.Context, req GetInferenceEndpointSchemaRequest, opts ...call.Option) (*GetOpenApiResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	headers.Set("Accept", "text/plain")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
@@ -642,7 +638,6 @@ func (c *internalClient) GetInferenceEndpointSchema(ctx context.Context, req Get
 func (c *internalClient) GetServedModelBuildLogs(ctx context.Context, req GetServedModelBuildLogsRequest, opts ...call.Option) (*GetServedModelBuildLogsResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -712,7 +707,6 @@ func (c *internalClient) GetServedModelBuildLogs(ctx context.Context, req GetSer
 func (c *internalClient) GetServedModelLogs(ctx context.Context, req GetServedModelLogsRequest, opts ...call.Option) (*GetServedModelLogsResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -782,7 +776,6 @@ func (c *internalClient) GetServedModelLogs(ctx context.Context, req GetServedMo
 func (c *internalClient) ListInferenceEndpoints(ctx context.Context, req ListInferenceEndpointsRequest, opts ...call.Option) (*ListInferenceEndpointsResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

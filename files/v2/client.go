@@ -367,7 +367,6 @@ func (c *internalClient) GetStatus(ctx context.Context, req GetStatusRequest, op
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -441,7 +440,6 @@ func (c *internalClient) List(ctx context.Context, req ListStatusRequest, opts .
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -711,7 +709,6 @@ func (c *internalClient) Read(ctx context.Context, req ReadRequest, opts ...call
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -780,7 +777,6 @@ func (c *internalClient) Read(ctx context.Context, req ReadRequest, opts ...call
 func (c *internalClient) CreateDirectory(ctx context.Context, req CreateDirectoryRequest, opts ...call.Option) (*CreateDirectoryResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -841,7 +837,6 @@ func (c *internalClient) CreateDirectory(ctx context.Context, req CreateDirector
 func (c *internalClient) DeleteDirectory(ctx context.Context, req DeleteDirectoryRequest, opts ...call.Option) (*DeleteDirectoryResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -898,7 +893,6 @@ func (c *internalClient) DeleteDirectory(ctx context.Context, req DeleteDirector
 func (c *internalClient) DeleteFile(ctx context.Context, req DeleteFileRequest, opts ...call.Option) (*DeleteFileResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -959,7 +953,6 @@ func (c *internalClient) DeleteFile(ctx context.Context, req DeleteFileRequest, 
 func (c *internalClient) DownloadFile(ctx context.Context, req DownloadFileRequest, opts ...call.Option) (*DownloadFileResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	headers.Set("Accept", "application/octet-stream")
 	if req.Range != nil {
 		headers.Set("Range", fmt.Sprintf("%v", *req.Range))
@@ -1048,7 +1041,6 @@ func (c *internalClient) DownloadFile(ctx context.Context, req DownloadFileReque
 func (c *internalClient) GetDirectoryMetadata(ctx context.Context, req GetDirectoryMetadataRequest, opts ...call.Option) (*GetDirectoryMetadataResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1106,7 +1098,6 @@ func (c *internalClient) GetDirectoryMetadata(ctx context.Context, req GetDirect
 func (c *internalClient) GetFileMetadata(ctx context.Context, req GetFileMetadataRequest, opts ...call.Option) (*GetFileMetadataResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if req.Range != nil {
 		headers.Set("Range", fmt.Sprintf("%v", *req.Range))
 	}
@@ -1189,7 +1180,6 @@ func (c *internalClient) ListDirectoryContents(ctx context.Context, req ListDire
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

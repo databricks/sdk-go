@@ -304,7 +304,6 @@ func (c *internalClient) CreateTool(ctx context.Context, req CreateToolRequest, 
 func (c *internalClient) DeleteExample(ctx context.Context, req DeleteExampleRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -358,7 +357,6 @@ func (c *internalClient) DeleteExample(ctx context.Context, req DeleteExampleReq
 func (c *internalClient) DeleteSupervisorAgent(ctx context.Context, req DeleteSupervisorAgentRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -412,7 +410,6 @@ func (c *internalClient) DeleteSupervisorAgent(ctx context.Context, req DeleteSu
 func (c *internalClient) DeleteTool(ctx context.Context, req DeleteToolRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -466,7 +463,6 @@ func (c *internalClient) DeleteTool(ctx context.Context, req DeleteToolRequest, 
 func (c *internalClient) GetExample(ctx context.Context, req GetExampleRequest, opts ...call.Option) (*Example, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -529,7 +525,6 @@ func (c *internalClient) GetExample(ctx context.Context, req GetExampleRequest, 
 func (c *internalClient) GetSupervisorAgent(ctx context.Context, req GetSupervisorAgentRequest, opts ...call.Option) (*SupervisorAgent, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -592,7 +587,6 @@ func (c *internalClient) GetSupervisorAgent(ctx context.Context, req GetSupervis
 func (c *internalClient) GetTool(ctx context.Context, req GetToolRequest, opts ...call.Option) (*Tool, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -659,7 +653,6 @@ func (c *internalClient) ListExamples(ctx context.Context, req ListExamplesReque
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -774,7 +767,6 @@ func (c *internalClient) ListSupervisorAgents(ctx context.Context, req ListSuper
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -882,7 +874,6 @@ func (c *internalClient) ListTools(ctx context.Context, req ListToolsRequest, op
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

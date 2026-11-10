@@ -825,7 +825,6 @@ func (o *CreateSpaceOperation) Wait(ctx context.Context, opts ...lro.Option) (*S
 func (c *internalClient) DeleteApp(ctx context.Context, req DeleteAppRequest, opts ...call.Option) (*App, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -889,7 +888,6 @@ func (c *internalClient) DeleteApp(ctx context.Context, req DeleteAppRequest, op
 func (c *internalClient) DeleteAppThumbnail(ctx context.Context, req DeleteAppThumbnailRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -945,7 +943,6 @@ func (c *internalClient) DeleteAppThumbnail(ctx context.Context, req DeleteAppTh
 func (c *internalClient) DeleteCustomTemplate(ctx context.Context, req DeleteCustomTemplateRequest, opts ...call.Option) (*CustomTemplate, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1008,7 +1005,6 @@ func (c *internalClient) DeleteCustomTemplate(ctx context.Context, req DeleteCus
 func (c *internalClient) deleteSpaceBase(ctx context.Context, req DeleteSpaceRequest, opts ...call.Option) (*Operation, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1161,7 +1157,6 @@ func (o *DeleteSpaceOperation) Wait(ctx context.Context, opts ...lro.Option) err
 func (c *internalClient) GetApp(ctx context.Context, req GetAppRequest, opts ...call.Option) (*App, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1226,7 +1221,6 @@ func (c *internalClient) GetApp(ctx context.Context, req GetAppRequest, opts ...
 func (c *internalClient) GetAppDeployment(ctx context.Context, req GetAppDeploymentRequest, opts ...call.Option) (*AppDeployment, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1296,7 +1290,6 @@ func (c *internalClient) GetAppDeployment(ctx context.Context, req GetAppDeploym
 func (c *internalClient) GetAppUpdate(ctx context.Context, req GetAppUpdateRequest, opts ...call.Option) (*AppUpdate, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1361,7 +1354,6 @@ func (c *internalClient) GetAppUpdate(ctx context.Context, req GetAppUpdateReque
 func (c *internalClient) GetCustomTemplate(ctx context.Context, req GetCustomTemplateRequest, opts ...call.Option) (*CustomTemplate, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1424,7 +1416,6 @@ func (c *internalClient) GetCustomTemplate(ctx context.Context, req GetCustomTem
 func (c *internalClient) GetSpace(ctx context.Context, req GetSpaceRequest, opts ...call.Option) (*Space, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1488,7 +1479,6 @@ func (c *internalClient) GetSpace(ctx context.Context, req GetSpaceRequest, opts
 func (c *internalClient) getSpaceOperation(ctx context.Context, req GetOperationRequest, opts ...call.Option) (*Operation, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1557,7 +1547,6 @@ func (c *internalClient) ListAppDeployments(ctx context.Context, req ListAppDepl
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1673,7 +1662,6 @@ func (c *internalClient) ListApps(ctx context.Context, req ListAppsRequest, opts
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1784,7 +1772,6 @@ func (c *internalClient) ListCustomTemplates(ctx context.Context, req ListCustom
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1892,7 +1879,6 @@ func (c *internalClient) ListSpaces(ctx context.Context, req ListSpacesRequest, 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

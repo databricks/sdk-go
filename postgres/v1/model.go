@@ -1063,6 +1063,11 @@ type CdfConfig struct {
 	// The Postgres schema this CdfConfig replicates from. Unique within the parent
 	// database. Set at creation; the CdfConfig is immutable.
 	PostgresSchema *string
+	// The service principal (application id) whose identity authorizes this change
+	// data feed's ongoing writes to Unity Catalog. When unset, writes are
+	// authorized as the creating identity. Changing it requires a new CdfConfig,
+	// which writes to new Delta tables.
+	ServicePrincipal *string
 }
 
 // Metadata for CdfConfig long-running operations. Intentionally empty today;
@@ -1683,6 +1688,11 @@ type GenerateDatabaseCredentialRequest struct {
 	// The endpoint resource name for which this credential will be generated.
 	// Format: projects/{project_id}/branches/{branch_id}/endpoints/{endpoint_id}
 	Endpoint *string
+	// The display name of a `<Databricks>` workspace group. When set, the returned
+	// credential is scoped to this group, so the caller connects directly as the
+	// group's Postgres role. The caller must be a member of the group. When
+	// omitted, the credential is scoped to the caller's own identity.
+	GroupName *string
 	// Expiration information for the credential. Users can specify either
 	// expire_time or ttl. If unspecified, maximum allowed duration (1 hour) is
 	// used.

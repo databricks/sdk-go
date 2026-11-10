@@ -159,7 +159,6 @@ func (c *internalClient) GetBillingUsageDashboard(ctx context.Context, req GetBi
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {

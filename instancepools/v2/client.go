@@ -271,7 +271,6 @@ func (c *internalClient) GetInstancePool(ctx context.Context, req GetInstancePoo
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -331,7 +330,6 @@ func (c *internalClient) GetInstancePool(ctx context.Context, req GetInstancePoo
 func (c *internalClient) ListInstancePools(ctx context.Context, req ListInstancePoolsRequest, opts ...call.Option) (*ListInstancePoolsResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

@@ -557,7 +557,6 @@ func (c *internalClient) CreateCleanRoomOutputCatalog(ctx context.Context, req C
 func (c *internalClient) DeleteCleanRoom(ctx context.Context, req DeleteCleanRoomRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -611,7 +610,6 @@ func (c *internalClient) DeleteCleanRoom(ctx context.Context, req DeleteCleanRoo
 func (c *internalClient) DeleteCleanRoomAsset(ctx context.Context, req DeleteCleanRoomAssetRequest, opts ...call.Option) (*DeleteCleanRoomAssetResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -675,7 +673,6 @@ func (c *internalClient) DeleteCleanRoomAsset(ctx context.Context, req DeleteCle
 func (c *internalClient) DeleteCleanRoomAutoApprovalRule(ctx context.Context, req DeleteCleanRoomAutoApprovalRuleRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -734,7 +731,6 @@ func (c *internalClient) DeleteCleanRoomAutoApprovalRule(ctx context.Context, re
 func (c *internalClient) GetCleanRoom(ctx context.Context, req GetCleanRoomRequest, opts ...call.Option) (*CleanRoom, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -797,7 +793,6 @@ func (c *internalClient) GetCleanRoom(ctx context.Context, req GetCleanRoomReque
 func (c *internalClient) GetCleanRoomAsset(ctx context.Context, req GetCleanRoomAssetRequest, opts ...call.Option) (*CleanRoomAsset, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -867,7 +862,6 @@ func (c *internalClient) GetCleanRoomAsset(ctx context.Context, req GetCleanRoom
 func (c *internalClient) GetCleanRoomAssetRevision(ctx context.Context, req GetCleanRoomAssetRevisionRequest, opts ...call.Option) (*CleanRoomAsset, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -943,7 +937,6 @@ func (c *internalClient) GetCleanRoomAssetRevision(ctx context.Context, req GetC
 func (c *internalClient) GetCleanRoomAutoApprovalRule(ctx context.Context, req GetCleanRoomAutoApprovalRuleRequest, opts ...call.Option) (*CleanRoomAutoApprovalRule, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1015,7 +1008,6 @@ func (c *internalClient) ListCleanRoomAssetRevisions(ctx context.Context, req Li
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1137,7 +1129,6 @@ func (c *internalClient) ListCleanRoomAssets(ctx context.Context, req ListCleanR
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1249,7 +1240,6 @@ func (c *internalClient) ListCleanRoomAutoApprovalRules(ctx context.Context, req
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1364,7 +1354,6 @@ func (c *internalClient) ListCleanRoomNotebookTaskRuns(ctx context.Context, req 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1482,7 +1471,6 @@ func (c *internalClient) ListCleanRoomTaskRunsHandler(ctx context.Context, req L
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1606,7 +1594,6 @@ func (c *internalClient) ListCleanRooms(ctx context.Context, req ListCleanRoomsR
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

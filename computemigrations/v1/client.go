@@ -425,7 +425,6 @@ func (c *internalClient) DeleteMigration(ctx context.Context, req DeleteMigratio
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -496,7 +495,6 @@ func (c *internalClient) DeleteMigration(ctx context.Context, req DeleteMigratio
 func (c *internalClient) GetMigration(ctx context.Context, req GetMigrationRequest, opts ...call.Option) (*Migration, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -568,7 +566,6 @@ func (c *internalClient) ListMigrations(ctx context.Context, req ListMigrationsR
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

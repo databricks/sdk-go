@@ -761,7 +761,6 @@ func (c *internalClient) GetCluster(ctx context.Context, req GetClusterRequest, 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -822,7 +821,6 @@ func (c *internalClient) GetCluster(ctx context.Context, req GetClusterRequest, 
 func (c *internalClient) ListAvailableZones(ctx context.Context, req ListAvailableZonesRequest, opts ...call.Option) (*ListAvailableZonesResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -885,7 +883,6 @@ func (c *internalClient) ListClusters(ctx context.Context, req ListClustersReque
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -990,7 +987,6 @@ func (c *internalClient) ListClustersIter(ctx context.Context, req ListClustersR
 func (c *internalClient) ListNodeTypes(ctx context.Context, req ListNodeTypesRequest, opts ...call.Option) (*ListNodeTypesResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1048,7 +1044,6 @@ func (c *internalClient) ListNodeTypes(ctx context.Context, req ListNodeTypesReq
 func (c *internalClient) ListSparkVersions(ctx context.Context, req GetSparkVersionsRequest, opts ...call.Option) (*GetSparkVersionsResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2061,7 +2056,6 @@ func (c *internalClient) GetPolicyComplianceForCluster(ctx context.Context, req 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2127,7 +2121,6 @@ func (c *internalClient) ListClusterComplianceForPolicy(ctx context.Context, req
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

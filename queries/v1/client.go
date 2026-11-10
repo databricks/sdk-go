@@ -147,7 +147,6 @@ func (c *internalClient) CreateQuery(ctx context.Context, req CreateQueryRequest
 func (c *internalClient) GetQuery(ctx context.Context, req GetQueryRequest, opts ...call.Option) (*Query, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -217,7 +216,6 @@ func (c *internalClient) ListQueries(ctx context.Context, req ListQueriesRequest
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -325,7 +323,6 @@ func (c *internalClient) ListVisualizationsForQuery(ctx context.Context, req Lis
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -440,7 +437,6 @@ func (c *internalClient) ListVisualizationsForQueryIter(ctx context.Context, req
 func (c *internalClient) TrashQuery(ctx context.Context, req TrashQueryRequest, opts ...call.Option) (*Empty, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

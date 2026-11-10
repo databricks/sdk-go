@@ -153,7 +153,6 @@ func (c *internalClient) CreateSandbox(ctx context.Context, req CreateSandboxReq
 func (c *internalClient) DeleteSandbox(ctx context.Context, req DeleteSandboxRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -207,7 +206,6 @@ func (c *internalClient) DeleteSandbox(ctx context.Context, req DeleteSandboxReq
 func (c *internalClient) GetSandbox(ctx context.Context, req GetSandboxRequest, opts ...call.Option) (*Sandbox, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -274,7 +272,6 @@ func (c *internalClient) ListSandboxes(ctx context.Context, req ListSandboxesReq
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -744,7 +741,6 @@ func (c *internalClient) GetMetadata(ctx context.Context, req GetMetadataRequest
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -816,7 +812,6 @@ func (c *internalClient) ListDirectoryContents(ctx context.Context, req ListDire
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1021,7 +1016,6 @@ func (c *internalClient) DownloadFile(ctx context.Context, req DownloadFileReque
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	headers.Set("Accept", "application/octet-stream")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
@@ -1299,7 +1293,6 @@ func (c *internalClient) ListCommands(ctx context.Context, req ListCommandsReque
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

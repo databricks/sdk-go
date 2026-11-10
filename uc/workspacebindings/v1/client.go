@@ -83,7 +83,6 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 func (c *internalClient) GetCatalogWorkspaceBindings(ctx context.Context, req GetCatalogWorkspaceBindingsRequest, opts ...call.Option) (*GetCatalogWorkspaceBindingsResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -159,7 +158,6 @@ func (c *internalClient) GetWorkspaceBindings(ctx context.Context, req GetWorksp
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

@@ -157,7 +157,6 @@ func (c *internalClient) CreateBudgetConfiguration(ctx context.Context, req Crea
 func (c *internalClient) DeleteBudgetConfiguration(ctx context.Context, req DeleteBudgetConfigurationRequest, opts ...call.Option) (*DeleteBudgetConfigurationResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -219,7 +218,6 @@ func (c *internalClient) DeleteBudgetConfiguration(ctx context.Context, req Dele
 func (c *internalClient) GetBudgetConfiguration(ctx context.Context, req GetBudgetConfigurationRequest, opts ...call.Option) (*GetBudgetConfigurationResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -289,7 +287,6 @@ func (c *internalClient) GetBudgetConfiguration(ctx context.Context, req GetBudg
 func (c *internalClient) GetBudgetSpendStatus(ctx context.Context, req GetBudgetSpendStatusRequest, opts ...call.Option) (*BudgetSpendStatus, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -357,7 +354,6 @@ func (c *internalClient) ListBudgetConfigurations(ctx context.Context, req ListB
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -472,7 +468,6 @@ func (c *internalClient) ListBudgetSpendStatuses(ctx context.Context, req ListBu
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

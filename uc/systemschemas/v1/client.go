@@ -83,7 +83,6 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 func (c *internalClient) DisableSystemSchema(ctx context.Context, req DisableSystemSchemaRequest, opts ...call.Option) (*DisableSystemSchemaResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -230,7 +229,6 @@ func (c *internalClient) ListSystemSchemas(ctx context.Context, req ListSystemSc
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

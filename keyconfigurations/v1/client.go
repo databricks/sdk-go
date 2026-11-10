@@ -181,7 +181,6 @@ func (c *internalClient) CreateCustomerManagedKeyPublic(ctx context.Context, req
 func (c *internalClient) DeleteCustomerManagedKeyPublic(ctx context.Context, req DeleteCustomerManagedKeyRequest, opts ...call.Option) (*CustomerManagedKey, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -262,7 +261,6 @@ func (c *internalClient) DeleteCustomerManagedKeyPublic(ctx context.Context, req
 func (c *internalClient) GetCustomerManagedKeyPublic(ctx context.Context, req GetCustomerManagedKeyRequest, opts ...call.Option) (*CustomerManagedKey, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -329,7 +327,6 @@ func (c *internalClient) GetCustomerManagedKeyPublic(ctx context.Context, req Ge
 func (c *internalClient) ListCustomerManagedKeyPublic(ctx context.Context, req ListCustomerManagedKeyRequest, opts ...call.Option) (*ListCustomerManagedKeyResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {

@@ -518,7 +518,6 @@ func (c *internalClient) CreateSessionStore(ctx context.Context, req CreateSessi
 func (c *internalClient) DeleteMemory(ctx context.Context, req DeleteManagedMemoryEntryRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -573,7 +572,6 @@ func (c *internalClient) DeleteMemory(ctx context.Context, req DeleteManagedMemo
 func (c *internalClient) DeleteMemoryStore(ctx context.Context, req DeleteManagedMemoryStoreRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -628,7 +626,6 @@ func (c *internalClient) DeleteMemoryStore(ctx context.Context, req DeleteManage
 func (c *internalClient) DeleteSession(ctx context.Context, req DeleteSessionRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -683,7 +680,6 @@ func (c *internalClient) DeleteSession(ctx context.Context, req DeleteSessionReq
 func (c *internalClient) DeleteSessionStore(ctx context.Context, req DeleteSessionStoreRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -895,7 +891,6 @@ func (c *internalClient) GetMemory(ctx context.Context, req GetManagedMemoryEntr
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -964,7 +959,6 @@ func (c *internalClient) GetMemory(ctx context.Context, req GetManagedMemoryEntr
 func (c *internalClient) GetMemoryStore(ctx context.Context, req GetManagedMemoryStoreRequest, opts ...call.Option) (*ManagedMemoryStore, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1028,7 +1022,6 @@ func (c *internalClient) GetMemoryStore(ctx context.Context, req GetManagedMemor
 func (c *internalClient) GetMemoryStorePermission(ctx context.Context, req GetMemoryStorePermissionRequest, opts ...call.Option) (*MemoryStorePermission, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1092,7 +1085,6 @@ func (c *internalClient) GetMemoryStorePermission(ctx context.Context, req GetMe
 func (c *internalClient) GetSession(ctx context.Context, req GetSessionRequest, opts ...call.Option) (*Session, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1155,7 +1147,6 @@ func (c *internalClient) GetSession(ctx context.Context, req GetSessionRequest, 
 func (c *internalClient) GetSessionStore(ctx context.Context, req GetSessionStoreRequest, opts ...call.Option) (*SessionStore, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1219,7 +1210,6 @@ func (c *internalClient) GetSessionStore(ctx context.Context, req GetSessionStor
 func (c *internalClient) GetSessionStorePermission(ctx context.Context, req GetSessionStorePermissionRequest, opts ...call.Option) (*SessionStorePermission, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1426,7 +1416,6 @@ func (c *internalClient) ListMemories(ctx context.Context, req ListManagedMemory
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1556,7 +1545,6 @@ func (c *internalClient) ListMemoryStorePermissions(ctx context.Context, req Lis
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1671,7 +1659,6 @@ func (c *internalClient) ListMemoryStores(ctx context.Context, req ListManagedMe
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1779,7 +1766,6 @@ func (c *internalClient) ListSessionItems(ctx context.Context, req ListSessionIt
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1898,7 +1884,6 @@ func (c *internalClient) ListSessionStorePermissions(ctx context.Context, req Li
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2013,7 +1998,6 @@ func (c *internalClient) ListSessionStores(ctx context.Context, req ListSessionS
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2121,7 +2105,6 @@ func (c *internalClient) ListSessions(ctx context.Context, req ListSessionsReque
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

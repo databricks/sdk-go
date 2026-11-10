@@ -156,7 +156,6 @@ func (c *internalClient) DeleteDomain(ctx context.Context, req DeleteDomainReque
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -215,7 +214,6 @@ func (c *internalClient) DeleteDomain(ctx context.Context, req DeleteDomainReque
 func (c *internalClient) GetDomain(ctx context.Context, req GetDomainRequest, opts ...call.Option) (*Domain, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -286,7 +284,6 @@ func (c *internalClient) ListDomains(ctx context.Context, req ListDomainsRequest
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

@@ -1294,13 +1294,34 @@ type Feature struct {
 	CreatedAt *types.Time `fieldmask:"created_at"`
 	// Username of the feature creator.
 	CreatedBy *string `fieldmask:"created_by"`
+	// The feature's resolved output type.
+	OutputDataType isFeature_OutputDataType
+	_              [0]featureOutputDataTypeFieldMaskMetadata `fieldmask_oneof:"OutputDataType"`
+}
+
+type isFeature_OutputDataType interface {
+	isFeature_OutputDataType()
+}
+
+// Feature_OutputDataType_OutputTypeText selects OutputTypeText for Feature.OutputDataType.
+// Output type in Databricks SQL DDL (e.g., "BIGINT", "DECIMAL(10,2)",
+// "ARRAY<STRING>", "STRUCT<name:STRING>").
+type Feature_OutputDataType_OutputTypeText struct {
+	OutputTypeText string `fieldmask:"output_type_text"`
+}
+
+func (*Feature_OutputDataType_OutputTypeText) isFeature_OutputDataType() {}
+
+type featureOutputDataTypeFieldMaskMetadata struct {
+	*Feature_OutputDataType_OutputTypeText
 }
 
 // A Python UDF that computes a feature..
 type FeatureFunction struct {
 	// Three-part name of the Python UDF.
 	Udf *string
-	// Bindings of the UDF's parameters to features.
+	// Bindings of the UDF's parameters to features. Order is not significant, and
+	// GetFeatureSpec can return them in a different order.
 	InputBindings []FeatureFunction_InputBinding
 	// Output name of the feature that the UDF computes.
 	Output *string
@@ -1324,12 +1345,15 @@ type FeatureLookup struct {
 	// table.
 	FeatureNames []string
 	// Output names for features, in place of their names in the feature table.
+	// Order is not significant, and GetFeatureSpec can return them in a different
+	// order.
 	RenameOutputs []RenameOutput
 	// Keys to use when performing point-in-time lookup.
 	TimestampLookupKeys []string
 	// Lookback window to use when performing point-in-time lookup.
 	LookbackWindow *types.Duration
-	// Default values for features.
+	// Default values for features. Order is not significant, and GetFeatureSpec can
+	// return them in a different order.
 	DefaultValues []DefaultValue
 }
 
@@ -1350,7 +1374,8 @@ type FeatureSpec struct {
 	// cannot be combined with lookups (`FeatureLookup`) and functions
 	// (`FeatureFunction`) in one feature spec.
 	Features []Features
-	// Output names of columns to leave out of the feature spec.
+	// Output names of columns to leave out of the feature spec. Order is not
+	// significant, and GetFeatureSpec can return them in a different order.
 	ExcludeColumns []string
 	// How pip requirements for the serving container are specified.
 	PipRequirementsSpec isFeatureSpec_PipRequirementsSpec

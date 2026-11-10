@@ -170,7 +170,6 @@ func (c *internalClient) DeleteAccountsStorageCredential(ctx context.Context, re
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -241,7 +240,6 @@ func (c *internalClient) DeleteAccountsStorageCredential(ctx context.Context, re
 func (c *internalClient) GetAccountsStorageCredential(ctx context.Context, req AccountsGetStorageCredentialRequest, opts ...call.Option) (*AccountsGetStorageCredentialResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -314,7 +312,6 @@ func (c *internalClient) GetAccountsStorageCredential(ctx context.Context, req A
 func (c *internalClient) ListAccountsStorageCredentials(ctx context.Context, req AccountsListStorageCredentialsRequest, opts ...call.Option) (*AccountsListStorageCredentialsResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -609,7 +606,6 @@ func (c *internalClient) DeleteCredential(ctx context.Context, req DeleteCredent
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -674,7 +670,6 @@ func (c *internalClient) DeleteStorageCredential(ctx context.Context, req Delete
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1019,7 +1014,6 @@ func (c *internalClient) GenerateTemporaryVolumeCredential(ctx context.Context, 
 func (c *internalClient) GetCredential(ctx context.Context, req GetCredentialRequest, opts ...call.Option) (*StorageCredentialInfo, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1084,7 +1078,6 @@ func (c *internalClient) GetCredential(ctx context.Context, req GetCredentialReq
 func (c *internalClient) GetStorageCredential(ctx context.Context, req GetStorageCredentialRequest, opts ...call.Option) (*StorageCredentialInfo, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1161,7 +1154,6 @@ func (c *internalClient) ListCredentials(ctx context.Context, req ListCredential
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1284,7 +1276,6 @@ func (c *internalClient) ListStorageCredentials(ctx context.Context, req ListSto
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1780,7 +1771,6 @@ func (c *internalClient) CreateCredentialsPublic(ctx context.Context, req Create
 func (c *internalClient) DeleteCredentialsPublic(ctx context.Context, req DeleteCredentialsRequest, opts ...call.Option) (*Credentials, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -1848,7 +1838,6 @@ func (c *internalClient) DeleteCredentialsPublic(ctx context.Context, req Delete
 func (c *internalClient) GetCredentialsPublic(ctx context.Context, req GetCredentialsRequest, opts ...call.Option) (*Credentials, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -1916,7 +1905,6 @@ func (c *internalClient) GetCredentialsPublic(ctx context.Context, req GetCreden
 func (c *internalClient) ListCredentialsPublic(ctx context.Context, req ListCredentialsPublicRequest, opts ...call.Option) (*ListCredentialsResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {

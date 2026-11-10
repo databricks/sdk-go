@@ -155,7 +155,6 @@ func (c *internalClient) CreateStorageConfigurationPublic(ctx context.Context, r
 func (c *internalClient) DeleteStorageConfigurationPublic(ctx context.Context, req DeleteStorageConfigurationRequest, opts ...call.Option) (*StorageConfiguration, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -223,7 +222,6 @@ func (c *internalClient) DeleteStorageConfigurationPublic(ctx context.Context, r
 func (c *internalClient) GetStorageConfigurationPublic(ctx context.Context, req GetStorageConfigurationRequest, opts ...call.Option) (*StorageConfiguration, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -290,7 +288,6 @@ func (c *internalClient) GetStorageConfigurationPublic(ctx context.Context, req 
 func (c *internalClient) ListStorageConfigurationPublic(ctx context.Context, req ListStorageConfigurationRequest, opts ...call.Option) (*ListStorageConfigurationResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {

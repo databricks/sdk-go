@@ -155,7 +155,6 @@ func (c *internalClient) DeleteSchema(ctx context.Context, req DeleteSchemaReque
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -221,7 +220,6 @@ func (c *internalClient) GetSchema(ctx context.Context, req GetSchemaRequest, op
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -303,7 +301,6 @@ func (c *internalClient) ListSchemas(ctx context.Context, req ListSchemasRequest
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

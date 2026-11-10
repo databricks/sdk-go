@@ -87,7 +87,6 @@ func (c *internalClient) BatchGetListings(ctx context.Context, req BatchGetListi
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -152,7 +151,6 @@ func (c *internalClient) BatchGetProviders(ctx context.Context, req BatchGetProv
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -289,7 +287,6 @@ func (c *internalClient) GetInstallationDetails(ctx context.Context, req GetInst
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -404,7 +401,6 @@ func (c *internalClient) GetListingContent(ctx context.Context, req GetListingCo
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -516,7 +512,6 @@ func (c *internalClient) GetListingContentIter(ctx context.Context, req GetListi
 func (c *internalClient) GetPersonalizationRequestsForConsumer(ctx context.Context, req GetPersonalizationRequestsForConsumerRequest, opts ...call.Option) (*GetPersonalizationRequestsForConsumerResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -581,7 +576,6 @@ func (c *internalClient) GetPersonalizationRequestsForConsumer(ctx context.Conte
 func (c *internalClient) GetPublishedListingForConsumer(ctx context.Context, req GetPublishedListingForConsumerRequest, opts ...call.Option) (*GetPublishedListingForConsumerResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -645,7 +639,6 @@ func (c *internalClient) GetPublishedListingForConsumer(ctx context.Context, req
 func (c *internalClient) GetPublishedProviderForConsumer(ctx context.Context, req GetPublishedProviderForConsumerRequest, opts ...call.Option) (*GetPublishedProviderForConsumerResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -785,7 +778,6 @@ func (c *internalClient) ListInstallations(ctx context.Context, req ListInstalla
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -897,7 +889,6 @@ func (c *internalClient) ListListingFulfillments(ctx context.Context, req ListLi
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1012,7 +1003,6 @@ func (c *internalClient) ListPersonalizationRequestsForConsumer(ctx context.Cont
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1121,7 +1111,6 @@ func (c *internalClient) ListPublishedListingsForConsumer(ctx context.Context, r
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1251,7 +1240,6 @@ func (c *internalClient) ListPublishedProvidersForConsumer(ctx context.Context, 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1364,7 +1352,6 @@ func (c *internalClient) SearchPublishedListingsForConsumer(ctx context.Context,
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1486,7 +1473,6 @@ func (c *internalClient) SearchPublishedListingsForConsumerIter(ctx context.Cont
 func (c *internalClient) UninstallListing(ctx context.Context, req DeleteInstallationRequest, opts ...call.Option) (*DeleteInstallationResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2093,7 +2079,6 @@ func (c *internalClient) CreateProviderAnalyticsDashboard(ctx context.Context, r
 func (c *internalClient) DeleteExchange(ctx context.Context, req DeleteExchangeRequest, opts ...call.Option) (*DeleteExchangeResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2150,7 +2135,6 @@ func (c *internalClient) DeleteExchange(ctx context.Context, req DeleteExchangeR
 func (c *internalClient) DeleteExchangeFilter(ctx context.Context, req DeleteExchangeFilterRequest, opts ...call.Option) (*DeleteExchangeFilterResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2207,7 +2191,6 @@ func (c *internalClient) DeleteExchangeFilter(ctx context.Context, req DeleteExc
 func (c *internalClient) DeleteFile(ctx context.Context, req DeleteFileRequest, opts ...call.Option) (*DeleteFileResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2264,7 +2247,6 @@ func (c *internalClient) DeleteFile(ctx context.Context, req DeleteFileRequest, 
 func (c *internalClient) DeleteListing(ctx context.Context, req DeleteListingRequest, opts ...call.Option) (*DeleteListingResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2321,7 +2303,6 @@ func (c *internalClient) DeleteListing(ctx context.Context, req DeleteListingReq
 func (c *internalClient) DeleteProvider(ctx context.Context, req DeleteProviderRequest, opts ...call.Option) (*DeleteProviderResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2378,7 +2359,6 @@ func (c *internalClient) DeleteProvider(ctx context.Context, req DeleteProviderR
 func (c *internalClient) GetExchange(ctx context.Context, req GetExchangeRequest, opts ...call.Option) (*GetExchangeResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2441,7 +2421,6 @@ func (c *internalClient) GetExchange(ctx context.Context, req GetExchangeRequest
 func (c *internalClient) GetFile(ctx context.Context, req GetFileRequest, opts ...call.Option) (*GetFileResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2504,7 +2483,6 @@ func (c *internalClient) GetFile(ctx context.Context, req GetFileRequest, opts .
 func (c *internalClient) GetLatestVersionProviderAnalyticsDashboard(ctx context.Context, req GetLatestVersionProviderAnalyticsDashboardRequest, opts ...call.Option) (*GetLatestVersionProviderAnalyticsDashboardResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2561,7 +2539,6 @@ func (c *internalClient) GetLatestVersionProviderAnalyticsDashboard(ctx context.
 func (c *internalClient) GetListing(ctx context.Context, req GetListingRequest, opts ...call.Option) (*GetListingResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2629,7 +2606,6 @@ func (c *internalClient) GetPersonalizationRequestsForProvider(ctx context.Conte
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2733,7 +2709,6 @@ func (c *internalClient) GetPersonalizationRequestsForProviderIter(ctx context.C
 func (c *internalClient) GetProvider(ctx context.Context, req GetProviderRequest, opts ...call.Option) (*GetProviderResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2800,7 +2775,6 @@ func (c *internalClient) ListExchangeFilters(ctx context.Context, req ListExchan
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2911,7 +2885,6 @@ func (c *internalClient) ListExchanges(ctx context.Context, req ListExchangesReq
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -3019,7 +2992,6 @@ func (c *internalClient) ListExchangesForListing(ctx context.Context, req ListEx
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -3130,7 +3102,6 @@ func (c *internalClient) ListFiles(ctx context.Context, req ListFilesRequest, op
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -3241,7 +3212,6 @@ func (c *internalClient) ListListings(ctx context.Context, req ListListingsReque
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -3349,7 +3319,6 @@ func (c *internalClient) ListListingsForExchange(ctx context.Context, req ListLi
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -3456,7 +3425,6 @@ func (c *internalClient) ListListingsForExchangeIter(ctx context.Context, req Li
 func (c *internalClient) ListProviderAnalyticsDashboard(ctx context.Context, req ListProviderAnalyticsDashboardRequest, opts ...call.Option) (*ListProviderAnalyticsDashboardResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -3517,7 +3485,6 @@ func (c *internalClient) ListProviders(ctx context.Context, req ListProvidersReq
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -3621,7 +3588,6 @@ func (c *internalClient) ListProvidersIter(ctx context.Context, req ListProvider
 func (c *internalClient) RemoveExchangeForListing(ctx context.Context, req RemoveExchangeForListingRequest, opts ...call.Option) (*RemoveExchangeForListingResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

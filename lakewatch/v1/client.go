@@ -82,7 +82,6 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 func (c *internalClient) GetAlertConfig(ctx context.Context, req GetAlertConfigRequest, opts ...call.Option) (*AlertConfig, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -145,7 +144,6 @@ func (c *internalClient) GetAlertConfig(ctx context.Context, req GetAlertConfigR
 func (c *internalClient) GetCommonConfig(ctx context.Context, req GetCommonConfigRequest, opts ...call.Option) (*CommonConfig, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -208,7 +206,6 @@ func (c *internalClient) GetCommonConfig(ctx context.Context, req GetCommonConfi
 func (c *internalClient) GetDatasourceConfig(ctx context.Context, req GetDatasourceConfigRequest, opts ...call.Option) (*DatasourceConfig, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -271,7 +268,6 @@ func (c *internalClient) GetDatasourceConfig(ctx context.Context, req GetDatasou
 func (c *internalClient) GetRuleConfig(ctx context.Context, req GetRuleConfigRequest, opts ...call.Option) (*RuleConfig, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -716,7 +712,6 @@ func (c *internalClient) CreateDatasource(ctx context.Context, req CreateDatasou
 func (c *internalClient) DeleteDatasource(ctx context.Context, req DeleteDatasourceRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -770,7 +765,6 @@ func (c *internalClient) DeleteDatasource(ctx context.Context, req DeleteDatasou
 func (c *internalClient) GetDatasource(ctx context.Context, req GetDatasourceRequest, opts ...call.Option) (*Datasource, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -839,7 +833,6 @@ func (c *internalClient) ListDatasources(ctx context.Context, req ListDatasource
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1102,7 +1095,6 @@ func (c *internalClient) CreateRule(ctx context.Context, req CreateRuleRequest, 
 func (c *internalClient) DeleteRule(ctx context.Context, req DeleteRuleRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1156,7 +1148,6 @@ func (c *internalClient) DeleteRule(ctx context.Context, req DeleteRuleRequest, 
 func (c *internalClient) GetRule(ctx context.Context, req GetRuleRequest, opts ...call.Option) (*Rule, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1223,7 +1214,6 @@ func (c *internalClient) ListRules(ctx context.Context, req ListRulesRequest, op
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

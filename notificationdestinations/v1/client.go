@@ -147,7 +147,6 @@ func (c *internalClient) CreateNotificationDestination(ctx context.Context, req 
 func (c *internalClient) DeleteNotificationDestination(ctx context.Context, req DeleteNotificationDestinationRequest, opts ...call.Option) (*Empty, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -205,7 +204,6 @@ func (c *internalClient) DeleteNotificationDestination(ctx context.Context, req 
 func (c *internalClient) GetNotificationDestination(ctx context.Context, req GetNotificationDestinationRequest, opts ...call.Option) (*NotificationDestination, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -273,7 +271,6 @@ func (c *internalClient) ListNotificationDestinations(ctx context.Context, req L
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

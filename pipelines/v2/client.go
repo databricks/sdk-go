@@ -301,7 +301,6 @@ func (c *internalClient) Delete(ctx context.Context, req DeletePipelineRequest, 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -434,7 +433,6 @@ func (c *internalClient) Events(ctx context.Context, req ListPipelineEventsReque
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -552,7 +550,6 @@ func (c *internalClient) EventsIter(ctx context.Context, req ListPipelineEventsR
 func (c *internalClient) Get(ctx context.Context, req GetPipelineRequest, opts ...call.Option) (*GetPipelineResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -615,7 +612,6 @@ func (c *internalClient) Get(ctx context.Context, req GetPipelineRequest, opts .
 func (c *internalClient) GetUpdate(ctx context.Context, req GetUpdateRequest, opts ...call.Option) (*GetUpdateResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -687,7 +683,6 @@ func (c *internalClient) List(ctx context.Context, req ListPipelinesRequest, opt
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -801,7 +796,6 @@ func (c *internalClient) ListUpdates(ctx context.Context, req ListUpdatesRequest
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

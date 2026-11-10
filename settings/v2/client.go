@@ -85,7 +85,6 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 func (c *internalClient) GetPublicAccountSetting(ctx context.Context, req GetPublicAccountSettingRequest, opts ...call.Option) (*Setting, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -155,7 +154,6 @@ func (c *internalClient) GetPublicAccountSetting(ctx context.Context, req GetPub
 func (c *internalClient) GetPublicAccountUserPreference(ctx context.Context, req GetPublicAccountUserPreferenceRequest, opts ...call.Option) (*UserPreference, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -228,7 +226,6 @@ func (c *internalClient) GetPublicAccountUserPreference(ctx context.Context, req
 func (c *internalClient) GetPublicWorkspaceSetting(ctx context.Context, req GetPublicWorkspaceSettingRequest, opts ...call.Option) (*Setting, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -298,7 +295,6 @@ func (c *internalClient) ListAccountSettingsMetadata(ctx context.Context, req Li
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -416,7 +412,6 @@ func (c *internalClient) ListAccountUserPreferencesMetadata(ctx context.Context,
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -536,7 +531,6 @@ func (c *internalClient) ListWorkspaceSettingsMetadata(ctx context.Context, req 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
