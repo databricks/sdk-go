@@ -81,7 +81,6 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 func (c *internalClient) AllClusterStatuses(ctx context.Context, req ListAllClusterLibraryStatusesRequest, opts ...call.Option) (*ListAllClusterLibraryStatusesResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -148,7 +147,6 @@ func (c *internalClient) ClusterStatus(ctx context.Context, req ClusterStatusReq
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

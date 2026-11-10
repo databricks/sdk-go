@@ -95,7 +95,6 @@ func (c *internalClient) GetEffectivePermissions(ctx context.Context, req GetEff
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -185,7 +184,6 @@ func (c *internalClient) GetPermissions(ctx context.Context, req GetPermissionsR
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -268,7 +266,6 @@ func (c *internalClient) ListEffectivePrivilegeAssignments(ctx context.Context, 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -391,7 +388,6 @@ func (c *internalClient) ListPrivilegeAssignments(ctx context.Context, req ListP
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

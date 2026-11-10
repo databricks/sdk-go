@@ -274,7 +274,6 @@ func (c *internalClient) GetPolicy(ctx context.Context, req GetPolicyRequest, op
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -338,7 +337,6 @@ func (c *internalClient) ListPolicies(ctx context.Context, req ListPoliciesReque
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -411,7 +409,6 @@ func (c *internalClient) ListComputePolicies(ctx context.Context, req ListComput
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -520,7 +517,6 @@ func (c *internalClient) ListServerlessComputes(ctx context.Context, req ListSer
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

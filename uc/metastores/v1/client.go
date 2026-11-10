@@ -235,7 +235,6 @@ func (c *internalClient) DeleteAccountsMetastore(ctx context.Context, req Accoun
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -300,7 +299,6 @@ func (c *internalClient) DeleteAccountsMetastore(ctx context.Context, req Accoun
 func (c *internalClient) DeleteAccountsMetastoreAssignment(ctx context.Context, req AccountsDeleteMetastoreAssignmentRequest, opts ...call.Option) (*AccountsDeleteMetastoreAssignmentResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -367,7 +365,6 @@ func (c *internalClient) DeleteAccountsMetastoreAssignment(ctx context.Context, 
 func (c *internalClient) GetAccountsMetastore(ctx context.Context, req AccountsGetMetastoreRequest, opts ...call.Option) (*AccountsGetMetastoreResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -437,7 +434,6 @@ func (c *internalClient) GetAccountsMetastore(ctx context.Context, req AccountsG
 func (c *internalClient) GetMetastoreAssignment(ctx context.Context, req AccountsGetMetastoreAssignmentRequest, opts ...call.Option) (*AccountsGetMetastoreAssignmentResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -505,7 +501,6 @@ func (c *internalClient) GetMetastoreAssignment(ctx context.Context, req Account
 func (c *internalClient) ListAccountsMetastores(ctx context.Context, req AccountsListMetastoresRequest, opts ...call.Option) (*AccountsListMetastoresResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -569,7 +564,6 @@ func (c *internalClient) ListAccountsMetastores(ctx context.Context, req Account
 func (c *internalClient) ListMetastoreAssignments(ctx context.Context, req AccountsListWorkspaceIdsForMetastoreRequest, opts ...call.Option) (*AccountsListWorkspaceIdsForMetastoreResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -932,7 +926,6 @@ func (c *internalClient) DeleteMetastore(ctx context.Context, req DeleteMetastor
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -996,7 +989,6 @@ func (c *internalClient) DeleteMetastoreAssignment(ctx context.Context, req Dele
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1057,7 +1049,6 @@ func (c *internalClient) DeleteMetastoreAssignment(ctx context.Context, req Dele
 func (c *internalClient) GetCurrentMetastoreAssignment(ctx context.Context, req GetCurrentMetastoreAssignmentRequest, opts ...call.Option) (*MetastoreAssignment, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1115,7 +1106,6 @@ func (c *internalClient) GetCurrentMetastoreAssignment(ctx context.Context, req 
 func (c *internalClient) GetMetastore(ctx context.Context, req GetMetastoreRequest, opts ...call.Option) (*MetastoreInfo, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1179,7 +1169,6 @@ func (c *internalClient) GetMetastore(ctx context.Context, req GetMetastoreReque
 func (c *internalClient) GetMetastoreSummary(ctx context.Context, req GetMetastoreSummaryRequest, opts ...call.Option) (*GetMetastoreSummaryResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1250,7 +1239,6 @@ func (c *internalClient) ListMetastores(ctx context.Context, req ListMetastoresR
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

@@ -152,7 +152,6 @@ func (c *internalClient) CreateConnection(ctx context.Context, req CreateConnect
 func (c *internalClient) DeleteConnection(ctx context.Context, req DeleteConnectionRequest, opts ...call.Option) (*DeleteConnectionResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -209,7 +208,6 @@ func (c *internalClient) DeleteConnection(ctx context.Context, req DeleteConnect
 func (c *internalClient) GetConnection(ctx context.Context, req GetConnectionRequest, opts ...call.Option) (*ConnectionInfo, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -284,7 +282,6 @@ func (c *internalClient) ListConnections(ctx context.Context, req ListConnection
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

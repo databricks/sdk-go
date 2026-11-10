@@ -217,7 +217,6 @@ func (c *internalClient) CreateBatch(ctx context.Context, req CreateBatchRequest
 func (c *internalClient) GetBatch(ctx context.Context, req GetBatchRequest, opts ...call.Option) (*Batch, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -284,7 +283,6 @@ func (c *internalClient) ListBatches(ctx context.Context, req ListBatchesRequest
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

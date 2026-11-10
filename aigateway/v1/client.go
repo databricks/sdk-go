@@ -500,7 +500,6 @@ func (c *internalClient) DeleteMcpService(ctx context.Context, req DeleteMcpServ
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -561,7 +560,6 @@ func (c *internalClient) DeleteMcpService(ctx context.Context, req DeleteMcpServ
 func (c *internalClient) DeleteMcpServiceUserMappedCredential(ctx context.Context, req DeleteMcpServiceUserMappedCredentialRequest, opts ...call.Option) (*DeleteMcpServiceUserMappedCredentialResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -629,7 +627,6 @@ func (c *internalClient) DeleteModelProviderService(ctx context.Context, req Del
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -695,7 +692,6 @@ func (c *internalClient) DeleteModelService(ctx context.Context, req DeleteModel
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -762,7 +758,6 @@ func (c *internalClient) DeleteSkill(ctx context.Context, req DeleteSkillRequest
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -830,7 +825,6 @@ func (c *internalClient) DeleteSkill(ctx context.Context, req DeleteSkillRequest
 func (c *internalClient) FinalizeSkill(ctx context.Context, req FinalizeSkillRequest, opts ...call.Option) (*Skill, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -898,7 +892,6 @@ func (c *internalClient) FinalizeSkill(ctx context.Context, req FinalizeSkillReq
 func (c *internalClient) GetMcpService(ctx context.Context, req GetMcpServiceRequest, opts ...call.Option) (*McpService, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -969,7 +962,6 @@ func (c *internalClient) GetMcpService(ctx context.Context, req GetMcpServiceReq
 func (c *internalClient) GetMcpServiceUserMappedCredential(ctx context.Context, req GetMcpServiceUserMappedCredentialRequest, opts ...call.Option) (*McpServiceUserMappedCredential, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1037,7 +1029,6 @@ func (c *internalClient) GetMcpServiceUserMappedCredential(ctx context.Context, 
 func (c *internalClient) GetModelProviderService(ctx context.Context, req GetModelProviderServiceRequest, opts ...call.Option) (*ModelProviderService, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1104,7 +1095,6 @@ func (c *internalClient) GetModelProviderService(ctx context.Context, req GetMod
 func (c *internalClient) GetModelService(ctx context.Context, req GetModelServiceRequest, opts ...call.Option) (*ModelService, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1171,7 +1161,6 @@ func (c *internalClient) GetModelService(ctx context.Context, req GetModelServic
 func (c *internalClient) GetSkill(ctx context.Context, req GetSkillRequest, opts ...call.Option) (*Skill, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1244,7 +1233,6 @@ func (c *internalClient) ListMcpServices(ctx context.Context, req ListMcpService
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1366,7 +1354,6 @@ func (c *internalClient) ListModelProviderServices(ctx context.Context, req List
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1488,7 +1475,6 @@ func (c *internalClient) ListModelServices(ctx context.Context, req ListModelSer
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1610,7 +1596,6 @@ func (c *internalClient) ListSkills(ctx context.Context, req ListSkillsRequest, 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

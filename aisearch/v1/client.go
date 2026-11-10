@@ -158,7 +158,6 @@ func (c *internalClient) CreateIndex(ctx context.Context, req CreateIndexRequest
 func (c *internalClient) DeleteIndex(ctx context.Context, req DeleteIndexRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -212,7 +211,6 @@ func (c *internalClient) DeleteIndex(ctx context.Context, req DeleteIndexRequest
 func (c *internalClient) GetIndex(ctx context.Context, req GetIndexRequest, opts ...call.Option) (*Index, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -279,7 +277,6 @@ func (c *internalClient) ListIndexes(ctx context.Context, req ListIndexesRequest
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -828,7 +825,6 @@ func (c *internalClient) CreateEndpoint(ctx context.Context, req CreateEndpointR
 func (c *internalClient) DeleteEndpoint(ctx context.Context, req DeleteEndpointRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -882,7 +878,6 @@ func (c *internalClient) DeleteEndpoint(ctx context.Context, req DeleteEndpointR
 func (c *internalClient) GetEndpoint(ctx context.Context, req GetEndpointRequest, opts ...call.Option) (*Endpoint, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -949,7 +944,6 @@ func (c *internalClient) ListEndpoints(ctx context.Context, req ListEndpointsReq
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

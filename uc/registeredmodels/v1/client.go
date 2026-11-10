@@ -165,7 +165,6 @@ func (c *internalClient) CreateRegisteredModel(ctx context.Context, req CreateRe
 func (c *internalClient) DeleteModelVersion(ctx context.Context, req DeleteModelVersionRequest, opts ...call.Option) (*DeleteModelVersionResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -233,7 +232,6 @@ func (c *internalClient) DeleteModelVersion(ctx context.Context, req DeleteModel
 func (c *internalClient) DeleteRegisteredModel(ctx context.Context, req DeleteRegisteredModelRequest, opts ...call.Option) (*DeleteRegisteredModelResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -295,7 +293,6 @@ func (c *internalClient) DeleteRegisteredModel(ctx context.Context, req DeleteRe
 func (c *internalClient) DeleteRegisteredModelAlias(ctx context.Context, req DeleteRegisteredModelAliasRequest, opts ...call.Option) (*DeleteRegisteredModelAliasResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -366,7 +363,6 @@ func (c *internalClient) GetModelVersion(ctx context.Context, req GetModelVersio
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -449,7 +445,6 @@ func (c *internalClient) GetModelVersionByAlias(ctx context.Context, req GetMode
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -529,7 +524,6 @@ func (c *internalClient) GetRegisteredModel(ctx context.Context, req GetRegister
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -619,7 +613,6 @@ func (c *internalClient) ListModelVersions(ctx context.Context, req ListModelVer
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -753,7 +746,6 @@ func (c *internalClient) ListRegisteredModels(ctx context.Context, req ListRegis
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

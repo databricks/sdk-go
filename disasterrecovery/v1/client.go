@@ -244,7 +244,6 @@ func (c *internalClient) DeleteFailoverGroup(ctx context.Context, req DeleteFail
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -301,7 +300,6 @@ func (c *internalClient) DeleteFailoverGroup(ctx context.Context, req DeleteFail
 func (c *internalClient) DeleteStableUrl(ctx context.Context, req DeleteStableUrlRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -428,7 +426,6 @@ func (c *internalClient) FailoverFailoverGroup(ctx context.Context, req Failover
 func (c *internalClient) GetFailoverGroup(ctx context.Context, req GetFailoverGroupRequest, opts ...call.Option) (*FailoverGroup, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -491,7 +488,6 @@ func (c *internalClient) GetFailoverGroup(ctx context.Context, req GetFailoverGr
 func (c *internalClient) GetStableUrl(ctx context.Context, req GetStableUrlRequest, opts ...call.Option) (*StableUrl, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -561,7 +557,6 @@ func (c *internalClient) ListFailoverGroups(ctx context.Context, req ListFailove
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -676,7 +671,6 @@ func (c *internalClient) ListStableUrls(ctx context.Context, req ListStableUrlsR
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

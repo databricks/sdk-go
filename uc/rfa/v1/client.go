@@ -161,7 +161,6 @@ func (c *internalClient) BatchCreateAccessRequests(ctx context.Context, req Batc
 func (c *internalClient) GetAccessRequestDestinations(ctx context.Context, req GetAccessRequestDestinationsRequest, opts ...call.Option) (*AccessRequestDestinations, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

@@ -148,7 +148,6 @@ func (c *internalClient) CreateOnlineStore(ctx context.Context, req CreateOnline
 func (c *internalClient) DeleteOnlineStore(ctx context.Context, req DeleteOnlineStoreRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -202,7 +201,6 @@ func (c *internalClient) DeleteOnlineStore(ctx context.Context, req DeleteOnline
 func (c *internalClient) DeleteOnlineTable(ctx context.Context, req DeleteOnlineTableRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -256,7 +254,6 @@ func (c *internalClient) DeleteOnlineTable(ctx context.Context, req DeleteOnline
 func (c *internalClient) GetOnlineStore(ctx context.Context, req GetOnlineStoreRequest, opts ...call.Option) (*OnlineStore, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -323,7 +320,6 @@ func (c *internalClient) ListOnlineStores(ctx context.Context, req ListOnlineSto
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

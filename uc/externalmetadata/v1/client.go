@@ -152,7 +152,6 @@ func (c *internalClient) CreateExternalMetadataV2(ctx context.Context, req Creat
 func (c *internalClient) DeleteExternalMetadataV2(ctx context.Context, req DeleteExternalMetadataRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -209,7 +208,6 @@ func (c *internalClient) DeleteExternalMetadataV2(ctx context.Context, req Delet
 func (c *internalClient) GetExternalMetadataV2(ctx context.Context, req GetExternalMetadataRequest, opts ...call.Option) (*ExternalMetadata, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -281,7 +279,6 @@ func (c *internalClient) ListExternalMetadataV2(ctx context.Context, req ListExt
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

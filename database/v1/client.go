@@ -536,7 +536,6 @@ func (c *internalClient) CreateSyncedDatabaseTable(ctx context.Context, req Crea
 func (c *internalClient) DeleteDatabaseCatalog(ctx context.Context, req DeleteDatabaseCatalogRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -599,7 +598,6 @@ func (c *internalClient) DeleteDatabaseInstance(ctx context.Context, req DeleteD
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -669,7 +667,6 @@ func (c *internalClient) DeleteDatabaseInstanceRole(ctx context.Context, req Del
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -734,7 +731,6 @@ func (c *internalClient) DeleteDatabaseInstanceRole(ctx context.Context, req Del
 func (c *internalClient) DeleteDatabaseTable(ctx context.Context, req DeleteDatabaseTableRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -797,7 +793,6 @@ func (c *internalClient) DeleteSyncedDatabaseTable(ctx context.Context, req Dele
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -858,7 +853,6 @@ func (c *internalClient) FindDatabaseInstanceByUid(ctx context.Context, req Find
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -997,7 +991,6 @@ func (c *internalClient) GenerateDatabaseCredential(ctx context.Context, req Gen
 func (c *internalClient) GetDatabaseCatalog(ctx context.Context, req GetDatabaseCatalogRequest, opts ...call.Option) (*DatabaseCatalog, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1065,7 +1058,6 @@ func (c *internalClient) GetDatabaseCatalog(ctx context.Context, req GetDatabase
 func (c *internalClient) GetDatabaseInstance(ctx context.Context, req GetDatabaseInstanceRequest, opts ...call.Option) (*DatabaseInstance, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1134,7 +1126,6 @@ func (c *internalClient) GetDatabaseInstance(ctx context.Context, req GetDatabas
 func (c *internalClient) GetDatabaseInstanceRole(ctx context.Context, req GetDatabaseInstanceRoleRequest, opts ...call.Option) (*DatabaseInstanceRole, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1204,7 +1195,6 @@ func (c *internalClient) GetDatabaseInstanceRole(ctx context.Context, req GetDat
 func (c *internalClient) GetDatabaseTable(ctx context.Context, req GetDatabaseTableRequest, opts ...call.Option) (*DatabaseTable, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1272,7 +1262,6 @@ func (c *internalClient) GetDatabaseTable(ctx context.Context, req GetDatabaseTa
 func (c *internalClient) GetSyncedDatabaseTable(ctx context.Context, req GetSyncedDatabaseTableRequest, opts ...call.Option) (*SyncedDatabaseTable, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1339,7 +1328,6 @@ func (c *internalClient) ListDatabaseCatalogs(ctx context.Context, req ListDatab
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1460,7 +1448,6 @@ func (c *internalClient) ListDatabaseInstanceRoles(ctx context.Context, req List
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1581,7 +1568,6 @@ func (c *internalClient) ListDatabaseInstances(ctx context.Context, req ListData
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1689,7 +1675,6 @@ func (c *internalClient) ListSyncedDatabaseTables(ctx context.Context, req ListS
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

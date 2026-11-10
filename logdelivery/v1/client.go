@@ -180,7 +180,6 @@ func (c *internalClient) CreateLogDeliveryConfiguration(ctx context.Context, req
 func (c *internalClient) GetLogDeliveryConfiguration(ctx context.Context, req GetLogDeliveryConfigurationRequest, opts ...call.Option) (*GetLogDeliveryConfigurationResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -252,7 +251,6 @@ func (c *internalClient) ListLogDeliveryConfiguration(ctx context.Context, req L
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {

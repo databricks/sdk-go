@@ -409,7 +409,6 @@ func (c *internalClient) GetAcl(ctx context.Context, req GetAclRequest, opts ...
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -502,7 +501,6 @@ func (c *internalClient) GetSecret(ctx context.Context, req GetSecretRequest, op
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -582,7 +580,6 @@ func (c *internalClient) ListAcls(ctx context.Context, req ListAclsRequest, opts
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -652,7 +649,6 @@ func (c *internalClient) ListAcls(ctx context.Context, req ListAclsRequest, opts
 func (c *internalClient) ListScopes(ctx context.Context, req ListScopesRequest, opts ...call.Option) (*ListScopesResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -729,7 +725,6 @@ func (c *internalClient) ListSecrets(ctx context.Context, req ListSecretsRequest
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

@@ -88,7 +88,6 @@ func (c *internalClient) ListQueries(ctx context.Context, req ListQueriesRequest
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

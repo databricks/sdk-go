@@ -156,7 +156,6 @@ func (c *internalClient) CreateAccountGroup(ctx context.Context, req CreateAccou
 func (c *internalClient) DeleteAccountGroup(ctx context.Context, req DeleteAccountGroupRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -214,7 +213,6 @@ func (c *internalClient) DeleteAccountGroup(ctx context.Context, req DeleteAccou
 func (c *internalClient) GetAccountGroup(ctx context.Context, req GetAccountGroupRequest, opts ...call.Option) (*AccountGroup, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -289,7 +287,6 @@ func (c *internalClient) ListAccountGroups(ctx context.Context, req ListAccountG
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -628,7 +625,6 @@ func (c *internalClient) CreateAccountServicePrincipal(ctx context.Context, req 
 func (c *internalClient) DeleteAccountServicePrincipal(ctx context.Context, req DeleteAccountServicePrincipalRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -687,7 +683,6 @@ func (c *internalClient) DeleteAccountServicePrincipal(ctx context.Context, req 
 func (c *internalClient) GetAccountServicePrincipal(ctx context.Context, req GetAccountServicePrincipalRequest, opts ...call.Option) (*AccountServicePrincipal, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -758,7 +753,6 @@ func (c *internalClient) ListAccountServicePrincipals(ctx context.Context, req L
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -1102,7 +1096,6 @@ func (c *internalClient) CreateAccountUser(ctx context.Context, req CreateAccoun
 func (c *internalClient) DeleteAccountUser(ctx context.Context, req DeleteAccountUserRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -1164,7 +1157,6 @@ func (c *internalClient) GetAccountUser(ctx context.Context, req GetAccountUserR
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -1258,7 +1250,6 @@ func (c *internalClient) ListAccountUsers(ctx context.Context, req ListAccountUs
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -1532,7 +1523,6 @@ func (c *internalClient) Me(ctx context.Context, req MeRequest, opts ...call.Opt
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1662,7 +1652,6 @@ func (c *internalClient) CreateGroup(ctx context.Context, req CreateGroupRequest
 func (c *internalClient) DeleteGroup(ctx context.Context, req DeleteGroupRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1716,7 +1705,6 @@ func (c *internalClient) DeleteGroup(ctx context.Context, req DeleteGroupRequest
 func (c *internalClient) GetGroup(ctx context.Context, req GetGroupRequest, opts ...call.Option) (*Group, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1783,7 +1771,6 @@ func (c *internalClient) ListGroups(ctx context.Context, req ListGroupsRequest, 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2102,7 +2089,6 @@ func (c *internalClient) CreateServicePrincipal(ctx context.Context, req CreateS
 func (c *internalClient) DeleteServicePrincipal(ctx context.Context, req DeleteServicePrincipalRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2157,7 +2143,6 @@ func (c *internalClient) DeleteServicePrincipal(ctx context.Context, req DeleteS
 func (c *internalClient) GetServicePrincipal(ctx context.Context, req GetServicePrincipalRequest, opts ...call.Option) (*ServicePrincipal, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2224,7 +2209,6 @@ func (c *internalClient) ListServicePrincipals(ctx context.Context, req ListServ
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2548,7 +2532,6 @@ func (c *internalClient) CreateUser(ctx context.Context, req CreateUserRequest, 
 func (c *internalClient) DeleteUser(ctx context.Context, req DeleteUserRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2602,7 +2585,6 @@ func (c *internalClient) DeleteUser(ctx context.Context, req DeleteUserRequest, 
 func (c *internalClient) GetPermissionLevels(ctx context.Context, req GetPasswordPermissionLevelsRequest, opts ...call.Option) (*GetPasswordPermissionLevelsResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2660,7 +2642,6 @@ func (c *internalClient) GetPermissionLevels(ctx context.Context, req GetPasswor
 func (c *internalClient) GetPermissions(ctx context.Context, req GetPasswordPermissionsRequest, opts ...call.Option) (*PasswordPermissions, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2721,7 +2702,6 @@ func (c *internalClient) GetUser(ctx context.Context, req GetUserRequest, opts .
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2811,7 +2791,6 @@ func (c *internalClient) ListUsers(ctx context.Context, req ListUsersRequest, op
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

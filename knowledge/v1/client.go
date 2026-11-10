@@ -242,7 +242,6 @@ func (c *internalClient) CreatePage(ctx context.Context, req CreatePageRequest, 
 func (c *internalClient) DeleteAssetLink(ctx context.Context, req DeleteAssetLinkRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -298,7 +297,6 @@ func (c *internalClient) DeleteAssetLink(ctx context.Context, req DeleteAssetLin
 func (c *internalClient) DeletePage(ctx context.Context, req DeletePageRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -355,7 +353,6 @@ func (c *internalClient) DeletePage(ctx context.Context, req DeletePageRequest, 
 func (c *internalClient) GetAssetLink(ctx context.Context, req GetAssetLinkRequest, opts ...call.Option) (*AssetLink, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -420,7 +417,6 @@ func (c *internalClient) GetAssetLink(ctx context.Context, req GetAssetLinkReque
 func (c *internalClient) GetPage(ctx context.Context, req GetPageRequest, opts ...call.Option) (*Page, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -491,7 +487,6 @@ func (c *internalClient) ListPages(ctx context.Context, req ListPagesRequest, op
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

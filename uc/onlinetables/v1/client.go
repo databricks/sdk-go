@@ -233,7 +233,6 @@ func (w *CreateOnlineTableWaiter) Wait(ctx context.Context, opts ...lro.Option) 
 func (c *internalClient) DeleteOnlineTable(ctx context.Context, req DeleteOnlineTableRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -288,7 +287,6 @@ func (c *internalClient) DeleteOnlineTable(ctx context.Context, req DeleteOnline
 func (c *internalClient) GetOnlineTable(ctx context.Context, req GetOnlineTableRequest, opts ...call.Option) (*OnlineTable, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

@@ -150,7 +150,6 @@ func (c *internalClient) CreateToken(ctx context.Context, req CreateTokenRequest
 func (c *internalClient) ListTokens(ctx context.Context, req ListTokensRequest, opts ...call.Option) (*ListTokensResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

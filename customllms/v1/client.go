@@ -211,7 +211,6 @@ func (c *internalClient) CreateCustomLlm(ctx context.Context, req CreateCustomLl
 func (c *internalClient) DeleteCustomLlm(ctx context.Context, req DeleteCustomLlmRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -265,7 +264,6 @@ func (c *internalClient) DeleteCustomLlm(ctx context.Context, req DeleteCustomLl
 func (c *internalClient) GetCustomLlm(ctx context.Context, req GetCustomLlmRequest, opts ...call.Option) (*CustomLlm, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

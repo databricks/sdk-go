@@ -157,7 +157,6 @@ func (c *internalClient) CreateCatalogConfig(ctx context.Context, req CreateCata
 func (c *internalClient) DeleteCatalogConfig(ctx context.Context, req DeleteCatalogConfigRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -211,7 +210,6 @@ func (c *internalClient) DeleteCatalogConfig(ctx context.Context, req DeleteCata
 func (c *internalClient) GetCatalogConfig(ctx context.Context, req GetCatalogConfigRequest, opts ...call.Option) (*CatalogConfig, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

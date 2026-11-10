@@ -216,7 +216,6 @@ func (c *internalClient) EditInstanceProfile(ctx context.Context, req EditInstan
 func (c *internalClient) ListInstanceProfiles(ctx context.Context, req ListInstanceProfilesRequest, opts ...call.Option) (*ListInstanceProfilesResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

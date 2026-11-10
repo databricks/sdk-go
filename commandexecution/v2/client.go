@@ -675,7 +675,6 @@ func (c *internalClient) GetCommandStatus(ctx context.Context, req GetCommandSta
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -745,7 +744,6 @@ func (c *internalClient) GetContextStatus(ctx context.Context, req GetContextSta
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

@@ -335,7 +335,6 @@ func (c *internalClient) DeleteSchedule(ctx context.Context, req DeleteScheduleR
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -409,7 +408,6 @@ func (c *internalClient) DeleteSubscription(ctx context.Context, req DeleteSubsc
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -481,7 +479,6 @@ func (c *internalClient) DeleteSubscription(ctx context.Context, req DeleteSubsc
 func (c *internalClient) GetDashboard(ctx context.Context, req GetDashboardRequest, opts ...call.Option) (*Dashboard, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -550,7 +547,6 @@ func (c *internalClient) GetDashboard(ctx context.Context, req GetDashboardReque
 func (c *internalClient) GetPublishedDashboard(ctx context.Context, req GetPublishedDashboardRequest, opts ...call.Option) (*PublishedDashboard, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -625,7 +621,6 @@ func (c *internalClient) GetPublishedDashboardTokenInfo(ctx context.Context, req
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -703,7 +698,6 @@ func (c *internalClient) GetPublishedDashboardTokenInfo(ctx context.Context, req
 func (c *internalClient) GetSchedule(ctx context.Context, req GetScheduleRequest, opts ...call.Option) (*Schedule, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -779,7 +773,6 @@ func (c *internalClient) GetSchedule(ctx context.Context, req GetScheduleRequest
 func (c *internalClient) GetSubscription(ctx context.Context, req GetSubscriptionRequest, opts ...call.Option) (*Subscription, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -861,7 +854,6 @@ func (c *internalClient) ListDashboards(ctx context.Context, req ListDashboardsR
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -985,7 +977,6 @@ func (c *internalClient) ListSchedules(ctx context.Context, req ListSchedulesReq
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1108,7 +1099,6 @@ func (c *internalClient) ListSubscriptions(ctx context.Context, req ListSubscrip
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1452,7 +1442,6 @@ func (c *internalClient) RevertDashboard(ctx context.Context, req RevertDashboar
 func (c *internalClient) TrashDashboard(ctx context.Context, req TrashDashboardRequest, opts ...call.Option) (*TrashDashboardResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1514,7 +1503,6 @@ func (c *internalClient) TrashDashboard(ctx context.Context, req TrashDashboardR
 func (c *internalClient) UnpublishDashboard(ctx context.Context, req UnpublishDashboardRequest, opts ...call.Option) (*UnpublishDashboardResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

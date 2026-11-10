@@ -307,7 +307,6 @@ func (w *CreateWarehouseWaiter) Wait(ctx context.Context, opts ...lro.Option) (*
 func (c *internalClient) DeleteDefaultWarehouseOverride(ctx context.Context, req DeleteDefaultWarehouseOverrideRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -361,7 +360,6 @@ func (c *internalClient) DeleteDefaultWarehouseOverride(ctx context.Context, req
 func (c *internalClient) DeleteWarehouse(ctx context.Context, req DeleteWarehouseRequest, opts ...call.Option) (*DeleteWarehouseResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -574,7 +572,6 @@ func (w *EditWarehouseWaiter) Wait(ctx context.Context, opts ...lro.Option) (*Ge
 func (c *internalClient) GetDefaultWarehouseOverride(ctx context.Context, req GetDefaultWarehouseOverrideRequest, opts ...call.Option) (*DefaultWarehouseOverride, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -637,7 +634,6 @@ func (c *internalClient) GetDefaultWarehouseOverride(ctx context.Context, req Ge
 func (c *internalClient) GetWarehouse(ctx context.Context, req GetWarehouseRequest, opts ...call.Option) (*GetWarehouseResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -701,7 +697,6 @@ func (c *internalClient) GetWarehouse(ctx context.Context, req GetWarehouseReque
 func (c *internalClient) GetWorkspaceWarehouseConfig(ctx context.Context, req GetWorkspaceWarehouseConfigRequest, opts ...call.Option) (*GetWorkspaceWarehouseConfigResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -763,7 +758,6 @@ func (c *internalClient) ListDefaultWarehouseOverrides(ctx context.Context, req 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -871,7 +865,6 @@ func (c *internalClient) ListWarehouses(ctx context.Context, req ListWarehousesR
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

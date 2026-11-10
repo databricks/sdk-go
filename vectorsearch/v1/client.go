@@ -311,7 +311,6 @@ func (c *internalClient) DeleteDataVectorIndex(ctx context.Context, req DeleteDa
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -378,7 +377,6 @@ func (c *internalClient) DeleteDataVectorIndex(ctx context.Context, req DeleteDa
 func (c *internalClient) DeleteEndpoint(ctx context.Context, req DeleteEndpointRequest, opts ...call.Option) (*DeleteEndpointResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -435,7 +433,6 @@ func (c *internalClient) DeleteEndpoint(ctx context.Context, req DeleteEndpointR
 func (c *internalClient) DeleteVectorIndex(ctx context.Context, req DeleteVectorIndexRequest, opts ...call.Option) (*DeleteVectorIndexResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -492,7 +489,6 @@ func (c *internalClient) DeleteVectorIndex(ctx context.Context, req DeleteVector
 func (c *internalClient) GetEndpoint(ctx context.Context, req GetEndpointRequest, opts ...call.Option) (*Endpoint, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -559,7 +555,6 @@ func (c *internalClient) GetVectorIndex(ctx context.Context, req GetVectorIndexR
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -629,7 +624,6 @@ func (c *internalClient) ListEndpoints(ctx context.Context, req ListEndpointsReq
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -734,7 +728,6 @@ func (c *internalClient) ListVectorIndex(ctx context.Context, req ListVectorInde
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

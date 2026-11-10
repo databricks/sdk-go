@@ -81,7 +81,6 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 func (c *internalClient) GetArtifactAllowlist(ctx context.Context, req GetArtifactAllowlistRequest, opts ...call.Option) (*ArtifactAllowlistInfo, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

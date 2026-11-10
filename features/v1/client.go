@@ -893,7 +893,6 @@ func (c *internalClient) CreateStream(ctx context.Context, req CreateStreamReque
 func (c *internalClient) DeleteFeature(ctx context.Context, req DeleteFeatureRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -947,7 +946,6 @@ func (c *internalClient) DeleteFeature(ctx context.Context, req DeleteFeatureReq
 func (c *internalClient) DeleteFeatureSpec(ctx context.Context, req DeleteFeatureSpecRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1003,7 +1001,6 @@ func (c *internalClient) DeleteFeatureSpec(ctx context.Context, req DeleteFeatur
 func (c *internalClient) DeleteKafkaConfig(ctx context.Context, req DeleteKafkaConfigRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1066,7 +1063,6 @@ func (c *internalClient) deleteMaterializationSetBase(ctx context.Context, req D
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1227,7 +1223,6 @@ func (o *DeleteMaterializationSetOperation) Wait(ctx context.Context, opts ...lr
 func (c *internalClient) DeleteMaterializedFeature(ctx context.Context, req DeleteMaterializedFeatureRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1281,7 +1276,6 @@ func (c *internalClient) DeleteMaterializedFeature(ctx context.Context, req Dele
 func (c *internalClient) DeleteStream(ctx context.Context, req DeleteStreamRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1335,7 +1329,6 @@ func (c *internalClient) DeleteStream(ctx context.Context, req DeleteStreamReque
 func (c *internalClient) GetFeature(ctx context.Context, req GetFeatureRequest, opts ...call.Option) (*Feature, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1398,7 +1391,6 @@ func (c *internalClient) GetFeature(ctx context.Context, req GetFeatureRequest, 
 func (c *internalClient) GetFeatureSpec(ctx context.Context, req GetFeatureSpecRequest, opts ...call.Option) (*FeatureSpec, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1463,7 +1455,6 @@ func (c *internalClient) GetFeatureSpec(ctx context.Context, req GetFeatureSpecR
 func (c *internalClient) GetKafkaConfig(ctx context.Context, req GetKafkaConfigRequest, opts ...call.Option) (*KafkaConfig, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1528,7 +1519,6 @@ func (c *internalClient) GetKafkaConfig(ctx context.Context, req GetKafkaConfigR
 func (c *internalClient) GetMaterializationSet(ctx context.Context, req GetMaterializationSetRequest, opts ...call.Option) (*MaterializationSet, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1591,7 +1581,6 @@ func (c *internalClient) GetMaterializationSet(ctx context.Context, req GetMater
 func (c *internalClient) GetMaterializedFeature(ctx context.Context, req GetMaterializedFeatureRequest, opts ...call.Option) (*MaterializedFeature, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1654,7 +1643,6 @@ func (c *internalClient) GetMaterializedFeature(ctx context.Context, req GetMate
 func (c *internalClient) getOperation(ctx context.Context, req GetOperationRequest, opts ...call.Option) (*Operation, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1718,7 +1706,6 @@ func (c *internalClient) getOperation(ctx context.Context, req GetOperationReque
 func (c *internalClient) GetStream(ctx context.Context, req GetStreamRequest, opts ...call.Option) (*Stream, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1785,7 +1772,6 @@ func (c *internalClient) ListFeatures(ctx context.Context, req ListFeaturesReque
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1901,7 +1887,6 @@ func (c *internalClient) ListKafkaConfigs(ctx context.Context, req ListKafkaConf
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2009,7 +1994,6 @@ func (c *internalClient) ListMaterializedFeatures(ctx context.Context, req ListM
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -2120,7 +2104,6 @@ func (c *internalClient) ListStreams(ctx context.Context, req ListStreamsRequest
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

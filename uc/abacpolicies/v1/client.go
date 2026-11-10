@@ -149,7 +149,6 @@ func (c *internalClient) CreatePolicy(ctx context.Context, req CreatePolicyReque
 func (c *internalClient) DeletePolicy(ctx context.Context, req DeletePolicyRequest, opts ...call.Option) (*DeletePolicyResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -216,7 +215,6 @@ func (c *internalClient) DeletePolicy(ctx context.Context, req DeletePolicyReque
 func (c *internalClient) GetPolicy(ctx context.Context, req GetPolicyRequest, opts ...call.Option) (*PolicyInfo, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -299,7 +297,6 @@ func (c *internalClient) ListPolicies(ctx context.Context, req ListPoliciesReque
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

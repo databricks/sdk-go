@@ -147,7 +147,6 @@ func (c *internalClient) CreateGlobalInitScript(ctx context.Context, req CreateG
 func (c *internalClient) DeleteGlobalInitScript(ctx context.Context, req DeleteGlobalInitScriptRequest, opts ...call.Option) (*DeleteGlobalInitScriptResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -204,7 +203,6 @@ func (c *internalClient) DeleteGlobalInitScript(ctx context.Context, req DeleteG
 func (c *internalClient) GetGlobalInitScript(ctx context.Context, req GetGlobalInitScriptRequest, opts ...call.Option) (*GlobalInitScriptDetails, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -270,7 +268,6 @@ func (c *internalClient) GetGlobalInitScript(ctx context.Context, req GetGlobalI
 func (c *internalClient) ListGlobalInitScripts(ctx context.Context, req ListGlobalInitScriptsRequest, opts ...call.Option) (*ListGlobalInitScriptsResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

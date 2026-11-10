@@ -385,7 +385,6 @@ func (c *internalClient) CreateShare(ctx context.Context, req CreateShareRequest
 func (c *internalClient) DeleteFederationPolicy(ctx context.Context, req DeleteFederationPolicyRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -445,7 +444,6 @@ func (c *internalClient) DeleteFederationPolicy(ctx context.Context, req DeleteF
 func (c *internalClient) DeleteProvider(ctx context.Context, req DeleteProviderRequest, opts ...call.Option) (*DeleteProviderResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -503,7 +501,6 @@ func (c *internalClient) DeleteProvider(ctx context.Context, req DeleteProviderR
 func (c *internalClient) DeleteRecipient(ctx context.Context, req DeleteRecipientRequest, opts ...call.Option) (*DeleteRecipientResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -561,7 +558,6 @@ func (c *internalClient) DeleteRecipient(ctx context.Context, req DeleteRecipien
 func (c *internalClient) DeleteShare(ctx context.Context, req DeleteShareRequest, opts ...call.Option) (*DeleteShareResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -618,7 +614,6 @@ func (c *internalClient) DeleteShare(ctx context.Context, req DeleteShareRequest
 func (c *internalClient) GetActivationUrlInfo(ctx context.Context, req GetActivationUrlInfoRequest, opts ...call.Option) (*GetActivationUrlInfoResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -677,7 +672,6 @@ func (c *internalClient) GetActivationUrlInfo(ctx context.Context, req GetActiva
 func (c *internalClient) GetFederationPolicy(ctx context.Context, req GetFederationPolicyRequest, opts ...call.Option) (*FederationPolicy, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -747,7 +741,6 @@ func (c *internalClient) GetFederationPolicy(ctx context.Context, req GetFederat
 func (c *internalClient) GetProvider(ctx context.Context, req GetProviderRequest, opts ...call.Option) (*ProviderInfo, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -812,7 +805,6 @@ func (c *internalClient) GetProvider(ctx context.Context, req GetProviderRequest
 func (c *internalClient) GetRecipient(ctx context.Context, req GetRecipientRequest, opts ...call.Option) (*RecipientInfo, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -880,7 +872,6 @@ func (c *internalClient) GetShare(ctx context.Context, req GetShareRequest, opts
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -952,7 +943,6 @@ func (c *internalClient) ListFederationPolicies(ctx context.Context, req ListFed
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1068,7 +1058,6 @@ func (c *internalClient) ListProviderShareAssets(ctx context.Context, req ListPr
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1153,7 +1142,6 @@ func (c *internalClient) ListProviderShares(ctx context.Context, req ListProvide
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1273,7 +1261,6 @@ func (c *internalClient) ListProviders(ctx context.Context, req ListProvidersReq
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1386,7 +1373,6 @@ func (c *internalClient) ListRecipientSharePermissions(ctx context.Context, req 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1462,7 +1448,6 @@ func (c *internalClient) ListRecipients(ctx context.Context, req ListRecipientsR
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1574,7 +1559,6 @@ func (c *internalClient) ListSharePermissions(ctx context.Context, req ListShare
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1651,7 +1635,6 @@ func (c *internalClient) ListShares(ctx context.Context, req ListSharesRequest, 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1756,7 +1739,6 @@ func (c *internalClient) ListSharesIter(ctx context.Context, req ListSharesReque
 func (c *internalClient) RetrieveAccessToken(ctx context.Context, req RetrieveTokenRequest, opts ...call.Option) (*RetrieveTokenResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

@@ -294,7 +294,6 @@ func (c *internalClient) CreateKnowledgeSource(ctx context.Context, req CreateKn
 func (c *internalClient) DeleteExample(ctx context.Context, req DeleteExampleRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -348,7 +347,6 @@ func (c *internalClient) DeleteExample(ctx context.Context, req DeleteExampleReq
 func (c *internalClient) DeleteKnowledgeAssistant(ctx context.Context, req DeleteKnowledgeAssistantRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -402,7 +400,6 @@ func (c *internalClient) DeleteKnowledgeAssistant(ctx context.Context, req Delet
 func (c *internalClient) DeleteKnowledgeSource(ctx context.Context, req DeleteKnowledgeSourceRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -456,7 +453,6 @@ func (c *internalClient) DeleteKnowledgeSource(ctx context.Context, req DeleteKn
 func (c *internalClient) GetExample(ctx context.Context, req GetExampleRequest, opts ...call.Option) (*Example, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -519,7 +515,6 @@ func (c *internalClient) GetExample(ctx context.Context, req GetExampleRequest, 
 func (c *internalClient) GetKnowledgeAssistant(ctx context.Context, req GetKnowledgeAssistantRequest, opts ...call.Option) (*KnowledgeAssistant, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -582,7 +577,6 @@ func (c *internalClient) GetKnowledgeAssistant(ctx context.Context, req GetKnowl
 func (c *internalClient) GetKnowledgeSource(ctx context.Context, req GetKnowledgeSourceRequest, opts ...call.Option) (*KnowledgeSource, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -649,7 +643,6 @@ func (c *internalClient) ListExamples(ctx context.Context, req ListExamplesReque
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -764,7 +757,6 @@ func (c *internalClient) ListKnowledgeAssistants(ctx context.Context, req ListKn
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -872,7 +864,6 @@ func (c *internalClient) ListKnowledgeSources(ctx context.Context, req ListKnowl
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

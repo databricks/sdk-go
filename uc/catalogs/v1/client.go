@@ -154,7 +154,6 @@ func (c *internalClient) DeleteCatalog(ctx context.Context, req DeleteCatalogReq
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -220,7 +219,6 @@ func (c *internalClient) GetCatalog(ctx context.Context, req GetCatalogRequest, 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -302,7 +300,6 @@ func (c *internalClient) ListCatalogs(ctx context.Context, req ListCatalogsReque
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

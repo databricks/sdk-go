@@ -150,7 +150,6 @@ func (c *internalClient) CreateRepo(ctx context.Context, req CreateRepoRequest, 
 func (c *internalClient) DeleteRepo(ctx context.Context, req DeleteRepoRequest, opts ...call.Option) (*DeleteRepoResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -207,7 +206,6 @@ func (c *internalClient) DeleteRepo(ctx context.Context, req DeleteRepoRequest, 
 func (c *internalClient) GetRepo(ctx context.Context, req GetRepoRequest, opts ...call.Option) (*GetRepoResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -280,7 +278,6 @@ func (c *internalClient) ListRepos(ctx context.Context, req ListReposRequest, op
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

@@ -158,7 +158,6 @@ func (c *internalClient) CreateBudgetPolicy(ctx context.Context, req CreateBudge
 func (c *internalClient) DeleteBudgetPolicy(ctx context.Context, req DeleteBudgetPolicyRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -216,7 +215,6 @@ func (c *internalClient) DeleteBudgetPolicy(ctx context.Context, req DeleteBudge
 func (c *internalClient) GetBudgetPolicy(ctx context.Context, req GetBudgetPolicyRequest, opts ...call.Option) (*BudgetPolicy, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -288,7 +286,6 @@ func (c *internalClient) ListBudgetPolicies(ctx context.Context, req ListBudgetP
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {

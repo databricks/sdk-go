@@ -317,7 +317,6 @@ func (c *internalClient) CreatePublishedOAuthAppIntegration(ctx context.Context,
 func (c *internalClient) DeleteCustomOAuthAppIntegration(ctx context.Context, req DeleteCustomOAuthAppIntegrationRequest, opts ...call.Option) (*DeleteCustomOAuthAppIntegrationResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -382,7 +381,6 @@ func (c *internalClient) DeleteCustomOAuthAppIntegration(ctx context.Context, re
 func (c *internalClient) DeletePublishedOAuthAppIntegration(ctx context.Context, req DeletePublishedOAuthAppIntegrationRequest, opts ...call.Option) (*DeletePublishedOAuthAppIntegrationResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -444,7 +442,6 @@ func (c *internalClient) DeletePublishedOAuthAppIntegration(ctx context.Context,
 func (c *internalClient) GetCustomOAuthAppIntegration(ctx context.Context, req GetCustomOAuthAppIntegrationRequest, opts ...call.Option) (*CustomOAuthAppIntegration, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -512,7 +509,6 @@ func (c *internalClient) GetCustomOAuthAppIntegration(ctx context.Context, req G
 func (c *internalClient) GetPublishedOAuthAppIntegration(ctx context.Context, req GetPublishedOAuthAppIntegrationRequest, opts ...call.Option) (*PublishedOAuthAppIntegration, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -584,7 +580,6 @@ func (c *internalClient) ListCustomOAuthAppIntegrations(ctx context.Context, req
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -701,7 +696,6 @@ func (c *internalClient) ListPublishedOAuthAppIntegrations(ctx context.Context, 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -815,7 +809,6 @@ func (c *internalClient) ListPublishedOAuthApps(ctx context.Context, req ListPub
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {

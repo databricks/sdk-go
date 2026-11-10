@@ -359,7 +359,6 @@ func (c *internalClient) CreateRefresh(ctx context.Context, req CreateRefreshReq
 func (c *internalClient) DeleteMonitor(ctx context.Context, req DeleteMonitorRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -418,7 +417,6 @@ func (c *internalClient) DeleteMonitor(ctx context.Context, req DeleteMonitorReq
 func (c *internalClient) DeleteRefresh(ctx context.Context, req DeleteRefreshRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -499,7 +497,6 @@ func (c *internalClient) DeleteRefresh(ctx context.Context, req DeleteRefreshReq
 func (c *internalClient) GetMonitor(ctx context.Context, req GetMonitorRequest, opts ...call.Option) (*Monitor, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -580,7 +577,6 @@ func (c *internalClient) GetMonitor(ctx context.Context, req GetMonitorRequest, 
 func (c *internalClient) GetRefresh(ctx context.Context, req GetRefreshRequest, opts ...call.Option) (*Refresh, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -657,7 +653,6 @@ func (c *internalClient) ListMonitor(ctx context.Context, req ListMonitorRequest
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -778,7 +773,6 @@ func (c *internalClient) ListRefresh(ctx context.Context, req ListRefreshRequest
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

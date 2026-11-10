@@ -155,7 +155,6 @@ func (c *internalClient) DeleteGenieAgent(ctx context.Context, req DeleteGenieAg
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -212,7 +211,6 @@ func (c *internalClient) DeleteGenieAgent(ctx context.Context, req DeleteGenieAg
 func (c *internalClient) GetGenieAgent(ctx context.Context, req GetGenieAgentRequest, opts ...call.Option) (*GenieAgent, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -280,7 +278,6 @@ func (c *internalClient) ListGenieAgents(ctx context.Context, req ListGenieAgent
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

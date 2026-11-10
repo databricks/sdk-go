@@ -82,7 +82,6 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 func (c *internalClient) DeleteWorkspacePermissionAssignment(ctx context.Context, req DeleteWorkspacePermissionAssignmentRequest, opts ...call.Option) (*DeleteWorkspacePermissionAssignmentResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -150,7 +149,6 @@ func (c *internalClient) DeleteWorkspacePermissionAssignment(ctx context.Context
 func (c *internalClient) ListWorkspacePermissionAssignments(ctx context.Context, req ListWorkspacePermissionAssignmentsRequest, opts ...call.Option) (*ListWorkspacePermissionAssignmentsResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -220,7 +218,6 @@ func (c *internalClient) ListWorkspacePermissionAssignments(ctx context.Context,
 func (c *internalClient) ListWorkspacePermissions(ctx context.Context, req ListWorkspacePermissionsRequest, opts ...call.Option) (*ListWorkspacePermissionsResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -379,7 +376,6 @@ func (c *internalClient) GetRuleSet(ctx context.Context, req GetRuleSetRequest, 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -453,7 +449,6 @@ func (c *internalClient) GetRuleSetProxy(ctx context.Context, req GetRuleSetRequ
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -526,7 +521,6 @@ func (c *internalClient) ListAssignableRolesForResource(ctx context.Context, req
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 
 	baseURL, err := url.Parse(c.host)
 	if err != nil {
@@ -597,7 +591,6 @@ func (c *internalClient) ListAssignableRolesForResourceProxy(ctx context.Context
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -869,7 +862,6 @@ func (c *internalClient) MigratePermissions(ctx context.Context, req MigratePerm
 func (c *internalClient) GetObjectPermissions(ctx context.Context, req GetObjectPermissionsRequest, opts ...call.Option) (*PermissionsResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -939,7 +931,6 @@ func (c *internalClient) GetObjectPermissions(ctx context.Context, req GetObject
 func (c *internalClient) ListPermissionLevels(ctx context.Context, req ListPermissionLevelsRequest, opts ...call.Option) (*ListPermissionLevelsResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -1175,7 +1166,6 @@ func (c *internalClient) CheckPolicy(ctx context.Context, req CheckPolicyRequest
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

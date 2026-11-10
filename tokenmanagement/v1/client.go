@@ -146,7 +146,6 @@ func (c *internalClient) CreateOnBehalfOfToken(ctx context.Context, req CreateOn
 func (c *internalClient) DeleteToken(ctx context.Context, req RevokeTokenRequest, opts ...call.Option) (*RevokeTokenResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -204,7 +203,6 @@ func (c *internalClient) DeleteToken(ctx context.Context, req RevokeTokenRequest
 func (c *internalClient) GetToken(ctx context.Context, req GetTokenRequest, opts ...call.Option) (*GetTokenResponse, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -272,7 +270,6 @@ func (c *internalClient) ListTokens(ctx context.Context, req ListTokensRequest, 
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

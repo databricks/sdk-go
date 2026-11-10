@@ -86,7 +86,6 @@ func (c *internalClient) GetPolicyFamily(ctx context.Context, req GetPolicyFamil
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -157,7 +156,6 @@ func (c *internalClient) ListPolicyFamilies(ctx context.Context, req ListPolicyF
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

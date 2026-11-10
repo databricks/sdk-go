@@ -164,7 +164,6 @@ func (c *internalClient) DeleteFunction(ctx context.Context, req DeleteFunctionR
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -234,7 +233,6 @@ func (c *internalClient) GetFunction(ctx context.Context, req GetFunctionRequest
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -318,7 +316,6 @@ func (c *internalClient) ListFunctions(ctx context.Context, req ListFunctionsReq
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

@@ -152,7 +152,6 @@ func (c *internalClient) DeleteCredentials(ctx context.Context, req DeleteCreden
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -216,7 +215,6 @@ func (c *internalClient) GetCredentials(ctx context.Context, req GetCredentialsR
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -286,7 +284,6 @@ func (c *internalClient) ListCredentials(ctx context.Context, req ListCredential
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}

@@ -168,7 +168,6 @@ func (c *internalClient) CreateEntityTagAssignment(ctx context.Context, req Crea
 func (c *internalClient) DeleteEntityTagAssignment(ctx context.Context, req DeleteEntityTagAssignmentRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -232,7 +231,6 @@ func (c *internalClient) DeleteEntityTagAssignment(ctx context.Context, req Dele
 func (c *internalClient) GetEntityTagAssignment(ctx context.Context, req GetEntityTagAssignmentRequest, opts ...call.Option) (*EntityTagAssignment, error) {
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
@@ -314,7 +312,6 @@ func (c *internalClient) ListEntityTagAssignments(ctx context.Context, req ListE
 	}
 
 	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
 	if c.workspaceID != "" {
 		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
 	}
