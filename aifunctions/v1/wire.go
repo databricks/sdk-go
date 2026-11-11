@@ -75,6 +75,19 @@ func aiClassifyOptionsToWire(v *AiClassifyOptions) (*aiClassifyOptionsWire, erro
 	}, nil
 }
 
+func aiClassifyOptionsFromWire(w *aiClassifyOptionsWire) (*AiClassifyOptions, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AiClassifyOptions{
+		Instructions:           w.Instructions,
+		Version:                w.Version,
+		Multilabel:             w.Multilabel,
+		EnableConfidenceScores: w.EnableConfidenceScores,
+		EnableRationales:       w.EnableRationales,
+	}, nil
+}
+
 type aiClassifyRequestWire struct {
 	Content json.RawMessage        `json:"content,omitempty"`
 	Labels  json.RawMessage        `json:"labels,omitempty"`
@@ -96,9 +109,38 @@ func aiClassifyRequestToWire(v *AiClassifyRequest) (*aiClassifyRequestWire, erro
 	}, nil
 }
 
+func aiClassifyRequestFromWire(w *aiClassifyRequestWire) (*AiClassifyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	optionsPublicValue, err := aiClassifyOptionsFromWire(w.Options)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiClassifyRequest.Options", err)
+	}
+	return &AiClassifyRequest{
+		Content: w.Content,
+		Labels:  w.Labels,
+		Options: optionsPublicValue,
+	}, nil
+}
+
 type aiClassifyResponseWire struct {
 	Response json.RawMessage                 `json:"response,omitempty"`
 	Metadata *aiClassifyResponseMetadataWire `json:"metadata,omitempty"`
+}
+
+func aiClassifyResponseToWire(v *AiClassifyResponse) (*aiClassifyResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	metadataWireValue, err := aiClassifyResponseMetadataToWire(v.Metadata)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiClassifyResponse.Metadata", err)
+	}
+	return &aiClassifyResponseWire{
+		Response: v.Response,
+		Metadata: metadataWireValue,
+	}, nil
 }
 
 func aiClassifyResponseFromWire(w *aiClassifyResponseWire) (*AiClassifyResponse, error) {
@@ -117,6 +159,15 @@ func aiClassifyResponseFromWire(w *aiClassifyResponseWire) (*AiClassifyResponse,
 
 type aiClassifyResponseMetadataWire struct {
 	Version *string `json:"version,omitempty"`
+}
+
+func aiClassifyResponseMetadataToWire(v *AiClassifyResponseMetadata) (*aiClassifyResponseMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &aiClassifyResponseMetadataWire{
+		Version: v.Version,
+	}, nil
 }
 
 func aiClassifyResponseMetadataFromWire(w *aiClassifyResponseMetadataWire) (*AiClassifyResponseMetadata, error) {
@@ -141,6 +192,15 @@ func aiDecideOptionsToWire(v *AiDecideOptions) (*aiDecideOptionsWire, error) {
 	}, nil
 }
 
+func aiDecideOptionsFromWire(w *aiDecideOptionsWire) (*AiDecideOptions, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AiDecideOptions{
+		Version: w.Version,
+	}, nil
+}
+
 type aiDecideRequestWire struct {
 	State     json.RawMessage      `json:"state,omitempty"`
 	Questions json.RawMessage      `json:"questions,omitempty"`
@@ -162,9 +222,38 @@ func aiDecideRequestToWire(v *AiDecideRequest) (*aiDecideRequestWire, error) {
 	}, nil
 }
 
+func aiDecideRequestFromWire(w *aiDecideRequestWire) (*AiDecideRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	optionsPublicValue, err := aiDecideOptionsFromWire(w.Options)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiDecideRequest.Options", err)
+	}
+	return &AiDecideRequest{
+		State:     w.State,
+		Questions: w.Questions,
+		Options:   optionsPublicValue,
+	}, nil
+}
+
 type aiDecideResponseWire struct {
 	Response json.RawMessage               `json:"response,omitempty"`
 	Metadata *aiDecideResponseMetadataWire `json:"metadata,omitempty"`
+}
+
+func aiDecideResponseToWire(v *AiDecideResponse) (*aiDecideResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	metadataWireValue, err := aiDecideResponseMetadataToWire(v.Metadata)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiDecideResponse.Metadata", err)
+	}
+	return &aiDecideResponseWire{
+		Response: v.Response,
+		Metadata: metadataWireValue,
+	}, nil
 }
 
 func aiDecideResponseFromWire(w *aiDecideResponseWire) (*AiDecideResponse, error) {
@@ -185,6 +274,15 @@ type aiDecideResponseMetadataWire struct {
 	Version *string `json:"version,omitempty"`
 }
 
+func aiDecideResponseMetadataToWire(v *AiDecideResponseMetadata) (*aiDecideResponseMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &aiDecideResponseMetadataWire{
+		Version: v.Version,
+	}, nil
+}
+
 func aiDecideResponseMetadataFromWire(w *aiDecideResponseMetadataWire) (*AiDecideResponseMetadata, error) {
 	if w == nil {
 		return nil, nil
@@ -197,6 +295,24 @@ func aiDecideResponseMetadataFromWire(w *aiDecideResponseMetadataWire) (*AiDecid
 type aiExtractBboxWire struct {
 	Coord  []wireInt64 `json:"coord,omitempty"`
 	PageId *wireInt64  `json:"page_id,omitempty"`
+}
+
+func aiExtractBboxToWire(v *AiExtractBbox) (*aiExtractBboxWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	coordWireValue, err := convertSlice(v.Coord, int64ToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiExtractBbox.Coord", err)
+	}
+	pageIdWireValue, err := int64ToWire(v.PageId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiExtractBbox.PageId", err)
+	}
+	return &aiExtractBboxWire{
+		Coord:  coordWireValue,
+		PageId: pageIdWireValue,
+	}, nil
 }
 
 func aiExtractBboxFromWire(w *aiExtractBboxWire) (*AiExtractBbox, error) {
@@ -222,6 +338,34 @@ type aiExtractCitationWire struct {
 	Start *wireInt64          `json:"start,omitempty"`
 	Stop  *wireInt64          `json:"stop,omitempty"`
 	Bbox  []aiExtractBboxWire `json:"bbox,omitempty"`
+}
+
+func aiExtractCitationToWire(v *AiExtractCitation) (*aiExtractCitationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	idWireValue, err := int64ToWire(v.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiExtractCitation.Id", err)
+	}
+	startWireValue, err := int64ToWire(v.Start)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiExtractCitation.Start", err)
+	}
+	stopWireValue, err := int64ToWire(v.Stop)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiExtractCitation.Stop", err)
+	}
+	bboxWireValue, err := convertSlice(v.Bbox, aiExtractBboxToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiExtractCitation.Bbox", err)
+	}
+	return &aiExtractCitationWire{
+		Id:    idWireValue,
+		Start: startWireValue,
+		Stop:  stopWireValue,
+		Bbox:  bboxWireValue,
+	}, nil
 }
 
 func aiExtractCitationFromWire(w *aiExtractCitationWire) (*AiExtractCitation, error) {
@@ -273,6 +417,19 @@ func aiExtractOptionsToWire(v *AiExtractOptions) (*aiExtractOptionsWire, error) 
 	}, nil
 }
 
+func aiExtractOptionsFromWire(w *aiExtractOptionsWire) (*AiExtractOptions, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AiExtractOptions{
+		Instructions:           w.Instructions,
+		Version:                w.Version,
+		Mode:                   w.Mode,
+		EnableCitations:        w.EnableCitations,
+		EnableConfidenceScores: w.EnableConfidenceScores,
+	}, nil
+}
+
 type aiExtractRequestWire struct {
 	Content json.RawMessage       `json:"content,omitempty"`
 	Schema  json.RawMessage       `json:"schema,omitempty"`
@@ -294,9 +451,38 @@ func aiExtractRequestToWire(v *AiExtractRequest) (*aiExtractRequestWire, error) 
 	}, nil
 }
 
+func aiExtractRequestFromWire(w *aiExtractRequestWire) (*AiExtractRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	optionsPublicValue, err := aiExtractOptionsFromWire(w.Options)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiExtractRequest.Options", err)
+	}
+	return &AiExtractRequest{
+		Content: w.Content,
+		Schema:  w.Schema,
+		Options: optionsPublicValue,
+	}, nil
+}
+
 type aiExtractResponseWire struct {
 	Response json.RawMessage                `json:"response,omitempty"`
 	Metadata *aiExtractResponseMetadataWire `json:"metadata,omitempty"`
+}
+
+func aiExtractResponseToWire(v *AiExtractResponse) (*aiExtractResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	metadataWireValue, err := aiExtractResponseMetadataToWire(v.Metadata)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiExtractResponse.Metadata", err)
+	}
+	return &aiExtractResponseWire{
+		Response: v.Response,
+		Metadata: metadataWireValue,
+	}, nil
 }
 
 func aiExtractResponseFromWire(w *aiExtractResponseWire) (*AiExtractResponse, error) {
@@ -320,6 +506,22 @@ type aiExtractResponseMetadataWire struct {
 	Citations []aiExtractCitationWire `json:"citations,omitempty"`
 }
 
+func aiExtractResponseMetadataToWire(v *AiExtractResponseMetadata) (*aiExtractResponseMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	citationsWireValue, err := convertSlice(v.Citations, aiExtractCitationToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiExtractResponseMetadata.Citations", err)
+	}
+	return &aiExtractResponseMetadataWire{
+		Version:   v.Version,
+		Mode:      v.Mode,
+		ChunkType: v.ChunkType,
+		Citations: citationsWireValue,
+	}, nil
+}
+
 func aiExtractResponseMetadataFromWire(w *aiExtractResponseMetadataWire) (*AiExtractResponseMetadata, error) {
 	if w == nil {
 		return nil, nil
@@ -341,6 +543,22 @@ type aiParseDocumentFileMetadataWire struct {
 	FileName             *string    `json:"file_name,omitempty"`
 	FileSize             *wireInt64 `json:"file_size,omitempty"`
 	FileModificationTime *string    `json:"file_modification_time,omitempty"`
+}
+
+func aiParseDocumentFileMetadataToWire(v *AiParseDocumentFileMetadata) (*aiParseDocumentFileMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	fileSizeWireValue, err := int64ToWire(v.FileSize)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiParseDocumentFileMetadata.FileSize", err)
+	}
+	return &aiParseDocumentFileMetadataWire{
+		FilePath:             v.FilePath,
+		FileName:             v.FileName,
+		FileSize:             fileSizeWireValue,
+		FileModificationTime: v.FileModificationTime,
+	}, nil
 }
 
 func aiParseDocumentFileMetadataFromWire(w *aiParseDocumentFileMetadataWire) (*AiParseDocumentFileMetadata, error) {
@@ -378,9 +596,35 @@ func aiParseDocumentOptionsToWire(v *AiParseDocumentOptions) (*aiParseDocumentOp
 	}, nil
 }
 
+func aiParseDocumentOptionsFromWire(w *aiParseDocumentOptionsWire) (*AiParseDocumentOptions, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AiParseDocumentOptions{
+		Version:                 w.Version,
+		DescriptionElementTypes: w.DescriptionElementTypes,
+		ImageOutputPath:         w.ImageOutputPath,
+		PageRange:               w.PageRange,
+	}, nil
+}
+
 type aiParseDocumentPageErrorWire struct {
 	ErrorMessage *string    `json:"error_message,omitempty"`
 	PageId       *wireInt64 `json:"page_id,omitempty"`
+}
+
+func aiParseDocumentPageErrorToWire(v *AiParseDocumentPageError) (*aiParseDocumentPageErrorWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	pageIdWireValue, err := int64ToWire(v.PageId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiParseDocumentPageError.PageId", err)
+	}
+	return &aiParseDocumentPageErrorWire{
+		ErrorMessage: v.ErrorMessage,
+		PageId:       pageIdWireValue,
+	}, nil
 }
 
 func aiParseDocumentPageErrorFromWire(w *aiParseDocumentPageErrorWire) (*AiParseDocumentPageError, error) {
@@ -416,10 +660,43 @@ func aiParseDocumentRequestToWire(v *AiParseDocumentRequest) (*aiParseDocumentRe
 	}, nil
 }
 
+func aiParseDocumentRequestFromWire(w *aiParseDocumentRequestWire) (*AiParseDocumentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	optionsPublicValue, err := aiParseDocumentOptionsFromWire(w.Options)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiParseDocumentRequest.Options", err)
+	}
+	return &AiParseDocumentRequest{
+		Content: w.Content,
+		Options: optionsPublicValue,
+	}, nil
+}
+
 type aiParseDocumentResponseWire struct {
 	Document    json.RawMessage                      `json:"document,omitempty"`
 	ErrorStatus []aiParseDocumentPageErrorWire       `json:"error_status,omitempty"`
 	Metadata    *aiParseDocumentResponseMetadataWire `json:"metadata,omitempty"`
+}
+
+func aiParseDocumentResponseToWire(v *AiParseDocumentResponse) (*aiParseDocumentResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	errorStatusWireValue, err := convertSlice(v.ErrorStatus, aiParseDocumentPageErrorToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiParseDocumentResponse.ErrorStatus", err)
+	}
+	metadataWireValue, err := aiParseDocumentResponseMetadataToWire(v.Metadata)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiParseDocumentResponse.Metadata", err)
+	}
+	return &aiParseDocumentResponseWire{
+		Document:    v.Document,
+		ErrorStatus: errorStatusWireValue,
+		Metadata:    metadataWireValue,
+	}, nil
 }
 
 func aiParseDocumentResponseFromWire(w *aiParseDocumentResponseWire) (*AiParseDocumentResponse, error) {
@@ -445,6 +722,21 @@ type aiParseDocumentResponseMetadataWire struct {
 	Id           *string                          `json:"id,omitempty"`
 	Version      *string                          `json:"version,omitempty"`
 	FileMetadata *aiParseDocumentFileMetadataWire `json:"file_metadata,omitempty"`
+}
+
+func aiParseDocumentResponseMetadataToWire(v *AiParseDocumentResponseMetadata) (*aiParseDocumentResponseMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	fileMetadataWireValue, err := aiParseDocumentFileMetadataToWire(v.FileMetadata)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiParseDocumentResponseMetadata.FileMetadata", err)
+	}
+	return &aiParseDocumentResponseMetadataWire{
+		Id:           v.Id,
+		Version:      v.Version,
+		FileMetadata: fileMetadataWireValue,
+	}, nil
 }
 
 func aiParseDocumentResponseMetadataFromWire(w *aiParseDocumentResponseMetadataWire) (*AiParseDocumentResponseMetadata, error) {
@@ -581,6 +873,32 @@ func cancelBatchRequestToWire(v *CancelBatchRequest) (*cancelBatchRequestWire, e
 	}, nil
 }
 
+func cancelBatchRequestFromWire(w *cancelBatchRequestWire) (*CancelBatchRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CancelBatchRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type cancelBatchResponseWire struct {
+}
+
+func cancelBatchResponseToWire(v *CancelBatchResponse) (*cancelBatchResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &cancelBatchResponseWire{}, nil
+}
+
+func cancelBatchResponseFromWire(w *cancelBatchResponseWire) (*CancelBatchResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CancelBatchResponse{}, nil
+}
+
 type createBatchRequestWire struct {
 	Batch *batchWire `json:"batch,omitempty"`
 }
@@ -595,6 +913,41 @@ func createBatchRequestToWire(v *CreateBatchRequest) (*createBatchRequestWire, e
 	}
 	return &createBatchRequestWire{
 		Batch: batchWireValue,
+	}, nil
+}
+
+func createBatchRequestFromWire(w *createBatchRequestWire) (*CreateBatchRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	batchPublicValue, err := batchFromWire(w.Batch)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBatchRequest.Batch", err)
+	}
+	return &CreateBatchRequest{
+		Batch: batchPublicValue,
+	}, nil
+}
+
+type getBatchRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getBatchRequestToWire(v *GetBatchRequest) (*getBatchRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getBatchRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getBatchRequestFromWire(w *getBatchRequestWire) (*GetBatchRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetBatchRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -613,9 +966,33 @@ func listBatchesRequestToWire(v *ListBatchesRequest) (*listBatchesRequestWire, e
 	}, nil
 }
 
+func listBatchesRequestFromWire(w *listBatchesRequestWire) (*ListBatchesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListBatchesRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listBatchesResponseWire struct {
 	Batches       []batchWire `json:"batches,omitempty"`
 	NextPageToken *string     `json:"next_page_token,omitempty"`
+}
+
+func listBatchesResponseToWire(v *ListBatchesResponse) (*listBatchesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	batchesWireValue, err := convertSlice(v.Batches, batchToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListBatchesResponse.Batches", err)
+	}
+	return &listBatchesResponseWire{
+		Batches:       batchesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listBatchesResponseFromWire(w *listBatchesResponseWire) (*ListBatchesResponse, error) {

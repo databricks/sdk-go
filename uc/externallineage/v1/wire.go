@@ -54,14 +54,6 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type columnRelationshipWire struct {
 	Source *string `json:"source,omitempty"`
 	Target *string `json:"target,omitempty"`
@@ -104,6 +96,19 @@ func createExternalLineageRelationshipRequestToWire(v *CreateExternalLineageRela
 	}, nil
 }
 
+func createExternalLineageRelationshipRequestFromWire(w *createExternalLineageRelationshipRequestWire) (*CreateExternalLineageRelationshipRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	externalLineageRelationshipPublicValue, err := createRequestExternalLineageFromWire(w.ExternalLineageRelationship)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateExternalLineageRelationshipRequest.ExternalLineageRelationship", err)
+	}
+	return &CreateExternalLineageRelationshipRequest{
+		ExternalLineageRelationship: externalLineageRelationshipPublicValue,
+	}, nil
+}
+
 type createRequestExternalLineageWire struct {
 	Id         *string                                `json:"id,omitempty"`
 	Source     *externalLineageRelationshipObjectWire `json:"source,omitempty"`
@@ -137,6 +142,31 @@ func createRequestExternalLineageToWire(v *CreateRequestExternalLineage) (*creat
 	}, nil
 }
 
+func createRequestExternalLineageFromWire(w *createRequestExternalLineageWire) (*CreateRequestExternalLineage, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sourcePublicValue, err := externalLineageRelationshipObjectFromWire(w.Source)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRequestExternalLineage.Source", err)
+	}
+	targetPublicValue, err := externalLineageRelationshipObjectFromWire(w.Target)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRequestExternalLineage.Target", err)
+	}
+	columnsPublicValue, err := convertSlice(w.Columns, columnRelationshipFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRequestExternalLineage.Columns", err)
+	}
+	return &CreateRequestExternalLineage{
+		Id:         w.Id,
+		Source:     sourcePublicValue,
+		Target:     targetPublicValue,
+		Columns:    columnsPublicValue,
+		Properties: w.Properties,
+	}, nil
+}
+
 type deleteExternalLineageRelationshipRequestWire struct {
 	ExternalLineageRelationship *deleteRequestExternalLineageWire `json:"external_lineage_relationship,omitempty"`
 }
@@ -151,6 +181,19 @@ func deleteExternalLineageRelationshipRequestToWire(v *DeleteExternalLineageRela
 	}
 	return &deleteExternalLineageRelationshipRequestWire{
 		ExternalLineageRelationship: externalLineageRelationshipWireValue,
+	}, nil
+}
+
+func deleteExternalLineageRelationshipRequestFromWire(w *deleteExternalLineageRelationshipRequestWire) (*DeleteExternalLineageRelationshipRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	externalLineageRelationshipPublicValue, err := deleteRequestExternalLineageFromWire(w.ExternalLineageRelationship)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteExternalLineageRelationshipRequest.ExternalLineageRelationship", err)
+	}
+	return &DeleteExternalLineageRelationshipRequest{
+		ExternalLineageRelationship: externalLineageRelationshipPublicValue,
 	}, nil
 }
 
@@ -187,12 +230,87 @@ func deleteRequestExternalLineageToWire(v *DeleteRequestExternalLineage) (*delet
 	}, nil
 }
 
+func deleteRequestExternalLineageFromWire(w *deleteRequestExternalLineageWire) (*DeleteRequestExternalLineage, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sourcePublicValue, err := externalLineageRelationshipObjectFromWire(w.Source)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteRequestExternalLineage.Source", err)
+	}
+	targetPublicValue, err := externalLineageRelationshipObjectFromWire(w.Target)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteRequestExternalLineage.Target", err)
+	}
+	columnsPublicValue, err := convertSlice(w.Columns, columnRelationshipFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteRequestExternalLineage.Columns", err)
+	}
+	return &DeleteRequestExternalLineage{
+		Id:         w.Id,
+		Source:     sourcePublicValue,
+		Target:     targetPublicValue,
+		Columns:    columnsPublicValue,
+		Properties: w.Properties,
+	}, nil
+}
+
+type directionWire struct {
+}
+
+func directionToWire(v *Direction) (*directionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &directionWire{}, nil
+}
+
+func directionFromWire(w *directionWire) (*Direction, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &Direction{}, nil
+}
+
 type externalLineageInfoWire struct {
 	TableInfo            *lineageTableInfoWire            `json:"table_info,omitempty"`
 	FileInfo             *lineageFileInfoWire             `json:"file_info,omitempty"`
 	ModelInfo            *lineageModelVersionInfoWire     `json:"model_info,omitempty"`
 	ExternalMetadataInfo *lineageExternalMetadataInfoWire `json:"external_metadata_info,omitempty"`
 	ExternalLineageInfo  *externalLineageRelationshipWire `json:"external_lineage_info,omitempty"`
+}
+
+func externalLineageInfoToWire(v *ExternalLineageInfo) (*externalLineageInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tableInfoWireValue, err := lineageTableInfoToWire(v.TableInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLineageInfo.TableInfo", err)
+	}
+	fileInfoWireValue, err := lineageFileInfoToWire(v.FileInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLineageInfo.FileInfo", err)
+	}
+	modelInfoWireValue, err := lineageModelVersionInfoToWire(v.ModelInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLineageInfo.ModelInfo", err)
+	}
+	externalMetadataInfoWireValue, err := lineageExternalMetadataInfoToWire(v.ExternalMetadataInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLineageInfo.ExternalMetadataInfo", err)
+	}
+	externalLineageInfoWireValue, err := externalLineageRelationshipToWire(v.ExternalLineageInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLineageInfo.ExternalLineageInfo", err)
+	}
+	return &externalLineageInfoWire{
+		TableInfo:            tableInfoWireValue,
+		FileInfo:             fileInfoWireValue,
+		ModelInfo:            modelInfoWireValue,
+		ExternalMetadataInfo: externalMetadataInfoWireValue,
+		ExternalLineageInfo:  externalLineageInfoWireValue,
+	}, nil
 }
 
 func externalLineageInfoFromWire(w *externalLineageInfoWire) (*ExternalLineageInfo, error) {
@@ -234,6 +352,31 @@ type externalLineageRelationshipWire struct {
 	Target     *externalLineageRelationshipObjectWire `json:"target,omitempty"`
 	Columns    []columnRelationshipWire               `json:"columns,omitempty"`
 	Properties map[string]string                      `json:"properties,omitempty"`
+}
+
+func externalLineageRelationshipToWire(v *ExternalLineageRelationship) (*externalLineageRelationshipWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sourceWireValue, err := externalLineageRelationshipObjectToWire(v.Source)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLineageRelationship.Source", err)
+	}
+	targetWireValue, err := externalLineageRelationshipObjectToWire(v.Target)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLineageRelationship.Target", err)
+	}
+	columnsWireValue, err := convertSlice(v.Columns, columnRelationshipToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLineageRelationship.Columns", err)
+	}
+	return &externalLineageRelationshipWire{
+		Id:         v.Id,
+		Source:     sourceWireValue,
+		Target:     targetWireValue,
+		Columns:    columnsWireValue,
+		Properties: v.Properties,
+	}, nil
 }
 
 func externalLineageRelationshipFromWire(w *externalLineageRelationshipWire) (*ExternalLineageRelationship, error) {
@@ -471,6 +614,18 @@ type lineageExternalMetadataInfoWire struct {
 	EventTime  *types.Time `json:"event_time,omitempty"`
 }
 
+func lineageExternalMetadataInfoToWire(v *LineageExternalMetadataInfo) (*lineageExternalMetadataInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &lineageExternalMetadataInfoWire{
+		Name:       v.Name,
+		SystemType: v.SystemType,
+		EntityType: v.EntityType,
+		EventTime:  v.EventTime,
+	}, nil
+}
+
 func lineageExternalMetadataInfoFromWire(w *lineageExternalMetadataInfoWire) (*LineageExternalMetadataInfo, error) {
 	if w == nil {
 		return nil, nil
@@ -491,6 +646,19 @@ type lineageFileInfoWire struct {
 	EventTime       *types.Time `json:"event_time,omitempty"`
 }
 
+func lineageFileInfoToWire(v *LineageFileInfo) (*lineageFileInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &lineageFileInfoWire{
+		Path:            v.Path,
+		SecurableName:   v.SecurableName,
+		StorageLocation: v.StorageLocation,
+		SecurableType:   v.SecurableType,
+		EventTime:       v.EventTime,
+	}, nil
+}
+
 func lineageFileInfoFromWire(w *lineageFileInfoWire) (*LineageFileInfo, error) {
 	if w == nil {
 		return nil, nil
@@ -508,6 +676,21 @@ type lineageModelVersionInfoWire struct {
 	ModelName *string     `json:"model_name,omitempty"`
 	Version   *wireInt64  `json:"version,omitempty"`
 	EventTime *types.Time `json:"event_time,omitempty"`
+}
+
+func lineageModelVersionInfoToWire(v *LineageModelVersionInfo) (*lineageModelVersionInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	versionWireValue, err := int64ToWire(v.Version)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LineageModelVersionInfo.Version", err)
+	}
+	return &lineageModelVersionInfoWire{
+		ModelName: v.ModelName,
+		Version:   versionWireValue,
+		EventTime: v.EventTime,
+	}, nil
 }
 
 func lineageModelVersionInfoFromWire(w *lineageModelVersionInfoWire) (*LineageModelVersionInfo, error) {
@@ -530,6 +713,18 @@ type lineageTableInfoWire struct {
 	CatalogName *string     `json:"catalog_name,omitempty"`
 	SchemaName  *string     `json:"schema_name,omitempty"`
 	EventTime   *types.Time `json:"event_time,omitempty"`
+}
+
+func lineageTableInfoToWire(v *LineageTableInfo) (*lineageTableInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &lineageTableInfoWire{
+		Name:        v.Name,
+		CatalogName: v.CatalogName,
+		SchemaName:  v.SchemaName,
+		EventTime:   v.EventTime,
+	}, nil
 }
 
 func lineageTableInfoFromWire(w *lineageTableInfoWire) (*LineageTableInfo, error) {
@@ -567,9 +762,39 @@ func listExternalLineageRelationshipsRequestToWire(v *ListExternalLineageRelatio
 	}, nil
 }
 
+func listExternalLineageRelationshipsRequestFromWire(w *listExternalLineageRelationshipsRequestWire) (*ListExternalLineageRelationshipsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	objectInfoPublicValue, err := externalLineageRelationshipObjectFromWire(w.ObjectInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListExternalLineageRelationshipsRequest.ObjectInfo", err)
+	}
+	return &ListExternalLineageRelationshipsRequest{
+		ObjectInfo:       objectInfoPublicValue,
+		LineageDirection: w.LineageDirection,
+		PageSize:         w.PageSize,
+		PageToken:        w.PageToken,
+	}, nil
+}
+
 type listExternalLineageRelationshipsResponseWire struct {
 	ExternalLineageRelationships []externalLineageInfoWire `json:"external_lineage_relationships,omitempty"`
 	NextPageToken                *string                   `json:"next_page_token,omitempty"`
+}
+
+func listExternalLineageRelationshipsResponseToWire(v *ListExternalLineageRelationshipsResponse) (*listExternalLineageRelationshipsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	externalLineageRelationshipsWireValue, err := convertSlice(v.ExternalLineageRelationships, externalLineageInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListExternalLineageRelationshipsResponse.ExternalLineageRelationships", err)
+	}
+	return &listExternalLineageRelationshipsResponseWire{
+		ExternalLineageRelationships: externalLineageRelationshipsWireValue,
+		NextPageToken:                v.NextPageToken,
+	}, nil
 }
 
 func listExternalLineageRelationshipsResponseFromWire(w *listExternalLineageRelationshipsResponseWire) (*ListExternalLineageRelationshipsResponse, error) {
@@ -587,8 +812,8 @@ func listExternalLineageRelationshipsResponseFromWire(w *listExternalLineageRela
 }
 
 type updateExternalLineageRelationshipRequestWire struct {
-	ExternalLineageRelationship *updateRequestExternalLineageWire `json:"external_lineage_relationship,omitempty"`
-	UpdateMask                  *string                           `json:"update_mask,omitempty"`
+	ExternalLineageRelationship *updateRequestExternalLineageWire              `json:"external_lineage_relationship,omitempty"`
+	UpdateMask                  *types.FieldMask[UpdateRequestExternalLineage] `json:"update_mask,omitempty"`
 }
 
 func updateExternalLineageRelationshipRequestToWire(v *UpdateExternalLineageRelationshipRequest) (*updateExternalLineageRelationshipRequestWire, error) {
@@ -601,7 +826,21 @@ func updateExternalLineageRelationshipRequestToWire(v *UpdateExternalLineageRela
 	}
 	return &updateExternalLineageRelationshipRequestWire{
 		ExternalLineageRelationship: externalLineageRelationshipWireValue,
-		UpdateMask:                  fieldMaskToWire(v.UpdateMask),
+		UpdateMask:                  v.UpdateMask,
+	}, nil
+}
+
+func updateExternalLineageRelationshipRequestFromWire(w *updateExternalLineageRelationshipRequestWire) (*UpdateExternalLineageRelationshipRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	externalLineageRelationshipPublicValue, err := updateRequestExternalLineageFromWire(w.ExternalLineageRelationship)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateExternalLineageRelationshipRequest.ExternalLineageRelationship", err)
+	}
+	return &UpdateExternalLineageRelationshipRequest{
+		ExternalLineageRelationship: externalLineageRelationshipPublicValue,
+		UpdateMask:                  w.UpdateMask,
 	}, nil
 }
 
@@ -635,6 +874,31 @@ func updateRequestExternalLineageToWire(v *UpdateRequestExternalLineage) (*updat
 		Target:     targetWireValue,
 		Columns:    columnsWireValue,
 		Properties: v.Properties,
+	}, nil
+}
+
+func updateRequestExternalLineageFromWire(w *updateRequestExternalLineageWire) (*UpdateRequestExternalLineage, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sourcePublicValue, err := externalLineageRelationshipObjectFromWire(w.Source)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRequestExternalLineage.Source", err)
+	}
+	targetPublicValue, err := externalLineageRelationshipObjectFromWire(w.Target)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRequestExternalLineage.Target", err)
+	}
+	columnsPublicValue, err := convertSlice(w.Columns, columnRelationshipFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRequestExternalLineage.Columns", err)
+	}
+	return &UpdateRequestExternalLineage{
+		Id:         w.Id,
+		Source:     sourcePublicValue,
+		Target:     targetPublicValue,
+		Columns:    columnsPublicValue,
+		Properties: w.Properties,
 	}, nil
 }
 

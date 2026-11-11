@@ -8,14 +8,6 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type createFailoverGroupRequestWire struct {
 	Parent          *string            `json:"parent,omitempty"`
 	FailoverGroup   *failoverGroupWire `json:"failover_group,omitempty"`
@@ -36,6 +28,22 @@ func createFailoverGroupRequestToWire(v *CreateFailoverGroupRequest) (*createFai
 		FailoverGroup:   failoverGroupWireValue,
 		ValidateOnly:    v.ValidateOnly,
 		FailoverGroupId: v.FailoverGroupId,
+	}, nil
+}
+
+func createFailoverGroupRequestFromWire(w *createFailoverGroupRequestWire) (*CreateFailoverGroupRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	failoverGroupPublicValue, err := failoverGroupFromWire(w.FailoverGroup)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateFailoverGroupRequest.FailoverGroup", err)
+	}
+	return &CreateFailoverGroupRequest{
+		Parent:          w.Parent,
+		FailoverGroup:   failoverGroupPublicValue,
+		ValidateOnly:    w.ValidateOnly,
+		FailoverGroupId: w.FailoverGroupId,
 	}, nil
 }
 
@@ -62,6 +70,22 @@ func createStableUrlRequestToWire(v *CreateStableUrlRequest) (*createStableUrlRe
 	}, nil
 }
 
+func createStableUrlRequestFromWire(w *createStableUrlRequestWire) (*CreateStableUrlRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	stableUrlPublicValue, err := stableUrlFromWire(w.StableUrl)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateStableUrlRequest.StableUrl", err)
+	}
+	return &CreateStableUrlRequest{
+		Parent:       w.Parent,
+		StableUrl:    stableUrlPublicValue,
+		ValidateOnly: w.ValidateOnly,
+		StableUrlId:  w.StableUrlId,
+	}, nil
+}
+
 type deleteFailoverGroupRequestWire struct {
 	Name *string `json:"name,omitempty"`
 	Etag *string `json:"etag,omitempty"`
@@ -74,6 +98,38 @@ func deleteFailoverGroupRequestToWire(v *DeleteFailoverGroupRequest) (*deleteFai
 	return &deleteFailoverGroupRequestWire{
 		Name: v.Name,
 		Etag: v.Etag,
+	}, nil
+}
+
+func deleteFailoverGroupRequestFromWire(w *deleteFailoverGroupRequestWire) (*DeleteFailoverGroupRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteFailoverGroupRequest{
+		Name: w.Name,
+		Etag: w.Etag,
+	}, nil
+}
+
+type deleteStableUrlRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteStableUrlRequestToWire(v *DeleteStableUrlRequest) (*deleteStableUrlRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteStableUrlRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteStableUrlRequestFromWire(w *deleteStableUrlRequestWire) (*DeleteStableUrlRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteStableUrlRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -93,6 +149,18 @@ func failoverFailoverGroupRequestToWire(v *FailoverFailoverGroupRequest) (*failo
 		TargetPrimaryRegion: v.TargetPrimaryRegion,
 		Etag:                v.Etag,
 		FailoverType:        v.FailoverType,
+	}, nil
+}
+
+func failoverFailoverGroupRequestFromWire(w *failoverFailoverGroupRequestWire) (*FailoverFailoverGroupRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &FailoverFailoverGroupRequest{
+		Name:                w.Name,
+		TargetPrimaryRegion: w.TargetPrimaryRegion,
+		Etag:                w.Etag,
+		FailoverType:        w.FailoverType,
 	}, nil
 }
 
@@ -178,6 +246,50 @@ func failoverGroupFromWire(w *failoverGroupWire) (*FailoverGroup, error) {
 	}, nil
 }
 
+type getFailoverGroupRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getFailoverGroupRequestToWire(v *GetFailoverGroupRequest) (*getFailoverGroupRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getFailoverGroupRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getFailoverGroupRequestFromWire(w *getFailoverGroupRequestWire) (*GetFailoverGroupRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetFailoverGroupRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getStableUrlRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getStableUrlRequestToWire(v *GetStableUrlRequest) (*getStableUrlRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getStableUrlRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getStableUrlRequestFromWire(w *getStableUrlRequestWire) (*GetStableUrlRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetStableUrlRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type initialReplicationProgressWire struct {
 	Completed *int `json:"completed,omitempty"`
 }
@@ -217,9 +329,34 @@ func listFailoverGroupsRequestToWire(v *ListFailoverGroupsRequest) (*listFailove
 	}, nil
 }
 
+func listFailoverGroupsRequestFromWire(w *listFailoverGroupsRequestWire) (*ListFailoverGroupsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListFailoverGroupsRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listFailoverGroupsResponseWire struct {
 	FailoverGroups []failoverGroupWire `json:"failover_groups,omitempty"`
 	NextPageToken  *string             `json:"next_page_token,omitempty"`
+}
+
+func listFailoverGroupsResponseToWire(v *ListFailoverGroupsResponse) (*listFailoverGroupsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	failoverGroupsWireValue, err := convertSlice(v.FailoverGroups, failoverGroupToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListFailoverGroupsResponse.FailoverGroups", err)
+	}
+	return &listFailoverGroupsResponseWire{
+		FailoverGroups: failoverGroupsWireValue,
+		NextPageToken:  v.NextPageToken,
+	}, nil
 }
 
 func listFailoverGroupsResponseFromWire(w *listFailoverGroupsResponseWire) (*ListFailoverGroupsResponse, error) {
@@ -253,9 +390,34 @@ func listStableUrlsRequestToWire(v *ListStableUrlsRequest) (*listStableUrlsReque
 	}, nil
 }
 
+func listStableUrlsRequestFromWire(w *listStableUrlsRequestWire) (*ListStableUrlsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListStableUrlsRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listStableUrlsResponseWire struct {
 	StableUrls    []stableUrlWire `json:"stable_urls,omitempty"`
 	NextPageToken *string         `json:"next_page_token,omitempty"`
+}
+
+func listStableUrlsResponseToWire(v *ListStableUrlsResponse) (*listStableUrlsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	stableUrlsWireValue, err := convertSlice(v.StableUrls, stableUrlToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListStableUrlsResponse.StableUrls", err)
+	}
+	return &listStableUrlsResponseWire{
+		StableUrls:    stableUrlsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listStableUrlsResponseFromWire(w *listStableUrlsResponseWire) (*ListStableUrlsResponse, error) {
@@ -434,9 +596,9 @@ func ucReplicationConfigFromWire(w *ucReplicationConfigWire) (*UcReplicationConf
 }
 
 type updateFailoverGroupRequestWire struct {
-	FailoverGroup *failoverGroupWire `json:"failover_group,omitempty"`
-	UpdateMask    *string            `json:"update_mask,omitempty"`
-	Etag          *string            `json:"etag,omitempty"`
+	FailoverGroup *failoverGroupWire              `json:"failover_group,omitempty"`
+	UpdateMask    *types.FieldMask[FailoverGroup] `json:"update_mask,omitempty"`
+	Etag          *string                         `json:"etag,omitempty"`
 }
 
 func updateFailoverGroupRequestToWire(v *UpdateFailoverGroupRequest) (*updateFailoverGroupRequestWire, error) {
@@ -449,8 +611,23 @@ func updateFailoverGroupRequestToWire(v *UpdateFailoverGroupRequest) (*updateFai
 	}
 	return &updateFailoverGroupRequestWire{
 		FailoverGroup: failoverGroupWireValue,
-		UpdateMask:    fieldMaskToWire(v.UpdateMask),
+		UpdateMask:    v.UpdateMask,
 		Etag:          v.Etag,
+	}, nil
+}
+
+func updateFailoverGroupRequestFromWire(w *updateFailoverGroupRequestWire) (*UpdateFailoverGroupRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	failoverGroupPublicValue, err := failoverGroupFromWire(w.FailoverGroup)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateFailoverGroupRequest.FailoverGroup", err)
+	}
+	return &UpdateFailoverGroupRequest{
+		FailoverGroup: failoverGroupPublicValue,
+		UpdateMask:    w.UpdateMask,
+		Etag:          w.Etag,
 	}, nil
 }
 

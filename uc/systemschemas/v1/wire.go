@@ -6,6 +6,48 @@ import (
 	"fmt"
 )
 
+type disableSystemSchemaRequestWire struct {
+	Schema      *string `json:"schema,omitempty"`
+	MetastoreId *string `json:"metastore_id,omitempty"`
+}
+
+func disableSystemSchemaRequestToWire(v *DisableSystemSchemaRequest) (*disableSystemSchemaRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &disableSystemSchemaRequestWire{
+		Schema:      v.Schema,
+		MetastoreId: v.MetastoreId,
+	}, nil
+}
+
+func disableSystemSchemaRequestFromWire(w *disableSystemSchemaRequestWire) (*DisableSystemSchemaRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DisableSystemSchemaRequest{
+		Schema:      w.Schema,
+		MetastoreId: w.MetastoreId,
+	}, nil
+}
+
+type disableSystemSchemaResponseWire struct {
+}
+
+func disableSystemSchemaResponseToWire(v *DisableSystemSchemaResponse) (*disableSystemSchemaResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &disableSystemSchemaResponseWire{}, nil
+}
+
+func disableSystemSchemaResponseFromWire(w *disableSystemSchemaResponseWire) (*DisableSystemSchemaResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DisableSystemSchemaResponse{}, nil
+}
+
 type enableSystemSchemaRequestWire struct {
 	Schema      *string `json:"schema,omitempty"`
 	MetastoreId *string `json:"metastore_id,omitempty"`
@@ -21,6 +63,34 @@ func enableSystemSchemaRequestToWire(v *EnableSystemSchemaRequest) (*enableSyste
 		MetastoreId: v.MetastoreId,
 		CatalogName: v.CatalogName,
 	}, nil
+}
+
+func enableSystemSchemaRequestFromWire(w *enableSystemSchemaRequestWire) (*EnableSystemSchemaRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &EnableSystemSchemaRequest{
+		Schema:      w.Schema,
+		MetastoreId: w.MetastoreId,
+		CatalogName: w.CatalogName,
+	}, nil
+}
+
+type enableSystemSchemaResponseWire struct {
+}
+
+func enableSystemSchemaResponseToWire(v *EnableSystemSchemaResponse) (*enableSystemSchemaResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &enableSystemSchemaResponseWire{}, nil
+}
+
+func enableSystemSchemaResponseFromWire(w *enableSystemSchemaResponseWire) (*EnableSystemSchemaResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &EnableSystemSchemaResponse{}, nil
 }
 
 type listSystemSchemasRequestWire struct {
@@ -40,9 +110,34 @@ func listSystemSchemasRequestToWire(v *ListSystemSchemasRequest) (*listSystemSch
 	}, nil
 }
 
+func listSystemSchemasRequestFromWire(w *listSystemSchemasRequestWire) (*ListSystemSchemasRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSystemSchemasRequest{
+		MetastoreId: w.MetastoreId,
+		MaxResults:  w.MaxResults,
+		PageToken:   w.PageToken,
+	}, nil
+}
+
 type listSystemSchemasResponseWire struct {
 	Schemas       []systemSchemaInfoWire `json:"schemas,omitempty"`
 	NextPageToken *string                `json:"next_page_token,omitempty"`
+}
+
+func listSystemSchemasResponseToWire(v *ListSystemSchemasResponse) (*listSystemSchemasResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	schemasWireValue, err := convertSlice(v.Schemas, systemSchemaInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSystemSchemasResponse.Schemas", err)
+	}
+	return &listSystemSchemasResponseWire{
+		Schemas:       schemasWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listSystemSchemasResponseFromWire(w *listSystemSchemasResponseWire) (*ListSystemSchemasResponse, error) {
@@ -62,6 +157,16 @@ func listSystemSchemasResponseFromWire(w *listSystemSchemasResponseWire) (*ListS
 type systemSchemaInfoWire struct {
 	Schema *string `json:"schema,omitempty"`
 	State  *string `json:"state,omitempty"`
+}
+
+func systemSchemaInfoToWire(v *SystemSchemaInfo) (*systemSchemaInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &systemSchemaInfoWire{
+		Schema: v.Schema,
+		State:  v.State,
+	}, nil
 }
 
 func systemSchemaInfoFromWire(w *systemSchemaInfoWire) (*SystemSchemaInfo, error) {

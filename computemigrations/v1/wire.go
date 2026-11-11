@@ -71,6 +71,17 @@ func approveMigrationExecutionRequestToWire(v *ApproveMigrationExecutionRequest)
 	}, nil
 }
 
+func approveMigrationExecutionRequestFromWire(w *approveMigrationExecutionRequestWire) (*ApproveMigrationExecutionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ApproveMigrationExecutionRequest{
+		MigrationId:        w.MigrationId,
+		Etag:               w.Etag,
+		AdditionalFeedback: w.AdditionalFeedback,
+	}, nil
+}
+
 type approveMigrationTranslationRequestWire struct {
 	MigrationId        *string `json:"migration_id,omitempty"`
 	Etag               *string `json:"etag,omitempty"`
@@ -85,6 +96,17 @@ func approveMigrationTranslationRequestToWire(v *ApproveMigrationTranslationRequ
 		MigrationId:        v.MigrationId,
 		Etag:               v.Etag,
 		AdditionalFeedback: v.AdditionalFeedback,
+	}, nil
+}
+
+func approveMigrationTranslationRequestFromWire(w *approveMigrationTranslationRequestWire) (*ApproveMigrationTranslationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ApproveMigrationTranslationRequest{
+		MigrationId:        w.MigrationId,
+		Etag:               w.Etag,
+		AdditionalFeedback: w.AdditionalFeedback,
 	}, nil
 }
 
@@ -155,6 +177,17 @@ func cancelMigrationRequestToWire(v *CancelMigrationRequest) (*cancelMigrationRe
 	}, nil
 }
 
+func cancelMigrationRequestFromWire(w *cancelMigrationRequestWire) (*CancelMigrationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CancelMigrationRequest{
+		MigrationId:        w.MigrationId,
+		Etag:               w.Etag,
+		CancellationReason: w.CancellationReason,
+	}, nil
+}
+
 type createMigrationRequestWire struct {
 	Migration *migrationWire `json:"migration,omitempty"`
 	RequestId *string        `json:"request_id,omitempty"`
@@ -174,6 +207,20 @@ func createMigrationRequestToWire(v *CreateMigrationRequest) (*createMigrationRe
 	}, nil
 }
 
+func createMigrationRequestFromWire(w *createMigrationRequestWire) (*CreateMigrationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	migrationPublicValue, err := migrationFromWire(w.Migration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateMigrationRequest.Migration", err)
+	}
+	return &CreateMigrationRequest{
+		Migration: migrationPublicValue,
+		RequestId: w.RequestId,
+	}, nil
+}
+
 type deleteMigrationRequestWire struct {
 	MigrationId *string `json:"migration_id,omitempty"`
 	Etag        *string `json:"etag,omitempty"`
@@ -186,6 +233,38 @@ func deleteMigrationRequestToWire(v *DeleteMigrationRequest) (*deleteMigrationRe
 	return &deleteMigrationRequestWire{
 		MigrationId: v.MigrationId,
 		Etag:        v.Etag,
+	}, nil
+}
+
+func deleteMigrationRequestFromWire(w *deleteMigrationRequestWire) (*DeleteMigrationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteMigrationRequest{
+		MigrationId: w.MigrationId,
+		Etag:        w.Etag,
+	}, nil
+}
+
+type getMigrationRequestWire struct {
+	MigrationId *string `json:"migration_id,omitempty"`
+}
+
+func getMigrationRequestToWire(v *GetMigrationRequest) (*getMigrationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getMigrationRequestWire{
+		MigrationId: v.MigrationId,
+	}, nil
+}
+
+func getMigrationRequestFromWire(w *getMigrationRequestWire) (*GetMigrationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetMigrationRequest{
+		MigrationId: w.MigrationId,
 	}, nil
 }
 
@@ -208,9 +287,35 @@ func listMigrationsRequestToWire(v *ListMigrationsRequest) (*listMigrationsReque
 	}, nil
 }
 
+func listMigrationsRequestFromWire(w *listMigrationsRequestWire) (*ListMigrationsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListMigrationsRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+		AssetType: w.AssetType,
+		States:    w.States,
+	}, nil
+}
+
 type listMigrationsResponseWire struct {
 	Migrations    []migrationWire `json:"migrations,omitempty"`
 	NextPageToken *string         `json:"next_page_token,omitempty"`
+}
+
+func listMigrationsResponseToWire(v *ListMigrationsResponse) (*listMigrationsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	migrationsWireValue, err := convertSlice(v.Migrations, migrationToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListMigrationsResponse.Migrations", err)
+	}
+	return &listMigrationsResponseWire{
+		Migrations:    migrationsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listMigrationsResponseFromWire(w *listMigrationsResponseWire) (*ListMigrationsResponse, error) {
@@ -486,6 +591,17 @@ func rejectMigrationExecutionRequestToWire(v *RejectMigrationExecutionRequest) (
 	}, nil
 }
 
+func rejectMigrationExecutionRequestFromWire(w *rejectMigrationExecutionRequestWire) (*RejectMigrationExecutionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RejectMigrationExecutionRequest{
+		MigrationId:     w.MigrationId,
+		Etag:            w.Etag,
+		RejectionReason: w.RejectionReason,
+	}, nil
+}
+
 type rejectMigrationTranslationRequestWire struct {
 	MigrationId     *string `json:"migration_id,omitempty"`
 	Etag            *string `json:"etag,omitempty"`
@@ -500,6 +616,17 @@ func rejectMigrationTranslationRequestToWire(v *RejectMigrationTranslationReques
 		MigrationId:     v.MigrationId,
 		Etag:            v.Etag,
 		RejectionReason: v.RejectionReason,
+	}, nil
+}
+
+func rejectMigrationTranslationRequestFromWire(w *rejectMigrationTranslationRequestWire) (*RejectMigrationTranslationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RejectMigrationTranslationRequest{
+		MigrationId:     w.MigrationId,
+		Etag:            w.Etag,
+		RejectionReason: w.RejectionReason,
 	}, nil
 }
 

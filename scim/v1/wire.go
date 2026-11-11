@@ -86,6 +86,23 @@ func accountComplexValueFromWire(w *accountComplexValueWire) (*AccountComplexVal
 	}, nil
 }
 
+type accountGetSortOrderWire struct {
+}
+
+func accountGetSortOrderToWire(v *AccountGetSortOrder) (*accountGetSortOrderWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &accountGetSortOrderWire{}, nil
+}
+
+func accountGetSortOrderFromWire(w *accountGetSortOrderWire) (*AccountGetSortOrder, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AccountGetSortOrder{}, nil
+}
+
 type accountGroupWire struct {
 	DisplayName *string                   `json:"displayName,omitempty"`
 	ExternalId  *string                   `json:"externalId,omitempty"`
@@ -94,6 +111,33 @@ type accountGroupWire struct {
 	Meta        *accountResourceMetaWire  `json:"meta,omitempty"`
 	Roles       []accountComplexValueWire `json:"roles,omitempty"`
 	AccountId   *string                   `json:"account_id,omitempty"`
+}
+
+func accountGroupToWire(v *AccountGroup) (*accountGroupWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	membersWireValue, err := convertSlice(v.Members, accountComplexValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountGroup.Members", err)
+	}
+	metaWireValue, err := accountResourceMetaToWire(v.Meta)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountGroup.Meta", err)
+	}
+	rolesWireValue, err := convertSlice(v.Roles, accountComplexValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountGroup.Roles", err)
+	}
+	return &accountGroupWire{
+		DisplayName: v.DisplayName,
+		ExternalId:  v.ExternalId,
+		Id:          v.Id,
+		Members:     membersWireValue,
+		Meta:        metaWireValue,
+		Roles:       rolesWireValue,
+		AccountId:   v.AccountId,
+	}, nil
 }
 
 func accountGroupFromWire(w *accountGroupWire) (*AccountGroup, error) {
@@ -121,6 +165,23 @@ func accountGroupFromWire(w *accountGroupWire) (*AccountGroup, error) {
 		Roles:       rolesPublicValue,
 		AccountId:   w.AccountId,
 	}, nil
+}
+
+type accountListSortWire struct {
+}
+
+func accountListSortToWire(v *AccountListSort) (*accountListSortWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &accountListSortWire{}, nil
+}
+
+func accountListSortFromWire(w *accountListSortWire) (*AccountListSort, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AccountListSort{}, nil
 }
 
 type accountNameWire struct {
@@ -165,6 +226,51 @@ func accountPatchToWire(v *AccountPatch) (*accountPatchWire, error) {
 	}, nil
 }
 
+func accountPatchFromWire(w *accountPatchWire) (*AccountPatch, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AccountPatch{
+		Op:    w.Op,
+		Path:  w.Path,
+		Value: w.Value,
+	}, nil
+}
+
+type accountPatchOpWire struct {
+}
+
+func accountPatchOpToWire(v *AccountPatchOp) (*accountPatchOpWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &accountPatchOpWire{}, nil
+}
+
+func accountPatchOpFromWire(w *accountPatchOpWire) (*AccountPatchOp, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AccountPatchOp{}, nil
+}
+
+type accountPatchSchemaWire struct {
+}
+
+func accountPatchSchemaToWire(v *AccountPatchSchema) (*accountPatchSchemaWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &accountPatchSchemaWire{}, nil
+}
+
+func accountPatchSchemaFromWire(w *accountPatchSchemaWire) (*AccountPatchSchema, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AccountPatchSchema{}, nil
+}
+
 type accountResourceMetaWire struct {
 	ResourceType *string `json:"resourceType,omitempty"`
 }
@@ -197,6 +303,25 @@ type accountServicePrincipalWire struct {
 	AccountId     *string                   `json:"account_id,omitempty"`
 }
 
+func accountServicePrincipalToWire(v *AccountServicePrincipal) (*accountServicePrincipalWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	rolesWireValue, err := convertSlice(v.Roles, accountComplexValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountServicePrincipal.Roles", err)
+	}
+	return &accountServicePrincipalWire{
+		Active:        v.Active,
+		ApplicationId: v.ApplicationId,
+		DisplayName:   v.DisplayName,
+		ExternalId:    v.ExternalId,
+		Id:            v.Id,
+		Roles:         rolesWireValue,
+		AccountId:     v.AccountId,
+	}, nil
+}
+
 func accountServicePrincipalFromWire(w *accountServicePrincipalWire) (*AccountServicePrincipal, error) {
 	if w == nil {
 		return nil, nil
@@ -226,6 +351,35 @@ type accountUserWire struct {
 	Roles       []accountComplexValueWire `json:"roles,omitempty"`
 	UserName    *string                   `json:"userName,omitempty"`
 	AccountId   *string                   `json:"account_id,omitempty"`
+}
+
+func accountUserToWire(v *AccountUser) (*accountUserWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	emailsWireValue, err := convertSlice(v.Emails, accountComplexValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountUser.Emails", err)
+	}
+	nameWireValue, err := accountNameToWire(v.Name)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountUser.Name", err)
+	}
+	rolesWireValue, err := convertSlice(v.Roles, accountComplexValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountUser.Roles", err)
+	}
+	return &accountUserWire{
+		Active:      v.Active,
+		DisplayName: v.DisplayName,
+		Emails:      emailsWireValue,
+		ExternalId:  v.ExternalId,
+		Id:          v.Id,
+		Name:        nameWireValue,
+		Roles:       rolesWireValue,
+		UserName:    v.UserName,
+		AccountId:   v.AccountId,
+	}, nil
 }
 
 func accountUserFromWire(w *accountUserWire) (*AccountUser, error) {
@@ -328,6 +482,33 @@ func createAccountGroupRequestToWire(v *CreateAccountGroupRequest) (*createAccou
 	}, nil
 }
 
+func createAccountGroupRequestFromWire(w *createAccountGroupRequestWire) (*CreateAccountGroupRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	membersPublicValue, err := convertSlice(w.Members, accountComplexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccountGroupRequest.Members", err)
+	}
+	metaPublicValue, err := accountResourceMetaFromWire(w.Meta)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccountGroupRequest.Meta", err)
+	}
+	rolesPublicValue, err := convertSlice(w.Roles, accountComplexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccountGroupRequest.Roles", err)
+	}
+	return &CreateAccountGroupRequest{
+		DisplayName: w.DisplayName,
+		ExternalId:  w.ExternalId,
+		Id:          w.Id,
+		Members:     membersPublicValue,
+		Meta:        metaPublicValue,
+		Roles:       rolesPublicValue,
+		AccountId:   w.AccountId,
+	}, nil
+}
+
 type createAccountServicePrincipalRequestWire struct {
 	Active        *bool                     `json:"active,omitempty"`
 	ApplicationId *string                   `json:"applicationId,omitempty"`
@@ -354,6 +535,25 @@ func createAccountServicePrincipalRequestToWire(v *CreateAccountServicePrincipal
 		Id:            v.Id,
 		Roles:         rolesWireValue,
 		AccountId:     v.AccountId,
+	}, nil
+}
+
+func createAccountServicePrincipalRequestFromWire(w *createAccountServicePrincipalRequestWire) (*CreateAccountServicePrincipalRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	rolesPublicValue, err := convertSlice(w.Roles, accountComplexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccountServicePrincipalRequest.Roles", err)
+	}
+	return &CreateAccountServicePrincipalRequest{
+		Active:        w.Active,
+		ApplicationId: w.ApplicationId,
+		DisplayName:   w.DisplayName,
+		ExternalId:    w.ExternalId,
+		Id:            w.Id,
+		Roles:         rolesPublicValue,
+		AccountId:     w.AccountId,
 	}, nil
 }
 
@@ -395,6 +595,35 @@ func createAccountUserRequestToWire(v *CreateAccountUserRequest) (*createAccount
 		Roles:       rolesWireValue,
 		UserName:    v.UserName,
 		AccountId:   v.AccountId,
+	}, nil
+}
+
+func createAccountUserRequestFromWire(w *createAccountUserRequestWire) (*CreateAccountUserRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	emailsPublicValue, err := convertSlice(w.Emails, accountComplexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccountUserRequest.Emails", err)
+	}
+	namePublicValue, err := accountNameFromWire(w.Name)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccountUserRequest.Name", err)
+	}
+	rolesPublicValue, err := convertSlice(w.Roles, accountComplexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccountUserRequest.Roles", err)
+	}
+	return &CreateAccountUserRequest{
+		Active:      w.Active,
+		DisplayName: w.DisplayName,
+		Emails:      emailsPublicValue,
+		ExternalId:  w.ExternalId,
+		Id:          w.Id,
+		Name:        namePublicValue,
+		Roles:       rolesPublicValue,
+		UserName:    w.UserName,
+		AccountId:   w.AccountId,
 	}, nil
 }
 
@@ -447,6 +676,43 @@ func createGroupRequestToWire(v *CreateGroupRequest) (*createGroupRequestWire, e
 	}, nil
 }
 
+func createGroupRequestFromWire(w *createGroupRequestWire) (*CreateGroupRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	entitlementsPublicValue, err := convertSlice(w.Entitlements, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateGroupRequest.Entitlements", err)
+	}
+	groupsPublicValue, err := convertSlice(w.Groups, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateGroupRequest.Groups", err)
+	}
+	membersPublicValue, err := convertSlice(w.Members, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateGroupRequest.Members", err)
+	}
+	metaPublicValue, err := resourceMetaFromWire(w.Meta)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateGroupRequest.Meta", err)
+	}
+	rolesPublicValue, err := convertSlice(w.Roles, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateGroupRequest.Roles", err)
+	}
+	return &CreateGroupRequest{
+		DisplayName:  w.DisplayName,
+		Entitlements: entitlementsPublicValue,
+		ExternalId:   w.ExternalId,
+		Groups:       groupsPublicValue,
+		Id:           w.Id,
+		Members:      membersPublicValue,
+		Meta:         metaPublicValue,
+		Roles:        rolesPublicValue,
+		Schemas:      w.Schemas,
+	}, nil
+}
+
 type createServicePrincipalRequestWire struct {
 	Active        *bool                    `json:"active,omitempty"`
 	ApplicationId *string                  `json:"applicationId,omitempty"`
@@ -485,6 +751,35 @@ func createServicePrincipalRequestToWire(v *CreateServicePrincipalRequest) (*cre
 		Id:            v.Id,
 		Roles:         rolesWireValue,
 		Schemas:       v.Schemas,
+	}, nil
+}
+
+func createServicePrincipalRequestFromWire(w *createServicePrincipalRequestWire) (*CreateServicePrincipalRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	entitlementsPublicValue, err := convertSlice(w.Entitlements, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateServicePrincipalRequest.Entitlements", err)
+	}
+	groupsPublicValue, err := convertSlice(w.Groups, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateServicePrincipalRequest.Groups", err)
+	}
+	rolesPublicValue, err := convertSlice(w.Roles, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateServicePrincipalRequest.Roles", err)
+	}
+	return &CreateServicePrincipalRequest{
+		Active:        w.Active,
+		ApplicationId: w.ApplicationId,
+		DisplayName:   w.DisplayName,
+		Entitlements:  entitlementsPublicValue,
+		ExternalId:    w.ExternalId,
+		Groups:        groupsPublicValue,
+		Id:            w.Id,
+		Roles:         rolesPublicValue,
+		Schemas:       w.Schemas,
 	}, nil
 }
 
@@ -541,6 +836,236 @@ func createUserRequestToWire(v *CreateUserRequest) (*createUserRequestWire, erro
 	}, nil
 }
 
+func createUserRequestFromWire(w *createUserRequestWire) (*CreateUserRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	emailsPublicValue, err := convertSlice(w.Emails, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateUserRequest.Emails", err)
+	}
+	entitlementsPublicValue, err := convertSlice(w.Entitlements, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateUserRequest.Entitlements", err)
+	}
+	groupsPublicValue, err := convertSlice(w.Groups, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateUserRequest.Groups", err)
+	}
+	namePublicValue, err := nameFromWire(w.Name)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateUserRequest.Name", err)
+	}
+	rolesPublicValue, err := convertSlice(w.Roles, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateUserRequest.Roles", err)
+	}
+	return &CreateUserRequest{
+		Active:       w.Active,
+		DisplayName:  w.DisplayName,
+		Emails:       emailsPublicValue,
+		Entitlements: entitlementsPublicValue,
+		ExternalId:   w.ExternalId,
+		Groups:       groupsPublicValue,
+		Id:           w.Id,
+		Name:         namePublicValue,
+		Roles:        rolesPublicValue,
+		Schemas:      w.Schemas,
+		UserName:     w.UserName,
+	}, nil
+}
+
+type deleteAccountGroupRequestWire struct {
+	Id        *string `json:"id,omitempty"`
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func deleteAccountGroupRequestToWire(v *DeleteAccountGroupRequest) (*deleteAccountGroupRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteAccountGroupRequestWire{
+		Id:        v.Id,
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func deleteAccountGroupRequestFromWire(w *deleteAccountGroupRequestWire) (*DeleteAccountGroupRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteAccountGroupRequest{
+		Id:        w.Id,
+		AccountId: w.AccountId,
+	}, nil
+}
+
+type deleteAccountServicePrincipalRequestWire struct {
+	Id        *string `json:"id,omitempty"`
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func deleteAccountServicePrincipalRequestToWire(v *DeleteAccountServicePrincipalRequest) (*deleteAccountServicePrincipalRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteAccountServicePrincipalRequestWire{
+		Id:        v.Id,
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func deleteAccountServicePrincipalRequestFromWire(w *deleteAccountServicePrincipalRequestWire) (*DeleteAccountServicePrincipalRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteAccountServicePrincipalRequest{
+		Id:        w.Id,
+		AccountId: w.AccountId,
+	}, nil
+}
+
+type deleteAccountUserRequestWire struct {
+	Id        *string `json:"id,omitempty"`
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func deleteAccountUserRequestToWire(v *DeleteAccountUserRequest) (*deleteAccountUserRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteAccountUserRequestWire{
+		Id:        v.Id,
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func deleteAccountUserRequestFromWire(w *deleteAccountUserRequestWire) (*DeleteAccountUserRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteAccountUserRequest{
+		Id:        w.Id,
+		AccountId: w.AccountId,
+	}, nil
+}
+
+type deleteGroupRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func deleteGroupRequestToWire(v *DeleteGroupRequest) (*deleteGroupRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteGroupRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func deleteGroupRequestFromWire(w *deleteGroupRequestWire) (*DeleteGroupRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteGroupRequest{
+		Id: w.Id,
+	}, nil
+}
+
+type deleteServicePrincipalRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func deleteServicePrincipalRequestToWire(v *DeleteServicePrincipalRequest) (*deleteServicePrincipalRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteServicePrincipalRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func deleteServicePrincipalRequestFromWire(w *deleteServicePrincipalRequestWire) (*DeleteServicePrincipalRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteServicePrincipalRequest{
+		Id: w.Id,
+	}, nil
+}
+
+type deleteUserRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func deleteUserRequestToWire(v *DeleteUserRequest) (*deleteUserRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteUserRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func deleteUserRequestFromWire(w *deleteUserRequestWire) (*DeleteUserRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteUserRequest{
+		Id: w.Id,
+	}, nil
+}
+
+type getAccountGroupRequestWire struct {
+	Id        *string `json:"id,omitempty"`
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func getAccountGroupRequestToWire(v *GetAccountGroupRequest) (*getAccountGroupRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getAccountGroupRequestWire{
+		Id:        v.Id,
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func getAccountGroupRequestFromWire(w *getAccountGroupRequestWire) (*GetAccountGroupRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetAccountGroupRequest{
+		Id:        w.Id,
+		AccountId: w.AccountId,
+	}, nil
+}
+
+type getAccountServicePrincipalRequestWire struct {
+	Id        *string `json:"id,omitempty"`
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func getAccountServicePrincipalRequestToWire(v *GetAccountServicePrincipalRequest) (*getAccountServicePrincipalRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getAccountServicePrincipalRequestWire{
+		Id:        v.Id,
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func getAccountServicePrincipalRequestFromWire(w *getAccountServicePrincipalRequestWire) (*GetAccountServicePrincipalRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetAccountServicePrincipalRequest{
+		Id:        w.Id,
+		AccountId: w.AccountId,
+	}, nil
+}
+
 type getAccountUserRequestWire struct {
 	Attributes         *string                          `json:"attributes,omitempty"`
 	Count              *int                             `json:"count,omitempty"`
@@ -570,8 +1095,77 @@ func getAccountUserRequestToWire(v *GetAccountUserRequest) (*getAccountUserReque
 	}, nil
 }
 
+func getAccountUserRequestFromWire(w *getAccountUserRequestWire) (*GetAccountUserRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetAccountUserRequest{
+		Attributes:         w.Attributes,
+		Count:              w.Count,
+		ExcludedAttributes: w.ExcludedAttributes,
+		Filter:             w.Filter,
+		Id:                 w.Id,
+		SortBy:             w.SortBy,
+		SortOrder:          w.SortOrder,
+		StartIndex:         w.StartIndex,
+		AccountId:          w.AccountId,
+	}, nil
+}
+
+type getGroupRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func getGroupRequestToWire(v *GetGroupRequest) (*getGroupRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getGroupRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func getGroupRequestFromWire(w *getGroupRequestWire) (*GetGroupRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetGroupRequest{
+		Id: w.Id,
+	}, nil
+}
+
+type getPasswordPermissionLevelsRequestWire struct {
+}
+
+func getPasswordPermissionLevelsRequestToWire(v *GetPasswordPermissionLevelsRequest) (*getPasswordPermissionLevelsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getPasswordPermissionLevelsRequestWire{}, nil
+}
+
+func getPasswordPermissionLevelsRequestFromWire(w *getPasswordPermissionLevelsRequestWire) (*GetPasswordPermissionLevelsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetPasswordPermissionLevelsRequest{}, nil
+}
+
 type getPasswordPermissionLevelsResponseWire struct {
 	PermissionLevels []passwordPermissionsDescriptionWire `json:"permission_levels,omitempty"`
+}
+
+func getPasswordPermissionLevelsResponseToWire(v *GetPasswordPermissionLevelsResponse) (*getPasswordPermissionLevelsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	permissionLevelsWireValue, err := convertSlice(v.PermissionLevels, passwordPermissionsDescriptionToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetPasswordPermissionLevelsResponse.PermissionLevels", err)
+	}
+	return &getPasswordPermissionLevelsResponseWire{
+		PermissionLevels: permissionLevelsWireValue,
+	}, nil
 }
 
 func getPasswordPermissionLevelsResponseFromWire(w *getPasswordPermissionLevelsResponseWire) (*GetPasswordPermissionLevelsResponse, error) {
@@ -584,6 +1178,45 @@ func getPasswordPermissionLevelsResponseFromWire(w *getPasswordPermissionLevelsR
 	}
 	return &GetPasswordPermissionLevelsResponse{
 		PermissionLevels: permissionLevelsPublicValue,
+	}, nil
+}
+
+type getPasswordPermissionsRequestWire struct {
+}
+
+func getPasswordPermissionsRequestToWire(v *GetPasswordPermissionsRequest) (*getPasswordPermissionsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getPasswordPermissionsRequestWire{}, nil
+}
+
+func getPasswordPermissionsRequestFromWire(w *getPasswordPermissionsRequestWire) (*GetPasswordPermissionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetPasswordPermissionsRequest{}, nil
+}
+
+type getServicePrincipalRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func getServicePrincipalRequestToWire(v *GetServicePrincipalRequest) (*getServicePrincipalRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getServicePrincipalRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func getServicePrincipalRequestFromWire(w *getServicePrincipalRequestWire) (*GetServicePrincipalRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetServicePrincipalRequest{
+		Id: w.Id,
 	}, nil
 }
 
@@ -614,6 +1247,22 @@ func getUserRequestToWire(v *GetUserRequest) (*getUserRequestWire, error) {
 	}, nil
 }
 
+func getUserRequestFromWire(w *getUserRequestWire) (*GetUserRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetUserRequest{
+		Attributes:         w.Attributes,
+		Count:              w.Count,
+		ExcludedAttributes: w.ExcludedAttributes,
+		Filter:             w.Filter,
+		Id:                 w.Id,
+		SortBy:             w.SortBy,
+		SortOrder:          w.SortOrder,
+		StartIndex:         w.StartIndex,
+	}, nil
+}
+
 type groupWire struct {
 	DisplayName  *string            `json:"displayName,omitempty"`
 	Entitlements []complexValueWire `json:"entitlements,omitempty"`
@@ -624,6 +1273,43 @@ type groupWire struct {
 	Meta         *resourceMetaWire  `json:"meta,omitempty"`
 	Roles        []complexValueWire `json:"roles,omitempty"`
 	Schemas      []GroupSchema      `json:"schemas,omitempty"`
+}
+
+func groupToWire(v *Group) (*groupWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	entitlementsWireValue, err := convertSlice(v.Entitlements, complexValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Group.Entitlements", err)
+	}
+	groupsWireValue, err := convertSlice(v.Groups, complexValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Group.Groups", err)
+	}
+	membersWireValue, err := convertSlice(v.Members, complexValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Group.Members", err)
+	}
+	metaWireValue, err := resourceMetaToWire(v.Meta)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Group.Meta", err)
+	}
+	rolesWireValue, err := convertSlice(v.Roles, complexValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Group.Roles", err)
+	}
+	return &groupWire{
+		DisplayName:  v.DisplayName,
+		Entitlements: entitlementsWireValue,
+		ExternalId:   v.ExternalId,
+		Groups:       groupsWireValue,
+		Id:           v.Id,
+		Members:      membersWireValue,
+		Meta:         metaWireValue,
+		Roles:        rolesWireValue,
+		Schemas:      v.Schemas,
+	}, nil
 }
 
 func groupFromWire(w *groupWire) (*Group, error) {
@@ -698,11 +1384,55 @@ func listAccountGroupsRequestToWire(v *ListAccountGroupsRequest) (*listAccountGr
 	}, nil
 }
 
+func listAccountGroupsRequestFromWire(w *listAccountGroupsRequestWire) (*ListAccountGroupsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	startIndexPublicValue, err := int64FromWire(w.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountGroupsRequest.StartIndex", err)
+	}
+	countPublicValue, err := int64FromWire(w.Count)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountGroupsRequest.Count", err)
+	}
+	return &ListAccountGroupsRequest{
+		AccountId:          w.AccountId,
+		Filter:             w.Filter,
+		Attributes:         w.Attributes,
+		ExcludedAttributes: w.ExcludedAttributes,
+		StartIndex:         startIndexPublicValue,
+		Count:              countPublicValue,
+		SortBy:             w.SortBy,
+		SortOrder:          w.SortOrder,
+	}, nil
+}
+
 type listAccountGroupsResponseWire struct {
 	ItemsPerPage *int               `json:"itemsPerPage,omitempty"`
 	Resources    []accountGroupWire `json:"Resources,omitempty"`
 	StartIndex   *wireInt64         `json:"startIndex,omitempty"`
 	TotalResults *int               `json:"totalResults,omitempty"`
+}
+
+func listAccountGroupsResponseToWire(v *ListAccountGroupsResponse) (*listAccountGroupsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	resourcesWireValue, err := convertSlice(v.Resources, accountGroupToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountGroupsResponse.Resources", err)
+	}
+	startIndexWireValue, err := int64ToWire(v.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountGroupsResponse.StartIndex", err)
+	}
+	return &listAccountGroupsResponseWire{
+		ItemsPerPage: v.ItemsPerPage,
+		Resources:    resourcesWireValue,
+		StartIndex:   startIndexWireValue,
+		TotalResults: v.TotalResults,
+	}, nil
 }
 
 func listAccountGroupsResponseFromWire(w *listAccountGroupsResponseWire) (*ListAccountGroupsResponse, error) {
@@ -760,11 +1490,55 @@ func listAccountServicePrincipalsRequestToWire(v *ListAccountServicePrincipalsRe
 	}, nil
 }
 
+func listAccountServicePrincipalsRequestFromWire(w *listAccountServicePrincipalsRequestWire) (*ListAccountServicePrincipalsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	countPublicValue, err := int64FromWire(w.Count)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountServicePrincipalsRequest.Count", err)
+	}
+	startIndexPublicValue, err := int64FromWire(w.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountServicePrincipalsRequest.StartIndex", err)
+	}
+	return &ListAccountServicePrincipalsRequest{
+		Attributes:         w.Attributes,
+		Count:              countPublicValue,
+		ExcludedAttributes: w.ExcludedAttributes,
+		Filter:             w.Filter,
+		SortBy:             w.SortBy,
+		SortOrder:          w.SortOrder,
+		StartIndex:         startIndexPublicValue,
+		AccountId:          w.AccountId,
+	}, nil
+}
+
 type listAccountServicePrincipalsResponseWire struct {
 	ItemsPerPage *int                          `json:"itemsPerPage,omitempty"`
 	Resources    []accountServicePrincipalWire `json:"Resources,omitempty"`
 	StartIndex   *wireInt64                    `json:"startIndex,omitempty"`
 	TotalResults *int                          `json:"totalResults,omitempty"`
+}
+
+func listAccountServicePrincipalsResponseToWire(v *ListAccountServicePrincipalsResponse) (*listAccountServicePrincipalsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	resourcesWireValue, err := convertSlice(v.Resources, accountServicePrincipalToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountServicePrincipalsResponse.Resources", err)
+	}
+	startIndexWireValue, err := int64ToWire(v.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountServicePrincipalsResponse.StartIndex", err)
+	}
+	return &listAccountServicePrincipalsResponseWire{
+		ItemsPerPage: v.ItemsPerPage,
+		Resources:    resourcesWireValue,
+		StartIndex:   startIndexWireValue,
+		TotalResults: v.TotalResults,
+	}, nil
 }
 
 func listAccountServicePrincipalsResponseFromWire(w *listAccountServicePrincipalsResponseWire) (*ListAccountServicePrincipalsResponse, error) {
@@ -822,11 +1596,55 @@ func listAccountUsersRequestToWire(v *ListAccountUsersRequest) (*listAccountUser
 	}, nil
 }
 
+func listAccountUsersRequestFromWire(w *listAccountUsersRequestWire) (*ListAccountUsersRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	countPublicValue, err := int64FromWire(w.Count)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountUsersRequest.Count", err)
+	}
+	startIndexPublicValue, err := int64FromWire(w.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountUsersRequest.StartIndex", err)
+	}
+	return &ListAccountUsersRequest{
+		Attributes:         w.Attributes,
+		Count:              countPublicValue,
+		ExcludedAttributes: w.ExcludedAttributes,
+		Filter:             w.Filter,
+		SortBy:             w.SortBy,
+		SortOrder:          w.SortOrder,
+		StartIndex:         startIndexPublicValue,
+		AccountId:          w.AccountId,
+	}, nil
+}
+
 type listAccountUsersResponseWire struct {
 	ItemsPerPage *int              `json:"itemsPerPage,omitempty"`
 	Resources    []accountUserWire `json:"Resources,omitempty"`
 	StartIndex   *wireInt64        `json:"startIndex,omitempty"`
 	TotalResults *int              `json:"totalResults,omitempty"`
+}
+
+func listAccountUsersResponseToWire(v *ListAccountUsersResponse) (*listAccountUsersResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	resourcesWireValue, err := convertSlice(v.Resources, accountUserToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountUsersResponse.Resources", err)
+	}
+	startIndexWireValue, err := int64ToWire(v.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountUsersResponse.StartIndex", err)
+	}
+	return &listAccountUsersResponseWire{
+		ItemsPerPage: v.ItemsPerPage,
+		Resources:    resourcesWireValue,
+		StartIndex:   startIndexWireValue,
+		TotalResults: v.TotalResults,
+	}, nil
 }
 
 func listAccountUsersResponseFromWire(w *listAccountUsersResponseWire) (*ListAccountUsersResponse, error) {
@@ -882,12 +1700,56 @@ func listGroupsRequestToWire(v *ListGroupsRequest) (*listGroupsRequestWire, erro
 	}, nil
 }
 
+func listGroupsRequestFromWire(w *listGroupsRequestWire) (*ListGroupsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	startIndexPublicValue, err := int64FromWire(w.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListGroupsRequest.StartIndex", err)
+	}
+	countPublicValue, err := int64FromWire(w.Count)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListGroupsRequest.Count", err)
+	}
+	return &ListGroupsRequest{
+		Filter:             w.Filter,
+		Attributes:         w.Attributes,
+		ExcludedAttributes: w.ExcludedAttributes,
+		StartIndex:         startIndexPublicValue,
+		Count:              countPublicValue,
+		SortBy:             w.SortBy,
+		SortOrder:          w.SortOrder,
+	}, nil
+}
+
 type listGroupsResponseWire struct {
 	ItemsPerPage *int                 `json:"itemsPerPage,omitempty"`
 	Resources    []groupWire          `json:"Resources,omitempty"`
 	Schemas      []ListResponseSchema `json:"schemas,omitempty"`
 	StartIndex   *wireInt64           `json:"startIndex,omitempty"`
 	TotalResults *int                 `json:"totalResults,omitempty"`
+}
+
+func listGroupsResponseToWire(v *ListGroupsResponse) (*listGroupsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	resourcesWireValue, err := convertSlice(v.Resources, groupToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListGroupsResponse.Resources", err)
+	}
+	startIndexWireValue, err := int64ToWire(v.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListGroupsResponse.StartIndex", err)
+	}
+	return &listGroupsResponseWire{
+		ItemsPerPage: v.ItemsPerPage,
+		Resources:    resourcesWireValue,
+		Schemas:      v.Schemas,
+		StartIndex:   startIndexWireValue,
+		TotalResults: v.TotalResults,
+	}, nil
 }
 
 func listGroupsResponseFromWire(w *listGroupsResponseWire) (*ListGroupsResponse, error) {
@@ -917,6 +1779,27 @@ type listServicePrincipalResponseWire struct {
 	Schemas      []ListResponseSchema   `json:"schemas,omitempty"`
 	StartIndex   *wireInt64             `json:"startIndex,omitempty"`
 	TotalResults *int                   `json:"totalResults,omitempty"`
+}
+
+func listServicePrincipalResponseToWire(v *ListServicePrincipalResponse) (*listServicePrincipalResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	resourcesWireValue, err := convertSlice(v.Resources, servicePrincipalToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListServicePrincipalResponse.Resources", err)
+	}
+	startIndexWireValue, err := int64ToWire(v.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListServicePrincipalResponse.StartIndex", err)
+	}
+	return &listServicePrincipalResponseWire{
+		ItemsPerPage: v.ItemsPerPage,
+		Resources:    resourcesWireValue,
+		Schemas:      v.Schemas,
+		StartIndex:   startIndexWireValue,
+		TotalResults: v.TotalResults,
+	}, nil
 }
 
 func listServicePrincipalResponseFromWire(w *listServicePrincipalResponseWire) (*ListServicePrincipalResponse, error) {
@@ -973,6 +1856,46 @@ func listServicePrincipalsRequestToWire(v *ListServicePrincipalsRequest) (*listS
 	}, nil
 }
 
+func listServicePrincipalsRequestFromWire(w *listServicePrincipalsRequestWire) (*ListServicePrincipalsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	countPublicValue, err := int64FromWire(w.Count)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListServicePrincipalsRequest.Count", err)
+	}
+	startIndexPublicValue, err := int64FromWire(w.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListServicePrincipalsRequest.StartIndex", err)
+	}
+	return &ListServicePrincipalsRequest{
+		Attributes:         w.Attributes,
+		Count:              countPublicValue,
+		ExcludedAttributes: w.ExcludedAttributes,
+		Filter:             w.Filter,
+		SortBy:             w.SortBy,
+		SortOrder:          w.SortOrder,
+		StartIndex:         startIndexPublicValue,
+	}, nil
+}
+
+type listSortWire struct {
+}
+
+func listSortToWire(v *ListSort) (*listSortWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listSortWire{}, nil
+}
+
+func listSortFromWire(w *listSortWire) (*ListSort, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSort{}, nil
+}
+
 type listUsersRequestWire struct {
 	Attributes         *string        `json:"attributes,omitempty"`
 	Count              *wireInt64     `json:"count,omitempty"`
@@ -1006,12 +1929,56 @@ func listUsersRequestToWire(v *ListUsersRequest) (*listUsersRequestWire, error) 
 	}, nil
 }
 
+func listUsersRequestFromWire(w *listUsersRequestWire) (*ListUsersRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	countPublicValue, err := int64FromWire(w.Count)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListUsersRequest.Count", err)
+	}
+	startIndexPublicValue, err := int64FromWire(w.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListUsersRequest.StartIndex", err)
+	}
+	return &ListUsersRequest{
+		Attributes:         w.Attributes,
+		Count:              countPublicValue,
+		ExcludedAttributes: w.ExcludedAttributes,
+		Filter:             w.Filter,
+		SortBy:             w.SortBy,
+		SortOrder:          w.SortOrder,
+		StartIndex:         startIndexPublicValue,
+	}, nil
+}
+
 type listUsersResponseWire struct {
 	ItemsPerPage *int                 `json:"itemsPerPage,omitempty"`
 	Resources    []userWire           `json:"Resources,omitempty"`
 	Schemas      []ListResponseSchema `json:"schemas,omitempty"`
 	StartIndex   *wireInt64           `json:"startIndex,omitempty"`
 	TotalResults *int                 `json:"totalResults,omitempty"`
+}
+
+func listUsersResponseToWire(v *ListUsersResponse) (*listUsersResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	resourcesWireValue, err := convertSlice(v.Resources, userToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListUsersResponse.Resources", err)
+	}
+	startIndexWireValue, err := int64ToWire(v.StartIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListUsersResponse.StartIndex", err)
+	}
+	return &listUsersResponseWire{
+		ItemsPerPage: v.ItemsPerPage,
+		Resources:    resourcesWireValue,
+		Schemas:      v.Schemas,
+		StartIndex:   startIndexWireValue,
+		TotalResults: v.TotalResults,
+	}, nil
 }
 
 func listUsersResponseFromWire(w *listUsersResponseWire) (*ListUsersResponse, error) {
@@ -1047,6 +2014,16 @@ func meRequestToWire(v *MeRequest) (*meRequestWire, error) {
 	return &meRequestWire{
 		Attributes:         v.Attributes,
 		ExcludedAttributes: v.ExcludedAttributes,
+	}, nil
+}
+
+func meRequestFromWire(w *meRequestWire) (*MeRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &MeRequest{
+		Attributes:         w.Attributes,
+		ExcludedAttributes: w.ExcludedAttributes,
 	}, nil
 }
 
@@ -1094,12 +2071,41 @@ func passwordAccessControlRequestToWire(v *PasswordAccessControlRequest) (*passw
 	}, nil
 }
 
+func passwordAccessControlRequestFromWire(w *passwordAccessControlRequestWire) (*PasswordAccessControlRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PasswordAccessControlRequest{
+		GroupName:            w.GroupName,
+		PermissionLevel:      w.PermissionLevel,
+		ServicePrincipalName: w.ServicePrincipalName,
+		UserName:             w.UserName,
+	}, nil
+}
+
 type passwordAccessControlResponseWire struct {
 	AllPermissions       []passwordPermissionWire `json:"all_permissions,omitempty"`
 	DisplayName          *string                  `json:"display_name,omitempty"`
 	GroupName            *string                  `json:"group_name,omitempty"`
 	ServicePrincipalName *string                  `json:"service_principal_name,omitempty"`
 	UserName             *string                  `json:"user_name,omitempty"`
+}
+
+func passwordAccessControlResponseToWire(v *PasswordAccessControlResponse) (*passwordAccessControlResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	allPermissionsWireValue, err := convertSlice(v.AllPermissions, passwordPermissionToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PasswordAccessControlResponse.AllPermissions", err)
+	}
+	return &passwordAccessControlResponseWire{
+		AllPermissions:       allPermissionsWireValue,
+		DisplayName:          v.DisplayName,
+		GroupName:            v.GroupName,
+		ServicePrincipalName: v.ServicePrincipalName,
+		UserName:             v.UserName,
+	}, nil
 }
 
 func passwordAccessControlResponseFromWire(w *passwordAccessControlResponseWire) (*PasswordAccessControlResponse, error) {
@@ -1125,6 +2131,17 @@ type passwordPermissionWire struct {
 	PermissionLevel     PasswordPermission_Level `json:"permission_level,omitempty"`
 }
 
+func passwordPermissionToWire(v *PasswordPermission) (*passwordPermissionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &passwordPermissionWire{
+		Inherited:           v.Inherited,
+		InheritedFromObject: v.InheritedFromObject,
+		PermissionLevel:     v.PermissionLevel,
+	}, nil
+}
+
 func passwordPermissionFromWire(w *passwordPermissionWire) (*PasswordPermission, error) {
 	if w == nil {
 		return nil, nil
@@ -1140,6 +2157,21 @@ type passwordPermissionsWire struct {
 	AccessControlList []passwordAccessControlResponseWire `json:"access_control_list,omitempty"`
 	ObjectId          *string                             `json:"object_id,omitempty"`
 	ObjectType        *string                             `json:"object_type,omitempty"`
+}
+
+func passwordPermissionsToWire(v *PasswordPermissions) (*passwordPermissionsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	accessControlListWireValue, err := convertSlice(v.AccessControlList, passwordAccessControlResponseToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PasswordPermissions.AccessControlList", err)
+	}
+	return &passwordPermissionsWire{
+		AccessControlList: accessControlListWireValue,
+		ObjectId:          v.ObjectId,
+		ObjectType:        v.ObjectType,
+	}, nil
 }
 
 func passwordPermissionsFromWire(w *passwordPermissionsWire) (*PasswordPermissions, error) {
@@ -1160,6 +2192,16 @@ func passwordPermissionsFromWire(w *passwordPermissionsWire) (*PasswordPermissio
 type passwordPermissionsDescriptionWire struct {
 	Description     *string                  `json:"description,omitempty"`
 	PermissionLevel PasswordPermission_Level `json:"permission_level,omitempty"`
+}
+
+func passwordPermissionsDescriptionToWire(v *PasswordPermissionsDescription) (*passwordPermissionsDescriptionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &passwordPermissionsDescriptionWire{
+		Description:     v.Description,
+		PermissionLevel: v.PermissionLevel,
+	}, nil
 }
 
 func passwordPermissionsDescriptionFromWire(w *passwordPermissionsDescriptionWire) (*PasswordPermissionsDescription, error) {
@@ -1189,6 +2231,19 @@ func passwordPermissionsRequestToWire(v *PasswordPermissionsRequest) (*passwordP
 	}, nil
 }
 
+func passwordPermissionsRequestFromWire(w *passwordPermissionsRequestWire) (*PasswordPermissionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	accessControlListPublicValue, err := convertSlice(w.AccessControlList, passwordAccessControlRequestFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PasswordPermissionsRequest.AccessControlList", err)
+	}
+	return &PasswordPermissionsRequest{
+		AccessControlList: accessControlListPublicValue,
+	}, nil
+}
+
 type patchWire struct {
 	Op    PatchOp         `json:"op,omitempty"`
 	Path  *string         `json:"path,omitempty"`
@@ -1203,6 +2258,17 @@ func patchToWire(v *Patch) (*patchWire, error) {
 		Op:    v.Op,
 		Path:  v.Path,
 		Value: v.Value,
+	}, nil
+}
+
+func patchFromWire(w *patchWire) (*Patch, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &Patch{
+		Op:    w.Op,
+		Path:  w.Path,
+		Value: w.Value,
 	}, nil
 }
 
@@ -1229,6 +2295,22 @@ func patchAccountGroupRequestToWire(v *PatchAccountGroupRequest) (*patchAccountG
 	}, nil
 }
 
+func patchAccountGroupRequestFromWire(w *patchAccountGroupRequestWire) (*PatchAccountGroupRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	operationsPublicValue, err := convertSlice(w.Operations, accountPatchFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PatchAccountGroupRequest.Operations", err)
+	}
+	return &PatchAccountGroupRequest{
+		Id:         w.Id,
+		Operations: operationsPublicValue,
+		Schemas:    w.Schemas,
+		AccountId:  w.AccountId,
+	}, nil
+}
+
 type patchAccountServicePrincipalRequestWire struct {
 	Id         *string                          `json:"id,omitempty"`
 	Operations []accountPatchWire               `json:"Operations,omitempty"`
@@ -1249,6 +2331,22 @@ func patchAccountServicePrincipalRequestToWire(v *PatchAccountServicePrincipalRe
 		Operations: operationsWireValue,
 		Schemas:    v.Schemas,
 		AccountId:  v.AccountId,
+	}, nil
+}
+
+func patchAccountServicePrincipalRequestFromWire(w *patchAccountServicePrincipalRequestWire) (*PatchAccountServicePrincipalRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	operationsPublicValue, err := convertSlice(w.Operations, accountPatchFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PatchAccountServicePrincipalRequest.Operations", err)
+	}
+	return &PatchAccountServicePrincipalRequest{
+		Id:         w.Id,
+		Operations: operationsPublicValue,
+		Schemas:    w.Schemas,
+		AccountId:  w.AccountId,
 	}, nil
 }
 
@@ -1275,6 +2373,22 @@ func patchAccountUserRequestToWire(v *PatchAccountUserRequest) (*patchAccountUse
 	}, nil
 }
 
+func patchAccountUserRequestFromWire(w *patchAccountUserRequestWire) (*PatchAccountUserRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	operationsPublicValue, err := convertSlice(w.Operations, accountPatchFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PatchAccountUserRequest.Operations", err)
+	}
+	return &PatchAccountUserRequest{
+		Id:         w.Id,
+		Operations: operationsPublicValue,
+		Schemas:    w.Schemas,
+		AccountId:  w.AccountId,
+	}, nil
+}
+
 type patchGroupRequestWire struct {
 	Id         *string       `json:"id,omitempty"`
 	Operations []patchWire   `json:"Operations,omitempty"`
@@ -1293,6 +2407,21 @@ func patchGroupRequestToWire(v *PatchGroupRequest) (*patchGroupRequestWire, erro
 		Id:         v.Id,
 		Operations: operationsWireValue,
 		Schemas:    v.Schemas,
+	}, nil
+}
+
+func patchGroupRequestFromWire(w *patchGroupRequestWire) (*PatchGroupRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	operationsPublicValue, err := convertSlice(w.Operations, patchFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PatchGroupRequest.Operations", err)
+	}
+	return &PatchGroupRequest{
+		Id:         w.Id,
+		Operations: operationsPublicValue,
+		Schemas:    w.Schemas,
 	}, nil
 }
 
@@ -1317,6 +2446,21 @@ func patchServicePrincipalRequestToWire(v *PatchServicePrincipalRequest) (*patch
 	}, nil
 }
 
+func patchServicePrincipalRequestFromWire(w *patchServicePrincipalRequestWire) (*PatchServicePrincipalRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	operationsPublicValue, err := convertSlice(w.Operations, patchFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PatchServicePrincipalRequest.Operations", err)
+	}
+	return &PatchServicePrincipalRequest{
+		Id:         w.Id,
+		Operations: operationsPublicValue,
+		Schemas:    w.Schemas,
+	}, nil
+}
+
 type patchUserRequestWire struct {
 	Id         *string       `json:"id,omitempty"`
 	Operations []patchWire   `json:"Operations,omitempty"`
@@ -1335,6 +2479,21 @@ func patchUserRequestToWire(v *PatchUserRequest) (*patchUserRequestWire, error) 
 		Id:         v.Id,
 		Operations: operationsWireValue,
 		Schemas:    v.Schemas,
+	}, nil
+}
+
+func patchUserRequestFromWire(w *patchUserRequestWire) (*PatchUserRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	operationsPublicValue, err := convertSlice(w.Operations, patchFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PatchUserRequest.Operations", err)
+	}
+	return &PatchUserRequest{
+		Id:         w.Id,
+		Operations: operationsPublicValue,
+		Schemas:    w.Schemas,
 	}, nil
 }
 
@@ -1370,6 +2529,35 @@ type servicePrincipalWire struct {
 	Id            *string                  `json:"id,omitempty"`
 	Roles         []complexValueWire       `json:"roles,omitempty"`
 	Schemas       []ServicePrincipalSchema `json:"schemas,omitempty"`
+}
+
+func servicePrincipalToWire(v *ServicePrincipal) (*servicePrincipalWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	entitlementsWireValue, err := convertSlice(v.Entitlements, complexValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ServicePrincipal.Entitlements", err)
+	}
+	groupsWireValue, err := convertSlice(v.Groups, complexValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ServicePrincipal.Groups", err)
+	}
+	rolesWireValue, err := convertSlice(v.Roles, complexValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ServicePrincipal.Roles", err)
+	}
+	return &servicePrincipalWire{
+		Active:        v.Active,
+		ApplicationId: v.ApplicationId,
+		DisplayName:   v.DisplayName,
+		Entitlements:  entitlementsWireValue,
+		ExternalId:    v.ExternalId,
+		Groups:        groupsWireValue,
+		Id:            v.Id,
+		Roles:         rolesWireValue,
+		Schemas:       v.Schemas,
+	}, nil
 }
 
 func servicePrincipalFromWire(w *servicePrincipalWire) (*ServicePrincipal, error) {
@@ -1438,6 +2626,33 @@ func updateAccountGroupRequestToWire(v *UpdateAccountGroupRequest) (*updateAccou
 	}, nil
 }
 
+func updateAccountGroupRequestFromWire(w *updateAccountGroupRequestWire) (*UpdateAccountGroupRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	membersPublicValue, err := convertSlice(w.Members, accountComplexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccountGroupRequest.Members", err)
+	}
+	metaPublicValue, err := accountResourceMetaFromWire(w.Meta)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccountGroupRequest.Meta", err)
+	}
+	rolesPublicValue, err := convertSlice(w.Roles, accountComplexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccountGroupRequest.Roles", err)
+	}
+	return &UpdateAccountGroupRequest{
+		DisplayName: w.DisplayName,
+		ExternalId:  w.ExternalId,
+		Id:          w.Id,
+		Members:     membersPublicValue,
+		Meta:        metaPublicValue,
+		Roles:       rolesPublicValue,
+		AccountId:   w.AccountId,
+	}, nil
+}
+
 type updateAccountServicePrincipalRequestWire struct {
 	Active        *bool                     `json:"active,omitempty"`
 	ApplicationId *string                   `json:"applicationId,omitempty"`
@@ -1464,6 +2679,25 @@ func updateAccountServicePrincipalRequestToWire(v *UpdateAccountServicePrincipal
 		Id:            v.Id,
 		Roles:         rolesWireValue,
 		AccountId:     v.AccountId,
+	}, nil
+}
+
+func updateAccountServicePrincipalRequestFromWire(w *updateAccountServicePrincipalRequestWire) (*UpdateAccountServicePrincipalRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	rolesPublicValue, err := convertSlice(w.Roles, accountComplexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccountServicePrincipalRequest.Roles", err)
+	}
+	return &UpdateAccountServicePrincipalRequest{
+		Active:        w.Active,
+		ApplicationId: w.ApplicationId,
+		DisplayName:   w.DisplayName,
+		ExternalId:    w.ExternalId,
+		Id:            w.Id,
+		Roles:         rolesPublicValue,
+		AccountId:     w.AccountId,
 	}, nil
 }
 
@@ -1505,6 +2739,35 @@ func updateAccountUserRequestToWire(v *UpdateAccountUserRequest) (*updateAccount
 		Roles:       rolesWireValue,
 		UserName:    v.UserName,
 		AccountId:   v.AccountId,
+	}, nil
+}
+
+func updateAccountUserRequestFromWire(w *updateAccountUserRequestWire) (*UpdateAccountUserRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	emailsPublicValue, err := convertSlice(w.Emails, accountComplexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccountUserRequest.Emails", err)
+	}
+	namePublicValue, err := accountNameFromWire(w.Name)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccountUserRequest.Name", err)
+	}
+	rolesPublicValue, err := convertSlice(w.Roles, accountComplexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccountUserRequest.Roles", err)
+	}
+	return &UpdateAccountUserRequest{
+		Active:      w.Active,
+		DisplayName: w.DisplayName,
+		Emails:      emailsPublicValue,
+		ExternalId:  w.ExternalId,
+		Id:          w.Id,
+		Name:        namePublicValue,
+		Roles:       rolesPublicValue,
+		UserName:    w.UserName,
+		AccountId:   w.AccountId,
 	}, nil
 }
 
@@ -1557,6 +2820,43 @@ func updateGroupRequestToWire(v *UpdateGroupRequest) (*updateGroupRequestWire, e
 	}, nil
 }
 
+func updateGroupRequestFromWire(w *updateGroupRequestWire) (*UpdateGroupRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	entitlementsPublicValue, err := convertSlice(w.Entitlements, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateGroupRequest.Entitlements", err)
+	}
+	groupsPublicValue, err := convertSlice(w.Groups, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateGroupRequest.Groups", err)
+	}
+	membersPublicValue, err := convertSlice(w.Members, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateGroupRequest.Members", err)
+	}
+	metaPublicValue, err := resourceMetaFromWire(w.Meta)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateGroupRequest.Meta", err)
+	}
+	rolesPublicValue, err := convertSlice(w.Roles, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateGroupRequest.Roles", err)
+	}
+	return &UpdateGroupRequest{
+		DisplayName:  w.DisplayName,
+		Entitlements: entitlementsPublicValue,
+		ExternalId:   w.ExternalId,
+		Groups:       groupsPublicValue,
+		Id:           w.Id,
+		Members:      membersPublicValue,
+		Meta:         metaPublicValue,
+		Roles:        rolesPublicValue,
+		Schemas:      w.Schemas,
+	}, nil
+}
+
 type updateServicePrincipalRequestWire struct {
 	Active        *bool                    `json:"active,omitempty"`
 	ApplicationId *string                  `json:"applicationId,omitempty"`
@@ -1595,6 +2895,35 @@ func updateServicePrincipalRequestToWire(v *UpdateServicePrincipalRequest) (*upd
 		Id:            v.Id,
 		Roles:         rolesWireValue,
 		Schemas:       v.Schemas,
+	}, nil
+}
+
+func updateServicePrincipalRequestFromWire(w *updateServicePrincipalRequestWire) (*UpdateServicePrincipalRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	entitlementsPublicValue, err := convertSlice(w.Entitlements, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateServicePrincipalRequest.Entitlements", err)
+	}
+	groupsPublicValue, err := convertSlice(w.Groups, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateServicePrincipalRequest.Groups", err)
+	}
+	rolesPublicValue, err := convertSlice(w.Roles, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateServicePrincipalRequest.Roles", err)
+	}
+	return &UpdateServicePrincipalRequest{
+		Active:        w.Active,
+		ApplicationId: w.ApplicationId,
+		DisplayName:   w.DisplayName,
+		Entitlements:  entitlementsPublicValue,
+		ExternalId:    w.ExternalId,
+		Groups:        groupsPublicValue,
+		Id:            w.Id,
+		Roles:         rolesPublicValue,
+		Schemas:       w.Schemas,
 	}, nil
 }
 
@@ -1651,6 +2980,45 @@ func updateUserRequestToWire(v *UpdateUserRequest) (*updateUserRequestWire, erro
 	}, nil
 }
 
+func updateUserRequestFromWire(w *updateUserRequestWire) (*UpdateUserRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	emailsPublicValue, err := convertSlice(w.Emails, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateUserRequest.Emails", err)
+	}
+	entitlementsPublicValue, err := convertSlice(w.Entitlements, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateUserRequest.Entitlements", err)
+	}
+	groupsPublicValue, err := convertSlice(w.Groups, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateUserRequest.Groups", err)
+	}
+	namePublicValue, err := nameFromWire(w.Name)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateUserRequest.Name", err)
+	}
+	rolesPublicValue, err := convertSlice(w.Roles, complexValueFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateUserRequest.Roles", err)
+	}
+	return &UpdateUserRequest{
+		Active:       w.Active,
+		DisplayName:  w.DisplayName,
+		Emails:       emailsPublicValue,
+		Entitlements: entitlementsPublicValue,
+		ExternalId:   w.ExternalId,
+		Groups:       groupsPublicValue,
+		Id:           w.Id,
+		Name:         namePublicValue,
+		Roles:        rolesPublicValue,
+		Schemas:      w.Schemas,
+		UserName:     w.UserName,
+	}, nil
+}
+
 type userWire struct {
 	Active       *bool              `json:"active,omitempty"`
 	DisplayName  *string            `json:"displayName,omitempty"`
@@ -1663,6 +3031,45 @@ type userWire struct {
 	Roles        []complexValueWire `json:"roles,omitempty"`
 	Schemas      []UserSchema       `json:"schemas,omitempty"`
 	UserName     *string            `json:"userName,omitempty"`
+}
+
+func userToWire(v *User) (*userWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	emailsWireValue, err := convertSlice(v.Emails, complexValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "User.Emails", err)
+	}
+	entitlementsWireValue, err := convertSlice(v.Entitlements, complexValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "User.Entitlements", err)
+	}
+	groupsWireValue, err := convertSlice(v.Groups, complexValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "User.Groups", err)
+	}
+	nameWireValue, err := nameToWire(v.Name)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "User.Name", err)
+	}
+	rolesWireValue, err := convertSlice(v.Roles, complexValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "User.Roles", err)
+	}
+	return &userWire{
+		Active:       v.Active,
+		DisplayName:  v.DisplayName,
+		Emails:       emailsWireValue,
+		Entitlements: entitlementsWireValue,
+		ExternalId:   v.ExternalId,
+		Groups:       groupsWireValue,
+		Id:           v.Id,
+		Name:         nameWireValue,
+		Roles:        rolesWireValue,
+		Schemas:      v.Schemas,
+		UserName:     v.UserName,
+	}, nil
 }
 
 func userFromWire(w *userWire) (*User, error) {

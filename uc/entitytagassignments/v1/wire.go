@@ -8,14 +8,6 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type createEntityTagAssignmentRequestWire struct {
 	TagAssignment *entityTagAssignmentWire `json:"tag_assignment,omitempty"`
 }
@@ -30,6 +22,47 @@ func createEntityTagAssignmentRequestToWire(v *CreateEntityTagAssignmentRequest)
 	}
 	return &createEntityTagAssignmentRequestWire{
 		TagAssignment: tagAssignmentWireValue,
+	}, nil
+}
+
+func createEntityTagAssignmentRequestFromWire(w *createEntityTagAssignmentRequestWire) (*CreateEntityTagAssignmentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tagAssignmentPublicValue, err := entityTagAssignmentFromWire(w.TagAssignment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateEntityTagAssignmentRequest.TagAssignment", err)
+	}
+	return &CreateEntityTagAssignmentRequest{
+		TagAssignment: tagAssignmentPublicValue,
+	}, nil
+}
+
+type deleteEntityTagAssignmentRequestWire struct {
+	EntityName *string `json:"entity_name,omitempty"`
+	TagKey     *string `json:"tag_key,omitempty"`
+	EntityType *string `json:"entity_type,omitempty"`
+}
+
+func deleteEntityTagAssignmentRequestToWire(v *DeleteEntityTagAssignmentRequest) (*deleteEntityTagAssignmentRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteEntityTagAssignmentRequestWire{
+		EntityName: v.EntityName,
+		TagKey:     v.TagKey,
+		EntityType: v.EntityType,
+	}, nil
+}
+
+func deleteEntityTagAssignmentRequestFromWire(w *deleteEntityTagAssignmentRequestWire) (*DeleteEntityTagAssignmentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteEntityTagAssignmentRequest{
+		EntityName: w.EntityName,
+		TagKey:     w.TagKey,
+		EntityType: w.EntityType,
 	}, nil
 }
 
@@ -73,6 +106,34 @@ func entityTagAssignmentFromWire(w *entityTagAssignmentWire) (*EntityTagAssignme
 	}, nil
 }
 
+type getEntityTagAssignmentRequestWire struct {
+	EntityName *string `json:"entity_name,omitempty"`
+	TagKey     *string `json:"tag_key,omitempty"`
+	EntityType *string `json:"entity_type,omitempty"`
+}
+
+func getEntityTagAssignmentRequestToWire(v *GetEntityTagAssignmentRequest) (*getEntityTagAssignmentRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getEntityTagAssignmentRequestWire{
+		EntityName: v.EntityName,
+		TagKey:     v.TagKey,
+		EntityType: v.EntityType,
+	}, nil
+}
+
+func getEntityTagAssignmentRequestFromWire(w *getEntityTagAssignmentRequestWire) (*GetEntityTagAssignmentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetEntityTagAssignmentRequest{
+		EntityName: w.EntityName,
+		TagKey:     w.TagKey,
+		EntityType: w.EntityType,
+	}, nil
+}
+
 type listEntityTagAssignmentsRequestWire struct {
 	EntityName *string `json:"entity_name,omitempty"`
 	MaxResults *int    `json:"max_results,omitempty"`
@@ -92,9 +153,35 @@ func listEntityTagAssignmentsRequestToWire(v *ListEntityTagAssignmentsRequest) (
 	}, nil
 }
 
+func listEntityTagAssignmentsRequestFromWire(w *listEntityTagAssignmentsRequestWire) (*ListEntityTagAssignmentsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListEntityTagAssignmentsRequest{
+		EntityName: w.EntityName,
+		MaxResults: w.MaxResults,
+		PageToken:  w.PageToken,
+		EntityType: w.EntityType,
+	}, nil
+}
+
 type listEntityTagAssignmentsResponseWire struct {
 	TagAssignments []entityTagAssignmentWire `json:"tag_assignments,omitempty"`
 	NextPageToken  *string                   `json:"next_page_token,omitempty"`
+}
+
+func listEntityTagAssignmentsResponseToWire(v *ListEntityTagAssignmentsResponse) (*listEntityTagAssignmentsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tagAssignmentsWireValue, err := convertSlice(v.TagAssignments, entityTagAssignmentToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListEntityTagAssignmentsResponse.TagAssignments", err)
+	}
+	return &listEntityTagAssignmentsResponseWire{
+		TagAssignments: tagAssignmentsWireValue,
+		NextPageToken:  v.NextPageToken,
+	}, nil
 }
 
 func listEntityTagAssignmentsResponseFromWire(w *listEntityTagAssignmentsResponseWire) (*ListEntityTagAssignmentsResponse, error) {
@@ -112,8 +199,8 @@ func listEntityTagAssignmentsResponseFromWire(w *listEntityTagAssignmentsRespons
 }
 
 type updateEntityTagAssignmentRequestWire struct {
-	TagAssignment *entityTagAssignmentWire `json:"tag_assignment,omitempty"`
-	UpdateMask    *string                  `json:"update_mask,omitempty"`
+	TagAssignment *entityTagAssignmentWire              `json:"tag_assignment,omitempty"`
+	UpdateMask    *types.FieldMask[EntityTagAssignment] `json:"update_mask,omitempty"`
 }
 
 func updateEntityTagAssignmentRequestToWire(v *UpdateEntityTagAssignmentRequest) (*updateEntityTagAssignmentRequestWire, error) {
@@ -126,7 +213,21 @@ func updateEntityTagAssignmentRequestToWire(v *UpdateEntityTagAssignmentRequest)
 	}
 	return &updateEntityTagAssignmentRequestWire{
 		TagAssignment: tagAssignmentWireValue,
-		UpdateMask:    fieldMaskToWire(v.UpdateMask),
+		UpdateMask:    v.UpdateMask,
+	}, nil
+}
+
+func updateEntityTagAssignmentRequestFromWire(w *updateEntityTagAssignmentRequestWire) (*UpdateEntityTagAssignmentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tagAssignmentPublicValue, err := entityTagAssignmentFromWire(w.TagAssignment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateEntityTagAssignmentRequest.TagAssignment", err)
+	}
+	return &UpdateEntityTagAssignmentRequest{
+		TagAssignment: tagAssignmentPublicValue,
+		UpdateMask:    w.UpdateMask,
 	}, nil
 }
 

@@ -119,6 +119,50 @@ func createSchemaRequestToWire(v *CreateSchemaRequest) (*createSchemaRequestWire
 	}, nil
 }
 
+func createSchemaRequestFromWire(w *createSchemaRequestWire) (*CreateSchemaRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateSchemaRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateSchemaRequest.UpdatedAt", err)
+	}
+	effectivePredictiveOptimizationFlagPublicValue, err := effectivePredictiveOptimizationFlagFromWire(w.EffectivePredictiveOptimizationFlag)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateSchemaRequest.EffectivePredictiveOptimizationFlag", err)
+	}
+	customMaxRetentionHoursPublicValue, err := int64FromWire(w.CustomMaxRetentionHours)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateSchemaRequest.CustomMaxRetentionHours", err)
+	}
+	return &CreateSchemaRequest{
+		Name:                                w.Name,
+		CatalogName:                         w.CatalogName,
+		Owner:                               w.Owner,
+		Comment:                             w.Comment,
+		StorageRoot:                         w.StorageRoot,
+		EnablePredictiveOptimization:        w.EnablePredictiveOptimization,
+		MetastoreId:                         w.MetastoreId,
+		FullName:                            w.FullName,
+		CreatedAt:                           createdAtPublicValue,
+		CreatedBy:                           w.CreatedBy,
+		UpdatedAt:                           updatedAtPublicValue,
+		UpdatedBy:                           w.UpdatedBy,
+		CatalogType:                         w.CatalogType,
+		StorageLocation:                     w.StorageLocation,
+		EffectivePredictiveOptimizationFlag: effectivePredictiveOptimizationFlagPublicValue,
+		SchemaId:                            w.SchemaId,
+		BrowseOnly:                          w.BrowseOnly,
+		CustomMaxRetentionHours:             customMaxRetentionHoursPublicValue,
+		Properties:                          w.Properties,
+		Options:                             w.Options,
+	}, nil
+}
+
 type deleteSchemaRequestWire struct {
 	FullNameArg *string `json:"full_name_arg,omitempty"`
 	Force       *bool   `json:"force,omitempty"`
@@ -132,6 +176,33 @@ func deleteSchemaRequestToWire(v *DeleteSchemaRequest) (*deleteSchemaRequestWire
 		FullNameArg: v.FullNameArg,
 		Force:       v.Force,
 	}, nil
+}
+
+func deleteSchemaRequestFromWire(w *deleteSchemaRequestWire) (*DeleteSchemaRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteSchemaRequest{
+		FullNameArg: w.FullNameArg,
+		Force:       w.Force,
+	}, nil
+}
+
+type deleteSchemaResponseWire struct {
+}
+
+func deleteSchemaResponseToWire(v *DeleteSchemaResponse) (*deleteSchemaResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteSchemaResponseWire{}, nil
+}
+
+func deleteSchemaResponseFromWire(w *deleteSchemaResponseWire) (*DeleteSchemaResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteSchemaResponse{}, nil
 }
 
 type effectivePredictiveOptimizationFlagWire struct {
@@ -177,6 +248,16 @@ func getSchemaRequestToWire(v *GetSchemaRequest) (*getSchemaRequestWire, error) 
 	}, nil
 }
 
+func getSchemaRequestFromWire(w *getSchemaRequestWire) (*GetSchemaRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetSchemaRequest{
+		FullNameArg:   w.FullNameArg,
+		IncludeBrowse: w.IncludeBrowse,
+	}, nil
+}
+
 type listSchemasRequestWire struct {
 	CatalogName   *string `json:"catalog_name,omitempty"`
 	MaxResults    *int    `json:"max_results,omitempty"`
@@ -196,9 +277,35 @@ func listSchemasRequestToWire(v *ListSchemasRequest) (*listSchemasRequestWire, e
 	}, nil
 }
 
+func listSchemasRequestFromWire(w *listSchemasRequestWire) (*ListSchemasRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSchemasRequest{
+		CatalogName:   w.CatalogName,
+		MaxResults:    w.MaxResults,
+		PageToken:     w.PageToken,
+		IncludeBrowse: w.IncludeBrowse,
+	}, nil
+}
+
 type listSchemasResponseWire struct {
 	Schemas       []schemaInfoWire `json:"schemas,omitempty"`
 	NextPageToken *string          `json:"next_page_token,omitempty"`
+}
+
+func listSchemasResponseToWire(v *ListSchemasResponse) (*listSchemasResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	schemasWireValue, err := convertSlice(v.Schemas, schemaInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSchemasResponse.Schemas", err)
+	}
+	return &listSchemasResponseWire{
+		Schemas:       schemasWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listSchemasResponseFromWire(w *listSchemasResponseWire) (*ListSchemasResponse, error) {
@@ -236,6 +343,50 @@ type schemaInfoWire struct {
 	CustomMaxRetentionHours             *wireInt64                               `json:"custom_max_retention_hours,omitempty"`
 	Properties                          map[string]string                        `json:"properties,omitempty"`
 	Options                             map[string]string                        `json:"options,omitempty"`
+}
+
+func schemaInfoToWire(v *SchemaInfo) (*schemaInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SchemaInfo.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SchemaInfo.UpdatedAt", err)
+	}
+	effectivePredictiveOptimizationFlagWireValue, err := effectivePredictiveOptimizationFlagToWire(v.EffectivePredictiveOptimizationFlag)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SchemaInfo.EffectivePredictiveOptimizationFlag", err)
+	}
+	customMaxRetentionHoursWireValue, err := int64ToWire(v.CustomMaxRetentionHours)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SchemaInfo.CustomMaxRetentionHours", err)
+	}
+	return &schemaInfoWire{
+		Name:                                v.Name,
+		CatalogName:                         v.CatalogName,
+		Owner:                               v.Owner,
+		Comment:                             v.Comment,
+		StorageRoot:                         v.StorageRoot,
+		EnablePredictiveOptimization:        v.EnablePredictiveOptimization,
+		MetastoreId:                         v.MetastoreId,
+		FullName:                            v.FullName,
+		CreatedAt:                           createdAtWireValue,
+		CreatedBy:                           v.CreatedBy,
+		UpdatedAt:                           updatedAtWireValue,
+		UpdatedBy:                           v.UpdatedBy,
+		CatalogType:                         v.CatalogType,
+		StorageLocation:                     v.StorageLocation,
+		EffectivePredictiveOptimizationFlag: effectivePredictiveOptimizationFlagWireValue,
+		SchemaId:                            v.SchemaId,
+		BrowseOnly:                          v.BrowseOnly,
+		CustomMaxRetentionHours:             customMaxRetentionHoursWireValue,
+		Properties:                          v.Properties,
+		Options:                             v.Options,
+	}, nil
 }
 
 func schemaInfoFromWire(w *schemaInfoWire) (*SchemaInfo, error) {
@@ -350,6 +501,52 @@ func updateSchemaRequestToWire(v *UpdateSchemaRequest) (*updateSchemaRequestWire
 		CustomMaxRetentionHours:             customMaxRetentionHoursWireValue,
 		Properties:                          v.Properties,
 		Options:                             v.Options,
+	}, nil
+}
+
+func updateSchemaRequestFromWire(w *updateSchemaRequestWire) (*UpdateSchemaRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateSchemaRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateSchemaRequest.UpdatedAt", err)
+	}
+	effectivePredictiveOptimizationFlagPublicValue, err := effectivePredictiveOptimizationFlagFromWire(w.EffectivePredictiveOptimizationFlag)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateSchemaRequest.EffectivePredictiveOptimizationFlag", err)
+	}
+	customMaxRetentionHoursPublicValue, err := int64FromWire(w.CustomMaxRetentionHours)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateSchemaRequest.CustomMaxRetentionHours", err)
+	}
+	return &UpdateSchemaRequest{
+		FullNameArg:                         w.FullNameArg,
+		NewName:                             w.NewName,
+		Name:                                w.Name,
+		CatalogName:                         w.CatalogName,
+		Owner:                               w.Owner,
+		Comment:                             w.Comment,
+		StorageRoot:                         w.StorageRoot,
+		EnablePredictiveOptimization:        w.EnablePredictiveOptimization,
+		MetastoreId:                         w.MetastoreId,
+		FullName:                            w.FullName,
+		CreatedAt:                           createdAtPublicValue,
+		CreatedBy:                           w.CreatedBy,
+		UpdatedAt:                           updatedAtPublicValue,
+		UpdatedBy:                           w.UpdatedBy,
+		CatalogType:                         w.CatalogType,
+		StorageLocation:                     w.StorageLocation,
+		EffectivePredictiveOptimizationFlag: effectivePredictiveOptimizationFlagPublicValue,
+		SchemaId:                            w.SchemaId,
+		BrowseOnly:                          w.BrowseOnly,
+		CustomMaxRetentionHours:             customMaxRetentionHoursPublicValue,
+		Properties:                          w.Properties,
+		Options:                             w.Options,
 	}, nil
 }
 

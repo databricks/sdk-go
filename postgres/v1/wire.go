@@ -54,14 +54,6 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type acknowledgeAssessmentWarningsRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -75,8 +67,30 @@ func acknowledgeAssessmentWarningsRequestToWire(v *AcknowledgeAssessmentWarnings
 	}, nil
 }
 
+func acknowledgeAssessmentWarningsRequestFromWire(w *acknowledgeAssessmentWarningsRequestWire) (*AcknowledgeAssessmentWarningsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AcknowledgeAssessmentWarningsRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type acknowledgeAssessmentWarningsResponseWire struct {
 	Assessment *assessmentWire `json:"assessment,omitempty"`
+}
+
+func acknowledgeAssessmentWarningsResponseToWire(v *AcknowledgeAssessmentWarningsResponse) (*acknowledgeAssessmentWarningsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	assessmentWireValue, err := assessmentToWire(v.Assessment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AcknowledgeAssessmentWarningsResponse.Assessment", err)
+	}
+	return &acknowledgeAssessmentWarningsResponseWire{
+		Assessment: assessmentWireValue,
+	}, nil
 }
 
 func acknowledgeAssessmentWarningsResponseFromWire(w *acknowledgeAssessmentWarningsResponseWire) (*AcknowledgeAssessmentWarningsResponse, error) {
@@ -97,6 +111,18 @@ type apiErrorWire struct {
 	Message    *string           `json:"message,omitempty"`
 	StackTrace *string           `json:"stack_trace,omitempty"`
 	Details    []json.RawMessage `json:"details,omitempty"`
+}
+
+func apiErrorToWire(v *ApiError) (*apiErrorWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &apiErrorWire{
+		ErrorCode:  v.ErrorCode,
+		Message:    v.Message,
+		StackTrace: v.StackTrace,
+		Details:    v.Details,
+	}, nil
 }
 
 func apiErrorFromWire(w *apiErrorWire) (*ApiError, error) {
@@ -124,8 +150,30 @@ func assessMigrationRequestToWire(v *AssessMigrationRequest) (*assessMigrationRe
 	}, nil
 }
 
+func assessMigrationRequestFromWire(w *assessMigrationRequestWire) (*AssessMigrationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AssessMigrationRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type assessMigrationResponseWire struct {
 	Assessment *assessmentWire `json:"assessment,omitempty"`
+}
+
+func assessMigrationResponseToWire(v *AssessMigrationResponse) (*assessMigrationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	assessmentWireValue, err := assessmentToWire(v.Assessment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AssessMigrationResponse.Assessment", err)
+	}
+	return &assessMigrationResponseWire{
+		Assessment: assessmentWireValue,
+	}, nil
 }
 
 func assessMigrationResponseFromWire(w *assessMigrationResponseWire) (*AssessMigrationResponse, error) {
@@ -148,6 +196,24 @@ type assessmentWire struct {
 	CreateTime   *types.Time           `json:"create_time,omitempty"`
 	CompleteTime *types.Time           `json:"complete_time,omitempty"`
 	ExpireTime   *types.Time           `json:"expire_time,omitempty"`
+}
+
+func assessmentToWire(v *Assessment) (*assessmentWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	checksWireValue, err := convertSlice(v.Checks, assessmentCheckToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Assessment.Checks", err)
+	}
+	return &assessmentWire{
+		Name:         v.Name,
+		State:        v.State,
+		Checks:       checksWireValue,
+		CreateTime:   v.CreateTime,
+		CompleteTime: v.CompleteTime,
+		ExpireTime:   v.ExpireTime,
+	}, nil
 }
 
 func assessmentFromWire(w *assessmentWire) (*Assessment, error) {
@@ -177,6 +243,24 @@ type assessmentCheckWire struct {
 	Details         *assessmentCheckDetailsWire `json:"details,omitempty"`
 }
 
+func assessmentCheckToWire(v *AssessmentCheck) (*assessmentCheckWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	detailsWireValue, err := assessmentCheckDetailsToWire(v.Details)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AssessmentCheck.Details", err)
+	}
+	return &assessmentCheckWire{
+		CheckId:         v.CheckId,
+		Verdict:         v.Verdict,
+		BlocksMigration: v.BlocksMigration,
+		Reason:          v.Reason,
+		Database:        v.Database,
+		Details:         detailsWireValue,
+	}, nil
+}
+
 func assessmentCheckFromWire(w *assessmentCheckWire) (*AssessmentCheck, error) {
 	if w == nil {
 		return nil, nil
@@ -198,6 +282,39 @@ func assessmentCheckFromWire(w *assessmentCheckWire) (*AssessmentCheck, error) {
 type assessmentCheckDetailsWire struct {
 	DatabaseSize    *databaseSizeDetailsWire    `json:"database_size,omitempty"`
 	LongTransaction *longTransactionDetailsWire `json:"long_transaction,omitempty"`
+}
+
+func assessmentCheckDetailsToWire(v *AssessmentCheckDetails) (*assessmentCheckDetailsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var kindDatabaseSizeWire *databaseSizeDetailsWire
+	var kindLongTransactionWire *longTransactionDetailsWire
+	switch value := v.Kind.(type) {
+	case nil:
+	case *AssessmentCheckDetails_Kind_DatabaseSize:
+		if value != nil {
+			kindDatabaseSizeConverted, err := databaseSizeDetailsToWire(&value.DatabaseSize)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "AssessmentCheckDetails.Kind.DatabaseSize", err)
+			}
+			kindDatabaseSizeWire = kindDatabaseSizeConverted
+		}
+	case *AssessmentCheckDetails_Kind_LongTransaction:
+		if value != nil {
+			kindLongTransactionConverted, err := longTransactionDetailsToWire(&value.LongTransaction)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "AssessmentCheckDetails.Kind.LongTransaction", err)
+			}
+			kindLongTransactionWire = kindLongTransactionConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "AssessmentCheckDetails.Kind", value)
+	}
+	return &assessmentCheckDetailsWire{
+		DatabaseSize:    kindDatabaseSizeWire,
+		LongTransaction: kindLongTransactionWire,
+	}, nil
 }
 
 func assessmentCheckDetailsFromWire(w *assessmentCheckDetailsWire) (*AssessmentCheckDetails, error) {
@@ -294,6 +411,13 @@ func branchFromWire(w *branchWire) (*Branch, error) {
 }
 
 type branchOperationMetadataWire struct {
+}
+
+func branchOperationMetadataToWire(v *BranchOperationMetadata) (*branchOperationMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &branchOperationMetadataWire{}, nil
 }
 
 func branchOperationMetadataFromWire(w *branchOperationMetadataWire) (*BranchOperationMetadata, error) {
@@ -570,6 +694,13 @@ func catalog_CatalogStatusFromWire(w *catalog_CatalogStatusWire) (*Catalog_Catal
 type catalogOperationMetadataWire struct {
 }
 
+func catalogOperationMetadataToWire(v *CatalogOperationMetadata) (*catalogOperationMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &catalogOperationMetadataWire{}, nil
+}
+
 func catalogOperationMetadataFromWire(w *catalogOperationMetadataWire) (*CatalogOperationMetadata, error) {
 	if w == nil {
 		return nil, nil
@@ -620,6 +751,13 @@ func cdfConfigFromWire(w *cdfConfigWire) (*CdfConfig, error) {
 type cdfConfigOperationMetadataWire struct {
 }
 
+func cdfConfigOperationMetadataToWire(v *CdfConfigOperationMetadata) (*cdfConfigOperationMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &cdfConfigOperationMetadataWire{}, nil
+}
+
 func cdfConfigOperationMetadataFromWire(w *cdfConfigOperationMetadataWire) (*CdfConfigOperationMetadata, error) {
 	if w == nil {
 		return nil, nil
@@ -636,6 +774,22 @@ type cdfStatusWire struct {
 	LastSyncTime  *types.Time `json:"last_sync_time,omitempty"`
 	CreateTime    *types.Time `json:"create_time,omitempty"`
 	StatusDetail  *string     `json:"status_detail,omitempty"`
+}
+
+func cdfStatusToWire(v *CdfStatus) (*cdfStatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &cdfStatusWire{
+		Name:          v.Name,
+		PostgresTable: v.PostgresTable,
+		UcTable:       v.UcTable,
+		State:         v.State,
+		CommittedLsn:  v.CommittedLsn,
+		LastSyncTime:  v.LastSyncTime,
+		CreateTime:    v.CreateTime,
+		StatusDetail:  v.StatusDetail,
+	}, nil
 }
 
 func cdfStatusFromWire(w *cdfStatusWire) (*CdfStatus, error) {
@@ -677,6 +831,22 @@ func createBranchRequestToWire(v *CreateBranchRequest) (*createBranchRequestWire
 	}, nil
 }
 
+func createBranchRequestFromWire(w *createBranchRequestWire) (*CreateBranchRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	branchPublicValue, err := branchFromWire(w.Branch)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBranchRequest.Branch", err)
+	}
+	return &CreateBranchRequest{
+		Parent:          w.Parent,
+		BranchId:        w.BranchId,
+		Branch:          branchPublicValue,
+		ReplaceExisting: w.ReplaceExisting,
+	}, nil
+}
+
 type createCatalogRequestWire struct {
 	CatalogId *string      `json:"catalog_id,omitempty"`
 	Catalog   *catalogWire `json:"catalog,omitempty"`
@@ -693,6 +863,20 @@ func createCatalogRequestToWire(v *CreateCatalogRequest) (*createCatalogRequestW
 	return &createCatalogRequestWire{
 		CatalogId: v.CatalogId,
 		Catalog:   catalogWireValue,
+	}, nil
+}
+
+func createCatalogRequestFromWire(w *createCatalogRequestWire) (*CreateCatalogRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	catalogPublicValue, err := catalogFromWire(w.Catalog)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCatalogRequest.Catalog", err)
+	}
+	return &CreateCatalogRequest{
+		CatalogId: w.CatalogId,
+		Catalog:   catalogPublicValue,
 	}, nil
 }
 
@@ -717,6 +901,21 @@ func createCdfConfigRequestToWire(v *CreateCdfConfigRequest) (*createCdfConfigRe
 	}, nil
 }
 
+func createCdfConfigRequestFromWire(w *createCdfConfigRequestWire) (*CreateCdfConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	cdfConfigPublicValue, err := cdfConfigFromWire(w.CdfConfig)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCdfConfigRequest.CdfConfig", err)
+	}
+	return &CreateCdfConfigRequest{
+		Parent:      w.Parent,
+		CdfConfig:   cdfConfigPublicValue,
+		CdfConfigId: w.CdfConfigId,
+	}, nil
+}
+
 type createDataApiRequestWire struct {
 	Parent  *string      `json:"parent,omitempty"`
 	DataApi *dataApiWire `json:"data_api,omitempty"`
@@ -733,6 +932,20 @@ func createDataApiRequestToWire(v *CreateDataApiRequest) (*createDataApiRequestW
 	return &createDataApiRequestWire{
 		Parent:  v.Parent,
 		DataApi: dataApiWireValue,
+	}, nil
+}
+
+func createDataApiRequestFromWire(w *createDataApiRequestWire) (*CreateDataApiRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	dataApiPublicValue, err := dataApiFromWire(w.DataApi)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateDataApiRequest.DataApi", err)
+	}
+	return &CreateDataApiRequest{
+		Parent:  w.Parent,
+		DataApi: dataApiPublicValue,
 	}, nil
 }
 
@@ -759,6 +972,22 @@ func createDatabaseRequestToWire(v *CreateDatabaseRequest) (*createDatabaseReque
 	}, nil
 }
 
+func createDatabaseRequestFromWire(w *createDatabaseRequestWire) (*CreateDatabaseRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	databasePublicValue, err := databaseFromWire(w.Database)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateDatabaseRequest.Database", err)
+	}
+	return &CreateDatabaseRequest{
+		Parent:          w.Parent,
+		DatabaseId:      w.DatabaseId,
+		Database:        databasePublicValue,
+		ReplaceExisting: w.ReplaceExisting,
+	}, nil
+}
+
 type createEndpointRequestWire struct {
 	Parent          *string       `json:"parent,omitempty"`
 	EndpointId      *string       `json:"endpoint_id,omitempty"`
@@ -782,6 +1011,22 @@ func createEndpointRequestToWire(v *CreateEndpointRequest) (*createEndpointReque
 	}, nil
 }
 
+func createEndpointRequestFromWire(w *createEndpointRequestWire) (*CreateEndpointRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	endpointPublicValue, err := endpointFromWire(w.Endpoint)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateEndpointRequest.Endpoint", err)
+	}
+	return &CreateEndpointRequest{
+		Parent:          w.Parent,
+		EndpointId:      w.EndpointId,
+		Endpoint:        endpointPublicValue,
+		ReplaceExisting: w.ReplaceExisting,
+	}, nil
+}
+
 type createMigrationRequestWire struct {
 	MigrationId *string        `json:"migration_id,omitempty"`
 	Migration   *migrationWire `json:"migration,omitempty"`
@@ -801,6 +1046,20 @@ func createMigrationRequestToWire(v *CreateMigrationRequest) (*createMigrationRe
 	}, nil
 }
 
+func createMigrationRequestFromWire(w *createMigrationRequestWire) (*CreateMigrationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	migrationPublicValue, err := migrationFromWire(w.Migration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateMigrationRequest.Migration", err)
+	}
+	return &CreateMigrationRequest{
+		MigrationId: w.MigrationId,
+		Migration:   migrationPublicValue,
+	}, nil
+}
+
 type createProjectRequestWire struct {
 	ProjectId *string      `json:"project_id,omitempty"`
 	Project   *projectWire `json:"project,omitempty"`
@@ -817,6 +1076,20 @@ func createProjectRequestToWire(v *CreateProjectRequest) (*createProjectRequestW
 	return &createProjectRequestWire{
 		ProjectId: v.ProjectId,
 		Project:   projectWireValue,
+	}, nil
+}
+
+func createProjectRequestFromWire(w *createProjectRequestWire) (*CreateProjectRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	projectPublicValue, err := projectFromWire(w.Project)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateProjectRequest.Project", err)
+	}
+	return &CreateProjectRequest{
+		ProjectId: w.ProjectId,
+		Project:   projectPublicValue,
 	}, nil
 }
 
@@ -843,6 +1116,22 @@ func createRoleRequestToWire(v *CreateRoleRequest) (*createRoleRequestWire, erro
 	}, nil
 }
 
+func createRoleRequestFromWire(w *createRoleRequestWire) (*CreateRoleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	rolePublicValue, err := roleFromWire(w.Role)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRoleRequest.Role", err)
+	}
+	return &CreateRoleRequest{
+		Parent:          w.Parent,
+		RoleId:          w.RoleId,
+		Role:            rolePublicValue,
+		ReplaceExisting: w.ReplaceExisting,
+	}, nil
+}
+
 type createSnapshotRequestWire struct {
 	Parent     *string       `json:"parent,omitempty"`
 	Snapshot   *snapshotWire `json:"snapshot,omitempty"`
@@ -864,6 +1153,21 @@ func createSnapshotRequestToWire(v *CreateSnapshotRequest) (*createSnapshotReque
 	}, nil
 }
 
+func createSnapshotRequestFromWire(w *createSnapshotRequestWire) (*CreateSnapshotRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	snapshotPublicValue, err := snapshotFromWire(w.Snapshot)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateSnapshotRequest.Snapshot", err)
+	}
+	return &CreateSnapshotRequest{
+		Parent:     w.Parent,
+		Snapshot:   snapshotPublicValue,
+		SnapshotId: w.SnapshotId,
+	}, nil
+}
+
 type createSyncedTableRequestWire struct {
 	SyncedTableId *string          `json:"synced_table_id,omitempty"`
 	SyncedTable   *syncedTableWire `json:"synced_table,omitempty"`
@@ -880,6 +1184,20 @@ func createSyncedTableRequestToWire(v *CreateSyncedTableRequest) (*createSyncedT
 	return &createSyncedTableRequestWire{
 		SyncedTableId: v.SyncedTableId,
 		SyncedTable:   syncedTableWireValue,
+	}, nil
+}
+
+func createSyncedTableRequestFromWire(w *createSyncedTableRequestWire) (*CreateSyncedTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	syncedTablePublicValue, err := syncedTableFromWire(w.SyncedTable)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateSyncedTableRequest.SyncedTable", err)
+	}
+	return &CreateSyncedTableRequest{
+		SyncedTableId: w.SyncedTableId,
+		SyncedTable:   syncedTablePublicValue,
 	}, nil
 }
 
@@ -1059,6 +1377,13 @@ func dataApi_DataApiStatusFromWire(w *dataApi_DataApiStatusWire) (*DataApi_DataA
 type dataApiOperationMetadataWire struct {
 }
 
+func dataApiOperationMetadataToWire(v *DataApiOperationMetadata) (*dataApiOperationMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &dataApiOperationMetadataWire{}, nil
+}
+
 func dataApiOperationMetadataFromWire(w *dataApiOperationMetadataWire) (*DataApiOperationMetadata, error) {
 	if w == nil {
 		return nil, nil
@@ -1180,6 +1505,16 @@ type databaseCredentialWire struct {
 	ExpireTime *types.Time `json:"expire_time,omitempty"`
 }
 
+func databaseCredentialToWire(v *DatabaseCredential) (*databaseCredentialWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &databaseCredentialWire{
+		Token:      v.Token,
+		ExpireTime: v.ExpireTime,
+	}, nil
+}
+
 func databaseCredentialFromWire(w *databaseCredentialWire) (*DatabaseCredential, error) {
 	if w == nil {
 		return nil, nil
@@ -1221,6 +1556,13 @@ func databaseMappingFromWire(w *databaseMappingWire) (*DatabaseMapping, error) {
 type databaseOperationMetadataWire struct {
 }
 
+func databaseOperationMetadataToWire(v *DatabaseOperationMetadata) (*databaseOperationMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &databaseOperationMetadataWire{}, nil
+}
+
 func databaseOperationMetadataFromWire(w *databaseOperationMetadataWire) (*DatabaseOperationMetadata, error) {
 	if w == nil {
 		return nil, nil
@@ -1230,6 +1572,19 @@ func databaseOperationMetadataFromWire(w *databaseOperationMetadataWire) (*Datab
 
 type databaseSizeDetailsWire struct {
 	SizeBytes *wireInt64 `json:"size_bytes,omitempty"`
+}
+
+func databaseSizeDetailsToWire(v *DatabaseSizeDetails) (*databaseSizeDetailsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sizeBytesWireValue, err := int64ToWire(v.SizeBytes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DatabaseSizeDetails.SizeBytes", err)
+	}
+	return &databaseSizeDetailsWire{
+		SizeBytes: sizeBytesWireValue,
+	}, nil
 }
 
 func databaseSizeDetailsFromWire(w *databaseSizeDetailsWire) (*DatabaseSizeDetails, error) {
@@ -1260,6 +1615,38 @@ func deleteBranchRequestToWire(v *DeleteBranchRequest) (*deleteBranchRequestWire
 	}, nil
 }
 
+func deleteBranchRequestFromWire(w *deleteBranchRequestWire) (*DeleteBranchRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteBranchRequest{
+		Name:  w.Name,
+		Purge: w.Purge,
+	}, nil
+}
+
+type deleteCatalogRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteCatalogRequestToWire(v *DeleteCatalogRequest) (*deleteCatalogRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCatalogRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteCatalogRequestFromWire(w *deleteCatalogRequestWire) (*DeleteCatalogRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCatalogRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type deleteCdfConfigRequestWire struct {
 	Name  *string `json:"name,omitempty"`
 	Force *bool   `json:"force,omitempty"`
@@ -1272,6 +1659,104 @@ func deleteCdfConfigRequestToWire(v *DeleteCdfConfigRequest) (*deleteCdfConfigRe
 	return &deleteCdfConfigRequestWire{
 		Name:  v.Name,
 		Force: v.Force,
+	}, nil
+}
+
+func deleteCdfConfigRequestFromWire(w *deleteCdfConfigRequestWire) (*DeleteCdfConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCdfConfigRequest{
+		Name:  w.Name,
+		Force: w.Force,
+	}, nil
+}
+
+type deleteDataApiRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteDataApiRequestToWire(v *DeleteDataApiRequest) (*deleteDataApiRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteDataApiRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteDataApiRequestFromWire(w *deleteDataApiRequestWire) (*DeleteDataApiRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteDataApiRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteDatabaseRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteDatabaseRequestToWire(v *DeleteDatabaseRequest) (*deleteDatabaseRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteDatabaseRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteDatabaseRequestFromWire(w *deleteDatabaseRequestWire) (*DeleteDatabaseRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteDatabaseRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteEndpointRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteEndpointRequestToWire(v *DeleteEndpointRequest) (*deleteEndpointRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteEndpointRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteEndpointRequestFromWire(w *deleteEndpointRequestWire) (*DeleteEndpointRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteEndpointRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteMigrationRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteMigrationRequestToWire(v *DeleteMigrationRequest) (*deleteMigrationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteMigrationRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteMigrationRequestFromWire(w *deleteMigrationRequestWire) (*DeleteMigrationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteMigrationRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -1290,6 +1775,16 @@ func deleteProjectRequestToWire(v *DeleteProjectRequest) (*deleteProjectRequestW
 	}, nil
 }
 
+func deleteProjectRequestFromWire(w *deleteProjectRequestWire) (*DeleteProjectRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteProjectRequest{
+		Name:  w.Name,
+		Purge: w.Purge,
+	}, nil
+}
+
 type deleteRoleRequestWire struct {
 	Name            *string `json:"name,omitempty"`
 	ReassignOwnedTo *string `json:"reassign_owned_to,omitempty"`
@@ -1302,6 +1797,60 @@ func deleteRoleRequestToWire(v *DeleteRoleRequest) (*deleteRoleRequestWire, erro
 	return &deleteRoleRequestWire{
 		Name:            v.Name,
 		ReassignOwnedTo: v.ReassignOwnedTo,
+	}, nil
+}
+
+func deleteRoleRequestFromWire(w *deleteRoleRequestWire) (*DeleteRoleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRoleRequest{
+		Name:            w.Name,
+		ReassignOwnedTo: w.ReassignOwnedTo,
+	}, nil
+}
+
+type deleteSnapshotRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteSnapshotRequestToWire(v *DeleteSnapshotRequest) (*deleteSnapshotRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteSnapshotRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteSnapshotRequestFromWire(w *deleteSnapshotRequestWire) (*DeleteSnapshotRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteSnapshotRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteSyncedTableRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteSyncedTableRequestToWire(v *DeleteSyncedTableRequest) (*deleteSyncedTableRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteSyncedTableRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteSyncedTableRequestFromWire(w *deleteSyncedTableRequestWire) (*DeleteSyncedTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteSyncedTableRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -1485,6 +2034,13 @@ func endpointHostsFromWire(w *endpointHostsWire) (*EndpointHosts, error) {
 }
 
 type endpointOperationMetadataWire struct {
+}
+
+func endpointOperationMetadataToWire(v *EndpointOperationMetadata) (*endpointOperationMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &endpointOperationMetadataWire{}, nil
 }
 
 func endpointOperationMetadataFromWire(w *endpointOperationMetadataWire) (*EndpointOperationMetadata, error) {
@@ -1725,6 +2281,369 @@ func generateDatabaseCredentialRequestToWire(v *GenerateDatabaseCredentialReques
 	}, nil
 }
 
+func generateDatabaseCredentialRequestFromWire(w *generateDatabaseCredentialRequestWire) (*GenerateDatabaseCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	expirationMembers := 0
+	if w.Ttl != nil {
+		expirationMembers++
+	}
+	if w.ExpireTime != nil {
+		expirationMembers++
+	}
+	if expirationMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "GenerateDatabaseCredentialRequest.Expiration")
+	}
+	claimsPublicValue, err := convertSlice(w.Claims, requestedClaimsFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenerateDatabaseCredentialRequest.Claims", err)
+	}
+	var expirationSelection isGenerateDatabaseCredentialRequest_Expiration
+	switch {
+	case w.Ttl != nil:
+		expirationSelection = &GenerateDatabaseCredentialRequest_Expiration_Ttl{Ttl: *w.Ttl}
+	case w.ExpireTime != nil:
+		expirationSelection = &GenerateDatabaseCredentialRequest_Expiration_ExpireTime{ExpireTime: *w.ExpireTime}
+	}
+	return &GenerateDatabaseCredentialRequest{
+		Claims:     claimsPublicValue,
+		Endpoint:   w.Endpoint,
+		GroupName:  w.GroupName,
+		Expiration: expirationSelection,
+	}, nil
+}
+
+type getAssessmentRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getAssessmentRequestToWire(v *GetAssessmentRequest) (*getAssessmentRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getAssessmentRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getAssessmentRequestFromWire(w *getAssessmentRequestWire) (*GetAssessmentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetAssessmentRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getBranchRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getBranchRequestToWire(v *GetBranchRequest) (*getBranchRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getBranchRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getBranchRequestFromWire(w *getBranchRequestWire) (*GetBranchRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetBranchRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getCatalogRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getCatalogRequestToWire(v *GetCatalogRequest) (*getCatalogRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getCatalogRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getCatalogRequestFromWire(w *getCatalogRequestWire) (*GetCatalogRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCatalogRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getCdfConfigRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getCdfConfigRequestToWire(v *GetCdfConfigRequest) (*getCdfConfigRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getCdfConfigRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getCdfConfigRequestFromWire(w *getCdfConfigRequestWire) (*GetCdfConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCdfConfigRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getCdfStatusRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getCdfStatusRequestToWire(v *GetCdfStatusRequest) (*getCdfStatusRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getCdfStatusRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getCdfStatusRequestFromWire(w *getCdfStatusRequestWire) (*GetCdfStatusRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCdfStatusRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getDataApiRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getDataApiRequestToWire(v *GetDataApiRequest) (*getDataApiRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getDataApiRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getDataApiRequestFromWire(w *getDataApiRequestWire) (*GetDataApiRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetDataApiRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getDatabaseRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getDatabaseRequestToWire(v *GetDatabaseRequest) (*getDatabaseRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getDatabaseRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getDatabaseRequestFromWire(w *getDatabaseRequestWire) (*GetDatabaseRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetDatabaseRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getEndpointRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getEndpointRequestToWire(v *GetEndpointRequest) (*getEndpointRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getEndpointRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getEndpointRequestFromWire(w *getEndpointRequestWire) (*GetEndpointRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetEndpointRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getMigrationRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getMigrationRequestToWire(v *GetMigrationRequest) (*getMigrationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getMigrationRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getMigrationRequestFromWire(w *getMigrationRequestWire) (*GetMigrationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetMigrationRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getOperationRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getOperationRequestToWire(v *GetOperationRequest) (*getOperationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getOperationRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getOperationRequestFromWire(w *getOperationRequestWire) (*GetOperationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetOperationRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getProjectRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getProjectRequestToWire(v *GetProjectRequest) (*getProjectRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getProjectRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getProjectRequestFromWire(w *getProjectRequestWire) (*GetProjectRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetProjectRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getRoleRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getRoleRequestToWire(v *GetRoleRequest) (*getRoleRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getRoleRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getRoleRequestFromWire(w *getRoleRequestWire) (*GetRoleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetRoleRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getSnapshotRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getSnapshotRequestToWire(v *GetSnapshotRequest) (*getSnapshotRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getSnapshotRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getSnapshotRequestFromWire(w *getSnapshotRequestWire) (*GetSnapshotRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetSnapshotRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getSnapshotScheduleRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getSnapshotScheduleRequestToWire(v *GetSnapshotScheduleRequest) (*getSnapshotScheduleRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getSnapshotScheduleRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getSnapshotScheduleRequestFromWire(w *getSnapshotScheduleRequestWire) (*GetSnapshotScheduleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetSnapshotScheduleRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getSyncedTableRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getSyncedTableRequestToWire(v *GetSyncedTableRequest) (*getSyncedTableRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getSyncedTableRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getSyncedTableRequestFromWire(w *getSyncedTableRequestWire) (*GetSyncedTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetSyncedTableRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type initialBranchSpecWire struct {
 	IsProtected *bool `json:"is_protected,omitempty"`
 }
@@ -1837,9 +2756,34 @@ func listAssessmentsRequestToWire(v *ListAssessmentsRequest) (*listAssessmentsRe
 	}, nil
 }
 
+func listAssessmentsRequestFromWire(w *listAssessmentsRequestWire) (*ListAssessmentsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListAssessmentsRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listAssessmentsResponseWire struct {
 	Assessments   []assessmentWire `json:"assessments,omitempty"`
 	NextPageToken *string          `json:"next_page_token,omitempty"`
+}
+
+func listAssessmentsResponseToWire(v *ListAssessmentsResponse) (*listAssessmentsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	assessmentsWireValue, err := convertSlice(v.Assessments, assessmentToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAssessmentsResponse.Assessments", err)
+	}
+	return &listAssessmentsResponseWire{
+		Assessments:   assessmentsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listAssessmentsResponseFromWire(w *listAssessmentsResponseWire) (*ListAssessmentsResponse, error) {
@@ -1875,9 +2819,35 @@ func listBranchesRequestToWire(v *ListBranchesRequest) (*listBranchesRequestWire
 	}, nil
 }
 
+func listBranchesRequestFromWire(w *listBranchesRequestWire) (*ListBranchesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListBranchesRequest{
+		Parent:      w.Parent,
+		PageToken:   w.PageToken,
+		PageSize:    w.PageSize,
+		ShowDeleted: w.ShowDeleted,
+	}, nil
+}
+
 type listBranchesResponseWire struct {
 	Branches      []branchWire `json:"branches,omitempty"`
 	NextPageToken *string      `json:"next_page_token,omitempty"`
+}
+
+func listBranchesResponseToWire(v *ListBranchesResponse) (*listBranchesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	branchesWireValue, err := convertSlice(v.Branches, branchToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListBranchesResponse.Branches", err)
+	}
+	return &listBranchesResponseWire{
+		Branches:      branchesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listBranchesResponseFromWire(w *listBranchesResponseWire) (*ListBranchesResponse, error) {
@@ -1911,9 +2881,34 @@ func listCdfConfigsRequestToWire(v *ListCdfConfigsRequest) (*listCdfConfigsReque
 	}, nil
 }
 
+func listCdfConfigsRequestFromWire(w *listCdfConfigsRequestWire) (*ListCdfConfigsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListCdfConfigsRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listCdfConfigsResponseWire struct {
 	CdfConfigs    []cdfConfigWire `json:"cdf_configs,omitempty"`
 	NextPageToken *string         `json:"next_page_token,omitempty"`
+}
+
+func listCdfConfigsResponseToWire(v *ListCdfConfigsResponse) (*listCdfConfigsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	cdfConfigsWireValue, err := convertSlice(v.CdfConfigs, cdfConfigToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCdfConfigsResponse.CdfConfigs", err)
+	}
+	return &listCdfConfigsResponseWire{
+		CdfConfigs:    cdfConfigsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listCdfConfigsResponseFromWire(w *listCdfConfigsResponseWire) (*ListCdfConfigsResponse, error) {
@@ -1947,9 +2942,34 @@ func listCdfStatusesRequestToWire(v *ListCdfStatusesRequest) (*listCdfStatusesRe
 	}, nil
 }
 
+func listCdfStatusesRequestFromWire(w *listCdfStatusesRequestWire) (*ListCdfStatusesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListCdfStatusesRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listCdfStatusesResponseWire struct {
 	CdfStatuses   []cdfStatusWire `json:"cdf_statuses,omitempty"`
 	NextPageToken *string         `json:"next_page_token,omitempty"`
+}
+
+func listCdfStatusesResponseToWire(v *ListCdfStatusesResponse) (*listCdfStatusesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	cdfStatusesWireValue, err := convertSlice(v.CdfStatuses, cdfStatusToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCdfStatusesResponse.CdfStatuses", err)
+	}
+	return &listCdfStatusesResponseWire{
+		CdfStatuses:   cdfStatusesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listCdfStatusesResponseFromWire(w *listCdfStatusesResponseWire) (*ListCdfStatusesResponse, error) {
@@ -1983,9 +3003,34 @@ func listDatabasesRequestToWire(v *ListDatabasesRequest) (*listDatabasesRequestW
 	}, nil
 }
 
+func listDatabasesRequestFromWire(w *listDatabasesRequestWire) (*ListDatabasesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListDatabasesRequest{
+		Parent:    w.Parent,
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listDatabasesResponseWire struct {
 	Databases     []databaseWire `json:"databases,omitempty"`
 	NextPageToken *string        `json:"next_page_token,omitempty"`
+}
+
+func listDatabasesResponseToWire(v *ListDatabasesResponse) (*listDatabasesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	databasesWireValue, err := convertSlice(v.Databases, databaseToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListDatabasesResponse.Databases", err)
+	}
+	return &listDatabasesResponseWire{
+		Databases:     databasesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listDatabasesResponseFromWire(w *listDatabasesResponseWire) (*ListDatabasesResponse, error) {
@@ -2019,9 +3064,34 @@ func listEndpointsRequestToWire(v *ListEndpointsRequest) (*listEndpointsRequestW
 	}, nil
 }
 
+func listEndpointsRequestFromWire(w *listEndpointsRequestWire) (*ListEndpointsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListEndpointsRequest{
+		Parent:    w.Parent,
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listEndpointsResponseWire struct {
 	Endpoints     []endpointWire `json:"endpoints,omitempty"`
 	NextPageToken *string        `json:"next_page_token,omitempty"`
+}
+
+func listEndpointsResponseToWire(v *ListEndpointsResponse) (*listEndpointsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	endpointsWireValue, err := convertSlice(v.Endpoints, endpointToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListEndpointsResponse.Endpoints", err)
+	}
+	return &listEndpointsResponseWire{
+		Endpoints:     endpointsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listEndpointsResponseFromWire(w *listEndpointsResponseWire) (*ListEndpointsResponse, error) {
@@ -2055,9 +3125,34 @@ func listMigrationsRequestToWire(v *ListMigrationsRequest) (*listMigrationsReque
 	}, nil
 }
 
+func listMigrationsRequestFromWire(w *listMigrationsRequestWire) (*ListMigrationsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListMigrationsRequest{
+		PageSize:    w.PageSize,
+		PageToken:   w.PageToken,
+		ShowDeleted: w.ShowDeleted,
+	}, nil
+}
+
 type listMigrationsResponseWire struct {
 	Migrations    []migrationWire `json:"migrations,omitempty"`
 	NextPageToken *string         `json:"next_page_token,omitempty"`
+}
+
+func listMigrationsResponseToWire(v *ListMigrationsResponse) (*listMigrationsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	migrationsWireValue, err := convertSlice(v.Migrations, migrationToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListMigrationsResponse.Migrations", err)
+	}
+	return &listMigrationsResponseWire{
+		Migrations:    migrationsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listMigrationsResponseFromWire(w *listMigrationsResponseWire) (*ListMigrationsResponse, error) {
@@ -2091,9 +3186,34 @@ func listProjectsRequestToWire(v *ListProjectsRequest) (*listProjectsRequestWire
 	}, nil
 }
 
+func listProjectsRequestFromWire(w *listProjectsRequestWire) (*ListProjectsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListProjectsRequest{
+		PageToken:   w.PageToken,
+		PageSize:    w.PageSize,
+		ShowDeleted: w.ShowDeleted,
+	}, nil
+}
+
 type listProjectsResponseWire struct {
 	Projects      []projectWire `json:"projects,omitempty"`
 	NextPageToken *string       `json:"next_page_token,omitempty"`
+}
+
+func listProjectsResponseToWire(v *ListProjectsResponse) (*listProjectsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	projectsWireValue, err := convertSlice(v.Projects, projectToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListProjectsResponse.Projects", err)
+	}
+	return &listProjectsResponseWire{
+		Projects:      projectsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listProjectsResponseFromWire(w *listProjectsResponseWire) (*ListProjectsResponse, error) {
@@ -2127,9 +3247,34 @@ func listRolesRequestToWire(v *ListRolesRequest) (*listRolesRequestWire, error) 
 	}, nil
 }
 
+func listRolesRequestFromWire(w *listRolesRequestWire) (*ListRolesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListRolesRequest{
+		Parent:    w.Parent,
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listRolesResponseWire struct {
 	Roles         []roleWire `json:"roles,omitempty"`
 	NextPageToken *string    `json:"next_page_token,omitempty"`
+}
+
+func listRolesResponseToWire(v *ListRolesResponse) (*listRolesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	rolesWireValue, err := convertSlice(v.Roles, roleToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRolesResponse.Roles", err)
+	}
+	return &listRolesResponseWire{
+		Roles:         rolesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listRolesResponseFromWire(w *listRolesResponseWire) (*ListRolesResponse, error) {
@@ -2163,9 +3308,34 @@ func listSnapshotsRequestToWire(v *ListSnapshotsRequest) (*listSnapshotsRequestW
 	}, nil
 }
 
+func listSnapshotsRequestFromWire(w *listSnapshotsRequestWire) (*ListSnapshotsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSnapshotsRequest{
+		Parent:    w.Parent,
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listSnapshotsResponseWire struct {
 	Snapshots     []snapshotWire `json:"snapshots,omitempty"`
 	NextPageToken *string        `json:"next_page_token,omitempty"`
+}
+
+func listSnapshotsResponseToWire(v *ListSnapshotsResponse) (*listSnapshotsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	snapshotsWireValue, err := convertSlice(v.Snapshots, snapshotToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSnapshotsResponse.Snapshots", err)
+	}
+	return &listSnapshotsResponseWire{
+		Snapshots:     snapshotsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listSnapshotsResponseFromWire(w *listSnapshotsResponseWire) (*ListSnapshotsResponse, error) {
@@ -2184,6 +3354,15 @@ func listSnapshotsResponseFromWire(w *listSnapshotsResponseWire) (*ListSnapshots
 
 type longTransactionDetailsWire struct {
 	OldestTransactionAge *types.Duration `json:"oldest_transaction_age,omitempty"`
+}
+
+func longTransactionDetailsToWire(v *LongTransactionDetails) (*longTransactionDetailsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &longTransactionDetailsWire{
+		OldestTransactionAge: v.OldestTransactionAge,
+	}, nil
 }
 
 func longTransactionDetailsFromWire(w *longTransactionDetailsWire) (*LongTransactionDetails, error) {
@@ -2291,6 +3470,13 @@ func migrationErrorFromWire(w *migrationErrorWire) (*MigrationError, error) {
 type migrationOperationMetadataWire struct {
 }
 
+func migrationOperationMetadataToWire(v *MigrationOperationMetadata) (*migrationOperationMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &migrationOperationMetadataWire{}, nil
+}
+
 func migrationOperationMetadataFromWire(w *migrationOperationMetadataWire) (*MigrationOperationMetadata, error) {
 	if w == nil {
 		return nil, nil
@@ -2360,6 +3546,38 @@ type operationWire struct {
 	Done     *bool           `json:"done,omitempty"`
 	Error    *apiErrorWire   `json:"error,omitempty"`
 	Response json.RawMessage `json:"response,omitempty"`
+}
+
+func operationToWire(v *Operation) (*operationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var resultErrorWire *apiErrorWire
+	var resultResponseWire json.RawMessage
+	switch value := v.Result.(type) {
+	case nil:
+	case *Operation_Result_Error:
+		if value != nil {
+			resultErrorConverted, err := apiErrorToWire(&value.Error)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Operation.Result.Error", err)
+			}
+			resultErrorWire = resultErrorConverted
+		}
+	case *Operation_Result_Response:
+		if value != nil {
+			resultResponseWire = value.Response
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Operation.Result", value)
+	}
+	return &operationWire{
+		Name:     v.Name,
+		Metadata: v.Metadata,
+		Done:     v.Done,
+		Error:    resultErrorWire,
+		Response: resultResponseWire,
+	}, nil
 }
 
 func operationFromWire(w *operationWire) (*Operation, error) {
@@ -2572,6 +3790,13 @@ func projectDefaultEndpointSettingsFromWire(w *projectDefaultEndpointSettingsWir
 type projectOperationMetadataWire struct {
 }
 
+func projectOperationMetadataToWire(v *ProjectOperationMetadata) (*projectOperationMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &projectOperationMetadataWire{}, nil
+}
+
 func projectOperationMetadataFromWire(w *projectOperationMetadataWire) (*ProjectOperationMetadata, error) {
 	if w == nil {
 		return nil, nil
@@ -2728,6 +3953,23 @@ func projectStatusFromWire(w *projectStatusWire) (*ProjectStatus, error) {
 	}, nil
 }
 
+type provisioningInfoWire struct {
+}
+
+func provisioningInfoToWire(v *ProvisioningInfo) (*provisioningInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &provisioningInfoWire{}, nil
+}
+
+func provisioningInfoFromWire(w *provisioningInfoWire) (*ProvisioningInfo, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ProvisioningInfo{}, nil
+}
+
 type requestedClaimsWire struct {
 	PermissionSet RequestedClaims_PermissionSet `json:"permission_set,omitempty"`
 	Resources     []requestedResourceWire       `json:"resources,omitempty"`
@@ -2744,6 +3986,20 @@ func requestedClaimsToWire(v *RequestedClaims) (*requestedClaimsWire, error) {
 	return &requestedClaimsWire{
 		PermissionSet: v.PermissionSet,
 		Resources:     resourcesWireValue,
+	}, nil
+}
+
+func requestedClaimsFromWire(w *requestedClaimsWire) (*RequestedClaims, error) {
+	if w == nil {
+		return nil, nil
+	}
+	resourcesPublicValue, err := convertSlice(w.Resources, requestedResourceFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RequestedClaims.Resources", err)
+	}
+	return &RequestedClaims{
+		PermissionSet: w.PermissionSet,
+		Resources:     resourcesPublicValue,
 	}, nil
 }
 
@@ -2770,6 +4026,27 @@ func requestedResourceToWire(v *RequestedResource) (*requestedResourceWire, erro
 	}, nil
 }
 
+func requestedResourceFromWire(w *requestedResourceWire) (*RequestedResource, error) {
+	if w == nil {
+		return nil, nil
+	}
+	resourceNameMembers := 0
+	if w.TableName != nil {
+		resourceNameMembers++
+	}
+	if resourceNameMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "RequestedResource.ResourceName")
+	}
+	var resourceNameSelection isRequestedResource_ResourceName
+	switch {
+	case w.TableName != nil:
+		resourceNameSelection = &RequestedResource_ResourceName_TableName{TableName: *w.TableName}
+	}
+	return &RequestedResource{
+		ResourceName: resourceNameSelection,
+	}, nil
+}
+
 type revealRolePasswordRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -2783,8 +4060,26 @@ func revealRolePasswordRequestToWire(v *RevealRolePasswordRequest) (*revealRoleP
 	}, nil
 }
 
+func revealRolePasswordRequestFromWire(w *revealRolePasswordRequestWire) (*RevealRolePasswordRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RevealRolePasswordRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type revealRolePasswordResponseWire struct {
 	Password *string `json:"password,omitempty"`
+}
+
+func revealRolePasswordResponseToWire(v *RevealRolePasswordResponse) (*revealRolePasswordResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &revealRolePasswordResponseWire{
+		Password: v.Password,
+	}, nil
 }
 
 func revealRolePasswordResponseFromWire(w *revealRolePasswordResponseWire) (*RevealRolePasswordResponse, error) {
@@ -2970,6 +4265,13 @@ func role_RoleStatusFromWire(w *role_RoleStatusWire) (*Role_RoleStatus, error) {
 type roleOperationMetadataWire struct {
 }
 
+func roleOperationMetadataToWire(v *RoleOperationMetadata) (*roleOperationMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &roleOperationMetadataWire{}, nil
+}
+
 func roleOperationMetadataFromWire(w *roleOperationMetadataWire) (*RoleOperationMetadata, error) {
 	if w == nil {
 		return nil, nil
@@ -3128,6 +4430,13 @@ func snapshotFromWire(w *snapshotWire) (*Snapshot, error) {
 type snapshotOperationMetadataWire struct {
 }
 
+func snapshotOperationMetadataToWire(v *SnapshotOperationMetadata) (*snapshotOperationMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &snapshotOperationMetadataWire{}, nil
+}
+
 func snapshotOperationMetadataFromWire(w *snapshotOperationMetadataWire) (*SnapshotOperationMetadata, error) {
 	if w == nil {
 		return nil, nil
@@ -3169,6 +4478,13 @@ func snapshotScheduleFromWire(w *snapshotScheduleWire) (*SnapshotSchedule, error
 }
 
 type snapshotScheduleOperationMetadataWire struct {
+}
+
+func snapshotScheduleOperationMetadataToWire(v *SnapshotScheduleOperationMetadata) (*snapshotScheduleOperationMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &snapshotScheduleOperationMetadataWire{}, nil
 }
 
 func snapshotScheduleOperationMetadataFromWire(w *snapshotScheduleOperationMetadataWire) (*SnapshotScheduleOperationMetadata, error) {
@@ -3380,8 +4696,30 @@ func startMigrationRequestToWire(v *StartMigrationRequest) (*startMigrationReque
 	}, nil
 }
 
+func startMigrationRequestFromWire(w *startMigrationRequestWire) (*StartMigrationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &StartMigrationRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type startMigrationResponseWire struct {
 	Migration *migrationWire `json:"migration,omitempty"`
+}
+
+func startMigrationResponseToWire(v *StartMigrationResponse) (*startMigrationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	migrationWireValue, err := migrationToWire(v.Migration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "StartMigrationResponse.Migration", err)
+	}
+	return &startMigrationResponseWire{
+		Migration: migrationWireValue,
+	}, nil
 }
 
 func startMigrationResponseFromWire(w *startMigrationResponseWire) (*StartMigrationResponse, error) {
@@ -3664,6 +5002,13 @@ func syncedTable_SyncedTableStatusFromWire(w *syncedTable_SyncedTableStatusWire)
 type syncedTableOperationMetadataWire struct {
 }
 
+func syncedTableOperationMetadataToWire(v *SyncedTableOperationMetadata) (*syncedTableOperationMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &syncedTableOperationMetadataWire{}, nil
+}
+
 func syncedTableOperationMetadataFromWire(w *syncedTableOperationMetadataWire) (*SyncedTableOperationMetadata, error) {
 	if w == nil {
 		return nil, nil
@@ -3800,6 +5145,15 @@ func undeleteBranchRequestToWire(v *UndeleteBranchRequest) (*undeleteBranchReque
 	}, nil
 }
 
+func undeleteBranchRequestFromWire(w *undeleteBranchRequestWire) (*UndeleteBranchRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UndeleteBranchRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type undeleteMigrationRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -3813,8 +5167,30 @@ func undeleteMigrationRequestToWire(v *UndeleteMigrationRequest) (*undeleteMigra
 	}, nil
 }
 
+func undeleteMigrationRequestFromWire(w *undeleteMigrationRequestWire) (*UndeleteMigrationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UndeleteMigrationRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type undeleteMigrationResponseWire struct {
 	Migration *migrationWire `json:"migration,omitempty"`
+}
+
+func undeleteMigrationResponseToWire(v *UndeleteMigrationResponse) (*undeleteMigrationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	migrationWireValue, err := migrationToWire(v.Migration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UndeleteMigrationResponse.Migration", err)
+	}
+	return &undeleteMigrationResponseWire{
+		Migration: migrationWireValue,
+	}, nil
 }
 
 func undeleteMigrationResponseFromWire(w *undeleteMigrationResponseWire) (*UndeleteMigrationResponse, error) {
@@ -3843,9 +5219,18 @@ func undeleteProjectRequestToWire(v *UndeleteProjectRequest) (*undeleteProjectRe
 	}, nil
 }
 
+func undeleteProjectRequestFromWire(w *undeleteProjectRequestWire) (*UndeleteProjectRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UndeleteProjectRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type updateBranchRequestWire struct {
-	Branch     *branchWire `json:"branch,omitempty"`
-	UpdateMask *string     `json:"update_mask,omitempty"`
+	Branch     *branchWire              `json:"branch,omitempty"`
+	UpdateMask *types.FieldMask[Branch] `json:"update_mask,omitempty"`
 }
 
 func updateBranchRequestToWire(v *UpdateBranchRequest) (*updateBranchRequestWire, error) {
@@ -3858,13 +5243,27 @@ func updateBranchRequestToWire(v *UpdateBranchRequest) (*updateBranchRequestWire
 	}
 	return &updateBranchRequestWire{
 		Branch:     branchWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateBranchRequestFromWire(w *updateBranchRequestWire) (*UpdateBranchRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	branchPublicValue, err := branchFromWire(w.Branch)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateBranchRequest.Branch", err)
+	}
+	return &UpdateBranchRequest{
+		Branch:     branchPublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 
 type updateDataApiRequestWire struct {
-	DataApi    *dataApiWire `json:"data_api,omitempty"`
-	UpdateMask *string      `json:"update_mask,omitempty"`
+	DataApi    *dataApiWire              `json:"data_api,omitempty"`
+	UpdateMask *types.FieldMask[DataApi] `json:"update_mask,omitempty"`
 }
 
 func updateDataApiRequestToWire(v *UpdateDataApiRequest) (*updateDataApiRequestWire, error) {
@@ -3877,13 +5276,27 @@ func updateDataApiRequestToWire(v *UpdateDataApiRequest) (*updateDataApiRequestW
 	}
 	return &updateDataApiRequestWire{
 		DataApi:    dataApiWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateDataApiRequestFromWire(w *updateDataApiRequestWire) (*UpdateDataApiRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	dataApiPublicValue, err := dataApiFromWire(w.DataApi)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateDataApiRequest.DataApi", err)
+	}
+	return &UpdateDataApiRequest{
+		DataApi:    dataApiPublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 
 type updateDatabaseRequestWire struct {
-	Database   *databaseWire `json:"database,omitempty"`
-	UpdateMask *string       `json:"update_mask,omitempty"`
+	Database   *databaseWire              `json:"database,omitempty"`
+	UpdateMask *types.FieldMask[Database] `json:"update_mask,omitempty"`
 }
 
 func updateDatabaseRequestToWire(v *UpdateDatabaseRequest) (*updateDatabaseRequestWire, error) {
@@ -3896,13 +5309,27 @@ func updateDatabaseRequestToWire(v *UpdateDatabaseRequest) (*updateDatabaseReque
 	}
 	return &updateDatabaseRequestWire{
 		Database:   databaseWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateDatabaseRequestFromWire(w *updateDatabaseRequestWire) (*UpdateDatabaseRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	databasePublicValue, err := databaseFromWire(w.Database)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateDatabaseRequest.Database", err)
+	}
+	return &UpdateDatabaseRequest{
+		Database:   databasePublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 
 type updateEndpointRequestWire struct {
-	Endpoint   *endpointWire `json:"endpoint,omitempty"`
-	UpdateMask *string       `json:"update_mask,omitempty"`
+	Endpoint   *endpointWire              `json:"endpoint,omitempty"`
+	UpdateMask *types.FieldMask[Endpoint] `json:"update_mask,omitempty"`
 }
 
 func updateEndpointRequestToWire(v *UpdateEndpointRequest) (*updateEndpointRequestWire, error) {
@@ -3915,13 +5342,27 @@ func updateEndpointRequestToWire(v *UpdateEndpointRequest) (*updateEndpointReque
 	}
 	return &updateEndpointRequestWire{
 		Endpoint:   endpointWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateEndpointRequestFromWire(w *updateEndpointRequestWire) (*UpdateEndpointRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	endpointPublicValue, err := endpointFromWire(w.Endpoint)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateEndpointRequest.Endpoint", err)
+	}
+	return &UpdateEndpointRequest{
+		Endpoint:   endpointPublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 
 type updateMigrationRequestWire struct {
-	Migration  *migrationWire `json:"migration,omitempty"`
-	UpdateMask *string        `json:"update_mask,omitempty"`
+	Migration  *migrationWire              `json:"migration,omitempty"`
+	UpdateMask *types.FieldMask[Migration] `json:"update_mask,omitempty"`
 }
 
 func updateMigrationRequestToWire(v *UpdateMigrationRequest) (*updateMigrationRequestWire, error) {
@@ -3934,13 +5375,27 @@ func updateMigrationRequestToWire(v *UpdateMigrationRequest) (*updateMigrationRe
 	}
 	return &updateMigrationRequestWire{
 		Migration:  migrationWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateMigrationRequestFromWire(w *updateMigrationRequestWire) (*UpdateMigrationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	migrationPublicValue, err := migrationFromWire(w.Migration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateMigrationRequest.Migration", err)
+	}
+	return &UpdateMigrationRequest{
+		Migration:  migrationPublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 
 type updateProjectRequestWire struct {
-	Project    *projectWire `json:"project,omitempty"`
-	UpdateMask *string      `json:"update_mask,omitempty"`
+	Project    *projectWire              `json:"project,omitempty"`
+	UpdateMask *types.FieldMask[Project] `json:"update_mask,omitempty"`
 }
 
 func updateProjectRequestToWire(v *UpdateProjectRequest) (*updateProjectRequestWire, error) {
@@ -3953,13 +5408,27 @@ func updateProjectRequestToWire(v *UpdateProjectRequest) (*updateProjectRequestW
 	}
 	return &updateProjectRequestWire{
 		Project:    projectWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateProjectRequestFromWire(w *updateProjectRequestWire) (*UpdateProjectRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	projectPublicValue, err := projectFromWire(w.Project)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateProjectRequest.Project", err)
+	}
+	return &UpdateProjectRequest{
+		Project:    projectPublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 
 type updateRoleRequestWire struct {
-	Role       *roleWire `json:"role,omitempty"`
-	UpdateMask *string   `json:"update_mask,omitempty"`
+	Role       *roleWire              `json:"role,omitempty"`
+	UpdateMask *types.FieldMask[Role] `json:"update_mask,omitempty"`
 }
 
 func updateRoleRequestToWire(v *UpdateRoleRequest) (*updateRoleRequestWire, error) {
@@ -3972,13 +5441,27 @@ func updateRoleRequestToWire(v *UpdateRoleRequest) (*updateRoleRequestWire, erro
 	}
 	return &updateRoleRequestWire{
 		Role:       roleWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateRoleRequestFromWire(w *updateRoleRequestWire) (*UpdateRoleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	rolePublicValue, err := roleFromWire(w.Role)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRoleRequest.Role", err)
+	}
+	return &UpdateRoleRequest{
+		Role:       rolePublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 
 type updateSnapshotScheduleRequestWire struct {
-	SnapshotSchedule *snapshotScheduleWire `json:"snapshot_schedule,omitempty"`
-	UpdateMask       *string               `json:"update_mask,omitempty"`
+	SnapshotSchedule *snapshotScheduleWire              `json:"snapshot_schedule,omitempty"`
+	UpdateMask       *types.FieldMask[SnapshotSchedule] `json:"update_mask,omitempty"`
 }
 
 func updateSnapshotScheduleRequestToWire(v *UpdateSnapshotScheduleRequest) (*updateSnapshotScheduleRequestWire, error) {
@@ -3991,7 +5474,21 @@ func updateSnapshotScheduleRequestToWire(v *UpdateSnapshotScheduleRequest) (*upd
 	}
 	return &updateSnapshotScheduleRequestWire{
 		SnapshotSchedule: snapshotScheduleWireValue,
-		UpdateMask:       fieldMaskToWire(v.UpdateMask),
+		UpdateMask:       v.UpdateMask,
+	}, nil
+}
+
+func updateSnapshotScheduleRequestFromWire(w *updateSnapshotScheduleRequestWire) (*UpdateSnapshotScheduleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	snapshotSchedulePublicValue, err := snapshotScheduleFromWire(w.SnapshotSchedule)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateSnapshotScheduleRequest.SnapshotSchedule", err)
+	}
+	return &UpdateSnapshotScheduleRequest{
+		SnapshotSchedule: snapshotSchedulePublicValue,
+		UpdateMask:       w.UpdateMask,
 	}, nil
 }
 

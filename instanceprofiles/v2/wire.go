@@ -25,6 +25,35 @@ func addInstanceProfileRequestToWire(v *AddInstanceProfileRequest) (*addInstance
 	}, nil
 }
 
+func addInstanceProfileRequestFromWire(w *addInstanceProfileRequestWire) (*AddInstanceProfileRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AddInstanceProfileRequest{
+		SkipValidation:        w.SkipValidation,
+		InstanceProfileArn:    w.InstanceProfileArn,
+		IsMetaInstanceProfile: w.IsMetaInstanceProfile,
+		IamRoleArn:            w.IamRoleArn,
+	}, nil
+}
+
+type addInstanceProfileResponseWire struct {
+}
+
+func addInstanceProfileResponseToWire(v *AddInstanceProfileResponse) (*addInstanceProfileResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &addInstanceProfileResponseWire{}, nil
+}
+
+func addInstanceProfileResponseFromWire(w *addInstanceProfileResponseWire) (*AddInstanceProfileResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AddInstanceProfileResponse{}, nil
+}
+
 type editInstanceProfileRequestWire struct {
 	InstanceProfileArn    *string `json:"instance_profile_arn,omitempty"`
 	IsMetaInstanceProfile *bool   `json:"is_meta_instance_profile,omitempty"`
@@ -42,10 +71,49 @@ func editInstanceProfileRequestToWire(v *EditInstanceProfileRequest) (*editInsta
 	}, nil
 }
 
+func editInstanceProfileRequestFromWire(w *editInstanceProfileRequestWire) (*EditInstanceProfileRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &EditInstanceProfileRequest{
+		InstanceProfileArn:    w.InstanceProfileArn,
+		IsMetaInstanceProfile: w.IsMetaInstanceProfile,
+		IamRoleArn:            w.IamRoleArn,
+	}, nil
+}
+
+type editInstanceProfileResponseWire struct {
+}
+
+func editInstanceProfileResponseToWire(v *EditInstanceProfileResponse) (*editInstanceProfileResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &editInstanceProfileResponseWire{}, nil
+}
+
+func editInstanceProfileResponseFromWire(w *editInstanceProfileResponseWire) (*EditInstanceProfileResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &EditInstanceProfileResponse{}, nil
+}
+
 type instanceProfileWire struct {
 	InstanceProfileArn    *string `json:"instance_profile_arn,omitempty"`
 	IsMetaInstanceProfile *bool   `json:"is_meta_instance_profile,omitempty"`
 	IamRoleArn            *string `json:"iam_role_arn,omitempty"`
+}
+
+func instanceProfileToWire(v *InstanceProfile) (*instanceProfileWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &instanceProfileWire{
+		InstanceProfileArn:    v.InstanceProfileArn,
+		IsMetaInstanceProfile: v.IsMetaInstanceProfile,
+		IamRoleArn:            v.IamRoleArn,
+	}, nil
 }
 
 func instanceProfileFromWire(w *instanceProfileWire) (*InstanceProfile, error) {
@@ -59,8 +127,38 @@ func instanceProfileFromWire(w *instanceProfileWire) (*InstanceProfile, error) {
 	}, nil
 }
 
+type listInstanceProfilesRequestWire struct {
+}
+
+func listInstanceProfilesRequestToWire(v *ListInstanceProfilesRequest) (*listInstanceProfilesRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listInstanceProfilesRequestWire{}, nil
+}
+
+func listInstanceProfilesRequestFromWire(w *listInstanceProfilesRequestWire) (*ListInstanceProfilesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListInstanceProfilesRequest{}, nil
+}
+
 type listInstanceProfilesResponseWire struct {
 	InstanceProfiles []instanceProfileWire `json:"instance_profiles,omitempty"`
+}
+
+func listInstanceProfilesResponseToWire(v *ListInstanceProfilesResponse) (*listInstanceProfilesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	instanceProfilesWireValue, err := convertSlice(v.InstanceProfiles, instanceProfileToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListInstanceProfilesResponse.InstanceProfiles", err)
+	}
+	return &listInstanceProfilesResponseWire{
+		InstanceProfiles: instanceProfilesWireValue,
+	}, nil
 }
 
 func listInstanceProfilesResponseFromWire(w *listInstanceProfilesResponseWire) (*ListInstanceProfilesResponse, error) {
@@ -87,6 +185,32 @@ func removeInstanceProfileRequestToWire(v *RemoveInstanceProfileRequest) (*remov
 	return &removeInstanceProfileRequestWire{
 		InstanceProfileArn: v.InstanceProfileArn,
 	}, nil
+}
+
+func removeInstanceProfileRequestFromWire(w *removeInstanceProfileRequestWire) (*RemoveInstanceProfileRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RemoveInstanceProfileRequest{
+		InstanceProfileArn: w.InstanceProfileArn,
+	}, nil
+}
+
+type removeInstanceProfileResponseWire struct {
+}
+
+func removeInstanceProfileResponseToWire(v *RemoveInstanceProfileResponse) (*removeInstanceProfileResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &removeInstanceProfileResponseWire{}, nil
+}
+
+func removeInstanceProfileResponseFromWire(w *removeInstanceProfileResponseWire) (*RemoveInstanceProfileResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RemoveInstanceProfileResponse{}, nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

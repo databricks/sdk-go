@@ -881,6 +881,81 @@ func dashboardTheme_SentimentColorsFromWire(w *dashboardTheme_SentimentColorsWir
 	}, nil
 }
 
+type getPublicAccountSettingRequestWire struct {
+	AccountId *string `json:"account_id,omitempty"`
+	Name      *string `json:"name,omitempty"`
+}
+
+func getPublicAccountSettingRequestToWire(v *GetPublicAccountSettingRequest) (*getPublicAccountSettingRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getPublicAccountSettingRequestWire{
+		AccountId: v.AccountId,
+		Name:      v.Name,
+	}, nil
+}
+
+func getPublicAccountSettingRequestFromWire(w *getPublicAccountSettingRequestWire) (*GetPublicAccountSettingRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetPublicAccountSettingRequest{
+		AccountId: w.AccountId,
+		Name:      w.Name,
+	}, nil
+}
+
+type getPublicAccountUserPreferenceRequestWire struct {
+	AccountId *string `json:"account_id,omitempty"`
+	UserId    *string `json:"user_id,omitempty"`
+	Name      *string `json:"name,omitempty"`
+}
+
+func getPublicAccountUserPreferenceRequestToWire(v *GetPublicAccountUserPreferenceRequest) (*getPublicAccountUserPreferenceRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getPublicAccountUserPreferenceRequestWire{
+		AccountId: v.AccountId,
+		UserId:    v.UserId,
+		Name:      v.Name,
+	}, nil
+}
+
+func getPublicAccountUserPreferenceRequestFromWire(w *getPublicAccountUserPreferenceRequestWire) (*GetPublicAccountUserPreferenceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetPublicAccountUserPreferenceRequest{
+		AccountId: w.AccountId,
+		UserId:    w.UserId,
+		Name:      w.Name,
+	}, nil
+}
+
+type getPublicWorkspaceSettingRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getPublicWorkspaceSettingRequestToWire(v *GetPublicWorkspaceSettingRequest) (*getPublicWorkspaceSettingRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getPublicWorkspaceSettingRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getPublicWorkspaceSettingRequestFromWire(w *getPublicWorkspaceSettingRequestWire) (*GetPublicWorkspaceSettingRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetPublicWorkspaceSettingRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type integerMessageWire struct {
 	Value *int `json:"value,omitempty"`
 }
@@ -920,9 +995,34 @@ func listAccountSettingsMetadataRequestToWire(v *ListAccountSettingsMetadataRequ
 	}, nil
 }
 
+func listAccountSettingsMetadataRequestFromWire(w *listAccountSettingsMetadataRequestWire) (*ListAccountSettingsMetadataRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListAccountSettingsMetadataRequest{
+		AccountId: w.AccountId,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listAccountSettingsMetadataResponseWire struct {
 	SettingsMetadata []settingsMetadataWire `json:"settings_metadata,omitempty"`
 	NextPageToken    *string                `json:"next_page_token,omitempty"`
+}
+
+func listAccountSettingsMetadataResponseToWire(v *ListAccountSettingsMetadataResponse) (*listAccountSettingsMetadataResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	settingsMetadataWireValue, err := convertSlice(v.SettingsMetadata, settingsMetadataToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountSettingsMetadataResponse.SettingsMetadata", err)
+	}
+	return &listAccountSettingsMetadataResponseWire{
+		SettingsMetadata: settingsMetadataWireValue,
+		NextPageToken:    v.NextPageToken,
+	}, nil
 }
 
 func listAccountSettingsMetadataResponseFromWire(w *listAccountSettingsMetadataResponseWire) (*ListAccountSettingsMetadataResponse, error) {
@@ -958,9 +1058,35 @@ func listAccountUserPreferencesMetadataRequestToWire(v *ListAccountUserPreferenc
 	}, nil
 }
 
+func listAccountUserPreferencesMetadataRequestFromWire(w *listAccountUserPreferencesMetadataRequestWire) (*ListAccountUserPreferencesMetadataRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListAccountUserPreferencesMetadataRequest{
+		AccountId: w.AccountId,
+		UserId:    w.UserId,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listAccountUserPreferencesMetadataResponseWire struct {
 	SettingsMetadata []settingsMetadataWire `json:"settings_metadata,omitempty"`
 	NextPageToken    *string                `json:"next_page_token,omitempty"`
+}
+
+func listAccountUserPreferencesMetadataResponseToWire(v *ListAccountUserPreferencesMetadataResponse) (*listAccountUserPreferencesMetadataResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	settingsMetadataWireValue, err := convertSlice(v.SettingsMetadata, settingsMetadataToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountUserPreferencesMetadataResponse.SettingsMetadata", err)
+	}
+	return &listAccountUserPreferencesMetadataResponseWire{
+		SettingsMetadata: settingsMetadataWireValue,
+		NextPageToken:    v.NextPageToken,
+	}, nil
 }
 
 func listAccountUserPreferencesMetadataResponseFromWire(w *listAccountUserPreferencesMetadataResponseWire) (*ListAccountUserPreferencesMetadataResponse, error) {
@@ -992,9 +1118,33 @@ func listWorkspaceSettingsMetadataRequestToWire(v *ListWorkspaceSettingsMetadata
 	}, nil
 }
 
+func listWorkspaceSettingsMetadataRequestFromWire(w *listWorkspaceSettingsMetadataRequestWire) (*ListWorkspaceSettingsMetadataRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListWorkspaceSettingsMetadataRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listWorkspaceSettingsMetadataResponseWire struct {
 	SettingsMetadata []settingsMetadataWire `json:"settings_metadata,omitempty"`
 	NextPageToken    *string                `json:"next_page_token,omitempty"`
+}
+
+func listWorkspaceSettingsMetadataResponseToWire(v *ListWorkspaceSettingsMetadataResponse) (*listWorkspaceSettingsMetadataResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	settingsMetadataWireValue, err := convertSlice(v.SettingsMetadata, settingsMetadataToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListWorkspaceSettingsMetadataResponse.SettingsMetadata", err)
+	}
+	return &listWorkspaceSettingsMetadataResponseWire{
+		SettingsMetadata: settingsMetadataWireValue,
+		NextPageToken:    v.NextPageToken,
+	}, nil
 }
 
 func listWorkspaceSettingsMetadataResponseFromWire(w *listWorkspaceSettingsMetadataResponseWire) (*ListWorkspaceSettingsMetadataResponse, error) {
@@ -1054,6 +1204,21 @@ func patchPublicAccountSettingRequestToWire(v *PatchPublicAccountSettingRequest)
 	}, nil
 }
 
+func patchPublicAccountSettingRequestFromWire(w *patchPublicAccountSettingRequestWire) (*PatchPublicAccountSettingRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	settingPublicValue, err := settingFromWire(w.Setting)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PatchPublicAccountSettingRequest.Setting", err)
+	}
+	return &PatchPublicAccountSettingRequest{
+		AccountId: w.AccountId,
+		Name:      w.Name,
+		Setting:   settingPublicValue,
+	}, nil
+}
+
 type patchPublicAccountUserPreferenceRequestWire struct {
 	AccountId *string             `json:"account_id,omitempty"`
 	UserId    *string             `json:"user_id,omitempty"`
@@ -1077,6 +1242,22 @@ func patchPublicAccountUserPreferenceRequestToWire(v *PatchPublicAccountUserPref
 	}, nil
 }
 
+func patchPublicAccountUserPreferenceRequestFromWire(w *patchPublicAccountUserPreferenceRequestWire) (*PatchPublicAccountUserPreferenceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	settingPublicValue, err := userPreferenceFromWire(w.Setting)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PatchPublicAccountUserPreferenceRequest.Setting", err)
+	}
+	return &PatchPublicAccountUserPreferenceRequest{
+		AccountId: w.AccountId,
+		UserId:    w.UserId,
+		Name:      w.Name,
+		Setting:   settingPublicValue,
+	}, nil
+}
+
 type patchPublicWorkspaceSettingRequestWire struct {
 	Name    *string      `json:"name,omitempty"`
 	Setting *settingWire `json:"setting,omitempty"`
@@ -1093,6 +1274,20 @@ func patchPublicWorkspaceSettingRequestToWire(v *PatchPublicWorkspaceSettingRequ
 	return &patchPublicWorkspaceSettingRequestWire{
 		Name:    v.Name,
 		Setting: settingWireValue,
+	}, nil
+}
+
+func patchPublicWorkspaceSettingRequestFromWire(w *patchPublicWorkspaceSettingRequestWire) (*PatchPublicWorkspaceSettingRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	settingPublicValue, err := settingFromWire(w.Setting)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PatchPublicWorkspaceSettingRequest.Setting", err)
+	}
+	return &PatchPublicWorkspaceSettingRequest{
+		Name:    w.Name,
+		Setting: settingPublicValue,
 	}, nil
 }
 
@@ -1718,6 +1913,20 @@ type settingsMetadataWire struct {
 	DocsLink     *string      `json:"docs_link,omitempty"`
 	PreviewPhase PreviewPhase `json:"preview_phase,omitempty"`
 	DisplayName  *string      `json:"display_name,omitempty"`
+}
+
+func settingsMetadataToWire(v *SettingsMetadata) (*settingsMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &settingsMetadataWire{
+		Name:         v.Name,
+		Description:  v.Description,
+		Type:         v.Type,
+		DocsLink:     v.DocsLink,
+		PreviewPhase: v.PreviewPhase,
+		DisplayName:  v.DisplayName,
+	}, nil
 }
 
 func settingsMetadataFromWire(w *settingsMetadataWire) (*SettingsMetadata, error) {

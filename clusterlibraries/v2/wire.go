@@ -11,6 +11,20 @@ type clusterLibraryStatusesWire struct {
 	LibraryStatuses []libraryFullStatusWire `json:"library_statuses,omitempty"`
 }
 
+func clusterLibraryStatusesToWire(v *ClusterLibraryStatuses) (*clusterLibraryStatusesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	libraryStatusesWireValue, err := convertSlice(v.LibraryStatuses, libraryFullStatusToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterLibraryStatuses.LibraryStatuses", err)
+	}
+	return &clusterLibraryStatusesWire{
+		ClusterId:       v.ClusterId,
+		LibraryStatuses: libraryStatusesWireValue,
+	}, nil
+}
+
 func clusterLibraryStatusesFromWire(w *clusterLibraryStatusesWire) (*ClusterLibraryStatuses, error) {
 	if w == nil {
 		return nil, nil
@@ -38,6 +52,15 @@ func clusterStatusRequestToWire(v *ClusterStatusRequest) (*clusterStatusRequestW
 	}, nil
 }
 
+func clusterStatusRequestFromWire(w *clusterStatusRequestWire) (*ClusterStatusRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ClusterStatusRequest{
+		ClusterId: w.ClusterId,
+	}, nil
+}
+
 type installLibrariesRequestWire struct {
 	ClusterId *string       `json:"cluster_id,omitempty"`
 	Libraries []libraryWire `json:"libraries,omitempty"`
@@ -55,6 +78,37 @@ func installLibrariesRequestToWire(v *InstallLibrariesRequest) (*installLibrarie
 		ClusterId: v.ClusterId,
 		Libraries: librariesWireValue,
 	}, nil
+}
+
+func installLibrariesRequestFromWire(w *installLibrariesRequestWire) (*InstallLibrariesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	librariesPublicValue, err := convertSlice(w.Libraries, libraryFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstallLibrariesRequest.Libraries", err)
+	}
+	return &InstallLibrariesRequest{
+		ClusterId: w.ClusterId,
+		Libraries: librariesPublicValue,
+	}, nil
+}
+
+type installLibrariesResponseWire struct {
+}
+
+func installLibrariesResponseToWire(v *InstallLibrariesResponse) (*installLibrariesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &installLibrariesResponseWire{}, nil
+}
+
+func installLibrariesResponseFromWire(w *installLibrariesResponseWire) (*InstallLibrariesResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &InstallLibrariesResponse{}, nil
 }
 
 type libraryWire struct {
@@ -204,6 +258,22 @@ type libraryFullStatusWire struct {
 	IsLibraryForAllClusters *bool                `json:"is_library_for_all_clusters,omitempty"`
 }
 
+func libraryFullStatusToWire(v *LibraryFullStatus) (*libraryFullStatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	libraryWireValue, err := libraryToWire(v.Library)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LibraryFullStatus.Library", err)
+	}
+	return &libraryFullStatusWire{
+		Library:                 libraryWireValue,
+		Status:                  v.Status,
+		Messages:                v.Messages,
+		IsLibraryForAllClusters: v.IsLibraryForAllClusters,
+	}, nil
+}
+
 func libraryFullStatusFromWire(w *libraryFullStatusWire) (*LibraryFullStatus, error) {
 	if w == nil {
 		return nil, nil
@@ -220,8 +290,38 @@ func libraryFullStatusFromWire(w *libraryFullStatusWire) (*LibraryFullStatus, er
 	}, nil
 }
 
+type listAllClusterLibraryStatusesRequestWire struct {
+}
+
+func listAllClusterLibraryStatusesRequestToWire(v *ListAllClusterLibraryStatusesRequest) (*listAllClusterLibraryStatusesRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listAllClusterLibraryStatusesRequestWire{}, nil
+}
+
+func listAllClusterLibraryStatusesRequestFromWire(w *listAllClusterLibraryStatusesRequestWire) (*ListAllClusterLibraryStatusesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListAllClusterLibraryStatusesRequest{}, nil
+}
+
 type listAllClusterLibraryStatusesResponseWire struct {
 	Statuses []clusterLibraryStatusesWire `json:"statuses,omitempty"`
+}
+
+func listAllClusterLibraryStatusesResponseToWire(v *ListAllClusterLibraryStatusesResponse) (*listAllClusterLibraryStatusesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	statusesWireValue, err := convertSlice(v.Statuses, clusterLibraryStatusesToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAllClusterLibraryStatusesResponse.Statuses", err)
+	}
+	return &listAllClusterLibraryStatusesResponseWire{
+		Statuses: statusesWireValue,
+	}, nil
 }
 
 func listAllClusterLibraryStatusesResponseFromWire(w *listAllClusterLibraryStatusesResponseWire) (*ListAllClusterLibraryStatusesResponse, error) {
@@ -332,6 +432,37 @@ func uninstallLibrariesRequestToWire(v *UninstallLibrariesRequest) (*uninstallLi
 		ClusterId: v.ClusterId,
 		Libraries: librariesWireValue,
 	}, nil
+}
+
+func uninstallLibrariesRequestFromWire(w *uninstallLibrariesRequestWire) (*UninstallLibrariesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	librariesPublicValue, err := convertSlice(w.Libraries, libraryFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UninstallLibrariesRequest.Libraries", err)
+	}
+	return &UninstallLibrariesRequest{
+		ClusterId: w.ClusterId,
+		Libraries: librariesPublicValue,
+	}, nil
+}
+
+type uninstallLibrariesResponseWire struct {
+}
+
+func uninstallLibrariesResponseToWire(v *UninstallLibrariesResponse) (*uninstallLibrariesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &uninstallLibrariesResponseWire{}, nil
+}
+
+func uninstallLibrariesResponseFromWire(w *uninstallLibrariesResponseWire) (*UninstallLibrariesResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UninstallLibrariesResponse{}, nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

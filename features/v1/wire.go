@@ -54,14 +54,6 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type aggregationFunctionWire struct {
 	Avg                 *avgFunctionWire                 `json:"avg,omitempty"`
 	CountFunction       *countFunctionWire               `json:"count_function,omitempty"`
@@ -452,6 +444,18 @@ type apiErrorWire struct {
 	Details    []json.RawMessage `json:"details,omitempty"`
 }
 
+func apiErrorToWire(v *ApiError) (*apiErrorWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &apiErrorWire{
+		ErrorCode:  v.ErrorCode,
+		Message:    v.Message,
+		StackTrace: v.StackTrace,
+		Details:    v.Details,
+	}, nil
+}
+
 func apiErrorFromWire(w *apiErrorWire) (*ApiError, error) {
 	if w == nil {
 		return nil, nil
@@ -642,7 +646,31 @@ func backfillFeaturesRequestToWire(v *BackfillFeaturesRequest) (*backfillFeature
 	}, nil
 }
 
+func backfillFeaturesRequestFromWire(w *backfillFeaturesRequestWire) (*BackfillFeaturesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	backfillRangesPublicValue, err := convertSlice(w.BackfillRanges, backfillRangeFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BackfillFeaturesRequest.BackfillRanges", err)
+	}
+	return &BackfillFeaturesRequest{
+		FeatureFullNames: w.FeatureFullNames,
+		BackfillRanges:   backfillRangesPublicValue,
+		RequestId:        w.RequestId,
+		Tags:             w.Tags,
+		BudgetPolicyId:   w.BudgetPolicyId,
+	}, nil
+}
+
 type backfillFeaturesResponseWire struct {
+}
+
+func backfillFeaturesResponseToWire(v *BackfillFeaturesResponse) (*backfillFeaturesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &backfillFeaturesResponseWire{}, nil
 }
 
 func backfillFeaturesResponseFromWire(w *backfillFeaturesResponseWire) (*BackfillFeaturesResponse, error) {
@@ -656,6 +684,21 @@ type backfillOperationMetadataWire struct {
 	FeatureFullNames []string                        `json:"feature_full_names,omitempty"`
 	BackfillRanges   []backfillRangeWire             `json:"backfill_ranges,omitempty"`
 	State            BackfillOperationMetadata_State `json:"state,omitempty"`
+}
+
+func backfillOperationMetadataToWire(v *BackfillOperationMetadata) (*backfillOperationMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	backfillRangesWireValue, err := convertSlice(v.BackfillRanges, backfillRangeToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BackfillOperationMetadata.BackfillRanges", err)
+	}
+	return &backfillOperationMetadataWire{
+		FeatureFullNames: v.FeatureFullNames,
+		BackfillRanges:   backfillRangesWireValue,
+		State:            v.State,
+	}, nil
 }
 
 func backfillOperationMetadataFromWire(w *backfillOperationMetadataWire) (*BackfillOperationMetadata, error) {
@@ -779,8 +822,34 @@ func batchCreateMaterializedFeaturesRequestToWire(v *BatchCreateMaterializedFeat
 	}, nil
 }
 
+func batchCreateMaterializedFeaturesRequestFromWire(w *batchCreateMaterializedFeaturesRequestWire) (*BatchCreateMaterializedFeaturesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	requestsPublicValue, err := convertSlice(w.Requests, createMaterializedFeatureRequestFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BatchCreateMaterializedFeaturesRequest.Requests", err)
+	}
+	return &BatchCreateMaterializedFeaturesRequest{
+		Requests: requestsPublicValue,
+	}, nil
+}
+
 type batchCreateMaterializedFeaturesResponseWire struct {
 	MaterializedFeatures []materializedFeatureWire `json:"materialized_features,omitempty"`
+}
+
+func batchCreateMaterializedFeaturesResponseToWire(v *BatchCreateMaterializedFeaturesResponse) (*batchCreateMaterializedFeaturesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	materializedFeaturesWireValue, err := convertSlice(v.MaterializedFeatures, materializedFeatureToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BatchCreateMaterializedFeaturesResponse.MaterializedFeatures", err)
+	}
+	return &batchCreateMaterializedFeaturesResponseWire{
+		MaterializedFeatures: materializedFeaturesWireValue,
+	}, nil
 }
 
 func batchCreateMaterializedFeaturesResponseFromWire(w *batchCreateMaterializedFeaturesResponseWire) (*BatchCreateMaterializedFeaturesResponse, error) {
@@ -806,6 +875,15 @@ func cancelOperationRequestToWire(v *CancelOperationRequest) (*cancelOperationRe
 	}
 	return &cancelOperationRequestWire{
 		Name: v.Name,
+	}, nil
+}
+
+func cancelOperationRequestFromWire(w *cancelOperationRequestWire) (*CancelOperationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CancelOperationRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -917,6 +995,19 @@ func createFeatureRequestToWire(v *CreateFeatureRequest) (*createFeatureRequestW
 	}, nil
 }
 
+func createFeatureRequestFromWire(w *createFeatureRequestWire) (*CreateFeatureRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	featurePublicValue, err := featureFromWire(w.Feature)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateFeatureRequest.Feature", err)
+	}
+	return &CreateFeatureRequest{
+		Feature: featurePublicValue,
+	}, nil
+}
+
 type createFeatureSpecRequestWire struct {
 	FeatureSpec *featureSpecWire `json:"feature_spec,omitempty"`
 }
@@ -934,6 +1025,19 @@ func createFeatureSpecRequestToWire(v *CreateFeatureSpecRequest) (*createFeature
 	}, nil
 }
 
+func createFeatureSpecRequestFromWire(w *createFeatureSpecRequestWire) (*CreateFeatureSpecRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	featureSpecPublicValue, err := featureSpecFromWire(w.FeatureSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateFeatureSpecRequest.FeatureSpec", err)
+	}
+	return &CreateFeatureSpecRequest{
+		FeatureSpec: featureSpecPublicValue,
+	}, nil
+}
+
 type createKafkaConfigRequestWire struct {
 	KafkaConfig *kafkaConfigWire `json:"kafka_config,omitempty"`
 }
@@ -948,6 +1052,19 @@ func createKafkaConfigRequestToWire(v *CreateKafkaConfigRequest) (*createKafkaCo
 	}
 	return &createKafkaConfigRequestWire{
 		KafkaConfig: kafkaConfigWireValue,
+	}, nil
+}
+
+func createKafkaConfigRequestFromWire(w *createKafkaConfigRequestWire) (*CreateKafkaConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	kafkaConfigPublicValue, err := kafkaConfigFromWire(w.KafkaConfig)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateKafkaConfigRequest.KafkaConfig", err)
+	}
+	return &CreateKafkaConfigRequest{
+		KafkaConfig: kafkaConfigPublicValue,
 	}, nil
 }
 
@@ -970,6 +1087,20 @@ func createMaterializationSetRequestToWire(v *CreateMaterializationSetRequest) (
 	}, nil
 }
 
+func createMaterializationSetRequestFromWire(w *createMaterializationSetRequestWire) (*CreateMaterializationSetRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	materializationSetPublicValue, err := materializationSetFromWire(w.MaterializationSet)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateMaterializationSetRequest.MaterializationSet", err)
+	}
+	return &CreateMaterializationSetRequest{
+		MaterializationSet: materializationSetPublicValue,
+		RequestId:          w.RequestId,
+	}, nil
+}
+
 type createMaterializedFeatureRequestWire struct {
 	MaterializedFeature *materializedFeatureWire `json:"materialized_feature,omitempty"`
 }
@@ -987,6 +1118,19 @@ func createMaterializedFeatureRequestToWire(v *CreateMaterializedFeatureRequest)
 	}, nil
 }
 
+func createMaterializedFeatureRequestFromWire(w *createMaterializedFeatureRequestWire) (*CreateMaterializedFeatureRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	materializedFeaturePublicValue, err := materializedFeatureFromWire(w.MaterializedFeature)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateMaterializedFeatureRequest.MaterializedFeature", err)
+	}
+	return &CreateMaterializedFeatureRequest{
+		MaterializedFeature: materializedFeaturePublicValue,
+	}, nil
+}
+
 type createStreamRequestWire struct {
 	Stream *streamWire `json:"stream,omitempty"`
 }
@@ -1001,6 +1145,19 @@ func createStreamRequestToWire(v *CreateStreamRequest) (*createStreamRequestWire
 	}
 	return &createStreamRequestWire{
 		Stream: streamWireValue,
+	}, nil
+}
+
+func createStreamRequestFromWire(w *createStreamRequestWire) (*CreateStreamRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	streamPublicValue, err := streamFromWire(w.Stream)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateStreamRequest.Stream", err)
+	}
+	return &CreateStreamRequest{
+		Stream: streamPublicValue,
 	}, nil
 }
 
@@ -1278,6 +1435,72 @@ func defaultValueFromWire(w *defaultValueWire) (*DefaultValue, error) {
 	}, nil
 }
 
+type deleteFeatureRequestWire struct {
+	FullName *string `json:"full_name,omitempty"`
+}
+
+func deleteFeatureRequestToWire(v *DeleteFeatureRequest) (*deleteFeatureRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteFeatureRequestWire{
+		FullName: v.FullName,
+	}, nil
+}
+
+func deleteFeatureRequestFromWire(w *deleteFeatureRequestWire) (*DeleteFeatureRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteFeatureRequest{
+		FullName: w.FullName,
+	}, nil
+}
+
+type deleteFeatureSpecRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteFeatureSpecRequestToWire(v *DeleteFeatureSpecRequest) (*deleteFeatureSpecRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteFeatureSpecRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteFeatureSpecRequestFromWire(w *deleteFeatureSpecRequestWire) (*DeleteFeatureSpecRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteFeatureSpecRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteKafkaConfigRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteKafkaConfigRequestToWire(v *DeleteKafkaConfigRequest) (*deleteKafkaConfigRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteKafkaConfigRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteKafkaConfigRequestFromWire(w *deleteKafkaConfigRequestWire) (*DeleteKafkaConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteKafkaConfigRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type deleteMaterializationSetRequestWire struct {
 	MaterializationSetId *string `json:"materialization_set_id,omitempty"`
 	AllowMissing         *bool   `json:"allow_missing,omitempty"`
@@ -1292,6 +1515,61 @@ func deleteMaterializationSetRequestToWire(v *DeleteMaterializationSetRequest) (
 		MaterializationSetId: v.MaterializationSetId,
 		AllowMissing:         v.AllowMissing,
 		RequestId:            v.RequestId,
+	}, nil
+}
+
+func deleteMaterializationSetRequestFromWire(w *deleteMaterializationSetRequestWire) (*DeleteMaterializationSetRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteMaterializationSetRequest{
+		MaterializationSetId: w.MaterializationSetId,
+		AllowMissing:         w.AllowMissing,
+		RequestId:            w.RequestId,
+	}, nil
+}
+
+type deleteMaterializedFeatureRequestWire struct {
+	MaterializedFeatureId *string `json:"materialized_feature_id,omitempty"`
+}
+
+func deleteMaterializedFeatureRequestToWire(v *DeleteMaterializedFeatureRequest) (*deleteMaterializedFeatureRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteMaterializedFeatureRequestWire{
+		MaterializedFeatureId: v.MaterializedFeatureId,
+	}, nil
+}
+
+func deleteMaterializedFeatureRequestFromWire(w *deleteMaterializedFeatureRequestWire) (*DeleteMaterializedFeatureRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteMaterializedFeatureRequest{
+		MaterializedFeatureId: w.MaterializedFeatureId,
+	}, nil
+}
+
+type deleteStreamRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteStreamRequestToWire(v *DeleteStreamRequest) (*deleteStreamRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteStreamRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteStreamRequestFromWire(w *deleteStreamRequestWire) (*DeleteStreamRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteStreamRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -2186,6 +2464,160 @@ func functionExtraParameterFromWire(w *functionExtraParameterWire) (*FunctionExt
 	}, nil
 }
 
+type getFeatureRequestWire struct {
+	FullName *string `json:"full_name,omitempty"`
+}
+
+func getFeatureRequestToWire(v *GetFeatureRequest) (*getFeatureRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getFeatureRequestWire{
+		FullName: v.FullName,
+	}, nil
+}
+
+func getFeatureRequestFromWire(w *getFeatureRequestWire) (*GetFeatureRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetFeatureRequest{
+		FullName: w.FullName,
+	}, nil
+}
+
+type getFeatureSpecRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getFeatureSpecRequestToWire(v *GetFeatureSpecRequest) (*getFeatureSpecRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getFeatureSpecRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getFeatureSpecRequestFromWire(w *getFeatureSpecRequestWire) (*GetFeatureSpecRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetFeatureSpecRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getKafkaConfigRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getKafkaConfigRequestToWire(v *GetKafkaConfigRequest) (*getKafkaConfigRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getKafkaConfigRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getKafkaConfigRequestFromWire(w *getKafkaConfigRequestWire) (*GetKafkaConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetKafkaConfigRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getMaterializationSetRequestWire struct {
+	MaterializationSetId *string `json:"materialization_set_id,omitempty"`
+}
+
+func getMaterializationSetRequestToWire(v *GetMaterializationSetRequest) (*getMaterializationSetRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getMaterializationSetRequestWire{
+		MaterializationSetId: v.MaterializationSetId,
+	}, nil
+}
+
+func getMaterializationSetRequestFromWire(w *getMaterializationSetRequestWire) (*GetMaterializationSetRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetMaterializationSetRequest{
+		MaterializationSetId: w.MaterializationSetId,
+	}, nil
+}
+
+type getMaterializedFeatureRequestWire struct {
+	MaterializedFeatureId *string `json:"materialized_feature_id,omitempty"`
+}
+
+func getMaterializedFeatureRequestToWire(v *GetMaterializedFeatureRequest) (*getMaterializedFeatureRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getMaterializedFeatureRequestWire{
+		MaterializedFeatureId: v.MaterializedFeatureId,
+	}, nil
+}
+
+func getMaterializedFeatureRequestFromWire(w *getMaterializedFeatureRequestWire) (*GetMaterializedFeatureRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetMaterializedFeatureRequest{
+		MaterializedFeatureId: w.MaterializedFeatureId,
+	}, nil
+}
+
+type getOperationRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getOperationRequestToWire(v *GetOperationRequest) (*getOperationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getOperationRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getOperationRequestFromWire(w *getOperationRequestWire) (*GetOperationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetOperationRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getStreamRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getStreamRequestToWire(v *GetStreamRequest) (*getStreamRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getStreamRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getStreamRequestFromWire(w *getStreamRequestWire) (*GetStreamRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetStreamRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type ingestionConfigWire struct {
 	IngestionDestination *ingestionDestinationWire `json:"ingestion_destination,omitempty"`
 	BackfillSource       *backfillSourceWire       `json:"backfill_source,omitempty"`
@@ -2848,9 +3280,35 @@ func listFeaturesRequestToWire(v *ListFeaturesRequest) (*listFeaturesRequestWire
 	}, nil
 }
 
+func listFeaturesRequestFromWire(w *listFeaturesRequestWire) (*ListFeaturesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListFeaturesRequest{
+		PageToken:   w.PageToken,
+		PageSize:    w.PageSize,
+		CatalogName: w.CatalogName,
+		SchemaName:  w.SchemaName,
+	}, nil
+}
+
 type listFeaturesResponseWire struct {
 	Features      []featureWire `json:"features,omitempty"`
 	NextPageToken *string       `json:"next_page_token,omitempty"`
+}
+
+func listFeaturesResponseToWire(v *ListFeaturesResponse) (*listFeaturesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	featuresWireValue, err := convertSlice(v.Features, featureToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListFeaturesResponse.Features", err)
+	}
+	return &listFeaturesResponseWire{
+		Features:      featuresWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listFeaturesResponseFromWire(w *listFeaturesResponseWire) (*ListFeaturesResponse, error) {
@@ -2882,9 +3340,33 @@ func listKafkaConfigsRequestToWire(v *ListKafkaConfigsRequest) (*listKafkaConfig
 	}, nil
 }
 
+func listKafkaConfigsRequestFromWire(w *listKafkaConfigsRequestWire) (*ListKafkaConfigsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListKafkaConfigsRequest{
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listKafkaConfigsResponseWire struct {
 	KafkaConfigs  []kafkaConfigWire `json:"kafka_configs,omitempty"`
 	NextPageToken *string           `json:"next_page_token,omitempty"`
+}
+
+func listKafkaConfigsResponseToWire(v *ListKafkaConfigsResponse) (*listKafkaConfigsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	kafkaConfigsWireValue, err := convertSlice(v.KafkaConfigs, kafkaConfigToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListKafkaConfigsResponse.KafkaConfigs", err)
+	}
+	return &listKafkaConfigsResponseWire{
+		KafkaConfigs:  kafkaConfigsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listKafkaConfigsResponseFromWire(w *listKafkaConfigsResponseWire) (*ListKafkaConfigsResponse, error) {
@@ -2918,9 +3400,34 @@ func listMaterializedFeaturesRequestToWire(v *ListMaterializedFeaturesRequest) (
 	}, nil
 }
 
+func listMaterializedFeaturesRequestFromWire(w *listMaterializedFeaturesRequestWire) (*ListMaterializedFeaturesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListMaterializedFeaturesRequest{
+		FeatureName: w.FeatureName,
+		PageToken:   w.PageToken,
+		PageSize:    w.PageSize,
+	}, nil
+}
+
 type listMaterializedFeaturesResponseWire struct {
 	MaterializedFeatures []materializedFeatureWire `json:"materialized_features,omitempty"`
 	NextPageToken        *string                   `json:"next_page_token,omitempty"`
+}
+
+func listMaterializedFeaturesResponseToWire(v *ListMaterializedFeaturesResponse) (*listMaterializedFeaturesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	materializedFeaturesWireValue, err := convertSlice(v.MaterializedFeatures, materializedFeatureToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListMaterializedFeaturesResponse.MaterializedFeatures", err)
+	}
+	return &listMaterializedFeaturesResponseWire{
+		MaterializedFeatures: materializedFeaturesWireValue,
+		NextPageToken:        v.NextPageToken,
+	}, nil
 }
 
 func listMaterializedFeaturesResponseFromWire(w *listMaterializedFeaturesResponseWire) (*ListMaterializedFeaturesResponse, error) {
@@ -2954,9 +3461,34 @@ func listStreamsRequestToWire(v *ListStreamsRequest) (*listStreamsRequestWire, e
 	}, nil
 }
 
+func listStreamsRequestFromWire(w *listStreamsRequestWire) (*ListStreamsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListStreamsRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listStreamsResponseWire struct {
 	Streams       []streamWire `json:"streams,omitempty"`
 	NextPageToken *string      `json:"next_page_token,omitempty"`
+}
+
+func listStreamsResponseToWire(v *ListStreamsResponse) (*listStreamsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	streamsWireValue, err := convertSlice(v.Streams, streamToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListStreamsResponse.Streams", err)
+	}
+	return &listStreamsResponseWire{
+		Streams:       streamsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listStreamsResponseFromWire(w *listStreamsResponseWire) (*ListStreamsResponse, error) {
@@ -3048,6 +3580,21 @@ type materializationRunProgressWire struct {
 	Error                  *apiErrorWire                    `json:"error,omitempty"`
 }
 
+func materializationRunProgressToWire(v *MaterializationRunProgress) (*materializationRunProgressWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	errorWireValue, err := apiErrorToWire(v.Error)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializationRunProgress.Error", err)
+	}
+	return &materializationRunProgressWire{
+		MaterializedFeatureIds: v.MaterializedFeatureIds,
+		State:                  v.State,
+		Error:                  errorWireValue,
+	}, nil
+}
+
 func materializationRunProgressFromWire(w *materializationRunProgressWire) (*MaterializationRunProgress, error) {
 	if w == nil {
 		return nil, nil
@@ -3112,6 +3659,20 @@ type materializationSetDeletionProgressWire struct {
 	FailedMaterializedFeatures    []materializedFeatureChangeFailureWire `json:"failed_materialized_features,omitempty"`
 }
 
+func materializationSetDeletionProgressToWire(v *MaterializationSetDeletionProgress) (*materializationSetDeletionProgressWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	failedMaterializedFeaturesWireValue, err := convertSlice(v.FailedMaterializedFeatures, materializedFeatureChangeFailureToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializationSetDeletionProgress.FailedMaterializedFeatures", err)
+	}
+	return &materializationSetDeletionProgressWire{
+		DeletedMaterializedFeatureIds: v.DeletedMaterializedFeatureIds,
+		FailedMaterializedFeatures:    failedMaterializedFeaturesWireValue,
+	}, nil
+}
+
 func materializationSetDeletionProgressFromWire(w *materializationSetDeletionProgressWire) (*MaterializationSetDeletionProgress, error) {
 	if w == nil {
 		return nil, nil
@@ -3134,6 +3695,53 @@ type materializationSetOperationMetadataWire struct {
 	DeletionProgress     *materializationSetDeletionProgressWire   `json:"deletion_progress,omitempty"`
 	UpdateProgress       *materializationSetUpdateProgressWire     `json:"update_progress,omitempty"`
 	TriggerProgress      *materializationSetTriggerProgressWire    `json:"trigger_progress,omitempty"`
+}
+
+func materializationSetOperationMetadataToWire(v *MaterializationSetOperationMetadata) (*materializationSetOperationMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var progressDeletionProgressWire *materializationSetDeletionProgressWire
+	var progressUpdateProgressWire *materializationSetUpdateProgressWire
+	var progressTriggerProgressWire *materializationSetTriggerProgressWire
+	switch value := v.Progress.(type) {
+	case nil:
+	case *MaterializationSetOperationMetadata_Progress_DeletionProgress:
+		if value != nil {
+			progressDeletionProgressConverted, err := materializationSetDeletionProgressToWire(&value.DeletionProgress)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "MaterializationSetOperationMetadata.Progress.DeletionProgress", err)
+			}
+			progressDeletionProgressWire = progressDeletionProgressConverted
+		}
+	case *MaterializationSetOperationMetadata_Progress_UpdateProgress:
+		if value != nil {
+			progressUpdateProgressConverted, err := materializationSetUpdateProgressToWire(&value.UpdateProgress)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "MaterializationSetOperationMetadata.Progress.UpdateProgress", err)
+			}
+			progressUpdateProgressWire = progressUpdateProgressConverted
+		}
+	case *MaterializationSetOperationMetadata_Progress_TriggerProgress:
+		if value != nil {
+			progressTriggerProgressConverted, err := materializationSetTriggerProgressToWire(&value.TriggerProgress)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "MaterializationSetOperationMetadata.Progress.TriggerProgress", err)
+			}
+			progressTriggerProgressWire = progressTriggerProgressConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "MaterializationSetOperationMetadata.Progress", value)
+	}
+	return &materializationSetOperationMetadataWire{
+		FeatureFullNames:     v.FeatureFullNames,
+		State:                v.State,
+		CreateTime:           v.CreateTime,
+		MaterializationSetId: v.MaterializationSetId,
+		DeletionProgress:     progressDeletionProgressWire,
+		UpdateProgress:       progressUpdateProgressWire,
+		TriggerProgress:      progressTriggerProgressWire,
+	}, nil
 }
 
 func materializationSetOperationMetadataFromWire(w *materializationSetOperationMetadataWire) (*MaterializationSetOperationMetadata, error) {
@@ -3187,6 +3795,19 @@ type materializationSetTriggerProgressWire struct {
 	Runs []materializationRunProgressWire `json:"runs,omitempty"`
 }
 
+func materializationSetTriggerProgressToWire(v *MaterializationSetTriggerProgress) (*materializationSetTriggerProgressWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	runsWireValue, err := convertSlice(v.Runs, materializationRunProgressToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializationSetTriggerProgress.Runs", err)
+	}
+	return &materializationSetTriggerProgressWire{
+		Runs: runsWireValue,
+	}, nil
+}
+
 func materializationSetTriggerProgressFromWire(w *materializationSetTriggerProgressWire) (*MaterializationSetTriggerProgress, error) {
 	if w == nil {
 		return nil, nil
@@ -3204,6 +3825,21 @@ type materializationSetUpdateProgressWire struct {
 	UpdatedMaterializedFeatureIds []string                               `json:"updated_materialized_feature_ids,omitempty"`
 	DeletedMaterializedFeatureIds []string                               `json:"deleted_materialized_feature_ids,omitempty"`
 	FailedMaterializedFeatures    []materializedFeatureChangeFailureWire `json:"failed_materialized_features,omitempty"`
+}
+
+func materializationSetUpdateProgressToWire(v *MaterializationSetUpdateProgress) (*materializationSetUpdateProgressWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	failedMaterializedFeaturesWireValue, err := convertSlice(v.FailedMaterializedFeatures, materializedFeatureChangeFailureToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializationSetUpdateProgress.FailedMaterializedFeatures", err)
+	}
+	return &materializationSetUpdateProgressWire{
+		UpdatedMaterializedFeatureIds: v.UpdatedMaterializedFeatureIds,
+		DeletedMaterializedFeatureIds: v.DeletedMaterializedFeatureIds,
+		FailedMaterializedFeatures:    failedMaterializedFeaturesWireValue,
+	}, nil
 }
 
 func materializationSetUpdateProgressFromWire(w *materializationSetUpdateProgressWire) (*MaterializationSetUpdateProgress, error) {
@@ -3475,6 +4111,17 @@ type materializedFeatureChangeFailureWire struct {
 	Message               *string `json:"message,omitempty"`
 }
 
+func materializedFeatureChangeFailureToWire(v *MaterializedFeatureChangeFailure) (*materializedFeatureChangeFailureWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &materializedFeatureChangeFailureWire{
+		MaterializedFeatureId: v.MaterializedFeatureId,
+		ErrorCode:             v.ErrorCode,
+		Message:               v.Message,
+	}, nil
+}
+
 func materializedFeatureChangeFailureFromWire(w *materializedFeatureChangeFailureWire) (*MaterializedFeatureChangeFailure, error) {
 	if w == nil {
 		return nil, nil
@@ -3658,6 +4305,38 @@ type operationWire struct {
 	Response json.RawMessage `json:"response,omitempty"`
 }
 
+func operationToWire(v *Operation) (*operationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var resultErrorWire *apiErrorWire
+	var resultResponseWire json.RawMessage
+	switch value := v.Result.(type) {
+	case nil:
+	case *Operation_Result_Error:
+		if value != nil {
+			resultErrorConverted, err := apiErrorToWire(&value.Error)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Operation.Result.Error", err)
+			}
+			resultErrorWire = resultErrorConverted
+		}
+	case *Operation_Result_Response:
+		if value != nil {
+			resultResponseWire = value.Response
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Operation.Result", value)
+	}
+	return &operationWire{
+		Name:     v.Name,
+		Metadata: v.Metadata,
+		Done:     v.Done,
+		Error:    resultErrorWire,
+		Response: resultResponseWire,
+	}, nil
+}
+
 func operationFromWire(w *operationWire) (*Operation, error) {
 	if w == nil {
 		return nil, nil
@@ -3748,6 +4427,25 @@ type purgeFeatureEntitiesMetadataWire struct {
 	DeleteRows           *bool                              `json:"delete_rows,omitempty"`
 }
 
+func purgeFeatureEntitiesMetadataToWire(v *PurgeFeatureEntitiesMetadata) (*purgeFeatureEntitiesMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	jobIdWireValue, err := int64ToWire(v.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PurgeFeatureEntitiesMetadata.JobId", err)
+	}
+	return &purgeFeatureEntitiesMetadataWire{
+		Features:             v.Features,
+		EntitiesTable:        v.EntitiesTable,
+		EntitiesTableVersion: v.EntitiesTableVersion,
+		CreateTime:           v.CreateTime,
+		State:                v.State,
+		JobId:                jobIdWireValue,
+		DeleteRows:           v.DeleteRows,
+	}, nil
+}
+
 func purgeFeatureEntitiesMetadataFromWire(w *purgeFeatureEntitiesMetadataWire) (*PurgeFeatureEntitiesMetadata, error) {
 	if w == nil {
 		return nil, nil
@@ -3800,11 +4498,61 @@ func purgeFeatureEntitiesRequestToWire(v *PurgeFeatureEntitiesRequest) (*purgeFe
 	}, nil
 }
 
+func purgeFeatureEntitiesRequestFromWire(w *purgeFeatureEntitiesRequestWire) (*PurgeFeatureEntitiesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	entitiesMembers := 0
+	if w.EntitiesTable != nil {
+		entitiesMembers++
+	}
+	if entitiesMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "PurgeFeatureEntitiesRequest.Entities")
+	}
+	var entitiesSelection isPurgeFeatureEntitiesRequest_Entities
+	switch {
+	case w.EntitiesTable != nil:
+		entitiesSelection = &PurgeFeatureEntitiesRequest_Entities_EntitiesTable{EntitiesTable: *w.EntitiesTable}
+	}
+	return &PurgeFeatureEntitiesRequest{
+		Features:       w.Features,
+		RequestId:      w.RequestId,
+		Tags:           w.Tags,
+		BudgetPolicyId: w.BudgetPolicyId,
+		DeleteRows:     w.DeleteRows,
+		Entities:       entitiesSelection,
+	}, nil
+}
+
 type purgeFeatureEntitiesResponseWire struct {
 	Metadata *purgeFeatureEntitiesMetadataWire  `json:"metadata,omitempty"`
 	Results  []purgeFeatureEntitiesResultWire   `json:"results,omitempty"`
 	State    PurgeFeatureEntitiesMetadata_State `json:"state,omitempty"`
 	Error    *apiErrorWire                      `json:"error,omitempty"`
+}
+
+func purgeFeatureEntitiesResponseToWire(v *PurgeFeatureEntitiesResponse) (*purgeFeatureEntitiesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	metadataWireValue, err := purgeFeatureEntitiesMetadataToWire(v.Metadata)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PurgeFeatureEntitiesResponse.Metadata", err)
+	}
+	resultsWireValue, err := convertSlice(v.Results, purgeFeatureEntitiesResultToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PurgeFeatureEntitiesResponse.Results", err)
+	}
+	errorWireValue, err := apiErrorToWire(v.Error)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PurgeFeatureEntitiesResponse.Error", err)
+	}
+	return &purgeFeatureEntitiesResponseWire{
+		Metadata: metadataWireValue,
+		Results:  resultsWireValue,
+		State:    v.State,
+		Error:    errorWireValue,
+	}, nil
 }
 
 func purgeFeatureEntitiesResponseFromWire(w *purgeFeatureEntitiesResponseWire) (*PurgeFeatureEntitiesResponse, error) {
@@ -3836,6 +4584,22 @@ type purgeFeatureEntitiesResultWire struct {
 	OfflineState PurgeFeatureEntitiesResult_State `json:"offline_state,omitempty"`
 	OnlineState  PurgeFeatureEntitiesResult_State `json:"online_state,omitempty"`
 	Error        *apiErrorWire                    `json:"error,omitempty"`
+}
+
+func purgeFeatureEntitiesResultToWire(v *PurgeFeatureEntitiesResult) (*purgeFeatureEntitiesResultWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	errorWireValue, err := apiErrorToWire(v.Error)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PurgeFeatureEntitiesResult.Error", err)
+	}
+	return &purgeFeatureEntitiesResultWire{
+		Feature:      v.Feature,
+		OfflineState: v.OfflineState,
+		OnlineState:  v.OnlineState,
+		Error:        errorWireValue,
+	}, nil
 }
 
 func purgeFeatureEntitiesResultFromWire(w *purgeFeatureEntitiesResultWire) (*PurgeFeatureEntitiesResult, error) {
@@ -5057,7 +5821,24 @@ func triggerMaterializationSetRequestToWire(v *TriggerMaterializationSetRequest)
 	}, nil
 }
 
+func triggerMaterializationSetRequestFromWire(w *triggerMaterializationSetRequestWire) (*TriggerMaterializationSetRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &TriggerMaterializationSetRequest{
+		MaterializationSetId: w.MaterializationSetId,
+		RequestId:            w.RequestId,
+	}, nil
+}
+
 type triggerMaterializationSetResponseWire struct {
+}
+
+func triggerMaterializationSetResponseToWire(v *TriggerMaterializationSetResponse) (*triggerMaterializationSetResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &triggerMaterializationSetResponseWire{}, nil
 }
 
 func triggerMaterializationSetResponseFromWire(w *triggerMaterializationSetResponseWire) (*TriggerMaterializationSetResponse, error) {
@@ -5096,8 +5877,8 @@ func tumblingWindowFromWire(w *tumblingWindowWire) (*TumblingWindow, error) {
 }
 
 type updateFeatureRequestWire struct {
-	Feature    *featureWire `json:"feature,omitempty"`
-	UpdateMask *string      `json:"update_mask,omitempty"`
+	Feature    *featureWire              `json:"feature,omitempty"`
+	UpdateMask *types.FieldMask[Feature] `json:"update_mask,omitempty"`
 }
 
 func updateFeatureRequestToWire(v *UpdateFeatureRequest) (*updateFeatureRequestWire, error) {
@@ -5110,13 +5891,27 @@ func updateFeatureRequestToWire(v *UpdateFeatureRequest) (*updateFeatureRequestW
 	}
 	return &updateFeatureRequestWire{
 		Feature:    featureWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateFeatureRequestFromWire(w *updateFeatureRequestWire) (*UpdateFeatureRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	featurePublicValue, err := featureFromWire(w.Feature)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateFeatureRequest.Feature", err)
+	}
+	return &UpdateFeatureRequest{
+		Feature:    featurePublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 
 type updateKafkaConfigRequestWire struct {
-	KafkaConfig *kafkaConfigWire `json:"kafka_config,omitempty"`
-	UpdateMask  *string          `json:"update_mask,omitempty"`
+	KafkaConfig *kafkaConfigWire              `json:"kafka_config,omitempty"`
+	UpdateMask  *types.FieldMask[KafkaConfig] `json:"update_mask,omitempty"`
 }
 
 func updateKafkaConfigRequestToWire(v *UpdateKafkaConfigRequest) (*updateKafkaConfigRequestWire, error) {
@@ -5129,14 +5924,28 @@ func updateKafkaConfigRequestToWire(v *UpdateKafkaConfigRequest) (*updateKafkaCo
 	}
 	return &updateKafkaConfigRequestWire{
 		KafkaConfig: kafkaConfigWireValue,
-		UpdateMask:  fieldMaskToWire(v.UpdateMask),
+		UpdateMask:  v.UpdateMask,
+	}, nil
+}
+
+func updateKafkaConfigRequestFromWire(w *updateKafkaConfigRequestWire) (*UpdateKafkaConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	kafkaConfigPublicValue, err := kafkaConfigFromWire(w.KafkaConfig)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateKafkaConfigRequest.KafkaConfig", err)
+	}
+	return &UpdateKafkaConfigRequest{
+		KafkaConfig: kafkaConfigPublicValue,
+		UpdateMask:  w.UpdateMask,
 	}, nil
 }
 
 type updateMaterializationSetRequestWire struct {
-	MaterializationSet *materializationSetWire `json:"materialization_set,omitempty"`
-	UpdateMask         *string                 `json:"update_mask,omitempty"`
-	RequestId          *string                 `json:"request_id,omitempty"`
+	MaterializationSet *materializationSetWire              `json:"materialization_set,omitempty"`
+	UpdateMask         *types.FieldMask[MaterializationSet] `json:"update_mask,omitempty"`
+	RequestId          *string                              `json:"request_id,omitempty"`
 }
 
 func updateMaterializationSetRequestToWire(v *UpdateMaterializationSetRequest) (*updateMaterializationSetRequestWire, error) {
@@ -5149,14 +5958,29 @@ func updateMaterializationSetRequestToWire(v *UpdateMaterializationSetRequest) (
 	}
 	return &updateMaterializationSetRequestWire{
 		MaterializationSet: materializationSetWireValue,
-		UpdateMask:         fieldMaskToWire(v.UpdateMask),
+		UpdateMask:         v.UpdateMask,
 		RequestId:          v.RequestId,
 	}, nil
 }
 
+func updateMaterializationSetRequestFromWire(w *updateMaterializationSetRequestWire) (*UpdateMaterializationSetRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	materializationSetPublicValue, err := materializationSetFromWire(w.MaterializationSet)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateMaterializationSetRequest.MaterializationSet", err)
+	}
+	return &UpdateMaterializationSetRequest{
+		MaterializationSet: materializationSetPublicValue,
+		UpdateMask:         w.UpdateMask,
+		RequestId:          w.RequestId,
+	}, nil
+}
+
 type updateMaterializedFeatureRequestWire struct {
-	MaterializedFeature *materializedFeatureWire `json:"materialized_feature,omitempty"`
-	UpdateMask          *string                  `json:"update_mask,omitempty"`
+	MaterializedFeature *materializedFeatureWire              `json:"materialized_feature,omitempty"`
+	UpdateMask          *types.FieldMask[MaterializedFeature] `json:"update_mask,omitempty"`
 }
 
 func updateMaterializedFeatureRequestToWire(v *UpdateMaterializedFeatureRequest) (*updateMaterializedFeatureRequestWire, error) {
@@ -5169,13 +5993,27 @@ func updateMaterializedFeatureRequestToWire(v *UpdateMaterializedFeatureRequest)
 	}
 	return &updateMaterializedFeatureRequestWire{
 		MaterializedFeature: materializedFeatureWireValue,
-		UpdateMask:          fieldMaskToWire(v.UpdateMask),
+		UpdateMask:          v.UpdateMask,
+	}, nil
+}
+
+func updateMaterializedFeatureRequestFromWire(w *updateMaterializedFeatureRequestWire) (*UpdateMaterializedFeatureRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	materializedFeaturePublicValue, err := materializedFeatureFromWire(w.MaterializedFeature)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateMaterializedFeatureRequest.MaterializedFeature", err)
+	}
+	return &UpdateMaterializedFeatureRequest{
+		MaterializedFeature: materializedFeaturePublicValue,
+		UpdateMask:          w.UpdateMask,
 	}, nil
 }
 
 type updateStreamRequestWire struct {
-	Stream     *streamWire `json:"stream,omitempty"`
-	UpdateMask *string     `json:"update_mask,omitempty"`
+	Stream     *streamWire              `json:"stream,omitempty"`
+	UpdateMask *types.FieldMask[Stream] `json:"update_mask,omitempty"`
 }
 
 func updateStreamRequestToWire(v *UpdateStreamRequest) (*updateStreamRequestWire, error) {
@@ -5188,7 +6026,21 @@ func updateStreamRequestToWire(v *UpdateStreamRequest) (*updateStreamRequestWire
 	}
 	return &updateStreamRequestWire{
 		Stream:     streamWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateStreamRequestFromWire(w *updateStreamRequestWire) (*UpdateStreamRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	streamPublicValue, err := streamFromWire(w.Stream)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateStreamRequest.Stream", err)
+	}
+	return &UpdateStreamRequest{
+		Stream:     streamPublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 

@@ -65,6 +65,32 @@ type activityWire struct {
 	Id                   *string          `json:"id,omitempty"`
 }
 
+func activityToWire(v *Activity) (*activityWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	creationTimestampWireValue, err := int64ToWire(v.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Activity.CreationTimestamp", err)
+	}
+	lastUpdatedTimestampWireValue, err := int64ToWire(v.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Activity.LastUpdatedTimestamp", err)
+	}
+	return &activityWire{
+		CreationTimestamp:    creationTimestampWireValue,
+		UserId:               v.UserId,
+		ActivityType:         v.ActivityType,
+		Comment:              v.Comment,
+		LastUpdatedTimestamp: lastUpdatedTimestampWireValue,
+		FromStage:            v.FromStage,
+		ToStage:              v.ToStage,
+		SystemComment:        v.SystemComment,
+		AvailableActions:     v.AvailableActions,
+		Id:                   v.Id,
+	}, nil
+}
+
 func activityFromWire(w *activityWire) (*Activity, error) {
 	if w == nil {
 		return nil, nil
@@ -112,8 +138,34 @@ func approveTransitionRequestToWire(v *ApproveTransitionRequest) (*approveTransi
 	}, nil
 }
 
+func approveTransitionRequestFromWire(w *approveTransitionRequestWire) (*ApproveTransitionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ApproveTransitionRequest{
+		Name:                    w.Name,
+		Version:                 w.Version,
+		Stage:                   w.Stage,
+		ArchiveExistingVersions: w.ArchiveExistingVersions,
+		Comment:                 w.Comment,
+	}, nil
+}
+
 type approveTransitionResponseWire struct {
 	Activity *activityWire `json:"activity,omitempty"`
+}
+
+func approveTransitionResponseToWire(v *ApproveTransitionResponse) (*approveTransitionResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	activityWireValue, err := activityToWire(v.Activity)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ApproveTransitionResponse.Activity", err)
+	}
+	return &approveTransitionResponseWire{
+		Activity: activityWireValue,
+	}, nil
 }
 
 func approveTransitionResponseFromWire(w *approveTransitionResponseWire) (*ApproveTransitionResponse, error) {
@@ -140,6 +192,32 @@ type commentObjectWire struct {
 	SystemComment        *string          `json:"system_comment,omitempty"`
 	AvailableActions     []ActivityAction `json:"available_actions,omitempty"`
 	Id                   *string          `json:"id,omitempty"`
+}
+
+func commentObjectToWire(v *CommentObject) (*commentObjectWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	creationTimestampWireValue, err := int64ToWire(v.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CommentObject.CreationTimestamp", err)
+	}
+	lastUpdatedTimestampWireValue, err := int64ToWire(v.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CommentObject.LastUpdatedTimestamp", err)
+	}
+	return &commentObjectWire{
+		CreationTimestamp:    creationTimestampWireValue,
+		UserId:               v.UserId,
+		ActivityType:         v.ActivityType,
+		Comment:              v.Comment,
+		LastUpdatedTimestamp: lastUpdatedTimestampWireValue,
+		FromStage:            v.FromStage,
+		ToStage:              v.ToStage,
+		SystemComment:        v.SystemComment,
+		AvailableActions:     v.AvailableActions,
+		Id:                   v.Id,
+	}, nil
 }
 
 func commentObjectFromWire(w *commentObjectWire) (*CommentObject, error) {
@@ -185,8 +263,32 @@ func createCommentRequestToWire(v *CreateCommentRequest) (*createCommentRequestW
 	}, nil
 }
 
+func createCommentRequestFromWire(w *createCommentRequestWire) (*CreateCommentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CreateCommentRequest{
+		Name:    w.Name,
+		Version: w.Version,
+		Comment: w.Comment,
+	}, nil
+}
+
 type createCommentResponseWire struct {
 	Comment *commentObjectWire `json:"comment,omitempty"`
+}
+
+func createCommentResponseToWire(v *CreateCommentResponse) (*createCommentResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	commentWireValue, err := commentObjectToWire(v.Comment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCommentResponse.Comment", err)
+	}
+	return &createCommentResponseWire{
+		Comment: commentWireValue,
+	}, nil
 }
 
 func createCommentResponseFromWire(w *createCommentResponseWire) (*CreateCommentResponse, error) {
@@ -229,8 +331,39 @@ func createModelVersionRequestToWire(v *CreateModelVersionRequest) (*createModel
 	}, nil
 }
 
+func createModelVersionRequestFromWire(w *createModelVersionRequestWire) (*CreateModelVersionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tagsPublicValue, err := convertSlice(w.Tags, modelVersionTagFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateModelVersionRequest.Tags", err)
+	}
+	return &CreateModelVersionRequest{
+		Name:        w.Name,
+		Source:      w.Source,
+		RunId:       w.RunId,
+		Tags:        tagsPublicValue,
+		RunLink:     w.RunLink,
+		Description: w.Description,
+	}, nil
+}
+
 type createModelVersionResponseWire struct {
 	ModelVersion *modelVersionWire `json:"model_version,omitempty"`
+}
+
+func createModelVersionResponseToWire(v *CreateModelVersionResponse) (*createModelVersionResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	modelVersionWireValue, err := modelVersionToWire(v.ModelVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateModelVersionResponse.ModelVersion", err)
+	}
+	return &createModelVersionResponseWire{
+		ModelVersion: modelVersionWireValue,
+	}, nil
 }
 
 func createModelVersionResponseFromWire(w *createModelVersionResponseWire) (*CreateModelVersionResponse, error) {
@@ -267,8 +400,36 @@ func createRegisteredModelRequestToWire(v *CreateRegisteredModelRequest) (*creat
 	}, nil
 }
 
+func createRegisteredModelRequestFromWire(w *createRegisteredModelRequestWire) (*CreateRegisteredModelRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tagsPublicValue, err := convertSlice(w.Tags, registeredModelTagFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRegisteredModelRequest.Tags", err)
+	}
+	return &CreateRegisteredModelRequest{
+		Name:        w.Name,
+		Tags:        tagsPublicValue,
+		Description: w.Description,
+	}, nil
+}
+
 type createRegisteredModelResponseWire struct {
 	RegisteredModel *registeredModelWire `json:"registered_model,omitempty"`
+}
+
+func createRegisteredModelResponseToWire(v *CreateRegisteredModelResponse) (*createRegisteredModelResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	registeredModelWireValue, err := registeredModelToWire(v.RegisteredModel)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRegisteredModelResponse.RegisteredModel", err)
+	}
+	return &createRegisteredModelResponseWire{
+		RegisteredModel: registeredModelWireValue,
+	}, nil
 }
 
 func createRegisteredModelResponseFromWire(w *createRegisteredModelResponseWire) (*CreateRegisteredModelResponse, error) {
@@ -315,8 +476,43 @@ func createRegistryWebhookRequestToWire(v *CreateRegistryWebhookRequest) (*creat
 	}, nil
 }
 
+func createRegistryWebhookRequestFromWire(w *createRegistryWebhookRequestWire) (*CreateRegistryWebhookRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	httpUrlSpecPublicValue, err := httpUrlSpecFromWire(w.HttpUrlSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRegistryWebhookRequest.HttpUrlSpec", err)
+	}
+	jobSpecPublicValue, err := jobSpecFromWire(w.JobSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRegistryWebhookRequest.JobSpec", err)
+	}
+	return &CreateRegistryWebhookRequest{
+		ModelName:   w.ModelName,
+		Events:      w.Events,
+		Description: w.Description,
+		Status:      w.Status,
+		HttpUrlSpec: httpUrlSpecPublicValue,
+		JobSpec:     jobSpecPublicValue,
+	}, nil
+}
+
 type createRegistryWebhookResponseWire struct {
 	Webhook *registryWebhookWire `json:"webhook,omitempty"`
+}
+
+func createRegistryWebhookResponseToWire(v *CreateRegistryWebhookResponse) (*createRegistryWebhookResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	webhookWireValue, err := registryWebhookToWire(v.Webhook)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRegistryWebhookResponse.Webhook", err)
+	}
+	return &createRegistryWebhookResponseWire{
+		Webhook: webhookWireValue,
+	}, nil
 }
 
 func createRegistryWebhookResponseFromWire(w *createRegistryWebhookResponseWire) (*CreateRegistryWebhookResponse, error) {
@@ -351,8 +547,33 @@ func createTransitionRequestToWire(v *CreateTransitionRequest) (*createTransitio
 	}, nil
 }
 
+func createTransitionRequestFromWire(w *createTransitionRequestWire) (*CreateTransitionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CreateTransitionRequest{
+		Name:    w.Name,
+		Version: w.Version,
+		Stage:   w.Stage,
+		Comment: w.Comment,
+	}, nil
+}
+
 type createTransitionResponseWire struct {
 	Request *transitionRequestWire `json:"request,omitempty"`
+}
+
+func createTransitionResponseToWire(v *CreateTransitionResponse) (*createTransitionResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	requestWireValue, err := transitionRequestToWire(v.Request)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTransitionResponse.Request", err)
+	}
+	return &createTransitionResponseWire{
+		Request: requestWireValue,
+	}, nil
 }
 
 func createTransitionResponseFromWire(w *createTransitionResponseWire) (*CreateTransitionResponse, error) {
@@ -381,6 +602,32 @@ func deleteCommentRequestToWire(v *DeleteCommentRequest) (*deleteCommentRequestW
 	}, nil
 }
 
+func deleteCommentRequestFromWire(w *deleteCommentRequestWire) (*DeleteCommentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCommentRequest{
+		Id: w.Id,
+	}, nil
+}
+
+type deleteCommentResponseWire struct {
+}
+
+func deleteCommentResponseToWire(v *DeleteCommentResponse) (*deleteCommentResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCommentResponseWire{}, nil
+}
+
+func deleteCommentResponseFromWire(w *deleteCommentResponseWire) (*DeleteCommentResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCommentResponse{}, nil
+}
+
 type deleteModelVersionRequestWire struct {
 	Name    *string `json:"name,omitempty"`
 	Version *string `json:"version,omitempty"`
@@ -394,6 +641,33 @@ func deleteModelVersionRequestToWire(v *DeleteModelVersionRequest) (*deleteModel
 		Name:    v.Name,
 		Version: v.Version,
 	}, nil
+}
+
+func deleteModelVersionRequestFromWire(w *deleteModelVersionRequestWire) (*DeleteModelVersionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteModelVersionRequest{
+		Name:    w.Name,
+		Version: w.Version,
+	}, nil
+}
+
+type deleteModelVersionResponseWire struct {
+}
+
+func deleteModelVersionResponseToWire(v *DeleteModelVersionResponse) (*deleteModelVersionResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteModelVersionResponseWire{}, nil
+}
+
+func deleteModelVersionResponseFromWire(w *deleteModelVersionResponseWire) (*DeleteModelVersionResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteModelVersionResponse{}, nil
 }
 
 type deleteModelVersionTagRequestWire struct {
@@ -413,6 +687,34 @@ func deleteModelVersionTagRequestToWire(v *DeleteModelVersionTagRequest) (*delet
 	}, nil
 }
 
+func deleteModelVersionTagRequestFromWire(w *deleteModelVersionTagRequestWire) (*DeleteModelVersionTagRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteModelVersionTagRequest{
+		Name:    w.Name,
+		Version: w.Version,
+		Key:     w.Key,
+	}, nil
+}
+
+type deleteModelVersionTagResponseWire struct {
+}
+
+func deleteModelVersionTagResponseToWire(v *DeleteModelVersionTagResponse) (*deleteModelVersionTagResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteModelVersionTagResponseWire{}, nil
+}
+
+func deleteModelVersionTagResponseFromWire(w *deleteModelVersionTagResponseWire) (*DeleteModelVersionTagResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteModelVersionTagResponse{}, nil
+}
+
 type deleteRegisteredModelRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -424,6 +726,32 @@ func deleteRegisteredModelRequestToWire(v *DeleteRegisteredModelRequest) (*delet
 	return &deleteRegisteredModelRequestWire{
 		Name: v.Name,
 	}, nil
+}
+
+func deleteRegisteredModelRequestFromWire(w *deleteRegisteredModelRequestWire) (*DeleteRegisteredModelRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRegisteredModelRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteRegisteredModelResponseWire struct {
+}
+
+func deleteRegisteredModelResponseToWire(v *DeleteRegisteredModelResponse) (*deleteRegisteredModelResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteRegisteredModelResponseWire{}, nil
+}
+
+func deleteRegisteredModelResponseFromWire(w *deleteRegisteredModelResponseWire) (*DeleteRegisteredModelResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRegisteredModelResponse{}, nil
 }
 
 type deleteRegisteredModelTagRequestWire struct {
@@ -441,6 +769,33 @@ func deleteRegisteredModelTagRequestToWire(v *DeleteRegisteredModelTagRequest) (
 	}, nil
 }
 
+func deleteRegisteredModelTagRequestFromWire(w *deleteRegisteredModelTagRequestWire) (*DeleteRegisteredModelTagRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRegisteredModelTagRequest{
+		Name: w.Name,
+		Key:  w.Key,
+	}, nil
+}
+
+type deleteRegisteredModelTagResponseWire struct {
+}
+
+func deleteRegisteredModelTagResponseToWire(v *DeleteRegisteredModelTagResponse) (*deleteRegisteredModelTagResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteRegisteredModelTagResponseWire{}, nil
+}
+
+func deleteRegisteredModelTagResponseFromWire(w *deleteRegisteredModelTagResponseWire) (*DeleteRegisteredModelTagResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRegisteredModelTagResponse{}, nil
+}
+
 type deleteRegistryWebhookRequestWire struct {
 	Id *string `json:"id,omitempty"`
 }
@@ -452,6 +807,32 @@ func deleteRegistryWebhookRequestToWire(v *DeleteRegistryWebhookRequest) (*delet
 	return &deleteRegistryWebhookRequestWire{
 		Id: v.Id,
 	}, nil
+}
+
+func deleteRegistryWebhookRequestFromWire(w *deleteRegistryWebhookRequestWire) (*DeleteRegistryWebhookRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRegistryWebhookRequest{
+		Id: w.Id,
+	}, nil
+}
+
+type deleteRegistryWebhookResponseWire struct {
+}
+
+func deleteRegistryWebhookResponseToWire(v *DeleteRegistryWebhookResponse) (*deleteRegistryWebhookResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteRegistryWebhookResponseWire{}, nil
+}
+
+func deleteRegistryWebhookResponseFromWire(w *deleteRegistryWebhookResponseWire) (*DeleteRegistryWebhookResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRegistryWebhookResponse{}, nil
 }
 
 type deleteTransitionRequestWire struct {
@@ -475,8 +856,34 @@ func deleteTransitionRequestToWire(v *DeleteTransitionRequest) (*deleteTransitio
 	}, nil
 }
 
+func deleteTransitionRequestFromWire(w *deleteTransitionRequestWire) (*DeleteTransitionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteTransitionRequest{
+		Name:    w.Name,
+		Version: w.Version,
+		Stage:   w.Stage,
+		Creator: w.Creator,
+		Comment: w.Comment,
+	}, nil
+}
+
 type deleteTransitionResponseWire struct {
 	Activity *activityWire `json:"activity,omitempty"`
+}
+
+func deleteTransitionResponseToWire(v *DeleteTransitionResponse) (*deleteTransitionResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	activityWireValue, err := activityToWire(v.Activity)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteTransitionResponse.Activity", err)
+	}
+	return &deleteTransitionResponseWire{
+		Activity: activityWireValue,
+	}, nil
 }
 
 func deleteTransitionResponseFromWire(w *deleteTransitionResponseWire) (*DeleteTransitionResponse, error) {
@@ -496,6 +903,19 @@ type featureListWire struct {
 	Features []linkedFeatureWire `json:"features,omitempty"`
 }
 
+func featureListToWire(v *FeatureList) (*featureListWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	featuresWireValue, err := convertSlice(v.Features, linkedFeatureToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FeatureList.Features", err)
+	}
+	return &featureListWire{
+		Features: featuresWireValue,
+	}, nil
+}
+
 func featureListFromWire(w *featureListWire) (*FeatureList, error) {
 	if w == nil {
 		return nil, nil
@@ -511,6 +931,19 @@ func featureListFromWire(w *featureListWire) (*FeatureList, error) {
 
 type getLatestVersionsResponseWire struct {
 	ModelVersions []modelVersionWire `json:"model_versions,omitempty"`
+}
+
+func getLatestVersionsResponseToWire(v *GetLatestVersionsResponse) (*getLatestVersionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	modelVersionsWireValue, err := convertSlice(v.ModelVersions, modelVersionToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetLatestVersionsResponse.ModelVersions", err)
+	}
+	return &getLatestVersionsResponseWire{
+		ModelVersions: modelVersionsWireValue,
+	}, nil
 }
 
 func getLatestVersionsResponseFromWire(w *getLatestVersionsResponseWire) (*GetLatestVersionsResponse, error) {
@@ -541,8 +974,27 @@ func getModelVersionDownloadUriRequestToWire(v *GetModelVersionDownloadUriReques
 	}, nil
 }
 
+func getModelVersionDownloadUriRequestFromWire(w *getModelVersionDownloadUriRequestWire) (*GetModelVersionDownloadUriRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetModelVersionDownloadUriRequest{
+		Name:    w.Name,
+		Version: w.Version,
+	}, nil
+}
+
 type getModelVersionDownloadUriResponseWire struct {
 	ArtifactUri *string `json:"artifact_uri,omitempty"`
+}
+
+func getModelVersionDownloadUriResponseToWire(v *GetModelVersionDownloadUriResponse) (*getModelVersionDownloadUriResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getModelVersionDownloadUriResponseWire{
+		ArtifactUri: v.ArtifactUri,
+	}, nil
 }
 
 func getModelVersionDownloadUriResponseFromWire(w *getModelVersionDownloadUriResponseWire) (*GetModelVersionDownloadUriResponse, error) {
@@ -569,8 +1021,31 @@ func getModelVersionRequestToWire(v *GetModelVersionRequest) (*getModelVersionRe
 	}, nil
 }
 
+func getModelVersionRequestFromWire(w *getModelVersionRequestWire) (*GetModelVersionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetModelVersionRequest{
+		Name:    w.Name,
+		Version: w.Version,
+	}, nil
+}
+
 type getModelVersionResponseWire struct {
 	ModelVersion *modelVersionWire `json:"model_version,omitempty"`
+}
+
+func getModelVersionResponseToWire(v *GetModelVersionResponse) (*getModelVersionResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	modelVersionWireValue, err := modelVersionToWire(v.ModelVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetModelVersionResponse.ModelVersion", err)
+	}
+	return &getModelVersionResponseWire{
+		ModelVersion: modelVersionWireValue,
+	}, nil
 }
 
 func getModelVersionResponseFromWire(w *getModelVersionResponseWire) (*GetModelVersionResponse, error) {
@@ -599,8 +1074,30 @@ func getRegisteredModelDatabricksRequestToWire(v *GetRegisteredModelDatabricksRe
 	}, nil
 }
 
+func getRegisteredModelDatabricksRequestFromWire(w *getRegisteredModelDatabricksRequestWire) (*GetRegisteredModelDatabricksRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetRegisteredModelDatabricksRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type getRegisteredModelDatabricksResponseWire struct {
 	RegisteredModelDatabricks *registeredModelDatabricksWire `json:"registered_model_databricks,omitempty"`
+}
+
+func getRegisteredModelDatabricksResponseToWire(v *GetRegisteredModelDatabricksResponse) (*getRegisteredModelDatabricksResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	registeredModelDatabricksWireValue, err := registeredModelDatabricksToWire(v.RegisteredModelDatabricks)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRegisteredModelDatabricksResponse.RegisteredModelDatabricks", err)
+	}
+	return &getRegisteredModelDatabricksResponseWire{
+		RegisteredModelDatabricks: registeredModelDatabricksWireValue,
+	}, nil
 }
 
 func getRegisteredModelDatabricksResponseFromWire(w *getRegisteredModelDatabricksResponseWire) (*GetRegisteredModelDatabricksResponse, error) {
@@ -681,6 +1178,17 @@ type linkedFeatureWire struct {
 	FeatureTableId   *string `json:"feature_table_id,omitempty"`
 }
 
+func linkedFeatureToWire(v *LinkedFeature) (*linkedFeatureWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &linkedFeatureWire{
+		FeatureTableName: v.FeatureTableName,
+		FeatureName:      v.FeatureName,
+		FeatureTableId:   v.FeatureTableId,
+	}, nil
+}
+
 func linkedFeatureFromWire(w *linkedFeatureWire) (*LinkedFeature, error) {
 	if w == nil {
 		return nil, nil
@@ -707,6 +1215,16 @@ func listLatestVersionsRequestToWire(v *ListLatestVersionsRequest) (*listLatestV
 	}, nil
 }
 
+func listLatestVersionsRequestFromWire(w *listLatestVersionsRequestWire) (*ListLatestVersionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListLatestVersionsRequest{
+		Name:   w.Name,
+		Stages: w.Stages,
+	}, nil
+}
+
 type listRegisteredModelsRequestWire struct {
 	MaxResults *wireInt64 `json:"max_results,omitempty"`
 	PageToken  *string    `json:"page_token,omitempty"`
@@ -726,9 +1244,37 @@ func listRegisteredModelsRequestToWire(v *ListRegisteredModelsRequest) (*listReg
 	}, nil
 }
 
+func listRegisteredModelsRequestFromWire(w *listRegisteredModelsRequestWire) (*ListRegisteredModelsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	maxResultsPublicValue, err := int64FromWire(w.MaxResults)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRegisteredModelsRequest.MaxResults", err)
+	}
+	return &ListRegisteredModelsRequest{
+		MaxResults: maxResultsPublicValue,
+		PageToken:  w.PageToken,
+	}, nil
+}
+
 type listRegisteredModelsResponseWire struct {
 	RegisteredModels []registeredModelWire `json:"registered_models,omitempty"`
 	NextPageToken    *string               `json:"next_page_token,omitempty"`
+}
+
+func listRegisteredModelsResponseToWire(v *ListRegisteredModelsResponse) (*listRegisteredModelsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	registeredModelsWireValue, err := convertSlice(v.RegisteredModels, registeredModelToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRegisteredModelsResponse.RegisteredModels", err)
+	}
+	return &listRegisteredModelsResponseWire{
+		RegisteredModels: registeredModelsWireValue,
+		NextPageToken:    v.NextPageToken,
+	}, nil
 }
 
 func listRegisteredModelsResponseFromWire(w *listRegisteredModelsResponseWire) (*ListRegisteredModelsResponse, error) {
@@ -768,9 +1314,39 @@ func listRegistryWebhooksRequestToWire(v *ListRegistryWebhooksRequest) (*listReg
 	}, nil
 }
 
+func listRegistryWebhooksRequestFromWire(w *listRegistryWebhooksRequestWire) (*ListRegistryWebhooksRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	maxResultsPublicValue, err := int64FromWire(w.MaxResults)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRegistryWebhooksRequest.MaxResults", err)
+	}
+	return &ListRegistryWebhooksRequest{
+		ModelName:  w.ModelName,
+		Events:     w.Events,
+		PageToken:  w.PageToken,
+		MaxResults: maxResultsPublicValue,
+	}, nil
+}
+
 type listRegistryWebhooksResponseWire struct {
 	Webhooks      []registryWebhookWire `json:"webhooks,omitempty"`
 	NextPageToken *string               `json:"next_page_token,omitempty"`
+}
+
+func listRegistryWebhooksResponseToWire(v *ListRegistryWebhooksResponse) (*listRegistryWebhooksResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	webhooksWireValue, err := convertSlice(v.Webhooks, registryWebhookToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRegistryWebhooksResponse.Webhooks", err)
+	}
+	return &listRegistryWebhooksResponseWire{
+		Webhooks:      webhooksWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listRegistryWebhooksResponseFromWire(w *listRegistryWebhooksResponseWire) (*ListRegistryWebhooksResponse, error) {
@@ -802,8 +1378,31 @@ func listTransitionRequestToWire(v *ListTransitionRequest) (*listTransitionReque
 	}, nil
 }
 
+func listTransitionRequestFromWire(w *listTransitionRequestWire) (*ListTransitionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListTransitionRequest{
+		Name:    w.Name,
+		Version: w.Version,
+	}, nil
+}
+
 type listTransitionResponseWire struct {
 	Requests []activityWire `json:"requests,omitempty"`
+}
+
+func listTransitionResponseToWire(v *ListTransitionResponse) (*listTransitionResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	requestsWireValue, err := convertSlice(v.Requests, activityToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListTransitionResponse.Requests", err)
+	}
+	return &listTransitionResponseWire{
+		Requests: requestsWireValue,
+	}, nil
 }
 
 func listTransitionResponseFromWire(w *listTransitionResponseWire) (*ListTransitionResponse, error) {
@@ -833,6 +1432,39 @@ type modelVersionWire struct {
 	StatusMessage        *string               `json:"status_message,omitempty"`
 	Tags                 []modelVersionTagWire `json:"tags,omitempty"`
 	RunLink              *string               `json:"run_link,omitempty"`
+}
+
+func modelVersionToWire(v *ModelVersion) (*modelVersionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	creationTimestampWireValue, err := int64ToWire(v.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelVersion.CreationTimestamp", err)
+	}
+	lastUpdatedTimestampWireValue, err := int64ToWire(v.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelVersion.LastUpdatedTimestamp", err)
+	}
+	tagsWireValue, err := convertSlice(v.Tags, modelVersionTagToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelVersion.Tags", err)
+	}
+	return &modelVersionWire{
+		Name:                 v.Name,
+		Version:              v.Version,
+		CreationTimestamp:    creationTimestampWireValue,
+		LastUpdatedTimestamp: lastUpdatedTimestampWireValue,
+		UserId:               v.UserId,
+		CurrentStage:         v.CurrentStage,
+		Description:          v.Description,
+		Source:               v.Source,
+		RunId:                v.RunId,
+		Status:               v.Status,
+		StatusMessage:        v.StatusMessage,
+		Tags:                 tagsWireValue,
+		RunLink:              v.RunLink,
+	}, nil
 }
 
 func modelVersionFromWire(w *modelVersionWire) (*ModelVersion, error) {
@@ -886,6 +1518,51 @@ type modelVersionDatabricksWire struct {
 	RunLink                 *string                       `json:"run_link,omitempty"`
 	EmailSubscriptionStatus RegistryEmailSubscriptionType `json:"email_subscription_status,omitempty"`
 	FeatureList             *featureListWire              `json:"feature_list,omitempty"`
+}
+
+func modelVersionDatabricksToWire(v *ModelVersionDatabricks) (*modelVersionDatabricksWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	creationTimestampWireValue, err := int64ToWire(v.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelVersionDatabricks.CreationTimestamp", err)
+	}
+	lastUpdatedTimestampWireValue, err := int64ToWire(v.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelVersionDatabricks.LastUpdatedTimestamp", err)
+	}
+	openRequestsWireValue, err := convertSlice(v.OpenRequests, activityToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelVersionDatabricks.OpenRequests", err)
+	}
+	tagsWireValue, err := convertSlice(v.Tags, modelVersionTagToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelVersionDatabricks.Tags", err)
+	}
+	featureListWireValue, err := featureListToWire(v.FeatureList)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelVersionDatabricks.FeatureList", err)
+	}
+	return &modelVersionDatabricksWire{
+		Name:                    v.Name,
+		Version:                 v.Version,
+		CreationTimestamp:       creationTimestampWireValue,
+		LastUpdatedTimestamp:    lastUpdatedTimestampWireValue,
+		UserId:                  v.UserId,
+		CurrentStage:            v.CurrentStage,
+		Description:             v.Description,
+		Source:                  v.Source,
+		RunId:                   v.RunId,
+		Status:                  v.Status,
+		StatusMessage:           v.StatusMessage,
+		OpenRequests:            openRequestsWireValue,
+		PermissionLevel:         v.PermissionLevel,
+		Tags:                    tagsWireValue,
+		RunLink:                 v.RunLink,
+		EmailSubscriptionStatus: v.EmailSubscriptionStatus,
+		FeatureList:             featureListWireValue,
+	}, nil
 }
 
 func modelVersionDatabricksFromWire(w *modelVersionDatabricksWire) (*ModelVersionDatabricks, error) {
@@ -968,6 +1645,37 @@ type registeredModelWire struct {
 	Tags                 []registeredModelTagWire `json:"tags,omitempty"`
 }
 
+func registeredModelToWire(v *RegisteredModel) (*registeredModelWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	creationTimestampWireValue, err := int64ToWire(v.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegisteredModel.CreationTimestamp", err)
+	}
+	lastUpdatedTimestampWireValue, err := int64ToWire(v.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegisteredModel.LastUpdatedTimestamp", err)
+	}
+	latestVersionsWireValue, err := convertSlice(v.LatestVersions, modelVersionToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegisteredModel.LatestVersions", err)
+	}
+	tagsWireValue, err := convertSlice(v.Tags, registeredModelTagToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegisteredModel.Tags", err)
+	}
+	return &registeredModelWire{
+		Name:                 v.Name,
+		CreationTimestamp:    creationTimestampWireValue,
+		LastUpdatedTimestamp: lastUpdatedTimestampWireValue,
+		UserId:               v.UserId,
+		Description:          v.Description,
+		LatestVersions:       latestVersionsWireValue,
+		Tags:                 tagsWireValue,
+	}, nil
+}
+
 func registeredModelFromWire(w *registeredModelWire) (*RegisteredModel, error) {
 	if w == nil {
 		return nil, nil
@@ -1009,6 +1717,39 @@ type registeredModelDatabricksWire struct {
 	Id                   *string                  `json:"id,omitempty"`
 	PermissionLevel      PermissionLevel          `json:"permission_level,omitempty"`
 	Tags                 []registeredModelTagWire `json:"tags,omitempty"`
+}
+
+func registeredModelDatabricksToWire(v *RegisteredModelDatabricks) (*registeredModelDatabricksWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	creationTimestampWireValue, err := int64ToWire(v.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegisteredModelDatabricks.CreationTimestamp", err)
+	}
+	lastUpdatedTimestampWireValue, err := int64ToWire(v.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegisteredModelDatabricks.LastUpdatedTimestamp", err)
+	}
+	latestVersionsWireValue, err := convertSlice(v.LatestVersions, modelVersionToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegisteredModelDatabricks.LatestVersions", err)
+	}
+	tagsWireValue, err := convertSlice(v.Tags, registeredModelTagToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegisteredModelDatabricks.Tags", err)
+	}
+	return &registeredModelDatabricksWire{
+		Name:                 v.Name,
+		CreationTimestamp:    creationTimestampWireValue,
+		LastUpdatedTimestamp: lastUpdatedTimestampWireValue,
+		UserId:               v.UserId,
+		Description:          v.Description,
+		LatestVersions:       latestVersionsWireValue,
+		Id:                   v.Id,
+		PermissionLevel:      v.PermissionLevel,
+		Tags:                 tagsWireValue,
+	}, nil
 }
 
 func registeredModelDatabricksFromWire(w *registeredModelDatabricksWire) (*RegisteredModelDatabricks, error) {
@@ -1081,6 +1822,39 @@ type registryWebhookWire struct {
 	ModelName            *string                `json:"model_name,omitempty"`
 }
 
+func registryWebhookToWire(v *RegistryWebhook) (*registryWebhookWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	creationTimestampWireValue, err := int64ToWire(v.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegistryWebhook.CreationTimestamp", err)
+	}
+	lastUpdatedTimestampWireValue, err := int64ToWire(v.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegistryWebhook.LastUpdatedTimestamp", err)
+	}
+	httpUrlSpecWireValue, err := httpUrlSpecToWire(v.HttpUrlSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegistryWebhook.HttpUrlSpec", err)
+	}
+	jobSpecWireValue, err := jobSpecToWire(v.JobSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegistryWebhook.JobSpec", err)
+	}
+	return &registryWebhookWire{
+		Id:                   v.Id,
+		Events:               v.Events,
+		CreationTimestamp:    creationTimestampWireValue,
+		LastUpdatedTimestamp: lastUpdatedTimestampWireValue,
+		Description:          v.Description,
+		Status:               v.Status,
+		HttpUrlSpec:          httpUrlSpecWireValue,
+		JobSpec:              jobSpecWireValue,
+		ModelName:            v.ModelName,
+	}, nil
+}
+
 func registryWebhookFromWire(w *registryWebhookWire) (*RegistryWebhook, error) {
 	if w == nil {
 		return nil, nil
@@ -1133,8 +1907,33 @@ func rejectTransitionRequestToWire(v *RejectTransitionRequest) (*rejectTransitio
 	}, nil
 }
 
+func rejectTransitionRequestFromWire(w *rejectTransitionRequestWire) (*RejectTransitionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RejectTransitionRequest{
+		Name:    w.Name,
+		Version: w.Version,
+		Stage:   w.Stage,
+		Comment: w.Comment,
+	}, nil
+}
+
 type rejectTransitionResponseWire struct {
 	Activity *activityWire `json:"activity,omitempty"`
+}
+
+func rejectTransitionResponseToWire(v *RejectTransitionResponse) (*rejectTransitionResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	activityWireValue, err := activityToWire(v.Activity)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RejectTransitionResponse.Activity", err)
+	}
+	return &rejectTransitionResponseWire{
+		Activity: activityWireValue,
+	}, nil
 }
 
 func rejectTransitionResponseFromWire(w *rejectTransitionResponseWire) (*RejectTransitionResponse, error) {
@@ -1165,8 +1964,31 @@ func renameRegisteredModelRequestToWire(v *RenameRegisteredModelRequest) (*renam
 	}, nil
 }
 
+func renameRegisteredModelRequestFromWire(w *renameRegisteredModelRequestWire) (*RenameRegisteredModelRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RenameRegisteredModelRequest{
+		Name:    w.Name,
+		NewName: w.NewName,
+	}, nil
+}
+
 type renameRegisteredModelResponseWire struct {
 	RegisteredModel *registeredModelWire `json:"registered_model,omitempty"`
+}
+
+func renameRegisteredModelResponseToWire(v *RenameRegisteredModelResponse) (*renameRegisteredModelResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	registeredModelWireValue, err := registeredModelToWire(v.RegisteredModel)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RenameRegisteredModelResponse.RegisteredModel", err)
+	}
+	return &renameRegisteredModelResponseWire{
+		RegisteredModel: registeredModelWireValue,
+	}, nil
 }
 
 func renameRegisteredModelResponseFromWire(w *renameRegisteredModelResponseWire) (*RenameRegisteredModelResponse, error) {
@@ -1205,9 +2027,39 @@ func searchModelVersionsRequestToWire(v *SearchModelVersionsRequest) (*searchMod
 	}, nil
 }
 
+func searchModelVersionsRequestFromWire(w *searchModelVersionsRequestWire) (*SearchModelVersionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	maxResultsPublicValue, err := int64FromWire(w.MaxResults)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SearchModelVersionsRequest.MaxResults", err)
+	}
+	return &SearchModelVersionsRequest{
+		Filter:     w.Filter,
+		MaxResults: maxResultsPublicValue,
+		OrderBy:    w.OrderBy,
+		PageToken:  w.PageToken,
+	}, nil
+}
+
 type searchModelVersionsResponseWire struct {
 	ModelVersions []modelVersionWire `json:"model_versions,omitempty"`
 	NextPageToken *string            `json:"next_page_token,omitempty"`
+}
+
+func searchModelVersionsResponseToWire(v *SearchModelVersionsResponse) (*searchModelVersionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	modelVersionsWireValue, err := convertSlice(v.ModelVersions, modelVersionToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SearchModelVersionsResponse.ModelVersions", err)
+	}
+	return &searchModelVersionsResponseWire{
+		ModelVersions: modelVersionsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func searchModelVersionsResponseFromWire(w *searchModelVersionsResponseWire) (*SearchModelVersionsResponse, error) {
@@ -1247,9 +2099,39 @@ func searchRegisteredModelsRequestToWire(v *SearchRegisteredModelsRequest) (*sea
 	}, nil
 }
 
+func searchRegisteredModelsRequestFromWire(w *searchRegisteredModelsRequestWire) (*SearchRegisteredModelsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	maxResultsPublicValue, err := int64FromWire(w.MaxResults)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SearchRegisteredModelsRequest.MaxResults", err)
+	}
+	return &SearchRegisteredModelsRequest{
+		Filter:     w.Filter,
+		MaxResults: maxResultsPublicValue,
+		OrderBy:    w.OrderBy,
+		PageToken:  w.PageToken,
+	}, nil
+}
+
 type searchRegisteredModelsResponseWire struct {
 	RegisteredModels []registeredModelWire `json:"registered_models,omitempty"`
 	NextPageToken    *string               `json:"next_page_token,omitempty"`
+}
+
+func searchRegisteredModelsResponseToWire(v *SearchRegisteredModelsResponse) (*searchRegisteredModelsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	registeredModelsWireValue, err := convertSlice(v.RegisteredModels, registeredModelToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SearchRegisteredModelsResponse.RegisteredModels", err)
+	}
+	return &searchRegisteredModelsResponseWire{
+		RegisteredModels: registeredModelsWireValue,
+		NextPageToken:    v.NextPageToken,
+	}, nil
 }
 
 func searchRegisteredModelsResponseFromWire(w *searchRegisteredModelsResponseWire) (*SearchRegisteredModelsResponse, error) {
@@ -1285,6 +2167,35 @@ func setModelVersionTagRequestToWire(v *SetModelVersionTagRequest) (*setModelVer
 	}, nil
 }
 
+func setModelVersionTagRequestFromWire(w *setModelVersionTagRequestWire) (*SetModelVersionTagRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SetModelVersionTagRequest{
+		Name:    w.Name,
+		Version: w.Version,
+		Key:     w.Key,
+		Value:   w.Value,
+	}, nil
+}
+
+type setModelVersionTagResponseWire struct {
+}
+
+func setModelVersionTagResponseToWire(v *SetModelVersionTagResponse) (*setModelVersionTagResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &setModelVersionTagResponseWire{}, nil
+}
+
+func setModelVersionTagResponseFromWire(w *setModelVersionTagResponseWire) (*SetModelVersionTagResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SetModelVersionTagResponse{}, nil
+}
+
 type setRegisteredModelTagRequestWire struct {
 	Name  *string `json:"name,omitempty"`
 	Key   *string `json:"key,omitempty"`
@@ -1302,6 +2213,34 @@ func setRegisteredModelTagRequestToWire(v *SetRegisteredModelTagRequest) (*setRe
 	}, nil
 }
 
+func setRegisteredModelTagRequestFromWire(w *setRegisteredModelTagRequestWire) (*SetRegisteredModelTagRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SetRegisteredModelTagRequest{
+		Name:  w.Name,
+		Key:   w.Key,
+		Value: w.Value,
+	}, nil
+}
+
+type setRegisteredModelTagResponseWire struct {
+}
+
+func setRegisteredModelTagResponseToWire(v *SetRegisteredModelTagResponse) (*setRegisteredModelTagResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &setRegisteredModelTagResponseWire{}, nil
+}
+
+func setRegisteredModelTagResponseFromWire(w *setRegisteredModelTagResponseWire) (*SetRegisteredModelTagResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SetRegisteredModelTagResponse{}, nil
+}
+
 type testRegistryWebhookRequestWire struct {
 	Id    *string              `json:"id,omitempty"`
 	Event RegistryWebhookEvent `json:"event,omitempty"`
@@ -1317,9 +2256,29 @@ func testRegistryWebhookRequestToWire(v *TestRegistryWebhookRequest) (*testRegis
 	}, nil
 }
 
+func testRegistryWebhookRequestFromWire(w *testRegistryWebhookRequestWire) (*TestRegistryWebhookRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &TestRegistryWebhookRequest{
+		Id:    w.Id,
+		Event: w.Event,
+	}, nil
+}
+
 type testRegistryWebhookResponseWire struct {
 	StatusCode *int    `json:"status_code,omitempty"`
 	Body       *string `json:"body,omitempty"`
+}
+
+func testRegistryWebhookResponseToWire(v *TestRegistryWebhookResponse) (*testRegistryWebhookResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &testRegistryWebhookResponseWire{
+		StatusCode: v.StatusCode,
+		Body:       v.Body,
+	}, nil
 }
 
 func testRegistryWebhookResponseFromWire(w *testRegistryWebhookResponseWire) (*TestRegistryWebhookResponse, error) {
@@ -1353,8 +2312,34 @@ func transitionModelVersionStageDatabricksRequestToWire(v *TransitionModelVersio
 	}, nil
 }
 
+func transitionModelVersionStageDatabricksRequestFromWire(w *transitionModelVersionStageDatabricksRequestWire) (*TransitionModelVersionStageDatabricksRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &TransitionModelVersionStageDatabricksRequest{
+		Name:                    w.Name,
+		Version:                 w.Version,
+		Stage:                   w.Stage,
+		ArchiveExistingVersions: w.ArchiveExistingVersions,
+		Comment:                 w.Comment,
+	}, nil
+}
+
 type transitionModelVersionStageDatabricksResponseWire struct {
 	ModelVersionDatabricks *modelVersionDatabricksWire `json:"model_version_databricks,omitempty"`
+}
+
+func transitionModelVersionStageDatabricksResponseToWire(v *TransitionModelVersionStageDatabricksResponse) (*transitionModelVersionStageDatabricksResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	modelVersionDatabricksWireValue, err := modelVersionDatabricksToWire(v.ModelVersionDatabricks)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TransitionModelVersionStageDatabricksResponse.ModelVersionDatabricks", err)
+	}
+	return &transitionModelVersionStageDatabricksResponseWire{
+		ModelVersionDatabricks: modelVersionDatabricksWireValue,
+	}, nil
 }
 
 func transitionModelVersionStageDatabricksResponseFromWire(w *transitionModelVersionStageDatabricksResponseWire) (*TransitionModelVersionStageDatabricksResponse, error) {
@@ -1381,6 +2366,32 @@ type transitionRequestWire struct {
 	SystemComment        *string          `json:"system_comment,omitempty"`
 	AvailableActions     []ActivityAction `json:"available_actions,omitempty"`
 	Id                   *string          `json:"id,omitempty"`
+}
+
+func transitionRequestToWire(v *TransitionRequest) (*transitionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	creationTimestampWireValue, err := int64ToWire(v.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TransitionRequest.CreationTimestamp", err)
+	}
+	lastUpdatedTimestampWireValue, err := int64ToWire(v.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TransitionRequest.LastUpdatedTimestamp", err)
+	}
+	return &transitionRequestWire{
+		CreationTimestamp:    creationTimestampWireValue,
+		UserId:               v.UserId,
+		ActivityType:         v.ActivityType,
+		Comment:              v.Comment,
+		LastUpdatedTimestamp: lastUpdatedTimestampWireValue,
+		FromStage:            v.FromStage,
+		ToStage:              v.ToStage,
+		SystemComment:        v.SystemComment,
+		AvailableActions:     v.AvailableActions,
+		Id:                   v.Id,
+	}, nil
 }
 
 func transitionRequestFromWire(w *transitionRequestWire) (*TransitionRequest, error) {
@@ -1424,8 +2435,31 @@ func updateCommentRequestToWire(v *UpdateCommentRequest) (*updateCommentRequestW
 	}, nil
 }
 
+func updateCommentRequestFromWire(w *updateCommentRequestWire) (*UpdateCommentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpdateCommentRequest{
+		Id:      w.Id,
+		Comment: w.Comment,
+	}, nil
+}
+
 type updateCommentResponseWire struct {
 	Comment *commentObjectWire `json:"comment,omitempty"`
+}
+
+func updateCommentResponseToWire(v *UpdateCommentResponse) (*updateCommentResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	commentWireValue, err := commentObjectToWire(v.Comment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCommentResponse.Comment", err)
+	}
+	return &updateCommentResponseWire{
+		Comment: commentWireValue,
+	}, nil
 }
 
 func updateCommentResponseFromWire(w *updateCommentResponseWire) (*UpdateCommentResponse, error) {
@@ -1458,8 +2492,32 @@ func updateModelVersionRequestToWire(v *UpdateModelVersionRequest) (*updateModel
 	}, nil
 }
 
+func updateModelVersionRequestFromWire(w *updateModelVersionRequestWire) (*UpdateModelVersionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpdateModelVersionRequest{
+		Name:        w.Name,
+		Version:     w.Version,
+		Description: w.Description,
+	}, nil
+}
+
 type updateModelVersionResponseWire struct {
 	ModelVersion *modelVersionWire `json:"model_version,omitempty"`
+}
+
+func updateModelVersionResponseToWire(v *UpdateModelVersionResponse) (*updateModelVersionResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	modelVersionWireValue, err := modelVersionToWire(v.ModelVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateModelVersionResponse.ModelVersion", err)
+	}
+	return &updateModelVersionResponseWire{
+		ModelVersion: modelVersionWireValue,
+	}, nil
 }
 
 func updateModelVersionResponseFromWire(w *updateModelVersionResponseWire) (*UpdateModelVersionResponse, error) {
@@ -1490,8 +2548,31 @@ func updateRegisteredModelRequestToWire(v *UpdateRegisteredModelRequest) (*updat
 	}, nil
 }
 
+func updateRegisteredModelRequestFromWire(w *updateRegisteredModelRequestWire) (*UpdateRegisteredModelRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpdateRegisteredModelRequest{
+		Name:        w.Name,
+		Description: w.Description,
+	}, nil
+}
+
 type updateRegisteredModelResponseWire struct {
 	RegisteredModel *registeredModelWire `json:"registered_model,omitempty"`
+}
+
+func updateRegisteredModelResponseToWire(v *UpdateRegisteredModelResponse) (*updateRegisteredModelResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	registeredModelWireValue, err := registeredModelToWire(v.RegisteredModel)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRegisteredModelResponse.RegisteredModel", err)
+	}
+	return &updateRegisteredModelResponseWire{
+		RegisteredModel: registeredModelWireValue,
+	}, nil
 }
 
 func updateRegisteredModelResponseFromWire(w *updateRegisteredModelResponseWire) (*UpdateRegisteredModelResponse, error) {
@@ -1538,8 +2619,43 @@ func updateRegistryWebhookRequestToWire(v *UpdateRegistryWebhookRequest) (*updat
 	}, nil
 }
 
+func updateRegistryWebhookRequestFromWire(w *updateRegistryWebhookRequestWire) (*UpdateRegistryWebhookRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	httpUrlSpecPublicValue, err := httpUrlSpecFromWire(w.HttpUrlSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRegistryWebhookRequest.HttpUrlSpec", err)
+	}
+	jobSpecPublicValue, err := jobSpecFromWire(w.JobSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRegistryWebhookRequest.JobSpec", err)
+	}
+	return &UpdateRegistryWebhookRequest{
+		Id:          w.Id,
+		Events:      w.Events,
+		Description: w.Description,
+		Status:      w.Status,
+		HttpUrlSpec: httpUrlSpecPublicValue,
+		JobSpec:     jobSpecPublicValue,
+	}, nil
+}
+
 type updateRegistryWebhookResponseWire struct {
 	Webhook *registryWebhookWire `json:"webhook,omitempty"`
+}
+
+func updateRegistryWebhookResponseToWire(v *UpdateRegistryWebhookResponse) (*updateRegistryWebhookResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	webhookWireValue, err := registryWebhookToWire(v.Webhook)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRegistryWebhookResponse.Webhook", err)
+	}
+	return &updateRegistryWebhookResponseWire{
+		Webhook: webhookWireValue,
+	}, nil
 }
 
 func updateRegistryWebhookResponseFromWire(w *updateRegistryWebhookResponseWire) (*UpdateRegistryWebhookResponse, error) {

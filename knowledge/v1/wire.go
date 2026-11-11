@@ -8,14 +8,6 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type assetLinkWire struct {
 	Name         *string     `json:"name,omitempty"`
 	AssetType    AssetType   `json:"asset_type,omitempty"`
@@ -69,6 +61,20 @@ func createAssetLinkRequestToWire(v *CreateAssetLinkRequest) (*createAssetLinkRe
 	}, nil
 }
 
+func createAssetLinkRequestFromWire(w *createAssetLinkRequestWire) (*CreateAssetLinkRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	assetLinkPublicValue, err := assetLinkFromWire(w.AssetLink)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAssetLinkRequest.AssetLink", err)
+	}
+	return &CreateAssetLinkRequest{
+		Parent:    w.Parent,
+		AssetLink: assetLinkPublicValue,
+	}, nil
+}
+
 type createPageRequestWire struct {
 	Page      *pageWire `json:"page,omitempty"`
 	RequestId *string   `json:"request_id,omitempty"`
@@ -85,6 +91,108 @@ func createPageRequestToWire(v *CreatePageRequest) (*createPageRequestWire, erro
 	return &createPageRequestWire{
 		Page:      pageWireValue,
 		RequestId: v.RequestId,
+	}, nil
+}
+
+func createPageRequestFromWire(w *createPageRequestWire) (*CreatePageRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	pagePublicValue, err := pageFromWire(w.Page)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePageRequest.Page", err)
+	}
+	return &CreatePageRequest{
+		Page:      pagePublicValue,
+		RequestId: w.RequestId,
+	}, nil
+}
+
+type deleteAssetLinkRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteAssetLinkRequestToWire(v *DeleteAssetLinkRequest) (*deleteAssetLinkRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteAssetLinkRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteAssetLinkRequestFromWire(w *deleteAssetLinkRequestWire) (*DeleteAssetLinkRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteAssetLinkRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deletePageRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deletePageRequestToWire(v *DeletePageRequest) (*deletePageRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deletePageRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deletePageRequestFromWire(w *deletePageRequestWire) (*DeletePageRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeletePageRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getAssetLinkRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getAssetLinkRequestToWire(v *GetAssetLinkRequest) (*getAssetLinkRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getAssetLinkRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getAssetLinkRequestFromWire(w *getAssetLinkRequestWire) (*GetAssetLinkRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetAssetLinkRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getPageRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getPageRequestToWire(v *GetPageRequest) (*getPageRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getPageRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getPageRequestFromWire(w *getPageRequestWire) (*GetPageRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetPageRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -105,9 +213,34 @@ func listPagesRequestToWire(v *ListPagesRequest) (*listPagesRequestWire, error) 
 	}, nil
 }
 
+func listPagesRequestFromWire(w *listPagesRequestWire) (*ListPagesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListPagesRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+		Filter:    w.Filter,
+	}, nil
+}
+
 type listPagesResponseWire struct {
 	Pages         []pageWire `json:"pages,omitempty"`
 	NextPageToken *string    `json:"next_page_token,omitempty"`
+}
+
+func listPagesResponseToWire(v *ListPagesResponse) (*listPagesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	pagesWireValue, err := convertSlice(v.Pages, pageToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListPagesResponse.Pages", err)
+	}
+	return &listPagesResponseWire{
+		Pages:         pagesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listPagesResponseFromWire(w *listPagesResponseWire) (*ListPagesResponse, error) {
@@ -174,8 +307,8 @@ func pageFromWire(w *pageWire) (*Page, error) {
 }
 
 type updatePageRequestWire struct {
-	Page       *pageWire `json:"page,omitempty"`
-	UpdateMask *string   `json:"update_mask,omitempty"`
+	Page       *pageWire              `json:"page,omitempty"`
+	UpdateMask *types.FieldMask[Page] `json:"update_mask,omitempty"`
 }
 
 func updatePageRequestToWire(v *UpdatePageRequest) (*updatePageRequestWire, error) {
@@ -188,7 +321,21 @@ func updatePageRequestToWire(v *UpdatePageRequest) (*updatePageRequestWire, erro
 	}
 	return &updatePageRequestWire{
 		Page:       pageWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updatePageRequestFromWire(w *updatePageRequestWire) (*UpdatePageRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	pagePublicValue, err := pageFromWire(w.Page)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdatePageRequest.Page", err)
+	}
+	return &UpdatePageRequest{
+		Page:       pagePublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 

@@ -136,6 +136,23 @@ func cleanRoomFromWire(w *cleanRoomWire) (*CleanRoom, error) {
 	}, nil
 }
 
+type cleanRoom_StatusWire struct {
+}
+
+func cleanRoom_StatusToWire(v *CleanRoom_Status) (*cleanRoom_StatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &cleanRoom_StatusWire{}, nil
+}
+
+func cleanRoom_StatusFromWire(w *cleanRoom_StatusWire) (*CleanRoom_Status, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CleanRoom_Status{}, nil
+}
+
 type cleanRoomAssetWire struct {
 	CleanRoomName            *string                                      `json:"clean_room_name,omitempty"`
 	Name                     *string                                      `json:"name,omitempty"`
@@ -538,6 +555,23 @@ func cleanRoomAsset_NotebookFromWire(w *cleanRoomAsset_NotebookWire) (*CleanRoom
 	}, nil
 }
 
+type cleanRoomAsset_StatusWire struct {
+}
+
+func cleanRoomAsset_StatusToWire(v *CleanRoomAsset_Status) (*cleanRoomAsset_StatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &cleanRoomAsset_StatusWire{}, nil
+}
+
+func cleanRoomAsset_StatusFromWire(w *cleanRoomAsset_StatusWire) (*CleanRoomAsset_Status, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CleanRoomAsset_Status{}, nil
+}
+
 type cleanRoomAsset_TableWire struct {
 	Columns []columnInfoWire `json:"columns,omitempty"`
 }
@@ -919,6 +953,53 @@ type cleanRoomNotebookTaskRunWire struct {
 	SharedOutputSchemaExpirationTime *wireInt64                  `json:"shared_output_schema_expiration_time,omitempty"`
 }
 
+func cleanRoomNotebookTaskRunToWire(v *CleanRoomNotebookTaskRun) (*cleanRoomNotebookTaskRunWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	startTimeWireValue, err := int64ToWire(v.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookTaskRun.StartTime", err)
+	}
+	runDurationWireValue, err := int64ToWire(v.RunDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookTaskRun.RunDuration", err)
+	}
+	notebookJobRunStateWireValue, err := cleanRoomTaskRunStateToWire(v.NotebookJobRunState)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookTaskRun.NotebookJobRunState", err)
+	}
+	collaboratorJobRunInfoWireValue, err := collaboratorJobRunInfoToWire(v.CollaboratorJobRunInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookTaskRun.CollaboratorJobRunInfo", err)
+	}
+	outputSchemaExpirationTimeWireValue, err := int64ToWire(v.OutputSchemaExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookTaskRun.OutputSchemaExpirationTime", err)
+	}
+	notebookUpdatedAtWireValue, err := int64ToWire(v.NotebookUpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookTaskRun.NotebookUpdatedAt", err)
+	}
+	sharedOutputSchemaExpirationTimeWireValue, err := int64ToWire(v.SharedOutputSchemaExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomNotebookTaskRun.SharedOutputSchemaExpirationTime", err)
+	}
+	return &cleanRoomNotebookTaskRunWire{
+		NotebookName:                     v.NotebookName,
+		StartTime:                        startTimeWireValue,
+		RunDuration:                      runDurationWireValue,
+		NotebookJobRunState:              notebookJobRunStateWireValue,
+		CollaboratorJobRunInfo:           collaboratorJobRunInfoWireValue,
+		OutputSchemaName:                 v.OutputSchemaName,
+		OutputSchemaExpirationTime:       outputSchemaExpirationTimeWireValue,
+		NotebookEtag:                     v.NotebookEtag,
+		NotebookUpdatedAt:                notebookUpdatedAtWireValue,
+		SharedOutputSchemaName:           v.SharedOutputSchemaName,
+		SharedOutputSchemaExpirationTime: sharedOutputSchemaExpirationTimeWireValue,
+	}, nil
+}
+
 func cleanRoomNotebookTaskRunFromWire(w *cleanRoomNotebookTaskRunWire) (*CleanRoomNotebookTaskRun, error) {
 	if w == nil {
 		return nil, nil
@@ -1081,6 +1162,51 @@ type cleanRoomTaskRunWire struct {
 	SharedOutputInfo       *cleanRoomTaskRun_OutputInfoWire                   `json:"shared_output_info,omitempty"`
 }
 
+func cleanRoomTaskRunToWire(v *CleanRoomTaskRun) (*cleanRoomTaskRunWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	startTimeWireValue, err := int64ToWire(v.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun.StartTime", err)
+	}
+	runDurationWireValue, err := int64ToWire(v.RunDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun.RunDuration", err)
+	}
+	taskRunStateWireValue, err := cleanRoomTaskRunStateToWire(v.TaskRunState)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun.TaskRunState", err)
+	}
+	collaboratorJobRunInfoWireValue, err := collaboratorJobRunInfoToWire(v.CollaboratorJobRunInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun.CollaboratorJobRunInfo", err)
+	}
+	outputInfoWireValue, err := cleanRoomTaskRun_OutputInfoToWire(v.OutputInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun.OutputInfo", err)
+	}
+	analysisDetailsWireValue, err := cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsToWire(v.AnalysisDetails)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun.AnalysisDetails", err)
+	}
+	sharedOutputInfoWireValue, err := cleanRoomTaskRun_OutputInfoToWire(v.SharedOutputInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun.SharedOutputInfo", err)
+	}
+	return &cleanRoomTaskRunWire{
+		Name:                   v.Name,
+		TaskType:               v.TaskType,
+		StartTime:              startTimeWireValue,
+		RunDuration:            runDurationWireValue,
+		TaskRunState:           taskRunStateWireValue,
+		CollaboratorJobRunInfo: collaboratorJobRunInfoWireValue,
+		OutputInfo:             outputInfoWireValue,
+		AnalysisDetails:        analysisDetailsWireValue,
+		SharedOutputInfo:       sharedOutputInfoWireValue,
+	}, nil
+}
+
 func cleanRoomTaskRunFromWire(w *cleanRoomTaskRunWire) (*CleanRoomTaskRun, error) {
 	if w == nil {
 		return nil, nil
@@ -1131,6 +1257,20 @@ type cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsWire struct {
 	UpdatedAt *wireInt64 `json:"updated_at,omitempty"`
 }
 
+func cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsToWire(v *CleanRoomTaskRun_CleanRoomTaskAnalysisDetails) (*cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun_CleanRoomTaskAnalysisDetails.UpdatedAt", err)
+	}
+	return &cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsWire{
+		Etag:      v.Etag,
+		UpdatedAt: updatedAtWireValue,
+	}, nil
+}
+
 func cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsFromWire(w *cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsWire) (*CleanRoomTaskRun_CleanRoomTaskAnalysisDetails, error) {
 	if w == nil {
 		return nil, nil
@@ -1148,6 +1288,20 @@ func cleanRoomTaskRun_CleanRoomTaskAnalysisDetailsFromWire(w *cleanRoomTaskRun_C
 type cleanRoomTaskRun_OutputInfoWire struct {
 	OutputSchemaName           *string    `json:"output_schema_name,omitempty"`
 	OutputSchemaExpirationTime *wireInt64 `json:"output_schema_expiration_time,omitempty"`
+}
+
+func cleanRoomTaskRun_OutputInfoToWire(v *CleanRoomTaskRun_OutputInfo) (*cleanRoomTaskRun_OutputInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	outputSchemaExpirationTimeWireValue, err := int64ToWire(v.OutputSchemaExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomTaskRun_OutputInfo.OutputSchemaExpirationTime", err)
+	}
+	return &cleanRoomTaskRun_OutputInfoWire{
+		OutputSchemaName:           v.OutputSchemaName,
+		OutputSchemaExpirationTime: outputSchemaExpirationTimeWireValue,
+	}, nil
 }
 
 func cleanRoomTaskRun_OutputInfoFromWire(w *cleanRoomTaskRun_OutputInfoWire) (*CleanRoomTaskRun_OutputInfo, error) {
@@ -1169,6 +1323,16 @@ type cleanRoomTaskRunStateWire struct {
 	ResultState    CleanRoomTaskRunResultState    `json:"result_state,omitempty"`
 }
 
+func cleanRoomTaskRunStateToWire(v *CleanRoomTaskRunState) (*cleanRoomTaskRunStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &cleanRoomTaskRunStateWire{
+		LifeCycleState: v.LifeCycleState,
+		ResultState:    v.ResultState,
+	}, nil
+}
+
 func cleanRoomTaskRunStateFromWire(w *cleanRoomTaskRunStateWire) (*CleanRoomTaskRunState, error) {
 	if w == nil {
 		return nil, nil
@@ -1185,6 +1349,35 @@ type collaboratorJobRunInfoWire struct {
 	CollaboratorTaskRunId   *wireInt64 `json:"collaborator_task_run_id,omitempty"`
 	CollaboratorWorkspaceId *wireInt64 `json:"collaborator_workspace_id,omitempty"`
 	CollaboratorAlias       *string    `json:"collaborator_alias,omitempty"`
+}
+
+func collaboratorJobRunInfoToWire(v *CollaboratorJobRunInfo) (*collaboratorJobRunInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	collaboratorJobIdWireValue, err := int64ToWire(v.CollaboratorJobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CollaboratorJobRunInfo.CollaboratorJobId", err)
+	}
+	collaboratorJobRunIdWireValue, err := int64ToWire(v.CollaboratorJobRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CollaboratorJobRunInfo.CollaboratorJobRunId", err)
+	}
+	collaboratorTaskRunIdWireValue, err := int64ToWire(v.CollaboratorTaskRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CollaboratorJobRunInfo.CollaboratorTaskRunId", err)
+	}
+	collaboratorWorkspaceIdWireValue, err := int64ToWire(v.CollaboratorWorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CollaboratorJobRunInfo.CollaboratorWorkspaceId", err)
+	}
+	return &collaboratorJobRunInfoWire{
+		CollaboratorJobId:       collaboratorJobIdWireValue,
+		CollaboratorJobRunId:    collaboratorJobRunIdWireValue,
+		CollaboratorTaskRunId:   collaboratorTaskRunIdWireValue,
+		CollaboratorWorkspaceId: collaboratorWorkspaceIdWireValue,
+		CollaboratorAlias:       v.CollaboratorAlias,
+	}, nil
 }
 
 func collaboratorJobRunInfoFromWire(w *collaboratorJobRunInfoWire) (*CollaboratorJobRunInfo, error) {
@@ -1357,6 +1550,19 @@ func createCleanRoomAssetRequestToWire(v *CreateCleanRoomAssetRequest) (*createC
 	}, nil
 }
 
+func createCleanRoomAssetRequestFromWire(w *createCleanRoomAssetRequestWire) (*CreateCleanRoomAssetRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	assetPublicValue, err := cleanRoomAssetFromWire(w.Asset)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCleanRoomAssetRequest.Asset", err)
+	}
+	return &CreateCleanRoomAssetRequest{
+		Asset: assetPublicValue,
+	}, nil
+}
+
 type createCleanRoomAssetReviewRequestWire struct {
 	CleanRoomName     *string                       `json:"clean_room_name,omitempty"`
 	Name              *string                       `json:"name,omitempty"`
@@ -1401,11 +1607,83 @@ func createCleanRoomAssetReviewRequestToWire(v *CreateCleanRoomAssetReviewReques
 	}, nil
 }
 
+func createCleanRoomAssetReviewRequestFromWire(w *createCleanRoomAssetReviewRequestWire) (*CreateCleanRoomAssetReviewRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	reviewMembers := 0
+	if w.NotebookReview != nil {
+		reviewMembers++
+	}
+	if w.JarAnalysisReview != nil {
+		reviewMembers++
+	}
+	if reviewMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "CreateCleanRoomAssetReviewRequest.Review")
+	}
+	var reviewSelection isCreateCleanRoomAssetReviewRequest_Review
+	switch {
+	case w.NotebookReview != nil:
+		reviewNotebookReviewConverted, err := notebookVersionReviewFromWire(w.NotebookReview)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateCleanRoomAssetReviewRequest.Review.NotebookReview", err)
+		}
+		reviewSelection = &CreateCleanRoomAssetReviewRequest_Review_NotebookReview{NotebookReview: *reviewNotebookReviewConverted}
+	case w.JarAnalysisReview != nil:
+		reviewJarAnalysisReviewConverted, err := jarAnalysisVersionReviewFromWire(w.JarAnalysisReview)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateCleanRoomAssetReviewRequest.Review.JarAnalysisReview", err)
+		}
+		reviewSelection = &CreateCleanRoomAssetReviewRequest_Review_JarAnalysisReview{JarAnalysisReview: *reviewJarAnalysisReviewConverted}
+	}
+	return &CreateCleanRoomAssetReviewRequest{
+		CleanRoomName: w.CleanRoomName,
+		Name:          w.Name,
+		AssetType:     w.AssetType,
+		Review:        reviewSelection,
+	}, nil
+}
+
 type createCleanRoomAssetReviewResponseWire struct {
 	NotebookReviews        []cleanRoomNotebookReviewWire                     `json:"notebook_reviews,omitempty"`
 	JarAnalysisReviews     []cleanRoomJarAnalysisReviewWire                  `json:"jar_analysis_reviews,omitempty"`
 	NotebookReviewState    CleanRoomNotebookReview_NotebookReviewState       `json:"notebook_review_state,omitempty"`
 	JarAnalysisReviewState CleanRoomJarAnalysisReview_JarAnalysisReviewState `json:"jar_analysis_review_state,omitempty"`
+}
+
+func createCleanRoomAssetReviewResponseToWire(v *CreateCleanRoomAssetReviewResponse) (*createCleanRoomAssetReviewResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	notebookReviewsWireValue, err := convertSlice(v.NotebookReviews, cleanRoomNotebookReviewToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCleanRoomAssetReviewResponse.NotebookReviews", err)
+	}
+	jarAnalysisReviewsWireValue, err := convertSlice(v.JarAnalysisReviews, cleanRoomJarAnalysisReviewToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCleanRoomAssetReviewResponse.JarAnalysisReviews", err)
+	}
+	var reviewStateNotebookReviewStateWire CleanRoomNotebookReview_NotebookReviewState
+	var reviewStateJarAnalysisReviewStateWire CleanRoomJarAnalysisReview_JarAnalysisReviewState
+	switch value := v.ReviewState.(type) {
+	case nil:
+	case *CreateCleanRoomAssetReviewResponse_ReviewState_NotebookReviewState:
+		if value != nil {
+			reviewStateNotebookReviewStateWire = value.NotebookReviewState
+		}
+	case *CreateCleanRoomAssetReviewResponse_ReviewState_JarAnalysisReviewState:
+		if value != nil {
+			reviewStateJarAnalysisReviewStateWire = value.JarAnalysisReviewState
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "CreateCleanRoomAssetReviewResponse.ReviewState", value)
+	}
+	return &createCleanRoomAssetReviewResponseWire{
+		NotebookReviews:        notebookReviewsWireValue,
+		JarAnalysisReviews:     jarAnalysisReviewsWireValue,
+		NotebookReviewState:    reviewStateNotebookReviewStateWire,
+		JarAnalysisReviewState: reviewStateJarAnalysisReviewStateWire,
+	}, nil
 }
 
 func createCleanRoomAssetReviewResponseFromWire(w *createCleanRoomAssetReviewResponseWire) (*CreateCleanRoomAssetReviewResponse, error) {
@@ -1461,6 +1739,19 @@ func createCleanRoomAutoApprovalRuleRequestToWire(v *CreateCleanRoomAutoApproval
 	}, nil
 }
 
+func createCleanRoomAutoApprovalRuleRequestFromWire(w *createCleanRoomAutoApprovalRuleRequestWire) (*CreateCleanRoomAutoApprovalRuleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	autoApprovalRulePublicValue, err := cleanRoomAutoApprovalRuleFromWire(w.AutoApprovalRule)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCleanRoomAutoApprovalRuleRequest.AutoApprovalRule", err)
+	}
+	return &CreateCleanRoomAutoApprovalRuleRequest{
+		AutoApprovalRule: autoApprovalRulePublicValue,
+	}, nil
+}
+
 type createCleanRoomOutputCatalogRequestWire struct {
 	CleanRoomName *string                     `json:"clean_room_name,omitempty"`
 	OutputCatalog *cleanRoomOutputCatalogWire `json:"output_catalog,omitempty"`
@@ -1480,8 +1771,35 @@ func createCleanRoomOutputCatalogRequestToWire(v *CreateCleanRoomOutputCatalogRe
 	}, nil
 }
 
+func createCleanRoomOutputCatalogRequestFromWire(w *createCleanRoomOutputCatalogRequestWire) (*CreateCleanRoomOutputCatalogRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	outputCatalogPublicValue, err := cleanRoomOutputCatalogFromWire(w.OutputCatalog)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCleanRoomOutputCatalogRequest.OutputCatalog", err)
+	}
+	return &CreateCleanRoomOutputCatalogRequest{
+		CleanRoomName: w.CleanRoomName,
+		OutputCatalog: outputCatalogPublicValue,
+	}, nil
+}
+
 type createCleanRoomOutputCatalogResponseWire struct {
 	OutputCatalog *cleanRoomOutputCatalogWire `json:"output_catalog,omitempty"`
+}
+
+func createCleanRoomOutputCatalogResponseToWire(v *CreateCleanRoomOutputCatalogResponse) (*createCleanRoomOutputCatalogResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	outputCatalogWireValue, err := cleanRoomOutputCatalogToWire(v.OutputCatalog)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCleanRoomOutputCatalogResponse.OutputCatalog", err)
+	}
+	return &createCleanRoomOutputCatalogResponseWire{
+		OutputCatalog: outputCatalogWireValue,
+	}, nil
 }
 
 func createCleanRoomOutputCatalogResponseFromWire(w *createCleanRoomOutputCatalogResponseWire) (*CreateCleanRoomOutputCatalogResponse, error) {
@@ -1511,6 +1829,111 @@ func createCleanRoomRequestToWire(v *CreateCleanRoomRequest) (*createCleanRoomRe
 	}
 	return &createCleanRoomRequestWire{
 		CleanRoom: cleanRoomWireValue,
+	}, nil
+}
+
+func createCleanRoomRequestFromWire(w *createCleanRoomRequestWire) (*CreateCleanRoomRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	cleanRoomPublicValue, err := cleanRoomFromWire(w.CleanRoom)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCleanRoomRequest.CleanRoom", err)
+	}
+	return &CreateCleanRoomRequest{
+		CleanRoom: cleanRoomPublicValue,
+	}, nil
+}
+
+type deleteCleanRoomAssetRequestWire struct {
+	CleanRoomName *string                  `json:"clean_room_name,omitempty"`
+	AssetType     CleanRoomAsset_AssetType `json:"asset_type,omitempty"`
+	Name          *string                  `json:"name,omitempty"`
+}
+
+func deleteCleanRoomAssetRequestToWire(v *DeleteCleanRoomAssetRequest) (*deleteCleanRoomAssetRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCleanRoomAssetRequestWire{
+		CleanRoomName: v.CleanRoomName,
+		AssetType:     v.AssetType,
+		Name:          v.Name,
+	}, nil
+}
+
+func deleteCleanRoomAssetRequestFromWire(w *deleteCleanRoomAssetRequestWire) (*DeleteCleanRoomAssetRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCleanRoomAssetRequest{
+		CleanRoomName: w.CleanRoomName,
+		AssetType:     w.AssetType,
+		Name:          w.Name,
+	}, nil
+}
+
+type deleteCleanRoomAssetResponseWire struct {
+}
+
+func deleteCleanRoomAssetResponseToWire(v *DeleteCleanRoomAssetResponse) (*deleteCleanRoomAssetResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCleanRoomAssetResponseWire{}, nil
+}
+
+func deleteCleanRoomAssetResponseFromWire(w *deleteCleanRoomAssetResponseWire) (*DeleteCleanRoomAssetResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCleanRoomAssetResponse{}, nil
+}
+
+type deleteCleanRoomAutoApprovalRuleRequestWire struct {
+	CleanRoomName *string `json:"clean_room_name,omitempty"`
+	RuleId        *string `json:"rule_id,omitempty"`
+}
+
+func deleteCleanRoomAutoApprovalRuleRequestToWire(v *DeleteCleanRoomAutoApprovalRuleRequest) (*deleteCleanRoomAutoApprovalRuleRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCleanRoomAutoApprovalRuleRequestWire{
+		CleanRoomName: v.CleanRoomName,
+		RuleId:        v.RuleId,
+	}, nil
+}
+
+func deleteCleanRoomAutoApprovalRuleRequestFromWire(w *deleteCleanRoomAutoApprovalRuleRequestWire) (*DeleteCleanRoomAutoApprovalRuleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCleanRoomAutoApprovalRuleRequest{
+		CleanRoomName: w.CleanRoomName,
+		RuleId:        w.RuleId,
+	}, nil
+}
+
+type deleteCleanRoomRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteCleanRoomRequestToWire(v *DeleteCleanRoomRequest) (*deleteCleanRoomRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCleanRoomRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteCleanRoomRequestFromWire(w *deleteCleanRoomRequestWire) (*DeleteCleanRoomRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCleanRoomRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -1695,6 +2118,112 @@ func egressNetworkPolicy_InternetAccessPolicy_StorageDestinationFromWire(w *egre
 	}, nil
 }
 
+type getCleanRoomAssetRequestWire struct {
+	CleanRoomName *string                  `json:"clean_room_name,omitempty"`
+	AssetType     CleanRoomAsset_AssetType `json:"asset_type,omitempty"`
+	Name          *string                  `json:"name,omitempty"`
+}
+
+func getCleanRoomAssetRequestToWire(v *GetCleanRoomAssetRequest) (*getCleanRoomAssetRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getCleanRoomAssetRequestWire{
+		CleanRoomName: v.CleanRoomName,
+		AssetType:     v.AssetType,
+		Name:          v.Name,
+	}, nil
+}
+
+func getCleanRoomAssetRequestFromWire(w *getCleanRoomAssetRequestWire) (*GetCleanRoomAssetRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCleanRoomAssetRequest{
+		CleanRoomName: w.CleanRoomName,
+		AssetType:     w.AssetType,
+		Name:          w.Name,
+	}, nil
+}
+
+type getCleanRoomAssetRevisionRequestWire struct {
+	CleanRoomName *string                  `json:"clean_room_name,omitempty"`
+	Name          *string                  `json:"name,omitempty"`
+	AssetType     CleanRoomAsset_AssetType `json:"asset_type,omitempty"`
+	Etag          *string                  `json:"etag,omitempty"`
+}
+
+func getCleanRoomAssetRevisionRequestToWire(v *GetCleanRoomAssetRevisionRequest) (*getCleanRoomAssetRevisionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getCleanRoomAssetRevisionRequestWire{
+		CleanRoomName: v.CleanRoomName,
+		Name:          v.Name,
+		AssetType:     v.AssetType,
+		Etag:          v.Etag,
+	}, nil
+}
+
+func getCleanRoomAssetRevisionRequestFromWire(w *getCleanRoomAssetRevisionRequestWire) (*GetCleanRoomAssetRevisionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCleanRoomAssetRevisionRequest{
+		CleanRoomName: w.CleanRoomName,
+		Name:          w.Name,
+		AssetType:     w.AssetType,
+		Etag:          w.Etag,
+	}, nil
+}
+
+type getCleanRoomAutoApprovalRuleRequestWire struct {
+	CleanRoomName *string `json:"clean_room_name,omitempty"`
+	RuleId        *string `json:"rule_id,omitempty"`
+}
+
+func getCleanRoomAutoApprovalRuleRequestToWire(v *GetCleanRoomAutoApprovalRuleRequest) (*getCleanRoomAutoApprovalRuleRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getCleanRoomAutoApprovalRuleRequestWire{
+		CleanRoomName: v.CleanRoomName,
+		RuleId:        v.RuleId,
+	}, nil
+}
+
+func getCleanRoomAutoApprovalRuleRequestFromWire(w *getCleanRoomAutoApprovalRuleRequestWire) (*GetCleanRoomAutoApprovalRuleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCleanRoomAutoApprovalRuleRequest{
+		CleanRoomName: w.CleanRoomName,
+		RuleId:        w.RuleId,
+	}, nil
+}
+
+type getCleanRoomRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getCleanRoomRequestToWire(v *GetCleanRoomRequest) (*getCleanRoomRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getCleanRoomRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getCleanRoomRequestFromWire(w *getCleanRoomRequestWire) (*GetCleanRoomRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCleanRoomRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type jarAnalysisVersionReviewWire struct {
 	Etag        *string                                           `json:"etag,omitempty"`
 	ReviewState CleanRoomJarAnalysisReview_JarAnalysisReviewState `json:"review_state,omitempty"`
@@ -1709,6 +2238,17 @@ func jarAnalysisVersionReviewToWire(v *JarAnalysisVersionReview) (*jarAnalysisVe
 		Etag:        v.Etag,
 		ReviewState: v.ReviewState,
 		Comment:     v.Comment,
+	}, nil
+}
+
+func jarAnalysisVersionReviewFromWire(w *jarAnalysisVersionReviewWire) (*JarAnalysisVersionReview, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &JarAnalysisVersionReview{
+		Etag:        w.Etag,
+		ReviewState: w.ReviewState,
+		Comment:     w.Comment,
 	}, nil
 }
 
@@ -1733,9 +2273,36 @@ func listCleanRoomAssetRevisionsRequestToWire(v *ListCleanRoomAssetRevisionsRequ
 	}, nil
 }
 
+func listCleanRoomAssetRevisionsRequestFromWire(w *listCleanRoomAssetRevisionsRequestWire) (*ListCleanRoomAssetRevisionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListCleanRoomAssetRevisionsRequest{
+		CleanRoomName: w.CleanRoomName,
+		Name:          w.Name,
+		AssetType:     w.AssetType,
+		PageSize:      w.PageSize,
+		PageToken:     w.PageToken,
+	}, nil
+}
+
 type listCleanRoomAssetRevisionsResponseWire struct {
 	Revisions     []cleanRoomAssetWire `json:"revisions,omitempty"`
 	NextPageToken *string              `json:"next_page_token,omitempty"`
+}
+
+func listCleanRoomAssetRevisionsResponseToWire(v *ListCleanRoomAssetRevisionsResponse) (*listCleanRoomAssetRevisionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	revisionsWireValue, err := convertSlice(v.Revisions, cleanRoomAssetToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCleanRoomAssetRevisionsResponse.Revisions", err)
+	}
+	return &listCleanRoomAssetRevisionsResponseWire{
+		Revisions:     revisionsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listCleanRoomAssetRevisionsResponseFromWire(w *listCleanRoomAssetRevisionsResponseWire) (*ListCleanRoomAssetRevisionsResponse, error) {
@@ -1767,9 +2334,33 @@ func listCleanRoomAssetsRequestToWire(v *ListCleanRoomAssetsRequest) (*listClean
 	}, nil
 }
 
+func listCleanRoomAssetsRequestFromWire(w *listCleanRoomAssetsRequestWire) (*ListCleanRoomAssetsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListCleanRoomAssetsRequest{
+		CleanRoomName: w.CleanRoomName,
+		PageToken:     w.PageToken,
+	}, nil
+}
+
 type listCleanRoomAssetsResponseWire struct {
 	Assets        []cleanRoomAssetWire `json:"assets,omitempty"`
 	NextPageToken *string              `json:"next_page_token,omitempty"`
+}
+
+func listCleanRoomAssetsResponseToWire(v *ListCleanRoomAssetsResponse) (*listCleanRoomAssetsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	assetsWireValue, err := convertSlice(v.Assets, cleanRoomAssetToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCleanRoomAssetsResponse.Assets", err)
+	}
+	return &listCleanRoomAssetsResponseWire{
+		Assets:        assetsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listCleanRoomAssetsResponseFromWire(w *listCleanRoomAssetsResponseWire) (*ListCleanRoomAssetsResponse, error) {
@@ -1803,9 +2394,34 @@ func listCleanRoomAutoApprovalRulesRequestToWire(v *ListCleanRoomAutoApprovalRul
 	}, nil
 }
 
+func listCleanRoomAutoApprovalRulesRequestFromWire(w *listCleanRoomAutoApprovalRulesRequestWire) (*ListCleanRoomAutoApprovalRulesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListCleanRoomAutoApprovalRulesRequest{
+		CleanRoomName: w.CleanRoomName,
+		PageSize:      w.PageSize,
+		PageToken:     w.PageToken,
+	}, nil
+}
+
 type listCleanRoomAutoApprovalRulesResponseWire struct {
 	Rules         []cleanRoomAutoApprovalRuleWire `json:"rules,omitempty"`
 	NextPageToken *string                         `json:"next_page_token,omitempty"`
+}
+
+func listCleanRoomAutoApprovalRulesResponseToWire(v *ListCleanRoomAutoApprovalRulesResponse) (*listCleanRoomAutoApprovalRulesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	rulesWireValue, err := convertSlice(v.Rules, cleanRoomAutoApprovalRuleToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCleanRoomAutoApprovalRulesResponse.Rules", err)
+	}
+	return &listCleanRoomAutoApprovalRulesResponseWire{
+		Rules:         rulesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listCleanRoomAutoApprovalRulesResponseFromWire(w *listCleanRoomAutoApprovalRulesResponseWire) (*ListCleanRoomAutoApprovalRulesResponse, error) {
@@ -1841,9 +2457,35 @@ func listCleanRoomNotebookTaskRunsRequestToWire(v *ListCleanRoomNotebookTaskRuns
 	}, nil
 }
 
+func listCleanRoomNotebookTaskRunsRequestFromWire(w *listCleanRoomNotebookTaskRunsRequestWire) (*ListCleanRoomNotebookTaskRunsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListCleanRoomNotebookTaskRunsRequest{
+		CleanRoomName: w.CleanRoomName,
+		NotebookName:  w.NotebookName,
+		PageSize:      w.PageSize,
+		PageToken:     w.PageToken,
+	}, nil
+}
+
 type listCleanRoomNotebookTaskRunsResponseWire struct {
 	Runs          []cleanRoomNotebookTaskRunWire `json:"runs,omitempty"`
 	NextPageToken *string                        `json:"next_page_token,omitempty"`
+}
+
+func listCleanRoomNotebookTaskRunsResponseToWire(v *ListCleanRoomNotebookTaskRunsResponse) (*listCleanRoomNotebookTaskRunsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	runsWireValue, err := convertSlice(v.Runs, cleanRoomNotebookTaskRunToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCleanRoomNotebookTaskRunsResponse.Runs", err)
+	}
+	return &listCleanRoomNotebookTaskRunsResponseWire{
+		Runs:          runsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listCleanRoomNotebookTaskRunsResponseFromWire(w *listCleanRoomNotebookTaskRunsResponseWire) (*ListCleanRoomNotebookTaskRunsResponse, error) {
@@ -1881,9 +2523,36 @@ func listCleanRoomTaskRunsRequestToWire(v *ListCleanRoomTaskRunsRequest) (*listC
 	}, nil
 }
 
+func listCleanRoomTaskRunsRequestFromWire(w *listCleanRoomTaskRunsRequestWire) (*ListCleanRoomTaskRunsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListCleanRoomTaskRunsRequest{
+		CleanRoomName: w.CleanRoomName,
+		Name:          w.Name,
+		TaskType:      w.TaskType,
+		PageSize:      w.PageSize,
+		PageToken:     w.PageToken,
+	}, nil
+}
+
 type listCleanRoomTaskRunsResponseWire struct {
 	Runs          []cleanRoomTaskRunWire `json:"runs,omitempty"`
 	NextPageToken *string                `json:"next_page_token,omitempty"`
+}
+
+func listCleanRoomTaskRunsResponseToWire(v *ListCleanRoomTaskRunsResponse) (*listCleanRoomTaskRunsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	runsWireValue, err := convertSlice(v.Runs, cleanRoomTaskRunToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCleanRoomTaskRunsResponse.Runs", err)
+	}
+	return &listCleanRoomTaskRunsResponseWire{
+		Runs:          runsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listCleanRoomTaskRunsResponseFromWire(w *listCleanRoomTaskRunsResponseWire) (*ListCleanRoomTaskRunsResponse, error) {
@@ -1915,9 +2584,33 @@ func listCleanRoomsRequestToWire(v *ListCleanRoomsRequest) (*listCleanRoomsReque
 	}, nil
 }
 
+func listCleanRoomsRequestFromWire(w *listCleanRoomsRequestWire) (*ListCleanRoomsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListCleanRoomsRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listCleanRoomsResponseWire struct {
 	CleanRooms    []cleanRoomWire `json:"clean_rooms,omitempty"`
 	NextPageToken *string         `json:"next_page_token,omitempty"`
+}
+
+func listCleanRoomsResponseToWire(v *ListCleanRoomsResponse) (*listCleanRoomsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	cleanRoomsWireValue, err := convertSlice(v.CleanRooms, cleanRoomToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCleanRoomsResponse.CleanRooms", err)
+	}
+	return &listCleanRoomsResponseWire{
+		CleanRooms:    cleanRoomsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listCleanRoomsResponseFromWire(w *listCleanRoomsResponseWire) (*ListCleanRoomsResponse, error) {
@@ -1949,6 +2642,34 @@ func notebookVersionReviewToWire(v *NotebookVersionReview) (*notebookVersionRevi
 		ReviewState: v.ReviewState,
 		Comment:     v.Comment,
 	}, nil
+}
+
+func notebookVersionReviewFromWire(w *notebookVersionReviewWire) (*NotebookVersionReview, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &NotebookVersionReview{
+		Etag:        w.Etag,
+		ReviewState: w.ReviewState,
+		Comment:     w.Comment,
+	}, nil
+}
+
+type partitionSpecificationWire struct {
+}
+
+func partitionSpecificationToWire(v *PartitionSpecification) (*partitionSpecificationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &partitionSpecificationWire{}, nil
+}
+
+func partitionSpecificationFromWire(w *partitionSpecificationWire) (*PartitionSpecification, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PartitionSpecification{}, nil
 }
 
 type partitionSpecification_PartitionWire struct {
@@ -2087,6 +2808,20 @@ func updateCleanRoomAssetRequestToWire(v *UpdateCleanRoomAssetRequest) (*updateC
 	}, nil
 }
 
+func updateCleanRoomAssetRequestFromWire(w *updateCleanRoomAssetRequestWire) (*UpdateCleanRoomAssetRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	assetPublicValue, err := cleanRoomAssetFromWire(w.Asset)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCleanRoomAssetRequest.Asset", err)
+	}
+	return &UpdateCleanRoomAssetRequest{
+		CleanRoomName: w.CleanRoomName,
+		Asset:         assetPublicValue,
+	}, nil
+}
+
 type updateCleanRoomAutoApprovalRuleRequestWire struct {
 	AutoApprovalRule *cleanRoomAutoApprovalRuleWire `json:"auto_approval_rule,omitempty"`
 }
@@ -2101,6 +2836,19 @@ func updateCleanRoomAutoApprovalRuleRequestToWire(v *UpdateCleanRoomAutoApproval
 	}
 	return &updateCleanRoomAutoApprovalRuleRequestWire{
 		AutoApprovalRule: autoApprovalRuleWireValue,
+	}, nil
+}
+
+func updateCleanRoomAutoApprovalRuleRequestFromWire(w *updateCleanRoomAutoApprovalRuleRequestWire) (*UpdateCleanRoomAutoApprovalRuleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	autoApprovalRulePublicValue, err := cleanRoomAutoApprovalRuleFromWire(w.AutoApprovalRule)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCleanRoomAutoApprovalRuleRequest.AutoApprovalRule", err)
+	}
+	return &UpdateCleanRoomAutoApprovalRuleRequest{
+		AutoApprovalRule: autoApprovalRulePublicValue,
 	}, nil
 }
 
@@ -2120,6 +2868,20 @@ func updateCleanRoomRequestToWire(v *UpdateCleanRoomRequest) (*updateCleanRoomRe
 	return &updateCleanRoomRequestWire{
 		Name:      v.Name,
 		CleanRoom: cleanRoomWireValue,
+	}, nil
+}
+
+func updateCleanRoomRequestFromWire(w *updateCleanRoomRequestWire) (*UpdateCleanRoomRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	cleanRoomPublicValue, err := cleanRoomFromWire(w.CleanRoom)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCleanRoomRequest.CleanRoom", err)
+	}
+	return &UpdateCleanRoomRequest{
+		Name:      w.Name,
+		CleanRoom: cleanRoomPublicValue,
 	}, nil
 }
 

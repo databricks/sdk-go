@@ -8,14 +8,6 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type accessRequestDestinationsWire struct {
 	Destinations               []notificationDestinationWire `json:"destinations,omitempty"`
 	Securable                  *securableWire                `json:"securable,omitempty"`
@@ -94,8 +86,34 @@ func batchCreateAccessRequestsRequestToWire(v *BatchCreateAccessRequestsRequest)
 	}, nil
 }
 
+func batchCreateAccessRequestsRequestFromWire(w *batchCreateAccessRequestsRequestWire) (*BatchCreateAccessRequestsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	requestsPublicValue, err := convertSlice(w.Requests, createAccessRequestFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BatchCreateAccessRequestsRequest.Requests", err)
+	}
+	return &BatchCreateAccessRequestsRequest{
+		Requests: requestsPublicValue,
+	}, nil
+}
+
 type batchCreateAccessRequestsResponseWire struct {
 	Responses []createAccessRequestResponseWire `json:"responses,omitempty"`
+}
+
+func batchCreateAccessRequestsResponseToWire(v *BatchCreateAccessRequestsResponse) (*batchCreateAccessRequestsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	responsesWireValue, err := convertSlice(v.Responses, createAccessRequestResponseToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BatchCreateAccessRequestsResponse.Responses", err)
+	}
+	return &batchCreateAccessRequestsResponseWire{
+		Responses: responsesWireValue,
+	}, nil
 }
 
 func batchCreateAccessRequestsResponseFromWire(w *batchCreateAccessRequestsResponseWire) (*BatchCreateAccessRequestsResponse, error) {
@@ -136,9 +154,46 @@ func createAccessRequestToWire(v *CreateAccessRequest) (*createAccessRequestWire
 	}, nil
 }
 
+func createAccessRequestFromWire(w *createAccessRequestWire) (*CreateAccessRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	behalfOfPublicValue, err := principalFromWire(w.BehalfOf)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccessRequest.BehalfOf", err)
+	}
+	securablePermissionsPublicValue, err := convertSlice(w.SecurablePermissions, securablePermissionsFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccessRequest.SecurablePermissions", err)
+	}
+	return &CreateAccessRequest{
+		BehalfOf:             behalfOfPublicValue,
+		Comment:              w.Comment,
+		SecurablePermissions: securablePermissionsPublicValue,
+	}, nil
+}
+
 type createAccessRequestResponseWire struct {
 	BehalfOf            *principalWire                  `json:"behalf_of,omitempty"`
 	RequestDestinations []accessRequestDestinationsWire `json:"request_destinations,omitempty"`
+}
+
+func createAccessRequestResponseToWire(v *CreateAccessRequestResponse) (*createAccessRequestResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	behalfOfWireValue, err := principalToWire(v.BehalfOf)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccessRequestResponse.BehalfOf", err)
+	}
+	requestDestinationsWireValue, err := convertSlice(v.RequestDestinations, accessRequestDestinationsToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccessRequestResponse.RequestDestinations", err)
+	}
+	return &createAccessRequestResponseWire{
+		BehalfOf:            behalfOfWireValue,
+		RequestDestinations: requestDestinationsWireValue,
+	}, nil
 }
 
 func createAccessRequestResponseFromWire(w *createAccessRequestResponseWire) (*CreateAccessRequestResponse, error) {
@@ -156,6 +211,31 @@ func createAccessRequestResponseFromWire(w *createAccessRequestResponseWire) (*C
 	return &CreateAccessRequestResponse{
 		BehalfOf:            behalfOfPublicValue,
 		RequestDestinations: requestDestinationsPublicValue,
+	}, nil
+}
+
+type getAccessRequestDestinationsRequestWire struct {
+	SecurableType *string `json:"securable_type,omitempty"`
+	FullName      *string `json:"full_name,omitempty"`
+}
+
+func getAccessRequestDestinationsRequestToWire(v *GetAccessRequestDestinationsRequest) (*getAccessRequestDestinationsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getAccessRequestDestinationsRequestWire{
+		SecurableType: v.SecurableType,
+		FullName:      v.FullName,
+	}, nil
+}
+
+func getAccessRequestDestinationsRequestFromWire(w *getAccessRequestDestinationsRequestWire) (*GetAccessRequestDestinationsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetAccessRequestDestinationsRequest{
+		SecurableType: w.SecurableType,
+		FullName:      w.FullName,
 	}, nil
 }
 
@@ -259,9 +339,23 @@ func securablePermissionsToWire(v *SecurablePermissions) (*securablePermissionsW
 	}, nil
 }
 
+func securablePermissionsFromWire(w *securablePermissionsWire) (*SecurablePermissions, error) {
+	if w == nil {
+		return nil, nil
+	}
+	securablePublicValue, err := securableFromWire(w.Securable)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SecurablePermissions.Securable", err)
+	}
+	return &SecurablePermissions{
+		Securable:   securablePublicValue,
+		Permissions: w.Permissions,
+	}, nil
+}
+
 type updateAccessRequestDestinationsRequestWire struct {
-	AccessRequestDestinations *accessRequestDestinationsWire `json:"access_request_destinations,omitempty"`
-	UpdateMask                *string                        `json:"update_mask,omitempty"`
+	AccessRequestDestinations *accessRequestDestinationsWire              `json:"access_request_destinations,omitempty"`
+	UpdateMask                *types.FieldMask[AccessRequestDestinations] `json:"update_mask,omitempty"`
 }
 
 func updateAccessRequestDestinationsRequestToWire(v *UpdateAccessRequestDestinationsRequest) (*updateAccessRequestDestinationsRequestWire, error) {
@@ -274,7 +368,21 @@ func updateAccessRequestDestinationsRequestToWire(v *UpdateAccessRequestDestinat
 	}
 	return &updateAccessRequestDestinationsRequestWire{
 		AccessRequestDestinations: accessRequestDestinationsWireValue,
-		UpdateMask:                fieldMaskToWire(v.UpdateMask),
+		UpdateMask:                v.UpdateMask,
+	}, nil
+}
+
+func updateAccessRequestDestinationsRequestFromWire(w *updateAccessRequestDestinationsRequestWire) (*UpdateAccessRequestDestinationsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	accessRequestDestinationsPublicValue, err := accessRequestDestinationsFromWire(w.AccessRequestDestinations)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccessRequestDestinationsRequest.AccessRequestDestinations", err)
+	}
+	return &UpdateAccessRequestDestinationsRequest{
+		AccessRequestDestinations: accessRequestDestinationsPublicValue,
+		UpdateMask:                w.UpdateMask,
 	}, nil
 }
 

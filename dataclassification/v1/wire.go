@@ -8,14 +8,6 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type autoTaggingConfigWire struct {
 	ClassificationTag *string                           `json:"classification_tag,omitempty"`
 	AutoTaggingMode   AutoTaggingConfig_AutoTaggingMode `json:"auto_tagging_mode,omitempty"`
@@ -168,9 +160,67 @@ func createCatalogConfigRequestToWire(v *CreateCatalogConfigRequest) (*createCat
 	}, nil
 }
 
+func createCatalogConfigRequestFromWire(w *createCatalogConfigRequestWire) (*CreateCatalogConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	catalogConfigPublicValue, err := catalogConfigFromWire(w.CatalogConfig)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCatalogConfigRequest.CatalogConfig", err)
+	}
+	return &CreateCatalogConfigRequest{
+		Parent:        w.Parent,
+		CatalogConfig: catalogConfigPublicValue,
+	}, nil
+}
+
+type deleteCatalogConfigRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteCatalogConfigRequestToWire(v *DeleteCatalogConfigRequest) (*deleteCatalogConfigRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCatalogConfigRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteCatalogConfigRequestFromWire(w *deleteCatalogConfigRequestWire) (*DeleteCatalogConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCatalogConfigRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getCatalogConfigRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getCatalogConfigRequestToWire(v *GetCatalogConfigRequest) (*getCatalogConfigRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getCatalogConfigRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getCatalogConfigRequestFromWire(w *getCatalogConfigRequestWire) (*GetCatalogConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCatalogConfigRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type updateCatalogConfigRequestWire struct {
-	CatalogConfig *catalogConfigWire `json:"catalog_config,omitempty"`
-	UpdateMask    *string            `json:"update_mask,omitempty"`
+	CatalogConfig *catalogConfigWire              `json:"catalog_config,omitempty"`
+	UpdateMask    *types.FieldMask[CatalogConfig] `json:"update_mask,omitempty"`
 }
 
 func updateCatalogConfigRequestToWire(v *UpdateCatalogConfigRequest) (*updateCatalogConfigRequestWire, error) {
@@ -183,7 +233,21 @@ func updateCatalogConfigRequestToWire(v *UpdateCatalogConfigRequest) (*updateCat
 	}
 	return &updateCatalogConfigRequestWire{
 		CatalogConfig: catalogConfigWireValue,
-		UpdateMask:    fieldMaskToWire(v.UpdateMask),
+		UpdateMask:    v.UpdateMask,
+	}, nil
+}
+
+func updateCatalogConfigRequestFromWire(w *updateCatalogConfigRequestWire) (*UpdateCatalogConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	catalogConfigPublicValue, err := catalogConfigFromWire(w.CatalogConfig)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogConfigRequest.CatalogConfig", err)
+	}
+	return &UpdateCatalogConfigRequest{
+		CatalogConfig: catalogConfigPublicValue,
+		UpdateMask:    w.UpdateMask,
 	}, nil
 }
 

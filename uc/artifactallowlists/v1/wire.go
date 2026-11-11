@@ -59,6 +59,26 @@ type artifactAllowlistInfoWire struct {
 	CreatedAt        *wireInt64            `json:"created_at,omitempty"`
 }
 
+func artifactAllowlistInfoToWire(v *ArtifactAllowlistInfo) (*artifactAllowlistInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	artifactMatchersWireValue, err := convertSlice(v.ArtifactMatchers, artifactMatcherToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ArtifactAllowlistInfo.ArtifactMatchers", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ArtifactAllowlistInfo.CreatedAt", err)
+	}
+	return &artifactAllowlistInfoWire{
+		ArtifactMatchers: artifactMatchersWireValue,
+		MetastoreId:      v.MetastoreId,
+		CreatedBy:        v.CreatedBy,
+		CreatedAt:        createdAtWireValue,
+	}, nil
+}
+
 func artifactAllowlistInfoFromWire(w *artifactAllowlistInfoWire) (*ArtifactAllowlistInfo, error) {
 	if w == nil {
 		return nil, nil
@@ -104,6 +124,28 @@ func artifactMatcherFromWire(w *artifactMatcherWire) (*ArtifactMatcher, error) {
 	}, nil
 }
 
+type getArtifactAllowlistRequestWire struct {
+	ArtifactType ArtifactType `json:"artifact_type,omitempty"`
+}
+
+func getArtifactAllowlistRequestToWire(v *GetArtifactAllowlistRequest) (*getArtifactAllowlistRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getArtifactAllowlistRequestWire{
+		ArtifactType: v.ArtifactType,
+	}, nil
+}
+
+func getArtifactAllowlistRequestFromWire(w *getArtifactAllowlistRequestWire) (*GetArtifactAllowlistRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetArtifactAllowlistRequest{
+		ArtifactType: w.ArtifactType,
+	}, nil
+}
+
 type setArtifactAllowlistRequestWire struct {
 	ArtifactType     ArtifactType          `json:"artifact_type,omitempty"`
 	ArtifactMatchers []artifactMatcherWire `json:"artifact_matchers,omitempty"`
@@ -130,6 +172,27 @@ func setArtifactAllowlistRequestToWire(v *SetArtifactAllowlistRequest) (*setArti
 		MetastoreId:      v.MetastoreId,
 		CreatedBy:        v.CreatedBy,
 		CreatedAt:        createdAtWireValue,
+	}, nil
+}
+
+func setArtifactAllowlistRequestFromWire(w *setArtifactAllowlistRequestWire) (*SetArtifactAllowlistRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	artifactMatchersPublicValue, err := convertSlice(w.ArtifactMatchers, artifactMatcherFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SetArtifactAllowlistRequest.ArtifactMatchers", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SetArtifactAllowlistRequest.CreatedAt", err)
+	}
+	return &SetArtifactAllowlistRequest{
+		ArtifactType:     w.ArtifactType,
+		ArtifactMatchers: artifactMatchersPublicValue,
+		MetastoreId:      w.MetastoreId,
+		CreatedBy:        w.CreatedBy,
+		CreatedAt:        createdAtPublicValue,
 	}, nil
 }
 

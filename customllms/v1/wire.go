@@ -8,14 +8,6 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type cancelCustomLlmOptimizationRunRequestWire struct {
 	Id *string `json:"id,omitempty"`
 }
@@ -26,6 +18,15 @@ func cancelCustomLlmOptimizationRunRequestToWire(v *CancelCustomLlmOptimizationR
 	}
 	return &cancelCustomLlmOptimizationRunRequestWire{
 		Id: v.Id,
+	}, nil
+}
+
+func cancelCustomLlmOptimizationRunRequestFromWire(w *cancelCustomLlmOptimizationRunRequestWire) (*CancelCustomLlmOptimizationRunRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CancelCustomLlmOptimizationRunRequest{
+		Id: w.Id,
 	}, nil
 }
 
@@ -51,6 +52,23 @@ func createCustomLlmRequestToWire(v *CreateCustomLlmRequest) (*createCustomLlmRe
 		Datasets:          datasetsWireValue,
 		Guidelines:        v.Guidelines,
 		AgentArtifactPath: v.AgentArtifactPath,
+	}, nil
+}
+
+func createCustomLlmRequestFromWire(w *createCustomLlmRequestWire) (*CreateCustomLlmRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	datasetsPublicValue, err := convertSlice(w.Datasets, datasetFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCustomLlmRequest.Datasets", err)
+	}
+	return &CreateCustomLlmRequest{
+		Name:              w.Name,
+		Instructions:      w.Instructions,
+		Datasets:          datasetsPublicValue,
+		Guidelines:        w.Guidelines,
+		AgentArtifactPath: w.AgentArtifactPath,
 	}, nil
 }
 
@@ -141,6 +159,50 @@ func datasetFromWire(w *datasetWire) (*Dataset, error) {
 	}, nil
 }
 
+type deleteCustomLlmRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func deleteCustomLlmRequestToWire(v *DeleteCustomLlmRequest) (*deleteCustomLlmRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCustomLlmRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func deleteCustomLlmRequestFromWire(w *deleteCustomLlmRequestWire) (*DeleteCustomLlmRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCustomLlmRequest{
+		Id: w.Id,
+	}, nil
+}
+
+type getCustomLlmRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func getCustomLlmRequestToWire(v *GetCustomLlmRequest) (*getCustomLlmRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getCustomLlmRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func getCustomLlmRequestFromWire(w *getCustomLlmRequestWire) (*GetCustomLlmRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCustomLlmRequest{
+		Id: w.Id,
+	}, nil
+}
+
 type startCustomLlmOptimizationRunRequestWire struct {
 	Id *string `json:"id,omitempty"`
 }
@@ -151,6 +213,15 @@ func startCustomLlmOptimizationRunRequestToWire(v *StartCustomLlmOptimizationRun
 	}
 	return &startCustomLlmOptimizationRunRequestWire{
 		Id: v.Id,
+	}, nil
+}
+
+func startCustomLlmOptimizationRunRequestFromWire(w *startCustomLlmOptimizationRunRequestWire) (*StartCustomLlmOptimizationRunRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &StartCustomLlmOptimizationRunRequest{
+		Id: w.Id,
 	}, nil
 }
 
@@ -183,9 +254,9 @@ func tableFromWire(w *tableWire) (*Table, error) {
 }
 
 type updateCustomLlmRequestWire struct {
-	Id         *string        `json:"id,omitempty"`
-	CustomLlm  *customLlmWire `json:"custom_llm,omitempty"`
-	UpdateMask *string        `json:"update_mask,omitempty"`
+	Id         *string                     `json:"id,omitempty"`
+	CustomLlm  *customLlmWire              `json:"custom_llm,omitempty"`
+	UpdateMask *types.FieldMask[CustomLlm] `json:"update_mask,omitempty"`
 }
 
 func updateCustomLlmRequestToWire(v *UpdateCustomLlmRequest) (*updateCustomLlmRequestWire, error) {
@@ -199,7 +270,22 @@ func updateCustomLlmRequestToWire(v *UpdateCustomLlmRequest) (*updateCustomLlmRe
 	return &updateCustomLlmRequestWire{
 		Id:         v.Id,
 		CustomLlm:  customLlmWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateCustomLlmRequestFromWire(w *updateCustomLlmRequestWire) (*UpdateCustomLlmRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	customLlmPublicValue, err := customLlmFromWire(w.CustomLlm)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCustomLlmRequest.CustomLlm", err)
+	}
+	return &UpdateCustomLlmRequest{
+		Id:         w.Id,
+		CustomLlm:  customLlmPublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 

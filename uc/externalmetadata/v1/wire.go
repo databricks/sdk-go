@@ -8,14 +8,6 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type createExternalMetadataRequestWire struct {
 	ExternalMetadata *externalMetadataWire `json:"external_metadata,omitempty"`
 }
@@ -30,6 +22,41 @@ func createExternalMetadataRequestToWire(v *CreateExternalMetadataRequest) (*cre
 	}
 	return &createExternalMetadataRequestWire{
 		ExternalMetadata: externalMetadataWireValue,
+	}, nil
+}
+
+func createExternalMetadataRequestFromWire(w *createExternalMetadataRequestWire) (*CreateExternalMetadataRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	externalMetadataPublicValue, err := externalMetadataFromWire(w.ExternalMetadata)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateExternalMetadataRequest.ExternalMetadata", err)
+	}
+	return &CreateExternalMetadataRequest{
+		ExternalMetadata: externalMetadataPublicValue,
+	}, nil
+}
+
+type deleteExternalMetadataRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteExternalMetadataRequestToWire(v *DeleteExternalMetadataRequest) (*deleteExternalMetadataRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteExternalMetadataRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteExternalMetadataRequestFromWire(w *deleteExternalMetadataRequestWire) (*DeleteExternalMetadataRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteExternalMetadataRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -94,6 +121,28 @@ func externalMetadataFromWire(w *externalMetadataWire) (*ExternalMetadata, error
 	}, nil
 }
 
+type getExternalMetadataRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getExternalMetadataRequestToWire(v *GetExternalMetadataRequest) (*getExternalMetadataRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getExternalMetadataRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getExternalMetadataRequestFromWire(w *getExternalMetadataRequestWire) (*GetExternalMetadataRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetExternalMetadataRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type listExternalMetadataRequestWire struct {
 	PageSize  *int    `json:"page_size,omitempty"`
 	PageToken *string `json:"page_token,omitempty"`
@@ -109,9 +158,33 @@ func listExternalMetadataRequestToWire(v *ListExternalMetadataRequest) (*listExt
 	}, nil
 }
 
+func listExternalMetadataRequestFromWire(w *listExternalMetadataRequestWire) (*ListExternalMetadataRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListExternalMetadataRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listExternalMetadataResponseV2Wire struct {
 	ExternalMetadata []externalMetadataWire `json:"external_metadata,omitempty"`
 	NextPageToken    *string                `json:"next_page_token,omitempty"`
+}
+
+func listExternalMetadataResponseV2ToWire(v *ListExternalMetadataResponseV2) (*listExternalMetadataResponseV2Wire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	externalMetadataWireValue, err := convertSlice(v.ExternalMetadata, externalMetadataToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListExternalMetadataResponseV2.ExternalMetadata", err)
+	}
+	return &listExternalMetadataResponseV2Wire{
+		ExternalMetadata: externalMetadataWireValue,
+		NextPageToken:    v.NextPageToken,
+	}, nil
 }
 
 func listExternalMetadataResponseV2FromWire(w *listExternalMetadataResponseV2Wire) (*ListExternalMetadataResponseV2, error) {
@@ -129,8 +202,8 @@ func listExternalMetadataResponseV2FromWire(w *listExternalMetadataResponseV2Wir
 }
 
 type updateExternalMetadataRequestWire struct {
-	ExternalMetadata *externalMetadataWire `json:"external_metadata,omitempty"`
-	UpdateMask       *string               `json:"update_mask,omitempty"`
+	ExternalMetadata *externalMetadataWire              `json:"external_metadata,omitempty"`
+	UpdateMask       *types.FieldMask[ExternalMetadata] `json:"update_mask,omitempty"`
 }
 
 func updateExternalMetadataRequestToWire(v *UpdateExternalMetadataRequest) (*updateExternalMetadataRequestWire, error) {
@@ -143,7 +216,21 @@ func updateExternalMetadataRequestToWire(v *UpdateExternalMetadataRequest) (*upd
 	}
 	return &updateExternalMetadataRequestWire{
 		ExternalMetadata: externalMetadataWireValue,
-		UpdateMask:       fieldMaskToWire(v.UpdateMask),
+		UpdateMask:       v.UpdateMask,
+	}, nil
+}
+
+func updateExternalMetadataRequestFromWire(w *updateExternalMetadataRequestWire) (*UpdateExternalMetadataRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	externalMetadataPublicValue, err := externalMetadataFromWire(w.ExternalMetadata)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateExternalMetadataRequest.ExternalMetadata", err)
+	}
+	return &UpdateExternalMetadataRequest{
+		ExternalMetadata: externalMetadataPublicValue,
+		UpdateMask:       w.UpdateMask,
 	}, nil
 }
 

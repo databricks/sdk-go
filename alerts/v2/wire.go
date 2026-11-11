@@ -8,14 +8,6 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type alertWire struct {
 	Id                   *string                       `json:"id,omitempty"`
 	DisplayName          *string                       `json:"display_name,omitempty"`
@@ -554,6 +546,19 @@ func createAlertRequestToWire(v *CreateAlertRequest) (*createAlertRequestWire, e
 	}, nil
 }
 
+func createAlertRequestFromWire(w *createAlertRequestWire) (*CreateAlertRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	alertPublicValue, err := alertFromWire(w.Alert)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAlertRequest.Alert", err)
+	}
+	return &CreateAlertRequest{
+		Alert: alertPublicValue,
+	}, nil
+}
+
 type cronScheduleWire struct {
 	QuartzCronSchedule *string             `json:"quartz_cron_schedule,omitempty"`
 	TimezoneId         *string             `json:"timezone_id,omitempty"`
@@ -582,6 +587,45 @@ func cronScheduleFromWire(w *cronScheduleWire) (*CronSchedule, error) {
 	}, nil
 }
 
+type emptyWire struct {
+}
+
+func emptyToWire(v *Empty) (*emptyWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &emptyWire{}, nil
+}
+
+func emptyFromWire(w *emptyWire) (*Empty, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &Empty{}, nil
+}
+
+type getAlertRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func getAlertRequestToWire(v *GetAlertRequest) (*getAlertRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getAlertRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func getAlertRequestFromWire(w *getAlertRequestWire) (*GetAlertRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetAlertRequest{
+		Id: w.Id,
+	}, nil
+}
+
 type listAlertsRequestWire struct {
 	PageToken *string `json:"page_token,omitempty"`
 	PageSize  *int    `json:"page_size,omitempty"`
@@ -597,9 +641,33 @@ func listAlertsRequestToWire(v *ListAlertsRequest) (*listAlertsRequestWire, erro
 	}, nil
 }
 
+func listAlertsRequestFromWire(w *listAlertsRequestWire) (*ListAlertsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListAlertsRequest{
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listAlertsResponseWire struct {
 	Alerts        []alertWire `json:"alerts,omitempty"`
 	NextPageToken *string     `json:"next_page_token,omitempty"`
+}
+
+func listAlertsResponseToWire(v *ListAlertsResponse) (*listAlertsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	alertsWireValue, err := convertSlice(v.Alerts, alertToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAlertsResponse.Alerts", err)
+	}
+	return &listAlertsResponseWire{
+		Alerts:        alertsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listAlertsResponseFromWire(w *listAlertsResponseWire) (*ListAlertsResponse, error) {
@@ -631,9 +699,19 @@ func trashAlertRequestToWire(v *TrashAlertRequest) (*trashAlertRequestWire, erro
 	}, nil
 }
 
+func trashAlertRequestFromWire(w *trashAlertRequestWire) (*TrashAlertRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &TrashAlertRequest{
+		Id:    w.Id,
+		Purge: w.Purge,
+	}, nil
+}
+
 type updateAlertRequestWire struct {
-	Alert      *alertWire `json:"alert,omitempty"`
-	UpdateMask *string    `json:"update_mask,omitempty"`
+	Alert      *alertWire              `json:"alert,omitempty"`
+	UpdateMask *types.FieldMask[Alert] `json:"update_mask,omitempty"`
 }
 
 func updateAlertRequestToWire(v *UpdateAlertRequest) (*updateAlertRequestWire, error) {
@@ -646,7 +724,21 @@ func updateAlertRequestToWire(v *UpdateAlertRequest) (*updateAlertRequestWire, e
 	}
 	return &updateAlertRequestWire{
 		Alert:      alertWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateAlertRequestFromWire(w *updateAlertRequestWire) (*UpdateAlertRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	alertPublicValue, err := alertFromWire(w.Alert)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAlertRequest.Alert", err)
+	}
+	return &UpdateAlertRequest{
+		Alert:      alertPublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 

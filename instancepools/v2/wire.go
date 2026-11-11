@@ -73,8 +73,65 @@ func createInstancePoolRequestToWire(v *CreateInstancePoolRequest) (*createInsta
 	}, nil
 }
 
+func createInstancePoolRequestFromWire(w *createInstancePoolRequestWire) (*CreateInstancePoolRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	awsAttributesPublicValue, err := instancePoolAwsAttributesFromWire(w.AwsAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateInstancePoolRequest.AwsAttributes", err)
+	}
+	diskSpecPublicValue, err := diskSpecFromWire(w.DiskSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateInstancePoolRequest.DiskSpec", err)
+	}
+	preloadedDockerImagesPublicValue, err := convertSlice(w.PreloadedDockerImages, dockerImageFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateInstancePoolRequest.PreloadedDockerImages", err)
+	}
+	azureAttributesPublicValue, err := instancePoolAzureAttributesFromWire(w.AzureAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateInstancePoolRequest.AzureAttributes", err)
+	}
+	gcpAttributesPublicValue, err := instancePoolGcpAttributesFromWire(w.GcpAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateInstancePoolRequest.GcpAttributes", err)
+	}
+	nodeTypeFlexibilityPublicValue, err := nodeTypeFlexibilityFromWire(w.NodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateInstancePoolRequest.NodeTypeFlexibility", err)
+	}
+	return &CreateInstancePoolRequest{
+		InstancePoolName:                   w.InstancePoolName,
+		MinIdleInstances:                   w.MinIdleInstances,
+		MaxCapacity:                        w.MaxCapacity,
+		AwsAttributes:                      awsAttributesPublicValue,
+		NodeTypeId:                         w.NodeTypeId,
+		CustomTags:                         w.CustomTags,
+		IdleInstanceAutoterminationMinutes: w.IdleInstanceAutoterminationMinutes,
+		EnableElasticDisk:                  w.EnableElasticDisk,
+		DiskSpec:                           diskSpecPublicValue,
+		PreloadedDockerImages:              preloadedDockerImagesPublicValue,
+		PreloadedSparkVersions:             w.PreloadedSparkVersions,
+		AzureAttributes:                    azureAttributesPublicValue,
+		GcpAttributes:                      gcpAttributesPublicValue,
+		NodeTypeFlexibility:                nodeTypeFlexibilityPublicValue,
+		RemoteDiskThroughput:               w.RemoteDiskThroughput,
+		TotalInitialRemoteDiskSize:         w.TotalInitialRemoteDiskSize,
+	}, nil
+}
+
 type createInstancePoolResponseWire struct {
 	InstancePoolId *string `json:"instance_pool_id,omitempty"`
+}
+
+func createInstancePoolResponseToWire(v *CreateInstancePoolResponse) (*createInstancePoolResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createInstancePoolResponseWire{
+		InstancePoolId: v.InstancePoolId,
+	}, nil
 }
 
 func createInstancePoolResponseFromWire(w *createInstancePoolResponseWire) (*CreateInstancePoolResponse, error) {
@@ -97,6 +154,32 @@ func deleteInstancePoolRequestToWire(v *DeleteInstancePoolRequest) (*deleteInsta
 	return &deleteInstancePoolRequestWire{
 		InstancePoolId: v.InstancePoolId,
 	}, nil
+}
+
+func deleteInstancePoolRequestFromWire(w *deleteInstancePoolRequestWire) (*DeleteInstancePoolRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteInstancePoolRequest{
+		InstancePoolId: w.InstancePoolId,
+	}, nil
+}
+
+type deleteInstancePoolResponseWire struct {
+}
+
+func deleteInstancePoolResponseToWire(v *DeleteInstancePoolResponse) (*deleteInstancePoolResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteInstancePoolResponseWire{}, nil
+}
+
+func deleteInstancePoolResponseFromWire(w *deleteInstancePoolResponseWire) (*DeleteInstancePoolResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteInstancePoolResponse{}, nil
 }
 
 type diskSpecWire struct {
@@ -346,6 +429,72 @@ func editInstancePoolRequestToWire(v *EditInstancePoolRequest) (*editInstancePoo
 	}, nil
 }
 
+func editInstancePoolRequestFromWire(w *editInstancePoolRequestWire) (*EditInstancePoolRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	awsAttributesPublicValue, err := instancePoolAwsAttributesFromWire(w.AwsAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditInstancePoolRequest.AwsAttributes", err)
+	}
+	diskSpecPublicValue, err := diskSpecFromWire(w.DiskSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditInstancePoolRequest.DiskSpec", err)
+	}
+	preloadedDockerImagesPublicValue, err := convertSlice(w.PreloadedDockerImages, dockerImageFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditInstancePoolRequest.PreloadedDockerImages", err)
+	}
+	azureAttributesPublicValue, err := instancePoolAzureAttributesFromWire(w.AzureAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditInstancePoolRequest.AzureAttributes", err)
+	}
+	gcpAttributesPublicValue, err := instancePoolGcpAttributesFromWire(w.GcpAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditInstancePoolRequest.GcpAttributes", err)
+	}
+	nodeTypeFlexibilityPublicValue, err := nodeTypeFlexibilityFromWire(w.NodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditInstancePoolRequest.NodeTypeFlexibility", err)
+	}
+	return &EditInstancePoolRequest{
+		InstancePoolId:                     w.InstancePoolId,
+		InstancePoolName:                   w.InstancePoolName,
+		MinIdleInstances:                   w.MinIdleInstances,
+		MaxCapacity:                        w.MaxCapacity,
+		AwsAttributes:                      awsAttributesPublicValue,
+		NodeTypeId:                         w.NodeTypeId,
+		CustomTags:                         w.CustomTags,
+		IdleInstanceAutoterminationMinutes: w.IdleInstanceAutoterminationMinutes,
+		EnableElasticDisk:                  w.EnableElasticDisk,
+		DiskSpec:                           diskSpecPublicValue,
+		PreloadedDockerImages:              preloadedDockerImagesPublicValue,
+		PreloadedSparkVersions:             w.PreloadedSparkVersions,
+		AzureAttributes:                    azureAttributesPublicValue,
+		GcpAttributes:                      gcpAttributesPublicValue,
+		NodeTypeFlexibility:                nodeTypeFlexibilityPublicValue,
+		RemoteDiskThroughput:               w.RemoteDiskThroughput,
+		TotalInitialRemoteDiskSize:         w.TotalInitialRemoteDiskSize,
+	}, nil
+}
+
+type editInstancePoolResponseWire struct {
+}
+
+func editInstancePoolResponseToWire(v *EditInstancePoolResponse) (*editInstancePoolResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &editInstancePoolResponseWire{}, nil
+}
+
+func editInstancePoolResponseFromWire(w *editInstancePoolResponseWire) (*EditInstancePoolResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &EditInstancePoolResponse{}, nil
+}
+
 type getInstancePoolRequestWire struct {
 	InstancePoolId *string `json:"instance_pool_id,omitempty"`
 }
@@ -356,6 +505,15 @@ func getInstancePoolRequestToWire(v *GetInstancePoolRequest) (*getInstancePoolRe
 	}
 	return &getInstancePoolRequestWire{
 		InstancePoolId: v.InstancePoolId,
+	}, nil
+}
+
+func getInstancePoolRequestFromWire(w *getInstancePoolRequestWire) (*GetInstancePoolRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetInstancePoolRequest{
+		InstancePoolId: w.InstancePoolId,
 	}, nil
 }
 
@@ -381,6 +539,67 @@ type getInstancePoolResponseWire struct {
 	NodeTypeFlexibility                *nodeTypeFlexibilityWire         `json:"node_type_flexibility,omitempty"`
 	RemoteDiskThroughput               *int                             `json:"remote_disk_throughput,omitempty"`
 	TotalInitialRemoteDiskSize         *int                             `json:"total_initial_remote_disk_size,omitempty"`
+}
+
+func getInstancePoolResponseToWire(v *GetInstancePoolResponse) (*getInstancePoolResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	statsWireValue, err := instancePoolStatsToWire(v.Stats)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetInstancePoolResponse.Stats", err)
+	}
+	statusWireValue, err := instancePoolStatusToWire(v.Status)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetInstancePoolResponse.Status", err)
+	}
+	awsAttributesWireValue, err := instancePoolAwsAttributesToWire(v.AwsAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetInstancePoolResponse.AwsAttributes", err)
+	}
+	diskSpecWireValue, err := diskSpecToWire(v.DiskSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetInstancePoolResponse.DiskSpec", err)
+	}
+	preloadedDockerImagesWireValue, err := convertSlice(v.PreloadedDockerImages, dockerImageToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetInstancePoolResponse.PreloadedDockerImages", err)
+	}
+	azureAttributesWireValue, err := instancePoolAzureAttributesToWire(v.AzureAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetInstancePoolResponse.AzureAttributes", err)
+	}
+	gcpAttributesWireValue, err := instancePoolGcpAttributesToWire(v.GcpAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetInstancePoolResponse.GcpAttributes", err)
+	}
+	nodeTypeFlexibilityWireValue, err := nodeTypeFlexibilityToWire(v.NodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetInstancePoolResponse.NodeTypeFlexibility", err)
+	}
+	return &getInstancePoolResponseWire{
+		Stats:                              statsWireValue,
+		Status:                             statusWireValue,
+		InstancePoolId:                     v.InstancePoolId,
+		DefaultTags:                        v.DefaultTags,
+		State:                              v.State,
+		InstancePoolName:                   v.InstancePoolName,
+		MinIdleInstances:                   v.MinIdleInstances,
+		MaxCapacity:                        v.MaxCapacity,
+		AwsAttributes:                      awsAttributesWireValue,
+		NodeTypeId:                         v.NodeTypeId,
+		CustomTags:                         v.CustomTags,
+		IdleInstanceAutoterminationMinutes: v.IdleInstanceAutoterminationMinutes,
+		EnableElasticDisk:                  v.EnableElasticDisk,
+		DiskSpec:                           diskSpecWireValue,
+		PreloadedDockerImages:              preloadedDockerImagesWireValue,
+		PreloadedSparkVersions:             v.PreloadedSparkVersions,
+		AzureAttributes:                    azureAttributesWireValue,
+		GcpAttributes:                      gcpAttributesWireValue,
+		NodeTypeFlexibility:                nodeTypeFlexibilityWireValue,
+		RemoteDiskThroughput:               v.RemoteDiskThroughput,
+		TotalInitialRemoteDiskSize:         v.TotalInitialRemoteDiskSize,
+	}, nil
 }
 
 func getInstancePoolResponseFromWire(w *getInstancePoolResponseWire) (*GetInstancePoolResponse, error) {
@@ -466,6 +685,67 @@ type instancePoolAndStatsWire struct {
 	NodeTypeFlexibility                *nodeTypeFlexibilityWire         `json:"node_type_flexibility,omitempty"`
 	RemoteDiskThroughput               *int                             `json:"remote_disk_throughput,omitempty"`
 	TotalInitialRemoteDiskSize         *int                             `json:"total_initial_remote_disk_size,omitempty"`
+}
+
+func instancePoolAndStatsToWire(v *InstancePoolAndStats) (*instancePoolAndStatsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	statsWireValue, err := instancePoolStatsToWire(v.Stats)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstancePoolAndStats.Stats", err)
+	}
+	statusWireValue, err := instancePoolStatusToWire(v.Status)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstancePoolAndStats.Status", err)
+	}
+	awsAttributesWireValue, err := instancePoolAwsAttributesToWire(v.AwsAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstancePoolAndStats.AwsAttributes", err)
+	}
+	diskSpecWireValue, err := diskSpecToWire(v.DiskSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstancePoolAndStats.DiskSpec", err)
+	}
+	preloadedDockerImagesWireValue, err := convertSlice(v.PreloadedDockerImages, dockerImageToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstancePoolAndStats.PreloadedDockerImages", err)
+	}
+	azureAttributesWireValue, err := instancePoolAzureAttributesToWire(v.AzureAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstancePoolAndStats.AzureAttributes", err)
+	}
+	gcpAttributesWireValue, err := instancePoolGcpAttributesToWire(v.GcpAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstancePoolAndStats.GcpAttributes", err)
+	}
+	nodeTypeFlexibilityWireValue, err := nodeTypeFlexibilityToWire(v.NodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstancePoolAndStats.NodeTypeFlexibility", err)
+	}
+	return &instancePoolAndStatsWire{
+		Stats:                              statsWireValue,
+		Status:                             statusWireValue,
+		InstancePoolId:                     v.InstancePoolId,
+		DefaultTags:                        v.DefaultTags,
+		State:                              v.State,
+		InstancePoolName:                   v.InstancePoolName,
+		MinIdleInstances:                   v.MinIdleInstances,
+		MaxCapacity:                        v.MaxCapacity,
+		AwsAttributes:                      awsAttributesWireValue,
+		NodeTypeId:                         v.NodeTypeId,
+		CustomTags:                         v.CustomTags,
+		IdleInstanceAutoterminationMinutes: v.IdleInstanceAutoterminationMinutes,
+		EnableElasticDisk:                  v.EnableElasticDisk,
+		DiskSpec:                           diskSpecWireValue,
+		PreloadedDockerImages:              preloadedDockerImagesWireValue,
+		PreloadedSparkVersions:             v.PreloadedSparkVersions,
+		AzureAttributes:                    azureAttributesWireValue,
+		GcpAttributes:                      gcpAttributesWireValue,
+		NodeTypeFlexibility:                nodeTypeFlexibilityWireValue,
+		RemoteDiskThroughput:               v.RemoteDiskThroughput,
+		TotalInitialRemoteDiskSize:         v.TotalInitialRemoteDiskSize,
+	}, nil
 }
 
 func instancePoolAndStatsFromWire(w *instancePoolAndStatsWire) (*InstancePoolAndStats, error) {
@@ -623,6 +903,18 @@ type instancePoolStatsWire struct {
 	PendingIdleCount *int `json:"pending_idle_count,omitempty"`
 }
 
+func instancePoolStatsToWire(v *InstancePoolStats) (*instancePoolStatsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &instancePoolStatsWire{
+		UsedCount:        v.UsedCount,
+		IdleCount:        v.IdleCount,
+		PendingUsedCount: v.PendingUsedCount,
+		PendingIdleCount: v.PendingIdleCount,
+	}, nil
+}
+
 func instancePoolStatsFromWire(w *instancePoolStatsWire) (*InstancePoolStats, error) {
 	if w == nil {
 		return nil, nil
@@ -639,6 +931,19 @@ type instancePoolStatusWire struct {
 	PendingInstanceErrors []pendingInstanceErrorWire `json:"pending_instance_errors,omitempty"`
 }
 
+func instancePoolStatusToWire(v *InstancePoolStatus) (*instancePoolStatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	pendingInstanceErrorsWireValue, err := convertSlice(v.PendingInstanceErrors, pendingInstanceErrorToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InstancePoolStatus.PendingInstanceErrors", err)
+	}
+	return &instancePoolStatusWire{
+		PendingInstanceErrors: pendingInstanceErrorsWireValue,
+	}, nil
+}
+
 func instancePoolStatusFromWire(w *instancePoolStatusWire) (*InstancePoolStatus, error) {
 	if w == nil {
 		return nil, nil
@@ -652,8 +957,38 @@ func instancePoolStatusFromWire(w *instancePoolStatusWire) (*InstancePoolStatus,
 	}, nil
 }
 
+type listInstancePoolsRequestWire struct {
+}
+
+func listInstancePoolsRequestToWire(v *ListInstancePoolsRequest) (*listInstancePoolsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listInstancePoolsRequestWire{}, nil
+}
+
+func listInstancePoolsRequestFromWire(w *listInstancePoolsRequestWire) (*ListInstancePoolsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListInstancePoolsRequest{}, nil
+}
+
 type listInstancePoolsResponseWire struct {
 	InstancePools []instancePoolAndStatsWire `json:"instance_pools,omitempty"`
+}
+
+func listInstancePoolsResponseToWire(v *ListInstancePoolsResponse) (*listInstancePoolsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	instancePoolsWireValue, err := convertSlice(v.InstancePools, instancePoolAndStatsToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListInstancePoolsResponse.InstancePools", err)
+	}
+	return &listInstancePoolsResponseWire{
+		InstancePools: instancePoolsWireValue,
+	}, nil
 }
 
 func listInstancePoolsResponseFromWire(w *listInstancePoolsResponseWire) (*ListInstancePoolsResponse, error) {
@@ -697,6 +1032,16 @@ func nodeTypeFlexibilityFromWire(w *nodeTypeFlexibilityWire) (*NodeTypeFlexibili
 type pendingInstanceErrorWire struct {
 	InstanceId *string `json:"instance_id,omitempty"`
 	Message    *string `json:"message,omitempty"`
+}
+
+func pendingInstanceErrorToWire(v *PendingInstanceError) (*pendingInstanceErrorWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &pendingInstanceErrorWire{
+		InstanceId: v.InstanceId,
+		Message:    v.Message,
+	}, nil
 }
 
 func pendingInstanceErrorFromWire(w *pendingInstanceErrorWire) (*PendingInstanceError, error) {

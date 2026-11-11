@@ -67,8 +67,31 @@ func addExchangeForListingRequestToWire(v *AddExchangeForListingRequest) (*addEx
 	}, nil
 }
 
+func addExchangeForListingRequestFromWire(w *addExchangeForListingRequestWire) (*AddExchangeForListingRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AddExchangeForListingRequest{
+		ListingId:  w.ListingId,
+		ExchangeId: w.ExchangeId,
+	}, nil
+}
+
 type addExchangeForListingResponseWire struct {
 	ExchangeForListing *exchangeListingWire `json:"exchange_for_listing,omitempty"`
+}
+
+func addExchangeForListingResponseToWire(v *AddExchangeForListingResponse) (*addExchangeForListingResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	exchangeForListingWireValue, err := exchangeListingToWire(v.ExchangeForListing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AddExchangeForListingResponse.ExchangeForListing", err)
+	}
+	return &addExchangeForListingResponseWire{
+		ExchangeForListing: exchangeForListingWireValue,
+	}, nil
 }
 
 func addExchangeForListingResponseFromWire(w *addExchangeForListingResponseWire) (*AddExchangeForListingResponse, error) {
@@ -97,8 +120,30 @@ func batchGetListingsRequestToWire(v *BatchGetListingsRequest) (*batchGetListing
 	}, nil
 }
 
+func batchGetListingsRequestFromWire(w *batchGetListingsRequestWire) (*BatchGetListingsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &BatchGetListingsRequest{
+		Ids: w.Ids,
+	}, nil
+}
+
 type batchGetListingsResponseWire struct {
 	Listings []listingWire `json:"listings,omitempty"`
+}
+
+func batchGetListingsResponseToWire(v *BatchGetListingsResponse) (*batchGetListingsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	listingsWireValue, err := convertSlice(v.Listings, listingToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BatchGetListingsResponse.Listings", err)
+	}
+	return &batchGetListingsResponseWire{
+		Listings: listingsWireValue,
+	}, nil
 }
 
 func batchGetListingsResponseFromWire(w *batchGetListingsResponseWire) (*BatchGetListingsResponse, error) {
@@ -127,8 +172,30 @@ func batchGetProvidersRequestToWire(v *BatchGetProvidersRequest) (*batchGetProvi
 	}, nil
 }
 
+func batchGetProvidersRequestFromWire(w *batchGetProvidersRequestWire) (*BatchGetProvidersRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &BatchGetProvidersRequest{
+		Ids: w.Ids,
+	}, nil
+}
+
 type batchGetProvidersResponseWire struct {
 	Providers []providerInfoWire `json:"providers,omitempty"`
+}
+
+func batchGetProvidersResponseToWire(v *BatchGetProvidersResponse) (*batchGetProvidersResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	providersWireValue, err := convertSlice(v.Providers, providerInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BatchGetProvidersResponse.Providers", err)
+	}
+	return &batchGetProvidersResponseWire{
+		Providers: providersWireValue,
+	}, nil
 }
 
 func batchGetProvidersResponseFromWire(w *batchGetProvidersResponseWire) (*BatchGetProvidersResponse, error) {
@@ -157,11 +224,32 @@ func consumerTermsToWire(v *ConsumerTerms) (*consumerTermsWire, error) {
 	}, nil
 }
 
+func consumerTermsFromWire(w *consumerTermsWire) (*ConsumerTerms, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ConsumerTerms{
+		Version: w.Version,
+	}, nil
+}
+
 type contactInfoWire struct {
 	FirstName *string `json:"first_name,omitempty"`
 	LastName  *string `json:"last_name,omitempty"`
 	Email     *string `json:"email,omitempty"`
 	Company   *string `json:"company,omitempty"`
+}
+
+func contactInfoToWire(v *ContactInfo) (*contactInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &contactInfoWire{
+		FirstName: v.FirstName,
+		LastName:  v.LastName,
+		Email:     v.Email,
+		Company:   v.Company,
+	}, nil
 }
 
 func contactInfoFromWire(w *contactInfoWire) (*ContactInfo, error) {
@@ -193,8 +281,30 @@ func createExchangeFilterRequestToWire(v *CreateExchangeFilterRequest) (*createE
 	}, nil
 }
 
+func createExchangeFilterRequestFromWire(w *createExchangeFilterRequestWire) (*CreateExchangeFilterRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	filterPublicValue, err := exchangeFilterFromWire(w.Filter)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateExchangeFilterRequest.Filter", err)
+	}
+	return &CreateExchangeFilterRequest{
+		Filter: filterPublicValue,
+	}, nil
+}
+
 type createExchangeFilterResponseWire struct {
 	FilterId *string `json:"filter_id,omitempty"`
+}
+
+func createExchangeFilterResponseToWire(v *CreateExchangeFilterResponse) (*createExchangeFilterResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createExchangeFilterResponseWire{
+		FilterId: v.FilterId,
+	}, nil
 }
 
 func createExchangeFilterResponseFromWire(w *createExchangeFilterResponseWire) (*CreateExchangeFilterResponse, error) {
@@ -223,8 +333,30 @@ func createExchangeRequestToWire(v *CreateExchangeRequest) (*createExchangeReque
 	}, nil
 }
 
+func createExchangeRequestFromWire(w *createExchangeRequestWire) (*CreateExchangeRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	exchangePublicValue, err := exchangeFromWire(w.Exchange)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateExchangeRequest.Exchange", err)
+	}
+	return &CreateExchangeRequest{
+		Exchange: exchangePublicValue,
+	}, nil
+}
+
 type createExchangeResponseWire struct {
 	ExchangeId *string `json:"exchange_id,omitempty"`
+}
+
+func createExchangeResponseToWire(v *CreateExchangeResponse) (*createExchangeResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createExchangeResponseWire{
+		ExchangeId: v.ExchangeId,
+	}, nil
 }
 
 func createExchangeResponseFromWire(w *createExchangeResponseWire) (*CreateExchangeResponse, error) {
@@ -259,9 +391,39 @@ func createFileRequestToWire(v *CreateFileRequest) (*createFileRequestWire, erro
 	}, nil
 }
 
+func createFileRequestFromWire(w *createFileRequestWire) (*CreateFileRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	fileParentPublicValue, err := fileParentFromWire(w.FileParent)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateFileRequest.FileParent", err)
+	}
+	return &CreateFileRequest{
+		FileParent:          fileParentPublicValue,
+		MarketplaceFileType: w.MarketplaceFileType,
+		MimeType:            w.MimeType,
+		DisplayName:         w.DisplayName,
+	}, nil
+}
+
 type createFileResponseWire struct {
 	UploadUrl *string       `json:"upload_url,omitempty"`
 	FileInfo  *fileInfoWire `json:"file_info,omitempty"`
+}
+
+func createFileResponseToWire(v *CreateFileResponse) (*createFileResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	fileInfoWireValue, err := fileInfoToWire(v.FileInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateFileResponse.FileInfo", err)
+	}
+	return &createFileResponseWire{
+		UploadUrl: v.UploadUrl,
+		FileInfo:  fileInfoWireValue,
+	}, nil
 }
 
 func createFileResponseFromWire(w *createFileResponseWire) (*CreateFileResponse, error) {
@@ -309,8 +471,43 @@ func createInstallationRequestToWire(v *CreateInstallationRequest) (*createInsta
 	}, nil
 }
 
+func createInstallationRequestFromWire(w *createInstallationRequestWire) (*CreateInstallationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	repoDetailPublicValue, err := repoInstallationFromWire(w.RepoDetail)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateInstallationRequest.RepoDetail", err)
+	}
+	acceptedConsumerTermsPublicValue, err := consumerTermsFromWire(w.AcceptedConsumerTerms)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateInstallationRequest.AcceptedConsumerTerms", err)
+	}
+	return &CreateInstallationRequest{
+		ListingId:             w.ListingId,
+		ShareName:             w.ShareName,
+		CatalogName:           w.CatalogName,
+		RepoDetail:            repoDetailPublicValue,
+		RecipientType:         w.RecipientType,
+		AcceptedConsumerTerms: acceptedConsumerTermsPublicValue,
+	}, nil
+}
+
 type createInstallationResponseWire struct {
 	Installation *installationDetailWire `json:"installation,omitempty"`
+}
+
+func createInstallationResponseToWire(v *CreateInstallationResponse) (*createInstallationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	installationWireValue, err := installationDetailToWire(v.Installation)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateInstallationResponse.Installation", err)
+	}
+	return &createInstallationResponseWire{
+		Installation: installationWireValue,
+	}, nil
 }
 
 func createInstallationResponseFromWire(w *createInstallationResponseWire) (*CreateInstallationResponse, error) {
@@ -343,8 +540,30 @@ func createListingRequestToWire(v *CreateListingRequest) (*createListingRequestW
 	}, nil
 }
 
+func createListingRequestFromWire(w *createListingRequestWire) (*CreateListingRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	listingPublicValue, err := listingFromWire(w.Listing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateListingRequest.Listing", err)
+	}
+	return &CreateListingRequest{
+		Listing: listingPublicValue,
+	}, nil
+}
+
 type createListingResponseWire struct {
 	ListingId *string `json:"listing_id,omitempty"`
+}
+
+func createListingResponseToWire(v *CreateListingResponse) (*createListingResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createListingResponseWire{
+		ListingId: v.ListingId,
+	}, nil
 }
 
 func createListingResponseFromWire(w *createListingResponseWire) (*CreateListingResponse, error) {
@@ -389,8 +608,38 @@ func createPersonalizationRequestToWire(v *CreatePersonalizationRequest) (*creat
 	}, nil
 }
 
+func createPersonalizationRequestFromWire(w *createPersonalizationRequestWire) (*CreatePersonalizationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	acceptedConsumerTermsPublicValue, err := consumerTermsFromWire(w.AcceptedConsumerTerms)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePersonalizationRequest.AcceptedConsumerTerms", err)
+	}
+	return &CreatePersonalizationRequest{
+		ListingId:             w.ListingId,
+		Comment:               w.Comment,
+		IntendedUse:           w.IntendedUse,
+		FirstName:             w.FirstName,
+		LastName:              w.LastName,
+		Company:               w.Company,
+		IsFromLighthouse:      w.IsFromLighthouse,
+		RecipientType:         w.RecipientType,
+		AcceptedConsumerTerms: acceptedConsumerTermsPublicValue,
+	}, nil
+}
+
 type createPersonalizationResponseWire struct {
 	Id *string `json:"id,omitempty"`
+}
+
+func createPersonalizationResponseToWire(v *CreatePersonalizationResponse) (*createPersonalizationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createPersonalizationResponseWire{
+		Id: v.Id,
+	}, nil
 }
 
 func createPersonalizationResponseFromWire(w *createPersonalizationResponseWire) (*CreatePersonalizationResponse, error) {
@@ -412,8 +661,24 @@ func createProviderAnalyticsDashboardRequestToWire(v *CreateProviderAnalyticsDas
 	return &createProviderAnalyticsDashboardRequestWire{}, nil
 }
 
+func createProviderAnalyticsDashboardRequestFromWire(w *createProviderAnalyticsDashboardRequestWire) (*CreateProviderAnalyticsDashboardRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CreateProviderAnalyticsDashboardRequest{}, nil
+}
+
 type createProviderAnalyticsDashboardResponseWire struct {
 	Id *string `json:"id,omitempty"`
+}
+
+func createProviderAnalyticsDashboardResponseToWire(v *CreateProviderAnalyticsDashboardResponse) (*createProviderAnalyticsDashboardResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createProviderAnalyticsDashboardResponseWire{
+		Id: v.Id,
+	}, nil
 }
 
 func createProviderAnalyticsDashboardResponseFromWire(w *createProviderAnalyticsDashboardResponseWire) (*CreateProviderAnalyticsDashboardResponse, error) {
@@ -442,8 +707,30 @@ func createProviderRequestToWire(v *CreateProviderRequest) (*createProviderReque
 	}, nil
 }
 
+func createProviderRequestFromWire(w *createProviderRequestWire) (*CreateProviderRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	providerPublicValue, err := providerInfoFromWire(w.Provider)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateProviderRequest.Provider", err)
+	}
+	return &CreateProviderRequest{
+		Provider: providerPublicValue,
+	}, nil
+}
+
 type createProviderResponseWire struct {
 	Id *string `json:"id,omitempty"`
+}
+
+func createProviderResponseToWire(v *CreateProviderResponse) (*createProviderResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createProviderResponseWire{
+		Id: v.Id,
+	}, nil
 }
 
 func createProviderResponseFromWire(w *createProviderResponseWire) (*CreateProviderResponse, error) {
@@ -486,6 +773,243 @@ func dataRefreshInfoFromWire(w *dataRefreshInfoWire) (*DataRefreshInfo, error) {
 		Interval: intervalPublicValue,
 		Unit:     w.Unit,
 	}, nil
+}
+
+type deleteExchangeFilterRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func deleteExchangeFilterRequestToWire(v *DeleteExchangeFilterRequest) (*deleteExchangeFilterRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteExchangeFilterRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func deleteExchangeFilterRequestFromWire(w *deleteExchangeFilterRequestWire) (*DeleteExchangeFilterRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteExchangeFilterRequest{
+		Id: w.Id,
+	}, nil
+}
+
+type deleteExchangeFilterResponseWire struct {
+}
+
+func deleteExchangeFilterResponseToWire(v *DeleteExchangeFilterResponse) (*deleteExchangeFilterResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteExchangeFilterResponseWire{}, nil
+}
+
+func deleteExchangeFilterResponseFromWire(w *deleteExchangeFilterResponseWire) (*DeleteExchangeFilterResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteExchangeFilterResponse{}, nil
+}
+
+type deleteExchangeRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func deleteExchangeRequestToWire(v *DeleteExchangeRequest) (*deleteExchangeRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteExchangeRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func deleteExchangeRequestFromWire(w *deleteExchangeRequestWire) (*DeleteExchangeRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteExchangeRequest{
+		Id: w.Id,
+	}, nil
+}
+
+type deleteExchangeResponseWire struct {
+}
+
+func deleteExchangeResponseToWire(v *DeleteExchangeResponse) (*deleteExchangeResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteExchangeResponseWire{}, nil
+}
+
+func deleteExchangeResponseFromWire(w *deleteExchangeResponseWire) (*DeleteExchangeResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteExchangeResponse{}, nil
+}
+
+type deleteFileRequestWire struct {
+	FileId *string `json:"file_id,omitempty"`
+}
+
+func deleteFileRequestToWire(v *DeleteFileRequest) (*deleteFileRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteFileRequestWire{
+		FileId: v.FileId,
+	}, nil
+}
+
+func deleteFileRequestFromWire(w *deleteFileRequestWire) (*DeleteFileRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteFileRequest{
+		FileId: w.FileId,
+	}, nil
+}
+
+type deleteFileResponseWire struct {
+}
+
+func deleteFileResponseToWire(v *DeleteFileResponse) (*deleteFileResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteFileResponseWire{}, nil
+}
+
+func deleteFileResponseFromWire(w *deleteFileResponseWire) (*DeleteFileResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteFileResponse{}, nil
+}
+
+type deleteInstallationRequestWire struct {
+	ListingId      *string `json:"listing_id,omitempty"`
+	InstallationId *string `json:"installation_id,omitempty"`
+}
+
+func deleteInstallationRequestToWire(v *DeleteInstallationRequest) (*deleteInstallationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteInstallationRequestWire{
+		ListingId:      v.ListingId,
+		InstallationId: v.InstallationId,
+	}, nil
+}
+
+func deleteInstallationRequestFromWire(w *deleteInstallationRequestWire) (*DeleteInstallationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteInstallationRequest{
+		ListingId:      w.ListingId,
+		InstallationId: w.InstallationId,
+	}, nil
+}
+
+type deleteInstallationResponseWire struct {
+}
+
+func deleteInstallationResponseToWire(v *DeleteInstallationResponse) (*deleteInstallationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteInstallationResponseWire{}, nil
+}
+
+func deleteInstallationResponseFromWire(w *deleteInstallationResponseWire) (*DeleteInstallationResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteInstallationResponse{}, nil
+}
+
+type deleteListingRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func deleteListingRequestToWire(v *DeleteListingRequest) (*deleteListingRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteListingRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func deleteListingRequestFromWire(w *deleteListingRequestWire) (*DeleteListingRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteListingRequest{
+		Id: w.Id,
+	}, nil
+}
+
+type deleteListingResponseWire struct {
+}
+
+func deleteListingResponseToWire(v *DeleteListingResponse) (*deleteListingResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteListingResponseWire{}, nil
+}
+
+func deleteListingResponseFromWire(w *deleteListingResponseWire) (*DeleteListingResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteListingResponse{}, nil
+}
+
+type deleteProviderRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func deleteProviderRequestToWire(v *DeleteProviderRequest) (*deleteProviderRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteProviderRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func deleteProviderRequestFromWire(w *deleteProviderRequestWire) (*DeleteProviderRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteProviderRequest{
+		Id: w.Id,
+	}, nil
+}
+
+type deleteProviderResponseWire struct {
+}
+
+func deleteProviderResponseToWire(v *DeleteProviderResponse) (*deleteProviderResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteProviderResponseWire{}, nil
+}
+
+func deleteProviderResponseFromWire(w *deleteProviderResponseWire) (*DeleteProviderResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteProviderResponse{}, nil
 }
 
 type exchangeWire struct {
@@ -779,6 +1303,20 @@ type getAllPersonalizationRequestsForConsumerResponseWire struct {
 	NextPageToken           *string                      `json:"next_page_token,omitempty"`
 }
 
+func getAllPersonalizationRequestsForConsumerResponseToWire(v *GetAllPersonalizationRequestsForConsumerResponse) (*getAllPersonalizationRequestsForConsumerResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	personalizationRequestsWireValue, err := convertSlice(v.PersonalizationRequests, personalizationRequestToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetAllPersonalizationRequestsForConsumerResponse.PersonalizationRequests", err)
+	}
+	return &getAllPersonalizationRequestsForConsumerResponseWire{
+		PersonalizationRequests: personalizationRequestsWireValue,
+		NextPageToken:           v.NextPageToken,
+	}, nil
+}
+
 func getAllPersonalizationRequestsForConsumerResponseFromWire(w *getAllPersonalizationRequestsForConsumerResponseWire) (*GetAllPersonalizationRequestsForConsumerResponse, error) {
 	if w == nil {
 		return nil, nil
@@ -793,8 +1331,43 @@ func getAllPersonalizationRequestsForConsumerResponseFromWire(w *getAllPersonali
 	}, nil
 }
 
+type getExchangeRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func getExchangeRequestToWire(v *GetExchangeRequest) (*getExchangeRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getExchangeRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func getExchangeRequestFromWire(w *getExchangeRequestWire) (*GetExchangeRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetExchangeRequest{
+		Id: w.Id,
+	}, nil
+}
+
 type getExchangeResponseWire struct {
 	Exchange *exchangeWire `json:"exchange,omitempty"`
+}
+
+func getExchangeResponseToWire(v *GetExchangeResponse) (*getExchangeResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	exchangeWireValue, err := exchangeToWire(v.Exchange)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetExchangeResponse.Exchange", err)
+	}
+	return &getExchangeResponseWire{
+		Exchange: exchangeWireValue,
+	}, nil
 }
 
 func getExchangeResponseFromWire(w *getExchangeResponseWire) (*GetExchangeResponse, error) {
@@ -810,8 +1383,43 @@ func getExchangeResponseFromWire(w *getExchangeResponseWire) (*GetExchangeRespon
 	}, nil
 }
 
+type getFileRequestWire struct {
+	FileId *string `json:"file_id,omitempty"`
+}
+
+func getFileRequestToWire(v *GetFileRequest) (*getFileRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getFileRequestWire{
+		FileId: v.FileId,
+	}, nil
+}
+
+func getFileRequestFromWire(w *getFileRequestWire) (*GetFileRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetFileRequest{
+		FileId: w.FileId,
+	}, nil
+}
+
 type getFileResponseWire struct {
 	FileInfo *fileInfoWire `json:"file_info,omitempty"`
+}
+
+func getFileResponseToWire(v *GetFileResponse) (*getFileResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	fileInfoWireValue, err := fileInfoToWire(v.FileInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetFileResponse.FileInfo", err)
+	}
+	return &getFileResponseWire{
+		FileInfo: fileInfoWireValue,
+	}, nil
 }
 
 func getFileResponseFromWire(w *getFileResponseWire) (*GetFileResponse, error) {
@@ -844,8 +1452,49 @@ func getInstallationDetailsRequestToWire(v *GetInstallationDetailsRequest) (*get
 	}, nil
 }
 
+func getInstallationDetailsRequestFromWire(w *getInstallationDetailsRequestWire) (*GetInstallationDetailsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetInstallationDetailsRequest{
+		ListingId: w.ListingId,
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
+type getLatestVersionProviderAnalyticsDashboardRequestWire struct {
+}
+
+func getLatestVersionProviderAnalyticsDashboardRequestToWire(v *GetLatestVersionProviderAnalyticsDashboardRequest) (*getLatestVersionProviderAnalyticsDashboardRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getLatestVersionProviderAnalyticsDashboardRequestWire{}, nil
+}
+
+func getLatestVersionProviderAnalyticsDashboardRequestFromWire(w *getLatestVersionProviderAnalyticsDashboardRequestWire) (*GetLatestVersionProviderAnalyticsDashboardRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetLatestVersionProviderAnalyticsDashboardRequest{}, nil
+}
+
 type getLatestVersionProviderAnalyticsDashboardResponseWire struct {
 	Version *wireInt64 `json:"version,omitempty"`
+}
+
+func getLatestVersionProviderAnalyticsDashboardResponseToWire(v *GetLatestVersionProviderAnalyticsDashboardResponse) (*getLatestVersionProviderAnalyticsDashboardResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	versionWireValue, err := int64ToWire(v.Version)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetLatestVersionProviderAnalyticsDashboardResponse.Version", err)
+	}
+	return &getLatestVersionProviderAnalyticsDashboardResponseWire{
+		Version: versionWireValue,
+	}, nil
 }
 
 func getLatestVersionProviderAnalyticsDashboardResponseFromWire(w *getLatestVersionProviderAnalyticsDashboardResponseWire) (*GetLatestVersionProviderAnalyticsDashboardResponse, error) {
@@ -878,9 +1527,34 @@ func getListingContentMetadataRequestToWire(v *GetListingContentMetadataRequest)
 	}, nil
 }
 
+func getListingContentMetadataRequestFromWire(w *getListingContentMetadataRequestWire) (*GetListingContentMetadataRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetListingContentMetadataRequest{
+		ListingId: w.ListingId,
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type getListingContentMetadataResponseWire struct {
 	SharedDataObjects []sharedDataObjectWire `json:"shared_data_objects,omitempty"`
 	NextPageToken     *string                `json:"next_page_token,omitempty"`
+}
+
+func getListingContentMetadataResponseToWire(v *GetListingContentMetadataResponse) (*getListingContentMetadataResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sharedDataObjectsWireValue, err := convertSlice(v.SharedDataObjects, sharedDataObjectToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetListingContentMetadataResponse.SharedDataObjects", err)
+	}
+	return &getListingContentMetadataResponseWire{
+		SharedDataObjects: sharedDataObjectsWireValue,
+		NextPageToken:     v.NextPageToken,
+	}, nil
 }
 
 func getListingContentMetadataResponseFromWire(w *getListingContentMetadataResponseWire) (*GetListingContentMetadataResponse, error) {
@@ -897,8 +1571,43 @@ func getListingContentMetadataResponseFromWire(w *getListingContentMetadataRespo
 	}, nil
 }
 
+type getListingRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func getListingRequestToWire(v *GetListingRequest) (*getListingRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getListingRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func getListingRequestFromWire(w *getListingRequestWire) (*GetListingRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetListingRequest{
+		Id: w.Id,
+	}, nil
+}
+
 type getListingResponseWire struct {
 	Listing *listingWire `json:"listing,omitempty"`
+}
+
+func getListingResponseToWire(v *GetListingResponse) (*getListingResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	listingWireValue, err := listingToWire(v.Listing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetListingResponse.Listing", err)
+	}
+	return &getListingResponseWire{
+		Listing: listingWireValue,
+	}, nil
 }
 
 func getListingResponseFromWire(w *getListingResponseWire) (*GetListingResponse, error) {
@@ -919,6 +1628,20 @@ type getListingsResponseWire struct {
 	NextPageToken *string       `json:"next_page_token,omitempty"`
 }
 
+func getListingsResponseToWire(v *GetListingsResponse) (*getListingsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	listingsWireValue, err := convertSlice(v.Listings, listingToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetListingsResponse.Listings", err)
+	}
+	return &getListingsResponseWire{
+		Listings:      listingsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
+}
+
 func getListingsResponseFromWire(w *getListingsResponseWire) (*GetListingsResponse, error) {
 	if w == nil {
 		return nil, nil
@@ -933,8 +1656,43 @@ func getListingsResponseFromWire(w *getListingsResponseWire) (*GetListingsRespon
 	}, nil
 }
 
+type getPersonalizationRequestsForConsumerRequestWire struct {
+	ListingId *string `json:"listing_id,omitempty"`
+}
+
+func getPersonalizationRequestsForConsumerRequestToWire(v *GetPersonalizationRequestsForConsumerRequest) (*getPersonalizationRequestsForConsumerRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getPersonalizationRequestsForConsumerRequestWire{
+		ListingId: v.ListingId,
+	}, nil
+}
+
+func getPersonalizationRequestsForConsumerRequestFromWire(w *getPersonalizationRequestsForConsumerRequestWire) (*GetPersonalizationRequestsForConsumerRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetPersonalizationRequestsForConsumerRequest{
+		ListingId: w.ListingId,
+	}, nil
+}
+
 type getPersonalizationRequestsForConsumerResponseWire struct {
 	PersonalizationRequests []personalizationRequestWire `json:"personalization_requests,omitempty"`
+}
+
+func getPersonalizationRequestsForConsumerResponseToWire(v *GetPersonalizationRequestsForConsumerResponse) (*getPersonalizationRequestsForConsumerResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	personalizationRequestsWireValue, err := convertSlice(v.PersonalizationRequests, personalizationRequestToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetPersonalizationRequestsForConsumerResponse.PersonalizationRequests", err)
+	}
+	return &getPersonalizationRequestsForConsumerResponseWire{
+		PersonalizationRequests: personalizationRequestsWireValue,
+	}, nil
 }
 
 func getPersonalizationRequestsForConsumerResponseFromWire(w *getPersonalizationRequestsForConsumerResponseWire) (*GetPersonalizationRequestsForConsumerResponse, error) {
@@ -965,9 +1723,33 @@ func getPersonalizationRequestsForProviderRequestToWire(v *GetPersonalizationReq
 	}, nil
 }
 
+func getPersonalizationRequestsForProviderRequestFromWire(w *getPersonalizationRequestsForProviderRequestWire) (*GetPersonalizationRequestsForProviderRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetPersonalizationRequestsForProviderRequest{
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type getPersonalizationRequestsForProviderResponseWire struct {
 	PersonalizationRequests []personalizationRequestWire `json:"personalization_requests,omitempty"`
 	NextPageToken           *string                      `json:"next_page_token,omitempty"`
+}
+
+func getPersonalizationRequestsForProviderResponseToWire(v *GetPersonalizationRequestsForProviderResponse) (*getPersonalizationRequestsForProviderResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	personalizationRequestsWireValue, err := convertSlice(v.PersonalizationRequests, personalizationRequestToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetPersonalizationRequestsForProviderResponse.PersonalizationRequests", err)
+	}
+	return &getPersonalizationRequestsForProviderResponseWire{
+		PersonalizationRequests: personalizationRequestsWireValue,
+		NextPageToken:           v.NextPageToken,
+	}, nil
 }
 
 func getPersonalizationRequestsForProviderResponseFromWire(w *getPersonalizationRequestsForProviderResponseWire) (*GetPersonalizationRequestsForProviderResponse, error) {
@@ -984,8 +1766,43 @@ func getPersonalizationRequestsForProviderResponseFromWire(w *getPersonalization
 	}, nil
 }
 
+type getProviderRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func getProviderRequestToWire(v *GetProviderRequest) (*getProviderRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getProviderRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func getProviderRequestFromWire(w *getProviderRequestWire) (*GetProviderRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetProviderRequest{
+		Id: w.Id,
+	}, nil
+}
+
 type getProviderResponseWire struct {
 	Provider *providerInfoWire `json:"provider,omitempty"`
+}
+
+func getProviderResponseToWire(v *GetProviderResponse) (*getProviderResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	providerWireValue, err := providerInfoToWire(v.Provider)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetProviderResponse.Provider", err)
+	}
+	return &getProviderResponseWire{
+		Provider: providerWireValue,
+	}, nil
 }
 
 func getProviderResponseFromWire(w *getProviderResponseWire) (*GetProviderResponse, error) {
@@ -1001,8 +1818,43 @@ func getProviderResponseFromWire(w *getProviderResponseWire) (*GetProviderRespon
 	}, nil
 }
 
+type getPublishedListingForConsumerRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func getPublishedListingForConsumerRequestToWire(v *GetPublishedListingForConsumerRequest) (*getPublishedListingForConsumerRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getPublishedListingForConsumerRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func getPublishedListingForConsumerRequestFromWire(w *getPublishedListingForConsumerRequestWire) (*GetPublishedListingForConsumerRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetPublishedListingForConsumerRequest{
+		Id: w.Id,
+	}, nil
+}
+
 type getPublishedListingForConsumerResponseWire struct {
 	Listing *listingWire `json:"listing,omitempty"`
+}
+
+func getPublishedListingForConsumerResponseToWire(v *GetPublishedListingForConsumerResponse) (*getPublishedListingForConsumerResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	listingWireValue, err := listingToWire(v.Listing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetPublishedListingForConsumerResponse.Listing", err)
+	}
+	return &getPublishedListingForConsumerResponseWire{
+		Listing: listingWireValue,
+	}, nil
 }
 
 func getPublishedListingForConsumerResponseFromWire(w *getPublishedListingForConsumerResponseWire) (*GetPublishedListingForConsumerResponse, error) {
@@ -1023,6 +1875,20 @@ type getPublishedListingsForConsumerResponseWire struct {
 	NextPageToken *string       `json:"next_page_token,omitempty"`
 }
 
+func getPublishedListingsForConsumerResponseToWire(v *GetPublishedListingsForConsumerResponse) (*getPublishedListingsForConsumerResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	listingsWireValue, err := convertSlice(v.Listings, listingToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetPublishedListingsForConsumerResponse.Listings", err)
+	}
+	return &getPublishedListingsForConsumerResponseWire{
+		Listings:      listingsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
+}
+
 func getPublishedListingsForConsumerResponseFromWire(w *getPublishedListingsForConsumerResponseWire) (*GetPublishedListingsForConsumerResponse, error) {
 	if w == nil {
 		return nil, nil
@@ -1037,8 +1903,43 @@ func getPublishedListingsForConsumerResponseFromWire(w *getPublishedListingsForC
 	}, nil
 }
 
+type getPublishedProviderForConsumerRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func getPublishedProviderForConsumerRequestToWire(v *GetPublishedProviderForConsumerRequest) (*getPublishedProviderForConsumerRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getPublishedProviderForConsumerRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func getPublishedProviderForConsumerRequestFromWire(w *getPublishedProviderForConsumerRequestWire) (*GetPublishedProviderForConsumerRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetPublishedProviderForConsumerRequest{
+		Id: w.Id,
+	}, nil
+}
+
 type getPublishedProviderForConsumerResponseWire struct {
 	Provider *providerInfoWire `json:"provider,omitempty"`
+}
+
+func getPublishedProviderForConsumerResponseToWire(v *GetPublishedProviderForConsumerResponse) (*getPublishedProviderForConsumerResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	providerWireValue, err := providerInfoToWire(v.Provider)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetPublishedProviderForConsumerResponse.Provider", err)
+	}
+	return &getPublishedProviderForConsumerResponseWire{
+		Provider: providerWireValue,
+	}, nil
 }
 
 func getPublishedProviderForConsumerResponseFromWire(w *getPublishedProviderForConsumerResponseWire) (*GetPublishedProviderForConsumerResponse, error) {
@@ -1141,6 +2042,20 @@ type listAllInstallationsResponseWire struct {
 	NextPageToken *string                  `json:"next_page_token,omitempty"`
 }
 
+func listAllInstallationsResponseToWire(v *ListAllInstallationsResponse) (*listAllInstallationsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	installationsWireValue, err := convertSlice(v.Installations, installationDetailToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAllInstallationsResponse.Installations", err)
+	}
+	return &listAllInstallationsResponseWire{
+		Installations: installationsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
+}
+
 func listAllInstallationsResponseFromWire(w *listAllInstallationsResponseWire) (*ListAllInstallationsResponse, error) {
 	if w == nil {
 		return nil, nil
@@ -1172,9 +2087,34 @@ func listExchangeFiltersRequestToWire(v *ListExchangeFiltersRequest) (*listExcha
 	}, nil
 }
 
+func listExchangeFiltersRequestFromWire(w *listExchangeFiltersRequestWire) (*ListExchangeFiltersRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListExchangeFiltersRequest{
+		ExchangeId: w.ExchangeId,
+		PageToken:  w.PageToken,
+		PageSize:   w.PageSize,
+	}, nil
+}
+
 type listExchangeFiltersResponseWire struct {
 	Filters       []exchangeFilterWire `json:"filters,omitempty"`
 	NextPageToken *string              `json:"next_page_token,omitempty"`
+}
+
+func listExchangeFiltersResponseToWire(v *ListExchangeFiltersResponse) (*listExchangeFiltersResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	filtersWireValue, err := convertSlice(v.Filters, exchangeFilterToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListExchangeFiltersResponse.Filters", err)
+	}
+	return &listExchangeFiltersResponseWire{
+		Filters:       filtersWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listExchangeFiltersResponseFromWire(w *listExchangeFiltersResponseWire) (*ListExchangeFiltersResponse, error) {
@@ -1208,9 +2148,34 @@ func listExchangesForListingRequestToWire(v *ListExchangesForListingRequest) (*l
 	}, nil
 }
 
+func listExchangesForListingRequestFromWire(w *listExchangesForListingRequestWire) (*ListExchangesForListingRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListExchangesForListingRequest{
+		ListingId: w.ListingId,
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listExchangesForListingResponseWire struct {
 	ExchangeListing []exchangeListingWire `json:"exchange_listing,omitempty"`
 	NextPageToken   *string               `json:"next_page_token,omitempty"`
+}
+
+func listExchangesForListingResponseToWire(v *ListExchangesForListingResponse) (*listExchangesForListingResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	exchangeListingWireValue, err := convertSlice(v.ExchangeListing, exchangeListingToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListExchangesForListingResponse.ExchangeListing", err)
+	}
+	return &listExchangesForListingResponseWire{
+		ExchangeListing: exchangeListingWireValue,
+		NextPageToken:   v.NextPageToken,
+	}, nil
 }
 
 func listExchangesForListingResponseFromWire(w *listExchangesForListingResponseWire) (*ListExchangesForListingResponse, error) {
@@ -1242,9 +2207,33 @@ func listExchangesRequestToWire(v *ListExchangesRequest) (*listExchangesRequestW
 	}, nil
 }
 
+func listExchangesRequestFromWire(w *listExchangesRequestWire) (*ListExchangesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListExchangesRequest{
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listExchangesResponseWire struct {
 	Exchanges     []exchangeWire `json:"exchanges,omitempty"`
 	NextPageToken *string        `json:"next_page_token,omitempty"`
+}
+
+func listExchangesResponseToWire(v *ListExchangesResponse) (*listExchangesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	exchangesWireValue, err := convertSlice(v.Exchanges, exchangeToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListExchangesResponse.Exchanges", err)
+	}
+	return &listExchangesResponseWire{
+		Exchanges:     exchangesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listExchangesResponseFromWire(w *listExchangesResponseWire) (*ListExchangesResponse, error) {
@@ -1282,9 +2271,38 @@ func listFilesRequestToWire(v *ListFilesRequest) (*listFilesRequestWire, error) 
 	}, nil
 }
 
+func listFilesRequestFromWire(w *listFilesRequestWire) (*ListFilesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	fileParentPublicValue, err := fileParentFromWire(w.FileParent)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListFilesRequest.FileParent", err)
+	}
+	return &ListFilesRequest{
+		FileParent: fileParentPublicValue,
+		PageToken:  w.PageToken,
+		PageSize:   w.PageSize,
+	}, nil
+}
+
 type listFilesResponseWire struct {
 	FileInfos     []fileInfoWire `json:"file_infos,omitempty"`
 	NextPageToken *string        `json:"next_page_token,omitempty"`
+}
+
+func listFilesResponseToWire(v *ListFilesResponse) (*listFilesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	fileInfosWireValue, err := convertSlice(v.FileInfos, fileInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListFilesResponse.FileInfos", err)
+	}
+	return &listFilesResponseWire{
+		FileInfos:     fileInfosWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listFilesResponseFromWire(w *listFilesResponseWire) (*ListFilesResponse, error) {
@@ -1304,6 +2322,20 @@ func listFilesResponseFromWire(w *listFilesResponseWire) (*ListFilesResponse, er
 type listFulfillmentsResponseWire struct {
 	Fulfillments  []listingFulfillmentWire `json:"fulfillments,omitempty"`
 	NextPageToken *string                  `json:"next_page_token,omitempty"`
+}
+
+func listFulfillmentsResponseToWire(v *ListFulfillmentsResponse) (*listFulfillmentsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	fulfillmentsWireValue, err := convertSlice(v.Fulfillments, listingFulfillmentToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListFulfillmentsResponse.Fulfillments", err)
+	}
+	return &listFulfillmentsResponseWire{
+		Fulfillments:  fulfillmentsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listFulfillmentsResponseFromWire(w *listFulfillmentsResponseWire) (*ListFulfillmentsResponse, error) {
@@ -1335,9 +2367,33 @@ func listInstallationsRequestToWire(v *ListInstallationsRequest) (*listInstallat
 	}, nil
 }
 
+func listInstallationsRequestFromWire(w *listInstallationsRequestWire) (*ListInstallationsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListInstallationsRequest{
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listInstallationsResponseWire struct {
 	Installations []installationDetailWire `json:"installations,omitempty"`
 	NextPageToken *string                  `json:"next_page_token,omitempty"`
+}
+
+func listInstallationsResponseToWire(v *ListInstallationsResponse) (*listInstallationsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	installationsWireValue, err := convertSlice(v.Installations, installationDetailToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListInstallationsResponse.Installations", err)
+	}
+	return &listInstallationsResponseWire{
+		Installations: installationsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listInstallationsResponseFromWire(w *listInstallationsResponseWire) (*ListInstallationsResponse, error) {
@@ -1371,6 +2427,17 @@ func listListingFulfillmentsRequestToWire(v *ListListingFulfillmentsRequest) (*l
 	}, nil
 }
 
+func listListingFulfillmentsRequestFromWire(w *listListingFulfillmentsRequestWire) (*ListListingFulfillmentsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListListingFulfillmentsRequest{
+		ListingId: w.ListingId,
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listListingsForExchangeRequestWire struct {
 	ExchangeId *string `json:"exchange_id,omitempty"`
 	PageToken  *string `json:"page_token,omitempty"`
@@ -1388,9 +2455,34 @@ func listListingsForExchangeRequestToWire(v *ListListingsForExchangeRequest) (*l
 	}, nil
 }
 
+func listListingsForExchangeRequestFromWire(w *listListingsForExchangeRequestWire) (*ListListingsForExchangeRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListListingsForExchangeRequest{
+		ExchangeId: w.ExchangeId,
+		PageToken:  w.PageToken,
+		PageSize:   w.PageSize,
+	}, nil
+}
+
 type listListingsForExchangeResponseWire struct {
 	ExchangeListings []exchangeListingWire `json:"exchange_listings,omitempty"`
 	NextPageToken    *string               `json:"next_page_token,omitempty"`
+}
+
+func listListingsForExchangeResponseToWire(v *ListListingsForExchangeResponse) (*listListingsForExchangeResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	exchangeListingsWireValue, err := convertSlice(v.ExchangeListings, exchangeListingToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListListingsForExchangeResponse.ExchangeListings", err)
+	}
+	return &listListingsForExchangeResponseWire{
+		ExchangeListings: exchangeListingsWireValue,
+		NextPageToken:    v.NextPageToken,
+	}, nil
 }
 
 func listListingsForExchangeResponseFromWire(w *listListingsForExchangeResponseWire) (*ListListingsForExchangeResponse, error) {
@@ -1422,6 +2514,16 @@ func listListingsRequestToWire(v *ListListingsRequest) (*listListingsRequestWire
 	}, nil
 }
 
+func listListingsRequestFromWire(w *listListingsRequestWire) (*ListListingsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListListingsRequest{
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listPersonalizationRequestsForConsumerRequestWire struct {
 	PageToken *string `json:"page_token,omitempty"`
 	PageSize  *int    `json:"page_size,omitempty"`
@@ -1437,10 +2539,52 @@ func listPersonalizationRequestsForConsumerRequestToWire(v *ListPersonalizationR
 	}, nil
 }
 
+func listPersonalizationRequestsForConsumerRequestFromWire(w *listPersonalizationRequestsForConsumerRequestWire) (*ListPersonalizationRequestsForConsumerRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListPersonalizationRequestsForConsumerRequest{
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
+type listProviderAnalyticsDashboardRequestWire struct {
+}
+
+func listProviderAnalyticsDashboardRequestToWire(v *ListProviderAnalyticsDashboardRequest) (*listProviderAnalyticsDashboardRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listProviderAnalyticsDashboardRequestWire{}, nil
+}
+
+func listProviderAnalyticsDashboardRequestFromWire(w *listProviderAnalyticsDashboardRequestWire) (*ListProviderAnalyticsDashboardRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListProviderAnalyticsDashboardRequest{}, nil
+}
+
 type listProviderAnalyticsDashboardResponseWire struct {
 	Id          *string    `json:"id,omitempty"`
 	Version     *wireInt64 `json:"version,omitempty"`
 	DashboardId *string    `json:"dashboard_id,omitempty"`
+}
+
+func listProviderAnalyticsDashboardResponseToWire(v *ListProviderAnalyticsDashboardResponse) (*listProviderAnalyticsDashboardResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	versionWireValue, err := int64ToWire(v.Version)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListProviderAnalyticsDashboardResponse.Version", err)
+	}
+	return &listProviderAnalyticsDashboardResponseWire{
+		Id:          v.Id,
+		Version:     versionWireValue,
+		DashboardId: v.DashboardId,
+	}, nil
 }
 
 func listProviderAnalyticsDashboardResponseFromWire(w *listProviderAnalyticsDashboardResponseWire) (*ListProviderAnalyticsDashboardResponse, error) {
@@ -1473,9 +2617,33 @@ func listProvidersRequestToWire(v *ListProvidersRequest) (*listProvidersRequestW
 	}, nil
 }
 
+func listProvidersRequestFromWire(w *listProvidersRequestWire) (*ListProvidersRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListProvidersRequest{
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listProvidersResponseWire struct {
 	Providers     []providerInfoWire `json:"providers,omitempty"`
 	NextPageToken *string            `json:"next_page_token,omitempty"`
+}
+
+func listProvidersResponseToWire(v *ListProvidersResponse) (*listProvidersResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	providersWireValue, err := convertSlice(v.Providers, providerInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListProvidersResponse.Providers", err)
+	}
+	return &listProvidersResponseWire{
+		Providers:     providersWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listProvidersResponseFromWire(w *listProvidersResponseWire) (*ListProvidersResponse, error) {
@@ -1525,6 +2693,27 @@ func listPublishedListingsForConsumerRequestToWire(v *ListPublishedListingsForCo
 	}, nil
 }
 
+func listPublishedListingsForConsumerRequestFromWire(w *listPublishedListingsForConsumerRequestWire) (*ListPublishedListingsForConsumerRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tagsPublicValue, err := listingTagFromWire(w.Tags)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListPublishedListingsForConsumerRequest.Tags", err)
+	}
+	return &ListPublishedListingsForConsumerRequest{
+		PageToken:         w.PageToken,
+		PageSize:          w.PageSize,
+		Assets:            w.Assets,
+		Categories:        w.Categories,
+		Tags:              tagsPublicValue,
+		IsFree:            w.IsFree,
+		IsPrivateExchange: w.IsPrivateExchange,
+		IsStaffPick:       w.IsStaffPick,
+		ProviderIds:       w.ProviderIds,
+	}, nil
+}
+
 type listPublishedProvidersForConsumerRequestWire struct {
 	PageToken  *string `json:"page_token,omitempty"`
 	PageSize   *int    `json:"page_size,omitempty"`
@@ -1542,9 +2731,34 @@ func listPublishedProvidersForConsumerRequestToWire(v *ListPublishedProvidersFor
 	}, nil
 }
 
+func listPublishedProvidersForConsumerRequestFromWire(w *listPublishedProvidersForConsumerRequestWire) (*ListPublishedProvidersForConsumerRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListPublishedProvidersForConsumerRequest{
+		PageToken:  w.PageToken,
+		PageSize:   w.PageSize,
+		IsFeatured: w.IsFeatured,
+	}, nil
+}
+
 type listPublishedProvidersForConsumerResponseWire struct {
 	Providers     []providerInfoWire `json:"providers,omitempty"`
 	NextPageToken *string            `json:"next_page_token,omitempty"`
+}
+
+func listPublishedProvidersForConsumerResponseToWire(v *ListPublishedProvidersForConsumerResponse) (*listPublishedProvidersForConsumerResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	providersWireValue, err := convertSlice(v.Providers, providerInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListPublishedProvidersForConsumerResponse.Providers", err)
+	}
+	return &listPublishedProvidersForConsumerResponseWire{
+		Providers:     providersWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listPublishedProvidersForConsumerResponseFromWire(w *listPublishedProvidersForConsumerResponseWire) (*ListPublishedProvidersForConsumerResponse, error) {
@@ -1735,6 +2949,27 @@ type listingFulfillmentWire struct {
 	ShareInfo       *shareInfoWire            `json:"share_info,omitempty"`
 	RepoInfo        *repoInfoWire             `json:"repo_info,omitempty"`
 	RecipientType   DeltaSharingRecipientType `json:"recipient_type,omitempty"`
+}
+
+func listingFulfillmentToWire(v *ListingFulfillment) (*listingFulfillmentWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	shareInfoWireValue, err := shareInfoToWire(v.ShareInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListingFulfillment.ShareInfo", err)
+	}
+	repoInfoWireValue, err := repoInfoToWire(v.RepoInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListingFulfillment.RepoInfo", err)
+	}
+	return &listingFulfillmentWire{
+		ListingId:       v.ListingId,
+		FulfillmentType: v.FulfillmentType,
+		ShareInfo:       shareInfoWireValue,
+		RepoInfo:        repoInfoWireValue,
+		RecipientType:   v.RecipientType,
+	}, nil
 }
 
 func listingFulfillmentFromWire(w *listingFulfillmentWire) (*ListingFulfillment, error) {
@@ -1972,6 +3207,50 @@ type personalizationRequestWire struct {
 	RecipientType    DeltaSharingRecipientType    `json:"recipient_type,omitempty"`
 }
 
+func personalizationRequestToWire(v *PersonalizationRequest) (*personalizationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	consumerRegionWireValue, err := regionInfoToWire(v.ConsumerRegion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PersonalizationRequest.ConsumerRegion", err)
+	}
+	contactInfoWireValue, err := contactInfoToWire(v.ContactInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PersonalizationRequest.ContactInfo", err)
+	}
+	shareWireValue, err := shareInfoToWire(v.Share)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PersonalizationRequest.Share", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PersonalizationRequest.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PersonalizationRequest.UpdatedAt", err)
+	}
+	return &personalizationRequestWire{
+		Id:               v.Id,
+		ConsumerRegion:   consumerRegionWireValue,
+		ContactInfo:      contactInfoWireValue,
+		Comment:          v.Comment,
+		IntendedUse:      v.IntendedUse,
+		Status:           v.Status,
+		StatusMessage:    v.StatusMessage,
+		Share:            shareWireValue,
+		CreatedAt:        createdAtWireValue,
+		ListingId:        v.ListingId,
+		UpdatedAt:        updatedAtWireValue,
+		MetastoreId:      v.MetastoreId,
+		ListingName:      v.ListingName,
+		IsFromLighthouse: v.IsFromLighthouse,
+		ProviderId:       v.ProviderId,
+		RecipientType:    v.RecipientType,
+	}, nil
+}
+
 func personalizationRequestFromWire(w *personalizationRequestWire) (*PersonalizationRequest, error) {
 	if w == nil {
 		return nil, nil
@@ -2102,6 +3381,45 @@ func regionInfoFromWire(w *regionInfoWire) (*RegionInfo, error) {
 	}, nil
 }
 
+type removeExchangeForListingRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func removeExchangeForListingRequestToWire(v *RemoveExchangeForListingRequest) (*removeExchangeForListingRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &removeExchangeForListingRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func removeExchangeForListingRequestFromWire(w *removeExchangeForListingRequestWire) (*RemoveExchangeForListingRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RemoveExchangeForListingRequest{
+		Id: w.Id,
+	}, nil
+}
+
+type removeExchangeForListingResponseWire struct {
+}
+
+func removeExchangeForListingResponseToWire(v *RemoveExchangeForListingResponse) (*removeExchangeForListingResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &removeExchangeForListingResponseWire{}, nil
+}
+
+func removeExchangeForListingResponseFromWire(w *removeExchangeForListingResponseWire) (*RemoveExchangeForListingResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RemoveExchangeForListingResponse{}, nil
+}
+
 type repoInfoWire struct {
 	GitRepoUrl *string `json:"git_repo_url,omitempty"`
 }
@@ -2139,6 +3457,16 @@ func repoInstallationToWire(v *RepoInstallation) (*repoInstallationWire, error) 
 	}, nil
 }
 
+func repoInstallationFromWire(w *repoInstallationWire) (*RepoInstallation, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RepoInstallation{
+		RepoName: w.RepoName,
+		RepoPath: w.RepoPath,
+	}, nil
+}
+
 type searchPublishedListingsForConsumerRequestWire struct {
 	Query             *string     `json:"query,omitempty"`
 	IsFree            *bool       `json:"is_free,omitempty"`
@@ -2166,9 +3494,39 @@ func searchPublishedListingsForConsumerRequestToWire(v *SearchPublishedListingsF
 	}, nil
 }
 
+func searchPublishedListingsForConsumerRequestFromWire(w *searchPublishedListingsForConsumerRequestWire) (*SearchPublishedListingsForConsumerRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SearchPublishedListingsForConsumerRequest{
+		Query:             w.Query,
+		IsFree:            w.IsFree,
+		IsPrivateExchange: w.IsPrivateExchange,
+		ProviderIds:       w.ProviderIds,
+		Categories:        w.Categories,
+		Assets:            w.Assets,
+		PageToken:         w.PageToken,
+		PageSize:          w.PageSize,
+	}, nil
+}
+
 type searchPublishedListingsForConsumerResponseWire struct {
 	Listings      []listingWire `json:"listings,omitempty"`
 	NextPageToken *string       `json:"next_page_token,omitempty"`
+}
+
+func searchPublishedListingsForConsumerResponseToWire(v *SearchPublishedListingsForConsumerResponse) (*searchPublishedListingsForConsumerResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	listingsWireValue, err := convertSlice(v.Listings, listingToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SearchPublishedListingsForConsumerResponse.Listings", err)
+	}
+	return &searchPublishedListingsForConsumerResponseWire{
+		Listings:      listingsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func searchPublishedListingsForConsumerResponseFromWire(w *searchPublishedListingsForConsumerResponseWire) (*SearchPublishedListingsForConsumerResponse, error) {
@@ -2213,6 +3571,16 @@ func shareInfoFromWire(w *shareInfoWire) (*ShareInfo, error) {
 type sharedDataObjectWire struct {
 	Name           *string `json:"name,omitempty"`
 	DataObjectType *string `json:"data_object_type,omitempty"`
+}
+
+func sharedDataObjectToWire(v *SharedDataObject) (*sharedDataObjectWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &sharedDataObjectWire{
+		Name:           v.Name,
+		DataObjectType: v.DataObjectType,
+	}, nil
 }
 
 func sharedDataObjectFromWire(w *sharedDataObjectWire) (*SharedDataObject, error) {
@@ -2339,8 +3707,35 @@ func updateExchangeFilterRequestToWire(v *UpdateExchangeFilterRequest) (*updateE
 	}, nil
 }
 
+func updateExchangeFilterRequestFromWire(w *updateExchangeFilterRequestWire) (*UpdateExchangeFilterRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	filterPublicValue, err := exchangeFilterFromWire(w.Filter)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateExchangeFilterRequest.Filter", err)
+	}
+	return &UpdateExchangeFilterRequest{
+		Id:     w.Id,
+		Filter: filterPublicValue,
+	}, nil
+}
+
 type updateExchangeFilterResponseWire struct {
 	Filter *exchangeFilterWire `json:"filter,omitempty"`
+}
+
+func updateExchangeFilterResponseToWire(v *UpdateExchangeFilterResponse) (*updateExchangeFilterResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	filterWireValue, err := exchangeFilterToWire(v.Filter)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateExchangeFilterResponse.Filter", err)
+	}
+	return &updateExchangeFilterResponseWire{
+		Filter: filterWireValue,
+	}, nil
 }
 
 func updateExchangeFilterResponseFromWire(w *updateExchangeFilterResponseWire) (*UpdateExchangeFilterResponse, error) {
@@ -2375,8 +3770,35 @@ func updateExchangeRequestToWire(v *UpdateExchangeRequest) (*updateExchangeReque
 	}, nil
 }
 
+func updateExchangeRequestFromWire(w *updateExchangeRequestWire) (*UpdateExchangeRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	exchangePublicValue, err := exchangeFromWire(w.Exchange)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateExchangeRequest.Exchange", err)
+	}
+	return &UpdateExchangeRequest{
+		Id:       w.Id,
+		Exchange: exchangePublicValue,
+	}, nil
+}
+
 type updateExchangeResponseWire struct {
 	Exchange *exchangeWire `json:"exchange,omitempty"`
+}
+
+func updateExchangeResponseToWire(v *UpdateExchangeResponse) (*updateExchangeResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	exchangeWireValue, err := exchangeToWire(v.Exchange)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateExchangeResponse.Exchange", err)
+	}
+	return &updateExchangeResponseWire{
+		Exchange: exchangeWireValue,
+	}, nil
 }
 
 func updateExchangeResponseFromWire(w *updateExchangeResponseWire) (*UpdateExchangeResponse, error) {
@@ -2415,8 +3837,37 @@ func updateInstallationRequestToWire(v *UpdateInstallationRequest) (*updateInsta
 	}, nil
 }
 
+func updateInstallationRequestFromWire(w *updateInstallationRequestWire) (*UpdateInstallationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	installationPublicValue, err := installationDetailFromWire(w.Installation)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateInstallationRequest.Installation", err)
+	}
+	return &UpdateInstallationRequest{
+		ListingId:      w.ListingId,
+		InstallationId: w.InstallationId,
+		Installation:   installationPublicValue,
+		RotateToken:    w.RotateToken,
+	}, nil
+}
+
 type updateInstallationResponseWire struct {
 	Installation *installationDetailWire `json:"installation,omitempty"`
+}
+
+func updateInstallationResponseToWire(v *UpdateInstallationResponse) (*updateInstallationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	installationWireValue, err := installationDetailToWire(v.Installation)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateInstallationResponse.Installation", err)
+	}
+	return &updateInstallationResponseWire{
+		Installation: installationWireValue,
+	}, nil
 }
 
 func updateInstallationResponseFromWire(w *updateInstallationResponseWire) (*UpdateInstallationResponse, error) {
@@ -2451,8 +3902,35 @@ func updateListingRequestToWire(v *UpdateListingRequest) (*updateListingRequestW
 	}, nil
 }
 
+func updateListingRequestFromWire(w *updateListingRequestWire) (*UpdateListingRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	listingPublicValue, err := listingFromWire(w.Listing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateListingRequest.Listing", err)
+	}
+	return &UpdateListingRequest{
+		Id:      w.Id,
+		Listing: listingPublicValue,
+	}, nil
+}
+
 type updateListingResponseWire struct {
 	Listing *listingWire `json:"listing,omitempty"`
+}
+
+func updateListingResponseToWire(v *UpdateListingResponse) (*updateListingResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	listingWireValue, err := listingToWire(v.Listing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateListingResponse.Listing", err)
+	}
+	return &updateListingResponseWire{
+		Listing: listingWireValue,
+	}, nil
 }
 
 func updateListingResponseFromWire(w *updateListingResponseWire) (*UpdateListingResponse, error) {
@@ -2493,8 +3971,38 @@ func updatePersonalizationRequestStatusRequestToWire(v *UpdatePersonalizationReq
 	}, nil
 }
 
+func updatePersonalizationRequestStatusRequestFromWire(w *updatePersonalizationRequestStatusRequestWire) (*UpdatePersonalizationRequestStatusRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sharePublicValue, err := shareInfoFromWire(w.Share)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdatePersonalizationRequestStatusRequest.Share", err)
+	}
+	return &UpdatePersonalizationRequestStatusRequest{
+		ListingId: w.ListingId,
+		RequestId: w.RequestId,
+		Status:    w.Status,
+		Reason:    w.Reason,
+		Share:     sharePublicValue,
+	}, nil
+}
+
 type updatePersonalizationRequestStatusResponseWire struct {
 	Request *personalizationRequestWire `json:"request,omitempty"`
+}
+
+func updatePersonalizationRequestStatusResponseToWire(v *UpdatePersonalizationRequestStatusResponse) (*updatePersonalizationRequestStatusResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	requestWireValue, err := personalizationRequestToWire(v.Request)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdatePersonalizationRequestStatusResponse.Request", err)
+	}
+	return &updatePersonalizationRequestStatusResponseWire{
+		Request: requestWireValue,
+	}, nil
 }
 
 func updatePersonalizationRequestStatusResponseFromWire(w *updatePersonalizationRequestStatusResponseWire) (*UpdatePersonalizationRequestStatusResponse, error) {
@@ -2529,10 +4037,39 @@ func updateProviderAnalyticsDashboardRequestToWire(v *UpdateProviderAnalyticsDas
 	}, nil
 }
 
+func updateProviderAnalyticsDashboardRequestFromWire(w *updateProviderAnalyticsDashboardRequestWire) (*UpdateProviderAnalyticsDashboardRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	versionPublicValue, err := int64FromWire(w.Version)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateProviderAnalyticsDashboardRequest.Version", err)
+	}
+	return &UpdateProviderAnalyticsDashboardRequest{
+		Id:      w.Id,
+		Version: versionPublicValue,
+	}, nil
+}
+
 type updateProviderAnalyticsDashboardResponseWire struct {
 	Id          *string    `json:"id,omitempty"`
 	Version     *wireInt64 `json:"version,omitempty"`
 	DashboardId *string    `json:"dashboard_id,omitempty"`
+}
+
+func updateProviderAnalyticsDashboardResponseToWire(v *UpdateProviderAnalyticsDashboardResponse) (*updateProviderAnalyticsDashboardResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	versionWireValue, err := int64ToWire(v.Version)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateProviderAnalyticsDashboardResponse.Version", err)
+	}
+	return &updateProviderAnalyticsDashboardResponseWire{
+		Id:          v.Id,
+		Version:     versionWireValue,
+		DashboardId: v.DashboardId,
+	}, nil
 }
 
 func updateProviderAnalyticsDashboardResponseFromWire(w *updateProviderAnalyticsDashboardResponseWire) (*UpdateProviderAnalyticsDashboardResponse, error) {
@@ -2569,8 +4106,35 @@ func updateProviderRequestToWire(v *UpdateProviderRequest) (*updateProviderReque
 	}, nil
 }
 
+func updateProviderRequestFromWire(w *updateProviderRequestWire) (*UpdateProviderRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	providerPublicValue, err := providerInfoFromWire(w.Provider)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateProviderRequest.Provider", err)
+	}
+	return &UpdateProviderRequest{
+		Id:       w.Id,
+		Provider: providerPublicValue,
+	}, nil
+}
+
 type updateProviderResponseWire struct {
 	Provider *providerInfoWire `json:"provider,omitempty"`
+}
+
+func updateProviderResponseToWire(v *UpdateProviderResponse) (*updateProviderResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	providerWireValue, err := providerInfoToWire(v.Provider)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateProviderResponse.Provider", err)
+	}
+	return &updateProviderResponseWire{
+		Provider: providerWireValue,
+	}, nil
 }
 
 func updateProviderResponseFromWire(w *updateProviderResponseWire) (*UpdateProviderResponse, error) {

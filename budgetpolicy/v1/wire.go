@@ -120,6 +120,21 @@ func createBudgetPolicyRequestToWire(v *CreateBudgetPolicyRequest) (*createBudge
 	}, nil
 }
 
+func createBudgetPolicyRequestFromWire(w *createBudgetPolicyRequestWire) (*CreateBudgetPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	policyPublicValue, err := budgetPolicyFromWire(w.Policy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBudgetPolicyRequest.Policy", err)
+	}
+	return &CreateBudgetPolicyRequest{
+		RequestId: w.RequestId,
+		AccountId: w.AccountId,
+		Policy:    policyPublicValue,
+	}, nil
+}
+
 type customPolicyTagWire struct {
 	Key   *string `json:"key,omitempty"`
 	Value *string `json:"value,omitempty"`
@@ -145,6 +160,31 @@ func customPolicyTagFromWire(w *customPolicyTagWire) (*CustomPolicyTag, error) {
 	}, nil
 }
 
+type deleteBudgetPolicyRequestWire struct {
+	PolicyId  *string `json:"policy_id,omitempty"`
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func deleteBudgetPolicyRequestToWire(v *DeleteBudgetPolicyRequest) (*deleteBudgetPolicyRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteBudgetPolicyRequestWire{
+		PolicyId:  v.PolicyId,
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func deleteBudgetPolicyRequestFromWire(w *deleteBudgetPolicyRequestWire) (*DeleteBudgetPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteBudgetPolicyRequest{
+		PolicyId:  w.PolicyId,
+		AccountId: w.AccountId,
+	}, nil
+}
+
 type filterWire struct {
 	PolicyName      *string    `json:"policy_name,omitempty"`
 	CreatorUserId   *wireInt64 `json:"creator_user_id,omitempty"`
@@ -166,6 +206,46 @@ func filterToWire(v *Filter) (*filterWire, error) {
 	}, nil
 }
 
+func filterFromWire(w *filterWire) (*Filter, error) {
+	if w == nil {
+		return nil, nil
+	}
+	creatorUserIdPublicValue, err := int64FromWire(w.CreatorUserId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Filter.CreatorUserId", err)
+	}
+	return &Filter{
+		PolicyName:      w.PolicyName,
+		CreatorUserId:   creatorUserIdPublicValue,
+		CreatorUserName: w.CreatorUserName,
+	}, nil
+}
+
+type getBudgetPolicyRequestWire struct {
+	PolicyId  *string `json:"policy_id,omitempty"`
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func getBudgetPolicyRequestToWire(v *GetBudgetPolicyRequest) (*getBudgetPolicyRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getBudgetPolicyRequestWire{
+		PolicyId:  v.PolicyId,
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func getBudgetPolicyRequestFromWire(w *getBudgetPolicyRequestWire) (*GetBudgetPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetBudgetPolicyRequest{
+		PolicyId:  w.PolicyId,
+		AccountId: w.AccountId,
+	}, nil
+}
+
 type limitConfigWire struct {
 }
 
@@ -174,6 +254,13 @@ func limitConfigToWire(v *LimitConfig) (*limitConfigWire, error) {
 		return nil, nil
 	}
 	return &limitConfigWire{}, nil
+}
+
+func limitConfigFromWire(w *limitConfigWire) (*LimitConfig, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &LimitConfig{}, nil
 }
 
 type listBudgetPoliciesRequestWire struct {
@@ -205,10 +292,46 @@ func listBudgetPoliciesRequestToWire(v *ListBudgetPoliciesRequest) (*listBudgetP
 	}, nil
 }
 
+func listBudgetPoliciesRequestFromWire(w *listBudgetPoliciesRequestWire) (*ListBudgetPoliciesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	filterByPublicValue, err := filterFromWire(w.FilterBy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListBudgetPoliciesRequest.FilterBy", err)
+	}
+	sortSpecPublicValue, err := sortSpecFromWire(w.SortSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListBudgetPoliciesRequest.SortSpec", err)
+	}
+	return &ListBudgetPoliciesRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+		FilterBy:  filterByPublicValue,
+		SortSpec:  sortSpecPublicValue,
+		AccountId: w.AccountId,
+	}, nil
+}
+
 type listBudgetPoliciesResponseWire struct {
 	Policies          []budgetPolicyWire `json:"policies,omitempty"`
 	NextPageToken     *string            `json:"next_page_token,omitempty"`
 	PreviousPageToken *string            `json:"previous_page_token,omitempty"`
+}
+
+func listBudgetPoliciesResponseToWire(v *ListBudgetPoliciesResponse) (*listBudgetPoliciesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	policiesWireValue, err := convertSlice(v.Policies, budgetPolicyToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListBudgetPoliciesResponse.Policies", err)
+	}
+	return &listBudgetPoliciesResponseWire{
+		Policies:          policiesWireValue,
+		NextPageToken:     v.NextPageToken,
+		PreviousPageToken: v.PreviousPageToken,
+	}, nil
 }
 
 func listBudgetPoliciesResponseFromWire(w *listBudgetPoliciesResponseWire) (*ListBudgetPoliciesResponse, error) {
@@ -241,6 +364,16 @@ func sortSpecToWire(v *SortSpec) (*sortSpecWire, error) {
 	}, nil
 }
 
+func sortSpecFromWire(w *sortSpecWire) (*SortSpec, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SortSpec{
+		Field:      w.Field,
+		Descending: w.Descending,
+	}, nil
+}
+
 type updateBudgetPolicyRequestWire struct {
 	Policy      *budgetPolicyWire `json:"policy,omitempty"`
 	AccountId   *string           `json:"account_id,omitempty"`
@@ -263,6 +396,25 @@ func updateBudgetPolicyRequestToWire(v *UpdateBudgetPolicyRequest) (*updateBudge
 		Policy:      policyWireValue,
 		AccountId:   v.AccountId,
 		LimitConfig: limitConfigWireValue,
+	}, nil
+}
+
+func updateBudgetPolicyRequestFromWire(w *updateBudgetPolicyRequestWire) (*UpdateBudgetPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	policyPublicValue, err := budgetPolicyFromWire(w.Policy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateBudgetPolicyRequest.Policy", err)
+	}
+	limitConfigPublicValue, err := limitConfigFromWire(w.LimitConfig)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateBudgetPolicyRequest.LimitConfig", err)
+	}
+	return &UpdateBudgetPolicyRequest{
+		Policy:      policyPublicValue,
+		AccountId:   w.AccountId,
+		LimitConfig: limitConfigPublicValue,
 	}, nil
 }
 

@@ -107,6 +107,44 @@ func createLogDeliveryConfigurationParamsToWire(v *CreateLogDeliveryConfiguratio
 	}, nil
 }
 
+func createLogDeliveryConfigurationParamsFromWire(w *createLogDeliveryConfigurationParamsWire) (*CreateLogDeliveryConfigurationParams, error) {
+	if w == nil {
+		return nil, nil
+	}
+	workspaceIdsFilterPublicValue, err := convertSlice(w.WorkspaceIdsFilter, int64FromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateLogDeliveryConfigurationParams.WorkspaceIdsFilter", err)
+	}
+	creationTimePublicValue, err := int64FromWire(w.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateLogDeliveryConfigurationParams.CreationTime", err)
+	}
+	updateTimePublicValue, err := int64FromWire(w.UpdateTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateLogDeliveryConfigurationParams.UpdateTime", err)
+	}
+	logDeliveryStatusPublicValue, err := logDeliveryStatusFromWire(w.LogDeliveryStatus)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateLogDeliveryConfigurationParams.LogDeliveryStatus", err)
+	}
+	return &CreateLogDeliveryConfigurationParams{
+		ConfigId:               w.ConfigId,
+		ConfigName:             w.ConfigName,
+		LogType:                w.LogType,
+		OutputFormat:           w.OutputFormat,
+		AccountId:              w.AccountId,
+		CredentialsId:          w.CredentialsId,
+		StorageConfigurationId: w.StorageConfigurationId,
+		WorkspaceIdsFilter:     workspaceIdsFilterPublicValue,
+		DeliveryPathPrefix:     w.DeliveryPathPrefix,
+		DeliveryStartTime:      w.DeliveryStartTime,
+		Status:                 w.Status,
+		CreationTime:           creationTimePublicValue,
+		UpdateTime:             updateTimePublicValue,
+		LogDeliveryStatus:      logDeliveryStatusPublicValue,
+	}, nil
+}
+
 type createLogDeliveryConfigurationRequestWire struct {
 	LogDeliveryConfiguration *createLogDeliveryConfigurationParamsWire `json:"log_delivery_configuration,omitempty"`
 }
@@ -124,8 +162,34 @@ func createLogDeliveryConfigurationRequestToWire(v *CreateLogDeliveryConfigurati
 	}, nil
 }
 
+func createLogDeliveryConfigurationRequestFromWire(w *createLogDeliveryConfigurationRequestWire) (*CreateLogDeliveryConfigurationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	logDeliveryConfigurationPublicValue, err := createLogDeliveryConfigurationParamsFromWire(w.LogDeliveryConfiguration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateLogDeliveryConfigurationRequest.LogDeliveryConfiguration", err)
+	}
+	return &CreateLogDeliveryConfigurationRequest{
+		LogDeliveryConfiguration: logDeliveryConfigurationPublicValue,
+	}, nil
+}
+
 type createLogDeliveryConfigurationResponseWire struct {
 	LogDeliveryConfiguration *logDeliveryConfigurationWire `json:"log_delivery_configuration,omitempty"`
+}
+
+func createLogDeliveryConfigurationResponseToWire(v *CreateLogDeliveryConfigurationResponse) (*createLogDeliveryConfigurationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	logDeliveryConfigurationWireValue, err := logDeliveryConfigurationToWire(v.LogDeliveryConfiguration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateLogDeliveryConfigurationResponse.LogDeliveryConfiguration", err)
+	}
+	return &createLogDeliveryConfigurationResponseWire{
+		LogDeliveryConfiguration: logDeliveryConfigurationWireValue,
+	}, nil
 }
 
 func createLogDeliveryConfigurationResponseFromWire(w *createLogDeliveryConfigurationResponseWire) (*CreateLogDeliveryConfigurationResponse, error) {
@@ -141,8 +205,46 @@ func createLogDeliveryConfigurationResponseFromWire(w *createLogDeliveryConfigur
 	}, nil
 }
 
+type getLogDeliveryConfigurationRequestWire struct {
+	ConfigId  *string `json:"config_id,omitempty"`
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func getLogDeliveryConfigurationRequestToWire(v *GetLogDeliveryConfigurationRequest) (*getLogDeliveryConfigurationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getLogDeliveryConfigurationRequestWire{
+		ConfigId:  v.ConfigId,
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func getLogDeliveryConfigurationRequestFromWire(w *getLogDeliveryConfigurationRequestWire) (*GetLogDeliveryConfigurationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetLogDeliveryConfigurationRequest{
+		ConfigId:  w.ConfigId,
+		AccountId: w.AccountId,
+	}, nil
+}
+
 type getLogDeliveryConfigurationResponseWire struct {
 	LogDeliveryConfiguration *logDeliveryConfigurationWire `json:"log_delivery_configuration,omitempty"`
+}
+
+func getLogDeliveryConfigurationResponseToWire(v *GetLogDeliveryConfigurationResponse) (*getLogDeliveryConfigurationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	logDeliveryConfigurationWireValue, err := logDeliveryConfigurationToWire(v.LogDeliveryConfiguration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetLogDeliveryConfigurationResponse.LogDeliveryConfiguration", err)
+	}
+	return &getLogDeliveryConfigurationResponseWire{
+		LogDeliveryConfiguration: logDeliveryConfigurationWireValue,
+	}, nil
 }
 
 func getLogDeliveryConfigurationResponseFromWire(w *getLogDeliveryConfigurationResponseWire) (*GetLogDeliveryConfigurationResponse, error) {
@@ -179,9 +281,36 @@ func listLogDeliveryConfigurationRequestToWire(v *ListLogDeliveryConfigurationRe
 	}, nil
 }
 
+func listLogDeliveryConfigurationRequestFromWire(w *listLogDeliveryConfigurationRequestWire) (*ListLogDeliveryConfigurationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListLogDeliveryConfigurationRequest{
+		AccountId:              w.AccountId,
+		CredentialsId:          w.CredentialsId,
+		StorageConfigurationId: w.StorageConfigurationId,
+		Status:                 w.Status,
+		PageToken:              w.PageToken,
+	}, nil
+}
+
 type listLogDeliveryConfigurationResponseWire struct {
 	LogDeliveryConfigurations []logDeliveryConfigurationWire `json:"log_delivery_configurations,omitempty"`
 	NextPageToken             *string                        `json:"next_page_token,omitempty"`
+}
+
+func listLogDeliveryConfigurationResponseToWire(v *ListLogDeliveryConfigurationResponse) (*listLogDeliveryConfigurationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	logDeliveryConfigurationsWireValue, err := convertSlice(v.LogDeliveryConfigurations, logDeliveryConfigurationToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListLogDeliveryConfigurationResponse.LogDeliveryConfigurations", err)
+	}
+	return &listLogDeliveryConfigurationResponseWire{
+		LogDeliveryConfigurations: logDeliveryConfigurationsWireValue,
+		NextPageToken:             v.NextPageToken,
+	}, nil
 }
 
 func listLogDeliveryConfigurationResponseFromWire(w *listLogDeliveryConfigurationResponseWire) (*ListLogDeliveryConfigurationResponse, error) {
@@ -213,6 +342,44 @@ type logDeliveryConfigurationWire struct {
 	CreationTime           *wireInt64              `json:"creation_time,omitempty"`
 	UpdateTime             *wireInt64              `json:"update_time,omitempty"`
 	LogDeliveryStatus      *logDeliveryStatusWire  `json:"log_delivery_status,omitempty"`
+}
+
+func logDeliveryConfigurationToWire(v *LogDeliveryConfiguration) (*logDeliveryConfigurationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	workspaceIdsFilterWireValue, err := convertSlice(v.WorkspaceIdsFilter, int64ToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LogDeliveryConfiguration.WorkspaceIdsFilter", err)
+	}
+	creationTimeWireValue, err := int64ToWire(v.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LogDeliveryConfiguration.CreationTime", err)
+	}
+	updateTimeWireValue, err := int64ToWire(v.UpdateTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LogDeliveryConfiguration.UpdateTime", err)
+	}
+	logDeliveryStatusWireValue, err := logDeliveryStatusToWire(v.LogDeliveryStatus)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LogDeliveryConfiguration.LogDeliveryStatus", err)
+	}
+	return &logDeliveryConfigurationWire{
+		ConfigId:               v.ConfigId,
+		ConfigName:             v.ConfigName,
+		LogType:                v.LogType,
+		OutputFormat:           v.OutputFormat,
+		AccountId:              v.AccountId,
+		CredentialsId:          v.CredentialsId,
+		StorageConfigurationId: v.StorageConfigurationId,
+		WorkspaceIdsFilter:     workspaceIdsFilterWireValue,
+		DeliveryPathPrefix:     v.DeliveryPathPrefix,
+		DeliveryStartTime:      v.DeliveryStartTime,
+		Status:                 v.Status,
+		CreationTime:           creationTimeWireValue,
+		UpdateTime:             updateTimeWireValue,
+		LogDeliveryStatus:      logDeliveryStatusWireValue,
+	}, nil
 }
 
 func logDeliveryConfigurationFromWire(w *logDeliveryConfigurationWire) (*LogDeliveryConfiguration, error) {
@@ -299,6 +466,34 @@ func updateLogDeliveryConfigurationRequestToWire(v *UpdateLogDeliveryConfigurati
 		AccountId: v.AccountId,
 		Status:    v.Status,
 	}, nil
+}
+
+func updateLogDeliveryConfigurationRequestFromWire(w *updateLogDeliveryConfigurationRequestWire) (*UpdateLogDeliveryConfigurationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpdateLogDeliveryConfigurationRequest{
+		ConfigId:  w.ConfigId,
+		AccountId: w.AccountId,
+		Status:    w.Status,
+	}, nil
+}
+
+type updateLogDeliveryConfigurationResponseWire struct {
+}
+
+func updateLogDeliveryConfigurationResponseToWire(v *UpdateLogDeliveryConfigurationResponse) (*updateLogDeliveryConfigurationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &updateLogDeliveryConfigurationResponseWire{}, nil
+}
+
+func updateLogDeliveryConfigurationResponseFromWire(w *updateLogDeliveryConfigurationResponseWire) (*UpdateLogDeliveryConfigurationResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpdateLogDeliveryConfigurationResponse{}, nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {
