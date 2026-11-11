@@ -121,3 +121,42 @@ jobs:
 
       - name: Fail on differences
         run: git diff --exit-code
+
+  # Single required checks for the per-module matrices above. The ruleset
+  # requires these instead of every "tests (<go>, <module>)" and
+  # "lint (<module>)" leg, so modules can be added or removed without a
+  # ruleset change. `if: always()` is load-bearing: without it a failed leg
+  # skips this job, and GitHub treats a skipped required check as passing.
+  test-result:
+    name: test-result
+    needs: [tests]
+    if: always()
+    runs-on:
+      group: databricks-protected-runner-group
+      labels: linux-ubuntu-latest
+    steps:
+      - name: Require every tests leg to succeed
+        env:
+          RESULT: ${{ needs.tests.result }}
+        run: |
+          if [ "$RESULT" != "success" ]; then
+            echo "::error::tests matrix result is '$RESULT'"
+            exit 1
+          fi
+
+  lint-result:
+    name: lint-result
+    needs: [lint]
+    if: always()
+    runs-on:
+      group: databricks-protected-runner-group
+      labels: linux-ubuntu-latest
+    steps:
+      - name: Require every lint leg to succeed
+        env:
+          RESULT: ${{ needs.lint.result }}
+        run: |
+          if [ "$RESULT" != "success" ]; then
+            echo "::error::lint matrix result is '$RESULT'"
+            exit 1
+          fi

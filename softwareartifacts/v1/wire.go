@@ -3,6 +3,7 @@
 package softwareartifacts
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/databricks/sdk-go/core/types"
@@ -30,6 +31,30 @@ func getSoftwareArtifactRequestFromWire(w *getSoftwareArtifactRequestWire) (*Get
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetSoftwareArtifactRequest) MarshalJSON() ([]byte, error) {
+	w, err := getSoftwareArtifactRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetSoftwareArtifactRequest) UnmarshalJSON(data []byte) error {
+	var w getSoftwareArtifactRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getSoftwareArtifactRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getSoftwareArtifactVersionRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -52,6 +77,30 @@ func getSoftwareArtifactVersionRequestFromWire(w *getSoftwareArtifactVersionRequ
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetSoftwareArtifactVersionRequest) MarshalJSON() ([]byte, error) {
+	w, err := getSoftwareArtifactVersionRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetSoftwareArtifactVersionRequest) UnmarshalJSON(data []byte) error {
+	var w getSoftwareArtifactVersionRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getSoftwareArtifactVersionRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type imageAccelerationDetailWire struct {
 	Status ImageAccelerationDetail_Status `json:"status,omitempty"`
 }
@@ -72,6 +121,30 @@ func imageAccelerationDetailFromWire(w *imageAccelerationDetailWire) (*ImageAcce
 	return &ImageAccelerationDetail{
 		Status: w.Status,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ImageAccelerationDetail) MarshalJSON() ([]byte, error) {
+	w, err := imageAccelerationDetailToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ImageAccelerationDetail) UnmarshalJSON(data []byte) error {
+	var w imageAccelerationDetailWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := imageAccelerationDetailFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listSoftwareArtifactVersionsRequestWire struct {
@@ -100,6 +173,30 @@ func listSoftwareArtifactVersionsRequestFromWire(w *listSoftwareArtifactVersions
 		PageToken: w.PageToken,
 		PageSize:  w.PageSize,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListSoftwareArtifactVersionsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listSoftwareArtifactVersionsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListSoftwareArtifactVersionsRequest) UnmarshalJSON(data []byte) error {
+	var w listSoftwareArtifactVersionsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listSoftwareArtifactVersionsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listSoftwareArtifactVersionsResponseWire struct {
@@ -135,6 +232,30 @@ func listSoftwareArtifactVersionsResponseFromWire(w *listSoftwareArtifactVersion
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListSoftwareArtifactVersionsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listSoftwareArtifactVersionsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListSoftwareArtifactVersionsResponse) UnmarshalJSON(data []byte) error {
+	var w listSoftwareArtifactVersionsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listSoftwareArtifactVersionsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listSoftwareArtifactsRequestWire struct {
 	Parent    *string `json:"parent,omitempty"`
 	PageToken *string `json:"page_token,omitempty"`
@@ -161,6 +282,30 @@ func listSoftwareArtifactsRequestFromWire(w *listSoftwareArtifactsRequestWire) (
 		PageToken: w.PageToken,
 		PageSize:  w.PageSize,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListSoftwareArtifactsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listSoftwareArtifactsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListSoftwareArtifactsRequest) UnmarshalJSON(data []byte) error {
+	var w listSoftwareArtifactsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listSoftwareArtifactsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listSoftwareArtifactsResponseWire struct {
@@ -196,6 +341,30 @@ func listSoftwareArtifactsResponseFromWire(w *listSoftwareArtifactsResponseWire)
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListSoftwareArtifactsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listSoftwareArtifactsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListSoftwareArtifactsResponse) UnmarshalJSON(data []byte) error {
+	var w listSoftwareArtifactsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listSoftwareArtifactsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type resolveSoftwareArtifactVersionRequestWire struct {
 	Parent *string `json:"parent,omitempty"`
 	Alias  *string `json:"alias,omitempty"`
@@ -219,6 +388,30 @@ func resolveSoftwareArtifactVersionRequestFromWire(w *resolveSoftwareArtifactVer
 		Parent: w.Parent,
 		Alias:  w.Alias,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ResolveSoftwareArtifactVersionRequest) MarshalJSON() ([]byte, error) {
+	w, err := resolveSoftwareArtifactVersionRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ResolveSoftwareArtifactVersionRequest) UnmarshalJSON(data []byte) error {
+	var w resolveSoftwareArtifactVersionRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := resolveSoftwareArtifactVersionRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type resolveSoftwareArtifactVersionResponseWire struct {
@@ -249,6 +442,30 @@ func resolveSoftwareArtifactVersionResponseFromWire(w *resolveSoftwareArtifactVe
 	return &ResolveSoftwareArtifactVersionResponse{
 		SoftwareArtifactVersion: softwareArtifactVersionPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ResolveSoftwareArtifactVersionResponse) MarshalJSON() ([]byte, error) {
+	w, err := resolveSoftwareArtifactVersionResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ResolveSoftwareArtifactVersionResponse) UnmarshalJSON(data []byte) error {
+	var w resolveSoftwareArtifactVersionResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := resolveSoftwareArtifactVersionResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type softwareArtifactWire struct {
@@ -286,6 +503,30 @@ func softwareArtifactFromWire(w *softwareArtifactWire) (*SoftwareArtifact, error
 		UpdateTime: w.UpdateTime,
 		UpdatedBy:  w.UpdatedBy,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v SoftwareArtifact) MarshalJSON() ([]byte, error) {
+	w, err := softwareArtifactToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *SoftwareArtifact) UnmarshalJSON(data []byte) error {
+	var w softwareArtifactWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := softwareArtifactFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type softwareArtifactVersionWire struct {
@@ -339,6 +580,30 @@ func softwareArtifactVersionFromWire(w *softwareArtifactVersionWire) (*SoftwareA
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v SoftwareArtifactVersion) MarshalJSON() ([]byte, error) {
+	w, err := softwareArtifactVersionToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *SoftwareArtifactVersion) UnmarshalJSON(data []byte) error {
+	var w softwareArtifactVersionWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := softwareArtifactVersionFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateSoftwareArtifactRequestWire struct {
 	SoftwareArtifact *softwareArtifactWire              `json:"software_artifact,omitempty"`
 	UpdateMask       *types.FieldMask[SoftwareArtifact] `json:"update_mask,omitempty"`
@@ -370,6 +635,30 @@ func updateSoftwareArtifactRequestFromWire(w *updateSoftwareArtifactRequestWire)
 		SoftwareArtifact: softwareArtifactPublicValue,
 		UpdateMask:       w.UpdateMask,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateSoftwareArtifactRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateSoftwareArtifactRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateSoftwareArtifactRequest) UnmarshalJSON(data []byte) error {
+	var w updateSoftwareArtifactRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateSoftwareArtifactRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

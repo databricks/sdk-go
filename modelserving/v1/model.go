@@ -15,6 +15,29 @@ const (
 	Behavior_Mask        Behavior = "MASK"
 )
 
+// The commitment term length for a Provisioned Throughput pool.
+type CommitmentTerm string
+
+const (
+	CommitmentTerm_Unspecified CommitmentTerm = ""
+	// A one-month commitment term.
+	CommitmentTerm_CommitmentTerm1Month CommitmentTerm = "COMMITMENT_TERM_1_MONTH"
+	// A three-month commitment term.
+	CommitmentTerm_CommitmentTerm3Months CommitmentTerm = "COMMITMENT_TERM_3_MONTHS"
+	// A one-hour commitment term.
+	CommitmentTerm_CommitmentTerm1Hour CommitmentTerm = "COMMITMENT_TERM_1_HOUR"
+	// A twelve-hour commitment term.
+	CommitmentTerm_CommitmentTerm12Hours CommitmentTerm = "COMMITMENT_TERM_12_HOURS"
+	// A one-day commitment term.
+	CommitmentTerm_CommitmentTerm1Day CommitmentTerm = "COMMITMENT_TERM_1_DAY"
+	// A one-week commitment term.
+	CommitmentTerm_CommitmentTerm1Week CommitmentTerm = "COMMITMENT_TERM_1_WEEK"
+	// A six-month commitment term.
+	CommitmentTerm_CommitmentTerm6Months CommitmentTerm = "COMMITMENT_TERM_6_MONTHS"
+	// A one-year commitment term.
+	CommitmentTerm_CommitmentTerm1Year CommitmentTerm = "COMMITMENT_TERM_1_YEAR"
+)
+
 type ServedModelDeploymentState string
 
 const (
@@ -924,6 +947,10 @@ type PtServedModel struct {
 	// When disabled, the endpoint maintains fixed capacity at
 	// provisioned_model_units.
 	BurstScalingEnabled *bool
+	// Commitment term to purchase for this served entity; its presence marks the
+	// entity as reserved (vs on-demand) PT. Valid on create and on update
+	// (purchases a commitment for a scale-up).
+	PtTerm CommitmentTerm
 }
 
 type PutInferenceEndpointAiGatewayRequest struct {

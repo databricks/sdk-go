@@ -100,6 +100,30 @@ func createCustomOAuthAppIntegrationRequestFromWire(w *createCustomOAuthAppInteg
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateCustomOAuthAppIntegrationRequest) MarshalJSON() ([]byte, error) {
+	w, err := createCustomOAuthAppIntegrationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateCustomOAuthAppIntegrationRequest) UnmarshalJSON(data []byte) error {
+	var w createCustomOAuthAppIntegrationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createCustomOAuthAppIntegrationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createPublishedOAuthAppIntegrationRequestWire struct {
 	AccountId         *string                `json:"account_id,omitempty"`
 	AppId             *string                `json:"app_id,omitempty"`
@@ -136,6 +160,30 @@ func createPublishedOAuthAppIntegrationRequestFromWire(w *createPublishedOAuthAp
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreatePublishedOAuthAppIntegrationRequest) MarshalJSON() ([]byte, error) {
+	w, err := createPublishedOAuthAppIntegrationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreatePublishedOAuthAppIntegrationRequest) UnmarshalJSON(data []byte) error {
+	var w createPublishedOAuthAppIntegrationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createPublishedOAuthAppIntegrationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createPublishedOAuthAppIntegrationResponseWire struct {
 	IntegrationId *string `json:"integration_id,omitempty"`
 }
@@ -156,6 +204,30 @@ func createPublishedOAuthAppIntegrationResponseFromWire(w *createPublishedOAuthA
 	return &CreatePublishedOAuthAppIntegrationResponse{
 		IntegrationId: w.IntegrationId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreatePublishedOAuthAppIntegrationResponse) MarshalJSON() ([]byte, error) {
+	w, err := createPublishedOAuthAppIntegrationResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreatePublishedOAuthAppIntegrationResponse) UnmarshalJSON(data []byte) error {
+	var w createPublishedOAuthAppIntegrationResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createPublishedOAuthAppIntegrationResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type credentialPartitionIdWire struct {
@@ -186,6 +258,30 @@ func credentialPartitionIdFromWire(w *credentialPartitionIdWire) (*CredentialPar
 	return &CredentialPartitionId{
 		WorkspaceId: workspaceIdPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CredentialPartitionId) MarshalJSON() ([]byte, error) {
+	w, err := credentialPartitionIdToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CredentialPartitionId) UnmarshalJSON(data []byte) error {
+	var w credentialPartitionIdWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := credentialPartitionIdFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type customOAuthAppIntegrationWire struct {
@@ -256,6 +352,30 @@ func customOAuthAppIntegrationFromWire(w *customOAuthAppIntegrationWire) (*Custo
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CustomOAuthAppIntegration) MarshalJSON() ([]byte, error) {
+	w, err := customOAuthAppIntegrationToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CustomOAuthAppIntegration) UnmarshalJSON(data []byte) error {
+	var w customOAuthAppIntegrationWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := customOAuthAppIntegrationFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type customOAuthAppIntegrationSecretWire struct {
 	IntegrationId *string `json:"integration_id,omitempty"`
 	ClientId      *string `json:"client_id,omitempty"`
@@ -284,6 +404,30 @@ func customOAuthAppIntegrationSecretFromWire(w *customOAuthAppIntegrationSecretW
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CustomOAuthAppIntegrationSecret) MarshalJSON() ([]byte, error) {
+	w, err := customOAuthAppIntegrationSecretToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CustomOAuthAppIntegrationSecret) UnmarshalJSON(data []byte) error {
+	var w customOAuthAppIntegrationSecretWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := customOAuthAppIntegrationSecretFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteCustomOAuthAppIntegrationRequestWire struct {
 	AccountId     *string `json:"account_id,omitempty"`
 	IntegrationId *string `json:"integration_id,omitempty"`
@@ -309,6 +453,30 @@ func deleteCustomOAuthAppIntegrationRequestFromWire(w *deleteCustomOAuthAppInteg
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteCustomOAuthAppIntegrationRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteCustomOAuthAppIntegrationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteCustomOAuthAppIntegrationRequest) UnmarshalJSON(data []byte) error {
+	var w deleteCustomOAuthAppIntegrationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteCustomOAuthAppIntegrationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteCustomOAuthAppIntegrationResponseWire struct {
 }
 
@@ -324,6 +492,30 @@ func deleteCustomOAuthAppIntegrationResponseFromWire(w *deleteCustomOAuthAppInte
 		return nil, nil
 	}
 	return &DeleteCustomOAuthAppIntegrationResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteCustomOAuthAppIntegrationResponse) MarshalJSON() ([]byte, error) {
+	w, err := deleteCustomOAuthAppIntegrationResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteCustomOAuthAppIntegrationResponse) UnmarshalJSON(data []byte) error {
+	var w deleteCustomOAuthAppIntegrationResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteCustomOAuthAppIntegrationResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type deletePublishedOAuthAppIntegrationRequestWire struct {
@@ -351,6 +543,30 @@ func deletePublishedOAuthAppIntegrationRequestFromWire(w *deletePublishedOAuthAp
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeletePublishedOAuthAppIntegrationRequest) MarshalJSON() ([]byte, error) {
+	w, err := deletePublishedOAuthAppIntegrationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeletePublishedOAuthAppIntegrationRequest) UnmarshalJSON(data []byte) error {
+	var w deletePublishedOAuthAppIntegrationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deletePublishedOAuthAppIntegrationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deletePublishedOAuthAppIntegrationResponseWire struct {
 }
 
@@ -366,6 +582,30 @@ func deletePublishedOAuthAppIntegrationResponseFromWire(w *deletePublishedOAuthA
 		return nil, nil
 	}
 	return &DeletePublishedOAuthAppIntegrationResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeletePublishedOAuthAppIntegrationResponse) MarshalJSON() ([]byte, error) {
+	w, err := deletePublishedOAuthAppIntegrationResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeletePublishedOAuthAppIntegrationResponse) UnmarshalJSON(data []byte) error {
+	var w deletePublishedOAuthAppIntegrationResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deletePublishedOAuthAppIntegrationResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type exchangeTokenWire struct {
@@ -418,6 +658,30 @@ func exchangeTokenFromWire(w *exchangeTokenWire) (*ExchangeToken, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExchangeToken) MarshalJSON() ([]byte, error) {
+	w, err := exchangeTokenToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExchangeToken) UnmarshalJSON(data []byte) error {
+	var w exchangeTokenWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := exchangeTokenFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type exchangeTokenExchangeRequestWire struct {
 	PartitionId *credentialPartitionIdWire `json:"partitionId,omitempty"`
 	TokenType   []ExchangeTokenType        `json:"tokenType,omitempty"`
@@ -454,6 +718,30 @@ func exchangeTokenExchangeRequestFromWire(w *exchangeTokenExchangeRequestWire) (
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExchangeTokenExchangeRequest) MarshalJSON() ([]byte, error) {
+	w, err := exchangeTokenExchangeRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExchangeTokenExchangeRequest) UnmarshalJSON(data []byte) error {
+	var w exchangeTokenExchangeRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := exchangeTokenExchangeRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type exchangeTokenExchangeRequest_ResponseWire struct {
 	Values []exchangeTokenWire `json:"values,omitempty"`
 }
@@ -484,6 +772,30 @@ func exchangeTokenExchangeRequest_ResponseFromWire(w *exchangeTokenExchangeReque
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExchangeTokenExchangeRequest_Response) MarshalJSON() ([]byte, error) {
+	w, err := exchangeTokenExchangeRequest_ResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExchangeTokenExchangeRequest_Response) UnmarshalJSON(data []byte) error {
+	var w exchangeTokenExchangeRequest_ResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := exchangeTokenExchangeRequest_ResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getCustomOAuthAppIntegrationRequestWire struct {
 	AccountId     *string `json:"account_id,omitempty"`
 	IntegrationId *string `json:"integration_id,omitempty"`
@@ -509,6 +821,30 @@ func getCustomOAuthAppIntegrationRequestFromWire(w *getCustomOAuthAppIntegration
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetCustomOAuthAppIntegrationRequest) MarshalJSON() ([]byte, error) {
+	w, err := getCustomOAuthAppIntegrationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetCustomOAuthAppIntegrationRequest) UnmarshalJSON(data []byte) error {
+	var w getCustomOAuthAppIntegrationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getCustomOAuthAppIntegrationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getPublishedOAuthAppIntegrationRequestWire struct {
 	AccountId     *string `json:"account_id,omitempty"`
 	IntegrationId *string `json:"integration_id,omitempty"`
@@ -532,6 +868,30 @@ func getPublishedOAuthAppIntegrationRequestFromWire(w *getPublishedOAuthAppInteg
 		AccountId:     w.AccountId,
 		IntegrationId: w.IntegrationId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetPublishedOAuthAppIntegrationRequest) MarshalJSON() ([]byte, error) {
+	w, err := getPublishedOAuthAppIntegrationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetPublishedOAuthAppIntegrationRequest) UnmarshalJSON(data []byte) error {
+	var w getPublishedOAuthAppIntegrationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getPublishedOAuthAppIntegrationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listCustomOAuthAppIntegrationsRequestWire struct {
@@ -563,6 +923,30 @@ func listCustomOAuthAppIntegrationsRequestFromWire(w *listCustomOAuthAppIntegrat
 		PageSize:               w.PageSize,
 		IncludeCreatorUsername: w.IncludeCreatorUsername,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCustomOAuthAppIntegrationsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listCustomOAuthAppIntegrationsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCustomOAuthAppIntegrationsRequest) UnmarshalJSON(data []byte) error {
+	var w listCustomOAuthAppIntegrationsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCustomOAuthAppIntegrationsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listCustomOAuthAppIntegrationsResponseWire struct {
@@ -598,6 +982,30 @@ func listCustomOAuthAppIntegrationsResponseFromWire(w *listCustomOAuthAppIntegra
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCustomOAuthAppIntegrationsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listCustomOAuthAppIntegrationsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCustomOAuthAppIntegrationsResponse) UnmarshalJSON(data []byte) error {
+	var w listCustomOAuthAppIntegrationsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCustomOAuthAppIntegrationsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listPublishedOAuthAppIntegrationsRequestWire struct {
 	AccountId *string `json:"account_id,omitempty"`
 	PageToken *string `json:"page_token,omitempty"`
@@ -624,6 +1032,30 @@ func listPublishedOAuthAppIntegrationsRequestFromWire(w *listPublishedOAuthAppIn
 		PageToken: w.PageToken,
 		PageSize:  w.PageSize,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListPublishedOAuthAppIntegrationsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listPublishedOAuthAppIntegrationsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListPublishedOAuthAppIntegrationsRequest) UnmarshalJSON(data []byte) error {
+	var w listPublishedOAuthAppIntegrationsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listPublishedOAuthAppIntegrationsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listPublishedOAuthAppIntegrationsResponseWire struct {
@@ -659,6 +1091,30 @@ func listPublishedOAuthAppIntegrationsResponseFromWire(w *listPublishedOAuthAppI
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListPublishedOAuthAppIntegrationsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listPublishedOAuthAppIntegrationsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListPublishedOAuthAppIntegrationsResponse) UnmarshalJSON(data []byte) error {
+	var w listPublishedOAuthAppIntegrationsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listPublishedOAuthAppIntegrationsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listPublishedOAuthAppsRequestWire struct {
 	AccountId *string `json:"account_id,omitempty"`
 	PageToken *string `json:"page_token,omitempty"`
@@ -685,6 +1141,30 @@ func listPublishedOAuthAppsRequestFromWire(w *listPublishedOAuthAppsRequestWire)
 		PageToken: w.PageToken,
 		PageSize:  w.PageSize,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListPublishedOAuthAppsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listPublishedOAuthAppsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListPublishedOAuthAppsRequest) UnmarshalJSON(data []byte) error {
+	var w listPublishedOAuthAppsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listPublishedOAuthAppsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listPublishedOAuthAppsResponseWire struct {
@@ -718,6 +1198,30 @@ func listPublishedOAuthAppsResponseFromWire(w *listPublishedOAuthAppsResponseWir
 		Apps:          appsPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListPublishedOAuthAppsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listPublishedOAuthAppsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListPublishedOAuthAppsResponse) UnmarshalJSON(data []byte) error {
+	var w listPublishedOAuthAppsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listPublishedOAuthAppsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type publishedOAuthAppWire struct {
@@ -758,6 +1262,30 @@ func publishedOAuthAppFromWire(w *publishedOAuthAppWire) (*PublishedOAuthApp, er
 		RedirectUrls:         w.RedirectUrls,
 		Scopes:               w.Scopes,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PublishedOAuthApp) MarshalJSON() ([]byte, error) {
+	w, err := publishedOAuthAppToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PublishedOAuthApp) UnmarshalJSON(data []byte) error {
+	var w publishedOAuthAppWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := publishedOAuthAppFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type publishedOAuthAppIntegrationWire struct {
@@ -813,6 +1341,30 @@ func publishedOAuthAppIntegrationFromWire(w *publishedOAuthAppIntegrationWire) (
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PublishedOAuthAppIntegration) MarshalJSON() ([]byte, error) {
+	w, err := publishedOAuthAppIntegrationToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PublishedOAuthAppIntegration) UnmarshalJSON(data []byte) error {
+	var w publishedOAuthAppIntegrationWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := publishedOAuthAppIntegrationFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type tokenAccessPolicyWire struct {
 	AccessTokenTtlInMinutes          *int  `json:"access_token_ttl_in_minutes,omitempty"`
 	RefreshTokenTtlInMinutes         *int  `json:"refresh_token_ttl_in_minutes,omitempty"`
@@ -842,6 +1394,30 @@ func tokenAccessPolicyFromWire(w *tokenAccessPolicyWire) (*TokenAccessPolicy, er
 		EnableSingleUseRefreshTokens:     w.EnableSingleUseRefreshTokens,
 		AbsoluteSessionLifetimeInMinutes: w.AbsoluteSessionLifetimeInMinutes,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v TokenAccessPolicy) MarshalJSON() ([]byte, error) {
+	w, err := tokenAccessPolicyToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *TokenAccessPolicy) UnmarshalJSON(data []byte) error {
+	var w tokenAccessPolicyWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := tokenAccessPolicyFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateCustomOAuthAppIntegrationRequestWire struct {
@@ -889,6 +1465,30 @@ func updateCustomOAuthAppIntegrationRequestFromWire(w *updateCustomOAuthAppInteg
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateCustomOAuthAppIntegrationRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateCustomOAuthAppIntegrationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateCustomOAuthAppIntegrationRequest) UnmarshalJSON(data []byte) error {
+	var w updateCustomOAuthAppIntegrationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateCustomOAuthAppIntegrationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateCustomOAuthAppIntegrationResponseWire struct {
 }
 
@@ -904,6 +1504,30 @@ func updateCustomOAuthAppIntegrationResponseFromWire(w *updateCustomOAuthAppInte
 		return nil, nil
 	}
 	return &UpdateCustomOAuthAppIntegrationResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateCustomOAuthAppIntegrationResponse) MarshalJSON() ([]byte, error) {
+	w, err := updateCustomOAuthAppIntegrationResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateCustomOAuthAppIntegrationResponse) UnmarshalJSON(data []byte) error {
+	var w updateCustomOAuthAppIntegrationResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateCustomOAuthAppIntegrationResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updatePublishedOAuthAppIntegrationRequestWire struct {
@@ -942,6 +1566,30 @@ func updatePublishedOAuthAppIntegrationRequestFromWire(w *updatePublishedOAuthAp
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdatePublishedOAuthAppIntegrationRequest) MarshalJSON() ([]byte, error) {
+	w, err := updatePublishedOAuthAppIntegrationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdatePublishedOAuthAppIntegrationRequest) UnmarshalJSON(data []byte) error {
+	var w updatePublishedOAuthAppIntegrationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updatePublishedOAuthAppIntegrationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updatePublishedOAuthAppIntegrationResponseWire struct {
 }
 
@@ -957,6 +1605,30 @@ func updatePublishedOAuthAppIntegrationResponseFromWire(w *updatePublishedOAuthA
 		return nil, nil
 	}
 	return &UpdatePublishedOAuthAppIntegrationResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdatePublishedOAuthAppIntegrationResponse) MarshalJSON() ([]byte, error) {
+	w, err := updatePublishedOAuthAppIntegrationResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdatePublishedOAuthAppIntegrationResponse) UnmarshalJSON(data []byte) error {
+	var w updatePublishedOAuthAppIntegrationResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updatePublishedOAuthAppIntegrationResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

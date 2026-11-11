@@ -40,6 +40,30 @@ func apiErrorFromWire(w *apiErrorWire) (*ApiError, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ApiError) MarshalJSON() ([]byte, error) {
+	w, err := apiErrorToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ApiError) UnmarshalJSON(data []byte) error {
+	var w apiErrorWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := apiErrorFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createWorkspaceBaseEnvironmentRequestWire struct {
 	WorkspaceBaseEnvironment   *workspaceBaseEnvironmentWire `json:"workspace_base_environment,omitempty"`
 	WorkspaceBaseEnvironmentId *string                       `json:"workspace_base_environment_id,omitempty"`
@@ -76,6 +100,30 @@ func createWorkspaceBaseEnvironmentRequestFromWire(w *createWorkspaceBaseEnviron
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateWorkspaceBaseEnvironmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := createWorkspaceBaseEnvironmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateWorkspaceBaseEnvironmentRequest) UnmarshalJSON(data []byte) error {
+	var w createWorkspaceBaseEnvironmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createWorkspaceBaseEnvironmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type defaultWorkspaceBaseEnvironmentWire struct {
 	Name                        *string `json:"name,omitempty"`
 	CpuWorkspaceBaseEnvironment *string `json:"cpu_workspace_base_environment,omitempty"`
@@ -104,6 +152,30 @@ func defaultWorkspaceBaseEnvironmentFromWire(w *defaultWorkspaceBaseEnvironmentW
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DefaultWorkspaceBaseEnvironment) MarshalJSON() ([]byte, error) {
+	w, err := defaultWorkspaceBaseEnvironmentToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DefaultWorkspaceBaseEnvironment) UnmarshalJSON(data []byte) error {
+	var w defaultWorkspaceBaseEnvironmentWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := defaultWorkspaceBaseEnvironmentFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteWorkspaceBaseEnvironmentRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -124,6 +196,30 @@ func deleteWorkspaceBaseEnvironmentRequestFromWire(w *deleteWorkspaceBaseEnviron
 	return &DeleteWorkspaceBaseEnvironmentRequest{
 		Name: w.Name,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteWorkspaceBaseEnvironmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteWorkspaceBaseEnvironmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteWorkspaceBaseEnvironmentRequest) UnmarshalJSON(data []byte) error {
+	var w deleteWorkspaceBaseEnvironmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteWorkspaceBaseEnvironmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type environmentSpecWire struct {
@@ -151,6 +247,30 @@ func environmentSpecFromWire(w *environmentSpecWire) (*EnvironmentSpec, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v EnvironmentSpec) MarshalJSON() ([]byte, error) {
+	w, err := environmentSpecToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *EnvironmentSpec) UnmarshalJSON(data []byte) error {
+	var w environmentSpecWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := environmentSpecFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getDefaultWorkspaceBaseEnvironmentRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -171,6 +291,30 @@ func getDefaultWorkspaceBaseEnvironmentRequestFromWire(w *getDefaultWorkspaceBas
 	return &GetDefaultWorkspaceBaseEnvironmentRequest{
 		Name: w.Name,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetDefaultWorkspaceBaseEnvironmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := getDefaultWorkspaceBaseEnvironmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetDefaultWorkspaceBaseEnvironmentRequest) UnmarshalJSON(data []byte) error {
+	var w getDefaultWorkspaceBaseEnvironmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getDefaultWorkspaceBaseEnvironmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type getOperationRequestWire struct {
@@ -195,6 +339,30 @@ func getOperationRequestFromWire(w *getOperationRequestWire) (*GetOperationReque
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetOperationRequest) MarshalJSON() ([]byte, error) {
+	w, err := getOperationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetOperationRequest) UnmarshalJSON(data []byte) error {
+	var w getOperationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getOperationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getWorkspaceBaseEnvironmentRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -215,6 +383,30 @@ func getWorkspaceBaseEnvironmentRequestFromWire(w *getWorkspaceBaseEnvironmentRe
 	return &GetWorkspaceBaseEnvironmentRequest{
 		Name: w.Name,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetWorkspaceBaseEnvironmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := getWorkspaceBaseEnvironmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetWorkspaceBaseEnvironmentRequest) UnmarshalJSON(data []byte) error {
+	var w getWorkspaceBaseEnvironmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getWorkspaceBaseEnvironmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listWorkspaceBaseEnvironmentsRequestWire struct {
@@ -240,6 +432,30 @@ func listWorkspaceBaseEnvironmentsRequestFromWire(w *listWorkspaceBaseEnvironmen
 		PageSize:  w.PageSize,
 		PageToken: w.PageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListWorkspaceBaseEnvironmentsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listWorkspaceBaseEnvironmentsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListWorkspaceBaseEnvironmentsRequest) UnmarshalJSON(data []byte) error {
+	var w listWorkspaceBaseEnvironmentsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listWorkspaceBaseEnvironmentsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listWorkspaceBaseEnvironmentsResponseWire struct {
@@ -273,6 +489,30 @@ func listWorkspaceBaseEnvironmentsResponseFromWire(w *listWorkspaceBaseEnvironme
 		WorkspaceBaseEnvironments: workspaceBaseEnvironmentsPublicValue,
 		NextPageToken:             w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListWorkspaceBaseEnvironmentsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listWorkspaceBaseEnvironmentsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListWorkspaceBaseEnvironmentsResponse) UnmarshalJSON(data []byte) error {
+	var w listWorkspaceBaseEnvironmentsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listWorkspaceBaseEnvironmentsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type operationWire struct {
@@ -348,6 +588,30 @@ func operationFromWire(w *operationWire) (*Operation, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Operation) MarshalJSON() ([]byte, error) {
+	w, err := operationToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Operation) UnmarshalJSON(data []byte) error {
+	var w operationWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := operationFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type refreshWorkspaceBaseEnvironmentRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -368,6 +632,30 @@ func refreshWorkspaceBaseEnvironmentRequestFromWire(w *refreshWorkspaceBaseEnvir
 	return &RefreshWorkspaceBaseEnvironmentRequest{
 		Name: w.Name,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v RefreshWorkspaceBaseEnvironmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := refreshWorkspaceBaseEnvironmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *RefreshWorkspaceBaseEnvironmentRequest) UnmarshalJSON(data []byte) error {
+	var w refreshWorkspaceBaseEnvironmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := refreshWorkspaceBaseEnvironmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateDefaultWorkspaceBaseEnvironmentRequestWire struct {
@@ -403,6 +691,30 @@ func updateDefaultWorkspaceBaseEnvironmentRequestFromWire(w *updateDefaultWorksp
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateDefaultWorkspaceBaseEnvironmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateDefaultWorkspaceBaseEnvironmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateDefaultWorkspaceBaseEnvironmentRequest) UnmarshalJSON(data []byte) error {
+	var w updateDefaultWorkspaceBaseEnvironmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateDefaultWorkspaceBaseEnvironmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateWorkspaceBaseEnvironmentRequestWire struct {
 	Name                     *string                       `json:"name,omitempty"`
 	WorkspaceBaseEnvironment *workspaceBaseEnvironmentWire `json:"workspace_base_environment,omitempty"`
@@ -434,6 +746,30 @@ func updateWorkspaceBaseEnvironmentRequestFromWire(w *updateWorkspaceBaseEnviron
 		Name:                     w.Name,
 		WorkspaceBaseEnvironment: workspaceBaseEnvironmentPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateWorkspaceBaseEnvironmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateWorkspaceBaseEnvironmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateWorkspaceBaseEnvironmentRequest) UnmarshalJSON(data []byte) error {
+	var w updateWorkspaceBaseEnvironmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateWorkspaceBaseEnvironmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type workspaceBaseEnvironmentWire struct {
@@ -499,6 +835,30 @@ func workspaceBaseEnvironmentFromWire(w *workspaceBaseEnvironmentWire) (*Workspa
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v WorkspaceBaseEnvironment) MarshalJSON() ([]byte, error) {
+	w, err := workspaceBaseEnvironmentToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *WorkspaceBaseEnvironment) UnmarshalJSON(data []byte) error {
+	var w workspaceBaseEnvironmentWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := workspaceBaseEnvironmentFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type workspaceBaseEnvironmentCacheWire struct {
 }
 
@@ -516,6 +876,30 @@ func workspaceBaseEnvironmentCacheFromWire(w *workspaceBaseEnvironmentCacheWire)
 	return &WorkspaceBaseEnvironmentCache{}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v WorkspaceBaseEnvironmentCache) MarshalJSON() ([]byte, error) {
+	w, err := workspaceBaseEnvironmentCacheToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *WorkspaceBaseEnvironmentCache) UnmarshalJSON(data []byte) error {
+	var w workspaceBaseEnvironmentCacheWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := workspaceBaseEnvironmentCacheFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type workspaceBaseEnvironmentOperationMetadataWire struct {
 }
 
@@ -531,6 +915,30 @@ func workspaceBaseEnvironmentOperationMetadataFromWire(w *workspaceBaseEnvironme
 		return nil, nil
 	}
 	return &WorkspaceBaseEnvironmentOperationMetadata{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v WorkspaceBaseEnvironmentOperationMetadata) MarshalJSON() ([]byte, error) {
+	w, err := workspaceBaseEnvironmentOperationMetadataToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *WorkspaceBaseEnvironmentOperationMetadata) UnmarshalJSON(data []byte) error {
+	var w workspaceBaseEnvironmentOperationMetadataWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := workspaceBaseEnvironmentOperationMetadataFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

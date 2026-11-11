@@ -146,6 +146,30 @@ func createVolumeRequestFromWire(w *createVolumeRequestWire) (*CreateVolumeReque
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateVolumeRequest) MarshalJSON() ([]byte, error) {
+	w, err := createVolumeRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateVolumeRequest) UnmarshalJSON(data []byte) error {
+	var w createVolumeRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createVolumeRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteVolumeRequestWire struct {
 	FullNameArg *string `json:"full_name_arg,omitempty"`
 }
@@ -168,6 +192,30 @@ func deleteVolumeRequestFromWire(w *deleteVolumeRequestWire) (*DeleteVolumeReque
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteVolumeRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteVolumeRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteVolumeRequest) UnmarshalJSON(data []byte) error {
+	var w deleteVolumeRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteVolumeRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteVolumeResponseWire struct {
 }
 
@@ -183,6 +231,30 @@ func deleteVolumeResponseFromWire(w *deleteVolumeResponseWire) (*DeleteVolumeRes
 		return nil, nil
 	}
 	return &DeleteVolumeResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteVolumeResponse) MarshalJSON() ([]byte, error) {
+	w, err := deleteVolumeResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteVolumeResponse) UnmarshalJSON(data []byte) error {
+	var w deleteVolumeResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteVolumeResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type encryptionDetailsWire struct {
@@ -237,6 +309,30 @@ func encryptionDetailsFromWire(w *encryptionDetailsWire) (*EncryptionDetails, er
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v EncryptionDetails) MarshalJSON() ([]byte, error) {
+	w, err := encryptionDetailsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *EncryptionDetails) UnmarshalJSON(data []byte) error {
+	var w encryptionDetailsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := encryptionDetailsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getVolumeRequestWire struct {
 	FullNameArg   *string `json:"full_name_arg,omitempty"`
 	IncludeBrowse *bool   `json:"include_browse,omitempty"`
@@ -260,6 +356,30 @@ func getVolumeRequestFromWire(w *getVolumeRequestWire) (*GetVolumeRequest, error
 		FullNameArg:   w.FullNameArg,
 		IncludeBrowse: w.IncludeBrowse,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetVolumeRequest) MarshalJSON() ([]byte, error) {
+	w, err := getVolumeRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetVolumeRequest) UnmarshalJSON(data []byte) error {
+	var w getVolumeRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getVolumeRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listVolumesRequestWire struct {
@@ -296,6 +416,30 @@ func listVolumesRequestFromWire(w *listVolumesRequestWire) (*ListVolumesRequest,
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListVolumesRequest) MarshalJSON() ([]byte, error) {
+	w, err := listVolumesRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListVolumesRequest) UnmarshalJSON(data []byte) error {
+	var w listVolumesRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listVolumesRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listVolumesResponseWire struct {
 	Volumes       []volumeInfoWire `json:"volumes,omitempty"`
 	NextPageToken *string          `json:"next_page_token,omitempty"`
@@ -329,6 +473,30 @@ func listVolumesResponseFromWire(w *listVolumesResponseWire) (*ListVolumesRespon
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListVolumesResponse) MarshalJSON() ([]byte, error) {
+	w, err := listVolumesResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListVolumesResponse) UnmarshalJSON(data []byte) error {
+	var w listVolumesResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listVolumesResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type sseEncryptionDetailsWire struct {
 	Algorithm    SseEncryptionAlgorithm `json:"algorithm,omitempty"`
 	AwsKmsKeyArn *string                `json:"aws_kms_key_arn,omitempty"`
@@ -352,6 +520,30 @@ func sseEncryptionDetailsFromWire(w *sseEncryptionDetailsWire) (*SseEncryptionDe
 		Algorithm:    w.Algorithm,
 		AwsKmsKeyArn: w.AwsKmsKeyArn,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v SseEncryptionDetails) MarshalJSON() ([]byte, error) {
+	w, err := sseEncryptionDetailsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *SseEncryptionDetails) UnmarshalJSON(data []byte) error {
+	var w sseEncryptionDetailsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := sseEncryptionDetailsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateVolumeRequestWire struct {
@@ -454,6 +646,30 @@ func updateVolumeRequestFromWire(w *updateVolumeRequestWire) (*UpdateVolumeReque
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateVolumeRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateVolumeRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateVolumeRequest) UnmarshalJSON(data []byte) error {
+	var w updateVolumeRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateVolumeRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type volumeInfoWire struct {
 	Name              *string                `json:"name,omitempty"`
 	CatalogName       *string                `json:"catalog_name,omitempty"`
@@ -546,6 +762,30 @@ func volumeInfoFromWire(w *volumeInfoWire) (*VolumeInfo, error) {
 		EncryptionDetails: encryptionDetailsPublicValue,
 		BrowseOnly:        w.BrowseOnly,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v VolumeInfo) MarshalJSON() ([]byte, error) {
+	w, err := volumeInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *VolumeInfo) UnmarshalJSON(data []byte) error {
+	var w volumeInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := volumeInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {
