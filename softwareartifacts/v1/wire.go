@@ -8,16 +8,61 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
+type getSoftwareArtifactRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getSoftwareArtifactRequestToWire(v *GetSoftwareArtifactRequest) (*getSoftwareArtifactRequestWire, error) {
+	if v == nil {
+		return nil, nil
 	}
-	value := mask.String()
-	return &value
+	return &getSoftwareArtifactRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getSoftwareArtifactRequestFromWire(w *getSoftwareArtifactRequestWire) (*GetSoftwareArtifactRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetSoftwareArtifactRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getSoftwareArtifactVersionRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getSoftwareArtifactVersionRequestToWire(v *GetSoftwareArtifactVersionRequest) (*getSoftwareArtifactVersionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getSoftwareArtifactVersionRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getSoftwareArtifactVersionRequestFromWire(w *getSoftwareArtifactVersionRequestWire) (*GetSoftwareArtifactVersionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetSoftwareArtifactVersionRequest{
+		Name: w.Name,
+	}, nil
 }
 
 type imageAccelerationDetailWire struct {
 	Status ImageAccelerationDetail_Status `json:"status,omitempty"`
+}
+
+func imageAccelerationDetailToWire(v *ImageAccelerationDetail) (*imageAccelerationDetailWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &imageAccelerationDetailWire{
+		Status: v.Status,
+	}, nil
 }
 
 func imageAccelerationDetailFromWire(w *imageAccelerationDetailWire) (*ImageAccelerationDetail, error) {
@@ -46,9 +91,34 @@ func listSoftwareArtifactVersionsRequestToWire(v *ListSoftwareArtifactVersionsRe
 	}, nil
 }
 
+func listSoftwareArtifactVersionsRequestFromWire(w *listSoftwareArtifactVersionsRequestWire) (*ListSoftwareArtifactVersionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSoftwareArtifactVersionsRequest{
+		Parent:    w.Parent,
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listSoftwareArtifactVersionsResponseWire struct {
 	SoftwareArtifactVersions []softwareArtifactVersionWire `json:"software_artifact_versions,omitempty"`
 	NextPageToken            *string                       `json:"next_page_token,omitempty"`
+}
+
+func listSoftwareArtifactVersionsResponseToWire(v *ListSoftwareArtifactVersionsResponse) (*listSoftwareArtifactVersionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	softwareArtifactVersionsWireValue, err := convertSlice(v.SoftwareArtifactVersions, softwareArtifactVersionToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSoftwareArtifactVersionsResponse.SoftwareArtifactVersions", err)
+	}
+	return &listSoftwareArtifactVersionsResponseWire{
+		SoftwareArtifactVersions: softwareArtifactVersionsWireValue,
+		NextPageToken:            v.NextPageToken,
+	}, nil
 }
 
 func listSoftwareArtifactVersionsResponseFromWire(w *listSoftwareArtifactVersionsResponseWire) (*ListSoftwareArtifactVersionsResponse, error) {
@@ -82,9 +152,34 @@ func listSoftwareArtifactsRequestToWire(v *ListSoftwareArtifactsRequest) (*listS
 	}, nil
 }
 
+func listSoftwareArtifactsRequestFromWire(w *listSoftwareArtifactsRequestWire) (*ListSoftwareArtifactsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSoftwareArtifactsRequest{
+		Parent:    w.Parent,
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listSoftwareArtifactsResponseWire struct {
 	SoftwareArtifacts []softwareArtifactWire `json:"software_artifacts,omitempty"`
 	NextPageToken     *string                `json:"next_page_token,omitempty"`
+}
+
+func listSoftwareArtifactsResponseToWire(v *ListSoftwareArtifactsResponse) (*listSoftwareArtifactsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	softwareArtifactsWireValue, err := convertSlice(v.SoftwareArtifacts, softwareArtifactToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSoftwareArtifactsResponse.SoftwareArtifacts", err)
+	}
+	return &listSoftwareArtifactsResponseWire{
+		SoftwareArtifacts: softwareArtifactsWireValue,
+		NextPageToken:     v.NextPageToken,
+	}, nil
 }
 
 func listSoftwareArtifactsResponseFromWire(w *listSoftwareArtifactsResponseWire) (*ListSoftwareArtifactsResponse, error) {
@@ -116,8 +211,31 @@ func resolveSoftwareArtifactVersionRequestToWire(v *ResolveSoftwareArtifactVersi
 	}, nil
 }
 
+func resolveSoftwareArtifactVersionRequestFromWire(w *resolveSoftwareArtifactVersionRequestWire) (*ResolveSoftwareArtifactVersionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ResolveSoftwareArtifactVersionRequest{
+		Parent: w.Parent,
+		Alias:  w.Alias,
+	}, nil
+}
+
 type resolveSoftwareArtifactVersionResponseWire struct {
 	SoftwareArtifactVersion *softwareArtifactVersionWire `json:"software_artifact_version,omitempty"`
+}
+
+func resolveSoftwareArtifactVersionResponseToWire(v *ResolveSoftwareArtifactVersionResponse) (*resolveSoftwareArtifactVersionResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	softwareArtifactVersionWireValue, err := softwareArtifactVersionToWire(v.SoftwareArtifactVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ResolveSoftwareArtifactVersionResponse.SoftwareArtifactVersion", err)
+	}
+	return &resolveSoftwareArtifactVersionResponseWire{
+		SoftwareArtifactVersion: softwareArtifactVersionWireValue,
+	}, nil
 }
 
 func resolveSoftwareArtifactVersionResponseFromWire(w *resolveSoftwareArtifactVersionResponseWire) (*ResolveSoftwareArtifactVersionResponse, error) {
@@ -181,6 +299,26 @@ type softwareArtifactVersionWire struct {
 	UpdatedBy                *string                      `json:"updated_by,omitempty"`
 }
 
+func softwareArtifactVersionToWire(v *SoftwareArtifactVersion) (*softwareArtifactVersionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	imageAccelerationDetailsWireValue, err := imageAccelerationDetailToWire(v.ImageAccelerationDetails)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SoftwareArtifactVersion.ImageAccelerationDetails", err)
+	}
+	return &softwareArtifactVersionWire{
+		Digest:                   v.Digest,
+		Name:                     v.Name,
+		Tags:                     v.Tags,
+		ImageAccelerationDetails: imageAccelerationDetailsWireValue,
+		CreateTime:               v.CreateTime,
+		CreatedBy:                v.CreatedBy,
+		UpdateTime:               v.UpdateTime,
+		UpdatedBy:                v.UpdatedBy,
+	}, nil
+}
+
 func softwareArtifactVersionFromWire(w *softwareArtifactVersionWire) (*SoftwareArtifactVersion, error) {
 	if w == nil {
 		return nil, nil
@@ -202,8 +340,8 @@ func softwareArtifactVersionFromWire(w *softwareArtifactVersionWire) (*SoftwareA
 }
 
 type updateSoftwareArtifactRequestWire struct {
-	SoftwareArtifact *softwareArtifactWire `json:"software_artifact,omitempty"`
-	UpdateMask       *string               `json:"update_mask,omitempty"`
+	SoftwareArtifact *softwareArtifactWire              `json:"software_artifact,omitempty"`
+	UpdateMask       *types.FieldMask[SoftwareArtifact] `json:"update_mask,omitempty"`
 }
 
 func updateSoftwareArtifactRequestToWire(v *UpdateSoftwareArtifactRequest) (*updateSoftwareArtifactRequestWire, error) {
@@ -216,7 +354,21 @@ func updateSoftwareArtifactRequestToWire(v *UpdateSoftwareArtifactRequest) (*upd
 	}
 	return &updateSoftwareArtifactRequestWire{
 		SoftwareArtifact: softwareArtifactWireValue,
-		UpdateMask:       fieldMaskToWire(v.UpdateMask),
+		UpdateMask:       v.UpdateMask,
+	}, nil
+}
+
+func updateSoftwareArtifactRequestFromWire(w *updateSoftwareArtifactRequestWire) (*UpdateSoftwareArtifactRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	softwareArtifactPublicValue, err := softwareArtifactFromWire(w.SoftwareArtifact)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateSoftwareArtifactRequest.SoftwareArtifact", err)
+	}
+	return &UpdateSoftwareArtifactRequest{
+		SoftwareArtifact: softwareArtifactPublicValue,
+		UpdateMask:       w.UpdateMask,
 	}, nil
 }
 

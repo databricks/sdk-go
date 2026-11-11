@@ -108,6 +108,63 @@ type catalogInfoWire struct {
 	Options                             map[string]string                        `json:"options,omitempty"`
 }
 
+func catalogInfoToWire(v *CatalogInfo) (*catalogInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CatalogInfo.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CatalogInfo.UpdatedAt", err)
+	}
+	effectivePredictiveOptimizationFlagWireValue, err := effectivePredictiveOptimizationFlagToWire(v.EffectivePredictiveOptimizationFlag)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CatalogInfo.EffectivePredictiveOptimizationFlag", err)
+	}
+	provisioningInfoWireValue, err := provisioningInfoToWire(v.ProvisioningInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CatalogInfo.ProvisioningInfo", err)
+	}
+	customMaxRetentionHoursWireValue, err := int64ToWire(v.CustomMaxRetentionHours)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CatalogInfo.CustomMaxRetentionHours", err)
+	}
+	managedEncryptionSettingsWireValue, err := encryptionSettingsToWire(v.ManagedEncryptionSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CatalogInfo.ManagedEncryptionSettings", err)
+	}
+	return &catalogInfoWire{
+		Name:                                v.Name,
+		Owner:                               v.Owner,
+		Comment:                             v.Comment,
+		StorageRoot:                         v.StorageRoot,
+		EnablePredictiveOptimization:        v.EnablePredictiveOptimization,
+		CatalogType:                         v.CatalogType,
+		ProviderName:                        v.ProviderName,
+		ShareName:                           v.ShareName,
+		ConnectionName:                      v.ConnectionName,
+		MetastoreId:                         v.MetastoreId,
+		CreatedAt:                           createdAtWireValue,
+		CreatedBy:                           v.CreatedBy,
+		UpdatedAt:                           updatedAtWireValue,
+		UpdatedBy:                           v.UpdatedBy,
+		StorageLocation:                     v.StorageLocation,
+		IsolationMode:                       v.IsolationMode,
+		EffectivePredictiveOptimizationFlag: effectivePredictiveOptimizationFlagWireValue,
+		BrowseOnly:                          v.BrowseOnly,
+		ProvisioningInfo:                    provisioningInfoWireValue,
+		FullName:                            v.FullName,
+		SecurableType:                       v.SecurableType,
+		CustomMaxRetentionHours:             customMaxRetentionHoursWireValue,
+		ManagedEncryptionSettings:           managedEncryptionSettingsWireValue,
+		Properties:                          v.Properties,
+		Options:                             v.Options,
+	}, nil
+}
+
 func catalogInfoFromWire(w *catalogInfoWire) (*CatalogInfo, error) {
 	if w == nil {
 		return nil, nil
@@ -250,6 +307,63 @@ func createCatalogRequestToWire(v *CreateCatalogRequest) (*createCatalogRequestW
 	}, nil
 }
 
+func createCatalogRequestFromWire(w *createCatalogRequestWire) (*CreateCatalogRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCatalogRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCatalogRequest.UpdatedAt", err)
+	}
+	effectivePredictiveOptimizationFlagPublicValue, err := effectivePredictiveOptimizationFlagFromWire(w.EffectivePredictiveOptimizationFlag)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCatalogRequest.EffectivePredictiveOptimizationFlag", err)
+	}
+	provisioningInfoPublicValue, err := provisioningInfoFromWire(w.ProvisioningInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCatalogRequest.ProvisioningInfo", err)
+	}
+	customMaxRetentionHoursPublicValue, err := int64FromWire(w.CustomMaxRetentionHours)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCatalogRequest.CustomMaxRetentionHours", err)
+	}
+	managedEncryptionSettingsPublicValue, err := encryptionSettingsFromWire(w.ManagedEncryptionSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCatalogRequest.ManagedEncryptionSettings", err)
+	}
+	return &CreateCatalogRequest{
+		Name:                                w.Name,
+		Owner:                               w.Owner,
+		Comment:                             w.Comment,
+		StorageRoot:                         w.StorageRoot,
+		EnablePredictiveOptimization:        w.EnablePredictiveOptimization,
+		CatalogType:                         w.CatalogType,
+		ProviderName:                        w.ProviderName,
+		ShareName:                           w.ShareName,
+		ConnectionName:                      w.ConnectionName,
+		MetastoreId:                         w.MetastoreId,
+		CreatedAt:                           createdAtPublicValue,
+		CreatedBy:                           w.CreatedBy,
+		UpdatedAt:                           updatedAtPublicValue,
+		UpdatedBy:                           w.UpdatedBy,
+		StorageLocation:                     w.StorageLocation,
+		IsolationMode:                       w.IsolationMode,
+		EffectivePredictiveOptimizationFlag: effectivePredictiveOptimizationFlagPublicValue,
+		BrowseOnly:                          w.BrowseOnly,
+		ProvisioningInfo:                    provisioningInfoPublicValue,
+		FullName:                            w.FullName,
+		SecurableType:                       w.SecurableType,
+		CustomMaxRetentionHours:             customMaxRetentionHoursPublicValue,
+		ManagedEncryptionSettings:           managedEncryptionSettingsPublicValue,
+		Properties:                          w.Properties,
+		Options:                             w.Options,
+	}, nil
+}
+
 type deleteCatalogRequestWire struct {
 	NameArg *string `json:"name_arg,omitempty"`
 	Force   *bool   `json:"force,omitempty"`
@@ -263,6 +377,33 @@ func deleteCatalogRequestToWire(v *DeleteCatalogRequest) (*deleteCatalogRequestW
 		NameArg: v.NameArg,
 		Force:   v.Force,
 	}, nil
+}
+
+func deleteCatalogRequestFromWire(w *deleteCatalogRequestWire) (*DeleteCatalogRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCatalogRequest{
+		NameArg: w.NameArg,
+		Force:   w.Force,
+	}, nil
+}
+
+type deleteCatalogResponseWire struct {
+}
+
+func deleteCatalogResponseToWire(v *DeleteCatalogResponse) (*deleteCatalogResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCatalogResponseWire{}, nil
+}
+
+func deleteCatalogResponseFromWire(w *deleteCatalogResponseWire) (*DeleteCatalogResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCatalogResponse{}, nil
 }
 
 type effectivePredictiveOptimizationFlagWire struct {
@@ -344,6 +485,16 @@ func getCatalogRequestToWire(v *GetCatalogRequest) (*getCatalogRequestWire, erro
 	}, nil
 }
 
+func getCatalogRequestFromWire(w *getCatalogRequestWire) (*GetCatalogRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCatalogRequest{
+		NameArg:       w.NameArg,
+		IncludeBrowse: w.IncludeBrowse,
+	}, nil
+}
+
 type listCatalogsRequestWire struct {
 	IncludeBrowse  *bool   `json:"include_browse,omitempty"`
 	MaxResults     *int    `json:"max_results,omitempty"`
@@ -363,9 +514,35 @@ func listCatalogsRequestToWire(v *ListCatalogsRequest) (*listCatalogsRequestWire
 	}, nil
 }
 
+func listCatalogsRequestFromWire(w *listCatalogsRequestWire) (*ListCatalogsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListCatalogsRequest{
+		IncludeBrowse:  w.IncludeBrowse,
+		MaxResults:     w.MaxResults,
+		PageToken:      w.PageToken,
+		IncludeUnbound: w.IncludeUnbound,
+	}, nil
+}
+
 type listCatalogsResponseWire struct {
 	Catalogs      []catalogInfoWire `json:"catalogs,omitempty"`
 	NextPageToken *string           `json:"next_page_token,omitempty"`
+}
+
+func listCatalogsResponseToWire(v *ListCatalogsResponse) (*listCatalogsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	catalogsWireValue, err := convertSlice(v.Catalogs, catalogInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCatalogsResponse.Catalogs", err)
+	}
+	return &listCatalogsResponseWire{
+		Catalogs:      catalogsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listCatalogsResponseFromWire(w *listCatalogsResponseWire) (*ListCatalogsResponse, error) {
@@ -490,6 +667,65 @@ func updateCatalogRequestToWire(v *UpdateCatalogRequest) (*updateCatalogRequestW
 		ManagedEncryptionSettings:           managedEncryptionSettingsWireValue,
 		Properties:                          v.Properties,
 		Options:                             v.Options,
+	}, nil
+}
+
+func updateCatalogRequestFromWire(w *updateCatalogRequestWire) (*UpdateCatalogRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogRequest.UpdatedAt", err)
+	}
+	effectivePredictiveOptimizationFlagPublicValue, err := effectivePredictiveOptimizationFlagFromWire(w.EffectivePredictiveOptimizationFlag)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogRequest.EffectivePredictiveOptimizationFlag", err)
+	}
+	provisioningInfoPublicValue, err := provisioningInfoFromWire(w.ProvisioningInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogRequest.ProvisioningInfo", err)
+	}
+	customMaxRetentionHoursPublicValue, err := int64FromWire(w.CustomMaxRetentionHours)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogRequest.CustomMaxRetentionHours", err)
+	}
+	managedEncryptionSettingsPublicValue, err := encryptionSettingsFromWire(w.ManagedEncryptionSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogRequest.ManagedEncryptionSettings", err)
+	}
+	return &UpdateCatalogRequest{
+		NameArg:                             w.NameArg,
+		NewName:                             w.NewName,
+		Name:                                w.Name,
+		Owner:                               w.Owner,
+		Comment:                             w.Comment,
+		StorageRoot:                         w.StorageRoot,
+		EnablePredictiveOptimization:        w.EnablePredictiveOptimization,
+		CatalogType:                         w.CatalogType,
+		ProviderName:                        w.ProviderName,
+		ShareName:                           w.ShareName,
+		ConnectionName:                      w.ConnectionName,
+		MetastoreId:                         w.MetastoreId,
+		CreatedAt:                           createdAtPublicValue,
+		CreatedBy:                           w.CreatedBy,
+		UpdatedAt:                           updatedAtPublicValue,
+		UpdatedBy:                           w.UpdatedBy,
+		StorageLocation:                     w.StorageLocation,
+		IsolationMode:                       w.IsolationMode,
+		EffectivePredictiveOptimizationFlag: effectivePredictiveOptimizationFlagPublicValue,
+		BrowseOnly:                          w.BrowseOnly,
+		ProvisioningInfo:                    provisioningInfoPublicValue,
+		FullName:                            w.FullName,
+		SecurableType:                       w.SecurableType,
+		CustomMaxRetentionHours:             customMaxRetentionHoursPublicValue,
+		ManagedEncryptionSettings:           managedEncryptionSettingsPublicValue,
+		Properties:                          w.Properties,
+		Options:                             w.Options,
 	}, nil
 }
 

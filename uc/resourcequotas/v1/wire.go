@@ -52,8 +52,49 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
+type getQuotaRequestWire struct {
+	ParentSecurableType *string `json:"parent_securable_type,omitempty"`
+	ParentFullName      *string `json:"parent_full_name,omitempty"`
+	QuotaName           *string `json:"quota_name,omitempty"`
+}
+
+func getQuotaRequestToWire(v *GetQuotaRequest) (*getQuotaRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getQuotaRequestWire{
+		ParentSecurableType: v.ParentSecurableType,
+		ParentFullName:      v.ParentFullName,
+		QuotaName:           v.QuotaName,
+	}, nil
+}
+
+func getQuotaRequestFromWire(w *getQuotaRequestWire) (*GetQuotaRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetQuotaRequest{
+		ParentSecurableType: w.ParentSecurableType,
+		ParentFullName:      w.ParentFullName,
+		QuotaName:           w.QuotaName,
+	}, nil
+}
+
 type getQuotaResponseWire struct {
 	QuotaInfo *quotaInfoWire `json:"quota_info,omitempty"`
+}
+
+func getQuotaResponseToWire(v *GetQuotaResponse) (*getQuotaResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	quotaInfoWireValue, err := quotaInfoToWire(v.QuotaInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetQuotaResponse.QuotaInfo", err)
+	}
+	return &getQuotaResponseWire{
+		QuotaInfo: quotaInfoWireValue,
+	}, nil
 }
 
 func getQuotaResponseFromWire(w *getQuotaResponseWire) (*GetQuotaResponse, error) {
@@ -84,9 +125,33 @@ func listQuotasRequestToWire(v *ListQuotasRequest) (*listQuotasRequestWire, erro
 	}, nil
 }
 
+func listQuotasRequestFromWire(w *listQuotasRequestWire) (*ListQuotasRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListQuotasRequest{
+		MaxResults: w.MaxResults,
+		PageToken:  w.PageToken,
+	}, nil
+}
+
 type listQuotasResponseWire struct {
 	Quotas        []quotaInfoWire `json:"quotas,omitempty"`
 	NextPageToken *string         `json:"next_page_token,omitempty"`
+}
+
+func listQuotasResponseToWire(v *ListQuotasResponse) (*listQuotasResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	quotasWireValue, err := convertSlice(v.Quotas, quotaInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListQuotasResponse.Quotas", err)
+	}
+	return &listQuotasResponseWire{
+		Quotas:        quotasWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listQuotasResponseFromWire(w *listQuotasResponseWire) (*ListQuotasResponse, error) {
@@ -110,6 +175,24 @@ type quotaInfoWire struct {
 	QuotaCount          *int          `json:"quota_count,omitempty"`
 	QuotaLimit          *int          `json:"quota_limit,omitempty"`
 	LastRefreshedAt     *wireInt64    `json:"last_refreshed_at,omitempty"`
+}
+
+func quotaInfoToWire(v *QuotaInfo) (*quotaInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	lastRefreshedAtWireValue, err := int64ToWire(v.LastRefreshedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QuotaInfo.LastRefreshedAt", err)
+	}
+	return &quotaInfoWire{
+		ParentSecurableType: v.ParentSecurableType,
+		ParentFullName:      v.ParentFullName,
+		QuotaName:           v.QuotaName,
+		QuotaCount:          v.QuotaCount,
+		QuotaLimit:          v.QuotaLimit,
+		LastRefreshedAt:     lastRefreshedAtWireValue,
+	}, nil
 }
 
 func quotaInfoFromWire(w *quotaInfoWire) (*QuotaInfo, error) {

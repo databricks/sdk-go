@@ -109,6 +109,32 @@ func applyEnvironmentRequestToWire(v *ApplyEnvironmentRequest) (*applyEnvironmen
 	}, nil
 }
 
+func applyEnvironmentRequestFromWire(w *applyEnvironmentRequestWire) (*ApplyEnvironmentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ApplyEnvironmentRequest{
+		PipelineId: w.PipelineId,
+	}, nil
+}
+
+type applyEnvironmentResponseWire struct {
+}
+
+func applyEnvironmentResponseToWire(v *ApplyEnvironmentResponse) (*applyEnvironmentResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &applyEnvironmentResponseWire{}, nil
+}
+
+func applyEnvironmentResponseFromWire(w *applyEnvironmentResponseWire) (*ApplyEnvironmentResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ApplyEnvironmentResponse{}, nil
+}
+
 type autoFullRefreshPolicyWire struct {
 	Enabled          *bool `json:"enabled,omitempty"`
 	MinIntervalHours *int  `json:"min_interval_hours,omitempty"`
@@ -300,8 +326,107 @@ func clonePipelineRequestToWire(v *ClonePipelineRequest) (*clonePipelineRequestW
 	}, nil
 }
 
+func clonePipelineRequestFromWire(w *clonePipelineRequestWire) (*ClonePipelineRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	expectedLastModifiedPublicValue, err := int64FromWire(w.ExpectedLastModified)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClonePipelineRequest.ExpectedLastModified", err)
+	}
+	clustersPublicValue, err := convertSlice(w.Clusters, pipelineClusterFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClonePipelineRequest.Clusters", err)
+	}
+	librariesPublicValue, err := convertSlice(w.Libraries, pipelineLibraryFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClonePipelineRequest.Libraries", err)
+	}
+	ingestionDefinitionPublicValue, err := ingestionPipelineDefinitionFromWire(w.IngestionDefinition)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClonePipelineRequest.IngestionDefinition", err)
+	}
+	gatewayDefinitionPublicValue, err := ingestionGatewayPipelineDefinitionFromWire(w.GatewayDefinition)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClonePipelineRequest.GatewayDefinition", err)
+	}
+	triggerPublicValue, err := pipelineTriggerFromWire(w.Trigger)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClonePipelineRequest.Trigger", err)
+	}
+	filtersPublicValue, err := filtersFromWire(w.Filters)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClonePipelineRequest.Filters", err)
+	}
+	notificationsPublicValue, err := convertSlice(w.Notifications, notificationsFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClonePipelineRequest.Notifications", err)
+	}
+	deploymentPublicValue, err := pipelineDeploymentFromWire(w.Deployment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClonePipelineRequest.Deployment", err)
+	}
+	restartWindowPublicValue, err := restartWindowFromWire(w.RestartWindow)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClonePipelineRequest.RestartWindow", err)
+	}
+	eventLogPublicValue, err := eventLogSpecFromWire(w.EventLog)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClonePipelineRequest.EventLog", err)
+	}
+	environmentPublicValue, err := pipelinesEnvironmentFromWire(w.Environment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClonePipelineRequest.Environment", err)
+	}
+	return &ClonePipelineRequest{
+		PipelineId:           w.PipelineId,
+		ExpectedLastModified: expectedLastModifiedPublicValue,
+		AllowDuplicateNames:  w.AllowDuplicateNames,
+		Id:                   w.Id,
+		Name:                 w.Name,
+		Storage:              w.Storage,
+		Configuration:        w.Configuration,
+		Clusters:             clustersPublicValue,
+		Libraries:            librariesPublicValue,
+		IngestionDefinition:  ingestionDefinitionPublicValue,
+		GatewayDefinition:    gatewayDefinitionPublicValue,
+		Trigger:              triggerPublicValue,
+		Target:               w.Target,
+		Schema:               w.Schema,
+		Filters:              filtersPublicValue,
+		Continuous:           w.Continuous,
+		Development:          w.Development,
+		Photon:               w.Photon,
+		Edition:              w.Edition,
+		Channel:              w.Channel,
+		Catalog:              w.Catalog,
+		Notifications:        notificationsPublicValue,
+		Serverless:           w.Serverless,
+		Deployment:           deploymentPublicValue,
+		RestartWindow:        restartWindowPublicValue,
+		BudgetPolicyId:       w.BudgetPolicyId,
+		Tags:                 w.Tags,
+		EventLog:             eventLogPublicValue,
+		RootPath:             w.RootPath,
+		Environment:          environmentPublicValue,
+		ParentPath:           w.ParentPath,
+		UsagePolicyId:        w.UsagePolicyId,
+		ServerlessComputeId:  w.ServerlessComputeId,
+		CloneMode:            w.CloneMode,
+	}, nil
+}
+
 type clonePipelineResponseWire struct {
 	PipelineId *string `json:"pipeline_id,omitempty"`
+}
+
+func clonePipelineResponseToWire(v *ClonePipelineResponse) (*clonePipelineResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &clonePipelineResponseWire{
+		PipelineId: v.PipelineId,
+	}, nil
 }
 
 func clonePipelineResponseFromWire(w *clonePipelineResponseWire) (*ClonePipelineResponse, error) {
@@ -878,9 +1003,113 @@ func createPipelineRequestToWire(v *CreatePipelineRequest) (*createPipelineReque
 	}, nil
 }
 
+func createPipelineRequestFromWire(w *createPipelineRequestWire) (*CreatePipelineRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	runAsPublicValue, err := pipelinesJobRunAsFromWire(w.RunAs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePipelineRequest.RunAs", err)
+	}
+	clustersPublicValue, err := convertSlice(w.Clusters, pipelineClusterFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePipelineRequest.Clusters", err)
+	}
+	librariesPublicValue, err := convertSlice(w.Libraries, pipelineLibraryFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePipelineRequest.Libraries", err)
+	}
+	ingestionDefinitionPublicValue, err := ingestionPipelineDefinitionFromWire(w.IngestionDefinition)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePipelineRequest.IngestionDefinition", err)
+	}
+	gatewayDefinitionPublicValue, err := ingestionGatewayPipelineDefinitionFromWire(w.GatewayDefinition)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePipelineRequest.GatewayDefinition", err)
+	}
+	triggerPublicValue, err := pipelineTriggerFromWire(w.Trigger)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePipelineRequest.Trigger", err)
+	}
+	filtersPublicValue, err := filtersFromWire(w.Filters)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePipelineRequest.Filters", err)
+	}
+	notificationsPublicValue, err := convertSlice(w.Notifications, notificationsFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePipelineRequest.Notifications", err)
+	}
+	deploymentPublicValue, err := pipelineDeploymentFromWire(w.Deployment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePipelineRequest.Deployment", err)
+	}
+	restartWindowPublicValue, err := restartWindowFromWire(w.RestartWindow)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePipelineRequest.RestartWindow", err)
+	}
+	eventLogPublicValue, err := eventLogSpecFromWire(w.EventLog)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePipelineRequest.EventLog", err)
+	}
+	environmentPublicValue, err := pipelinesEnvironmentFromWire(w.Environment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePipelineRequest.Environment", err)
+	}
+	return &CreatePipelineRequest{
+		AllowDuplicateNames: w.AllowDuplicateNames,
+		DryRun:              w.DryRun,
+		RunAs:               runAsPublicValue,
+		Parameters:          w.Parameters,
+		Id:                  w.Id,
+		Name:                w.Name,
+		Storage:             w.Storage,
+		Configuration:       w.Configuration,
+		Clusters:            clustersPublicValue,
+		Libraries:           librariesPublicValue,
+		IngestionDefinition: ingestionDefinitionPublicValue,
+		GatewayDefinition:   gatewayDefinitionPublicValue,
+		Trigger:             triggerPublicValue,
+		Target:              w.Target,
+		Schema:              w.Schema,
+		Filters:             filtersPublicValue,
+		Continuous:          w.Continuous,
+		Development:         w.Development,
+		Photon:              w.Photon,
+		Edition:             w.Edition,
+		Channel:             w.Channel,
+		Catalog:             w.Catalog,
+		Notifications:       notificationsPublicValue,
+		Serverless:          w.Serverless,
+		Deployment:          deploymentPublicValue,
+		RestartWindow:       restartWindowPublicValue,
+		BudgetPolicyId:      w.BudgetPolicyId,
+		Tags:                w.Tags,
+		EventLog:            eventLogPublicValue,
+		RootPath:            w.RootPath,
+		Environment:         environmentPublicValue,
+		ParentPath:          w.ParentPath,
+		UsagePolicyId:       w.UsagePolicyId,
+		ServerlessComputeId: w.ServerlessComputeId,
+	}, nil
+}
+
 type createPipelineResponseWire struct {
 	PipelineId        *string           `json:"pipeline_id,omitempty"`
 	EffectiveSettings *pipelineSpecWire `json:"effective_settings,omitempty"`
+}
+
+func createPipelineResponseToWire(v *CreatePipelineResponse) (*createPipelineResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	effectiveSettingsWireValue, err := pipelineSpecToWire(v.EffectiveSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePipelineResponse.EffectiveSettings", err)
+	}
+	return &createPipelineResponseWire{
+		PipelineId:        v.PipelineId,
+		EffectiveSettings: effectiveSettingsWireValue,
+	}, nil
 }
 
 func createPipelineResponseFromWire(w *createPipelineResponseWire) (*CreatePipelineResponse, error) {
@@ -925,6 +1154,20 @@ func cronTriggerFromWire(w *cronTriggerWire) (*CronTrigger, error) {
 type dataPlaneIdWire struct {
 	Instance *string    `json:"instance,omitempty"`
 	SeqNo    *wireInt64 `json:"seq_no,omitempty"`
+}
+
+func dataPlaneIdToWire(v *DataPlaneId) (*dataPlaneIdWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	seqNoWireValue, err := int64ToWire(v.SeqNo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DataPlaneId.SeqNo", err)
+	}
+	return &dataPlaneIdWire{
+		Instance: v.Instance,
+		SeqNo:    seqNoWireValue,
+	}, nil
 }
 
 func dataPlaneIdFromWire(w *dataPlaneIdWire) (*DataPlaneId, error) {
@@ -984,6 +1227,34 @@ func deletePipelineRequestToWire(v *DeletePipelineRequest) (*deletePipelineReque
 		Force:      v.Force,
 		Cascade:    v.Cascade,
 	}, nil
+}
+
+func deletePipelineRequestFromWire(w *deletePipelineRequestWire) (*DeletePipelineRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeletePipelineRequest{
+		PipelineId: w.PipelineId,
+		Force:      w.Force,
+		Cascade:    w.Cascade,
+	}, nil
+}
+
+type deletePipelineResponseWire struct {
+}
+
+func deletePipelineResponseToWire(v *DeletePipelineResponse) (*deletePipelineResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deletePipelineResponseWire{}, nil
+}
+
+func deletePipelineResponseFromWire(w *deletePipelineResponseWire) (*DeletePipelineResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeletePipelineResponse{}, nil
 }
 
 type editPipelineRequestWire struct {
@@ -1119,9 +1390,135 @@ func editPipelineRequestToWire(v *EditPipelineRequest) (*editPipelineRequestWire
 	}, nil
 }
 
+func editPipelineRequestFromWire(w *editPipelineRequestWire) (*EditPipelineRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	expectedLastModifiedPublicValue, err := int64FromWire(w.ExpectedLastModified)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditPipelineRequest.ExpectedLastModified", err)
+	}
+	runAsPublicValue, err := pipelinesJobRunAsFromWire(w.RunAs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditPipelineRequest.RunAs", err)
+	}
+	clustersPublicValue, err := convertSlice(w.Clusters, pipelineClusterFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditPipelineRequest.Clusters", err)
+	}
+	librariesPublicValue, err := convertSlice(w.Libraries, pipelineLibraryFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditPipelineRequest.Libraries", err)
+	}
+	ingestionDefinitionPublicValue, err := ingestionPipelineDefinitionFromWire(w.IngestionDefinition)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditPipelineRequest.IngestionDefinition", err)
+	}
+	gatewayDefinitionPublicValue, err := ingestionGatewayPipelineDefinitionFromWire(w.GatewayDefinition)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditPipelineRequest.GatewayDefinition", err)
+	}
+	triggerPublicValue, err := pipelineTriggerFromWire(w.Trigger)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditPipelineRequest.Trigger", err)
+	}
+	filtersPublicValue, err := filtersFromWire(w.Filters)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditPipelineRequest.Filters", err)
+	}
+	notificationsPublicValue, err := convertSlice(w.Notifications, notificationsFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditPipelineRequest.Notifications", err)
+	}
+	deploymentPublicValue, err := pipelineDeploymentFromWire(w.Deployment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditPipelineRequest.Deployment", err)
+	}
+	restartWindowPublicValue, err := restartWindowFromWire(w.RestartWindow)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditPipelineRequest.RestartWindow", err)
+	}
+	eventLogPublicValue, err := eventLogSpecFromWire(w.EventLog)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditPipelineRequest.EventLog", err)
+	}
+	environmentPublicValue, err := pipelinesEnvironmentFromWire(w.Environment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditPipelineRequest.Environment", err)
+	}
+	return &EditPipelineRequest{
+		PipelineId:           w.PipelineId,
+		AllowDuplicateNames:  w.AllowDuplicateNames,
+		ExpectedLastModified: expectedLastModifiedPublicValue,
+		RunAs:                runAsPublicValue,
+		Parameters:           w.Parameters,
+		Id:                   w.Id,
+		Name:                 w.Name,
+		Storage:              w.Storage,
+		Configuration:        w.Configuration,
+		Clusters:             clustersPublicValue,
+		Libraries:            librariesPublicValue,
+		IngestionDefinition:  ingestionDefinitionPublicValue,
+		GatewayDefinition:    gatewayDefinitionPublicValue,
+		Trigger:              triggerPublicValue,
+		Target:               w.Target,
+		Schema:               w.Schema,
+		Filters:              filtersPublicValue,
+		Continuous:           w.Continuous,
+		Development:          w.Development,
+		Photon:               w.Photon,
+		Edition:              w.Edition,
+		Channel:              w.Channel,
+		Catalog:              w.Catalog,
+		Notifications:        notificationsPublicValue,
+		Serverless:           w.Serverless,
+		Deployment:           deploymentPublicValue,
+		RestartWindow:        restartWindowPublicValue,
+		BudgetPolicyId:       w.BudgetPolicyId,
+		Tags:                 w.Tags,
+		EventLog:             eventLogPublicValue,
+		RootPath:             w.RootPath,
+		Environment:          environmentPublicValue,
+		ParentPath:           w.ParentPath,
+		UsagePolicyId:        w.UsagePolicyId,
+		ServerlessComputeId:  w.ServerlessComputeId,
+	}, nil
+}
+
+type editPipelineResponseWire struct {
+}
+
+func editPipelineResponseToWire(v *EditPipelineResponse) (*editPipelineResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &editPipelineResponseWire{}, nil
+}
+
+func editPipelineResponseFromWire(w *editPipelineResponseWire) (*EditPipelineResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &EditPipelineResponse{}, nil
+}
+
 type errorDetailWire struct {
 	Exceptions []serializedExceptionWire `json:"exceptions,omitempty"`
 	Fatal      *bool                     `json:"fatal,omitempty"`
+}
+
+func errorDetailToWire(v *ErrorDetail) (*errorDetailWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	exceptionsWireValue, err := convertSlice(v.Exceptions, serializedExceptionToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ErrorDetail.Exceptions", err)
+	}
+	return &errorDetailWire{
+		Exceptions: exceptionsWireValue,
+		Fatal:      v.Fatal,
+	}, nil
 }
 
 func errorDetailFromWire(w *errorDetailWire) (*ErrorDetail, error) {
@@ -1319,6 +1716,28 @@ func filtersFromWire(w *filtersWire) (*Filters, error) {
 	}, nil
 }
 
+type getPipelineRequestWire struct {
+	PipelineId *string `json:"pipeline_id,omitempty"`
+}
+
+func getPipelineRequestToWire(v *GetPipelineRequest) (*getPipelineRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getPipelineRequestWire{
+		PipelineId: v.PipelineId,
+	}, nil
+}
+
+func getPipelineRequestFromWire(w *getPipelineRequestWire) (*GetPipelineRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetPipelineRequest{
+		PipelineId: w.PipelineId,
+	}, nil
+}
+
 type getPipelineResponseWire struct {
 	PipelineId                   *string                     `json:"pipeline_id,omitempty"`
 	Spec                         *pipelineSpecWire           `json:"spec,omitempty"`
@@ -1336,6 +1755,46 @@ type getPipelineResponseWire struct {
 	RunAs                        *pipelinesJobRunAsWire      `json:"run_as,omitempty"`
 	Parameters                   map[string]string           `json:"parameters,omitempty"`
 	EffectiveServerlessComputeId *string                     `json:"effective_serverless_compute_id,omitempty"`
+}
+
+func getPipelineResponseToWire(v *GetPipelineResponse) (*getPipelineResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	specWireValue, err := pipelineSpecToWire(v.Spec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetPipelineResponse.Spec", err)
+	}
+	latestUpdatesWireValue, err := convertSlice(v.LatestUpdates, updateStateInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetPipelineResponse.LatestUpdates", err)
+	}
+	lastModifiedWireValue, err := int64ToWire(v.LastModified)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetPipelineResponse.LastModified", err)
+	}
+	runAsWireValue, err := pipelinesJobRunAsToWire(v.RunAs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetPipelineResponse.RunAs", err)
+	}
+	return &getPipelineResponseWire{
+		PipelineId:                   v.PipelineId,
+		Spec:                         specWireValue,
+		State:                        v.State,
+		Cause:                        v.Cause,
+		ClusterId:                    v.ClusterId,
+		Name:                         v.Name,
+		Health:                       v.Health,
+		CreatorUserName:              v.CreatorUserName,
+		LatestUpdates:                latestUpdatesWireValue,
+		LastModified:                 lastModifiedWireValue,
+		RunAsUserName:                v.RunAsUserName,
+		EffectiveBudgetPolicyId:      v.EffectiveBudgetPolicyId,
+		EffectivePublishingMode:      v.EffectivePublishingMode,
+		RunAs:                        runAsWireValue,
+		Parameters:                   v.Parameters,
+		EffectiveServerlessComputeId: v.EffectiveServerlessComputeId,
+	}, nil
 }
 
 func getPipelineResponseFromWire(w *getPipelineResponseWire) (*GetPipelineResponse, error) {
@@ -1378,8 +1837,46 @@ func getPipelineResponseFromWire(w *getPipelineResponseWire) (*GetPipelineRespon
 	}, nil
 }
 
+type getUpdateRequestWire struct {
+	PipelineId *string `json:"pipeline_id,omitempty"`
+	UpdateId   *string `json:"update_id,omitempty"`
+}
+
+func getUpdateRequestToWire(v *GetUpdateRequest) (*getUpdateRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getUpdateRequestWire{
+		PipelineId: v.PipelineId,
+		UpdateId:   v.UpdateId,
+	}, nil
+}
+
+func getUpdateRequestFromWire(w *getUpdateRequestWire) (*GetUpdateRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetUpdateRequest{
+		PipelineId: w.PipelineId,
+		UpdateId:   w.UpdateId,
+	}, nil
+}
+
 type getUpdateResponseWire struct {
 	Update *updateInfoWire `json:"update,omitempty"`
+}
+
+func getUpdateResponseToWire(v *GetUpdateResponse) (*getUpdateResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	updateWireValue, err := updateInfoToWire(v.Update)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetUpdateResponse.Update", err)
+	}
+	return &getUpdateResponseWire{
+		Update: updateWireValue,
+	}, nil
 }
 
 func getUpdateResponseFromWire(w *getUpdateResponseWire) (*GetUpdateResponse, error) {
@@ -2380,10 +2877,38 @@ func listPipelineEventsRequestToWire(v *ListPipelineEventsRequest) (*listPipelin
 	}, nil
 }
 
+func listPipelineEventsRequestFromWire(w *listPipelineEventsRequestWire) (*ListPipelineEventsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListPipelineEventsRequest{
+		PipelineId: w.PipelineId,
+		PageToken:  w.PageToken,
+		MaxResults: w.MaxResults,
+		OrderBy:    w.OrderBy,
+		Filter:     w.Filter,
+	}, nil
+}
+
 type listPipelineEventsResponseWire struct {
 	Events        []pipelineEventWire `json:"events,omitempty"`
 	NextPageToken *string             `json:"next_page_token,omitempty"`
 	PrevPageToken *string             `json:"prev_page_token,omitempty"`
+}
+
+func listPipelineEventsResponseToWire(v *ListPipelineEventsResponse) (*listPipelineEventsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	eventsWireValue, err := convertSlice(v.Events, pipelineEventToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListPipelineEventsResponse.Events", err)
+	}
+	return &listPipelineEventsResponseWire{
+		Events:        eventsWireValue,
+		NextPageToken: v.NextPageToken,
+		PrevPageToken: v.PrevPageToken,
+	}, nil
 }
 
 func listPipelineEventsResponseFromWire(w *listPipelineEventsResponseWire) (*ListPipelineEventsResponse, error) {
@@ -2420,9 +2945,35 @@ func listPipelinesRequestToWire(v *ListPipelinesRequest) (*listPipelinesRequestW
 	}, nil
 }
 
+func listPipelinesRequestFromWire(w *listPipelinesRequestWire) (*ListPipelinesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListPipelinesRequest{
+		PageToken:  w.PageToken,
+		MaxResults: w.MaxResults,
+		OrderBy:    w.OrderBy,
+		Filter:     w.Filter,
+	}, nil
+}
+
 type listPipelinesResponseWire struct {
 	Statuses      []pipelineStateInfoWire `json:"statuses,omitempty"`
 	NextPageToken *string                 `json:"next_page_token,omitempty"`
+}
+
+func listPipelinesResponseToWire(v *ListPipelinesResponse) (*listPipelinesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	statusesWireValue, err := convertSlice(v.Statuses, pipelineStateInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListPipelinesResponse.Statuses", err)
+	}
+	return &listPipelinesResponseWire{
+		Statuses:      statusesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listPipelinesResponseFromWire(w *listPipelinesResponseWire) (*ListPipelinesResponse, error) {
@@ -2458,10 +3009,37 @@ func listUpdatesRequestToWire(v *ListUpdatesRequest) (*listUpdatesRequestWire, e
 	}, nil
 }
 
+func listUpdatesRequestFromWire(w *listUpdatesRequestWire) (*ListUpdatesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListUpdatesRequest{
+		PipelineId:    w.PipelineId,
+		PageToken:     w.PageToken,
+		MaxResults:    w.MaxResults,
+		UntilUpdateId: w.UntilUpdateId,
+	}, nil
+}
+
 type listUpdatesResponseWire struct {
 	Updates       []updateInfoWire `json:"updates,omitempty"`
 	NextPageToken *string          `json:"next_page_token,omitempty"`
 	PrevPageToken *string          `json:"prev_page_token,omitempty"`
+}
+
+func listUpdatesResponseToWire(v *ListUpdatesResponse) (*listUpdatesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	updatesWireValue, err := convertSlice(v.Updates, updateInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListUpdatesResponse.Updates", err)
+	}
+	return &listUpdatesResponseWire{
+		Updates:       updatesWireValue,
+		NextPageToken: v.NextPageToken,
+		PrevPageToken: v.PrevPageToken,
+	}, nil
 }
 
 func listUpdatesResponseFromWire(w *listUpdatesResponseWire) (*ListUpdatesResponse, error) {
@@ -2743,6 +3321,44 @@ type originWire struct {
 	IngestionSourceSchemaName     *string    `json:"ingestion_source_schema_name,omitempty"`
 	IngestionSourceTableName      *string    `json:"ingestion_source_table_name,omitempty"`
 	IngestionSourceTableVersion   *string    `json:"ingestion_source_table_version,omitempty"`
+}
+
+func originToWire(v *Origin) (*originWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	orgIdWireValue, err := int64ToWire(v.OrgId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Origin.OrgId", err)
+	}
+	batchIdWireValue, err := int64ToWire(v.BatchId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Origin.BatchId", err)
+	}
+	return &originWire{
+		Cloud:                         v.Cloud,
+		Region:                        v.Region,
+		OrgId:                         orgIdWireValue,
+		PipelineId:                    v.PipelineId,
+		PipelineName:                  v.PipelineName,
+		ClusterId:                     v.ClusterId,
+		UpdateId:                      v.UpdateId,
+		MaintenanceId:                 v.MaintenanceId,
+		TableId:                       v.TableId,
+		DatasetName:                   v.DatasetName,
+		FlowId:                        v.FlowId,
+		FlowName:                      v.FlowName,
+		BatchId:                       batchIdWireValue,
+		RequestId:                     v.RequestId,
+		UcResourceId:                  v.UcResourceId,
+		Host:                          v.Host,
+		MaterializationName:           v.MaterializationName,
+		IngestionSourceConnectionName: v.IngestionSourceConnectionName,
+		IngestionSourceCatalogName:    v.IngestionSourceCatalogName,
+		IngestionSourceSchemaName:     v.IngestionSourceSchemaName,
+		IngestionSourceTableName:      v.IngestionSourceTableName,
+		IngestionSourceTableVersion:   v.IngestionSourceTableVersion,
+	}, nil
 }
 
 func originFromWire(w *originWire) (*Origin, error) {
@@ -3053,6 +3669,40 @@ type pipelineEventWire struct {
 	Truncation    *truncationWire  `json:"truncation,omitempty"`
 }
 
+func pipelineEventToWire(v *PipelineEvent) (*pipelineEventWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sequenceWireValue, err := sequencingToWire(v.Sequence)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineEvent.Sequence", err)
+	}
+	originWireValue, err := originToWire(v.Origin)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineEvent.Origin", err)
+	}
+	errorWireValue, err := errorDetailToWire(v.Error)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineEvent.Error", err)
+	}
+	truncationWireValue, err := truncationToWire(v.Truncation)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineEvent.Truncation", err)
+	}
+	return &pipelineEventWire{
+		Id:            v.Id,
+		Sequence:      sequenceWireValue,
+		Origin:        originWireValue,
+		Timestamp:     v.Timestamp,
+		Message:       v.Message,
+		Level:         v.Level,
+		Error:         errorWireValue,
+		EventType:     v.EventType,
+		MaturityLevel: v.MaturityLevel,
+		Truncation:    truncationWireValue,
+	}, nil
+}
+
 func pipelineEventFromWire(w *pipelineEventWire) (*PipelineEvent, error) {
 	if w == nil {
 		return nil, nil
@@ -3256,6 +3906,88 @@ type pipelineSpecWire struct {
 	ServerlessComputeId *string                                 `json:"serverless_compute_id,omitempty"`
 }
 
+func pipelineSpecToWire(v *PipelineSpec) (*pipelineSpecWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	clustersWireValue, err := convertSlice(v.Clusters, pipelineClusterToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineSpec.Clusters", err)
+	}
+	librariesWireValue, err := convertSlice(v.Libraries, pipelineLibraryToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineSpec.Libraries", err)
+	}
+	ingestionDefinitionWireValue, err := ingestionPipelineDefinitionToWire(v.IngestionDefinition)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineSpec.IngestionDefinition", err)
+	}
+	gatewayDefinitionWireValue, err := ingestionGatewayPipelineDefinitionToWire(v.GatewayDefinition)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineSpec.GatewayDefinition", err)
+	}
+	triggerWireValue, err := pipelineTriggerToWire(v.Trigger)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineSpec.Trigger", err)
+	}
+	filtersWireValue, err := filtersToWire(v.Filters)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineSpec.Filters", err)
+	}
+	notificationsWireValue, err := convertSlice(v.Notifications, notificationsToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineSpec.Notifications", err)
+	}
+	deploymentWireValue, err := pipelineDeploymentToWire(v.Deployment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineSpec.Deployment", err)
+	}
+	restartWindowWireValue, err := restartWindowToWire(v.RestartWindow)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineSpec.RestartWindow", err)
+	}
+	eventLogWireValue, err := eventLogSpecToWire(v.EventLog)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineSpec.EventLog", err)
+	}
+	environmentWireValue, err := pipelinesEnvironmentToWire(v.Environment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineSpec.Environment", err)
+	}
+	return &pipelineSpecWire{
+		Id:                  v.Id,
+		Name:                v.Name,
+		Storage:             v.Storage,
+		Configuration:       v.Configuration,
+		Clusters:            clustersWireValue,
+		Libraries:           librariesWireValue,
+		IngestionDefinition: ingestionDefinitionWireValue,
+		GatewayDefinition:   gatewayDefinitionWireValue,
+		Trigger:             triggerWireValue,
+		Target:              v.Target,
+		Schema:              v.Schema,
+		Filters:             filtersWireValue,
+		Continuous:          v.Continuous,
+		Development:         v.Development,
+		Photon:              v.Photon,
+		Edition:             v.Edition,
+		Channel:             v.Channel,
+		Catalog:             v.Catalog,
+		Notifications:       notificationsWireValue,
+		Serverless:          v.Serverless,
+		Deployment:          deploymentWireValue,
+		RestartWindow:       restartWindowWireValue,
+		BudgetPolicyId:      v.BudgetPolicyId,
+		Tags:                v.Tags,
+		EventLog:            eventLogWireValue,
+		RootPath:            v.RootPath,
+		Environment:         environmentWireValue,
+		ParentPath:          v.ParentPath,
+		UsagePolicyId:       v.UsagePolicyId,
+		ServerlessComputeId: v.ServerlessComputeId,
+	}, nil
+}
+
 func pipelineSpecFromWire(w *pipelineSpecWire) (*PipelineSpec, error) {
 	if w == nil {
 		return nil, nil
@@ -3338,6 +4070,23 @@ func pipelineSpecFromWire(w *pipelineSpecWire) (*PipelineSpec, error) {
 	}, nil
 }
 
+type pipelineStateWire struct {
+}
+
+func pipelineStateToWire(v *PipelineState) (*pipelineStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &pipelineStateWire{}, nil
+}
+
+func pipelineStateFromWire(w *pipelineStateWire) (*PipelineState, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PipelineState{}, nil
+}
+
 type pipelineStateInfoWire struct {
 	PipelineId      *string                     `json:"pipeline_id,omitempty"`
 	State           PipelineState_PipelineState `json:"state,omitempty"`
@@ -3347,6 +4096,26 @@ type pipelineStateInfoWire struct {
 	CreatorUserName *string                     `json:"creator_user_name,omitempty"`
 	RunAsUserName   *string                     `json:"run_as_user_name,omitempty"`
 	Health          PipelineHealthStatus        `json:"health,omitempty"`
+}
+
+func pipelineStateInfoToWire(v *PipelineStateInfo) (*pipelineStateInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	latestUpdatesWireValue, err := convertSlice(v.LatestUpdates, updateStateInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineStateInfo.LatestUpdates", err)
+	}
+	return &pipelineStateInfoWire{
+		PipelineId:      v.PipelineId,
+		State:           v.State,
+		ClusterId:       v.ClusterId,
+		Name:            v.Name,
+		LatestUpdates:   latestUpdatesWireValue,
+		CreatorUserName: v.CreatorUserName,
+		RunAsUserName:   v.RunAsUserName,
+		Health:          v.Health,
+	}, nil
 }
 
 func pipelineStateInfoFromWire(w *pipelineStateInfoWire) (*PipelineStateInfo, error) {
@@ -4082,6 +4851,16 @@ func replaceWhereOverrideToWire(v *ReplaceWhereOverride) (*replaceWhereOverrideW
 	}, nil
 }
 
+func replaceWhereOverrideFromWire(w *replaceWhereOverrideWire) (*ReplaceWhereOverride, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ReplaceWhereOverride{
+		FlowName:          w.FlowName,
+		PredicateOverride: w.PredicateOverride,
+	}, nil
+}
+
 type restartWindowWire struct {
 	StartHour  *int        `json:"start_hour,omitempty"`
 	DaysOfWeek []DayOfWeek `json:"days_of_week,omitempty"`
@@ -4127,6 +4906,17 @@ func rewindDatasetSpecToWire(v *RewindDatasetSpec) (*rewindDatasetSpecWire, erro
 	}, nil
 }
 
+func rewindDatasetSpecFromWire(w *rewindDatasetSpecWire) (*RewindDatasetSpec, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RewindDatasetSpec{
+		Identifier:       w.Identifier,
+		Cascade:          w.Cascade,
+		ResetCheckpoints: w.ResetCheckpoints,
+	}, nil
+}
+
 type rewindSpecWire struct {
 	RewindTimestamp *string                 `json:"rewind_timestamp,omitempty"`
 	DryRun          *bool                   `json:"dry_run,omitempty"`
@@ -4146,6 +4936,38 @@ func rewindSpecToWire(v *RewindSpec) (*rewindSpecWire, error) {
 		DryRun:          v.DryRun,
 		Datasets:        datasetsWireValue,
 	}, nil
+}
+
+func rewindSpecFromWire(w *rewindSpecWire) (*RewindSpec, error) {
+	if w == nil {
+		return nil, nil
+	}
+	datasetsPublicValue, err := convertSlice(w.Datasets, rewindDatasetSpecFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RewindSpec.Datasets", err)
+	}
+	return &RewindSpec{
+		RewindTimestamp: w.RewindTimestamp,
+		DryRun:          w.DryRun,
+		Datasets:        datasetsPublicValue,
+	}, nil
+}
+
+type scdTypeWire struct {
+}
+
+func scdTypeToWire(v *ScdType) (*scdTypeWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &scdTypeWire{}, nil
+}
+
+func scdTypeFromWire(w *scdTypeWire) (*ScdType, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ScdType{}, nil
 }
 
 type schemaRegistryConfigWire struct {
@@ -4189,6 +5011,24 @@ type sequencingWire struct {
 	ControlPlaneSeqNo *wireInt64       `json:"control_plane_seq_no,omitempty"`
 }
 
+func sequencingToWire(v *Sequencing) (*sequencingWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	dataPlaneIdWireValue, err := dataPlaneIdToWire(v.DataPlaneId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Sequencing.DataPlaneId", err)
+	}
+	controlPlaneSeqNoWireValue, err := int64ToWire(v.ControlPlaneSeqNo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Sequencing.ControlPlaneSeqNo", err)
+	}
+	return &sequencingWire{
+		DataPlaneId:       dataPlaneIdWireValue,
+		ControlPlaneSeqNo: controlPlaneSeqNoWireValue,
+	}, nil
+}
+
 func sequencingFromWire(w *sequencingWire) (*Sequencing, error) {
 	if w == nil {
 		return nil, nil
@@ -4211,6 +5051,21 @@ type serializedExceptionWire struct {
 	ClassName *string          `json:"class_name,omitempty"`
 	Message   *string          `json:"message,omitempty"`
 	Stack     []stackFrameWire `json:"stack,omitempty"`
+}
+
+func serializedExceptionToWire(v *SerializedException) (*serializedExceptionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	stackWireValue, err := convertSlice(v.Stack, stackFrameToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SerializedException.Stack", err)
+	}
+	return &serializedExceptionWire{
+		ClassName: v.ClassName,
+		Message:   v.Message,
+		Stack:     stackWireValue,
+	}, nil
 }
 
 func serializedExceptionFromWire(w *serializedExceptionWire) (*SerializedException, error) {
@@ -4431,6 +5286,18 @@ type stackFrameWire struct {
 	LineNumber     *int    `json:"line_number,omitempty"`
 }
 
+func stackFrameToWire(v *StackFrame) (*stackFrameWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &stackFrameWire{
+		DeclaringClass: v.DeclaringClass,
+		MethodName:     v.MethodName,
+		FileName:       v.FileName,
+		LineNumber:     v.LineNumber,
+	}, nil
+}
+
 func stackFrameFromWire(w *stackFrameWire) (*StackFrame, error) {
 	if w == nil {
 		return nil, nil
@@ -4488,8 +5355,46 @@ func startUpdateRequestToWire(v *StartUpdateRequest) (*startUpdateRequestWire, e
 	}, nil
 }
 
+func startUpdateRequestFromWire(w *startUpdateRequestWire) (*StartUpdateRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	rewindSpecPublicValue, err := rewindSpecFromWire(w.RewindSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "StartUpdateRequest.RewindSpec", err)
+	}
+	replaceWhereOverridesPublicValue, err := convertSlice(w.ReplaceWhereOverrides, replaceWhereOverrideFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "StartUpdateRequest.ReplaceWhereOverrides", err)
+	}
+	return &StartUpdateRequest{
+		PipelineId:                 w.PipelineId,
+		FullRefresh:                w.FullRefresh,
+		Cause:                      w.Cause,
+		RefreshSelection:           w.RefreshSelection,
+		FullRefreshSelection:       w.FullRefreshSelection,
+		RefreshSelectionByPath:     w.RefreshSelectionByPath,
+		FullRefreshSelectionByPath: w.FullRefreshSelectionByPath,
+		ResetCheckpointSelection:   w.ResetCheckpointSelection,
+		ValidateOnly:               w.ValidateOnly,
+		Development:                w.Development,
+		RewindSpec:                 rewindSpecPublicValue,
+		Parameters:                 w.Parameters,
+		ReplaceWhereOverrides:      replaceWhereOverridesPublicValue,
+	}, nil
+}
+
 type startUpdateResponseWire struct {
 	UpdateId *string `json:"update_id,omitempty"`
+}
+
+func startUpdateResponseToWire(v *StartUpdateResponse) (*startUpdateResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &startUpdateResponseWire{
+		UpdateId: v.UpdateId,
+	}, nil
 }
 
 func startUpdateResponseFromWire(w *startUpdateResponseWire) (*StartUpdateResponse, error) {
@@ -4512,6 +5417,32 @@ func stopPipelineRequestToWire(v *StopPipelineRequest) (*stopPipelineRequestWire
 	return &stopPipelineRequestWire{
 		PipelineId: v.PipelineId,
 	}, nil
+}
+
+func stopPipelineRequestFromWire(w *stopPipelineRequestWire) (*StopPipelineRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &StopPipelineRequest{
+		PipelineId: w.PipelineId,
+	}, nil
+}
+
+type stopPipelineResponseWire struct {
+}
+
+func stopPipelineResponseToWire(v *StopPipelineResponse) (*stopPipelineResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &stopPipelineResponseWire{}, nil
+}
+
+func stopPipelineResponseFromWire(w *stopPipelineResponseWire) (*StopPipelineResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &StopPipelineResponse{}, nil
 }
 
 type tikTokAdsOptionsWire struct {
@@ -4704,6 +5635,19 @@ type truncationWire struct {
 	TruncatedFields []truncation_TruncationDetailWire `json:"truncated_fields,omitempty"`
 }
 
+func truncationToWire(v *Truncation) (*truncationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	truncatedFieldsWireValue, err := convertSlice(v.TruncatedFields, truncation_TruncationDetailToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Truncation.TruncatedFields", err)
+	}
+	return &truncationWire{
+		TruncatedFields: truncatedFieldsWireValue,
+	}, nil
+}
+
 func truncationFromWire(w *truncationWire) (*Truncation, error) {
 	if w == nil {
 		return nil, nil
@@ -4719,6 +5663,15 @@ func truncationFromWire(w *truncationWire) (*Truncation, error) {
 
 type truncation_TruncationDetailWire struct {
 	FieldName *string `json:"field_name,omitempty"`
+}
+
+func truncation_TruncationDetailToWire(v *Truncation_TruncationDetail) (*truncation_TruncationDetailWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &truncation_TruncationDetailWire{
+		FieldName: v.FieldName,
+	}, nil
 }
 
 func truncation_TruncationDetailFromWire(w *truncation_TruncationDetailWire) (*Truncation_TruncationDetail, error) {
@@ -4746,6 +5699,37 @@ type updateInfoWire struct {
 	ValidateOnly               *bool             `json:"validate_only,omitempty"`
 	Mode                       UpdateMode        `json:"mode,omitempty"`
 	Parameters                 map[string]string `json:"parameters,omitempty"`
+}
+
+func updateInfoToWire(v *UpdateInfo) (*updateInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	configWireValue, err := pipelineSpecToWire(v.Config)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateInfo.Config", err)
+	}
+	creationTimeWireValue, err := int64ToWire(v.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateInfo.CreationTime", err)
+	}
+	return &updateInfoWire{
+		PipelineId:                 v.PipelineId,
+		UpdateId:                   v.UpdateId,
+		Config:                     configWireValue,
+		Cause:                      v.Cause,
+		State:                      v.State,
+		ClusterId:                  v.ClusterId,
+		CreationTime:               creationTimeWireValue,
+		FullRefresh:                v.FullRefresh,
+		RefreshSelection:           v.RefreshSelection,
+		FullRefreshSelection:       v.FullRefreshSelection,
+		RefreshSelectionByPath:     v.RefreshSelectionByPath,
+		FullRefreshSelectionByPath: v.FullRefreshSelectionByPath,
+		ValidateOnly:               v.ValidateOnly,
+		Mode:                       v.Mode,
+		Parameters:                 v.Parameters,
+	}, nil
 }
 
 func updateInfoFromWire(w *updateInfoWire) (*UpdateInfo, error) {
@@ -4783,6 +5767,17 @@ type updateStateInfoWire struct {
 	UpdateId     *string     `json:"update_id,omitempty"`
 	State        UpdateState `json:"state,omitempty"`
 	CreationTime *string     `json:"creation_time,omitempty"`
+}
+
+func updateStateInfoToWire(v *UpdateStateInfo) (*updateStateInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &updateStateInfoWire{
+		UpdateId:     v.UpdateId,
+		State:        v.State,
+		CreationTime: v.CreationTime,
+	}, nil
 }
 
 func updateStateInfoFromWire(w *updateStateInfoWire) (*UpdateStateInfo, error) {

@@ -277,15 +277,6 @@ type CommonConfig struct {
 	// back as the Update request's `etag` to make the update conditional on the
 	// resource being unchanged.
 	Etag *string `fieldmask:"etag"`
-	// UC volume path holding user-authored custom presets, e.g.
-	// `/Volumes/{catalog}/{schema}/{volume}`. User-provided with no default: when
-	// unset, custom presets are unavailable and only built-in presets apply.
-	CustomPresetsPath *string `fieldmask:"custom_presets_path"`
-	// UC volume path holding user-authored custom content packs, e.g.
-	// `/Volumes/{catalog}/{schema}/{volume}`. User-provided with no default: when
-	// unset, custom content packs are unavailable (referencing one is rejected) and
-	// only built-in content packs apply.
-	CustomContentPackPath *string `fieldmask:"custom_content_pack_path"`
 	// Whether users may grant permissions on individual resources rather than only
 	// at the Folder level.
 	PerResourcePermissionsEnabled *bool `fieldmask:"per_resource_permissions_enabled"`
@@ -928,6 +919,8 @@ type Rule struct {
 	References []string `fieldmask:"references"`
 	// Long-form operational guidance carried from the authored rule metadata.
 	// Supports up to 4096 characters. Requests exceeding this limit are rejected.
+	// Supports Markdown; analysts and the investigation agent follow it when
+	// triaging this rule's alerts.
 	Runbook *string `fieldmask:"runbook"`
 	// Time-range configuration for batch rules. If unset, the execution time range
 	// is extended by a fixed `15m` lookback.

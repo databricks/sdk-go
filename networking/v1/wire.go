@@ -54,14 +54,6 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type accountIpAccessListWire struct {
 	ListId       *string                                  `json:"list_id,omitempty"`
 	Label        *string                                  `json:"label,omitempty"`
@@ -73,6 +65,40 @@ type accountIpAccessListWire struct {
 	UpdatedAt    *wireInt64                               `json:"updated_at,omitempty"`
 	UpdatedBy    *wireInt64                               `json:"updated_by,omitempty"`
 	Enabled      *bool                                    `json:"enabled,omitempty"`
+}
+
+func accountIpAccessListToWire(v *AccountIpAccessList) (*accountIpAccessListWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountIpAccessList.CreatedAt", err)
+	}
+	createdByWireValue, err := int64ToWire(v.CreatedBy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountIpAccessList.CreatedBy", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountIpAccessList.UpdatedAt", err)
+	}
+	updatedByWireValue, err := int64ToWire(v.UpdatedBy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccountIpAccessList.UpdatedBy", err)
+	}
+	return &accountIpAccessListWire{
+		ListId:       v.ListId,
+		Label:        v.Label,
+		IpAddresses:  v.IpAddresses,
+		AddressCount: v.AddressCount,
+		ListType:     v.ListType,
+		CreatedAt:    createdAtWireValue,
+		CreatedBy:    createdByWireValue,
+		UpdatedAt:    updatedAtWireValue,
+		UpdatedBy:    updatedByWireValue,
+		Enabled:      v.Enabled,
+	}, nil
 }
 
 func accountIpAccessListFromWire(w *accountIpAccessListWire) (*AccountIpAccessList, error) {
@@ -107,6 +133,23 @@ func accountIpAccessListFromWire(w *accountIpAccessListWire) (*AccountIpAccessLi
 		UpdatedBy:    updatedByPublicValue,
 		Enabled:      w.Enabled,
 	}, nil
+}
+
+type accountIpAccessListTypeWire struct {
+}
+
+func accountIpAccessListTypeToWire(v *AccountIpAccessListType) (*accountIpAccessListTypeWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &accountIpAccessListTypeWire{}, nil
+}
+
+func accountIpAccessListTypeFromWire(w *accountIpAccessListTypeWire) (*AccountIpAccessListType, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AccountIpAccessListType{}, nil
 }
 
 type accountNetworkPolicyWire struct {
@@ -172,6 +215,18 @@ type apiErrorWire struct {
 	Message    *string           `json:"message,omitempty"`
 	StackTrace *string           `json:"stack_trace,omitempty"`
 	Details    []json.RawMessage `json:"details,omitempty"`
+}
+
+func apiErrorToWire(v *ApiError) (*apiErrorWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &apiErrorWire{
+		ErrorCode:  v.ErrorCode,
+		Message:    v.Message,
+		StackTrace: v.StackTrace,
+		Details:    v.Details,
+	}, nil
 }
 
 func apiErrorFromWire(w *apiErrorWire) (*ApiError, error) {
@@ -264,8 +319,33 @@ func createAccountIpAccessListRequestToWire(v *CreateAccountIpAccessListRequest)
 	}, nil
 }
 
+func createAccountIpAccessListRequestFromWire(w *createAccountIpAccessListRequestWire) (*CreateAccountIpAccessListRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CreateAccountIpAccessListRequest{
+		AccountId:   w.AccountId,
+		Label:       w.Label,
+		ListType:    w.ListType,
+		IpAddresses: w.IpAddresses,
+	}, nil
+}
+
 type createAccountIpAccessListResponseWire struct {
 	IpAccessList *accountIpAccessListWire `json:"ip_access_list,omitempty"`
+}
+
+func createAccountIpAccessListResponseToWire(v *CreateAccountIpAccessListResponse) (*createAccountIpAccessListResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	ipAccessListWireValue, err := accountIpAccessListToWire(v.IpAccessList)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccountIpAccessListResponse.IpAccessList", err)
+	}
+	return &createAccountIpAccessListResponseWire{
+		IpAccessList: ipAccessListWireValue,
+	}, nil
 }
 
 func createAccountIpAccessListResponseFromWire(w *createAccountIpAccessListResponseWire) (*CreateAccountIpAccessListResponse, error) {
@@ -300,6 +380,20 @@ func createEndpointRequestToWire(v *CreateEndpointRequest) (*createEndpointReque
 	}, nil
 }
 
+func createEndpointRequestFromWire(w *createEndpointRequestWire) (*CreateEndpointRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	endpointPublicValue, err := endpointFromWire(w.Endpoint)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateEndpointRequest.Endpoint", err)
+	}
+	return &CreateEndpointRequest{
+		Parent:   w.Parent,
+		Endpoint: endpointPublicValue,
+	}, nil
+}
+
 type createIpAccessListRequestWire struct {
 	Label       *string          `json:"label,omitempty"`
 	ListType    IpAccessListType `json:"list_type,omitempty"`
@@ -317,8 +411,32 @@ func createIpAccessListRequestToWire(v *CreateIpAccessListRequest) (*createIpAcc
 	}, nil
 }
 
+func createIpAccessListRequestFromWire(w *createIpAccessListRequestWire) (*CreateIpAccessListRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CreateIpAccessListRequest{
+		Label:       w.Label,
+		ListType:    w.ListType,
+		IpAddresses: w.IpAddresses,
+	}, nil
+}
+
 type createIpAccessListResponseWire struct {
 	IpAccessList *ipAccessListWire `json:"ip_access_list,omitempty"`
+}
+
+func createIpAccessListResponseToWire(v *CreateIpAccessListResponse) (*createIpAccessListResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	ipAccessListWireValue, err := ipAccessListToWire(v.IpAccessList)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateIpAccessListResponse.IpAccessList", err)
+	}
+	return &createIpAccessListResponseWire{
+		IpAccessList: ipAccessListWireValue,
+	}, nil
 }
 
 func createIpAccessListResponseFromWire(w *createIpAccessListResponseWire) (*CreateIpAccessListResponse, error) {
@@ -355,6 +473,21 @@ func createNccPrivateEndpointRuleRequestToWire(v *CreateNccPrivateEndpointRuleRe
 	}, nil
 }
 
+func createNccPrivateEndpointRuleRequestFromWire(w *createNccPrivateEndpointRuleRequestWire) (*CreateNccPrivateEndpointRuleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	privateEndpointRulePublicValue, err := createPrivateEndpointRuleFromWire(w.PrivateEndpointRule)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateNccPrivateEndpointRuleRequest.PrivateEndpointRule", err)
+	}
+	return &CreateNccPrivateEndpointRuleRequest{
+		NetworkConnectivityConfigId: w.NetworkConnectivityConfigId,
+		AccountId:                   w.AccountId,
+		PrivateEndpointRule:         privateEndpointRulePublicValue,
+	}, nil
+}
+
 type createNetworkConnectivityConfigRequestWire struct {
 	AccountId                 *string                                     `json:"account_id,omitempty"`
 	NetworkConnectivityConfig *createNetworkConnectivityConfigurationWire `json:"network_connectivity_config,omitempty"`
@@ -371,6 +504,20 @@ func createNetworkConnectivityConfigRequestToWire(v *CreateNetworkConnectivityCo
 	return &createNetworkConnectivityConfigRequestWire{
 		AccountId:                 v.AccountId,
 		NetworkConnectivityConfig: networkConnectivityConfigWireValue,
+	}, nil
+}
+
+func createNetworkConnectivityConfigRequestFromWire(w *createNetworkConnectivityConfigRequestWire) (*CreateNetworkConnectivityConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	networkConnectivityConfigPublicValue, err := createNetworkConnectivityConfigurationFromWire(w.NetworkConnectivityConfig)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateNetworkConnectivityConfigRequest.NetworkConnectivityConfig", err)
+	}
+	return &CreateNetworkConnectivityConfigRequest{
+		AccountId:                 w.AccountId,
+		NetworkConnectivityConfig: networkConnectivityConfigPublicValue,
 	}, nil
 }
 
@@ -411,6 +558,33 @@ func createNetworkConnectivityConfigurationToWire(v *CreateNetworkConnectivityCo
 	}, nil
 }
 
+func createNetworkConnectivityConfigurationFromWire(w *createNetworkConnectivityConfigurationWire) (*CreateNetworkConnectivityConfiguration, error) {
+	if w == nil {
+		return nil, nil
+	}
+	egressConfigPublicValue, err := customerFacingNetworkConnectivityConfigEgressConfigFromWire(w.EgressConfig)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateNetworkConnectivityConfiguration.EgressConfig", err)
+	}
+	updatedTimePublicValue, err := int64FromWire(w.UpdatedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateNetworkConnectivityConfiguration.UpdatedTime", err)
+	}
+	creationTimePublicValue, err := int64FromWire(w.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateNetworkConnectivityConfiguration.CreationTime", err)
+	}
+	return &CreateNetworkConnectivityConfiguration{
+		NetworkConnectivityConfigId: w.NetworkConnectivityConfigId,
+		AccountId:                   w.AccountId,
+		Name:                        w.Name,
+		Region:                      w.Region,
+		EgressConfig:                egressConfigPublicValue,
+		UpdatedTime:                 updatedTimePublicValue,
+		CreationTime:                creationTimePublicValue,
+	}, nil
+}
+
 type createNetworkPolicyRequestWire struct {
 	AccountId     *string                   `json:"account_id,omitempty"`
 	NetworkPolicy *accountNetworkPolicyWire `json:"network_policy,omitempty"`
@@ -427,6 +601,20 @@ func createNetworkPolicyRequestToWire(v *CreateNetworkPolicyRequest) (*createNet
 	return &createNetworkPolicyRequestWire{
 		AccountId:     v.AccountId,
 		NetworkPolicy: networkPolicyWireValue,
+	}, nil
+}
+
+func createNetworkPolicyRequestFromWire(w *createNetworkPolicyRequestWire) (*CreateNetworkPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	networkPolicyPublicValue, err := accountNetworkPolicyFromWire(w.NetworkPolicy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateNetworkPolicyRequest.NetworkPolicy", err)
+	}
+	return &CreateNetworkPolicyRequest{
+		AccountId:     w.AccountId,
+		NetworkPolicy: networkPolicyPublicValue,
 	}, nil
 }
 
@@ -463,6 +651,29 @@ func createNetworkRequestToWire(v *CreateNetworkRequest) (*createNetworkRequestW
 	}, nil
 }
 
+func createNetworkRequestFromWire(w *createNetworkRequestWire) (*CreateNetworkRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	vpcEndpointsPublicValue, err := networkVpcEndpointsFromWire(w.VpcEndpoints)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateNetworkRequest.VpcEndpoints", err)
+	}
+	gcpNetworkInfoPublicValue, err := gcpNetworkInfoFromWire(w.GcpNetworkInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateNetworkRequest.GcpNetworkInfo", err)
+	}
+	return &CreateNetworkRequest{
+		AccountId:        w.AccountId,
+		NetworkName:      w.NetworkName,
+		VpcId:            w.VpcId,
+		SubnetIds:        w.SubnetIds,
+		SecurityGroupIds: w.SecurityGroupIds,
+		VpcEndpoints:     vpcEndpointsPublicValue,
+		GcpNetworkInfo:   gcpNetworkInfoPublicValue,
+	}, nil
+}
+
 type createPrivateAccessSettingsRequestWire struct {
 	AccountId                 *string            `json:"account_id,omitempty"`
 	PrivateAccessSettingsName *string            `json:"private_access_settings_name,omitempty"`
@@ -483,6 +694,20 @@ func createPrivateAccessSettingsRequestToWire(v *CreatePrivateAccessSettingsRequ
 		PublicAccessEnabled:       v.PublicAccessEnabled,
 		PrivateAccessLevel:        v.PrivateAccessLevel,
 		AllowedVpcEndpointIds:     v.AllowedVpcEndpointIds,
+	}, nil
+}
+
+func createPrivateAccessSettingsRequestFromWire(w *createPrivateAccessSettingsRequestWire) (*CreatePrivateAccessSettingsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CreatePrivateAccessSettingsRequest{
+		AccountId:                 w.AccountId,
+		PrivateAccessSettingsName: w.PrivateAccessSettingsName,
+		Region:                    w.Region,
+		PublicAccessEnabled:       w.PublicAccessEnabled,
+		PrivateAccessLevel:        w.PrivateAccessLevel,
+		AllowedVpcEndpointIds:     w.AllowedVpcEndpointIds,
 	}, nil
 }
 
@@ -559,6 +784,60 @@ func createPrivateEndpointRuleToWire(v *CreatePrivateEndpointRule) (*createPriva
 	}, nil
 }
 
+func createPrivateEndpointRuleFromWire(w *createPrivateEndpointRuleWire) (*CreatePrivateEndpointRule, error) {
+	if w == nil {
+		return nil, nil
+	}
+	endpointMembers := 0
+	if w.GcpEndpoint != nil {
+		endpointMembers++
+	}
+	if endpointMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "CreatePrivateEndpointRule.Endpoint")
+	}
+	creationTimePublicValue, err := int64FromWire(w.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePrivateEndpointRule.CreationTime", err)
+	}
+	updatedTimePublicValue, err := int64FromWire(w.UpdatedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePrivateEndpointRule.UpdatedTime", err)
+	}
+	deactivatedAtPublicValue, err := int64FromWire(w.DeactivatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePrivateEndpointRule.DeactivatedAt", err)
+	}
+	var endpointSelection isCreatePrivateEndpointRule_Endpoint
+	switch {
+	case w.GcpEndpoint != nil:
+		endpointGcpEndpointConverted, err := gcpEndpointFromWire(w.GcpEndpoint)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreatePrivateEndpointRule.Endpoint.GcpEndpoint", err)
+		}
+		endpointSelection = &CreatePrivateEndpointRule_Endpoint_GcpEndpoint{GcpEndpoint: *endpointGcpEndpointConverted}
+	}
+	return &CreatePrivateEndpointRule{
+		RuleId:                      w.RuleId,
+		NetworkConnectivityConfigId: w.NetworkConnectivityConfigId,
+		ConnectionState:             w.ConnectionState,
+		DomainNames:                 w.DomainNames,
+		CreationTime:                creationTimePublicValue,
+		UpdatedTime:                 updatedTimePublicValue,
+		Deactivated:                 w.Deactivated,
+		DeactivatedAt:               deactivatedAtPublicValue,
+		ErrorMessage:                w.ErrorMessage,
+		ResourceId:                  w.ResourceId,
+		GroupId:                     w.GroupId,
+		EndpointName:                w.EndpointName,
+		AccountId:                   w.AccountId,
+		EndpointService:             w.EndpointService,
+		ResourceNames:               w.ResourceNames,
+		VpcEndpointId:               w.VpcEndpointId,
+		Enabled:                     w.Enabled,
+		Endpoint:                    endpointSelection,
+	}, nil
+}
+
 type createPrivateNetworkGatewayRequestWire struct {
 	Parent                *string                    `json:"parent,omitempty"`
 	PrivateNetworkGateway *privateNetworkGatewayWire `json:"private_network_gateway,omitempty"`
@@ -577,6 +856,21 @@ func createPrivateNetworkGatewayRequestToWire(v *CreatePrivateNetworkGatewayRequ
 		Parent:                v.Parent,
 		PrivateNetworkGateway: privateNetworkGatewayWireValue,
 		RequestId:             v.RequestId,
+	}, nil
+}
+
+func createPrivateNetworkGatewayRequestFromWire(w *createPrivateNetworkGatewayRequestWire) (*CreatePrivateNetworkGatewayRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	privateNetworkGatewayPublicValue, err := privateNetworkGatewayFromWire(w.PrivateNetworkGateway)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePrivateNetworkGatewayRequest.PrivateNetworkGateway", err)
+	}
+	return &CreatePrivateNetworkGatewayRequest{
+		Parent:                w.Parent,
+		PrivateNetworkGateway: privateNetworkGatewayPublicValue,
+		RequestId:             w.RequestId,
 	}, nil
 }
 
@@ -612,6 +906,35 @@ func createVpcEndpointRequestToWire(v *CreateVpcEndpointRequest) (*createVpcEndp
 		Region:             v.Region,
 		AwsVpcEndpointId:   v.AwsVpcEndpointId,
 		GcpVpcEndpointInfo: vpcEndpointInfoGcpVpcEndpointInfoWire,
+	}, nil
+}
+
+func createVpcEndpointRequestFromWire(w *createVpcEndpointRequestWire) (*CreateVpcEndpointRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	vpcEndpointInfoMembers := 0
+	if w.GcpVpcEndpointInfo != nil {
+		vpcEndpointInfoMembers++
+	}
+	if vpcEndpointInfoMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "CreateVpcEndpointRequest.VpcEndpointInfo")
+	}
+	var vpcEndpointInfoSelection isCreateVpcEndpointRequest_VpcEndpointInfo
+	switch {
+	case w.GcpVpcEndpointInfo != nil:
+		vpcEndpointInfoGcpVpcEndpointInfoConverted, err := gcpVpcEndpointInfoFromWire(w.GcpVpcEndpointInfo)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateVpcEndpointRequest.VpcEndpointInfo.GcpVpcEndpointInfo", err)
+		}
+		vpcEndpointInfoSelection = &CreateVpcEndpointRequest_VpcEndpointInfo_GcpVpcEndpointInfo{GcpVpcEndpointInfo: *vpcEndpointInfoGcpVpcEndpointInfoConverted}
+	}
+	return &CreateVpcEndpointRequest{
+		AccountId:        w.AccountId,
+		VpcEndpointName:  w.VpcEndpointName,
+		Region:           w.Region,
+		AwsVpcEndpointId: w.AwsVpcEndpointId,
+		VpcEndpointInfo:  vpcEndpointInfoSelection,
 	}, nil
 }
 
@@ -694,6 +1017,284 @@ func customerFacingNetworkConnectivityConfigEgressConfig_CustomerFacingTargetRul
 	return &CustomerFacingNetworkConnectivityConfigEgressConfig_CustomerFacingTargetRule{
 		AzurePrivateEndpointRules: azurePrivateEndpointRulesPublicValue,
 		AwsPrivateEndpointRules:   awsPrivateEndpointRulesPublicValue,
+	}, nil
+}
+
+type deleteAccountIpAccessListRequestWire struct {
+	AccountId *string `json:"account_id,omitempty"`
+	ListId    *string `json:"list_id,omitempty"`
+}
+
+func deleteAccountIpAccessListRequestToWire(v *DeleteAccountIpAccessListRequest) (*deleteAccountIpAccessListRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteAccountIpAccessListRequestWire{
+		AccountId: v.AccountId,
+		ListId:    v.ListId,
+	}, nil
+}
+
+func deleteAccountIpAccessListRequestFromWire(w *deleteAccountIpAccessListRequestWire) (*DeleteAccountIpAccessListRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteAccountIpAccessListRequest{
+		AccountId: w.AccountId,
+		ListId:    w.ListId,
+	}, nil
+}
+
+type deleteAccountIpAccessListResponseWire struct {
+}
+
+func deleteAccountIpAccessListResponseToWire(v *DeleteAccountIpAccessListResponse) (*deleteAccountIpAccessListResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteAccountIpAccessListResponseWire{}, nil
+}
+
+func deleteAccountIpAccessListResponseFromWire(w *deleteAccountIpAccessListResponseWire) (*DeleteAccountIpAccessListResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteAccountIpAccessListResponse{}, nil
+}
+
+type deleteEndpointRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteEndpointRequestToWire(v *DeleteEndpointRequest) (*deleteEndpointRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteEndpointRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteEndpointRequestFromWire(w *deleteEndpointRequestWire) (*DeleteEndpointRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteEndpointRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteIpAccessListRequestWire struct {
+	ListId *string `json:"list_id,omitempty"`
+}
+
+func deleteIpAccessListRequestToWire(v *DeleteIpAccessListRequest) (*deleteIpAccessListRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteIpAccessListRequestWire{
+		ListId: v.ListId,
+	}, nil
+}
+
+func deleteIpAccessListRequestFromWire(w *deleteIpAccessListRequestWire) (*DeleteIpAccessListRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteIpAccessListRequest{
+		ListId: w.ListId,
+	}, nil
+}
+
+type deleteIpAccessListResponseWire struct {
+}
+
+func deleteIpAccessListResponseToWire(v *DeleteIpAccessListResponse) (*deleteIpAccessListResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteIpAccessListResponseWire{}, nil
+}
+
+func deleteIpAccessListResponseFromWire(w *deleteIpAccessListResponseWire) (*DeleteIpAccessListResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteIpAccessListResponse{}, nil
+}
+
+type deleteNccPrivateEndpointRuleRequestWire struct {
+	AccountId                   *string `json:"account_id,omitempty"`
+	NetworkConnectivityConfigId *string `json:"network_connectivity_config_id,omitempty"`
+	PrivateEndpointRuleId       *string `json:"private_endpoint_rule_id,omitempty"`
+}
+
+func deleteNccPrivateEndpointRuleRequestToWire(v *DeleteNccPrivateEndpointRuleRequest) (*deleteNccPrivateEndpointRuleRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteNccPrivateEndpointRuleRequestWire{
+		AccountId:                   v.AccountId,
+		NetworkConnectivityConfigId: v.NetworkConnectivityConfigId,
+		PrivateEndpointRuleId:       v.PrivateEndpointRuleId,
+	}, nil
+}
+
+func deleteNccPrivateEndpointRuleRequestFromWire(w *deleteNccPrivateEndpointRuleRequestWire) (*DeleteNccPrivateEndpointRuleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteNccPrivateEndpointRuleRequest{
+		AccountId:                   w.AccountId,
+		NetworkConnectivityConfigId: w.NetworkConnectivityConfigId,
+		PrivateEndpointRuleId:       w.PrivateEndpointRuleId,
+	}, nil
+}
+
+type deleteNetworkConnectivityConfigRequestWire struct {
+	AccountId                   *string `json:"account_id,omitempty"`
+	NetworkConnectivityConfigId *string `json:"network_connectivity_config_id,omitempty"`
+}
+
+func deleteNetworkConnectivityConfigRequestToWire(v *DeleteNetworkConnectivityConfigRequest) (*deleteNetworkConnectivityConfigRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteNetworkConnectivityConfigRequestWire{
+		AccountId:                   v.AccountId,
+		NetworkConnectivityConfigId: v.NetworkConnectivityConfigId,
+	}, nil
+}
+
+func deleteNetworkConnectivityConfigRequestFromWire(w *deleteNetworkConnectivityConfigRequestWire) (*DeleteNetworkConnectivityConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteNetworkConnectivityConfigRequest{
+		AccountId:                   w.AccountId,
+		NetworkConnectivityConfigId: w.NetworkConnectivityConfigId,
+	}, nil
+}
+
+type deleteNetworkPolicyRequestWire struct {
+	NetworkPolicyId *string `json:"network_policy_id,omitempty"`
+	AccountId       *string `json:"account_id,omitempty"`
+}
+
+func deleteNetworkPolicyRequestToWire(v *DeleteNetworkPolicyRequest) (*deleteNetworkPolicyRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteNetworkPolicyRequestWire{
+		NetworkPolicyId: v.NetworkPolicyId,
+		AccountId:       v.AccountId,
+	}, nil
+}
+
+func deleteNetworkPolicyRequestFromWire(w *deleteNetworkPolicyRequestWire) (*DeleteNetworkPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteNetworkPolicyRequest{
+		NetworkPolicyId: w.NetworkPolicyId,
+		AccountId:       w.AccountId,
+	}, nil
+}
+
+type deleteNetworkRequestWire struct {
+	NetworkId *string `json:"network_id,omitempty"`
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func deleteNetworkRequestToWire(v *DeleteNetworkRequest) (*deleteNetworkRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteNetworkRequestWire{
+		NetworkId: v.NetworkId,
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func deleteNetworkRequestFromWire(w *deleteNetworkRequestWire) (*DeleteNetworkRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteNetworkRequest{
+		NetworkId: w.NetworkId,
+		AccountId: w.AccountId,
+	}, nil
+}
+
+type deletePrivateAccessSettingsRequestWire struct {
+	PrivateAccessSettingsId *string `json:"private_access_settings_id,omitempty"`
+	AccountId               *string `json:"account_id,omitempty"`
+}
+
+func deletePrivateAccessSettingsRequestToWire(v *DeletePrivateAccessSettingsRequest) (*deletePrivateAccessSettingsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deletePrivateAccessSettingsRequestWire{
+		PrivateAccessSettingsId: v.PrivateAccessSettingsId,
+		AccountId:               v.AccountId,
+	}, nil
+}
+
+func deletePrivateAccessSettingsRequestFromWire(w *deletePrivateAccessSettingsRequestWire) (*DeletePrivateAccessSettingsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeletePrivateAccessSettingsRequest{
+		PrivateAccessSettingsId: w.PrivateAccessSettingsId,
+		AccountId:               w.AccountId,
+	}, nil
+}
+
+type deletePrivateNetworkGatewayRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deletePrivateNetworkGatewayRequestToWire(v *DeletePrivateNetworkGatewayRequest) (*deletePrivateNetworkGatewayRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deletePrivateNetworkGatewayRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deletePrivateNetworkGatewayRequestFromWire(w *deletePrivateNetworkGatewayRequestWire) (*DeletePrivateNetworkGatewayRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeletePrivateNetworkGatewayRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteVpcEndpointRequestWire struct {
+	VpcEndpointId *string `json:"vpc_endpoint_id,omitempty"`
+	AccountId     *string `json:"account_id,omitempty"`
+}
+
+func deleteVpcEndpointRequestToWire(v *DeleteVpcEndpointRequest) (*deleteVpcEndpointRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteVpcEndpointRequestWire{
+		VpcEndpointId: v.VpcEndpointId,
+		AccountId:     v.AccountId,
+	}, nil
+}
+
+func deleteVpcEndpointRequestFromWire(w *deleteVpcEndpointRequestWire) (*DeleteVpcEndpointRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteVpcEndpointRequest{
+		VpcEndpointId: w.VpcEndpointId,
+		AccountId:     w.AccountId,
 	}, nil
 }
 
@@ -1034,6 +1635,23 @@ func endpointFromWire(w *endpointWire) (*Endpoint, error) {
 	}, nil
 }
 
+type endpointUseCaseWire struct {
+}
+
+func endpointUseCaseToWire(v *EndpointUseCase) (*endpointUseCaseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &endpointUseCaseWire{}, nil
+}
+
+func endpointUseCaseFromWire(w *endpointUseCaseWire) (*EndpointUseCase, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &EndpointUseCase{}, nil
+}
+
 type gcpEndpointWire struct {
 	PscEndpointUri     *string                 `json:"psc_endpoint_uri,omitempty"`
 	ServiceAttachment  *string                 `json:"service_attachment,omitempty"`
@@ -1218,8 +1836,46 @@ func gcpVpcEndpointInfoFromWire(w *gcpVpcEndpointInfoWire) (*GcpVpcEndpointInfo,
 	}, nil
 }
 
+type getAccountIpAccessListRequestWire struct {
+	AccountId *string `json:"account_id,omitempty"`
+	ListId    *string `json:"list_id,omitempty"`
+}
+
+func getAccountIpAccessListRequestToWire(v *GetAccountIpAccessListRequest) (*getAccountIpAccessListRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getAccountIpAccessListRequestWire{
+		AccountId: v.AccountId,
+		ListId:    v.ListId,
+	}, nil
+}
+
+func getAccountIpAccessListRequestFromWire(w *getAccountIpAccessListRequestWire) (*GetAccountIpAccessListRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetAccountIpAccessListRequest{
+		AccountId: w.AccountId,
+		ListId:    w.ListId,
+	}, nil
+}
+
 type getAccountIpAccessListResponseWire struct {
 	IpAccessList *accountIpAccessListWire `json:"ip_access_list,omitempty"`
+}
+
+func getAccountIpAccessListResponseToWire(v *GetAccountIpAccessListResponse) (*getAccountIpAccessListResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	ipAccessListWireValue, err := accountIpAccessListToWire(v.IpAccessList)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetAccountIpAccessListResponse.IpAccessList", err)
+	}
+	return &getAccountIpAccessListResponseWire{
+		IpAccessList: ipAccessListWireValue,
+	}, nil
 }
 
 func getAccountIpAccessListResponseFromWire(w *getAccountIpAccessListResponseWire) (*GetAccountIpAccessListResponse, error) {
@@ -1235,8 +1891,65 @@ func getAccountIpAccessListResponseFromWire(w *getAccountIpAccessListResponseWir
 	}, nil
 }
 
+type getEndpointRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getEndpointRequestToWire(v *GetEndpointRequest) (*getEndpointRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getEndpointRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getEndpointRequestFromWire(w *getEndpointRequestWire) (*GetEndpointRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetEndpointRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getIpAccessListRequestWire struct {
+	ListId *string `json:"list_id,omitempty"`
+}
+
+func getIpAccessListRequestToWire(v *GetIpAccessListRequest) (*getIpAccessListRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getIpAccessListRequestWire{
+		ListId: v.ListId,
+	}, nil
+}
+
+func getIpAccessListRequestFromWire(w *getIpAccessListRequestWire) (*GetIpAccessListRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetIpAccessListRequest{
+		ListId: w.ListId,
+	}, nil
+}
+
 type getIpAccessListResponseWire struct {
 	IpAccessList *ipAccessListWire `json:"ip_access_list,omitempty"`
+}
+
+func getIpAccessListResponseToWire(v *GetIpAccessListResponse) (*getIpAccessListResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	ipAccessListWireValue, err := ipAccessListToWire(v.IpAccessList)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetIpAccessListResponse.IpAccessList", err)
+	}
+	return &getIpAccessListResponseWire{
+		IpAccessList: ipAccessListWireValue,
+	}, nil
 }
 
 func getIpAccessListResponseFromWire(w *getIpAccessListResponseWire) (*GetIpAccessListResponse, error) {
@@ -1249,6 +1962,236 @@ func getIpAccessListResponseFromWire(w *getIpAccessListResponseWire) (*GetIpAcce
 	}
 	return &GetIpAccessListResponse{
 		IpAccessList: ipAccessListPublicValue,
+	}, nil
+}
+
+type getNccPrivateEndpointRuleRequestWire struct {
+	AccountId                   *string `json:"account_id,omitempty"`
+	NetworkConnectivityConfigId *string `json:"network_connectivity_config_id,omitempty"`
+	PrivateEndpointRuleId       *string `json:"private_endpoint_rule_id,omitempty"`
+}
+
+func getNccPrivateEndpointRuleRequestToWire(v *GetNccPrivateEndpointRuleRequest) (*getNccPrivateEndpointRuleRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getNccPrivateEndpointRuleRequestWire{
+		AccountId:                   v.AccountId,
+		NetworkConnectivityConfigId: v.NetworkConnectivityConfigId,
+		PrivateEndpointRuleId:       v.PrivateEndpointRuleId,
+	}, nil
+}
+
+func getNccPrivateEndpointRuleRequestFromWire(w *getNccPrivateEndpointRuleRequestWire) (*GetNccPrivateEndpointRuleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetNccPrivateEndpointRuleRequest{
+		AccountId:                   w.AccountId,
+		NetworkConnectivityConfigId: w.NetworkConnectivityConfigId,
+		PrivateEndpointRuleId:       w.PrivateEndpointRuleId,
+	}, nil
+}
+
+type getNetworkConnectivityConfigRequestWire struct {
+	AccountId                   *string `json:"account_id,omitempty"`
+	NetworkConnectivityConfigId *string `json:"network_connectivity_config_id,omitempty"`
+}
+
+func getNetworkConnectivityConfigRequestToWire(v *GetNetworkConnectivityConfigRequest) (*getNetworkConnectivityConfigRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getNetworkConnectivityConfigRequestWire{
+		AccountId:                   v.AccountId,
+		NetworkConnectivityConfigId: v.NetworkConnectivityConfigId,
+	}, nil
+}
+
+func getNetworkConnectivityConfigRequestFromWire(w *getNetworkConnectivityConfigRequestWire) (*GetNetworkConnectivityConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetNetworkConnectivityConfigRequest{
+		AccountId:                   w.AccountId,
+		NetworkConnectivityConfigId: w.NetworkConnectivityConfigId,
+	}, nil
+}
+
+type getNetworkPolicyRequestWire struct {
+	NetworkPolicyId *string `json:"network_policy_id,omitempty"`
+	AccountId       *string `json:"account_id,omitempty"`
+}
+
+func getNetworkPolicyRequestToWire(v *GetNetworkPolicyRequest) (*getNetworkPolicyRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getNetworkPolicyRequestWire{
+		NetworkPolicyId: v.NetworkPolicyId,
+		AccountId:       v.AccountId,
+	}, nil
+}
+
+func getNetworkPolicyRequestFromWire(w *getNetworkPolicyRequestWire) (*GetNetworkPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetNetworkPolicyRequest{
+		NetworkPolicyId: w.NetworkPolicyId,
+		AccountId:       w.AccountId,
+	}, nil
+}
+
+type getNetworkRequestWire struct {
+	NetworkId *string `json:"network_id,omitempty"`
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func getNetworkRequestToWire(v *GetNetworkRequest) (*getNetworkRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getNetworkRequestWire{
+		NetworkId: v.NetworkId,
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func getNetworkRequestFromWire(w *getNetworkRequestWire) (*GetNetworkRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetNetworkRequest{
+		NetworkId: w.NetworkId,
+		AccountId: w.AccountId,
+	}, nil
+}
+
+type getOperationRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getOperationRequestToWire(v *GetOperationRequest) (*getOperationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getOperationRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getOperationRequestFromWire(w *getOperationRequestWire) (*GetOperationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetOperationRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getPrivateAccessSettingsRequestWire struct {
+	PrivateAccessSettingsId *string `json:"private_access_settings_id,omitempty"`
+	AccountId               *string `json:"account_id,omitempty"`
+}
+
+func getPrivateAccessSettingsRequestToWire(v *GetPrivateAccessSettingsRequest) (*getPrivateAccessSettingsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getPrivateAccessSettingsRequestWire{
+		PrivateAccessSettingsId: v.PrivateAccessSettingsId,
+		AccountId:               v.AccountId,
+	}, nil
+}
+
+func getPrivateAccessSettingsRequestFromWire(w *getPrivateAccessSettingsRequestWire) (*GetPrivateAccessSettingsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetPrivateAccessSettingsRequest{
+		PrivateAccessSettingsId: w.PrivateAccessSettingsId,
+		AccountId:               w.AccountId,
+	}, nil
+}
+
+type getPrivateNetworkGatewayRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getPrivateNetworkGatewayRequestToWire(v *GetPrivateNetworkGatewayRequest) (*getPrivateNetworkGatewayRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getPrivateNetworkGatewayRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getPrivateNetworkGatewayRequestFromWire(w *getPrivateNetworkGatewayRequestWire) (*GetPrivateNetworkGatewayRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetPrivateNetworkGatewayRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getVpcEndpointRequestWire struct {
+	VpcEndpointId *string `json:"vpc_endpoint_id,omitempty"`
+	AccountId     *string `json:"account_id,omitempty"`
+}
+
+func getVpcEndpointRequestToWire(v *GetVpcEndpointRequest) (*getVpcEndpointRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getVpcEndpointRequestWire{
+		VpcEndpointId: v.VpcEndpointId,
+		AccountId:     v.AccountId,
+	}, nil
+}
+
+func getVpcEndpointRequestFromWire(w *getVpcEndpointRequestWire) (*GetVpcEndpointRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetVpcEndpointRequest{
+		VpcEndpointId: w.VpcEndpointId,
+		AccountId:     w.AccountId,
+	}, nil
+}
+
+type getWorkspaceNetworkOptionRequestWire struct {
+	AccountId   *string    `json:"account_id,omitempty"`
+	WorkspaceId *wireInt64 `json:"workspace_id,omitempty"`
+}
+
+func getWorkspaceNetworkOptionRequestToWire(v *GetWorkspaceNetworkOptionRequest) (*getWorkspaceNetworkOptionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetWorkspaceNetworkOptionRequest.WorkspaceId", err)
+	}
+	return &getWorkspaceNetworkOptionRequestWire{
+		AccountId:   v.AccountId,
+		WorkspaceId: workspaceIdWireValue,
+	}, nil
+}
+
+func getWorkspaceNetworkOptionRequestFromWire(w *getWorkspaceNetworkOptionRequestWire) (*GetWorkspaceNetworkOptionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	workspaceIdPublicValue, err := int64FromWire(w.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetWorkspaceNetworkOptionRequest.WorkspaceId", err)
+	}
+	return &GetWorkspaceNetworkOptionRequest{
+		AccountId:   w.AccountId,
+		WorkspaceId: workspaceIdPublicValue,
 	}, nil
 }
 
@@ -2274,6 +3217,40 @@ type ipAccessListWire struct {
 	Enabled      *bool            `json:"enabled,omitempty"`
 }
 
+func ipAccessListToWire(v *IpAccessList) (*ipAccessListWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "IpAccessList.CreatedAt", err)
+	}
+	createdByWireValue, err := int64ToWire(v.CreatedBy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "IpAccessList.CreatedBy", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "IpAccessList.UpdatedAt", err)
+	}
+	updatedByWireValue, err := int64ToWire(v.UpdatedBy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "IpAccessList.UpdatedBy", err)
+	}
+	return &ipAccessListWire{
+		ListId:       v.ListId,
+		Label:        v.Label,
+		IpAddresses:  v.IpAddresses,
+		AddressCount: v.AddressCount,
+		ListType:     v.ListType,
+		CreatedAt:    createdAtWireValue,
+		CreatedBy:    createdByWireValue,
+		UpdatedAt:    updatedAtWireValue,
+		UpdatedBy:    updatedByWireValue,
+		Enabled:      v.Enabled,
+	}, nil
+}
+
 func ipAccessListFromWire(w *ipAccessListWire) (*IpAccessList, error) {
 	if w == nil {
 		return nil, nil
@@ -2308,8 +3285,43 @@ func ipAccessListFromWire(w *ipAccessListWire) (*IpAccessList, error) {
 	}, nil
 }
 
+type listAccountIpAccessListsRequestWire struct {
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func listAccountIpAccessListsRequestToWire(v *ListAccountIpAccessListsRequest) (*listAccountIpAccessListsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listAccountIpAccessListsRequestWire{
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func listAccountIpAccessListsRequestFromWire(w *listAccountIpAccessListsRequestWire) (*ListAccountIpAccessListsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListAccountIpAccessListsRequest{
+		AccountId: w.AccountId,
+	}, nil
+}
+
 type listAccountIpAccessListsResponseWire struct {
 	IpAccessLists []accountIpAccessListWire `json:"ip_access_lists,omitempty"`
+}
+
+func listAccountIpAccessListsResponseToWire(v *ListAccountIpAccessListsResponse) (*listAccountIpAccessListsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	ipAccessListsWireValue, err := convertSlice(v.IpAccessLists, accountIpAccessListToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountIpAccessListsResponse.IpAccessLists", err)
+	}
+	return &listAccountIpAccessListsResponseWire{
+		IpAccessLists: ipAccessListsWireValue,
+	}, nil
 }
 
 func listAccountIpAccessListsResponseFromWire(w *listAccountIpAccessListsResponseWire) (*ListAccountIpAccessListsResponse, error) {
@@ -2342,9 +3354,34 @@ func listEndpointsRequestToWire(v *ListEndpointsRequest) (*listEndpointsRequestW
 	}, nil
 }
 
+func listEndpointsRequestFromWire(w *listEndpointsRequestWire) (*ListEndpointsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListEndpointsRequest{
+		Parent:    w.Parent,
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listEndpointsResponseWire struct {
 	Items         []endpointWire `json:"items,omitempty"`
 	NextPageToken *string        `json:"next_page_token,omitempty"`
+}
+
+func listEndpointsResponseToWire(v *ListEndpointsResponse) (*listEndpointsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	itemsWireValue, err := convertSlice(v.Items, endpointToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListEndpointsResponse.Items", err)
+	}
+	return &listEndpointsResponseWire{
+		Items:         itemsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listEndpointsResponseFromWire(w *listEndpointsResponseWire) (*ListEndpointsResponse, error) {
@@ -2361,8 +3398,38 @@ func listEndpointsResponseFromWire(w *listEndpointsResponseWire) (*ListEndpoints
 	}, nil
 }
 
+type listIpAccessListsWire struct {
+}
+
+func listIpAccessListsToWire(v *ListIpAccessLists) (*listIpAccessListsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listIpAccessListsWire{}, nil
+}
+
+func listIpAccessListsFromWire(w *listIpAccessListsWire) (*ListIpAccessLists, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListIpAccessLists{}, nil
+}
+
 type listIpAccessListsResponseWire struct {
 	IpAccessLists []ipAccessListWire `json:"ip_access_lists,omitempty"`
+}
+
+func listIpAccessListsResponseToWire(v *ListIpAccessListsResponse) (*listIpAccessListsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	ipAccessListsWireValue, err := convertSlice(v.IpAccessLists, ipAccessListToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListIpAccessListsResponse.IpAccessLists", err)
+	}
+	return &listIpAccessListsResponseWire{
+		IpAccessLists: ipAccessListsWireValue,
+	}, nil
 }
 
 func listIpAccessListsResponseFromWire(w *listIpAccessListsResponseWire) (*ListIpAccessListsResponse, error) {
@@ -2395,9 +3462,34 @@ func listNccPrivateEndpointRulesRequestToWire(v *ListNccPrivateEndpointRulesRequ
 	}, nil
 }
 
+func listNccPrivateEndpointRulesRequestFromWire(w *listNccPrivateEndpointRulesRequestWire) (*ListNccPrivateEndpointRulesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListNccPrivateEndpointRulesRequest{
+		AccountId:                   w.AccountId,
+		NetworkConnectivityConfigId: w.NetworkConnectivityConfigId,
+		PageToken:                   w.PageToken,
+	}, nil
+}
+
 type listNccPrivateEndpointRulesResponseWire struct {
 	Items         []nccPrivateEndpointRuleWire `json:"items,omitempty"`
 	NextPageToken *string                      `json:"next_page_token,omitempty"`
+}
+
+func listNccPrivateEndpointRulesResponseToWire(v *ListNccPrivateEndpointRulesResponse) (*listNccPrivateEndpointRulesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	itemsWireValue, err := convertSlice(v.Items, nccPrivateEndpointRuleToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListNccPrivateEndpointRulesResponse.Items", err)
+	}
+	return &listNccPrivateEndpointRulesResponseWire{
+		Items:         itemsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listNccPrivateEndpointRulesResponseFromWire(w *listNccPrivateEndpointRulesResponseWire) (*ListNccPrivateEndpointRulesResponse, error) {
@@ -2429,9 +3521,33 @@ func listNetworkConnectivityConfigsRequestToWire(v *ListNetworkConnectivityConfi
 	}, nil
 }
 
+func listNetworkConnectivityConfigsRequestFromWire(w *listNetworkConnectivityConfigsRequestWire) (*ListNetworkConnectivityConfigsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListNetworkConnectivityConfigsRequest{
+		AccountId: w.AccountId,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listNetworkConnectivityConfigsResponseWire struct {
 	Items         []networkConnectivityConfigWire `json:"items,omitempty"`
 	NextPageToken *string                         `json:"next_page_token,omitempty"`
+}
+
+func listNetworkConnectivityConfigsResponseToWire(v *ListNetworkConnectivityConfigsResponse) (*listNetworkConnectivityConfigsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	itemsWireValue, err := convertSlice(v.Items, networkConnectivityConfigToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListNetworkConnectivityConfigsResponse.Items", err)
+	}
+	return &listNetworkConnectivityConfigsResponseWire{
+		Items:         itemsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listNetworkConnectivityConfigsResponseFromWire(w *listNetworkConnectivityConfigsResponseWire) (*ListNetworkConnectivityConfigsResponse, error) {
@@ -2463,9 +3579,33 @@ func listNetworkPoliciesRequestToWire(v *ListNetworkPoliciesRequest) (*listNetwo
 	}, nil
 }
 
+func listNetworkPoliciesRequestFromWire(w *listNetworkPoliciesRequestWire) (*ListNetworkPoliciesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListNetworkPoliciesRequest{
+		AccountId: w.AccountId,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listNetworkPoliciesResponseWire struct {
 	Items         []accountNetworkPolicyWire `json:"items,omitempty"`
 	NextPageToken *string                    `json:"next_page_token,omitempty"`
+}
+
+func listNetworkPoliciesResponseToWire(v *ListNetworkPoliciesResponse) (*listNetworkPoliciesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	itemsWireValue, err := convertSlice(v.Items, accountNetworkPolicyToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListNetworkPoliciesResponse.Items", err)
+	}
+	return &listNetworkPoliciesResponseWire{
+		Items:         itemsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listNetworkPoliciesResponseFromWire(w *listNetworkPoliciesResponseWire) (*ListNetworkPoliciesResponse, error) {
@@ -2479,6 +3619,110 @@ func listNetworkPoliciesResponseFromWire(w *listNetworkPoliciesResponseWire) (*L
 	return &ListNetworkPoliciesResponse{
 		Items:         itemsPublicValue,
 		NextPageToken: w.NextPageToken,
+	}, nil
+}
+
+type listNetworkRequestWire struct {
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func listNetworkRequestToWire(v *ListNetworkRequest) (*listNetworkRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listNetworkRequestWire{
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func listNetworkRequestFromWire(w *listNetworkRequestWire) (*ListNetworkRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListNetworkRequest{
+		AccountId: w.AccountId,
+	}, nil
+}
+
+type listNetworkResponseWire struct {
+	Networks []networkWire `json:"networks,omitempty"`
+}
+
+func listNetworkResponseToWire(v *ListNetworkResponse) (*listNetworkResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	networksWireValue, err := convertSlice(v.Networks, networkToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListNetworkResponse.Networks", err)
+	}
+	return &listNetworkResponseWire{
+		Networks: networksWireValue,
+	}, nil
+}
+
+func listNetworkResponseFromWire(w *listNetworkResponseWire) (*ListNetworkResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	networksPublicValue, err := convertSlice(w.Networks, networkFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListNetworkResponse.Networks", err)
+	}
+	return &ListNetworkResponse{
+		Networks: networksPublicValue,
+	}, nil
+}
+
+type listPrivateAccessSettingsRequestWire struct {
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func listPrivateAccessSettingsRequestToWire(v *ListPrivateAccessSettingsRequest) (*listPrivateAccessSettingsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listPrivateAccessSettingsRequestWire{
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func listPrivateAccessSettingsRequestFromWire(w *listPrivateAccessSettingsRequestWire) (*ListPrivateAccessSettingsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListPrivateAccessSettingsRequest{
+		AccountId: w.AccountId,
+	}, nil
+}
+
+type listPrivateAccessSettingsResponseWire struct {
+	PrivateAccessSettings []privateAccessSettingsWire `json:"private_access_settings,omitempty"`
+}
+
+func listPrivateAccessSettingsResponseToWire(v *ListPrivateAccessSettingsResponse) (*listPrivateAccessSettingsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	privateAccessSettingsWireValue, err := convertSlice(v.PrivateAccessSettings, privateAccessSettingsToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListPrivateAccessSettingsResponse.PrivateAccessSettings", err)
+	}
+	return &listPrivateAccessSettingsResponseWire{
+		PrivateAccessSettings: privateAccessSettingsWireValue,
+	}, nil
+}
+
+func listPrivateAccessSettingsResponseFromWire(w *listPrivateAccessSettingsResponseWire) (*ListPrivateAccessSettingsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	privateAccessSettingsPublicValue, err := convertSlice(w.PrivateAccessSettings, privateAccessSettingsFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListPrivateAccessSettingsResponse.PrivateAccessSettings", err)
+	}
+	return &ListPrivateAccessSettingsResponse{
+		PrivateAccessSettings: privateAccessSettingsPublicValue,
 	}, nil
 }
 
@@ -2497,9 +3741,33 @@ func listPrivateNetworkGatewaysRequestToWire(v *ListPrivateNetworkGatewaysReques
 	}, nil
 }
 
+func listPrivateNetworkGatewaysRequestFromWire(w *listPrivateNetworkGatewaysRequestWire) (*ListPrivateNetworkGatewaysRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListPrivateNetworkGatewaysRequest{
+		Parent:    w.Parent,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listPrivateNetworkGatewaysResponseWire struct {
 	PrivateNetworkGateways []privateNetworkGatewayWire `json:"private_network_gateways,omitempty"`
 	NextPageToken          *string                     `json:"next_page_token,omitempty"`
+}
+
+func listPrivateNetworkGatewaysResponseToWire(v *ListPrivateNetworkGatewaysResponse) (*listPrivateNetworkGatewaysResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	privateNetworkGatewaysWireValue, err := convertSlice(v.PrivateNetworkGateways, privateNetworkGatewayToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListPrivateNetworkGatewaysResponse.PrivateNetworkGateways", err)
+	}
+	return &listPrivateNetworkGatewaysResponseWire{
+		PrivateNetworkGateways: privateNetworkGatewaysWireValue,
+		NextPageToken:          v.NextPageToken,
+	}, nil
 }
 
 func listPrivateNetworkGatewaysResponseFromWire(w *listPrivateNetworkGatewaysResponseWire) (*ListPrivateNetworkGatewaysResponse, error) {
@@ -2513,6 +3781,58 @@ func listPrivateNetworkGatewaysResponseFromWire(w *listPrivateNetworkGatewaysRes
 	return &ListPrivateNetworkGatewaysResponse{
 		PrivateNetworkGateways: privateNetworkGatewaysPublicValue,
 		NextPageToken:          w.NextPageToken,
+	}, nil
+}
+
+type listVpcEndpointRequestWire struct {
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func listVpcEndpointRequestToWire(v *ListVpcEndpointRequest) (*listVpcEndpointRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listVpcEndpointRequestWire{
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func listVpcEndpointRequestFromWire(w *listVpcEndpointRequestWire) (*ListVpcEndpointRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListVpcEndpointRequest{
+		AccountId: w.AccountId,
+	}, nil
+}
+
+type listVpcEndpointResponseWire struct {
+	VpcEndpoints []vpcEndpointWire `json:"vpc_endpoints,omitempty"`
+}
+
+func listVpcEndpointResponseToWire(v *ListVpcEndpointResponse) (*listVpcEndpointResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	vpcEndpointsWireValue, err := convertSlice(v.VpcEndpoints, vpcEndpointToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListVpcEndpointResponse.VpcEndpoints", err)
+	}
+	return &listVpcEndpointResponseWire{
+		VpcEndpoints: vpcEndpointsWireValue,
+	}, nil
+}
+
+func listVpcEndpointResponseFromWire(w *listVpcEndpointResponseWire) (*ListVpcEndpointResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	vpcEndpointsPublicValue, err := convertSlice(w.VpcEndpoints, vpcEndpointFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListVpcEndpointResponse.VpcEndpoints", err)
+	}
+	return &ListVpcEndpointResponse{
+		VpcEndpoints: vpcEndpointsPublicValue,
 	}, nil
 }
 
@@ -2535,6 +3855,58 @@ type nccPrivateEndpointRuleWire struct {
 	VpcEndpointId               *string                                           `json:"vpc_endpoint_id,omitempty"`
 	Enabled                     *bool                                             `json:"enabled,omitempty"`
 	GcpEndpoint                 *gcpEndpointWire                                  `json:"gcp_endpoint,omitempty"`
+}
+
+func nccPrivateEndpointRuleToWire(v *NccPrivateEndpointRule) (*nccPrivateEndpointRuleWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	creationTimeWireValue, err := int64ToWire(v.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NccPrivateEndpointRule.CreationTime", err)
+	}
+	updatedTimeWireValue, err := int64ToWire(v.UpdatedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NccPrivateEndpointRule.UpdatedTime", err)
+	}
+	deactivatedAtWireValue, err := int64ToWire(v.DeactivatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NccPrivateEndpointRule.DeactivatedAt", err)
+	}
+	var endpointGcpEndpointWire *gcpEndpointWire
+	switch value := v.Endpoint.(type) {
+	case nil:
+	case *NccPrivateEndpointRule_Endpoint_GcpEndpoint:
+		if value != nil {
+			endpointGcpEndpointConverted, err := gcpEndpointToWire(&value.GcpEndpoint)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "NccPrivateEndpointRule.Endpoint.GcpEndpoint", err)
+			}
+			endpointGcpEndpointWire = endpointGcpEndpointConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "NccPrivateEndpointRule.Endpoint", value)
+	}
+	return &nccPrivateEndpointRuleWire{
+		RuleId:                      v.RuleId,
+		NetworkConnectivityConfigId: v.NetworkConnectivityConfigId,
+		ConnectionState:             v.ConnectionState,
+		DomainNames:                 v.DomainNames,
+		CreationTime:                creationTimeWireValue,
+		UpdatedTime:                 updatedTimeWireValue,
+		Deactivated:                 v.Deactivated,
+		DeactivatedAt:               deactivatedAtWireValue,
+		ErrorMessage:                v.ErrorMessage,
+		ResourceId:                  v.ResourceId,
+		GroupId:                     v.GroupId,
+		EndpointName:                v.EndpointName,
+		AccountId:                   v.AccountId,
+		EndpointService:             v.EndpointService,
+		ResourceNames:               v.ResourceNames,
+		VpcEndpointId:               v.VpcEndpointId,
+		Enabled:                     v.Enabled,
+		GcpEndpoint:                 endpointGcpEndpointWire,
+	}, nil
 }
 
 func nccPrivateEndpointRuleFromWire(w *nccPrivateEndpointRuleWire) (*NccPrivateEndpointRule, error) {
@@ -2605,6 +3977,61 @@ type networkWire struct {
 	WarningMessages  []networkWarningWire     `json:"warning_messages,omitempty"`
 	VpcEndpoints     *networkVpcEndpointsWire `json:"vpc_endpoints,omitempty"`
 	GcpNetworkInfo   *gcpNetworkInfoWire      `json:"gcp_network_info,omitempty"`
+}
+
+func networkToWire(v *Network) (*networkWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Network.WorkspaceId", err)
+	}
+	errorMessagesWireValue, err := convertSlice(v.ErrorMessages, networkHealthToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Network.ErrorMessages", err)
+	}
+	creationTimeWireValue, err := int64ToWire(v.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Network.CreationTime", err)
+	}
+	warningMessagesWireValue, err := convertSlice(v.WarningMessages, networkWarningToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Network.WarningMessages", err)
+	}
+	vpcEndpointsWireValue, err := networkVpcEndpointsToWire(v.VpcEndpoints)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Network.VpcEndpoints", err)
+	}
+	var networkInfoGcpNetworkInfoWire *gcpNetworkInfoWire
+	switch value := v.NetworkInfo.(type) {
+	case nil:
+	case *Network_NetworkInfo_GcpNetworkInfo:
+		if value != nil {
+			networkInfoGcpNetworkInfoConverted, err := gcpNetworkInfoToWire(&value.GcpNetworkInfo)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Network.NetworkInfo.GcpNetworkInfo", err)
+			}
+			networkInfoGcpNetworkInfoWire = networkInfoGcpNetworkInfoConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Network.NetworkInfo", value)
+	}
+	return &networkWire{
+		NetworkId:        v.NetworkId,
+		AccountId:        v.AccountId,
+		WorkspaceId:      workspaceIdWireValue,
+		VpcId:            v.VpcId,
+		SubnetIds:        v.SubnetIds,
+		SecurityGroupIds: v.SecurityGroupIds,
+		VpcStatus:        v.VpcStatus,
+		ErrorMessages:    errorMessagesWireValue,
+		NetworkName:      v.NetworkName,
+		CreationTime:     creationTimeWireValue,
+		WarningMessages:  warningMessagesWireValue,
+		VpcEndpoints:     vpcEndpointsWireValue,
+		GcpNetworkInfo:   networkInfoGcpNetworkInfoWire,
+	}, nil
 }
 
 func networkFromWire(w *networkWire) (*Network, error) {
@@ -2903,6 +4330,23 @@ func networkConnectivityConfigAzurePrivateEndpointRuleFromWire(w *networkConnect
 	}, nil
 }
 
+type networkConnectivityConfigEgressConfigWire struct {
+}
+
+func networkConnectivityConfigEgressConfigToWire(v *NetworkConnectivityConfigEgressConfig) (*networkConnectivityConfigEgressConfigWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &networkConnectivityConfigEgressConfigWire{}, nil
+}
+
+func networkConnectivityConfigEgressConfigFromWire(w *networkConnectivityConfigEgressConfigWire) (*NetworkConnectivityConfigEgressConfig, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &NetworkConnectivityConfigEgressConfig{}, nil
+}
+
 type networkConnectivityConfigEgressConfig_DefaultRuleWire struct {
 	AzureServiceEndpointRule *networkConnectivityConfigEgressConfig_DefaultRule_AzureServiceEndpointRuleWire `json:"azure_service_endpoint_rule,omitempty"`
 	AwsStableIpRule          *networkConnectivityConfigEgressConfig_DefaultRule_AwsStableIpRuleWire          `json:"aws_stable_ip_rule,omitempty"`
@@ -2999,6 +4443,16 @@ type networkHealthWire struct {
 	ErrorMessage *string `json:"error_message,omitempty"`
 }
 
+func networkHealthToWire(v *NetworkHealth) (*networkHealthWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &networkHealthWire{
+		ErrorType:    v.ErrorType,
+		ErrorMessage: v.ErrorMessage,
+	}, nil
+}
+
 func networkHealthFromWire(w *networkHealthWire) (*NetworkHealth, error) {
 	if w == nil {
 		return nil, nil
@@ -3039,6 +4493,16 @@ type networkWarningWire struct {
 	WarningMessage *string `json:"warning_message,omitempty"`
 }
 
+func networkWarningToWire(v *NetworkWarning) (*networkWarningWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &networkWarningWire{
+		WarningType:    v.WarningType,
+		WarningMessage: v.WarningMessage,
+	}, nil
+}
+
 func networkWarningFromWire(w *networkWarningWire) (*NetworkWarning, error) {
 	if w == nil {
 		return nil, nil
@@ -3055,6 +4519,38 @@ type operationWire struct {
 	Done     *bool           `json:"done,omitempty"`
 	Error    *apiErrorWire   `json:"error,omitempty"`
 	Response json.RawMessage `json:"response,omitempty"`
+}
+
+func operationToWire(v *Operation) (*operationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var resultErrorWire *apiErrorWire
+	var resultResponseWire json.RawMessage
+	switch value := v.Result.(type) {
+	case nil:
+	case *Operation_Result_Error:
+		if value != nil {
+			resultErrorConverted, err := apiErrorToWire(&value.Error)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Operation.Result.Error", err)
+			}
+			resultErrorWire = resultErrorConverted
+		}
+	case *Operation_Result_Response:
+		if value != nil {
+			resultResponseWire = value.Response
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Operation.Result", value)
+	}
+	return &operationWire{
+		Name:     v.Name,
+		Metadata: v.Metadata,
+		Done:     v.Done,
+		Error:    resultErrorWire,
+		Response: resultResponseWire,
+	}, nil
 }
 
 func operationFromWire(w *operationWire) (*Operation, error) {
@@ -3442,6 +4938,15 @@ type privateNetworkGatewayOperationMetadataWire struct {
 	OperationType PrivateNetworkGatewayOperationMetadata_OperationType `json:"operation_type,omitempty"`
 }
 
+func privateNetworkGatewayOperationMetadataToWire(v *PrivateNetworkGatewayOperationMetadata) (*privateNetworkGatewayOperationMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &privateNetworkGatewayOperationMetadataWire{
+		OperationType: v.OperationType,
+	}, nil
+}
+
 func privateNetworkGatewayOperationMetadataFromWire(w *privateNetworkGatewayOperationMetadataWire) (*PrivateNetworkGatewayOperationMetadata, error) {
 	if w == nil {
 		return nil, nil
@@ -3474,8 +4979,35 @@ func replaceAccountIpAccessListRequestToWire(v *ReplaceAccountIpAccessListReques
 	}, nil
 }
 
+func replaceAccountIpAccessListRequestFromWire(w *replaceAccountIpAccessListRequestWire) (*ReplaceAccountIpAccessListRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ReplaceAccountIpAccessListRequest{
+		AccountId:   w.AccountId,
+		ListId:      w.ListId,
+		Label:       w.Label,
+		ListType:    w.ListType,
+		IpAddresses: w.IpAddresses,
+		Enabled:     w.Enabled,
+	}, nil
+}
+
 type replaceAccountIpAccessListResponseWire struct {
 	IpAccessList *accountIpAccessListWire `json:"ip_access_list,omitempty"`
+}
+
+func replaceAccountIpAccessListResponseToWire(v *ReplaceAccountIpAccessListResponse) (*replaceAccountIpAccessListResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	ipAccessListWireValue, err := accountIpAccessListToWire(v.IpAccessList)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ReplaceAccountIpAccessListResponse.IpAccessList", err)
+	}
+	return &replaceAccountIpAccessListResponseWire{
+		IpAccessList: ipAccessListWireValue,
+	}, nil
 }
 
 func replaceAccountIpAccessListResponseFromWire(w *replaceAccountIpAccessListResponseWire) (*ReplaceAccountIpAccessListResponse, error) {
@@ -3512,8 +5044,34 @@ func replaceIpAccessListRequestToWire(v *ReplaceIpAccessListRequest) (*replaceIp
 	}, nil
 }
 
+func replaceIpAccessListRequestFromWire(w *replaceIpAccessListRequestWire) (*ReplaceIpAccessListRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ReplaceIpAccessListRequest{
+		ListId:      w.ListId,
+		Label:       w.Label,
+		ListType:    w.ListType,
+		IpAddresses: w.IpAddresses,
+		Enabled:     w.Enabled,
+	}, nil
+}
+
 type replaceIpAccessListResponseWire struct {
 	IpAccessList *ipAccessListWire `json:"ip_access_list,omitempty"`
+}
+
+func replaceIpAccessListResponseToWire(v *ReplaceIpAccessListResponse) (*replaceIpAccessListResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	ipAccessListWireValue, err := ipAccessListToWire(v.IpAccessList)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ReplaceIpAccessListResponse.IpAccessList", err)
+	}
+	return &replaceIpAccessListResponseWire{
+		IpAccessList: ipAccessListWireValue,
+	}, nil
 }
 
 func replaceIpAccessListResponseFromWire(w *replaceIpAccessListResponseWire) (*ReplaceIpAccessListResponse, error) {
@@ -3552,8 +5110,35 @@ func updateAccountIpAccessListRequestToWire(v *UpdateAccountIpAccessListRequest)
 	}, nil
 }
 
+func updateAccountIpAccessListRequestFromWire(w *updateAccountIpAccessListRequestWire) (*UpdateAccountIpAccessListRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpdateAccountIpAccessListRequest{
+		AccountId:   w.AccountId,
+		ListId:      w.ListId,
+		Label:       w.Label,
+		ListType:    w.ListType,
+		IpAddresses: w.IpAddresses,
+		Enabled:     w.Enabled,
+	}, nil
+}
+
 type updateAccountIpAccessListResponseWire struct {
 	IpAccessList *accountIpAccessListWire `json:"ip_access_list,omitempty"`
+}
+
+func updateAccountIpAccessListResponseToWire(v *UpdateAccountIpAccessListResponse) (*updateAccountIpAccessListResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	ipAccessListWireValue, err := accountIpAccessListToWire(v.IpAccessList)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccountIpAccessListResponse.IpAccessList", err)
+	}
+	return &updateAccountIpAccessListResponseWire{
+		IpAccessList: ipAccessListWireValue,
+	}, nil
 }
 
 func updateAccountIpAccessListResponseFromWire(w *updateAccountIpAccessListResponseWire) (*UpdateAccountIpAccessListResponse, error) {
@@ -3590,8 +5175,34 @@ func updateIpAccessListRequestToWire(v *UpdateIpAccessListRequest) (*updateIpAcc
 	}, nil
 }
 
+func updateIpAccessListRequestFromWire(w *updateIpAccessListRequestWire) (*UpdateIpAccessListRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpdateIpAccessListRequest{
+		ListId:      w.ListId,
+		Label:       w.Label,
+		ListType:    w.ListType,
+		IpAddresses: w.IpAddresses,
+		Enabled:     w.Enabled,
+	}, nil
+}
+
 type updateIpAccessListResponseWire struct {
 	IpAccessList *ipAccessListWire `json:"ip_access_list,omitempty"`
+}
+
+func updateIpAccessListResponseToWire(v *UpdateIpAccessListResponse) (*updateIpAccessListResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	ipAccessListWireValue, err := ipAccessListToWire(v.IpAccessList)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateIpAccessListResponse.IpAccessList", err)
+	}
+	return &updateIpAccessListResponseWire{
+		IpAccessList: ipAccessListWireValue,
+	}, nil
 }
 
 func updateIpAccessListResponseFromWire(w *updateIpAccessListResponseWire) (*UpdateIpAccessListResponse, error) {
@@ -3608,11 +5219,11 @@ func updateIpAccessListResponseFromWire(w *updateIpAccessListResponseWire) (*Upd
 }
 
 type updateNccPrivateEndpointRuleRequestWire struct {
-	NetworkConnectivityConfigId *string                        `json:"network_connectivity_config_id,omitempty"`
-	AccountId                   *string                        `json:"account_id,omitempty"`
-	PrivateEndpointRuleId       *string                        `json:"private_endpoint_rule_id,omitempty"`
-	PrivateEndpointRule         *updatePrivateEndpointRuleWire `json:"private_endpoint_rule,omitempty"`
-	UpdateMask                  *string                        `json:"update_mask,omitempty"`
+	NetworkConnectivityConfigId *string                                     `json:"network_connectivity_config_id,omitempty"`
+	AccountId                   *string                                     `json:"account_id,omitempty"`
+	PrivateEndpointRuleId       *string                                     `json:"private_endpoint_rule_id,omitempty"`
+	PrivateEndpointRule         *updatePrivateEndpointRuleWire              `json:"private_endpoint_rule,omitempty"`
+	UpdateMask                  *types.FieldMask[UpdatePrivateEndpointRule] `json:"update_mask,omitempty"`
 }
 
 func updateNccPrivateEndpointRuleRequestToWire(v *UpdateNccPrivateEndpointRuleRequest) (*updateNccPrivateEndpointRuleRequestWire, error) {
@@ -3628,15 +5239,32 @@ func updateNccPrivateEndpointRuleRequestToWire(v *UpdateNccPrivateEndpointRuleRe
 		AccountId:                   v.AccountId,
 		PrivateEndpointRuleId:       v.PrivateEndpointRuleId,
 		PrivateEndpointRule:         privateEndpointRuleWireValue,
-		UpdateMask:                  fieldMaskToWire(v.UpdateMask),
+		UpdateMask:                  v.UpdateMask,
+	}, nil
+}
+
+func updateNccPrivateEndpointRuleRequestFromWire(w *updateNccPrivateEndpointRuleRequestWire) (*UpdateNccPrivateEndpointRuleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	privateEndpointRulePublicValue, err := updatePrivateEndpointRuleFromWire(w.PrivateEndpointRule)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateNccPrivateEndpointRuleRequest.PrivateEndpointRule", err)
+	}
+	return &UpdateNccPrivateEndpointRuleRequest{
+		NetworkConnectivityConfigId: w.NetworkConnectivityConfigId,
+		AccountId:                   w.AccountId,
+		PrivateEndpointRuleId:       w.PrivateEndpointRuleId,
+		PrivateEndpointRule:         privateEndpointRulePublicValue,
+		UpdateMask:                  w.UpdateMask,
 	}, nil
 }
 
 type updateNetworkConnectivityConfigRequestWire struct {
-	AccountId                   *string                        `json:"account_id,omitempty"`
-	NetworkConnectivityConfigId *string                        `json:"network_connectivity_config_id,omitempty"`
-	NetworkConnectivityConfig   *networkConnectivityConfigWire `json:"network_connectivity_config,omitempty"`
-	UpdateMask                  *string                        `json:"update_mask,omitempty"`
+	AccountId                   *string                                     `json:"account_id,omitempty"`
+	NetworkConnectivityConfigId *string                                     `json:"network_connectivity_config_id,omitempty"`
+	NetworkConnectivityConfig   *networkConnectivityConfigWire              `json:"network_connectivity_config,omitempty"`
+	UpdateMask                  *types.FieldMask[NetworkConnectivityConfig] `json:"update_mask,omitempty"`
 }
 
 func updateNetworkConnectivityConfigRequestToWire(v *UpdateNetworkConnectivityConfigRequest) (*updateNetworkConnectivityConfigRequestWire, error) {
@@ -3651,7 +5279,23 @@ func updateNetworkConnectivityConfigRequestToWire(v *UpdateNetworkConnectivityCo
 		AccountId:                   v.AccountId,
 		NetworkConnectivityConfigId: v.NetworkConnectivityConfigId,
 		NetworkConnectivityConfig:   networkConnectivityConfigWireValue,
-		UpdateMask:                  fieldMaskToWire(v.UpdateMask),
+		UpdateMask:                  v.UpdateMask,
+	}, nil
+}
+
+func updateNetworkConnectivityConfigRequestFromWire(w *updateNetworkConnectivityConfigRequestWire) (*UpdateNetworkConnectivityConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	networkConnectivityConfigPublicValue, err := networkConnectivityConfigFromWire(w.NetworkConnectivityConfig)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateNetworkConnectivityConfigRequest.NetworkConnectivityConfig", err)
+	}
+	return &UpdateNetworkConnectivityConfigRequest{
+		AccountId:                   w.AccountId,
+		NetworkConnectivityConfigId: w.NetworkConnectivityConfigId,
+		NetworkConnectivityConfig:   networkConnectivityConfigPublicValue,
+		UpdateMask:                  w.UpdateMask,
 	}, nil
 }
 
@@ -3676,6 +5320,21 @@ func updateNetworkPolicyRequestToWire(v *UpdateNetworkPolicyRequest) (*updateNet
 	}, nil
 }
 
+func updateNetworkPolicyRequestFromWire(w *updateNetworkPolicyRequestWire) (*UpdateNetworkPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	networkPolicyPublicValue, err := accountNetworkPolicyFromWire(w.NetworkPolicy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateNetworkPolicyRequest.NetworkPolicy", err)
+	}
+	return &UpdateNetworkPolicyRequest{
+		NetworkPolicyId: w.NetworkPolicyId,
+		AccountId:       w.AccountId,
+		NetworkPolicy:   networkPolicyPublicValue,
+	}, nil
+}
+
 type updatePrivateAccessSettingsRequestWire struct {
 	CustomerFacingPrivateAccessSettings *privateAccessSettingsWire `json:"customer_facing_private_access_settings,omitempty"`
 }
@@ -3690,6 +5349,19 @@ func updatePrivateAccessSettingsRequestToWire(v *UpdatePrivateAccessSettingsRequ
 	}
 	return &updatePrivateAccessSettingsRequestWire{
 		CustomerFacingPrivateAccessSettings: customerFacingPrivateAccessSettingsWireValue,
+	}, nil
+}
+
+func updatePrivateAccessSettingsRequestFromWire(w *updatePrivateAccessSettingsRequestWire) (*UpdatePrivateAccessSettingsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	customerFacingPrivateAccessSettingsPublicValue, err := privateAccessSettingsFromWire(w.CustomerFacingPrivateAccessSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdatePrivateAccessSettingsRequest.CustomerFacingPrivateAccessSettings", err)
+	}
+	return &UpdatePrivateAccessSettingsRequest{
+		CustomerFacingPrivateAccessSettings: customerFacingPrivateAccessSettingsPublicValue,
 	}, nil
 }
 
@@ -3766,9 +5438,63 @@ func updatePrivateEndpointRuleToWire(v *UpdatePrivateEndpointRule) (*updatePriva
 	}, nil
 }
 
+func updatePrivateEndpointRuleFromWire(w *updatePrivateEndpointRuleWire) (*UpdatePrivateEndpointRule, error) {
+	if w == nil {
+		return nil, nil
+	}
+	endpointMembers := 0
+	if w.GcpEndpoint != nil {
+		endpointMembers++
+	}
+	if endpointMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "UpdatePrivateEndpointRule.Endpoint")
+	}
+	creationTimePublicValue, err := int64FromWire(w.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdatePrivateEndpointRule.CreationTime", err)
+	}
+	updatedTimePublicValue, err := int64FromWire(w.UpdatedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdatePrivateEndpointRule.UpdatedTime", err)
+	}
+	deactivatedAtPublicValue, err := int64FromWire(w.DeactivatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdatePrivateEndpointRule.DeactivatedAt", err)
+	}
+	var endpointSelection isUpdatePrivateEndpointRule_Endpoint
+	switch {
+	case w.GcpEndpoint != nil:
+		endpointGcpEndpointConverted, err := gcpEndpointFromWire(w.GcpEndpoint)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "UpdatePrivateEndpointRule.Endpoint.GcpEndpoint", err)
+		}
+		endpointSelection = &UpdatePrivateEndpointRule_Endpoint_GcpEndpoint{GcpEndpoint: *endpointGcpEndpointConverted}
+	}
+	return &UpdatePrivateEndpointRule{
+		RuleId:                      w.RuleId,
+		NetworkConnectivityConfigId: w.NetworkConnectivityConfigId,
+		ConnectionState:             w.ConnectionState,
+		DomainNames:                 w.DomainNames,
+		CreationTime:                creationTimePublicValue,
+		UpdatedTime:                 updatedTimePublicValue,
+		Deactivated:                 w.Deactivated,
+		DeactivatedAt:               deactivatedAtPublicValue,
+		ErrorMessage:                w.ErrorMessage,
+		ResourceId:                  w.ResourceId,
+		GroupId:                     w.GroupId,
+		EndpointName:                w.EndpointName,
+		AccountId:                   w.AccountId,
+		EndpointService:             w.EndpointService,
+		ResourceNames:               w.ResourceNames,
+		VpcEndpointId:               w.VpcEndpointId,
+		Enabled:                     w.Enabled,
+		Endpoint:                    endpointSelection,
+	}, nil
+}
+
 type updatePrivateNetworkGatewayRequestWire struct {
-	PrivateNetworkGateway *privateNetworkGatewayWire `json:"private_network_gateway,omitempty"`
-	UpdateMask            *string                    `json:"update_mask,omitempty"`
+	PrivateNetworkGateway *privateNetworkGatewayWire              `json:"private_network_gateway,omitempty"`
+	UpdateMask            *types.FieldMask[PrivateNetworkGateway] `json:"update_mask,omitempty"`
 }
 
 func updatePrivateNetworkGatewayRequestToWire(v *UpdatePrivateNetworkGatewayRequest) (*updatePrivateNetworkGatewayRequestWire, error) {
@@ -3781,7 +5507,21 @@ func updatePrivateNetworkGatewayRequestToWire(v *UpdatePrivateNetworkGatewayRequ
 	}
 	return &updatePrivateNetworkGatewayRequestWire{
 		PrivateNetworkGateway: privateNetworkGatewayWireValue,
-		UpdateMask:            fieldMaskToWire(v.UpdateMask),
+		UpdateMask:            v.UpdateMask,
+	}, nil
+}
+
+func updatePrivateNetworkGatewayRequestFromWire(w *updatePrivateNetworkGatewayRequestWire) (*UpdatePrivateNetworkGatewayRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	privateNetworkGatewayPublicValue, err := privateNetworkGatewayFromWire(w.PrivateNetworkGateway)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdatePrivateNetworkGatewayRequest.PrivateNetworkGateway", err)
+	}
+	return &UpdatePrivateNetworkGatewayRequest{
+		PrivateNetworkGateway: privateNetworkGatewayPublicValue,
+		UpdateMask:            w.UpdateMask,
 	}, nil
 }
 
@@ -3810,6 +5550,25 @@ func updateWorkspaceNetworkOptionRequestToWire(v *UpdateWorkspaceNetworkOptionRe
 	}, nil
 }
 
+func updateWorkspaceNetworkOptionRequestFromWire(w *updateWorkspaceNetworkOptionRequestWire) (*UpdateWorkspaceNetworkOptionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	workspaceIdPublicValue, err := int64FromWire(w.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateWorkspaceNetworkOptionRequest.WorkspaceId", err)
+	}
+	workspaceNetworkOptionPublicValue, err := workspaceNetworkOptionFromWire(w.WorkspaceNetworkOption)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateWorkspaceNetworkOptionRequest.WorkspaceNetworkOption", err)
+	}
+	return &UpdateWorkspaceNetworkOptionRequest{
+		AccountId:              w.AccountId,
+		WorkspaceId:            workspaceIdPublicValue,
+		WorkspaceNetworkOption: workspaceNetworkOptionPublicValue,
+	}, nil
+}
+
 type vpcEndpointWire struct {
 	VpcEndpointId        *string                 `json:"vpc_endpoint_id,omitempty"`
 	AccountId            *string                 `json:"account_id,omitempty"`
@@ -3821,6 +5580,38 @@ type vpcEndpointWire struct {
 	AwsAccountId         *string                 `json:"aws_account_id,omitempty"`
 	State                *string                 `json:"state,omitempty"`
 	GcpVpcEndpointInfo   *gcpVpcEndpointInfoWire `json:"gcp_vpc_endpoint_info,omitempty"`
+}
+
+func vpcEndpointToWire(v *VpcEndpoint) (*vpcEndpointWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vpcEndpointInfoGcpVpcEndpointInfoWire *gcpVpcEndpointInfoWire
+	switch value := v.VpcEndpointInfo.(type) {
+	case nil:
+	case *VpcEndpoint_VpcEndpointInfo_GcpVpcEndpointInfo:
+		if value != nil {
+			vpcEndpointInfoGcpVpcEndpointInfoConverted, err := gcpVpcEndpointInfoToWire(&value.GcpVpcEndpointInfo)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "VpcEndpoint.VpcEndpointInfo.GcpVpcEndpointInfo", err)
+			}
+			vpcEndpointInfoGcpVpcEndpointInfoWire = vpcEndpointInfoGcpVpcEndpointInfoConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "VpcEndpoint.VpcEndpointInfo", value)
+	}
+	return &vpcEndpointWire{
+		VpcEndpointId:        v.VpcEndpointId,
+		AccountId:            v.AccountId,
+		VpcEndpointName:      v.VpcEndpointName,
+		AwsVpcEndpointId:     v.AwsVpcEndpointId,
+		AwsEndpointServiceId: v.AwsEndpointServiceId,
+		UseCase:              v.UseCase,
+		Region:               v.Region,
+		AwsAccountId:         v.AwsAccountId,
+		State:                v.State,
+		GcpVpcEndpointInfo:   vpcEndpointInfoGcpVpcEndpointInfoWire,
+	}, nil
 }
 
 func vpcEndpointFromWire(w *vpcEndpointWire) (*VpcEndpoint, error) {

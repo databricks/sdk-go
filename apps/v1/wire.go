@@ -54,19 +54,23 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type apiErrorWire struct {
 	ErrorCode  ErrorCode         `json:"error_code,omitempty"`
 	Message    *string           `json:"message,omitempty"`
 	StackTrace *string           `json:"stack_trace,omitempty"`
 	Details    []json.RawMessage `json:"details,omitempty"`
+}
+
+func apiErrorToWire(v *ApiError) (*apiErrorWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &apiErrorWire{
+		ErrorCode:  v.ErrorCode,
+		Message:    v.Message,
+		StackTrace: v.StackTrace,
+		Details:    v.Details,
+	}, nil
 }
 
 func apiErrorFromWire(w *apiErrorWire) (*ApiError, error) {
@@ -1361,6 +1365,42 @@ type appUpdateWire struct {
 	ForwardUserAccessToken      *bool                            `json:"forward_user_access_token,omitempty"`
 }
 
+func appUpdateToWire(v *AppUpdate) (*appUpdateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	statusWireValue, err := appUpdate_UpdateStatusToWire(v.Status)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AppUpdate.Status", err)
+	}
+	resourcesWireValue, err := convertSlice(v.Resources, appResourceToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AppUpdate.Resources", err)
+	}
+	gitRepositoryWireValue, err := gitRepositoryToWire(v.GitRepository)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AppUpdate.GitRepository", err)
+	}
+	telemetryExportDestinationsWireValue, err := convertSlice(v.TelemetryExportDestinations, telemetryExportDestinationToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AppUpdate.TelemetryExportDestinations", err)
+	}
+	return &appUpdateWire{
+		Status:                      statusWireValue,
+		Description:                 v.Description,
+		BudgetPolicyId:              v.BudgetPolicyId,
+		Resources:                   resourcesWireValue,
+		UserApiScopes:               v.UserApiScopes,
+		ComputeSize:                 v.ComputeSize,
+		UsagePolicyId:               v.UsagePolicyId,
+		ComputeMinInstances:         v.ComputeMinInstances,
+		ComputeMaxInstances:         v.ComputeMaxInstances,
+		GitRepository:               gitRepositoryWireValue,
+		TelemetryExportDestinations: telemetryExportDestinationsWireValue,
+		ForwardUserAccessToken:      v.ForwardUserAccessToken,
+	}, nil
+}
+
 func appUpdateFromWire(w *appUpdateWire) (*AppUpdate, error) {
 	if w == nil {
 		return nil, nil
@@ -1402,6 +1442,16 @@ type appUpdate_UpdateStatusWire struct {
 	Message *string                            `json:"message,omitempty"`
 }
 
+func appUpdate_UpdateStatusToWire(v *AppUpdate_UpdateStatus) (*appUpdate_UpdateStatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &appUpdate_UpdateStatusWire{
+		State:   v.State,
+		Message: v.Message,
+	}, nil
+}
+
 func appUpdate_UpdateStatusFromWire(w *appUpdate_UpdateStatusWire) (*AppUpdate_UpdateStatus, error) {
 	if w == nil {
 		return nil, nil
@@ -1441,9 +1491,9 @@ func applicationStatusFromWire(w *applicationStatusWire) (*ApplicationStatus, er
 }
 
 type asyncUpdateAppRequestWire struct {
-	App        *appWire `json:"app,omitempty"`
-	UpdateMask *string  `json:"update_mask,omitempty"`
-	AppName    *string  `json:"app_name,omitempty"`
+	App        *appWire              `json:"app,omitempty"`
+	UpdateMask *types.FieldMask[App] `json:"update_mask,omitempty"`
+	AppName    *string               `json:"app_name,omitempty"`
 }
 
 func asyncUpdateAppRequestToWire(v *AsyncUpdateAppRequest) (*asyncUpdateAppRequestWire, error) {
@@ -1456,8 +1506,23 @@ func asyncUpdateAppRequestToWire(v *AsyncUpdateAppRequest) (*asyncUpdateAppReque
 	}
 	return &asyncUpdateAppRequestWire{
 		App:        appWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
 		AppName:    v.AppName,
+	}, nil
+}
+
+func asyncUpdateAppRequestFromWire(w *asyncUpdateAppRequestWire) (*AsyncUpdateAppRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	appPublicValue, err := appFromWire(w.App)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AsyncUpdateAppRequest.App", err)
+	}
+	return &AsyncUpdateAppRequest{
+		App:        appPublicValue,
+		UpdateMask: w.UpdateMask,
+		AppName:    w.AppName,
 	}, nil
 }
 
@@ -1508,6 +1573,20 @@ func createAppDeploymentRequestToWire(v *CreateAppDeploymentRequest) (*createApp
 	}, nil
 }
 
+func createAppDeploymentRequestFromWire(w *createAppDeploymentRequestWire) (*CreateAppDeploymentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	appDeploymentPublicValue, err := appDeploymentFromWire(w.AppDeployment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAppDeploymentRequest.AppDeployment", err)
+	}
+	return &CreateAppDeploymentRequest{
+		AppName:       w.AppName,
+		AppDeployment: appDeploymentPublicValue,
+	}, nil
+}
+
 type createAppRequestWire struct {
 	App       *appWire `json:"app,omitempty"`
 	NoCompute *bool    `json:"no_compute,omitempty"`
@@ -1524,6 +1603,20 @@ func createAppRequestToWire(v *CreateAppRequest) (*createAppRequestWire, error) 
 	return &createAppRequestWire{
 		App:       appWireValue,
 		NoCompute: v.NoCompute,
+	}, nil
+}
+
+func createAppRequestFromWire(w *createAppRequestWire) (*CreateAppRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	appPublicValue, err := appFromWire(w.App)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAppRequest.App", err)
+	}
+	return &CreateAppRequest{
+		App:       appPublicValue,
+		NoCompute: w.NoCompute,
 	}, nil
 }
 
@@ -1544,6 +1637,19 @@ func createCustomTemplateRequestToWire(v *CreateCustomTemplateRequest) (*createC
 	}, nil
 }
 
+func createCustomTemplateRequestFromWire(w *createCustomTemplateRequestWire) (*CreateCustomTemplateRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	templatePublicValue, err := customTemplateFromWire(w.Template)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCustomTemplateRequest.Template", err)
+	}
+	return &CreateCustomTemplateRequest{
+		Template: templatePublicValue,
+	}, nil
+}
+
 type createSpaceRequestWire struct {
 	Space *spaceWire `json:"space,omitempty"`
 }
@@ -1558,6 +1664,19 @@ func createSpaceRequestToWire(v *CreateSpaceRequest) (*createSpaceRequestWire, e
 	}
 	return &createSpaceRequestWire{
 		Space: spaceWireValue,
+	}, nil
+}
+
+func createSpaceRequestFromWire(w *createSpaceRequestWire) (*CreateSpaceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	spacePublicValue, err := spaceFromWire(w.Space)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateSpaceRequest.Space", err)
+	}
+	return &CreateSpaceRequest{
+		Space: spacePublicValue,
 	}, nil
 }
 
@@ -1606,6 +1725,94 @@ func customTemplateFromWire(w *customTemplateWire) (*CustomTemplate, error) {
 		Manifest:    manifestPublicValue,
 		GitProvider: w.GitProvider,
 		Creator:     w.Creator,
+	}, nil
+}
+
+type deleteAppRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteAppRequestToWire(v *DeleteAppRequest) (*deleteAppRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteAppRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteAppRequestFromWire(w *deleteAppRequestWire) (*DeleteAppRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteAppRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteAppThumbnailRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteAppThumbnailRequestToWire(v *DeleteAppThumbnailRequest) (*deleteAppThumbnailRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteAppThumbnailRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteAppThumbnailRequestFromWire(w *deleteAppThumbnailRequestWire) (*DeleteAppThumbnailRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteAppThumbnailRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteCustomTemplateRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteCustomTemplateRequestToWire(v *DeleteCustomTemplateRequest) (*deleteCustomTemplateRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCustomTemplateRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteCustomTemplateRequestFromWire(w *deleteCustomTemplateRequestWire) (*DeleteCustomTemplateRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCustomTemplateRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteSpaceRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteSpaceRequestToWire(v *DeleteSpaceRequest) (*deleteSpaceRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteSpaceRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteSpaceRequestFromWire(w *deleteSpaceRequestWire) (*DeleteSpaceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteSpaceRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -1665,6 +1872,141 @@ func envVarFromWire(w *envVarWire) (*EnvVar, error) {
 	return &EnvVar{
 		Name:   w.Name,
 		Source: sourceSelection,
+	}, nil
+}
+
+type getAppDeploymentRequestWire struct {
+	AppName      *string `json:"app_name,omitempty"`
+	DeploymentId *string `json:"deployment_id,omitempty"`
+}
+
+func getAppDeploymentRequestToWire(v *GetAppDeploymentRequest) (*getAppDeploymentRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getAppDeploymentRequestWire{
+		AppName:      v.AppName,
+		DeploymentId: v.DeploymentId,
+	}, nil
+}
+
+func getAppDeploymentRequestFromWire(w *getAppDeploymentRequestWire) (*GetAppDeploymentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetAppDeploymentRequest{
+		AppName:      w.AppName,
+		DeploymentId: w.DeploymentId,
+	}, nil
+}
+
+type getAppRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getAppRequestToWire(v *GetAppRequest) (*getAppRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getAppRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getAppRequestFromWire(w *getAppRequestWire) (*GetAppRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetAppRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getAppUpdateRequestWire struct {
+	AppName *string `json:"app_name,omitempty"`
+}
+
+func getAppUpdateRequestToWire(v *GetAppUpdateRequest) (*getAppUpdateRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getAppUpdateRequestWire{
+		AppName: v.AppName,
+	}, nil
+}
+
+func getAppUpdateRequestFromWire(w *getAppUpdateRequestWire) (*GetAppUpdateRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetAppUpdateRequest{
+		AppName: w.AppName,
+	}, nil
+}
+
+type getCustomTemplateRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getCustomTemplateRequestToWire(v *GetCustomTemplateRequest) (*getCustomTemplateRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getCustomTemplateRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getCustomTemplateRequestFromWire(w *getCustomTemplateRequestWire) (*GetCustomTemplateRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCustomTemplateRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getOperationRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getOperationRequestToWire(v *GetOperationRequest) (*getOperationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getOperationRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getOperationRequestFromWire(w *getOperationRequestWire) (*GetOperationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetOperationRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getSpaceRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getSpaceRequestToWire(v *GetSpaceRequest) (*getSpaceRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getSpaceRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getSpaceRequestFromWire(w *getSpaceRequestWire) (*GetSpaceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetSpaceRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -1809,9 +2151,34 @@ func listAppDeploymentsRequestToWire(v *ListAppDeploymentsRequest) (*listAppDepl
 	}, nil
 }
 
+func listAppDeploymentsRequestFromWire(w *listAppDeploymentsRequestWire) (*ListAppDeploymentsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListAppDeploymentsRequest{
+		AppName:   w.AppName,
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listAppDeploymentsResponseWire struct {
 	AppDeployments []appDeploymentWire `json:"app_deployments,omitempty"`
 	NextPageToken  *string             `json:"next_page_token,omitempty"`
+}
+
+func listAppDeploymentsResponseToWire(v *ListAppDeploymentsResponse) (*listAppDeploymentsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	appDeploymentsWireValue, err := convertSlice(v.AppDeployments, appDeploymentToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAppDeploymentsResponse.AppDeployments", err)
+	}
+	return &listAppDeploymentsResponseWire{
+		AppDeployments: appDeploymentsWireValue,
+		NextPageToken:  v.NextPageToken,
+	}, nil
 }
 
 func listAppDeploymentsResponseFromWire(w *listAppDeploymentsResponseWire) (*ListAppDeploymentsResponse, error) {
@@ -1845,9 +2212,34 @@ func listAppsRequestToWire(v *ListAppsRequest) (*listAppsRequestWire, error) {
 	}, nil
 }
 
+func listAppsRequestFromWire(w *listAppsRequestWire) (*ListAppsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListAppsRequest{
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+		Space:     w.Space,
+	}, nil
+}
+
 type listAppsResponseWire struct {
 	Apps          []appWire `json:"apps,omitempty"`
 	NextPageToken *string   `json:"next_page_token,omitempty"`
+}
+
+func listAppsResponseToWire(v *ListAppsResponse) (*listAppsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	appsWireValue, err := convertSlice(v.Apps, appToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAppsResponse.Apps", err)
+	}
+	return &listAppsResponseWire{
+		Apps:          appsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listAppsResponseFromWire(w *listAppsResponseWire) (*ListAppsResponse, error) {
@@ -1879,9 +2271,33 @@ func listCustomTemplatesRequestToWire(v *ListCustomTemplatesRequest) (*listCusto
 	}, nil
 }
 
+func listCustomTemplatesRequestFromWire(w *listCustomTemplatesRequestWire) (*ListCustomTemplatesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListCustomTemplatesRequest{
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listCustomTemplatesResponseWire struct {
 	Templates     []customTemplateWire `json:"templates,omitempty"`
 	NextPageToken *string              `json:"next_page_token,omitempty"`
+}
+
+func listCustomTemplatesResponseToWire(v *ListCustomTemplatesResponse) (*listCustomTemplatesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	templatesWireValue, err := convertSlice(v.Templates, customTemplateToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCustomTemplatesResponse.Templates", err)
+	}
+	return &listCustomTemplatesResponseWire{
+		Templates:     templatesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listCustomTemplatesResponseFromWire(w *listCustomTemplatesResponseWire) (*ListCustomTemplatesResponse, error) {
@@ -1913,9 +2329,33 @@ func listSpacesRequestToWire(v *ListSpacesRequest) (*listSpacesRequestWire, erro
 	}, nil
 }
 
+func listSpacesRequestFromWire(w *listSpacesRequestWire) (*ListSpacesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSpacesRequest{
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listSpacesResponseWire struct {
 	Spaces        []spaceWire `json:"spaces,omitempty"`
 	NextPageToken *string     `json:"next_page_token,omitempty"`
+}
+
+func listSpacesResponseToWire(v *ListSpacesResponse) (*listSpacesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	spacesWireValue, err := convertSlice(v.Spaces, spaceToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSpacesResponse.Spaces", err)
+	}
+	return &listSpacesResponseWire{
+		Spaces:        spacesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listSpacesResponseFromWire(w *listSpacesResponseWire) (*ListSpacesResponse, error) {
@@ -1938,6 +2378,38 @@ type operationWire struct {
 	Done     *bool           `json:"done,omitempty"`
 	Error    *apiErrorWire   `json:"error,omitempty"`
 	Response json.RawMessage `json:"response,omitempty"`
+}
+
+func operationToWire(v *Operation) (*operationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var resultErrorWire *apiErrorWire
+	var resultResponseWire json.RawMessage
+	switch value := v.Result.(type) {
+	case nil:
+	case *Operation_Result_Error:
+		if value != nil {
+			resultErrorConverted, err := apiErrorToWire(&value.Error)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Operation.Result.Error", err)
+			}
+			resultErrorWire = resultErrorConverted
+		}
+	case *Operation_Result_Response:
+		if value != nil {
+			resultResponseWire = value.Response
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Operation.Result", value)
+	}
+	return &operationWire{
+		Name:     v.Name,
+		Metadata: v.Metadata,
+		Done:     v.Done,
+		Error:    resultErrorWire,
+		Response: resultResponseWire,
+	}, nil
 }
 
 func operationFromWire(w *operationWire) (*Operation, error) {
@@ -2100,6 +2572,27 @@ type spaceUpdateWire struct {
 	UsagePolicyId *string                `json:"usage_policy_id,omitempty"`
 }
 
+func spaceUpdateToWire(v *SpaceUpdate) (*spaceUpdateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	statusWireValue, err := spaceUpdateStatusToWire(v.Status)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SpaceUpdate.Status", err)
+	}
+	resourcesWireValue, err := convertSlice(v.Resources, appResourceToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SpaceUpdate.Resources", err)
+	}
+	return &spaceUpdateWire{
+		Status:        statusWireValue,
+		Description:   v.Description,
+		Resources:     resourcesWireValue,
+		UserApiScopes: v.UserApiScopes,
+		UsagePolicyId: v.UsagePolicyId,
+	}, nil
+}
+
 func spaceUpdateFromWire(w *spaceUpdateWire) (*SpaceUpdate, error) {
 	if w == nil {
 		return nil, nil
@@ -2126,6 +2619,16 @@ type spaceUpdateStatusWire struct {
 	Message *string          `json:"message,omitempty"`
 }
 
+func spaceUpdateStatusToWire(v *SpaceUpdateStatus) (*spaceUpdateStatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &spaceUpdateStatusWire{
+		State:   v.State,
+		Message: v.Message,
+	}, nil
+}
+
 func spaceUpdateStatusFromWire(w *spaceUpdateStatusWire) (*SpaceUpdateStatus, error) {
 	if w == nil {
 		return nil, nil
@@ -2149,6 +2652,15 @@ func startAppRequestToWire(v *StartAppRequest) (*startAppRequestWire, error) {
 	}, nil
 }
 
+func startAppRequestFromWire(w *startAppRequestWire) (*StartAppRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &StartAppRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type stopAppRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -2159,6 +2671,15 @@ func stopAppRequestToWire(v *StopAppRequest) (*stopAppRequestWire, error) {
 	}
 	return &stopAppRequestWire{
 		Name: v.Name,
+	}, nil
+}
+
+func stopAppRequestFromWire(w *stopAppRequestWire) (*StopAppRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &StopAppRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -2259,6 +2780,19 @@ func updateAppRequestToWire(v *UpdateAppRequest) (*updateAppRequestWire, error) 
 	}, nil
 }
 
+func updateAppRequestFromWire(w *updateAppRequestWire) (*UpdateAppRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	appPublicValue, err := appFromWire(w.App)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAppRequest.App", err)
+	}
+	return &UpdateAppRequest{
+		App: appPublicValue,
+	}, nil
+}
+
 type updateAppThumbnailRequestWire struct {
 	Name         *string           `json:"name,omitempty"`
 	AppThumbnail *appThumbnailWire `json:"app_thumbnail,omitempty"`
@@ -2275,6 +2809,20 @@ func updateAppThumbnailRequestToWire(v *UpdateAppThumbnailRequest) (*updateAppTh
 	return &updateAppThumbnailRequestWire{
 		Name:         v.Name,
 		AppThumbnail: appThumbnailWireValue,
+	}, nil
+}
+
+func updateAppThumbnailRequestFromWire(w *updateAppThumbnailRequestWire) (*UpdateAppThumbnailRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	appThumbnailPublicValue, err := appThumbnailFromWire(w.AppThumbnail)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAppThumbnailRequest.AppThumbnail", err)
+	}
+	return &UpdateAppThumbnailRequest{
+		Name:         w.Name,
+		AppThumbnail: appThumbnailPublicValue,
 	}, nil
 }
 
@@ -2295,9 +2843,22 @@ func updateCustomTemplateRequestToWire(v *UpdateCustomTemplateRequest) (*updateC
 	}, nil
 }
 
+func updateCustomTemplateRequestFromWire(w *updateCustomTemplateRequestWire) (*UpdateCustomTemplateRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	templatePublicValue, err := customTemplateFromWire(w.Template)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCustomTemplateRequest.Template", err)
+	}
+	return &UpdateCustomTemplateRequest{
+		Template: templatePublicValue,
+	}, nil
+}
+
 type updateSpaceRequestWire struct {
-	Space      *spaceWire `json:"space,omitempty"`
-	UpdateMask *string    `json:"update_mask,omitempty"`
+	Space      *spaceWire              `json:"space,omitempty"`
+	UpdateMask *types.FieldMask[Space] `json:"update_mask,omitempty"`
 }
 
 func updateSpaceRequestToWire(v *UpdateSpaceRequest) (*updateSpaceRequestWire, error) {
@@ -2310,7 +2871,21 @@ func updateSpaceRequestToWire(v *UpdateSpaceRequest) (*updateSpaceRequestWire, e
 	}
 	return &updateSpaceRequestWire{
 		Space:      spaceWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateSpaceRequestFromWire(w *updateSpaceRequestWire) (*UpdateSpaceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	spacePublicValue, err := spaceFromWire(w.Space)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateSpaceRequest.Space", err)
+	}
+	return &UpdateSpaceRequest{
+		Space:      spacePublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 

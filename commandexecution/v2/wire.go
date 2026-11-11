@@ -24,6 +24,34 @@ func cancelCommandRequestToWire(v *CancelCommandRequest) (*cancelCommandRequestW
 	}, nil
 }
 
+func cancelCommandRequestFromWire(w *cancelCommandRequestWire) (*CancelCommandRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CancelCommandRequest{
+		ClusterId: w.ClusterId,
+		CommandId: w.CommandId,
+		ContextId: w.ContextId,
+	}, nil
+}
+
+type cancelResponseWire struct {
+}
+
+func cancelResponseToWire(v *CancelResponse) (*cancelResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &cancelResponseWire{}, nil
+}
+
+func cancelResponseFromWire(w *cancelResponseWire) (*CancelResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CancelResponse{}, nil
+}
+
 type createContextRequestWire struct {
 	ClusterId *string  `json:"clusterId,omitempty"`
 	Language  Language `json:"language,omitempty"`
@@ -39,8 +67,27 @@ func createContextRequestToWire(v *CreateContextRequest) (*createContextRequestW
 	}, nil
 }
 
+func createContextRequestFromWire(w *createContextRequestWire) (*CreateContextRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CreateContextRequest{
+		ClusterId: w.ClusterId,
+		Language:  w.Language,
+	}, nil
+}
+
 type createResponseWire struct {
 	Id *string `json:"id,omitempty"`
+}
+
+func createResponseToWire(v *CreateResponse) (*createResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createResponseWire{
+		Id: v.Id,
+	}, nil
 }
 
 func createResponseFromWire(w *createResponseWire) (*CreateResponse, error) {
@@ -67,6 +114,33 @@ func destroyContextRequestToWire(v *DestroyContextRequest) (*destroyContextReque
 	}, nil
 }
 
+func destroyContextRequestFromWire(w *destroyContextRequestWire) (*DestroyContextRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DestroyContextRequest{
+		ClusterId: w.ClusterId,
+		ContextId: w.ContextId,
+	}, nil
+}
+
+type destroyResponseWire struct {
+}
+
+func destroyResponseToWire(v *DestroyResponse) (*destroyResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &destroyResponseWire{}, nil
+}
+
+func destroyResponseFromWire(w *destroyResponseWire) (*DestroyResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DestroyResponse{}, nil
+}
+
 type executeCommandRequestWire struct {
 	ClusterId *string  `json:"clusterId,omitempty"`
 	ContextId *string  `json:"contextId,omitempty"`
@@ -83,6 +157,18 @@ func executeCommandRequestToWire(v *ExecuteCommandRequest) (*executeCommandReque
 		ContextId: v.ContextId,
 		Language:  v.Language,
 		Command:   v.Command,
+	}, nil
+}
+
+func executeCommandRequestFromWire(w *executeCommandRequestWire) (*ExecuteCommandRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ExecuteCommandRequest{
+		ClusterId: w.ClusterId,
+		ContextId: w.ContextId,
+		Language:  w.Language,
+		Command:   w.Command,
 	}, nil
 }
 
@@ -103,10 +189,36 @@ func getCommandStatusRequestToWire(v *GetCommandStatusRequest) (*getCommandStatu
 	}, nil
 }
 
+func getCommandStatusRequestFromWire(w *getCommandStatusRequestWire) (*GetCommandStatusRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCommandStatusRequest{
+		ClusterId: w.ClusterId,
+		ContextId: w.ContextId,
+		CommandId: w.CommandId,
+	}, nil
+}
+
 type getCommandStatusResponseWire struct {
 	Id      *string       `json:"id,omitempty"`
 	Status  CommandStatus `json:"status,omitempty"`
 	Results *resultsWire  `json:"results,omitempty"`
+}
+
+func getCommandStatusResponseToWire(v *GetCommandStatusResponse) (*getCommandStatusResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	resultsWireValue, err := resultsToWire(v.Results)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetCommandStatusResponse.Results", err)
+	}
+	return &getCommandStatusResponseWire{
+		Id:      v.Id,
+		Status:  v.Status,
+		Results: resultsWireValue,
+	}, nil
 }
 
 func getCommandStatusResponseFromWire(w *getCommandStatusResponseWire) (*GetCommandStatusResponse, error) {
@@ -139,9 +251,29 @@ func getContextStatusRequestToWire(v *GetContextStatusRequest) (*getContextStatu
 	}, nil
 }
 
+func getContextStatusRequestFromWire(w *getContextStatusRequestWire) (*GetContextStatusRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetContextStatusRequest{
+		ClusterId: w.ClusterId,
+		ContextId: w.ContextId,
+	}, nil
+}
+
 type getContextStatusResponseWire struct {
 	Id     *string       `json:"id,omitempty"`
 	Status ContextStatus `json:"status,omitempty"`
+}
+
+func getContextStatusResponseToWire(v *GetContextStatusResponse) (*getContextStatusResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getContextStatusResponseWire{
+		Id:     v.Id,
+		Status: v.Status,
+	}, nil
 }
 
 func getContextStatusResponseFromWire(w *getContextStatusResponseWire) (*GetContextStatusResponse, error) {
@@ -165,6 +297,24 @@ type resultsWire struct {
 	Schema       []map[string]json.RawMessage `json:"schema,omitempty"`
 	Summary      *string                      `json:"summary,omitempty"`
 	Truncated    *bool                        `json:"truncated,omitempty"`
+}
+
+func resultsToWire(v *Results) (*resultsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &resultsWire{
+		Cause:        v.Cause,
+		Data:         v.Data,
+		FileName:     v.FileName,
+		FileNames:    v.FileNames,
+		IsJsonSchema: v.IsJsonSchema,
+		Pos:          v.Pos,
+		ResultType:   v.ResultType,
+		Schema:       v.Schema,
+		Summary:      v.Summary,
+		Truncated:    v.Truncated,
+	}, nil
 }
 
 func resultsFromWire(w *resultsWire) (*Results, error) {

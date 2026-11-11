@@ -54,14 +54,6 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type createExperimentRequestWire struct {
 	Name             *string                      `json:"name,omitempty"`
 	ArtifactLocation *string                      `json:"artifact_location,omitempty"`
@@ -89,8 +81,37 @@ func createExperimentRequestToWire(v *CreateExperimentRequest) (*createExperimen
 	}, nil
 }
 
+func createExperimentRequestFromWire(w *createExperimentRequestWire) (*CreateExperimentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tagsPublicValue, err := convertSlice(w.Tags, experimentTagFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateExperimentRequest.Tags", err)
+	}
+	traceLocationPublicValue, err := experimentTraceLocationFromWire(w.TraceLocation)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateExperimentRequest.TraceLocation", err)
+	}
+	return &CreateExperimentRequest{
+		Name:             w.Name,
+		ArtifactLocation: w.ArtifactLocation,
+		Tags:             tagsPublicValue,
+		TraceLocation:    traceLocationPublicValue,
+	}, nil
+}
+
 type createExperimentResponseWire struct {
 	ExperimentId *string `json:"experiment_id,omitempty"`
+}
+
+func createExperimentResponseToWire(v *CreateExperimentResponse) (*createExperimentResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createExperimentResponseWire{
+		ExperimentId: v.ExperimentId,
+	}, nil
 }
 
 func createExperimentResponseFromWire(w *createExperimentResponseWire) (*CreateExperimentResponse, error) {
@@ -120,6 +141,21 @@ func createIssueRequestToWire(v *CreateIssueRequest) (*createIssueRequestWire, e
 		Parent:  v.Parent,
 		Issue:   issueWireValue,
 		IssueId: v.IssueId,
+	}, nil
+}
+
+func createIssueRequestFromWire(w *createIssueRequestWire) (*CreateIssueRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	issuePublicValue, err := issueFromWire(w.Issue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateIssueRequest.Issue", err)
+	}
+	return &CreateIssueRequest{
+		Parent:  w.Parent,
+		Issue:   issuePublicValue,
+		IssueId: w.IssueId,
 	}, nil
 }
 
@@ -154,8 +190,43 @@ func createLoggedModelRequestToWire(v *CreateLoggedModelRequest) (*createLoggedM
 	}, nil
 }
 
+func createLoggedModelRequestFromWire(w *createLoggedModelRequestWire) (*CreateLoggedModelRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	paramsPublicValue, err := convertSlice(w.Params, loggedModelParameterFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateLoggedModelRequest.Params", err)
+	}
+	tagsPublicValue, err := convertSlice(w.Tags, loggedModelTagFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateLoggedModelRequest.Tags", err)
+	}
+	return &CreateLoggedModelRequest{
+		ExperimentId: w.ExperimentId,
+		Name:         w.Name,
+		ModelType:    w.ModelType,
+		SourceRunId:  w.SourceRunId,
+		Params:       paramsPublicValue,
+		Tags:         tagsPublicValue,
+	}, nil
+}
+
 type createLoggedModelResponseWire struct {
 	Model *loggedModelWire `json:"model,omitempty"`
+}
+
+func createLoggedModelResponseToWire(v *CreateLoggedModelResponse) (*createLoggedModelResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	modelWireValue, err := loggedModelToWire(v.Model)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateLoggedModelResponse.Model", err)
+	}
+	return &createLoggedModelResponseWire{
+		Model: modelWireValue,
+	}, nil
 }
 
 func createLoggedModelResponseFromWire(w *createLoggedModelResponseWire) (*CreateLoggedModelResponse, error) {
@@ -200,8 +271,42 @@ func createRunRequestToWire(v *CreateRunRequest) (*createRunRequestWire, error) 
 	}, nil
 }
 
+func createRunRequestFromWire(w *createRunRequestWire) (*CreateRunRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	startTimePublicValue, err := int64FromWire(w.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRunRequest.StartTime", err)
+	}
+	tagsPublicValue, err := convertSlice(w.Tags, runTagFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRunRequest.Tags", err)
+	}
+	return &CreateRunRequest{
+		ExperimentId: w.ExperimentId,
+		UserId:       w.UserId,
+		RunName:      w.RunName,
+		StartTime:    startTimePublicValue,
+		Tags:         tagsPublicValue,
+	}, nil
+}
+
 type createRunResponseWire struct {
 	Run *runWire `json:"run,omitempty"`
+}
+
+func createRunResponseToWire(v *CreateRunResponse) (*createRunResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	runWireValue, err := runToWire(v.Run)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRunResponse.Run", err)
+	}
+	return &createRunResponseWire{
+		Run: runWireValue,
+	}, nil
 }
 
 func createRunResponseFromWire(w *createRunResponseWire) (*CreateRunResponse, error) {
@@ -308,6 +413,113 @@ func deleteExperimentRequestToWire(v *DeleteExperimentRequest) (*deleteExperimen
 	}, nil
 }
 
+func deleteExperimentRequestFromWire(w *deleteExperimentRequestWire) (*DeleteExperimentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteExperimentRequest{
+		ExperimentId: w.ExperimentId,
+	}, nil
+}
+
+type deleteExperimentResponseWire struct {
+}
+
+func deleteExperimentResponseToWire(v *DeleteExperimentResponse) (*deleteExperimentResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteExperimentResponseWire{}, nil
+}
+
+func deleteExperimentResponseFromWire(w *deleteExperimentResponseWire) (*DeleteExperimentResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteExperimentResponse{}, nil
+}
+
+type deleteLoggedModelRequestWire struct {
+	ModelId *string `json:"model_id,omitempty"`
+}
+
+func deleteLoggedModelRequestToWire(v *DeleteLoggedModelRequest) (*deleteLoggedModelRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteLoggedModelRequestWire{
+		ModelId: v.ModelId,
+	}, nil
+}
+
+func deleteLoggedModelRequestFromWire(w *deleteLoggedModelRequestWire) (*DeleteLoggedModelRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteLoggedModelRequest{
+		ModelId: w.ModelId,
+	}, nil
+}
+
+type deleteLoggedModelResponseWire struct {
+}
+
+func deleteLoggedModelResponseToWire(v *DeleteLoggedModelResponse) (*deleteLoggedModelResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteLoggedModelResponseWire{}, nil
+}
+
+func deleteLoggedModelResponseFromWire(w *deleteLoggedModelResponseWire) (*DeleteLoggedModelResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteLoggedModelResponse{}, nil
+}
+
+type deleteLoggedModelTagRequestWire struct {
+	ModelId *string `json:"model_id,omitempty"`
+	TagKey  *string `json:"tag_key,omitempty"`
+}
+
+func deleteLoggedModelTagRequestToWire(v *DeleteLoggedModelTagRequest) (*deleteLoggedModelTagRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteLoggedModelTagRequestWire{
+		ModelId: v.ModelId,
+		TagKey:  v.TagKey,
+	}, nil
+}
+
+func deleteLoggedModelTagRequestFromWire(w *deleteLoggedModelTagRequestWire) (*DeleteLoggedModelTagRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteLoggedModelTagRequest{
+		ModelId: w.ModelId,
+		TagKey:  w.TagKey,
+	}, nil
+}
+
+type deleteLoggedModelTagResponseWire struct {
+}
+
+func deleteLoggedModelTagResponseToWire(v *DeleteLoggedModelTagResponse) (*deleteLoggedModelTagResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteLoggedModelTagResponseWire{}, nil
+}
+
+func deleteLoggedModelTagResponseFromWire(w *deleteLoggedModelTagResponseWire) (*DeleteLoggedModelTagResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteLoggedModelTagResponse{}, nil
+}
+
 type deleteRunRequestWire struct {
 	RunId *string `json:"run_id,omitempty"`
 }
@@ -319,6 +531,32 @@ func deleteRunRequestToWire(v *DeleteRunRequest) (*deleteRunRequestWire, error) 
 	return &deleteRunRequestWire{
 		RunId: v.RunId,
 	}, nil
+}
+
+func deleteRunRequestFromWire(w *deleteRunRequestWire) (*DeleteRunRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRunRequest{
+		RunId: w.RunId,
+	}, nil
+}
+
+type deleteRunResponseWire struct {
+}
+
+func deleteRunResponseToWire(v *DeleteRunResponse) (*deleteRunResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteRunResponseWire{}, nil
+}
+
+func deleteRunResponseFromWire(w *deleteRunResponseWire) (*DeleteRunResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRunResponse{}, nil
 }
 
 type deleteRunsRequestWire struct {
@@ -342,8 +580,32 @@ func deleteRunsRequestToWire(v *DeleteRunsRequest) (*deleteRunsRequestWire, erro
 	}, nil
 }
 
+func deleteRunsRequestFromWire(w *deleteRunsRequestWire) (*DeleteRunsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	maxTimestampMillisPublicValue, err := int64FromWire(w.MaxTimestampMillis)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteRunsRequest.MaxTimestampMillis", err)
+	}
+	return &DeleteRunsRequest{
+		ExperimentId:       w.ExperimentId,
+		MaxTimestampMillis: maxTimestampMillisPublicValue,
+		MaxRuns:            w.MaxRuns,
+	}, nil
+}
+
 type deleteRunsResponseWire struct {
 	RunsDeleted *int `json:"runs_deleted,omitempty"`
+}
+
+func deleteRunsResponseToWire(v *DeleteRunsResponse) (*deleteRunsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteRunsResponseWire{
+		RunsDeleted: v.RunsDeleted,
+	}, nil
 }
 
 func deleteRunsResponseFromWire(w *deleteRunsResponseWire) (*DeleteRunsResponse, error) {
@@ -370,6 +632,33 @@ func deleteTagRequestToWire(v *DeleteTagRequest) (*deleteTagRequestWire, error) 
 	}, nil
 }
 
+func deleteTagRequestFromWire(w *deleteTagRequestWire) (*DeleteTagRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteTagRequest{
+		RunId: w.RunId,
+		Key:   w.Key,
+	}, nil
+}
+
+type deleteTagResponseWire struct {
+}
+
+func deleteTagResponseToWire(v *DeleteTagResponse) (*deleteTagResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteTagResponseWire{}, nil
+}
+
+func deleteTagResponseFromWire(w *deleteTagResponseWire) (*DeleteTagResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteTagResponse{}, nil
+}
+
 type experimentWire struct {
 	ExperimentId     *string                      `json:"experiment_id,omitempty"`
 	Name             *string                      `json:"name,omitempty"`
@@ -379,6 +668,38 @@ type experimentWire struct {
 	CreationTime     *wireInt64                   `json:"creation_time,omitempty"`
 	Tags             []experimentTagWire          `json:"tags,omitempty"`
 	TraceLocation    *experimentTraceLocationWire `json:"trace_location,omitempty"`
+}
+
+func experimentToWire(v *Experiment) (*experimentWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	lastUpdateTimeWireValue, err := int64ToWire(v.LastUpdateTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Experiment.LastUpdateTime", err)
+	}
+	creationTimeWireValue, err := int64ToWire(v.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Experiment.CreationTime", err)
+	}
+	tagsWireValue, err := convertSlice(v.Tags, experimentTagToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Experiment.Tags", err)
+	}
+	traceLocationWireValue, err := experimentTraceLocationToWire(v.TraceLocation)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Experiment.TraceLocation", err)
+	}
+	return &experimentWire{
+		ExperimentId:     v.ExperimentId,
+		Name:             v.Name,
+		ArtifactLocation: v.ArtifactLocation,
+		LifecycleStage:   v.LifecycleStage,
+		LastUpdateTime:   lastUpdateTimeWireValue,
+		CreationTime:     creationTimeWireValue,
+		Tags:             tagsWireValue,
+		TraceLocation:    traceLocationWireValue,
+	}, nil
 }
 
 func experimentFromWire(w *experimentWire) (*Experiment, error) {
@@ -496,6 +817,21 @@ type fileInfoWire struct {
 	FileSize *wireInt64 `json:"file_size,omitempty"`
 }
 
+func fileInfoToWire(v *FileInfo) (*fileInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	fileSizeWireValue, err := int64ToWire(v.FileSize)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FileInfo.FileSize", err)
+	}
+	return &fileInfoWire{
+		Path:     v.Path,
+		IsDir:    v.IsDir,
+		FileSize: fileSizeWireValue,
+	}, nil
+}
+
 func fileInfoFromWire(w *fileInfoWire) (*FileInfo, error) {
 	if w == nil {
 		return nil, nil
@@ -526,8 +862,31 @@ func finalizeLoggedModelRequestToWire(v *FinalizeLoggedModelRequest) (*finalizeL
 	}, nil
 }
 
+func finalizeLoggedModelRequestFromWire(w *finalizeLoggedModelRequestWire) (*FinalizeLoggedModelRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &FinalizeLoggedModelRequest{
+		ModelId: w.ModelId,
+		Status:  w.Status,
+	}, nil
+}
+
 type finalizeLoggedModelResponseWire struct {
 	Model *loggedModelWire `json:"model,omitempty"`
+}
+
+func finalizeLoggedModelResponseToWire(v *FinalizeLoggedModelResponse) (*finalizeLoggedModelResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	modelWireValue, err := loggedModelToWire(v.Model)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FinalizeLoggedModelResponse.Model", err)
+	}
+	return &finalizeLoggedModelResponseWire{
+		Model: modelWireValue,
+	}, nil
 }
 
 func finalizeLoggedModelResponseFromWire(w *finalizeLoggedModelResponseWire) (*FinalizeLoggedModelResponse, error) {
@@ -556,8 +915,30 @@ func getExperimentByNameRequestToWire(v *GetExperimentByNameRequest) (*getExperi
 	}, nil
 }
 
+func getExperimentByNameRequestFromWire(w *getExperimentByNameRequestWire) (*GetExperimentByNameRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetExperimentByNameRequest{
+		ExperimentName: w.ExperimentName,
+	}, nil
+}
+
 type getExperimentByNameResponseWire struct {
 	Experiment *experimentWire `json:"experiment,omitempty"`
+}
+
+func getExperimentByNameResponseToWire(v *GetExperimentByNameResponse) (*getExperimentByNameResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	experimentWireValue, err := experimentToWire(v.Experiment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetExperimentByNameResponse.Experiment", err)
+	}
+	return &getExperimentByNameResponseWire{
+		Experiment: experimentWireValue,
+	}, nil
 }
 
 func getExperimentByNameResponseFromWire(w *getExperimentByNameResponseWire) (*GetExperimentByNameResponse, error) {
@@ -586,9 +967,36 @@ func getExperimentRequestToWire(v *GetExperimentRequest) (*getExperimentRequestW
 	}, nil
 }
 
+func getExperimentRequestFromWire(w *getExperimentRequestWire) (*GetExperimentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetExperimentRequest{
+		ExperimentId: w.ExperimentId,
+	}, nil
+}
+
 type getExperimentResponseWire struct {
 	Experiment *experimentWire `json:"experiment,omitempty"`
 	Runs       []runInfoWire   `json:"runs,omitempty"`
+}
+
+func getExperimentResponseToWire(v *GetExperimentResponse) (*getExperimentResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	experimentWireValue, err := experimentToWire(v.Experiment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetExperimentResponse.Experiment", err)
+	}
+	runsWireValue, err := convertSlice(v.Runs, runInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetExperimentResponse.Runs", err)
+	}
+	return &getExperimentResponseWire{
+		Experiment: experimentWireValue,
+		Runs:       runsWireValue,
+	}, nil
 }
 
 func getExperimentResponseFromWire(w *getExperimentResponseWire) (*GetExperimentResponse, error) {
@@ -609,8 +1017,65 @@ func getExperimentResponseFromWire(w *getExperimentResponseWire) (*GetExperiment
 	}, nil
 }
 
+type getIssueRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getIssueRequestToWire(v *GetIssueRequest) (*getIssueRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getIssueRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getIssueRequestFromWire(w *getIssueRequestWire) (*GetIssueRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetIssueRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getLoggedModelRequestWire struct {
+	ModelId *string `json:"model_id,omitempty"`
+}
+
+func getLoggedModelRequestToWire(v *GetLoggedModelRequest) (*getLoggedModelRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getLoggedModelRequestWire{
+		ModelId: v.ModelId,
+	}, nil
+}
+
+func getLoggedModelRequestFromWire(w *getLoggedModelRequestWire) (*GetLoggedModelRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetLoggedModelRequest{
+		ModelId: w.ModelId,
+	}, nil
+}
+
 type getLoggedModelResponseWire struct {
 	Model *loggedModelWire `json:"model,omitempty"`
+}
+
+func getLoggedModelResponseToWire(v *GetLoggedModelResponse) (*getLoggedModelResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	modelWireValue, err := loggedModelToWire(v.Model)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetLoggedModelResponse.Model", err)
+	}
+	return &getLoggedModelResponseWire{
+		Model: modelWireValue,
+	}, nil
 }
 
 func getLoggedModelResponseFromWire(w *getLoggedModelResponseWire) (*GetLoggedModelResponse, error) {
@@ -629,6 +1094,20 @@ func getLoggedModelResponseFromWire(w *getLoggedModelResponseWire) (*GetLoggedMo
 type getMetricHistoryResponseWire struct {
 	Metrics       []metricWire `json:"metrics,omitempty"`
 	NextPageToken *string      `json:"next_page_token,omitempty"`
+}
+
+func getMetricHistoryResponseToWire(v *GetMetricHistoryResponse) (*getMetricHistoryResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	metricsWireValue, err := convertSlice(v.Metrics, metricToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetMetricHistoryResponse.Metrics", err)
+	}
+	return &getMetricHistoryResponseWire{
+		Metrics:       metricsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func getMetricHistoryResponseFromWire(w *getMetricHistoryResponseWire) (*GetMetricHistoryResponse, error) {
@@ -660,8 +1139,31 @@ func getRunRequestToWire(v *GetRunRequest) (*getRunRequestWire, error) {
 	}, nil
 }
 
+func getRunRequestFromWire(w *getRunRequestWire) (*GetRunRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetRunRequest{
+		RunId:   w.RunId,
+		RunUuid: w.RunUuid,
+	}, nil
+}
+
 type getRunResponseWire struct {
 	Run *runWire `json:"run,omitempty"`
+}
+
+func getRunResponseToWire(v *GetRunResponse) (*getRunResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	runWireValue, err := runToWire(v.Run)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.Run", err)
+	}
+	return &getRunResponseWire{
+		Run: runWireValue,
+	}, nil
 }
 
 func getRunResponseFromWire(w *getRunResponseWire) (*GetRunResponse, error) {
@@ -784,6 +1286,16 @@ func issueTagFilterToWire(v *IssueTagFilter) (*issueTagFilterWire, error) {
 	}, nil
 }
 
+func issueTagFilterFromWire(w *issueTagFilterWire) (*IssueTagFilter, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &IssueTagFilter{
+		Key:    w.Key,
+		Values: w.Values,
+	}, nil
+}
+
 type listArtifactsRequestWire struct {
 	RunId     *string `json:"run_id,omitempty"`
 	RunUuid   *string `json:"run_uuid,omitempty"`
@@ -803,10 +1315,37 @@ func listArtifactsRequestToWire(v *ListArtifactsRequest) (*listArtifactsRequestW
 	}, nil
 }
 
+func listArtifactsRequestFromWire(w *listArtifactsRequestWire) (*ListArtifactsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListArtifactsRequest{
+		RunId:     w.RunId,
+		RunUuid:   w.RunUuid,
+		Path:      w.Path,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listArtifactsResponseWire struct {
 	RootUri       *string        `json:"root_uri,omitempty"`
 	Files         []fileInfoWire `json:"files,omitempty"`
 	NextPageToken *string        `json:"next_page_token,omitempty"`
+}
+
+func listArtifactsResponseToWire(v *ListArtifactsResponse) (*listArtifactsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	filesWireValue, err := convertSlice(v.Files, fileInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListArtifactsResponse.Files", err)
+	}
+	return &listArtifactsResponseWire{
+		RootUri:       v.RootUri,
+		Files:         filesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listArtifactsResponseFromWire(w *listArtifactsResponseWire) (*ListArtifactsResponse, error) {
@@ -845,9 +1384,38 @@ func listExperimentsRequestToWire(v *ListExperimentsRequest) (*listExperimentsRe
 	}, nil
 }
 
+func listExperimentsRequestFromWire(w *listExperimentsRequestWire) (*ListExperimentsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	maxResultsPublicValue, err := int64FromWire(w.MaxResults)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListExperimentsRequest.MaxResults", err)
+	}
+	return &ListExperimentsRequest{
+		ViewType:   w.ViewType,
+		MaxResults: maxResultsPublicValue,
+		PageToken:  w.PageToken,
+	}, nil
+}
+
 type listExperimentsResponseWire struct {
 	Experiments   []experimentWire `json:"experiments,omitempty"`
 	NextPageToken *string          `json:"next_page_token,omitempty"`
+}
+
+func listExperimentsResponseToWire(v *ListExperimentsResponse) (*listExperimentsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	experimentsWireValue, err := convertSlice(v.Experiments, experimentToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListExperimentsResponse.Experiments", err)
+	}
+	return &listExperimentsResponseWire{
+		Experiments:   experimentsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listExperimentsResponseFromWire(w *listExperimentsResponseWire) (*ListExperimentsResponse, error) {
@@ -885,6 +1453,19 @@ func listMetricHistoryRequestToWire(v *ListMetricHistoryRequest) (*listMetricHis
 	}, nil
 }
 
+func listMetricHistoryRequestFromWire(w *listMetricHistoryRequestWire) (*ListMetricHistoryRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListMetricHistoryRequest{
+		RunId:      w.RunId,
+		RunUuid:    w.RunUuid,
+		MetricKey:  w.MetricKey,
+		PageToken:  w.PageToken,
+		MaxResults: w.MaxResults,
+	}, nil
+}
+
 type logBatchRequestWire struct {
 	RunId   *string      `json:"run_id,omitempty"`
 	Metrics []metricWire `json:"metrics,omitempty"`
@@ -916,6 +1497,47 @@ func logBatchRequestToWire(v *LogBatchRequest) (*logBatchRequestWire, error) {
 	}, nil
 }
 
+func logBatchRequestFromWire(w *logBatchRequestWire) (*LogBatchRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	metricsPublicValue, err := convertSlice(w.Metrics, metricFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LogBatchRequest.Metrics", err)
+	}
+	paramsPublicValue, err := convertSlice(w.Params, paramFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LogBatchRequest.Params", err)
+	}
+	tagsPublicValue, err := convertSlice(w.Tags, runTagFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LogBatchRequest.Tags", err)
+	}
+	return &LogBatchRequest{
+		RunId:   w.RunId,
+		Metrics: metricsPublicValue,
+		Params:  paramsPublicValue,
+		Tags:    tagsPublicValue,
+	}, nil
+}
+
+type logBatchResponseWire struct {
+}
+
+func logBatchResponseToWire(v *LogBatchResponse) (*logBatchResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &logBatchResponseWire{}, nil
+}
+
+func logBatchResponseFromWire(w *logBatchResponseWire) (*LogBatchResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &LogBatchResponse{}, nil
+}
+
 type logInputsRequestWire struct {
 	RunId    *string            `json:"run_id,omitempty"`
 	Datasets []datasetInputWire `json:"datasets,omitempty"`
@@ -941,6 +1563,42 @@ func logInputsRequestToWire(v *LogInputsRequest) (*logInputsRequestWire, error) 
 	}, nil
 }
 
+func logInputsRequestFromWire(w *logInputsRequestWire) (*LogInputsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	datasetsPublicValue, err := convertSlice(w.Datasets, datasetInputFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LogInputsRequest.Datasets", err)
+	}
+	modelsPublicValue, err := convertSlice(w.Models, modelInputFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LogInputsRequest.Models", err)
+	}
+	return &LogInputsRequest{
+		RunId:    w.RunId,
+		Datasets: datasetsPublicValue,
+		Models:   modelsPublicValue,
+	}, nil
+}
+
+type logInputsResponseWire struct {
+}
+
+func logInputsResponseToWire(v *LogInputsResponse) (*logInputsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &logInputsResponseWire{}, nil
+}
+
+func logInputsResponseFromWire(w *logInputsResponseWire) (*LogInputsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &LogInputsResponse{}, nil
+}
+
 type logLoggedModelParamsRequestWire struct {
 	ModelId *string                    `json:"model_id,omitempty"`
 	Params  []loggedModelParameterWire `json:"params,omitempty"`
@@ -958,6 +1616,37 @@ func logLoggedModelParamsRequestToWire(v *LogLoggedModelParamsRequest) (*logLogg
 		ModelId: v.ModelId,
 		Params:  paramsWireValue,
 	}, nil
+}
+
+func logLoggedModelParamsRequestFromWire(w *logLoggedModelParamsRequestWire) (*LogLoggedModelParamsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	paramsPublicValue, err := convertSlice(w.Params, loggedModelParameterFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LogLoggedModelParamsRequest.Params", err)
+	}
+	return &LogLoggedModelParamsRequest{
+		ModelId: w.ModelId,
+		Params:  paramsPublicValue,
+	}, nil
+}
+
+type logLoggedModelParamsResponseWire struct {
+}
+
+func logLoggedModelParamsResponseToWire(v *LogLoggedModelParamsResponse) (*logLoggedModelParamsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &logLoggedModelParamsResponseWire{}, nil
+}
+
+func logLoggedModelParamsResponseFromWire(w *logLoggedModelParamsResponseWire) (*LogLoggedModelParamsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &LogLoggedModelParamsResponse{}, nil
 }
 
 type logMetricRequestWire struct {
@@ -997,6 +1686,48 @@ func logMetricRequestToWire(v *LogMetricRequest) (*logMetricRequestWire, error) 
 	}, nil
 }
 
+func logMetricRequestFromWire(w *logMetricRequestWire) (*LogMetricRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	timestampPublicValue, err := int64FromWire(w.Timestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LogMetricRequest.Timestamp", err)
+	}
+	stepPublicValue, err := int64FromWire(w.Step)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LogMetricRequest.Step", err)
+	}
+	return &LogMetricRequest{
+		RunId:         w.RunId,
+		RunUuid:       w.RunUuid,
+		Key:           w.Key,
+		Value:         w.Value,
+		Timestamp:     timestampPublicValue,
+		Step:          stepPublicValue,
+		ModelId:       w.ModelId,
+		DatasetName:   w.DatasetName,
+		DatasetDigest: w.DatasetDigest,
+	}, nil
+}
+
+type logMetricResponseWire struct {
+}
+
+func logMetricResponseToWire(v *LogMetricResponse) (*logMetricResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &logMetricResponseWire{}, nil
+}
+
+func logMetricResponseFromWire(w *logMetricResponseWire) (*LogMetricResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &LogMetricResponse{}, nil
+}
+
 type logModelRequestWire struct {
 	RunId     *string `json:"run_id,omitempty"`
 	ModelJson *string `json:"model_json,omitempty"`
@@ -1010,6 +1741,33 @@ func logModelRequestToWire(v *LogModelRequest) (*logModelRequestWire, error) {
 		RunId:     v.RunId,
 		ModelJson: v.ModelJson,
 	}, nil
+}
+
+func logModelRequestFromWire(w *logModelRequestWire) (*LogModelRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &LogModelRequest{
+		RunId:     w.RunId,
+		ModelJson: w.ModelJson,
+	}, nil
+}
+
+type logModelResponseWire struct {
+}
+
+func logModelResponseToWire(v *LogModelResponse) (*logModelResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &logModelResponseWire{}, nil
+}
+
+func logModelResponseFromWire(w *logModelResponseWire) (*LogModelResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &LogModelResponse{}, nil
 }
 
 type logOutputsRequestWire struct {
@@ -1031,6 +1789,37 @@ func logOutputsRequestToWire(v *LogOutputsRequest) (*logOutputsRequestWire, erro
 	}, nil
 }
 
+func logOutputsRequestFromWire(w *logOutputsRequestWire) (*LogOutputsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	modelsPublicValue, err := convertSlice(w.Models, modelOutputFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LogOutputsRequest.Models", err)
+	}
+	return &LogOutputsRequest{
+		RunId:  w.RunId,
+		Models: modelsPublicValue,
+	}, nil
+}
+
+type logOutputsResponseWire struct {
+}
+
+func logOutputsResponseToWire(v *LogOutputsResponse) (*logOutputsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &logOutputsResponseWire{}, nil
+}
+
+func logOutputsResponseFromWire(w *logOutputsResponseWire) (*LogOutputsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &LogOutputsResponse{}, nil
+}
+
 type logParamRequestWire struct {
 	RunId   *string `json:"run_id,omitempty"`
 	RunUuid *string `json:"run_uuid,omitempty"`
@@ -1050,9 +1839,56 @@ func logParamRequestToWire(v *LogParamRequest) (*logParamRequestWire, error) {
 	}, nil
 }
 
+func logParamRequestFromWire(w *logParamRequestWire) (*LogParamRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &LogParamRequest{
+		RunId:   w.RunId,
+		RunUuid: w.RunUuid,
+		Key:     w.Key,
+		Value:   w.Value,
+	}, nil
+}
+
+type logParamResponseWire struct {
+}
+
+func logParamResponseToWire(v *LogParamResponse) (*logParamResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &logParamResponseWire{}, nil
+}
+
+func logParamResponseFromWire(w *logParamResponseWire) (*LogParamResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &LogParamResponse{}, nil
+}
+
 type loggedModelWire struct {
 	Info *loggedModelInfoWire `json:"info,omitempty"`
 	Data *loggedModelDataWire `json:"data,omitempty"`
+}
+
+func loggedModelToWire(v *LoggedModel) (*loggedModelWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	infoWireValue, err := loggedModelInfoToWire(v.Info)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LoggedModel.Info", err)
+	}
+	dataWireValue, err := loggedModelDataToWire(v.Data)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LoggedModel.Data", err)
+	}
+	return &loggedModelWire{
+		Info: infoWireValue,
+		Data: dataWireValue,
+	}, nil
 }
 
 func loggedModelFromWire(w *loggedModelWire) (*LoggedModel, error) {
@@ -1076,6 +1912,24 @@ func loggedModelFromWire(w *loggedModelWire) (*LoggedModel, error) {
 type loggedModelDataWire struct {
 	Params  []loggedModelParameterWire `json:"params,omitempty"`
 	Metrics []metricWire               `json:"metrics,omitempty"`
+}
+
+func loggedModelDataToWire(v *LoggedModelData) (*loggedModelDataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	paramsWireValue, err := convertSlice(v.Params, loggedModelParameterToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LoggedModelData.Params", err)
+	}
+	metricsWireValue, err := convertSlice(v.Metrics, metricToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LoggedModelData.Metrics", err)
+	}
+	return &loggedModelDataWire{
+		Params:  paramsWireValue,
+		Metrics: metricsWireValue,
+	}, nil
 }
 
 func loggedModelDataFromWire(w *loggedModelDataWire) (*LoggedModelData, error) {
@@ -1109,6 +1963,42 @@ type loggedModelInfoWire struct {
 	SourceRunId            *string              `json:"source_run_id,omitempty"`
 	StatusMessage          *string              `json:"status_message,omitempty"`
 	Tags                   []loggedModelTagWire `json:"tags,omitempty"`
+}
+
+func loggedModelInfoToWire(v *LoggedModelInfo) (*loggedModelInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	creationTimestampMsWireValue, err := int64ToWire(v.CreationTimestampMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LoggedModelInfo.CreationTimestampMs", err)
+	}
+	lastUpdatedTimestampMsWireValue, err := int64ToWire(v.LastUpdatedTimestampMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LoggedModelInfo.LastUpdatedTimestampMs", err)
+	}
+	creatorIdWireValue, err := int64ToWire(v.CreatorId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LoggedModelInfo.CreatorId", err)
+	}
+	tagsWireValue, err := convertSlice(v.Tags, loggedModelTagToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LoggedModelInfo.Tags", err)
+	}
+	return &loggedModelInfoWire{
+		ModelId:                v.ModelId,
+		ExperimentId:           v.ExperimentId,
+		Name:                   v.Name,
+		CreationTimestampMs:    creationTimestampMsWireValue,
+		LastUpdatedTimestampMs: lastUpdatedTimestampMsWireValue,
+		ArtifactUri:            v.ArtifactUri,
+		Status:                 v.Status,
+		CreatorId:              creatorIdWireValue,
+		ModelType:              v.ModelType,
+		SourceRunId:            v.SourceRunId,
+		StatusMessage:          v.StatusMessage,
+		Tags:                   tagsWireValue,
+	}, nil
 }
 
 func loggedModelInfoFromWire(w *loggedModelInfoWire) (*LoggedModelInfo, error) {
@@ -1297,6 +2187,20 @@ func modelOutputToWire(v *ModelOutput) (*modelOutputWire, error) {
 	}, nil
 }
 
+func modelOutputFromWire(w *modelOutputWire) (*ModelOutput, error) {
+	if w == nil {
+		return nil, nil
+	}
+	stepPublicValue, err := int64FromWire(w.Step)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelOutput.Step", err)
+	}
+	return &ModelOutput{
+		ModelId: w.ModelId,
+		Step:    stepPublicValue,
+	}, nil
+}
+
 type paramWire struct {
 	Key   *string `json:"key,omitempty"`
 	Value *string `json:"value,omitempty"`
@@ -1335,6 +2239,32 @@ func restoreExperimentRequestToWire(v *RestoreExperimentRequest) (*restoreExperi
 	}, nil
 }
 
+func restoreExperimentRequestFromWire(w *restoreExperimentRequestWire) (*RestoreExperimentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RestoreExperimentRequest{
+		ExperimentId: w.ExperimentId,
+	}, nil
+}
+
+type restoreExperimentResponseWire struct {
+}
+
+func restoreExperimentResponseToWire(v *RestoreExperimentResponse) (*restoreExperimentResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &restoreExperimentResponseWire{}, nil
+}
+
+func restoreExperimentResponseFromWire(w *restoreExperimentResponseWire) (*RestoreExperimentResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RestoreExperimentResponse{}, nil
+}
+
 type restoreRunRequestWire struct {
 	RunId *string `json:"run_id,omitempty"`
 }
@@ -1346,6 +2276,32 @@ func restoreRunRequestToWire(v *RestoreRunRequest) (*restoreRunRequestWire, erro
 	return &restoreRunRequestWire{
 		RunId: v.RunId,
 	}, nil
+}
+
+func restoreRunRequestFromWire(w *restoreRunRequestWire) (*RestoreRunRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RestoreRunRequest{
+		RunId: w.RunId,
+	}, nil
+}
+
+type restoreRunResponseWire struct {
+}
+
+func restoreRunResponseToWire(v *RestoreRunResponse) (*restoreRunResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &restoreRunResponseWire{}, nil
+}
+
+func restoreRunResponseFromWire(w *restoreRunResponseWire) (*RestoreRunResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RestoreRunResponse{}, nil
 }
 
 type restoreRunsRequestWire struct {
@@ -1369,8 +2325,32 @@ func restoreRunsRequestToWire(v *RestoreRunsRequest) (*restoreRunsRequestWire, e
 	}, nil
 }
 
+func restoreRunsRequestFromWire(w *restoreRunsRequestWire) (*RestoreRunsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	minTimestampMillisPublicValue, err := int64FromWire(w.MinTimestampMillis)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RestoreRunsRequest.MinTimestampMillis", err)
+	}
+	return &RestoreRunsRequest{
+		ExperimentId:       w.ExperimentId,
+		MinTimestampMillis: minTimestampMillisPublicValue,
+		MaxRuns:            w.MaxRuns,
+	}, nil
+}
+
 type restoreRunsResponseWire struct {
 	RunsRestored *int `json:"runs_restored,omitempty"`
+}
+
+func restoreRunsResponseToWire(v *RestoreRunsResponse) (*restoreRunsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &restoreRunsResponseWire{
+		RunsRestored: v.RunsRestored,
+	}, nil
 }
 
 func restoreRunsResponseFromWire(w *restoreRunsResponseWire) (*RestoreRunsResponse, error) {
@@ -1386,6 +2366,29 @@ type runWire struct {
 	Info   *runInfoWire   `json:"info,omitempty"`
 	Data   *runDataWire   `json:"data,omitempty"`
 	Inputs *runInputsWire `json:"inputs,omitempty"`
+}
+
+func runToWire(v *Run) (*runWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	infoWireValue, err := runInfoToWire(v.Info)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.Info", err)
+	}
+	dataWireValue, err := runDataToWire(v.Data)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.Data", err)
+	}
+	inputsWireValue, err := runInputsToWire(v.Inputs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.Inputs", err)
+	}
+	return &runWire{
+		Info:   infoWireValue,
+		Data:   dataWireValue,
+		Inputs: inputsWireValue,
+	}, nil
 }
 
 func runFromWire(w *runWire) (*Run, error) {
@@ -1415,6 +2418,29 @@ type runDataWire struct {
 	Metrics []metricWire `json:"metrics,omitempty"`
 	Params  []paramWire  `json:"params,omitempty"`
 	Tags    []runTagWire `json:"tags,omitempty"`
+}
+
+func runDataToWire(v *RunData) (*runDataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	metricsWireValue, err := convertSlice(v.Metrics, metricToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunData.Metrics", err)
+	}
+	paramsWireValue, err := convertSlice(v.Params, paramToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunData.Params", err)
+	}
+	tagsWireValue, err := convertSlice(v.Tags, runTagToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunData.Tags", err)
+	}
+	return &runDataWire{
+		Metrics: metricsWireValue,
+		Params:  paramsWireValue,
+		Tags:    tagsWireValue,
+	}, nil
 }
 
 func runDataFromWire(w *runDataWire) (*RunData, error) {
@@ -1453,6 +2479,32 @@ type runInfoWire struct {
 	LifecycleStage *string    `json:"lifecycle_stage,omitempty"`
 }
 
+func runInfoToWire(v *RunInfo) (*runInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	startTimeWireValue, err := int64ToWire(v.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunInfo.StartTime", err)
+	}
+	endTimeWireValue, err := int64ToWire(v.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunInfo.EndTime", err)
+	}
+	return &runInfoWire{
+		RunId:          v.RunId,
+		RunUuid:        v.RunUuid,
+		ExperimentId:   v.ExperimentId,
+		RunName:        v.RunName,
+		UserId:         v.UserId,
+		Status:         v.Status,
+		StartTime:      startTimeWireValue,
+		EndTime:        endTimeWireValue,
+		ArtifactUri:    v.ArtifactUri,
+		LifecycleStage: v.LifecycleStage,
+	}, nil
+}
+
 func runInfoFromWire(w *runInfoWire) (*RunInfo, error) {
 	if w == nil {
 		return nil, nil
@@ -1482,6 +2534,24 @@ func runInfoFromWire(w *runInfoWire) (*RunInfo, error) {
 type runInputsWire struct {
 	DatasetInputs []datasetInputWire `json:"dataset_inputs,omitempty"`
 	ModelInputs   []modelInputWire   `json:"model_inputs,omitempty"`
+}
+
+func runInputsToWire(v *RunInputs) (*runInputsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	datasetInputsWireValue, err := convertSlice(v.DatasetInputs, datasetInputToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunInputs.DatasetInputs", err)
+	}
+	modelInputsWireValue, err := convertSlice(v.ModelInputs, modelInputToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunInputs.ModelInputs", err)
+	}
+	return &runInputsWire{
+		DatasetInputs: datasetInputsWireValue,
+		ModelInputs:   modelInputsWireValue,
+	}, nil
 }
 
 func runInputsFromWire(w *runInputsWire) (*RunInputs, error) {
@@ -1552,9 +2622,40 @@ func searchExperimentsRequestToWire(v *SearchExperimentsRequest) (*searchExperim
 	}, nil
 }
 
+func searchExperimentsRequestFromWire(w *searchExperimentsRequestWire) (*SearchExperimentsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	maxResultsPublicValue, err := int64FromWire(w.MaxResults)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SearchExperimentsRequest.MaxResults", err)
+	}
+	return &SearchExperimentsRequest{
+		MaxResults: maxResultsPublicValue,
+		PageToken:  w.PageToken,
+		Filter:     w.Filter,
+		OrderBy:    w.OrderBy,
+		ViewType:   w.ViewType,
+	}, nil
+}
+
 type searchExperimentsResponseWire struct {
 	Experiments   []experimentWire `json:"experiments,omitempty"`
 	NextPageToken *string          `json:"next_page_token,omitempty"`
+}
+
+func searchExperimentsResponseToWire(v *SearchExperimentsResponse) (*searchExperimentsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	experimentsWireValue, err := convertSlice(v.Experiments, experimentToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SearchExperimentsResponse.Experiments", err)
+	}
+	return &searchExperimentsResponseWire{
+		Experiments:   experimentsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func searchExperimentsResponseFromWire(w *searchExperimentsResponseWire) (*SearchExperimentsResponse, error) {
@@ -1608,10 +2709,48 @@ func searchIssuesRequestToWire(v *SearchIssuesRequest) (*searchIssuesRequestWire
 	}, nil
 }
 
+func searchIssuesRequestFromWire(w *searchIssuesRequestWire) (*SearchIssuesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tagFiltersPublicValue, err := convertSlice(w.TagFilters, issueTagFilterFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SearchIssuesRequest.TagFilters", err)
+	}
+	return &SearchIssuesRequest{
+		Parent:     w.Parent,
+		Query:      w.Query,
+		Statuses:   w.Statuses,
+		Severities: w.Severities,
+		Categories: w.Categories,
+		TagFilters: tagFiltersPublicValue,
+		SortKey:    w.SortKey,
+		SortOrder:  w.SortOrder,
+		PageSize:   w.PageSize,
+		PageToken:  w.PageToken,
+		View:       w.View,
+	}, nil
+}
+
 type searchIssuesResponseWire struct {
 	Issues        []issueWire `json:"issues,omitempty"`
 	NextPageToken *string     `json:"next_page_token,omitempty"`
 	TotalSize     *int        `json:"total_size,omitempty"`
+}
+
+func searchIssuesResponseToWire(v *SearchIssuesResponse) (*searchIssuesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	issuesWireValue, err := convertSlice(v.Issues, issueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SearchIssuesResponse.Issues", err)
+	}
+	return &searchIssuesResponseWire{
+		Issues:        issuesWireValue,
+		NextPageToken: v.NextPageToken,
+		TotalSize:     v.TotalSize,
+	}, nil
 }
 
 func searchIssuesResponseFromWire(w *searchIssuesResponseWire) (*SearchIssuesResponse, error) {
@@ -1660,6 +2799,28 @@ func searchLoggedModelsRequestToWire(v *SearchLoggedModelsRequest) (*searchLogge
 	}, nil
 }
 
+func searchLoggedModelsRequestFromWire(w *searchLoggedModelsRequestWire) (*SearchLoggedModelsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	datasetsPublicValue, err := convertSlice(w.Datasets, searchLoggedModelsRequest_DatasetFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SearchLoggedModelsRequest.Datasets", err)
+	}
+	orderByPublicValue, err := convertSlice(w.OrderBy, searchLoggedModelsRequest_OrderByFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SearchLoggedModelsRequest.OrderBy", err)
+	}
+	return &SearchLoggedModelsRequest{
+		ExperimentIds: w.ExperimentIds,
+		Filter:        w.Filter,
+		Datasets:      datasetsPublicValue,
+		MaxResults:    w.MaxResults,
+		OrderBy:       orderByPublicValue,
+		PageToken:     w.PageToken,
+	}, nil
+}
+
 type searchLoggedModelsRequest_DatasetWire struct {
 	DatasetName   *string `json:"dataset_name,omitempty"`
 	DatasetDigest *string `json:"dataset_digest,omitempty"`
@@ -1672,6 +2833,16 @@ func searchLoggedModelsRequest_DatasetToWire(v *SearchLoggedModelsRequest_Datase
 	return &searchLoggedModelsRequest_DatasetWire{
 		DatasetName:   v.DatasetName,
 		DatasetDigest: v.DatasetDigest,
+	}, nil
+}
+
+func searchLoggedModelsRequest_DatasetFromWire(w *searchLoggedModelsRequest_DatasetWire) (*SearchLoggedModelsRequest_Dataset, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SearchLoggedModelsRequest_Dataset{
+		DatasetName:   w.DatasetName,
+		DatasetDigest: w.DatasetDigest,
 	}, nil
 }
 
@@ -1694,9 +2865,35 @@ func searchLoggedModelsRequest_OrderByToWire(v *SearchLoggedModelsRequest_OrderB
 	}, nil
 }
 
+func searchLoggedModelsRequest_OrderByFromWire(w *searchLoggedModelsRequest_OrderByWire) (*SearchLoggedModelsRequest_OrderBy, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SearchLoggedModelsRequest_OrderBy{
+		FieldName:     w.FieldName,
+		Ascending:     w.Ascending,
+		DatasetName:   w.DatasetName,
+		DatasetDigest: w.DatasetDigest,
+	}, nil
+}
+
 type searchLoggedModelsResponseWire struct {
 	Models        []loggedModelWire `json:"models,omitempty"`
 	NextPageToken *string           `json:"next_page_token,omitempty"`
+}
+
+func searchLoggedModelsResponseToWire(v *SearchLoggedModelsResponse) (*searchLoggedModelsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	modelsWireValue, err := convertSlice(v.Models, loggedModelToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SearchLoggedModelsResponse.Models", err)
+	}
+	return &searchLoggedModelsResponseWire{
+		Models:        modelsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func searchLoggedModelsResponseFromWire(w *searchLoggedModelsResponseWire) (*SearchLoggedModelsResponse, error) {
@@ -1736,9 +2933,37 @@ func searchRunsRequestToWire(v *SearchRunsRequest) (*searchRunsRequestWire, erro
 	}, nil
 }
 
+func searchRunsRequestFromWire(w *searchRunsRequestWire) (*SearchRunsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SearchRunsRequest{
+		ExperimentIds: w.ExperimentIds,
+		Filter:        w.Filter,
+		RunViewType:   w.RunViewType,
+		MaxResults:    w.MaxResults,
+		OrderBy:       w.OrderBy,
+		PageToken:     w.PageToken,
+	}, nil
+}
+
 type searchRunsResponseWire struct {
 	Runs          []runWire `json:"runs,omitempty"`
 	NextPageToken *string   `json:"next_page_token,omitempty"`
+}
+
+func searchRunsResponseToWire(v *SearchRunsResponse) (*searchRunsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	runsWireValue, err := convertSlice(v.Runs, runToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SearchRunsResponse.Runs", err)
+	}
+	return &searchRunsResponseWire{
+		Runs:          runsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func searchRunsResponseFromWire(w *searchRunsResponseWire) (*SearchRunsResponse, error) {
@@ -1772,6 +2997,34 @@ func setExperimentTagRequestToWire(v *SetExperimentTagRequest) (*setExperimentTa
 	}, nil
 }
 
+func setExperimentTagRequestFromWire(w *setExperimentTagRequestWire) (*SetExperimentTagRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SetExperimentTagRequest{
+		ExperimentId: w.ExperimentId,
+		Key:          w.Key,
+		Value:        w.Value,
+	}, nil
+}
+
+type setExperimentTagResponseWire struct {
+}
+
+func setExperimentTagResponseToWire(v *SetExperimentTagResponse) (*setExperimentTagResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &setExperimentTagResponseWire{}, nil
+}
+
+func setExperimentTagResponseFromWire(w *setExperimentTagResponseWire) (*SetExperimentTagResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SetExperimentTagResponse{}, nil
+}
+
 type setLoggedModelTagsRequestWire struct {
 	ModelId *string              `json:"model_id,omitempty"`
 	Tags    []loggedModelTagWire `json:"tags,omitempty"`
@@ -1791,6 +3044,37 @@ func setLoggedModelTagsRequestToWire(v *SetLoggedModelTagsRequest) (*setLoggedMo
 	}, nil
 }
 
+func setLoggedModelTagsRequestFromWire(w *setLoggedModelTagsRequestWire) (*SetLoggedModelTagsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tagsPublicValue, err := convertSlice(w.Tags, loggedModelTagFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SetLoggedModelTagsRequest.Tags", err)
+	}
+	return &SetLoggedModelTagsRequest{
+		ModelId: w.ModelId,
+		Tags:    tagsPublicValue,
+	}, nil
+}
+
+type setLoggedModelTagsResponseWire struct {
+}
+
+func setLoggedModelTagsResponseToWire(v *SetLoggedModelTagsResponse) (*setLoggedModelTagsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &setLoggedModelTagsResponseWire{}, nil
+}
+
+func setLoggedModelTagsResponseFromWire(w *setLoggedModelTagsResponseWire) (*SetLoggedModelTagsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SetLoggedModelTagsResponse{}, nil
+}
+
 type setTagRequestWire struct {
 	RunId   *string `json:"run_id,omitempty"`
 	RunUuid *string `json:"run_uuid,omitempty"`
@@ -1808,6 +3092,35 @@ func setTagRequestToWire(v *SetTagRequest) (*setTagRequestWire, error) {
 		Key:     v.Key,
 		Value:   v.Value,
 	}, nil
+}
+
+func setTagRequestFromWire(w *setTagRequestWire) (*SetTagRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SetTagRequest{
+		RunId:   w.RunId,
+		RunUuid: w.RunUuid,
+		Key:     w.Key,
+		Value:   w.Value,
+	}, nil
+}
+
+type setTagResponseWire struct {
+}
+
+func setTagResponseToWire(v *SetTagResponse) (*setTagResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &setTagResponseWire{}, nil
+}
+
+func setTagResponseFromWire(w *setTagResponseWire) (*SetTagResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SetTagResponse{}, nil
 }
 
 type ucTraceLocationWire struct {
@@ -1856,9 +3169,36 @@ func updateExperimentRequestToWire(v *UpdateExperimentRequest) (*updateExperimen
 	}, nil
 }
 
+func updateExperimentRequestFromWire(w *updateExperimentRequestWire) (*UpdateExperimentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpdateExperimentRequest{
+		ExperimentId: w.ExperimentId,
+		NewName:      w.NewName,
+	}, nil
+}
+
+type updateExperimentResponseWire struct {
+}
+
+func updateExperimentResponseToWire(v *UpdateExperimentResponse) (*updateExperimentResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &updateExperimentResponseWire{}, nil
+}
+
+func updateExperimentResponseFromWire(w *updateExperimentResponseWire) (*UpdateExperimentResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpdateExperimentResponse{}, nil
+}
+
 type updateIssueRequestWire struct {
-	Issue      *issueWire `json:"issue,omitempty"`
-	UpdateMask *string    `json:"update_mask,omitempty"`
+	Issue      *issueWire              `json:"issue,omitempty"`
+	UpdateMask *types.FieldMask[Issue] `json:"update_mask,omitempty"`
 }
 
 func updateIssueRequestToWire(v *UpdateIssueRequest) (*updateIssueRequestWire, error) {
@@ -1871,7 +3211,21 @@ func updateIssueRequestToWire(v *UpdateIssueRequest) (*updateIssueRequestWire, e
 	}
 	return &updateIssueRequestWire{
 		Issue:      issueWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateIssueRequestFromWire(w *updateIssueRequestWire) (*UpdateIssueRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	issuePublicValue, err := issueFromWire(w.Issue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateIssueRequest.Issue", err)
+	}
+	return &UpdateIssueRequest{
+		Issue:      issuePublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 
@@ -1900,8 +3254,38 @@ func updateRunRequestToWire(v *UpdateRunRequest) (*updateRunRequestWire, error) 
 	}, nil
 }
 
+func updateRunRequestFromWire(w *updateRunRequestWire) (*UpdateRunRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	endTimePublicValue, err := int64FromWire(w.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRunRequest.EndTime", err)
+	}
+	return &UpdateRunRequest{
+		RunId:   w.RunId,
+		RunUuid: w.RunUuid,
+		Status:  w.Status,
+		EndTime: endTimePublicValue,
+		RunName: w.RunName,
+	}, nil
+}
+
 type updateRunResponseWire struct {
 	RunInfo *runInfoWire `json:"run_info,omitempty"`
+}
+
+func updateRunResponseToWire(v *UpdateRunResponse) (*updateRunResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	runInfoWireValue, err := runInfoToWire(v.RunInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRunResponse.RunInfo", err)
+	}
+	return &updateRunResponseWire{
+		RunInfo: runInfoWireValue,
+	}, nil
 }
 
 func updateRunResponseFromWire(w *updateRunResponseWire) (*UpdateRunResponse, error) {

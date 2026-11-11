@@ -181,6 +181,55 @@ func createExternalLocationRequestToWire(v *CreateExternalLocationRequest) (*cre
 	}, nil
 }
 
+func createExternalLocationRequestFromWire(w *createExternalLocationRequestWire) (*CreateExternalLocationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	fileEventQueuePublicValue, err := fileEventQueueFromWire(w.FileEventQueue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateExternalLocationRequest.FileEventQueue", err)
+	}
+	encryptionDetailsPublicValue, err := encryptionDetailsFromWire(w.EncryptionDetails)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateExternalLocationRequest.EncryptionDetails", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateExternalLocationRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateExternalLocationRequest.UpdatedAt", err)
+	}
+	effectiveFileEventQueuePublicValue, err := fileEventQueueFromWire(w.EffectiveFileEventQueue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateExternalLocationRequest.EffectiveFileEventQueue", err)
+	}
+	return &CreateExternalLocationRequest{
+		SkipValidation:            w.SkipValidation,
+		Name:                      w.Name,
+		Url:                       w.Url,
+		CredentialName:            w.CredentialName,
+		ReadOnly:                  w.ReadOnly,
+		Comment:                   w.Comment,
+		EnableFileEvents:          w.EnableFileEvents,
+		FileEventQueue:            fileEventQueuePublicValue,
+		Owner:                     w.Owner,
+		EncryptionDetails:         encryptionDetailsPublicValue,
+		MetastoreId:               w.MetastoreId,
+		CredentialId:              w.CredentialId,
+		CreatedAt:                 createdAtPublicValue,
+		CreatedBy:                 w.CreatedBy,
+		UpdatedAt:                 updatedAtPublicValue,
+		UpdatedBy:                 w.UpdatedBy,
+		BrowseOnly:                w.BrowseOnly,
+		IsolationMode:             w.IsolationMode,
+		Fallback:                  w.Fallback,
+		EffectiveEnableFileEvents: w.EffectiveEnableFileEvents,
+		EffectiveFileEventQueue:   effectiveFileEventQueuePublicValue,
+	}, nil
+}
+
 type deleteExternalLocationRequestWire struct {
 	NameArg *string `json:"name_arg,omitempty"`
 	Force   *bool   `json:"force,omitempty"`
@@ -194,6 +243,33 @@ func deleteExternalLocationRequestToWire(v *DeleteExternalLocationRequest) (*del
 		NameArg: v.NameArg,
 		Force:   v.Force,
 	}, nil
+}
+
+func deleteExternalLocationRequestFromWire(w *deleteExternalLocationRequestWire) (*DeleteExternalLocationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteExternalLocationRequest{
+		NameArg: w.NameArg,
+		Force:   w.Force,
+	}, nil
+}
+
+type deleteExternalLocationResponseWire struct {
+}
+
+func deleteExternalLocationResponseToWire(v *DeleteExternalLocationResponse) (*deleteExternalLocationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteExternalLocationResponseWire{}, nil
+}
+
+func deleteExternalLocationResponseFromWire(w *deleteExternalLocationResponseWire) (*DeleteExternalLocationResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteExternalLocationResponse{}, nil
 }
 
 type encryptionDetailsWire struct {
@@ -269,6 +345,54 @@ type externalLocationInfoWire struct {
 	Fallback                  *bool                  `json:"fallback,omitempty"`
 	EffectiveEnableFileEvents *bool                  `json:"effective_enable_file_events,omitempty"`
 	EffectiveFileEventQueue   *fileEventQueueWire    `json:"effective_file_event_queue,omitempty"`
+}
+
+func externalLocationInfoToWire(v *ExternalLocationInfo) (*externalLocationInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	fileEventQueueWireValue, err := fileEventQueueToWire(v.FileEventQueue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLocationInfo.FileEventQueue", err)
+	}
+	encryptionDetailsWireValue, err := encryptionDetailsToWire(v.EncryptionDetails)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLocationInfo.EncryptionDetails", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLocationInfo.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLocationInfo.UpdatedAt", err)
+	}
+	effectiveFileEventQueueWireValue, err := fileEventQueueToWire(v.EffectiveFileEventQueue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExternalLocationInfo.EffectiveFileEventQueue", err)
+	}
+	return &externalLocationInfoWire{
+		Name:                      v.Name,
+		Url:                       v.Url,
+		CredentialName:            v.CredentialName,
+		ReadOnly:                  v.ReadOnly,
+		Comment:                   v.Comment,
+		EnableFileEvents:          v.EnableFileEvents,
+		FileEventQueue:            fileEventQueueWireValue,
+		Owner:                     v.Owner,
+		EncryptionDetails:         encryptionDetailsWireValue,
+		MetastoreId:               v.MetastoreId,
+		CredentialId:              v.CredentialId,
+		CreatedAt:                 createdAtWireValue,
+		CreatedBy:                 v.CreatedBy,
+		UpdatedAt:                 updatedAtWireValue,
+		UpdatedBy:                 v.UpdatedBy,
+		BrowseOnly:                v.BrowseOnly,
+		IsolationMode:             v.IsolationMode,
+		Fallback:                  v.Fallback,
+		EffectiveEnableFileEvents: v.EffectiveEnableFileEvents,
+		EffectiveFileEventQueue:   effectiveFileEventQueueWireValue,
+	}, nil
 }
 
 func externalLocationInfoFromWire(w *externalLocationInfoWire) (*ExternalLocationInfo, error) {
@@ -524,6 +648,16 @@ func getExternalLocationRequestToWire(v *GetExternalLocationRequest) (*getExtern
 	}, nil
 }
 
+func getExternalLocationRequestFromWire(w *getExternalLocationRequestWire) (*GetExternalLocationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetExternalLocationRequest{
+		NameArg:       w.NameArg,
+		IncludeBrowse: w.IncludeBrowse,
+	}, nil
+}
+
 type listExternalLocationsRequestWire struct {
 	IncludeBrowse  *bool   `json:"include_browse,omitempty"`
 	MaxResults     *int    `json:"max_results,omitempty"`
@@ -543,9 +677,35 @@ func listExternalLocationsRequestToWire(v *ListExternalLocationsRequest) (*listE
 	}, nil
 }
 
+func listExternalLocationsRequestFromWire(w *listExternalLocationsRequestWire) (*ListExternalLocationsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListExternalLocationsRequest{
+		IncludeBrowse:  w.IncludeBrowse,
+		MaxResults:     w.MaxResults,
+		PageToken:      w.PageToken,
+		IncludeUnbound: w.IncludeUnbound,
+	}, nil
+}
+
 type listExternalLocationsResponseWire struct {
 	ExternalLocations []externalLocationInfoWire `json:"external_locations,omitempty"`
 	NextPageToken     *string                    `json:"next_page_token,omitempty"`
+}
+
+func listExternalLocationsResponseToWire(v *ListExternalLocationsResponse) (*listExternalLocationsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	externalLocationsWireValue, err := convertSlice(v.ExternalLocations, externalLocationInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListExternalLocationsResponse.ExternalLocations", err)
+	}
+	return &listExternalLocationsResponseWire{
+		ExternalLocations: externalLocationsWireValue,
+		NextPageToken:     v.NextPageToken,
+	}, nil
 }
 
 func listExternalLocationsResponseFromWire(w *listExternalLocationsResponseWire) (*ListExternalLocationsResponse, error) {
@@ -663,6 +823,58 @@ func updateExternalLocationRequestToWire(v *UpdateExternalLocationRequest) (*upd
 		Fallback:                  v.Fallback,
 		EffectiveEnableFileEvents: v.EffectiveEnableFileEvents,
 		EffectiveFileEventQueue:   effectiveFileEventQueueWireValue,
+	}, nil
+}
+
+func updateExternalLocationRequestFromWire(w *updateExternalLocationRequestWire) (*UpdateExternalLocationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	fileEventQueuePublicValue, err := fileEventQueueFromWire(w.FileEventQueue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateExternalLocationRequest.FileEventQueue", err)
+	}
+	encryptionDetailsPublicValue, err := encryptionDetailsFromWire(w.EncryptionDetails)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateExternalLocationRequest.EncryptionDetails", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateExternalLocationRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateExternalLocationRequest.UpdatedAt", err)
+	}
+	effectiveFileEventQueuePublicValue, err := fileEventQueueFromWire(w.EffectiveFileEventQueue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateExternalLocationRequest.EffectiveFileEventQueue", err)
+	}
+	return &UpdateExternalLocationRequest{
+		NameArg:                   w.NameArg,
+		NewName:                   w.NewName,
+		Force:                     w.Force,
+		SkipValidation:            w.SkipValidation,
+		Name:                      w.Name,
+		Url:                       w.Url,
+		CredentialName:            w.CredentialName,
+		ReadOnly:                  w.ReadOnly,
+		Comment:                   w.Comment,
+		EnableFileEvents:          w.EnableFileEvents,
+		FileEventQueue:            fileEventQueuePublicValue,
+		Owner:                     w.Owner,
+		EncryptionDetails:         encryptionDetailsPublicValue,
+		MetastoreId:               w.MetastoreId,
+		CredentialId:              w.CredentialId,
+		CreatedAt:                 createdAtPublicValue,
+		CreatedBy:                 w.CreatedBy,
+		UpdatedAt:                 updatedAtPublicValue,
+		UpdatedBy:                 w.UpdatedBy,
+		BrowseOnly:                w.BrowseOnly,
+		IsolationMode:             w.IsolationMode,
+		Fallback:                  w.Fallback,
+		EffectiveEnableFileEvents: w.EffectiveEnableFileEvents,
+		EffectiveFileEventQueue:   effectiveFileEventQueuePublicValue,
 	}, nil
 }
 

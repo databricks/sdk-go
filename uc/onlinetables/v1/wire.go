@@ -115,6 +115,41 @@ func createOnlineTableRequestToWire(v *CreateOnlineTableRequest) (*createOnlineT
 	}, nil
 }
 
+func createOnlineTableRequestFromWire(w *createOnlineTableRequestWire) (*CreateOnlineTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tablePublicValue, err := onlineTableFromWire(w.Table)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateOnlineTableRequest.Table", err)
+	}
+	return &CreateOnlineTableRequest{
+		Table: tablePublicValue,
+	}, nil
+}
+
+type deleteOnlineTableRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteOnlineTableRequestToWire(v *DeleteOnlineTableRequest) (*deleteOnlineTableRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteOnlineTableRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteOnlineTableRequestFromWire(w *deleteOnlineTableRequestWire) (*DeleteOnlineTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteOnlineTableRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type failedStatusWire struct {
 	LastProcessedCommitVersion *wireInt64  `json:"last_processed_commit_version,omitempty"`
 	Timestamp                  *types.Time `json:"timestamp,omitempty"`
@@ -145,6 +180,28 @@ func failedStatusFromWire(w *failedStatusWire) (*FailedStatus, error) {
 	return &FailedStatus{
 		LastProcessedCommitVersion: lastProcessedCommitVersionPublicValue,
 		Timestamp:                  w.Timestamp,
+	}, nil
+}
+
+type getOnlineTableRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getOnlineTableRequestToWire(v *GetOnlineTableRequest) (*getOnlineTableRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getOnlineTableRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getOnlineTableRequestFromWire(w *getOnlineTableRequestWire) (*GetOnlineTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetOnlineTableRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -493,6 +550,23 @@ func pipelineProgressFromWire(w *pipelineProgressWire) (*PipelineProgress, error
 		SyncProgressCompletion:           w.SyncProgressCompletion,
 		EstimatedCompletionTimeSeconds:   w.EstimatedCompletionTimeSeconds,
 	}, nil
+}
+
+type provisioningInfoWire struct {
+}
+
+func provisioningInfoToWire(v *ProvisioningInfo) (*provisioningInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &provisioningInfoWire{}, nil
+}
+
+func provisioningInfoFromWire(w *provisioningInfoWire) (*ProvisioningInfo, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ProvisioningInfo{}, nil
 }
 
 type provisioningStatusWire struct {

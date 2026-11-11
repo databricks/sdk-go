@@ -8,14 +8,6 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type createOnlineStoreRequestWire struct {
 	OnlineStore *onlineStoreWire `json:"online_store,omitempty"`
 }
@@ -30,6 +22,85 @@ func createOnlineStoreRequestToWire(v *CreateOnlineStoreRequest) (*createOnlineS
 	}
 	return &createOnlineStoreRequestWire{
 		OnlineStore: onlineStoreWireValue,
+	}, nil
+}
+
+func createOnlineStoreRequestFromWire(w *createOnlineStoreRequestWire) (*CreateOnlineStoreRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	onlineStorePublicValue, err := onlineStoreFromWire(w.OnlineStore)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateOnlineStoreRequest.OnlineStore", err)
+	}
+	return &CreateOnlineStoreRequest{
+		OnlineStore: onlineStorePublicValue,
+	}, nil
+}
+
+type deleteOnlineStoreRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteOnlineStoreRequestToWire(v *DeleteOnlineStoreRequest) (*deleteOnlineStoreRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteOnlineStoreRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteOnlineStoreRequestFromWire(w *deleteOnlineStoreRequestWire) (*DeleteOnlineStoreRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteOnlineStoreRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteOnlineTableRequestWire struct {
+	OnlineTableName *string `json:"online_table_name,omitempty"`
+}
+
+func deleteOnlineTableRequestToWire(v *DeleteOnlineTableRequest) (*deleteOnlineTableRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteOnlineTableRequestWire{
+		OnlineTableName: v.OnlineTableName,
+	}, nil
+}
+
+func deleteOnlineTableRequestFromWire(w *deleteOnlineTableRequestWire) (*DeleteOnlineTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteOnlineTableRequest{
+		OnlineTableName: w.OnlineTableName,
+	}, nil
+}
+
+type getOnlineStoreRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getOnlineStoreRequestToWire(v *GetOnlineStoreRequest) (*getOnlineStoreRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getOnlineStoreRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getOnlineStoreRequestFromWire(w *getOnlineStoreRequestWire) (*GetOnlineStoreRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetOnlineStoreRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -48,9 +119,33 @@ func listOnlineStoresRequestToWire(v *ListOnlineStoresRequest) (*listOnlineStore
 	}, nil
 }
 
+func listOnlineStoresRequestFromWire(w *listOnlineStoresRequestWire) (*ListOnlineStoresRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListOnlineStoresRequest{
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listOnlineStoresResponseWire struct {
 	OnlineStores  []onlineStoreWire `json:"online_stores,omitempty"`
 	NextPageToken *string           `json:"next_page_token,omitempty"`
+}
+
+func listOnlineStoresResponseToWire(v *ListOnlineStoresResponse) (*listOnlineStoresResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	onlineStoresWireValue, err := convertSlice(v.OnlineStores, onlineStoreToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListOnlineStoresResponse.OnlineStores", err)
+	}
+	return &listOnlineStoresResponseWire{
+		OnlineStores:  onlineStoresWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listOnlineStoresResponseFromWire(w *listOnlineStoresResponseWire) (*ListOnlineStoresResponse, error) {
@@ -130,6 +225,20 @@ func publishSpecToWire(v *PublishSpec) (*publishSpecWire, error) {
 	}, nil
 }
 
+func publishSpecFromWire(w *publishSpecWire) (*PublishSpec, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PublishSpec{
+		OnlineStore:     w.OnlineStore,
+		OnlineTableName: w.OnlineTableName,
+		PublishMode:     w.PublishMode,
+		FullFeatureName: w.FullFeatureName,
+		Tags:            w.Tags,
+		BudgetPolicyId:  w.BudgetPolicyId,
+	}, nil
+}
+
 type publishTableRequestWire struct {
 	SourceTableName *string          `json:"source_table_name,omitempty"`
 	PublishSpec     *publishSpecWire `json:"publish_spec,omitempty"`
@@ -149,9 +258,33 @@ func publishTableRequestToWire(v *PublishTableRequest) (*publishTableRequestWire
 	}, nil
 }
 
+func publishTableRequestFromWire(w *publishTableRequestWire) (*PublishTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	publishSpecPublicValue, err := publishSpecFromWire(w.PublishSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PublishTableRequest.PublishSpec", err)
+	}
+	return &PublishTableRequest{
+		SourceTableName: w.SourceTableName,
+		PublishSpec:     publishSpecPublicValue,
+	}, nil
+}
+
 type publishTableResponseWire struct {
 	OnlineTableName *string `json:"online_table_name,omitempty"`
 	PipelineId      *string `json:"pipeline_id,omitempty"`
+}
+
+func publishTableResponseToWire(v *PublishTableResponse) (*publishTableResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &publishTableResponseWire{
+		OnlineTableName: v.OnlineTableName,
+		PipelineId:      v.PipelineId,
+	}, nil
 }
 
 func publishTableResponseFromWire(w *publishTableResponseWire) (*PublishTableResponse, error) {
@@ -165,8 +298,8 @@ func publishTableResponseFromWire(w *publishTableResponseWire) (*PublishTableRes
 }
 
 type updateOnlineStoreRequestWire struct {
-	OnlineStore *onlineStoreWire `json:"online_store,omitempty"`
-	UpdateMask  *string          `json:"update_mask,omitempty"`
+	OnlineStore *onlineStoreWire              `json:"online_store,omitempty"`
+	UpdateMask  *types.FieldMask[OnlineStore] `json:"update_mask,omitempty"`
 }
 
 func updateOnlineStoreRequestToWire(v *UpdateOnlineStoreRequest) (*updateOnlineStoreRequestWire, error) {
@@ -179,7 +312,21 @@ func updateOnlineStoreRequestToWire(v *UpdateOnlineStoreRequest) (*updateOnlineS
 	}
 	return &updateOnlineStoreRequestWire{
 		OnlineStore: onlineStoreWireValue,
-		UpdateMask:  fieldMaskToWire(v.UpdateMask),
+		UpdateMask:  v.UpdateMask,
+	}, nil
+}
+
+func updateOnlineStoreRequestFromWire(w *updateOnlineStoreRequestWire) (*UpdateOnlineStoreRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	onlineStorePublicValue, err := onlineStoreFromWire(w.OnlineStore)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateOnlineStoreRequest.OnlineStore", err)
+	}
+	return &UpdateOnlineStoreRequest{
+		OnlineStore: onlineStorePublicValue,
+		UpdateMask:  w.UpdateMask,
 	}, nil
 }
 

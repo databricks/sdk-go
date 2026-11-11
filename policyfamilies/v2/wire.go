@@ -71,6 +71,20 @@ func getPolicyFamilyRequestToWire(v *GetPolicyFamilyRequest) (*getPolicyFamilyRe
 	}, nil
 }
 
+func getPolicyFamilyRequestFromWire(w *getPolicyFamilyRequestWire) (*GetPolicyFamilyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	versionPublicValue, err := int64FromWire(w.Version)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetPolicyFamilyRequest.Version", err)
+	}
+	return &GetPolicyFamilyRequest{
+		PolicyFamilyId: w.PolicyFamilyId,
+		Version:        versionPublicValue,
+	}, nil
+}
+
 type listPolicyFamiliesRequestWire struct {
 	MaxResults *wireInt64 `json:"max_results,omitempty"`
 	PageToken  *string    `json:"page_token,omitempty"`
@@ -90,9 +104,37 @@ func listPolicyFamiliesRequestToWire(v *ListPolicyFamiliesRequest) (*listPolicyF
 	}, nil
 }
 
+func listPolicyFamiliesRequestFromWire(w *listPolicyFamiliesRequestWire) (*ListPolicyFamiliesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	maxResultsPublicValue, err := int64FromWire(w.MaxResults)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListPolicyFamiliesRequest.MaxResults", err)
+	}
+	return &ListPolicyFamiliesRequest{
+		MaxResults: maxResultsPublicValue,
+		PageToken:  w.PageToken,
+	}, nil
+}
+
 type listPolicyFamiliesResponseWire struct {
 	PolicyFamilies []policyFamilyWire `json:"policy_families,omitempty"`
 	NextPageToken  *string            `json:"next_page_token,omitempty"`
+}
+
+func listPolicyFamiliesResponseToWire(v *ListPolicyFamiliesResponse) (*listPolicyFamiliesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	policyFamiliesWireValue, err := convertSlice(v.PolicyFamilies, policyFamilyToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListPolicyFamiliesResponse.PolicyFamilies", err)
+	}
+	return &listPolicyFamiliesResponseWire{
+		PolicyFamilies: policyFamiliesWireValue,
+		NextPageToken:  v.NextPageToken,
+	}, nil
 }
 
 func listPolicyFamiliesResponseFromWire(w *listPolicyFamiliesResponseWire) (*ListPolicyFamiliesResponse, error) {
@@ -114,6 +156,18 @@ type policyFamilyWire struct {
 	Name           *string `json:"name,omitempty"`
 	Description    *string `json:"description,omitempty"`
 	Definition     *string `json:"definition,omitempty"`
+}
+
+func policyFamilyToWire(v *PolicyFamily) (*policyFamilyWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &policyFamilyWire{
+		PolicyFamilyId: v.PolicyFamilyId,
+		Name:           v.Name,
+		Description:    v.Description,
+		Definition:     v.Definition,
+	}, nil
 }
 
 func policyFamilyFromWire(w *policyFamilyWire) (*PolicyFamily, error) {

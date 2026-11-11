@@ -75,6 +75,50 @@ type connectionInfoWire struct {
 	Properties          map[string]string        `json:"properties,omitempty"`
 }
 
+func connectionInfoToWire(v *ConnectionInfo) (*connectionInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	environmentSettingsWireValue, err := environmentSettingsToWire(v.EnvironmentSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ConnectionInfo.EnvironmentSettings", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ConnectionInfo.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ConnectionInfo.UpdatedAt", err)
+	}
+	provisioningInfoWireValue, err := provisioningInfoToWire(v.ProvisioningInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ConnectionInfo.ProvisioningInfo", err)
+	}
+	return &connectionInfoWire{
+		Name:                v.Name,
+		ConnectionType:      v.ConnectionType,
+		Owner:               v.Owner,
+		ReadOnly:            v.ReadOnly,
+		Comment:             v.Comment,
+		EnvironmentSettings: environmentSettingsWireValue,
+		FullName:            v.FullName,
+		Url:                 v.Url,
+		CredentialType:      v.CredentialType,
+		ConnectionId:        v.ConnectionId,
+		MetastoreId:         v.MetastoreId,
+		CreatedAt:           createdAtWireValue,
+		CreatedBy:           v.CreatedBy,
+		UpdatedAt:           updatedAtWireValue,
+		UpdatedBy:           v.UpdatedBy,
+		SecurableType:       v.SecurableType,
+		ProvisioningInfo:    provisioningInfoWireValue,
+		Options:             v.Options,
+		Secrets:             v.Secrets,
+		Properties:          v.Properties,
+	}, nil
+}
+
 func connectionInfoFromWire(w *connectionInfoWire) (*ConnectionInfo, error) {
 	if w == nil {
 		return nil, nil
@@ -188,6 +232,90 @@ func createConnectionRequestToWire(v *CreateConnectionRequest) (*createConnectio
 	}, nil
 }
 
+func createConnectionRequestFromWire(w *createConnectionRequestWire) (*CreateConnectionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	environmentSettingsPublicValue, err := environmentSettingsFromWire(w.EnvironmentSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateConnectionRequest.EnvironmentSettings", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateConnectionRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateConnectionRequest.UpdatedAt", err)
+	}
+	provisioningInfoPublicValue, err := provisioningInfoFromWire(w.ProvisioningInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateConnectionRequest.ProvisioningInfo", err)
+	}
+	return &CreateConnectionRequest{
+		Parent:              w.Parent,
+		Name:                w.Name,
+		ConnectionType:      w.ConnectionType,
+		Owner:               w.Owner,
+		ReadOnly:            w.ReadOnly,
+		Comment:             w.Comment,
+		EnvironmentSettings: environmentSettingsPublicValue,
+		FullName:            w.FullName,
+		Url:                 w.Url,
+		CredentialType:      w.CredentialType,
+		ConnectionId:        w.ConnectionId,
+		MetastoreId:         w.MetastoreId,
+		CreatedAt:           createdAtPublicValue,
+		CreatedBy:           w.CreatedBy,
+		UpdatedAt:           updatedAtPublicValue,
+		UpdatedBy:           w.UpdatedBy,
+		SecurableType:       w.SecurableType,
+		ProvisioningInfo:    provisioningInfoPublicValue,
+		Options:             w.Options,
+		Secrets:             w.Secrets,
+		Properties:          w.Properties,
+	}, nil
+}
+
+type deleteConnectionRequestWire struct {
+	NameArg *string `json:"name_arg,omitempty"`
+}
+
+func deleteConnectionRequestToWire(v *DeleteConnectionRequest) (*deleteConnectionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteConnectionRequestWire{
+		NameArg: v.NameArg,
+	}, nil
+}
+
+func deleteConnectionRequestFromWire(w *deleteConnectionRequestWire) (*DeleteConnectionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteConnectionRequest{
+		NameArg: w.NameArg,
+	}, nil
+}
+
+type deleteConnectionResponseWire struct {
+}
+
+func deleteConnectionResponseToWire(v *DeleteConnectionResponse) (*deleteConnectionResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteConnectionResponseWire{}, nil
+}
+
+func deleteConnectionResponseFromWire(w *deleteConnectionResponseWire) (*DeleteConnectionResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteConnectionResponse{}, nil
+}
+
 type environmentSettingsWire struct {
 	JavaDependencies   []string `json:"java_dependencies,omitempty"`
 	EnvironmentVersion *string  `json:"environment_version,omitempty"`
@@ -213,6 +341,28 @@ func environmentSettingsFromWire(w *environmentSettingsWire) (*EnvironmentSettin
 	}, nil
 }
 
+type getConnectionRequestWire struct {
+	NameArg *string `json:"name_arg,omitempty"`
+}
+
+func getConnectionRequestToWire(v *GetConnectionRequest) (*getConnectionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getConnectionRequestWire{
+		NameArg: v.NameArg,
+	}, nil
+}
+
+func getConnectionRequestFromWire(w *getConnectionRequestWire) (*GetConnectionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetConnectionRequest{
+		NameArg: w.NameArg,
+	}, nil
+}
+
 type listConnectionsRequestWire struct {
 	MaxResults *int    `json:"max_results,omitempty"`
 	PageToken  *string `json:"page_token,omitempty"`
@@ -230,9 +380,34 @@ func listConnectionsRequestToWire(v *ListConnectionsRequest) (*listConnectionsRe
 	}, nil
 }
 
+func listConnectionsRequestFromWire(w *listConnectionsRequestWire) (*ListConnectionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListConnectionsRequest{
+		MaxResults: w.MaxResults,
+		PageToken:  w.PageToken,
+		Parent:     w.Parent,
+	}, nil
+}
+
 type listConnectionsResponseWire struct {
 	Connections   []connectionInfoWire `json:"connections,omitempty"`
 	NextPageToken *string              `json:"next_page_token,omitempty"`
+}
+
+func listConnectionsResponseToWire(v *ListConnectionsResponse) (*listConnectionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	connectionsWireValue, err := convertSlice(v.Connections, connectionInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListConnectionsResponse.Connections", err)
+	}
+	return &listConnectionsResponseWire{
+		Connections:   connectionsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listConnectionsResponseFromWire(w *listConnectionsResponseWire) (*ListConnectionsResponse, error) {
@@ -339,6 +514,52 @@ func updateConnectionRequestToWire(v *UpdateConnectionRequest) (*updateConnectio
 		Options:             v.Options,
 		Secrets:             v.Secrets,
 		Properties:          v.Properties,
+	}, nil
+}
+
+func updateConnectionRequestFromWire(w *updateConnectionRequestWire) (*UpdateConnectionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	environmentSettingsPublicValue, err := environmentSettingsFromWire(w.EnvironmentSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateConnectionRequest.EnvironmentSettings", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateConnectionRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateConnectionRequest.UpdatedAt", err)
+	}
+	provisioningInfoPublicValue, err := provisioningInfoFromWire(w.ProvisioningInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateConnectionRequest.ProvisioningInfo", err)
+	}
+	return &UpdateConnectionRequest{
+		NameArg:             w.NameArg,
+		NewName:             w.NewName,
+		Name:                w.Name,
+		ConnectionType:      w.ConnectionType,
+		Owner:               w.Owner,
+		ReadOnly:            w.ReadOnly,
+		Comment:             w.Comment,
+		EnvironmentSettings: environmentSettingsPublicValue,
+		FullName:            w.FullName,
+		Url:                 w.Url,
+		CredentialType:      w.CredentialType,
+		ConnectionId:        w.ConnectionId,
+		MetastoreId:         w.MetastoreId,
+		CreatedAt:           createdAtPublicValue,
+		CreatedBy:           w.CreatedBy,
+		UpdatedAt:           updatedAtPublicValue,
+		UpdatedBy:           w.UpdatedBy,
+		SecurableType:       w.SecurableType,
+		ProvisioningInfo:    provisioningInfoPublicValue,
+		Options:             w.Options,
+		Secrets:             w.Secrets,
+		Properties:          w.Properties,
 	}, nil
 }
 

@@ -59,6 +59,16 @@ type columnInfoWire struct {
 	TypeText *string `json:"type_text,omitempty"`
 }
 
+func columnInfoToWire(v *ColumnInfo) (*columnInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &columnInfoWire{
+		Name:     v.Name,
+		TypeText: v.TypeText,
+	}, nil
+}
+
 func columnInfoFromWire(w *columnInfoWire) (*ColumnInfo, error) {
 	if w == nil {
 		return nil, nil
@@ -91,6 +101,23 @@ func createEndpointRequestToWire(v *CreateEndpointRequest) (*createEndpointReque
 		BudgetPolicyId: v.BudgetPolicyId,
 		UsagePolicyId:  v.UsagePolicyId,
 		TargetQps:      targetQpsWireValue,
+	}, nil
+}
+
+func createEndpointRequestFromWire(w *createEndpointRequestWire) (*CreateEndpointRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	targetQpsPublicValue, err := int64FromWire(w.TargetQps)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateEndpointRequest.TargetQps", err)
+	}
+	return &CreateEndpointRequest{
+		Name:           w.Name,
+		EndpointType:   w.EndpointType,
+		BudgetPolicyId: w.BudgetPolicyId,
+		UsagePolicyId:  w.UsagePolicyId,
+		TargetQps:      targetQpsPublicValue,
 	}, nil
 }
 
@@ -142,6 +169,45 @@ func createVectorIndexRequestToWire(v *CreateVectorIndexRequest) (*createVectorI
 	}, nil
 }
 
+func createVectorIndexRequestFromWire(w *createVectorIndexRequestWire) (*CreateVectorIndexRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	indexSpecMembers := 0
+	if w.DirectAccessIndexSpec != nil {
+		indexSpecMembers++
+	}
+	if w.DeltaSyncIndexSpec != nil {
+		indexSpecMembers++
+	}
+	if indexSpecMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "CreateVectorIndexRequest.IndexSpec")
+	}
+	var indexSpecSelection isCreateVectorIndexRequest_IndexSpec
+	switch {
+	case w.DirectAccessIndexSpec != nil:
+		indexSpecDirectAccessIndexSpecConverted, err := directAccessVectorIndexSpecFromWire(w.DirectAccessIndexSpec)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateVectorIndexRequest.IndexSpec.DirectAccessIndexSpec", err)
+		}
+		indexSpecSelection = &CreateVectorIndexRequest_IndexSpec_DirectAccessIndexSpec{DirectAccessIndexSpec: *indexSpecDirectAccessIndexSpecConverted}
+	case w.DeltaSyncIndexSpec != nil:
+		indexSpecDeltaSyncIndexSpecConverted, err := deltaSyncVectorIndexSpecRequestFromWire(w.DeltaSyncIndexSpec)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateVectorIndexRequest.IndexSpec.DeltaSyncIndexSpec", err)
+		}
+		indexSpecSelection = &CreateVectorIndexRequest_IndexSpec_DeltaSyncIndexSpec{DeltaSyncIndexSpec: *indexSpecDeltaSyncIndexSpecConverted}
+	}
+	return &CreateVectorIndexRequest{
+		Name:         w.Name,
+		EndpointName: w.EndpointName,
+		PrimaryKey:   w.PrimaryKey,
+		IndexType:    w.IndexType,
+		IndexSubtype: w.IndexSubtype,
+		IndexSpec:    indexSpecSelection,
+	}, nil
+}
+
 type customTagWire struct {
 	Key   *string `json:"key,omitempty"`
 	Value *string `json:"value,omitempty"`
@@ -182,9 +248,33 @@ func deleteDataVectorIndexRequestToWire(v *DeleteDataVectorIndexRequest) (*delet
 	}, nil
 }
 
+func deleteDataVectorIndexRequestFromWire(w *deleteDataVectorIndexRequestWire) (*DeleteDataVectorIndexRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteDataVectorIndexRequest{
+		Name:        w.Name,
+		PrimaryKeys: w.PrimaryKeys,
+	}, nil
+}
+
 type deleteDataVectorIndexResponseWire struct {
 	Status UpsertDeleteDataStatus      `json:"status,omitempty"`
 	Result *upsertDeleteDataResultWire `json:"result,omitempty"`
+}
+
+func deleteDataVectorIndexResponseToWire(v *DeleteDataVectorIndexResponse) (*deleteDataVectorIndexResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	resultWireValue, err := upsertDeleteDataResultToWire(v.Result)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteDataVectorIndexResponse.Result", err)
+	}
+	return &deleteDataVectorIndexResponseWire{
+		Status: v.Status,
+		Result: resultWireValue,
+	}, nil
 }
 
 func deleteDataVectorIndexResponseFromWire(w *deleteDataVectorIndexResponseWire) (*DeleteDataVectorIndexResponse, error) {
@@ -201,6 +291,84 @@ func deleteDataVectorIndexResponseFromWire(w *deleteDataVectorIndexResponseWire)
 	}, nil
 }
 
+type deleteEndpointRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteEndpointRequestToWire(v *DeleteEndpointRequest) (*deleteEndpointRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteEndpointRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteEndpointRequestFromWire(w *deleteEndpointRequestWire) (*DeleteEndpointRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteEndpointRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteEndpointResponseWire struct {
+}
+
+func deleteEndpointResponseToWire(v *DeleteEndpointResponse) (*deleteEndpointResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteEndpointResponseWire{}, nil
+}
+
+func deleteEndpointResponseFromWire(w *deleteEndpointResponseWire) (*DeleteEndpointResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteEndpointResponse{}, nil
+}
+
+type deleteVectorIndexRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteVectorIndexRequestToWire(v *DeleteVectorIndexRequest) (*deleteVectorIndexRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteVectorIndexRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteVectorIndexRequestFromWire(w *deleteVectorIndexRequestWire) (*DeleteVectorIndexRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteVectorIndexRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteVectorIndexResponseWire struct {
+}
+
+func deleteVectorIndexResponseToWire(v *DeleteVectorIndexResponse) (*deleteVectorIndexResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteVectorIndexResponseWire{}, nil
+}
+
+func deleteVectorIndexResponseFromWire(w *deleteVectorIndexResponseWire) (*DeleteVectorIndexResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteVectorIndexResponse{}, nil
+}
+
 type deltaSyncVectorIndexSpecWire struct {
 	SourceTable             *string                     `json:"source_table,omitempty"`
 	EmbeddingSourceColumns  []embeddingSourceColumnWire `json:"embedding_source_columns,omitempty"`
@@ -210,6 +378,30 @@ type deltaSyncVectorIndexSpecWire struct {
 	EmbeddingWritebackTable *string                     `json:"embedding_writeback_table,omitempty"`
 	ColumnsToSync           []string                    `json:"columns_to_sync,omitempty"`
 	ColumnsToIndex          []string                    `json:"columns_to_index,omitempty"`
+}
+
+func deltaSyncVectorIndexSpecToWire(v *DeltaSyncVectorIndexSpec) (*deltaSyncVectorIndexSpecWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	embeddingSourceColumnsWireValue, err := convertSlice(v.EmbeddingSourceColumns, embeddingSourceColumnToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeltaSyncVectorIndexSpec.EmbeddingSourceColumns", err)
+	}
+	embeddingVectorColumnsWireValue, err := convertSlice(v.EmbeddingVectorColumns, embeddingVectorColumnToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeltaSyncVectorIndexSpec.EmbeddingVectorColumns", err)
+	}
+	return &deltaSyncVectorIndexSpecWire{
+		SourceTable:             v.SourceTable,
+		EmbeddingSourceColumns:  embeddingSourceColumnsWireValue,
+		EmbeddingVectorColumns:  embeddingVectorColumnsWireValue,
+		PipelineType:            v.PipelineType,
+		PipelineId:              v.PipelineId,
+		EmbeddingWritebackTable: v.EmbeddingWritebackTable,
+		ColumnsToSync:           v.ColumnsToSync,
+		ColumnsToIndex:          v.ColumnsToIndex,
+	}, nil
 }
 
 func deltaSyncVectorIndexSpecFromWire(w *deltaSyncVectorIndexSpecWire) (*DeltaSyncVectorIndexSpec, error) {
@@ -268,6 +460,30 @@ func deltaSyncVectorIndexSpecRequestToWire(v *DeltaSyncVectorIndexSpecRequest) (
 		EmbeddingWritebackTable: v.EmbeddingWritebackTable,
 		ColumnsToSync:           v.ColumnsToSync,
 		ColumnsToIndex:          v.ColumnsToIndex,
+	}, nil
+}
+
+func deltaSyncVectorIndexSpecRequestFromWire(w *deltaSyncVectorIndexSpecRequestWire) (*DeltaSyncVectorIndexSpecRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	embeddingSourceColumnsPublicValue, err := convertSlice(w.EmbeddingSourceColumns, embeddingSourceColumnFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeltaSyncVectorIndexSpecRequest.EmbeddingSourceColumns", err)
+	}
+	embeddingVectorColumnsPublicValue, err := convertSlice(w.EmbeddingVectorColumns, embeddingVectorColumnFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeltaSyncVectorIndexSpecRequest.EmbeddingVectorColumns", err)
+	}
+	return &DeltaSyncVectorIndexSpecRequest{
+		SourceTable:             w.SourceTable,
+		EmbeddingSourceColumns:  embeddingSourceColumnsPublicValue,
+		EmbeddingVectorColumns:  embeddingVectorColumnsPublicValue,
+		PipelineType:            w.PipelineType,
+		PipelineId:              w.PipelineId,
+		EmbeddingWritebackTable: w.EmbeddingWritebackTable,
+		ColumnsToSync:           w.ColumnsToSync,
+		ColumnsToIndex:          w.ColumnsToIndex,
 	}, nil
 }
 
@@ -406,6 +622,47 @@ type endpointWire struct {
 	ScalingInfo             *endpointScalingInfoWire `json:"scaling_info,omitempty"`
 }
 
+func endpointToWire(v *Endpoint) (*endpointWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	creationTimestampWireValue, err := int64ToWire(v.CreationTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Endpoint.CreationTimestamp", err)
+	}
+	lastUpdatedTimestampWireValue, err := int64ToWire(v.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Endpoint.LastUpdatedTimestamp", err)
+	}
+	endpointStatusWireValue, err := endpointStatusToWire(v.EndpointStatus)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Endpoint.EndpointStatus", err)
+	}
+	customTagsWireValue, err := convertSlice(v.CustomTags, customTagToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Endpoint.CustomTags", err)
+	}
+	scalingInfoWireValue, err := endpointScalingInfoToWire(v.ScalingInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Endpoint.ScalingInfo", err)
+	}
+	return &endpointWire{
+		Name:                    v.Name,
+		Creator:                 v.Creator,
+		CreationTimestamp:       creationTimestampWireValue,
+		LastUpdatedTimestamp:    lastUpdatedTimestampWireValue,
+		EndpointType:            v.EndpointType,
+		LastUpdatedUser:         v.LastUpdatedUser,
+		Id:                      v.Id,
+		EndpointStatus:          endpointStatusWireValue,
+		NumIndexes:              v.NumIndexes,
+		BudgetPolicyId:          v.BudgetPolicyId,
+		EffectiveBudgetPolicyId: v.EffectiveBudgetPolicyId,
+		CustomTags:              customTagsWireValue,
+		ScalingInfo:             scalingInfoWireValue,
+	}, nil
+}
+
 func endpointFromWire(w *endpointWire) (*Endpoint, error) {
 	if w == nil {
 		return nil, nil
@@ -457,6 +714,33 @@ type endpointScalingInfoWire struct {
 	TargetQpsChangeAllowedAfterTimestamp *wireInt64                             `json:"target_qps_change_allowed_after_timestamp,omitempty"`
 }
 
+func endpointScalingInfoToWire(v *EndpointScalingInfo) (*endpointScalingInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	requestedTargetQpsWireValue, err := int64ToWire(v.RequestedTargetQps)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EndpointScalingInfo.RequestedTargetQps", err)
+	}
+	estimatedCompletionTimestampWireValue, err := int64ToWire(v.EstimatedCompletionTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EndpointScalingInfo.EstimatedCompletionTimestamp", err)
+	}
+	targetQpsChangeAllowedAfterTimestampWireValue, err := int64ToWire(v.TargetQpsChangeAllowedAfterTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EndpointScalingInfo.TargetQpsChangeAllowedAfterTimestamp", err)
+	}
+	return &endpointScalingInfoWire{
+		State:                                v.State,
+		RequestedTargetQps:                   requestedTargetQpsWireValue,
+		EstimatedCompletionTimestamp:         estimatedCompletionTimestampWireValue,
+		Phase:                                v.Phase,
+		IndexInitializationPercentage:        v.IndexInitializationPercentage,
+		DelayedReason:                        v.DelayedReason,
+		TargetQpsChangeAllowedAfterTimestamp: targetQpsChangeAllowedAfterTimestampWireValue,
+	}, nil
+}
+
 func endpointScalingInfoFromWire(w *endpointScalingInfoWire) (*EndpointScalingInfo, error) {
 	if w == nil {
 		return nil, nil
@@ -489,6 +773,16 @@ type endpointStatusWire struct {
 	Message *string              `json:"message,omitempty"`
 }
 
+func endpointStatusToWire(v *EndpointStatus) (*endpointStatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &endpointStatusWire{
+		State:   v.State,
+		Message: v.Message,
+	}, nil
+}
+
 func endpointStatusFromWire(w *endpointStatusWire) (*EndpointStatus, error) {
 	if w == nil {
 		return nil, nil
@@ -504,6 +798,16 @@ type facetResultDataWire struct {
 	FacetArray    [][]json.RawMessage `json:"facet_array,omitempty"`
 }
 
+func facetResultDataToWire(v *FacetResultData) (*facetResultDataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &facetResultDataWire{
+		FacetRowCount: v.FacetRowCount,
+		FacetArray:    v.FacetArray,
+	}, nil
+}
+
 func facetResultDataFromWire(w *facetResultDataWire) (*FacetResultData, error) {
 	if w == nil {
 		return nil, nil
@@ -511,6 +815,28 @@ func facetResultDataFromWire(w *facetResultDataWire) (*FacetResultData, error) {
 	return &FacetResultData{
 		FacetRowCount: w.FacetRowCount,
 		FacetArray:    w.FacetArray,
+	}, nil
+}
+
+type getEndpointRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getEndpointRequestToWire(v *GetEndpointRequest) (*getEndpointRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getEndpointRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getEndpointRequestFromWire(w *getEndpointRequestWire) (*GetEndpointRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetEndpointRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -529,9 +855,33 @@ func getVectorIndexRequestToWire(v *GetVectorIndexRequest) (*getVectorIndexReque
 	}, nil
 }
 
+func getVectorIndexRequestFromWire(w *getVectorIndexRequestWire) (*GetVectorIndexRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetVectorIndexRequest{
+		Name:                     w.Name,
+		EnsureRerankerCompatible: w.EnsureRerankerCompatible,
+	}, nil
+}
+
 type listEndpointResponseWire struct {
 	Endpoints     []endpointWire `json:"endpoints,omitempty"`
 	NextPageToken *string        `json:"next_page_token,omitempty"`
+}
+
+func listEndpointResponseToWire(v *ListEndpointResponse) (*listEndpointResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	endpointsWireValue, err := convertSlice(v.Endpoints, endpointToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListEndpointResponse.Endpoints", err)
+	}
+	return &listEndpointResponseWire{
+		Endpoints:     endpointsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listEndpointResponseFromWire(w *listEndpointResponseWire) (*ListEndpointResponse, error) {
@@ -561,8 +911,30 @@ func listEndpointsRequestToWire(v *ListEndpointsRequest) (*listEndpointsRequestW
 	}, nil
 }
 
+func listEndpointsRequestFromWire(w *listEndpointsRequestWire) (*ListEndpointsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListEndpointsRequest{
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listValueWire struct {
 	Values []valueWire `json:"values,omitempty"`
+}
+
+func listValueToWire(v *ListValue) (*listValueWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	valuesWireValue, err := convertSlice(v.Values, valueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListValue.Values", err)
+	}
+	return &listValueWire{
+		Values: valuesWireValue,
+	}, nil
 }
 
 func listValueFromWire(w *listValueWire) (*ListValue, error) {
@@ -593,9 +965,33 @@ func listVectorIndexRequestToWire(v *ListVectorIndexRequest) (*listVectorIndexRe
 	}, nil
 }
 
+func listVectorIndexRequestFromWire(w *listVectorIndexRequestWire) (*ListVectorIndexRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListVectorIndexRequest{
+		EndpointName: w.EndpointName,
+		PageToken:    w.PageToken,
+	}, nil
+}
+
 type listVectorIndexResponseWire struct {
 	VectorIndexes []miniVectorIndexWire `json:"vector_indexes,omitempty"`
 	NextPageToken *string               `json:"next_page_token,omitempty"`
+}
+
+func listVectorIndexResponseToWire(v *ListVectorIndexResponse) (*listVectorIndexResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	vectorIndexesWireValue, err := convertSlice(v.VectorIndexes, miniVectorIndexToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListVectorIndexResponse.VectorIndexes", err)
+	}
+	return &listVectorIndexResponseWire{
+		VectorIndexes: vectorIndexesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listVectorIndexResponseFromWire(w *listVectorIndexResponseWire) (*ListVectorIndexResponse, error) {
@@ -615,6 +1011,20 @@ func listVectorIndexResponseFromWire(w *listVectorIndexResponseWire) (*ListVecto
 type mapStringValueEntryWire struct {
 	Key   *string    `json:"key,omitempty"`
 	Value *valueWire `json:"value,omitempty"`
+}
+
+func mapStringValueEntryToWire(v *MapStringValueEntry) (*mapStringValueEntryWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	valueWireValue, err := valueToWire(v.Value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MapStringValueEntry.Value", err)
+	}
+	return &mapStringValueEntryWire{
+		Key:   v.Key,
+		Value: valueWireValue,
+	}, nil
 }
 
 func mapStringValueEntryFromWire(w *mapStringValueEntryWire) (*MapStringValueEntry, error) {
@@ -697,6 +1107,20 @@ type metricValueWire struct {
 	Value     *float64   `json:"value,omitempty"`
 }
 
+func metricValueToWire(v *MetricValue) (*metricValueWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	timestampWireValue, err := int64ToWire(v.Timestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MetricValue.Timestamp", err)
+	}
+	return &metricValueWire{
+		Timestamp: timestampWireValue,
+		Value:     v.Value,
+	}, nil
+}
+
 func metricValueFromWire(w *metricValueWire) (*MetricValue, error) {
 	if w == nil {
 		return nil, nil
@@ -714,6 +1138,24 @@ func metricValueFromWire(w *metricValueWire) (*MetricValue, error) {
 type metricValuesWire struct {
 	Metric *metricWire       `json:"metric,omitempty"`
 	Values []metricValueWire `json:"values,omitempty"`
+}
+
+func metricValuesToWire(v *MetricValues) (*metricValuesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	metricWireValue, err := metricToWire(v.Metric)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MetricValues.Metric", err)
+	}
+	valuesWireValue, err := convertSlice(v.Values, metricValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MetricValues.Values", err)
+	}
+	return &metricValuesWire{
+		Metric: metricWireValue,
+		Values: valuesWireValue,
+	}, nil
 }
 
 func metricValuesFromWire(w *metricValuesWire) (*MetricValues, error) {
@@ -745,6 +1187,51 @@ type miniVectorIndexWire struct {
 	Creator               *string                          `json:"creator,omitempty"`
 	IndexSubtype          IndexSubtype                     `json:"index_subtype,omitempty"`
 	EndpointId            *string                          `json:"endpoint_id,omitempty"`
+}
+
+func miniVectorIndexToWire(v *MiniVectorIndex) (*miniVectorIndexWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	statusWireValue, err := vectorIndexStatusToWire(v.Status)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MiniVectorIndex.Status", err)
+	}
+	var indexSpecDirectAccessIndexSpecWire *directAccessVectorIndexSpecWire
+	var indexSpecDeltaSyncIndexSpecWire *deltaSyncVectorIndexSpecWire
+	switch value := v.IndexSpec.(type) {
+	case nil:
+	case *MiniVectorIndex_IndexSpec_DirectAccessIndexSpec:
+		if value != nil {
+			indexSpecDirectAccessIndexSpecConverted, err := directAccessVectorIndexSpecToWire(&value.DirectAccessIndexSpec)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "MiniVectorIndex.IndexSpec.DirectAccessIndexSpec", err)
+			}
+			indexSpecDirectAccessIndexSpecWire = indexSpecDirectAccessIndexSpecConverted
+		}
+	case *MiniVectorIndex_IndexSpec_DeltaSyncIndexSpec:
+		if value != nil {
+			indexSpecDeltaSyncIndexSpecConverted, err := deltaSyncVectorIndexSpecToWire(&value.DeltaSyncIndexSpec)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "MiniVectorIndex.IndexSpec.DeltaSyncIndexSpec", err)
+			}
+			indexSpecDeltaSyncIndexSpecWire = indexSpecDeltaSyncIndexSpecConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "MiniVectorIndex.IndexSpec", value)
+	}
+	return &miniVectorIndexWire{
+		Name:                  v.Name,
+		EndpointName:          v.EndpointName,
+		PrimaryKey:            v.PrimaryKey,
+		IndexType:             v.IndexType,
+		DirectAccessIndexSpec: indexSpecDirectAccessIndexSpecWire,
+		DeltaSyncIndexSpec:    indexSpecDeltaSyncIndexSpecWire,
+		Status:                statusWireValue,
+		Creator:               v.Creator,
+		IndexSubtype:          v.IndexSubtype,
+		EndpointId:            v.EndpointId,
+	}, nil
 }
 
 func miniVectorIndexFromWire(w *miniVectorIndexWire) (*MiniVectorIndex, error) {
@@ -808,9 +1295,29 @@ func patchEndpointBudgetPolicyRequestToWire(v *PatchEndpointBudgetPolicyRequest)
 	}, nil
 }
 
+func patchEndpointBudgetPolicyRequestFromWire(w *patchEndpointBudgetPolicyRequestWire) (*PatchEndpointBudgetPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PatchEndpointBudgetPolicyRequest{
+		Name:           w.Name,
+		BudgetPolicyId: w.BudgetPolicyId,
+	}, nil
+}
+
 type patchEndpointBudgetPolicyResponseWire struct {
 	BudgetPolicyId          *string `json:"budget_policy_id,omitempty"`
 	EffectiveBudgetPolicyId *string `json:"effective_budget_policy_id,omitempty"`
+}
+
+func patchEndpointBudgetPolicyResponseToWire(v *PatchEndpointBudgetPolicyResponse) (*patchEndpointBudgetPolicyResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &patchEndpointBudgetPolicyResponseWire{
+		BudgetPolicyId:          v.BudgetPolicyId,
+		EffectiveBudgetPolicyId: v.EffectiveBudgetPolicyId,
+	}, nil
 }
 
 func patchEndpointBudgetPolicyResponseFromWire(w *patchEndpointBudgetPolicyResponseWire) (*PatchEndpointBudgetPolicyResponse, error) {
@@ -842,6 +1349,20 @@ func patchEndpointRequestToWire(v *PatchEndpointRequest) (*patchEndpointRequestW
 	}, nil
 }
 
+func patchEndpointRequestFromWire(w *patchEndpointRequestWire) (*PatchEndpointRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	targetQpsPublicValue, err := int64FromWire(w.TargetQps)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PatchEndpointRequest.TargetQps", err)
+	}
+	return &PatchEndpointRequest{
+		Name:      w.Name,
+		TargetQps: targetQpsPublicValue,
+	}, nil
+}
+
 type queryVectorIndexNextPageRequestWire struct {
 	Name         *string `json:"name,omitempty"`
 	EndpointName *string `json:"endpoint_name,omitempty"`
@@ -856,6 +1377,17 @@ func queryVectorIndexNextPageRequestToWire(v *QueryVectorIndexNextPageRequest) (
 		Name:         v.Name,
 		EndpointName: v.EndpointName,
 		PageToken:    v.PageToken,
+	}, nil
+}
+
+func queryVectorIndexNextPageRequestFromWire(w *queryVectorIndexNextPageRequestWire) (*QueryVectorIndexNextPageRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &QueryVectorIndexNextPageRequest{
+		Name:         w.Name,
+		EndpointName: w.EndpointName,
+		PageToken:    w.PageToken,
 	}, nil
 }
 
@@ -900,11 +1432,60 @@ func queryVectorIndexRequestToWire(v *QueryVectorIndexRequest) (*queryVectorInde
 	}, nil
 }
 
+func queryVectorIndexRequestFromWire(w *queryVectorIndexRequestWire) (*QueryVectorIndexRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	rerankerPublicValue, err := rerankerConfigFromWire(w.Reranker)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryVectorIndexRequest.Reranker", err)
+	}
+	return &QueryVectorIndexRequest{
+		Name:            w.Name,
+		NumResults:      w.NumResults,
+		Columns:         w.Columns,
+		FiltersJson:     w.FiltersJson,
+		QueryVector:     w.QueryVector,
+		QueryText:       w.QueryText,
+		ScoreThreshold:  w.ScoreThreshold,
+		QueryType:       w.QueryType,
+		ColumnsToRerank: w.ColumnsToRerank,
+		Reranker:        rerankerPublicValue,
+		QueryColumns:    w.QueryColumns,
+		SortColumns:     w.SortColumns,
+		Facets:          w.Facets,
+	}, nil
+}
+
 type queryVectorIndexResponseWire struct {
 	Manifest      *resultManifestWire  `json:"manifest,omitempty"`
 	Result        *resultDataWire      `json:"result,omitempty"`
 	NextPageToken *string              `json:"next_page_token,omitempty"`
 	FacetResult   *facetResultDataWire `json:"facet_result,omitempty"`
+}
+
+func queryVectorIndexResponseToWire(v *QueryVectorIndexResponse) (*queryVectorIndexResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	manifestWireValue, err := resultManifestToWire(v.Manifest)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryVectorIndexResponse.Manifest", err)
+	}
+	resultWireValue, err := resultDataToWire(v.Result)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryVectorIndexResponse.Result", err)
+	}
+	facetResultWireValue, err := facetResultDataToWire(v.FacetResult)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryVectorIndexResponse.FacetResult", err)
+	}
+	return &queryVectorIndexResponseWire{
+		Manifest:      manifestWireValue,
+		Result:        resultWireValue,
+		NextPageToken: v.NextPageToken,
+		FacetResult:   facetResultWireValue,
+	}, nil
 }
 
 func queryVectorIndexResponseFromWire(w *queryVectorIndexResponseWire) (*QueryVectorIndexResponse, error) {
@@ -950,6 +1531,20 @@ func rerankerConfigToWire(v *RerankerConfig) (*rerankerConfigWire, error) {
 	}, nil
 }
 
+func rerankerConfigFromWire(w *rerankerConfigWire) (*RerankerConfig, error) {
+	if w == nil {
+		return nil, nil
+	}
+	parametersPublicValue, err := rerankerConfig_RerankerParametersFromWire(w.Parameters)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RerankerConfig.Parameters", err)
+	}
+	return &RerankerConfig{
+		Model:      w.Model,
+		Parameters: parametersPublicValue,
+	}, nil
+}
+
 type rerankerConfig_RerankerParametersWire struct {
 	ColumnsToRerank []string `json:"columns_to_rerank,omitempty"`
 }
@@ -963,9 +1558,28 @@ func rerankerConfig_RerankerParametersToWire(v *RerankerConfig_RerankerParameter
 	}, nil
 }
 
+func rerankerConfig_RerankerParametersFromWire(w *rerankerConfig_RerankerParametersWire) (*RerankerConfig_RerankerParameters, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RerankerConfig_RerankerParameters{
+		ColumnsToRerank: w.ColumnsToRerank,
+	}, nil
+}
+
 type resultDataWire struct {
 	RowCount  *int                `json:"row_count,omitempty"`
 	DataArray [][]json.RawMessage `json:"data_array,omitempty"`
+}
+
+func resultDataToWire(v *ResultData) (*resultDataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &resultDataWire{
+		RowCount:  v.RowCount,
+		DataArray: v.DataArray,
+	}, nil
 }
 
 func resultDataFromWire(w *resultDataWire) (*ResultData, error) {
@@ -983,6 +1597,26 @@ type resultManifestWire struct {
 	Columns          []columnInfoWire `json:"columns,omitempty"`
 	FacetColumnCount *int             `json:"facet_column_count,omitempty"`
 	FacetColumns     []columnInfoWire `json:"facet_columns,omitempty"`
+}
+
+func resultManifestToWire(v *ResultManifest) (*resultManifestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	columnsWireValue, err := convertSlice(v.Columns, columnInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ResultManifest.Columns", err)
+	}
+	facetColumnsWireValue, err := convertSlice(v.FacetColumns, columnInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ResultManifest.FacetColumns", err)
+	}
+	return &resultManifestWire{
+		ColumnCount:      v.ColumnCount,
+		Columns:          columnsWireValue,
+		FacetColumnCount: v.FacetColumnCount,
+		FacetColumns:     facetColumnsWireValue,
+	}, nil
 }
 
 func resultManifestFromWire(w *resultManifestWire) (*ResultManifest, error) {
@@ -1032,9 +1666,41 @@ func retrieveUserVisibleMetricsRequestToWire(v *RetrieveUserVisibleMetricsReques
 	}, nil
 }
 
+func retrieveUserVisibleMetricsRequestFromWire(w *retrieveUserVisibleMetricsRequestWire) (*RetrieveUserVisibleMetricsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	metricsPublicValue, err := convertSlice(w.Metrics, metricFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RetrieveUserVisibleMetricsRequest.Metrics", err)
+	}
+	return &RetrieveUserVisibleMetricsRequest{
+		Name:                 w.Name,
+		StartTime:            w.StartTime,
+		EndTime:              w.EndTime,
+		GranularityInSeconds: w.GranularityInSeconds,
+		Metrics:              metricsPublicValue,
+		PageToken:            w.PageToken,
+	}, nil
+}
+
 type retrieveUserVisibleMetricsResponseWire struct {
 	MetricValues  []metricValuesWire `json:"metric_values,omitempty"`
 	NextPageToken *string            `json:"next_page_token,omitempty"`
+}
+
+func retrieveUserVisibleMetricsResponseToWire(v *RetrieveUserVisibleMetricsResponse) (*retrieveUserVisibleMetricsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	metricValuesWireValue, err := convertSlice(v.MetricValues, metricValuesToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RetrieveUserVisibleMetricsResponse.MetricValues", err)
+	}
+	return &retrieveUserVisibleMetricsResponseWire{
+		MetricValues:  metricValuesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func retrieveUserVisibleMetricsResponseFromWire(w *retrieveUserVisibleMetricsResponseWire) (*RetrieveUserVisibleMetricsResponse, error) {
@@ -1068,9 +1734,34 @@ func scanVectorIndexRequestToWire(v *ScanVectorIndexRequest) (*scanVectorIndexRe
 	}, nil
 }
 
+func scanVectorIndexRequestFromWire(w *scanVectorIndexRequestWire) (*ScanVectorIndexRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ScanVectorIndexRequest{
+		Name:           w.Name,
+		NumResults:     w.NumResults,
+		LastPrimaryKey: w.LastPrimaryKey,
+	}, nil
+}
+
 type scanVectorIndexResponseWire struct {
 	Data           []structWire `json:"data,omitempty"`
 	LastPrimaryKey *string      `json:"last_primary_key,omitempty"`
+}
+
+func scanVectorIndexResponseToWire(v *ScanVectorIndexResponse) (*scanVectorIndexResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	dataWireValue, err := convertSlice(v.Data, structToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ScanVectorIndexResponse.Data", err)
+	}
+	return &scanVectorIndexResponseWire{
+		Data:           dataWireValue,
+		LastPrimaryKey: v.LastPrimaryKey,
+	}, nil
 }
 
 func scanVectorIndexResponseFromWire(w *scanVectorIndexResponseWire) (*ScanVectorIndexResponse, error) {
@@ -1100,6 +1791,15 @@ func startEndpointRequestToWire(v *StartEndpointRequest) (*startEndpointRequestW
 	}, nil
 }
 
+func startEndpointRequestFromWire(w *startEndpointRequestWire) (*StartEndpointRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &StartEndpointRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type stopEndpointRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -1113,8 +1813,30 @@ func stopEndpointRequestToWire(v *StopEndpointRequest) (*stopEndpointRequestWire
 	}, nil
 }
 
+func stopEndpointRequestFromWire(w *stopEndpointRequestWire) (*StopEndpointRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &StopEndpointRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type structWire struct {
 	Fields []mapStringValueEntryWire `json:"fields,omitempty"`
+}
+
+func structToWire(v *Struct) (*structWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	fieldsWireValue, err := convertSlice(v.Fields, mapStringValueEntryToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Struct.Fields", err)
+	}
+	return &structWire{
+		Fields: fieldsWireValue,
+	}, nil
 }
 
 func structFromWire(w *structWire) (*Struct, error) {
@@ -1143,6 +1865,32 @@ func syncVectorIndexRequestToWire(v *SyncVectorIndexRequest) (*syncVectorIndexRe
 	}, nil
 }
 
+func syncVectorIndexRequestFromWire(w *syncVectorIndexRequestWire) (*SyncVectorIndexRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SyncVectorIndexRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type syncVectorIndexResponseWire struct {
+}
+
+func syncVectorIndexResponseToWire(v *SyncVectorIndexResponse) (*syncVectorIndexResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &syncVectorIndexResponseWire{}, nil
+}
+
+func syncVectorIndexResponseFromWire(w *syncVectorIndexResponseWire) (*SyncVectorIndexResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SyncVectorIndexResponse{}, nil
+}
+
 type updateEndpointCustomTagsRequestWire struct {
 	Name       *string         `json:"name,omitempty"`
 	CustomTags []customTagWire `json:"custom_tags,omitempty"`
@@ -1162,9 +1910,37 @@ func updateEndpointCustomTagsRequestToWire(v *UpdateEndpointCustomTagsRequest) (
 	}, nil
 }
 
+func updateEndpointCustomTagsRequestFromWire(w *updateEndpointCustomTagsRequestWire) (*UpdateEndpointCustomTagsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	customTagsPublicValue, err := convertSlice(w.CustomTags, customTagFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateEndpointCustomTagsRequest.CustomTags", err)
+	}
+	return &UpdateEndpointCustomTagsRequest{
+		Name:       w.Name,
+		CustomTags: customTagsPublicValue,
+	}, nil
+}
+
 type updateEndpointCustomTagsResponseWire struct {
 	Name       *string         `json:"name,omitempty"`
 	CustomTags []customTagWire `json:"custom_tags,omitempty"`
+}
+
+func updateEndpointCustomTagsResponseToWire(v *UpdateEndpointCustomTagsResponse) (*updateEndpointCustomTagsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	customTagsWireValue, err := convertSlice(v.CustomTags, customTagToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateEndpointCustomTagsResponse.CustomTags", err)
+	}
+	return &updateEndpointCustomTagsResponseWire{
+		Name:       v.Name,
+		CustomTags: customTagsWireValue,
+	}, nil
 }
 
 func updateEndpointCustomTagsResponseFromWire(w *updateEndpointCustomTagsResponseWire) (*UpdateEndpointCustomTagsResponse, error) {
@@ -1196,9 +1972,33 @@ func upsertDataVectorIndexRequestToWire(v *UpsertDataVectorIndexRequest) (*upser
 	}, nil
 }
 
+func upsertDataVectorIndexRequestFromWire(w *upsertDataVectorIndexRequestWire) (*UpsertDataVectorIndexRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpsertDataVectorIndexRequest{
+		Name:       w.Name,
+		InputsJson: w.InputsJson,
+	}, nil
+}
+
 type upsertDataVectorIndexResponseWire struct {
 	Status UpsertDeleteDataStatus      `json:"status,omitempty"`
 	Result *upsertDeleteDataResultWire `json:"result,omitempty"`
+}
+
+func upsertDataVectorIndexResponseToWire(v *UpsertDataVectorIndexResponse) (*upsertDataVectorIndexResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	resultWireValue, err := upsertDeleteDataResultToWire(v.Result)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpsertDataVectorIndexResponse.Result", err)
+	}
+	return &upsertDataVectorIndexResponseWire{
+		Status: v.Status,
+		Result: resultWireValue,
+	}, nil
 }
 
 func upsertDataVectorIndexResponseFromWire(w *upsertDataVectorIndexResponseWire) (*UpsertDataVectorIndexResponse, error) {
@@ -1218,6 +2018,20 @@ func upsertDataVectorIndexResponseFromWire(w *upsertDataVectorIndexResponseWire)
 type upsertDeleteDataResultWire struct {
 	SuccessRowCount   *wireInt64 `json:"success_row_count,omitempty"`
 	FailedPrimaryKeys []string   `json:"failed_primary_keys,omitempty"`
+}
+
+func upsertDeleteDataResultToWire(v *UpsertDeleteDataResult) (*upsertDeleteDataResultWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	successRowCountWireValue, err := int64ToWire(v.SuccessRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpsertDeleteDataResult.SuccessRowCount", err)
+	}
+	return &upsertDeleteDataResultWire{
+		SuccessRowCount:   successRowCountWireValue,
+		FailedPrimaryKeys: v.FailedPrimaryKeys,
+	}, nil
 }
 
 func upsertDeleteDataResultFromWire(w *upsertDeleteDataResultWire) (*UpsertDeleteDataResult, error) {
@@ -1240,6 +2054,57 @@ type valueWire struct {
 	BoolValue   *bool          `json:"bool_value,omitempty"`
 	StructValue *structWire    `json:"struct_value,omitempty"`
 	ListValue   *listValueWire `json:"list_value,omitempty"`
+}
+
+func valueToWire(v *Value) (*valueWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var kindNumberValueWire *float64
+	var kindStringValueWire *string
+	var kindBoolValueWire *bool
+	var kindStructValueWire *structWire
+	var kindListValueWire *listValueWire
+	switch value := v.Kind.(type) {
+	case nil:
+	case *Value_Kind_NumberValue:
+		if value != nil {
+			kindNumberValueWire = new(value.NumberValue)
+		}
+	case *Value_Kind_StringValue:
+		if value != nil {
+			kindStringValueWire = new(value.StringValue)
+		}
+	case *Value_Kind_BoolValue:
+		if value != nil {
+			kindBoolValueWire = new(value.BoolValue)
+		}
+	case *Value_Kind_StructValue:
+		if value != nil {
+			kindStructValueConverted, err := structToWire(&value.StructValue)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Value.Kind.StructValue", err)
+			}
+			kindStructValueWire = kindStructValueConverted
+		}
+	case *Value_Kind_ListValue:
+		if value != nil {
+			kindListValueConverted, err := listValueToWire(&value.ListValue)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Value.Kind.ListValue", err)
+			}
+			kindListValueWire = kindListValueConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Value.Kind", value)
+	}
+	return &valueWire{
+		NumberValue: kindNumberValueWire,
+		StringValue: kindStringValueWire,
+		BoolValue:   kindBoolValueWire,
+		StructValue: kindStructValueWire,
+		ListValue:   kindListValueWire,
+	}, nil
 }
 
 func valueFromWire(w *valueWire) (*Value, error) {
@@ -1304,6 +2169,51 @@ type vectorIndexWire struct {
 	EndpointId            *string                          `json:"endpoint_id,omitempty"`
 }
 
+func vectorIndexToWire(v *VectorIndex) (*vectorIndexWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	statusWireValue, err := vectorIndexStatusToWire(v.Status)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "VectorIndex.Status", err)
+	}
+	var indexSpecDirectAccessIndexSpecWire *directAccessVectorIndexSpecWire
+	var indexSpecDeltaSyncIndexSpecWire *deltaSyncVectorIndexSpecWire
+	switch value := v.IndexSpec.(type) {
+	case nil:
+	case *VectorIndex_IndexSpec_DirectAccessIndexSpec:
+		if value != nil {
+			indexSpecDirectAccessIndexSpecConverted, err := directAccessVectorIndexSpecToWire(&value.DirectAccessIndexSpec)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "VectorIndex.IndexSpec.DirectAccessIndexSpec", err)
+			}
+			indexSpecDirectAccessIndexSpecWire = indexSpecDirectAccessIndexSpecConverted
+		}
+	case *VectorIndex_IndexSpec_DeltaSyncIndexSpec:
+		if value != nil {
+			indexSpecDeltaSyncIndexSpecConverted, err := deltaSyncVectorIndexSpecToWire(&value.DeltaSyncIndexSpec)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "VectorIndex.IndexSpec.DeltaSyncIndexSpec", err)
+			}
+			indexSpecDeltaSyncIndexSpecWire = indexSpecDeltaSyncIndexSpecConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "VectorIndex.IndexSpec", value)
+	}
+	return &vectorIndexWire{
+		Name:                  v.Name,
+		EndpointName:          v.EndpointName,
+		PrimaryKey:            v.PrimaryKey,
+		IndexType:             v.IndexType,
+		DirectAccessIndexSpec: indexSpecDirectAccessIndexSpecWire,
+		DeltaSyncIndexSpec:    indexSpecDeltaSyncIndexSpecWire,
+		Status:                statusWireValue,
+		Creator:               v.Creator,
+		IndexSubtype:          v.IndexSubtype,
+		EndpointId:            v.EndpointId,
+	}, nil
+}
+
 func vectorIndexFromWire(w *vectorIndexWire) (*VectorIndex, error) {
 	if w == nil {
 		return nil, nil
@@ -1355,6 +2265,22 @@ type vectorIndexStatusWire struct {
 	IndexedRowCount *wireInt64 `json:"indexed_row_count,omitempty"`
 	Ready           *bool      `json:"ready,omitempty"`
 	IndexUrl        *string    `json:"index_url,omitempty"`
+}
+
+func vectorIndexStatusToWire(v *VectorIndexStatus) (*vectorIndexStatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	indexedRowCountWireValue, err := int64ToWire(v.IndexedRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "VectorIndexStatus.IndexedRowCount", err)
+	}
+	return &vectorIndexStatusWire{
+		Message:         v.Message,
+		IndexedRowCount: indexedRowCountWireValue,
+		Ready:           v.Ready,
+		IndexUrl:        v.IndexUrl,
+	}, nil
 }
 
 func vectorIndexStatusFromWire(w *vectorIndexStatusWire) (*VectorIndexStatus, error) {

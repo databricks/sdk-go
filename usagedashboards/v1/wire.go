@@ -75,8 +75,33 @@ func createBillingUsageDashboardRequestToWire(v *CreateBillingUsageDashboardRequ
 	}, nil
 }
 
+func createBillingUsageDashboardRequestFromWire(w *createBillingUsageDashboardRequestWire) (*CreateBillingUsageDashboardRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	workspaceIdPublicValue, err := int64FromWire(w.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBillingUsageDashboardRequest.WorkspaceId", err)
+	}
+	return &CreateBillingUsageDashboardRequest{
+		WorkspaceId:   workspaceIdPublicValue,
+		AccountId:     w.AccountId,
+		DashboardType: w.DashboardType,
+		MajorVersion:  w.MajorVersion,
+	}, nil
+}
+
 type createBillingUsageDashboardResponseWire struct {
 	DashboardId *string `json:"dashboard_id,omitempty"`
+}
+
+func createBillingUsageDashboardResponseToWire(v *CreateBillingUsageDashboardResponse) (*createBillingUsageDashboardResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createBillingUsageDashboardResponseWire{
+		DashboardId: v.DashboardId,
+	}, nil
 }
 
 func createBillingUsageDashboardResponseFromWire(w *createBillingUsageDashboardResponseWire) (*CreateBillingUsageDashboardResponse, error) {
@@ -109,9 +134,34 @@ func getBillingUsageDashboardRequestToWire(v *GetBillingUsageDashboardRequest) (
 	}, nil
 }
 
+func getBillingUsageDashboardRequestFromWire(w *getBillingUsageDashboardRequestWire) (*GetBillingUsageDashboardRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	workspaceIdPublicValue, err := int64FromWire(w.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetBillingUsageDashboardRequest.WorkspaceId", err)
+	}
+	return &GetBillingUsageDashboardRequest{
+		WorkspaceId:   workspaceIdPublicValue,
+		AccountId:     w.AccountId,
+		DashboardType: w.DashboardType,
+	}, nil
+}
+
 type getBillingUsageDashboardResponseWire struct {
 	DashboardId  *string `json:"dashboard_id,omitempty"`
 	DashboardUrl *string `json:"dashboard_url,omitempty"`
+}
+
+func getBillingUsageDashboardResponseToWire(v *GetBillingUsageDashboardResponse) (*getBillingUsageDashboardResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getBillingUsageDashboardResponseWire{
+		DashboardId:  v.DashboardId,
+		DashboardUrl: v.DashboardUrl,
+	}, nil
 }
 
 func getBillingUsageDashboardResponseFromWire(w *getBillingUsageDashboardResponseWire) (*GetBillingUsageDashboardResponse, error) {

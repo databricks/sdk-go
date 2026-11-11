@@ -54,14 +54,6 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type channelWire struct {
 	Name         ChannelName `json:"name,omitempty"`
 	DbsqlVersion *string     `json:"dbsql_version,omitempty"`
@@ -103,6 +95,20 @@ func createDefaultWarehouseOverrideRequestToWire(v *CreateDefaultWarehouseOverri
 	return &createDefaultWarehouseOverrideRequestWire{
 		DefaultWarehouseOverrideId: v.DefaultWarehouseOverrideId,
 		DefaultWarehouseOverride:   defaultWarehouseOverrideWireValue,
+	}, nil
+}
+
+func createDefaultWarehouseOverrideRequestFromWire(w *createDefaultWarehouseOverrideRequestWire) (*CreateDefaultWarehouseOverrideRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	defaultWarehouseOverridePublicValue, err := defaultWarehouseOverrideFromWire(w.DefaultWarehouseOverride)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateDefaultWarehouseOverrideRequest.DefaultWarehouseOverride", err)
+	}
+	return &CreateDefaultWarehouseOverrideRequest{
+		DefaultWarehouseOverrideId: w.DefaultWarehouseOverrideId,
+		DefaultWarehouseOverride:   defaultWarehouseOverridePublicValue,
 	}, nil
 }
 
@@ -159,8 +165,50 @@ func createWarehouseRequestToWire(v *CreateWarehouseRequest) (*createWarehouseRe
 	}, nil
 }
 
+func createWarehouseRequestFromWire(w *createWarehouseRequestWire) (*CreateWarehouseRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tagsPublicValue, err := endpointTagsFromWire(w.Tags)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateWarehouseRequest.Tags", err)
+	}
+	channelPublicValue, err := channelFromWire(w.Channel)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateWarehouseRequest.Channel", err)
+	}
+	return &CreateWarehouseRequest{
+		Name:                        w.Name,
+		ClusterSize:                 w.ClusterSize,
+		MinNumClusters:              w.MinNumClusters,
+		MaxNumClusters:              w.MaxNumClusters,
+		AutoStopMins:                w.AutoStopMins,
+		CreatorName:                 w.CreatorName,
+		InstanceProfileArn:          w.InstanceProfileArn,
+		Tags:                        tagsPublicValue,
+		SpotInstancePolicy:          w.SpotInstancePolicy,
+		EnablePhoton:                w.EnablePhoton,
+		Channel:                     channelPublicValue,
+		EnableServerlessCompute:     w.EnableServerlessCompute,
+		WarehouseType:               w.WarehouseType,
+		StatementTimeout:            w.StatementTimeout,
+		ReydenClusterSizeMultiplier: w.ReydenClusterSizeMultiplier,
+		CustomerVersionLabel:        w.CustomerVersionLabel,
+		MaxDbu:                      w.MaxDbu,
+	}, nil
+}
+
 type createWarehouseResponseWire struct {
 	Id *string `json:"id,omitempty"`
+}
+
+func createWarehouseResponseToWire(v *CreateWarehouseResponse) (*createWarehouseResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createWarehouseResponseWire{
+		Id: v.Id,
+	}, nil
 }
 
 func createWarehouseResponseFromWire(w *createWarehouseResponseWire) (*CreateWarehouseResponse, error) {
@@ -201,6 +249,45 @@ func defaultWarehouseOverrideFromWire(w *defaultWarehouseOverrideWire) (*Default
 		Type:                       w.Type,
 		WarehouseId:                w.WarehouseId,
 	}, nil
+}
+
+type deleteDefaultWarehouseOverrideRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteDefaultWarehouseOverrideRequestToWire(v *DeleteDefaultWarehouseOverrideRequest) (*deleteDefaultWarehouseOverrideRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteDefaultWarehouseOverrideRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteDefaultWarehouseOverrideRequestFromWire(w *deleteDefaultWarehouseOverrideRequestWire) (*DeleteDefaultWarehouseOverrideRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteDefaultWarehouseOverrideRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteWarehouseResponseWire struct {
+}
+
+func deleteWarehouseResponseToWire(v *DeleteWarehouseResponse) (*deleteWarehouseResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteWarehouseResponseWire{}, nil
+}
+
+func deleteWarehouseResponseFromWire(w *deleteWarehouseResponseWire) (*DeleteWarehouseResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteWarehouseResponse{}, nil
 }
 
 type editWarehouseRequestWire struct {
@@ -258,6 +345,57 @@ func editWarehouseRequestToWire(v *EditWarehouseRequest) (*editWarehouseRequestW
 	}, nil
 }
 
+func editWarehouseRequestFromWire(w *editWarehouseRequestWire) (*EditWarehouseRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tagsPublicValue, err := endpointTagsFromWire(w.Tags)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditWarehouseRequest.Tags", err)
+	}
+	channelPublicValue, err := channelFromWire(w.Channel)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditWarehouseRequest.Channel", err)
+	}
+	return &EditWarehouseRequest{
+		Id:                          w.Id,
+		Name:                        w.Name,
+		ClusterSize:                 w.ClusterSize,
+		MinNumClusters:              w.MinNumClusters,
+		MaxNumClusters:              w.MaxNumClusters,
+		AutoStopMins:                w.AutoStopMins,
+		CreatorName:                 w.CreatorName,
+		InstanceProfileArn:          w.InstanceProfileArn,
+		Tags:                        tagsPublicValue,
+		SpotInstancePolicy:          w.SpotInstancePolicy,
+		EnablePhoton:                w.EnablePhoton,
+		Channel:                     channelPublicValue,
+		EnableServerlessCompute:     w.EnableServerlessCompute,
+		WarehouseType:               w.WarehouseType,
+		StatementTimeout:            w.StatementTimeout,
+		ReydenClusterSizeMultiplier: w.ReydenClusterSizeMultiplier,
+		CustomerVersionLabel:        w.CustomerVersionLabel,
+		MaxDbu:                      w.MaxDbu,
+	}, nil
+}
+
+type editWarehouseResponseWire struct {
+}
+
+func editWarehouseResponseToWire(v *EditWarehouseResponse) (*editWarehouseResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &editWarehouseResponseWire{}, nil
+}
+
+func editWarehouseResponseFromWire(w *editWarehouseResponseWire) (*EditWarehouseResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &EditWarehouseResponse{}, nil
+}
+
 type endpointConfPairWire struct {
 	Key   *string `json:"key,omitempty"`
 	Value *string `json:"value,omitempty"`
@@ -289,6 +427,23 @@ type endpointHealthWire struct {
 	FailureReason *terminationReasonWire `json:"failure_reason,omitempty"`
 	Summary       *string                `json:"summary,omitempty"`
 	Details       *string                `json:"details,omitempty"`
+}
+
+func endpointHealthToWire(v *EndpointHealth) (*endpointHealthWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	failureReasonWireValue, err := terminationReasonToWire(v.FailureReason)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EndpointHealth.FailureReason", err)
+	}
+	return &endpointHealthWire{
+		Status:        v.Status,
+		Message:       v.Message,
+		FailureReason: failureReasonWireValue,
+		Summary:       v.Summary,
+		Details:       v.Details,
+	}, nil
 }
 
 func endpointHealthFromWire(w *endpointHealthWire) (*EndpointHealth, error) {
@@ -333,6 +488,58 @@ type endpointInfoWire struct {
 	JdbcUrl                     *string                    `json:"jdbc_url,omitempty"`
 	OdbcParams                  *odbcParamsWire            `json:"odbc_params,omitempty"`
 	Health                      *endpointHealthWire        `json:"health,omitempty"`
+}
+
+func endpointInfoToWire(v *EndpointInfo) (*endpointInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tagsWireValue, err := endpointTagsToWire(v.Tags)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EndpointInfo.Tags", err)
+	}
+	channelWireValue, err := channelToWire(v.Channel)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EndpointInfo.Channel", err)
+	}
+	numActiveSessionsWireValue, err := int64ToWire(v.NumActiveSessions)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EndpointInfo.NumActiveSessions", err)
+	}
+	odbcParamsWireValue, err := odbcParamsToWire(v.OdbcParams)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EndpointInfo.OdbcParams", err)
+	}
+	healthWireValue, err := endpointHealthToWire(v.Health)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EndpointInfo.Health", err)
+	}
+	return &endpointInfoWire{
+		Id:                          v.Id,
+		Name:                        v.Name,
+		ClusterSize:                 v.ClusterSize,
+		MinNumClusters:              v.MinNumClusters,
+		MaxNumClusters:              v.MaxNumClusters,
+		AutoStopMins:                v.AutoStopMins,
+		CreatorName:                 v.CreatorName,
+		InstanceProfileArn:          v.InstanceProfileArn,
+		Tags:                        tagsWireValue,
+		SpotInstancePolicy:          v.SpotInstancePolicy,
+		EnablePhoton:                v.EnablePhoton,
+		Channel:                     channelWireValue,
+		EnableServerlessCompute:     v.EnableServerlessCompute,
+		WarehouseType:               v.WarehouseType,
+		StatementTimeout:            v.StatementTimeout,
+		ReydenClusterSizeMultiplier: v.ReydenClusterSizeMultiplier,
+		CustomerVersionLabel:        v.CustomerVersionLabel,
+		MaxDbu:                      v.MaxDbu,
+		NumClusters:                 v.NumClusters,
+		NumActiveSessions:           numActiveSessionsWireValue,
+		State:                       v.State,
+		JdbcUrl:                     v.JdbcUrl,
+		OdbcParams:                  odbcParamsWireValue,
+		Health:                      healthWireValue,
+	}, nil
 }
 
 func endpointInfoFromWire(w *endpointInfoWire) (*EndpointInfo, error) {
@@ -442,6 +649,50 @@ func endpointTagsFromWire(w *endpointTagsWire) (*EndpointTags, error) {
 	}, nil
 }
 
+type getDefaultWarehouseOverrideRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getDefaultWarehouseOverrideRequestToWire(v *GetDefaultWarehouseOverrideRequest) (*getDefaultWarehouseOverrideRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getDefaultWarehouseOverrideRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getDefaultWarehouseOverrideRequestFromWire(w *getDefaultWarehouseOverrideRequestWire) (*GetDefaultWarehouseOverrideRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetDefaultWarehouseOverrideRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getWarehouseRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func getWarehouseRequestToWire(v *GetWarehouseRequest) (*getWarehouseRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getWarehouseRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func getWarehouseRequestFromWire(w *getWarehouseRequestWire) (*GetWarehouseRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetWarehouseRequest{
+		Id: w.Id,
+	}, nil
+}
+
 type getWarehouseResponseWire struct {
 	Id                          *string                    `json:"id,omitempty"`
 	Name                        *string                    `json:"name,omitempty"`
@@ -467,6 +718,58 @@ type getWarehouseResponseWire struct {
 	JdbcUrl                     *string                    `json:"jdbc_url,omitempty"`
 	OdbcParams                  *odbcParamsWire            `json:"odbc_params,omitempty"`
 	Health                      *endpointHealthWire        `json:"health,omitempty"`
+}
+
+func getWarehouseResponseToWire(v *GetWarehouseResponse) (*getWarehouseResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tagsWireValue, err := endpointTagsToWire(v.Tags)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetWarehouseResponse.Tags", err)
+	}
+	channelWireValue, err := channelToWire(v.Channel)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetWarehouseResponse.Channel", err)
+	}
+	numActiveSessionsWireValue, err := int64ToWire(v.NumActiveSessions)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetWarehouseResponse.NumActiveSessions", err)
+	}
+	odbcParamsWireValue, err := odbcParamsToWire(v.OdbcParams)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetWarehouseResponse.OdbcParams", err)
+	}
+	healthWireValue, err := endpointHealthToWire(v.Health)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetWarehouseResponse.Health", err)
+	}
+	return &getWarehouseResponseWire{
+		Id:                          v.Id,
+		Name:                        v.Name,
+		ClusterSize:                 v.ClusterSize,
+		MinNumClusters:              v.MinNumClusters,
+		MaxNumClusters:              v.MaxNumClusters,
+		AutoStopMins:                v.AutoStopMins,
+		CreatorName:                 v.CreatorName,
+		InstanceProfileArn:          v.InstanceProfileArn,
+		Tags:                        tagsWireValue,
+		SpotInstancePolicy:          v.SpotInstancePolicy,
+		EnablePhoton:                v.EnablePhoton,
+		Channel:                     channelWireValue,
+		EnableServerlessCompute:     v.EnableServerlessCompute,
+		WarehouseType:               v.WarehouseType,
+		StatementTimeout:            v.StatementTimeout,
+		ReydenClusterSizeMultiplier: v.ReydenClusterSizeMultiplier,
+		CustomerVersionLabel:        v.CustomerVersionLabel,
+		MaxDbu:                      v.MaxDbu,
+		NumClusters:                 v.NumClusters,
+		NumActiveSessions:           numActiveSessionsWireValue,
+		State:                       v.State,
+		JdbcUrl:                     v.JdbcUrl,
+		OdbcParams:                  odbcParamsWireValue,
+		Health:                      healthWireValue,
+	}, nil
 }
 
 func getWarehouseResponseFromWire(w *getWarehouseResponseWire) (*GetWarehouseResponse, error) {
@@ -521,6 +824,23 @@ func getWarehouseResponseFromWire(w *getWarehouseResponseWire) (*GetWarehouseRes
 	}, nil
 }
 
+type getWorkspaceWarehouseConfigRequestWire struct {
+}
+
+func getWorkspaceWarehouseConfigRequestToWire(v *GetWorkspaceWarehouseConfigRequest) (*getWorkspaceWarehouseConfigRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getWorkspaceWarehouseConfigRequestWire{}, nil
+}
+
+func getWorkspaceWarehouseConfigRequestFromWire(w *getWorkspaceWarehouseConfigRequestWire) (*GetWorkspaceWarehouseConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetWorkspaceWarehouseConfigRequest{}, nil
+}
+
 type getWorkspaceWarehouseConfigResponseWire struct {
 	SecurityPolicy             EndpointSecurityPolicy         `json:"security_policy,omitempty"`
 	DataAccessConfig           []endpointConfPairWire         `json:"data_access_config,omitempty"`
@@ -532,6 +852,48 @@ type getWorkspaceWarehouseConfigResponseWire struct {
 	SqlConfigurationParameters *repeatedEndpointConfPairsWire `json:"sql_configuration_parameters,omitempty"`
 	GoogleServiceAccount       *string                        `json:"google_service_account,omitempty"`
 	EnabledWarehouseTypes      []warehouseTypePairWire        `json:"enabled_warehouse_types,omitempty"`
+}
+
+func getWorkspaceWarehouseConfigResponseToWire(v *GetWorkspaceWarehouseConfigResponse) (*getWorkspaceWarehouseConfigResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	dataAccessConfigWireValue, err := convertSlice(v.DataAccessConfig, endpointConfPairToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetWorkspaceWarehouseConfigResponse.DataAccessConfig", err)
+	}
+	channelWireValue, err := channelToWire(v.Channel)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetWorkspaceWarehouseConfigResponse.Channel", err)
+	}
+	globalParamWireValue, err := repeatedEndpointConfPairsToWire(v.GlobalParam)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetWorkspaceWarehouseConfigResponse.GlobalParam", err)
+	}
+	configParamWireValue, err := repeatedEndpointConfPairsToWire(v.ConfigParam)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetWorkspaceWarehouseConfigResponse.ConfigParam", err)
+	}
+	sqlConfigurationParametersWireValue, err := repeatedEndpointConfPairsToWire(v.SqlConfigurationParameters)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetWorkspaceWarehouseConfigResponse.SqlConfigurationParameters", err)
+	}
+	enabledWarehouseTypesWireValue, err := convertSlice(v.EnabledWarehouseTypes, warehouseTypePairToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetWorkspaceWarehouseConfigResponse.EnabledWarehouseTypes", err)
+	}
+	return &getWorkspaceWarehouseConfigResponseWire{
+		SecurityPolicy:             v.SecurityPolicy,
+		DataAccessConfig:           dataAccessConfigWireValue,
+		InstanceProfileArn:         v.InstanceProfileArn,
+		Channel:                    channelWireValue,
+		EnableServerlessCompute:    v.EnableServerlessCompute,
+		GlobalParam:                globalParamWireValue,
+		ConfigParam:                configParamWireValue,
+		SqlConfigurationParameters: sqlConfigurationParametersWireValue,
+		GoogleServiceAccount:       v.GoogleServiceAccount,
+		EnabledWarehouseTypes:      enabledWarehouseTypesWireValue,
+	}, nil
 }
 
 func getWorkspaceWarehouseConfigResponseFromWire(w *getWorkspaceWarehouseConfigResponseWire) (*GetWorkspaceWarehouseConfigResponse, error) {
@@ -591,9 +953,33 @@ func listDefaultWarehouseOverridesRequestToWire(v *ListDefaultWarehouseOverrides
 	}, nil
 }
 
+func listDefaultWarehouseOverridesRequestFromWire(w *listDefaultWarehouseOverridesRequestWire) (*ListDefaultWarehouseOverridesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListDefaultWarehouseOverridesRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listDefaultWarehouseOverridesResponseWire struct {
 	DefaultWarehouseOverrides []defaultWarehouseOverrideWire `json:"default_warehouse_overrides,omitempty"`
 	NextPageToken             *string                        `json:"next_page_token,omitempty"`
+}
+
+func listDefaultWarehouseOverridesResponseToWire(v *ListDefaultWarehouseOverridesResponse) (*listDefaultWarehouseOverridesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	defaultWarehouseOverridesWireValue, err := convertSlice(v.DefaultWarehouseOverrides, defaultWarehouseOverrideToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListDefaultWarehouseOverridesResponse.DefaultWarehouseOverrides", err)
+	}
+	return &listDefaultWarehouseOverridesResponseWire{
+		DefaultWarehouseOverrides: defaultWarehouseOverridesWireValue,
+		NextPageToken:             v.NextPageToken,
+	}, nil
 }
 
 func listDefaultWarehouseOverridesResponseFromWire(w *listDefaultWarehouseOverridesResponseWire) (*ListDefaultWarehouseOverridesResponse, error) {
@@ -615,6 +1001,20 @@ type listWarehousesResponseWire struct {
 	NextPageToken *string            `json:"next_page_token,omitempty"`
 }
 
+func listWarehousesResponseToWire(v *ListWarehousesResponse) (*listWarehousesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	warehousesWireValue, err := convertSlice(v.Warehouses, endpointInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListWarehousesResponse.Warehouses", err)
+	}
+	return &listWarehousesResponseWire{
+		Warehouses:    warehousesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
+}
+
 func listWarehousesResponseFromWire(w *listWarehousesResponseWire) (*ListWarehousesResponse, error) {
 	if w == nil {
 		return nil, nil
@@ -634,6 +1034,18 @@ type odbcParamsWire struct {
 	Path     *string `json:"path,omitempty"`
 	Protocol *string `json:"protocol,omitempty"`
 	Port     *int    `json:"port,omitempty"`
+}
+
+func odbcParamsToWire(v *OdbcParams) (*odbcParamsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &odbcParamsWire{
+		Hostname: v.Hostname,
+		Path:     v.Path,
+		Protocol: v.Protocol,
+		Port:     v.Port,
+	}, nil
 }
 
 func odbcParamsFromWire(w *odbcParamsWire) (*OdbcParams, error) {
@@ -744,10 +1156,114 @@ func setWorkspaceWarehouseConfigRequestToWire(v *SetWorkspaceWarehouseConfigRequ
 	}, nil
 }
 
+func setWorkspaceWarehouseConfigRequestFromWire(w *setWorkspaceWarehouseConfigRequestWire) (*SetWorkspaceWarehouseConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	dataAccessConfigPublicValue, err := convertSlice(w.DataAccessConfig, endpointConfPairFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SetWorkspaceWarehouseConfigRequest.DataAccessConfig", err)
+	}
+	channelPublicValue, err := channelFromWire(w.Channel)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SetWorkspaceWarehouseConfigRequest.Channel", err)
+	}
+	globalParamPublicValue, err := repeatedEndpointConfPairsFromWire(w.GlobalParam)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SetWorkspaceWarehouseConfigRequest.GlobalParam", err)
+	}
+	configParamPublicValue, err := repeatedEndpointConfPairsFromWire(w.ConfigParam)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SetWorkspaceWarehouseConfigRequest.ConfigParam", err)
+	}
+	sqlConfigurationParametersPublicValue, err := repeatedEndpointConfPairsFromWire(w.SqlConfigurationParameters)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SetWorkspaceWarehouseConfigRequest.SqlConfigurationParameters", err)
+	}
+	enabledWarehouseTypesPublicValue, err := convertSlice(w.EnabledWarehouseTypes, warehouseTypePairFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SetWorkspaceWarehouseConfigRequest.EnabledWarehouseTypes", err)
+	}
+	return &SetWorkspaceWarehouseConfigRequest{
+		SecurityPolicy:             w.SecurityPolicy,
+		DataAccessConfig:           dataAccessConfigPublicValue,
+		InstanceProfileArn:         w.InstanceProfileArn,
+		Channel:                    channelPublicValue,
+		EnableServerlessCompute:    w.EnableServerlessCompute,
+		GlobalParam:                globalParamPublicValue,
+		ConfigParam:                configParamPublicValue,
+		SqlConfigurationParameters: sqlConfigurationParametersPublicValue,
+		GoogleServiceAccount:       w.GoogleServiceAccount,
+		EnabledWarehouseTypes:      enabledWarehouseTypesPublicValue,
+	}, nil
+}
+
+type setWorkspaceWarehouseConfigResponseWire struct {
+}
+
+func setWorkspaceWarehouseConfigResponseToWire(v *SetWorkspaceWarehouseConfigResponse) (*setWorkspaceWarehouseConfigResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &setWorkspaceWarehouseConfigResponseWire{}, nil
+}
+
+func setWorkspaceWarehouseConfigResponseFromWire(w *setWorkspaceWarehouseConfigResponseWire) (*SetWorkspaceWarehouseConfigResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SetWorkspaceWarehouseConfigResponse{}, nil
+}
+
+type startResponseWire struct {
+}
+
+func startResponseToWire(v *StartResponse) (*startResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &startResponseWire{}, nil
+}
+
+func startResponseFromWire(w *startResponseWire) (*StartResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &StartResponse{}, nil
+}
+
+type stopResponseWire struct {
+}
+
+func stopResponseToWire(v *StopResponse) (*stopResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &stopResponseWire{}, nil
+}
+
+func stopResponseFromWire(w *stopResponseWire) (*StopResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &StopResponse{}, nil
+}
+
 type terminationReasonWire struct {
 	Code       TerminationCode   `json:"code,omitempty"`
 	Type       TerminationType   `json:"type,omitempty"`
 	Parameters map[string]string `json:"parameters,omitempty"`
+}
+
+func terminationReasonToWire(v *TerminationReason) (*terminationReasonWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &terminationReasonWire{
+		Code:       v.Code,
+		Type:       v.Type,
+		Parameters: v.Parameters,
+	}, nil
 }
 
 func terminationReasonFromWire(w *terminationReasonWire) (*TerminationReason, error) {
@@ -762,9 +1278,9 @@ func terminationReasonFromWire(w *terminationReasonWire) (*TerminationReason, er
 }
 
 type updateDefaultWarehouseOverrideRequestWire struct {
-	DefaultWarehouseOverride *defaultWarehouseOverrideWire `json:"default_warehouse_override,omitempty"`
-	UpdateMask               *string                       `json:"update_mask,omitempty"`
-	AllowMissing             *bool                         `json:"allow_missing,omitempty"`
+	DefaultWarehouseOverride *defaultWarehouseOverrideWire              `json:"default_warehouse_override,omitempty"`
+	UpdateMask               *types.FieldMask[DefaultWarehouseOverride] `json:"update_mask,omitempty"`
+	AllowMissing             *bool                                      `json:"allow_missing,omitempty"`
 }
 
 func updateDefaultWarehouseOverrideRequestToWire(v *UpdateDefaultWarehouseOverrideRequest) (*updateDefaultWarehouseOverrideRequestWire, error) {
@@ -777,8 +1293,23 @@ func updateDefaultWarehouseOverrideRequestToWire(v *UpdateDefaultWarehouseOverri
 	}
 	return &updateDefaultWarehouseOverrideRequestWire{
 		DefaultWarehouseOverride: defaultWarehouseOverrideWireValue,
-		UpdateMask:               fieldMaskToWire(v.UpdateMask),
+		UpdateMask:               v.UpdateMask,
 		AllowMissing:             v.AllowMissing,
+	}, nil
+}
+
+func updateDefaultWarehouseOverrideRequestFromWire(w *updateDefaultWarehouseOverrideRequestWire) (*UpdateDefaultWarehouseOverrideRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	defaultWarehouseOverridePublicValue, err := defaultWarehouseOverrideFromWire(w.DefaultWarehouseOverride)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateDefaultWarehouseOverrideRequest.DefaultWarehouseOverride", err)
+	}
+	return &UpdateDefaultWarehouseOverrideRequest{
+		DefaultWarehouseOverride: defaultWarehouseOverridePublicValue,
+		UpdateMask:               w.UpdateMask,
+		AllowMissing:             w.AllowMissing,
 	}, nil
 }
 
@@ -807,6 +1338,28 @@ func warehouseTypePairFromWire(w *warehouseTypePairWire) (*WarehouseTypePair, er
 	}, nil
 }
 
+type deleteWarehouseRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func deleteWarehouseRequestToWire(v *DeleteWarehouseRequest) (*deleteWarehouseRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteWarehouseRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func deleteWarehouseRequestFromWire(w *deleteWarehouseRequestWire) (*DeleteWarehouseRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteWarehouseRequest{
+		Id: w.Id,
+	}, nil
+}
+
 type listWarehousesRequestWire struct {
 	RunAsUserId *wireInt64 `json:"run_as_user_id,omitempty"`
 	PageSize    *int       `json:"page_size,omitempty"`
@@ -828,6 +1381,21 @@ func listWarehousesRequestToWire(v *ListWarehousesRequest) (*listWarehousesReque
 	}, nil
 }
 
+func listWarehousesRequestFromWire(w *listWarehousesRequestWire) (*ListWarehousesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	runAsUserIdPublicValue, err := int64FromWire(w.RunAsUserId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListWarehousesRequest.RunAsUserId", err)
+	}
+	return &ListWarehousesRequest{
+		RunAsUserId: runAsUserIdPublicValue,
+		PageSize:    w.PageSize,
+		PageToken:   w.PageToken,
+	}, nil
+}
+
 type startRequestWire struct {
 	Id *string `json:"id,omitempty"`
 }
@@ -841,6 +1409,15 @@ func startRequestToWire(v *StartRequest) (*startRequestWire, error) {
 	}, nil
 }
 
+func startRequestFromWire(w *startRequestWire) (*StartRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &StartRequest{
+		Id: w.Id,
+	}, nil
+}
+
 type stopRequestWire struct {
 	Id *string `json:"id,omitempty"`
 }
@@ -851,6 +1428,15 @@ func stopRequestToWire(v *StopRequest) (*stopRequestWire, error) {
 	}
 	return &stopRequestWire{
 		Id: v.Id,
+	}, nil
+}
+
+func stopRequestFromWire(w *stopRequestWire) (*StopRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &StopRequest{
+		Id: w.Id,
 	}, nil
 }
 

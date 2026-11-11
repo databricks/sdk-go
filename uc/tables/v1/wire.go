@@ -192,6 +192,20 @@ func createTableConstraintRequestToWire(v *CreateTableConstraintRequest) (*creat
 	}, nil
 }
 
+func createTableConstraintRequestFromWire(w *createTableConstraintRequestWire) (*CreateTableConstraintRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	constraintPublicValue, err := tableConstraintFromWire(w.Constraint)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTableConstraintRequest.Constraint", err)
+	}
+	return &CreateTableConstraintRequest{
+		FullNameArg: w.FullNameArg,
+		Constraint:  constraintPublicValue,
+	}, nil
+}
+
 type createTableRequestWire struct {
 	Name                                *string                                  `json:"name,omitempty"`
 	CatalogName                         *string                                  `json:"catalog_name,omitempty"`
@@ -313,6 +327,91 @@ func createTableRequestToWire(v *CreateTableRequest) (*createTableRequestWire, e
 	}, nil
 }
 
+func createTableRequestFromWire(w *createTableRequestWire) (*CreateTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	viewDependenciesPublicValue, err := dependencyListFromWire(w.ViewDependencies)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTableRequest.ViewDependencies", err)
+	}
+	tableConstraintsPublicValue, err := convertSlice(w.TableConstraints, tableConstraintFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTableRequest.TableConstraints", err)
+	}
+	rowFilterPublicValue, err := rowFilterFromWire(w.RowFilter)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTableRequest.RowFilter", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTableRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTableRequest.UpdatedAt", err)
+	}
+	deltaRuntimePropertiesKvpairsPublicValue, err := deltaRuntimePropertiesKvPairsFromWire(w.DeltaRuntimePropertiesKvpairs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTableRequest.DeltaRuntimePropertiesKvpairs", err)
+	}
+	deletedAtPublicValue, err := int64FromWire(w.DeletedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTableRequest.DeletedAt", err)
+	}
+	effectivePredictiveOptimizationFlagPublicValue, err := effectivePredictiveOptimizationFlagFromWire(w.EffectivePredictiveOptimizationFlag)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTableRequest.EffectivePredictiveOptimizationFlag", err)
+	}
+	encryptionDetailsPublicValue, err := encryptionDetailsFromWire(w.EncryptionDetails)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTableRequest.EncryptionDetails", err)
+	}
+	securableKindManifestPublicValue, err := securableKindManifestFromWire(w.SecurableKindManifest)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTableRequest.SecurableKindManifest", err)
+	}
+	columnsPublicValue, err := convertSlice(w.Columns, columnInfoFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTableRequest.Columns", err)
+	}
+	return &CreateTableRequest{
+		Name:                                w.Name,
+		CatalogName:                         w.CatalogName,
+		SchemaName:                          w.SchemaName,
+		TableType:                           w.TableType,
+		DataSourceFormat:                    w.DataSourceFormat,
+		StorageLocation:                     w.StorageLocation,
+		ViewDefinition:                      w.ViewDefinition,
+		ViewDependencies:                    viewDependenciesPublicValue,
+		SqlPath:                             w.SqlPath,
+		Owner:                               w.Owner,
+		Comment:                             w.Comment,
+		StorageCredentialName:               w.StorageCredentialName,
+		TableConstraints:                    tableConstraintsPublicValue,
+		RowFilter:                           rowFilterPublicValue,
+		PipelineId:                          w.PipelineId,
+		EnablePredictiveOptimization:        w.EnablePredictiveOptimization,
+		MetastoreId:                         w.MetastoreId,
+		FullName:                            w.FullName,
+		DataAccessConfigurationId:           w.DataAccessConfigurationId,
+		CreatedAt:                           createdAtPublicValue,
+		CreatedBy:                           w.CreatedBy,
+		UpdatedAt:                           updatedAtPublicValue,
+		UpdatedBy:                           w.UpdatedBy,
+		TableId:                             w.TableId,
+		DeltaRuntimePropertiesKvpairs:       deltaRuntimePropertiesKvpairsPublicValue,
+		DeletedAt:                           deletedAtPublicValue,
+		EffectivePredictiveOptimizationFlag: effectivePredictiveOptimizationFlagPublicValue,
+		AccessPoint:                         w.AccessPoint,
+		BrowseOnly:                          w.BrowseOnly,
+		EncryptionDetails:                   encryptionDetailsPublicValue,
+		SecurableKindManifest:               securableKindManifestPublicValue,
+		Columns:                             columnsPublicValue,
+		Properties:                          w.Properties,
+	}, nil
+}
+
 type credentialDependencyWire struct {
 	CredentialName *string `json:"credential_name,omitempty"`
 }
@@ -350,6 +449,73 @@ func deleteTableConstraintRequestToWire(v *DeleteTableConstraintRequest) (*delet
 		ConstraintName: v.ConstraintName,
 		Cascade:        v.Cascade,
 	}, nil
+}
+
+func deleteTableConstraintRequestFromWire(w *deleteTableConstraintRequestWire) (*DeleteTableConstraintRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteTableConstraintRequest{
+		FullNameArg:    w.FullNameArg,
+		ConstraintName: w.ConstraintName,
+		Cascade:        w.Cascade,
+	}, nil
+}
+
+type deleteTableConstraintResponseWire struct {
+}
+
+func deleteTableConstraintResponseToWire(v *DeleteTableConstraintResponse) (*deleteTableConstraintResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteTableConstraintResponseWire{}, nil
+}
+
+func deleteTableConstraintResponseFromWire(w *deleteTableConstraintResponseWire) (*DeleteTableConstraintResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteTableConstraintResponse{}, nil
+}
+
+type deleteTableRequestWire struct {
+	FullNameArg *string `json:"full_name_arg,omitempty"`
+}
+
+func deleteTableRequestToWire(v *DeleteTableRequest) (*deleteTableRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteTableRequestWire{
+		FullNameArg: v.FullNameArg,
+	}, nil
+}
+
+func deleteTableRequestFromWire(w *deleteTableRequestWire) (*DeleteTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteTableRequest{
+		FullNameArg: w.FullNameArg,
+	}, nil
+}
+
+type deleteTableResponseWire struct {
+}
+
+func deleteTableResponseToWire(v *DeleteTableResponse) (*deleteTableResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteTableResponseWire{}, nil
+}
+
+func deleteTableResponseFromWire(w *deleteTableResponseWire) (*DeleteTableResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteTableResponse{}, nil
 }
 
 type deltaRuntimePropertiesKvPairsWire struct {
@@ -671,6 +837,18 @@ func getTableRequestToWire(v *GetTableRequest) (*getTableRequestWire, error) {
 	}, nil
 }
 
+func getTableRequestFromWire(w *getTableRequestWire) (*GetTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetTableRequest{
+		FullNameArg:                 w.FullNameArg,
+		IncludeDeltaMetadata:        w.IncludeDeltaMetadata,
+		IncludeBrowse:               w.IncludeBrowse,
+		IncludeManifestCapabilities: w.IncludeManifestCapabilities,
+	}, nil
+}
+
 type listTableSummariesRequestWire struct {
 	CatalogName                 *string `json:"catalog_name,omitempty"`
 	SchemaNamePattern           *string `json:"schema_name_pattern,omitempty"`
@@ -694,9 +872,37 @@ func listTableSummariesRequestToWire(v *ListTableSummariesRequest) (*listTableSu
 	}, nil
 }
 
+func listTableSummariesRequestFromWire(w *listTableSummariesRequestWire) (*ListTableSummariesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListTableSummariesRequest{
+		CatalogName:                 w.CatalogName,
+		SchemaNamePattern:           w.SchemaNamePattern,
+		TableNamePattern:            w.TableNamePattern,
+		MaxResults:                  w.MaxResults,
+		PageToken:                   w.PageToken,
+		IncludeManifestCapabilities: w.IncludeManifestCapabilities,
+	}, nil
+}
+
 type listTableSummariesResponseWire struct {
 	Tables        []tableSummaryWire `json:"tables,omitempty"`
 	NextPageToken *string            `json:"next_page_token,omitempty"`
+}
+
+func listTableSummariesResponseToWire(v *ListTableSummariesResponse) (*listTableSummariesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tablesWireValue, err := convertSlice(v.Tables, tableSummaryToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListTableSummariesResponse.Tables", err)
+	}
+	return &listTableSummariesResponseWire{
+		Tables:        tablesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listTableSummariesResponseFromWire(w *listTableSummariesResponseWire) (*ListTableSummariesResponse, error) {
@@ -742,9 +948,40 @@ func listTablesRequestToWire(v *ListTablesRequest) (*listTablesRequestWire, erro
 	}, nil
 }
 
+func listTablesRequestFromWire(w *listTablesRequestWire) (*ListTablesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListTablesRequest{
+		CatalogName:                 w.CatalogName,
+		SchemaName:                  w.SchemaName,
+		MaxResults:                  w.MaxResults,
+		PageToken:                   w.PageToken,
+		OmitColumns:                 w.OmitColumns,
+		OmitProperties:              w.OmitProperties,
+		OmitUsername:                w.OmitUsername,
+		IncludeBrowse:               w.IncludeBrowse,
+		IncludeManifestCapabilities: w.IncludeManifestCapabilities,
+	}, nil
+}
+
 type listTablesResponseWire struct {
 	Tables        []tableInfoWire `json:"tables,omitempty"`
 	NextPageToken *string         `json:"next_page_token,omitempty"`
+}
+
+func listTablesResponseToWire(v *ListTablesResponse) (*listTablesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tablesWireValue, err := convertSlice(v.Tables, tableInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListTablesResponse.Tables", err)
+	}
+	return &listTablesResponseWire{
+		Tables:        tablesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listTablesResponseFromWire(w *listTablesResponseWire) (*ListTablesResponse, error) {
@@ -1148,8 +1385,39 @@ func tableDependencyFromWire(w *tableDependencyWire) (*TableDependency, error) {
 	}, nil
 }
 
+type tableExistsRequestWire struct {
+	FullNameArg *string `json:"full_name_arg,omitempty"`
+}
+
+func tableExistsRequestToWire(v *TableExistsRequest) (*tableExistsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &tableExistsRequestWire{
+		FullNameArg: v.FullNameArg,
+	}, nil
+}
+
+func tableExistsRequestFromWire(w *tableExistsRequestWire) (*TableExistsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &TableExistsRequest{
+		FullNameArg: w.FullNameArg,
+	}, nil
+}
+
 type tableExistsResponseWire struct {
 	TableExists *bool `json:"table_exists,omitempty"`
+}
+
+func tableExistsResponseToWire(v *TableExistsResponse) (*tableExistsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &tableExistsResponseWire{
+		TableExists: v.TableExists,
+	}, nil
 }
 
 func tableExistsResponseFromWire(w *tableExistsResponseWire) (*TableExistsResponse, error) {
@@ -1195,6 +1463,91 @@ type tableInfoWire struct {
 	SecurableKindManifest               *securableKindManifestWire               `json:"securable_kind_manifest,omitempty"`
 	Columns                             []columnInfoWire                         `json:"columns,omitempty"`
 	Properties                          map[string]string                        `json:"properties,omitempty"`
+}
+
+func tableInfoToWire(v *TableInfo) (*tableInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	viewDependenciesWireValue, err := dependencyListToWire(v.ViewDependencies)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TableInfo.ViewDependencies", err)
+	}
+	tableConstraintsWireValue, err := convertSlice(v.TableConstraints, tableConstraintToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TableInfo.TableConstraints", err)
+	}
+	rowFilterWireValue, err := rowFilterToWire(v.RowFilter)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TableInfo.RowFilter", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TableInfo.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TableInfo.UpdatedAt", err)
+	}
+	deltaRuntimePropertiesKvpairsWireValue, err := deltaRuntimePropertiesKvPairsToWire(v.DeltaRuntimePropertiesKvpairs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TableInfo.DeltaRuntimePropertiesKvpairs", err)
+	}
+	deletedAtWireValue, err := int64ToWire(v.DeletedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TableInfo.DeletedAt", err)
+	}
+	effectivePredictiveOptimizationFlagWireValue, err := effectivePredictiveOptimizationFlagToWire(v.EffectivePredictiveOptimizationFlag)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TableInfo.EffectivePredictiveOptimizationFlag", err)
+	}
+	encryptionDetailsWireValue, err := encryptionDetailsToWire(v.EncryptionDetails)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TableInfo.EncryptionDetails", err)
+	}
+	securableKindManifestWireValue, err := securableKindManifestToWire(v.SecurableKindManifest)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TableInfo.SecurableKindManifest", err)
+	}
+	columnsWireValue, err := convertSlice(v.Columns, columnInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TableInfo.Columns", err)
+	}
+	return &tableInfoWire{
+		Name:                                v.Name,
+		CatalogName:                         v.CatalogName,
+		SchemaName:                          v.SchemaName,
+		TableType:                           v.TableType,
+		DataSourceFormat:                    v.DataSourceFormat,
+		StorageLocation:                     v.StorageLocation,
+		ViewDefinition:                      v.ViewDefinition,
+		ViewDependencies:                    viewDependenciesWireValue,
+		SqlPath:                             v.SqlPath,
+		Owner:                               v.Owner,
+		Comment:                             v.Comment,
+		StorageCredentialName:               v.StorageCredentialName,
+		TableConstraints:                    tableConstraintsWireValue,
+		RowFilter:                           rowFilterWireValue,
+		PipelineId:                          v.PipelineId,
+		EnablePredictiveOptimization:        v.EnablePredictiveOptimization,
+		MetastoreId:                         v.MetastoreId,
+		FullName:                            v.FullName,
+		DataAccessConfigurationId:           v.DataAccessConfigurationId,
+		CreatedAt:                           createdAtWireValue,
+		CreatedBy:                           v.CreatedBy,
+		UpdatedAt:                           updatedAtWireValue,
+		UpdatedBy:                           v.UpdatedBy,
+		TableId:                             v.TableId,
+		DeltaRuntimePropertiesKvpairs:       deltaRuntimePropertiesKvpairsWireValue,
+		DeletedAt:                           deletedAtWireValue,
+		EffectivePredictiveOptimizationFlag: effectivePredictiveOptimizationFlagWireValue,
+		AccessPoint:                         v.AccessPoint,
+		BrowseOnly:                          v.BrowseOnly,
+		EncryptionDetails:                   encryptionDetailsWireValue,
+		SecurableKindManifest:               securableKindManifestWireValue,
+		Columns:                             columnsWireValue,
+		Properties:                          v.Properties,
+	}, nil
 }
 
 func tableInfoFromWire(w *tableInfoWire) (*TableInfo, error) {
@@ -1286,6 +1639,21 @@ type tableSummaryWire struct {
 	FullName              *string                    `json:"full_name,omitempty"`
 	TableType             TableType                  `json:"table_type,omitempty"`
 	SecurableKindManifest *securableKindManifestWire `json:"securable_kind_manifest,omitempty"`
+}
+
+func tableSummaryToWire(v *TableSummary) (*tableSummaryWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	securableKindManifestWireValue, err := securableKindManifestToWire(v.SecurableKindManifest)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TableSummary.SecurableKindManifest", err)
+	}
+	return &tableSummaryWire{
+		FullName:              v.FullName,
+		TableType:             v.TableType,
+		SecurableKindManifest: securableKindManifestWireValue,
+	}, nil
 }
 
 func tableSummaryFromWire(w *tableSummaryWire) (*TableSummary, error) {
@@ -1424,6 +1792,109 @@ func updateTableRequestToWire(v *UpdateTableRequest) (*updateTableRequestWire, e
 		Columns:                             columnsWireValue,
 		Properties:                          v.Properties,
 	}, nil
+}
+
+func updateTableRequestFromWire(w *updateTableRequestWire) (*UpdateTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	viewDependenciesPublicValue, err := dependencyListFromWire(w.ViewDependencies)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateTableRequest.ViewDependencies", err)
+	}
+	tableConstraintsPublicValue, err := convertSlice(w.TableConstraints, tableConstraintFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateTableRequest.TableConstraints", err)
+	}
+	rowFilterPublicValue, err := rowFilterFromWire(w.RowFilter)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateTableRequest.RowFilter", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateTableRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateTableRequest.UpdatedAt", err)
+	}
+	deltaRuntimePropertiesKvpairsPublicValue, err := deltaRuntimePropertiesKvPairsFromWire(w.DeltaRuntimePropertiesKvpairs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateTableRequest.DeltaRuntimePropertiesKvpairs", err)
+	}
+	deletedAtPublicValue, err := int64FromWire(w.DeletedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateTableRequest.DeletedAt", err)
+	}
+	effectivePredictiveOptimizationFlagPublicValue, err := effectivePredictiveOptimizationFlagFromWire(w.EffectivePredictiveOptimizationFlag)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateTableRequest.EffectivePredictiveOptimizationFlag", err)
+	}
+	encryptionDetailsPublicValue, err := encryptionDetailsFromWire(w.EncryptionDetails)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateTableRequest.EncryptionDetails", err)
+	}
+	securableKindManifestPublicValue, err := securableKindManifestFromWire(w.SecurableKindManifest)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateTableRequest.SecurableKindManifest", err)
+	}
+	columnsPublicValue, err := convertSlice(w.Columns, columnInfoFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateTableRequest.Columns", err)
+	}
+	return &UpdateTableRequest{
+		FullNameArg:                         w.FullNameArg,
+		Name:                                w.Name,
+		CatalogName:                         w.CatalogName,
+		SchemaName:                          w.SchemaName,
+		TableType:                           w.TableType,
+		DataSourceFormat:                    w.DataSourceFormat,
+		StorageLocation:                     w.StorageLocation,
+		ViewDefinition:                      w.ViewDefinition,
+		ViewDependencies:                    viewDependenciesPublicValue,
+		SqlPath:                             w.SqlPath,
+		Owner:                               w.Owner,
+		Comment:                             w.Comment,
+		StorageCredentialName:               w.StorageCredentialName,
+		TableConstraints:                    tableConstraintsPublicValue,
+		RowFilter:                           rowFilterPublicValue,
+		PipelineId:                          w.PipelineId,
+		EnablePredictiveOptimization:        w.EnablePredictiveOptimization,
+		MetastoreId:                         w.MetastoreId,
+		FullName:                            w.FullName,
+		DataAccessConfigurationId:           w.DataAccessConfigurationId,
+		CreatedAt:                           createdAtPublicValue,
+		CreatedBy:                           w.CreatedBy,
+		UpdatedAt:                           updatedAtPublicValue,
+		UpdatedBy:                           w.UpdatedBy,
+		TableId:                             w.TableId,
+		DeltaRuntimePropertiesKvpairs:       deltaRuntimePropertiesKvpairsPublicValue,
+		DeletedAt:                           deletedAtPublicValue,
+		EffectivePredictiveOptimizationFlag: effectivePredictiveOptimizationFlagPublicValue,
+		AccessPoint:                         w.AccessPoint,
+		BrowseOnly:                          w.BrowseOnly,
+		EncryptionDetails:                   encryptionDetailsPublicValue,
+		SecurableKindManifest:               securableKindManifestPublicValue,
+		Columns:                             columnsPublicValue,
+		Properties:                          w.Properties,
+	}, nil
+}
+
+type updateTableResponseWire struct {
+}
+
+func updateTableResponseToWire(v *UpdateTableResponse) (*updateTableResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &updateTableResponseWire{}, nil
+}
+
+func updateTableResponseFromWire(w *updateTableResponseWire) (*UpdateTableResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpdateTableResponse{}, nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

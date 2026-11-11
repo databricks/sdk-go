@@ -54,14 +54,6 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type anomalyDetectionConfigWire struct {
 	ExcludedTableFullNames []string                  `json:"excluded_table_full_names,omitempty"`
 	NotificationSettings   *notificationSettingsWire `json:"notification_settings,omitempty"`
@@ -116,8 +108,36 @@ func cancelRefreshRequestToWire(v *CancelRefreshRequest) (*cancelRefreshRequestW
 	}, nil
 }
 
+func cancelRefreshRequestFromWire(w *cancelRefreshRequestWire) (*CancelRefreshRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	refreshIdPublicValue, err := int64FromWire(w.RefreshId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CancelRefreshRequest.RefreshId", err)
+	}
+	return &CancelRefreshRequest{
+		ObjectType: w.ObjectType,
+		ObjectId:   w.ObjectId,
+		RefreshId:  refreshIdPublicValue,
+	}, nil
+}
+
 type cancelRefreshResponseWire struct {
 	Refresh *refreshWire `json:"refresh,omitempty"`
+}
+
+func cancelRefreshResponseToWire(v *CancelRefreshResponse) (*cancelRefreshResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	refreshWireValue, err := refreshToWire(v.Refresh)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CancelRefreshResponse.Refresh", err)
+	}
+	return &cancelRefreshResponseWire{
+		Refresh: refreshWireValue,
+	}, nil
 }
 
 func cancelRefreshResponseFromWire(w *cancelRefreshResponseWire) (*CancelRefreshResponse, error) {
@@ -150,6 +170,19 @@ func createMonitorRequestToWire(v *CreateMonitorRequest) (*createMonitorRequestW
 	}, nil
 }
 
+func createMonitorRequestFromWire(w *createMonitorRequestWire) (*CreateMonitorRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	monitorPublicValue, err := monitorFromWire(w.Monitor)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateMonitorRequest.Monitor", err)
+	}
+	return &CreateMonitorRequest{
+		Monitor: monitorPublicValue,
+	}, nil
+}
+
 type createRefreshRequestWire struct {
 	Refresh *refreshWire `json:"refresh,omitempty"`
 }
@@ -164,6 +197,19 @@ func createRefreshRequestToWire(v *CreateRefreshRequest) (*createRefreshRequestW
 	}
 	return &createRefreshRequestWire{
 		Refresh: refreshWireValue,
+	}, nil
+}
+
+func createRefreshRequestFromWire(w *createRefreshRequestWire) (*CreateRefreshRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	refreshPublicValue, err := refreshFromWire(w.Refresh)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRefreshRequest.Refresh", err)
+	}
+	return &CreateRefreshRequest{
+		Refresh: refreshPublicValue,
 	}, nil
 }
 
@@ -404,6 +450,128 @@ func dataProfilingCustomMetricFromWire(w *dataProfilingCustomMetricWire) (*DataP
 	}, nil
 }
 
+type deleteMonitorRequestWire struct {
+	ObjectType *string `json:"object_type,omitempty"`
+	ObjectId   *string `json:"object_id,omitempty"`
+}
+
+func deleteMonitorRequestToWire(v *DeleteMonitorRequest) (*deleteMonitorRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteMonitorRequestWire{
+		ObjectType: v.ObjectType,
+		ObjectId:   v.ObjectId,
+	}, nil
+}
+
+func deleteMonitorRequestFromWire(w *deleteMonitorRequestWire) (*DeleteMonitorRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteMonitorRequest{
+		ObjectType: w.ObjectType,
+		ObjectId:   w.ObjectId,
+	}, nil
+}
+
+type deleteRefreshRequestWire struct {
+	ObjectType *string    `json:"object_type,omitempty"`
+	ObjectId   *string    `json:"object_id,omitempty"`
+	RefreshId  *wireInt64 `json:"refresh_id,omitempty"`
+}
+
+func deleteRefreshRequestToWire(v *DeleteRefreshRequest) (*deleteRefreshRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	refreshIdWireValue, err := int64ToWire(v.RefreshId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteRefreshRequest.RefreshId", err)
+	}
+	return &deleteRefreshRequestWire{
+		ObjectType: v.ObjectType,
+		ObjectId:   v.ObjectId,
+		RefreshId:  refreshIdWireValue,
+	}, nil
+}
+
+func deleteRefreshRequestFromWire(w *deleteRefreshRequestWire) (*DeleteRefreshRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	refreshIdPublicValue, err := int64FromWire(w.RefreshId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteRefreshRequest.RefreshId", err)
+	}
+	return &DeleteRefreshRequest{
+		ObjectType: w.ObjectType,
+		ObjectId:   w.ObjectId,
+		RefreshId:  refreshIdPublicValue,
+	}, nil
+}
+
+type getMonitorRequestWire struct {
+	ObjectType *string `json:"object_type,omitempty"`
+	ObjectId   *string `json:"object_id,omitempty"`
+}
+
+func getMonitorRequestToWire(v *GetMonitorRequest) (*getMonitorRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getMonitorRequestWire{
+		ObjectType: v.ObjectType,
+		ObjectId:   v.ObjectId,
+	}, nil
+}
+
+func getMonitorRequestFromWire(w *getMonitorRequestWire) (*GetMonitorRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetMonitorRequest{
+		ObjectType: w.ObjectType,
+		ObjectId:   w.ObjectId,
+	}, nil
+}
+
+type getRefreshRequestWire struct {
+	ObjectType *string    `json:"object_type,omitempty"`
+	ObjectId   *string    `json:"object_id,omitempty"`
+	RefreshId  *wireInt64 `json:"refresh_id,omitempty"`
+}
+
+func getRefreshRequestToWire(v *GetRefreshRequest) (*getRefreshRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	refreshIdWireValue, err := int64ToWire(v.RefreshId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRefreshRequest.RefreshId", err)
+	}
+	return &getRefreshRequestWire{
+		ObjectType: v.ObjectType,
+		ObjectId:   v.ObjectId,
+		RefreshId:  refreshIdWireValue,
+	}, nil
+}
+
+func getRefreshRequestFromWire(w *getRefreshRequestWire) (*GetRefreshRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	refreshIdPublicValue, err := int64FromWire(w.RefreshId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRefreshRequest.RefreshId", err)
+	}
+	return &GetRefreshRequest{
+		ObjectType: w.ObjectType,
+		ObjectId:   w.ObjectId,
+		RefreshId:  refreshIdPublicValue,
+	}, nil
+}
+
 type inferenceLogConfigWire struct {
 	ProblemType      InferenceProblemType     `json:"problem_type,omitempty"`
 	TimestampColumn  *string                  `json:"timestamp_column,omitempty"`
@@ -456,9 +624,33 @@ func listMonitorRequestToWire(v *ListMonitorRequest) (*listMonitorRequestWire, e
 	}, nil
 }
 
+func listMonitorRequestFromWire(w *listMonitorRequestWire) (*ListMonitorRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListMonitorRequest{
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listMonitorResponseWire struct {
 	Monitors      []monitorWire `json:"monitors,omitempty"`
 	NextPageToken *string       `json:"next_page_token,omitempty"`
+}
+
+func listMonitorResponseToWire(v *ListMonitorResponse) (*listMonitorResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	monitorsWireValue, err := convertSlice(v.Monitors, monitorToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListMonitorResponse.Monitors", err)
+	}
+	return &listMonitorResponseWire{
+		Monitors:      monitorsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listMonitorResponseFromWire(w *listMonitorResponseWire) (*ListMonitorResponse, error) {
@@ -494,9 +686,35 @@ func listRefreshRequestToWire(v *ListRefreshRequest) (*listRefreshRequestWire, e
 	}, nil
 }
 
+func listRefreshRequestFromWire(w *listRefreshRequestWire) (*ListRefreshRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListRefreshRequest{
+		ObjectType: w.ObjectType,
+		ObjectId:   w.ObjectId,
+		PageToken:  w.PageToken,
+		PageSize:   w.PageSize,
+	}, nil
+}
+
 type listRefreshResponseWire struct {
 	Refreshes     []refreshWire `json:"refreshes,omitempty"`
 	NextPageToken *string       `json:"next_page_token,omitempty"`
+}
+
+func listRefreshResponseToWire(v *ListRefreshResponse) (*listRefreshResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	refreshesWireValue, err := convertSlice(v.Refreshes, refreshToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRefreshResponse.Refreshes", err)
+	}
+	return &listRefreshResponseWire{
+		Refreshes:     refreshesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listRefreshResponseFromWire(w *listRefreshResponseWire) (*ListRefreshResponse, error) {
@@ -747,10 +965,10 @@ func timeSeriesConfigFromWire(w *timeSeriesConfigWire) (*TimeSeriesConfig, error
 }
 
 type updateMonitorRequestWire struct {
-	ObjectType *string      `json:"object_type,omitempty"`
-	ObjectId   *string      `json:"object_id,omitempty"`
-	Monitor    *monitorWire `json:"monitor,omitempty"`
-	UpdateMask *string      `json:"update_mask,omitempty"`
+	ObjectType *string                   `json:"object_type,omitempty"`
+	ObjectId   *string                   `json:"object_id,omitempty"`
+	Monitor    *monitorWire              `json:"monitor,omitempty"`
+	UpdateMask *types.FieldMask[Monitor] `json:"update_mask,omitempty"`
 }
 
 func updateMonitorRequestToWire(v *UpdateMonitorRequest) (*updateMonitorRequestWire, error) {
@@ -765,16 +983,32 @@ func updateMonitorRequestToWire(v *UpdateMonitorRequest) (*updateMonitorRequestW
 		ObjectType: v.ObjectType,
 		ObjectId:   v.ObjectId,
 		Monitor:    monitorWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateMonitorRequestFromWire(w *updateMonitorRequestWire) (*UpdateMonitorRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	monitorPublicValue, err := monitorFromWire(w.Monitor)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateMonitorRequest.Monitor", err)
+	}
+	return &UpdateMonitorRequest{
+		ObjectType: w.ObjectType,
+		ObjectId:   w.ObjectId,
+		Monitor:    monitorPublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 
 type updateRefreshRequestWire struct {
-	ObjectType *string      `json:"object_type,omitempty"`
-	ObjectId   *string      `json:"object_id,omitempty"`
-	RefreshId  *wireInt64   `json:"refresh_id,omitempty"`
-	Refresh    *refreshWire `json:"refresh,omitempty"`
-	UpdateMask *string      `json:"update_mask,omitempty"`
+	ObjectType *string                   `json:"object_type,omitempty"`
+	ObjectId   *string                   `json:"object_id,omitempty"`
+	RefreshId  *wireInt64                `json:"refresh_id,omitempty"`
+	Refresh    *refreshWire              `json:"refresh,omitempty"`
+	UpdateMask *types.FieldMask[Refresh] `json:"update_mask,omitempty"`
 }
 
 func updateRefreshRequestToWire(v *UpdateRefreshRequest) (*updateRefreshRequestWire, error) {
@@ -794,7 +1028,28 @@ func updateRefreshRequestToWire(v *UpdateRefreshRequest) (*updateRefreshRequestW
 		ObjectId:   v.ObjectId,
 		RefreshId:  refreshIdWireValue,
 		Refresh:    refreshWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateRefreshRequestFromWire(w *updateRefreshRequestWire) (*UpdateRefreshRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	refreshIdPublicValue, err := int64FromWire(w.RefreshId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRefreshRequest.RefreshId", err)
+	}
+	refreshPublicValue, err := refreshFromWire(w.Refresh)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRefreshRequest.Refresh", err)
+	}
+	return &UpdateRefreshRequest{
+		ObjectType: w.ObjectType,
+		ObjectId:   w.ObjectId,
+		RefreshId:  refreshIdPublicValue,
+		Refresh:    refreshPublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 

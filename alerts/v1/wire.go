@@ -8,14 +8,6 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type alertWire struct {
 	Id                 *string             `json:"id,omitempty"`
 	DisplayName        *string             `json:"display_name,omitempty"`
@@ -32,6 +24,33 @@ type alertWire struct {
 	CreateTime         *types.Time         `json:"create_time,omitempty"`
 	UpdateTime         *types.Time         `json:"update_time,omitempty"`
 	NotifyOnOk         *bool               `json:"notify_on_ok,omitempty"`
+}
+
+func alertToWire(v *Alert) (*alertWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	conditionWireValue, err := alertConditionToWire(v.Condition)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Alert.Condition", err)
+	}
+	return &alertWire{
+		Id:                 v.Id,
+		DisplayName:        v.DisplayName,
+		QueryId:            v.QueryId,
+		State:              v.State,
+		SecondsToRetrigger: v.SecondsToRetrigger,
+		LifecycleState:     v.LifecycleState,
+		TriggerTime:        v.TriggerTime,
+		CustomBody:         v.CustomBody,
+		CustomSubject:      v.CustomSubject,
+		Condition:          conditionWireValue,
+		OwnerUserName:      v.OwnerUserName,
+		ParentPath:         v.ParentPath,
+		CreateTime:         v.CreateTime,
+		UpdateTime:         v.UpdateTime,
+		NotifyOnOk:         v.NotifyOnOk,
+	}, nil
 }
 
 func alertFromWire(w *alertWire) (*Alert, error) {
@@ -289,6 +308,20 @@ func createAlertRequestToWire(v *CreateAlertRequest) (*createAlertRequestWire, e
 	}, nil
 }
 
+func createAlertRequestFromWire(w *createAlertRequestWire) (*CreateAlertRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	alertPublicValue, err := createAlertRequestAlertFromWire(w.Alert)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAlertRequest.Alert", err)
+	}
+	return &CreateAlertRequest{
+		Alert:                  alertPublicValue,
+		AutoResolveDisplayName: w.AutoResolveDisplayName,
+	}, nil
+}
+
 type createAlertRequestAlertWire struct {
 	DisplayName        *string             `json:"display_name,omitempty"`
 	QueryId            *string             `json:"query_id,omitempty"`
@@ -320,6 +353,65 @@ func createAlertRequestAlertToWire(v *CreateAlertRequestAlert) (*createAlertRequ
 	}, nil
 }
 
+func createAlertRequestAlertFromWire(w *createAlertRequestAlertWire) (*CreateAlertRequestAlert, error) {
+	if w == nil {
+		return nil, nil
+	}
+	conditionPublicValue, err := alertConditionFromWire(w.Condition)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAlertRequestAlert.Condition", err)
+	}
+	return &CreateAlertRequestAlert{
+		DisplayName:        w.DisplayName,
+		QueryId:            w.QueryId,
+		SecondsToRetrigger: w.SecondsToRetrigger,
+		CustomBody:         w.CustomBody,
+		CustomSubject:      w.CustomSubject,
+		Condition:          conditionPublicValue,
+		ParentPath:         w.ParentPath,
+		NotifyOnOk:         w.NotifyOnOk,
+	}, nil
+}
+
+type emptyWire struct {
+}
+
+func emptyToWire(v *Empty) (*emptyWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &emptyWire{}, nil
+}
+
+func emptyFromWire(w *emptyWire) (*Empty, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &Empty{}, nil
+}
+
+type getAlertRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func getAlertRequestToWire(v *GetAlertRequest) (*getAlertRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getAlertRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func getAlertRequestFromWire(w *getAlertRequestWire) (*GetAlertRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetAlertRequest{
+		Id: w.Id,
+	}, nil
+}
+
 type listAlertsRequestWire struct {
 	PageToken *string `json:"page_token,omitempty"`
 	PageSize  *int    `json:"page_size,omitempty"`
@@ -335,9 +427,33 @@ func listAlertsRequestToWire(v *ListAlertsRequest) (*listAlertsRequestWire, erro
 	}, nil
 }
 
+func listAlertsRequestFromWire(w *listAlertsRequestWire) (*ListAlertsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListAlertsRequest{
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listAlertsResponseWire struct {
 	Results       []listAlertsResponseAlertWire `json:"results,omitempty"`
 	NextPageToken *string                       `json:"next_page_token,omitempty"`
+}
+
+func listAlertsResponseToWire(v *ListAlertsResponse) (*listAlertsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	resultsWireValue, err := convertSlice(v.Results, listAlertsResponseAlertToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAlertsResponse.Results", err)
+	}
+	return &listAlertsResponseWire{
+		Results:       resultsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listAlertsResponseFromWire(w *listAlertsResponseWire) (*ListAlertsResponse, error) {
@@ -371,6 +487,32 @@ type listAlertsResponseAlertWire struct {
 	NotifyOnOk         *bool               `json:"notify_on_ok,omitempty"`
 }
 
+func listAlertsResponseAlertToWire(v *ListAlertsResponseAlert) (*listAlertsResponseAlertWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	conditionWireValue, err := alertConditionToWire(v.Condition)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAlertsResponseAlert.Condition", err)
+	}
+	return &listAlertsResponseAlertWire{
+		Id:                 v.Id,
+		DisplayName:        v.DisplayName,
+		QueryId:            v.QueryId,
+		State:              v.State,
+		SecondsToRetrigger: v.SecondsToRetrigger,
+		LifecycleState:     v.LifecycleState,
+		TriggerTime:        v.TriggerTime,
+		CustomBody:         v.CustomBody,
+		CustomSubject:      v.CustomSubject,
+		Condition:          conditionWireValue,
+		OwnerUserName:      v.OwnerUserName,
+		CreateTime:         v.CreateTime,
+		UpdateTime:         v.UpdateTime,
+		NotifyOnOk:         v.NotifyOnOk,
+	}, nil
+}
+
 func listAlertsResponseAlertFromWire(w *listAlertsResponseAlertWire) (*ListAlertsResponseAlert, error) {
 	if w == nil {
 		return nil, nil
@@ -397,11 +539,33 @@ func listAlertsResponseAlertFromWire(w *listAlertsResponseAlertWire) (*ListAlert
 	}, nil
 }
 
+type trashAlertRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func trashAlertRequestToWire(v *TrashAlertRequest) (*trashAlertRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &trashAlertRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func trashAlertRequestFromWire(w *trashAlertRequestWire) (*TrashAlertRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &TrashAlertRequest{
+		Id: w.Id,
+	}, nil
+}
+
 type updateAlertRequestWire struct {
-	Alert                  *updateAlertRequestAlertWire `json:"alert,omitempty"`
-	UpdateMask             *string                      `json:"update_mask,omitempty"`
-	Id                     *string                      `json:"id,omitempty"`
-	AutoResolveDisplayName *bool                        `json:"auto_resolve_display_name,omitempty"`
+	Alert                  *updateAlertRequestAlertWire              `json:"alert,omitempty"`
+	UpdateMask             *types.FieldMask[UpdateAlertRequestAlert] `json:"update_mask,omitempty"`
+	Id                     *string                                   `json:"id,omitempty"`
+	AutoResolveDisplayName *bool                                     `json:"auto_resolve_display_name,omitempty"`
 }
 
 func updateAlertRequestToWire(v *UpdateAlertRequest) (*updateAlertRequestWire, error) {
@@ -414,9 +578,25 @@ func updateAlertRequestToWire(v *UpdateAlertRequest) (*updateAlertRequestWire, e
 	}
 	return &updateAlertRequestWire{
 		Alert:                  alertWireValue,
-		UpdateMask:             fieldMaskToWire(v.UpdateMask),
+		UpdateMask:             v.UpdateMask,
 		Id:                     v.Id,
 		AutoResolveDisplayName: v.AutoResolveDisplayName,
+	}, nil
+}
+
+func updateAlertRequestFromWire(w *updateAlertRequestWire) (*UpdateAlertRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	alertPublicValue, err := updateAlertRequestAlertFromWire(w.Alert)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAlertRequest.Alert", err)
+	}
+	return &UpdateAlertRequest{
+		Alert:                  alertPublicValue,
+		UpdateMask:             w.UpdateMask,
+		Id:                     w.Id,
+		AutoResolveDisplayName: w.AutoResolveDisplayName,
 	}, nil
 }
 
@@ -448,6 +628,26 @@ func updateAlertRequestAlertToWire(v *UpdateAlertRequestAlert) (*updateAlertRequ
 		Condition:          conditionWireValue,
 		OwnerUserName:      v.OwnerUserName,
 		NotifyOnOk:         v.NotifyOnOk,
+	}, nil
+}
+
+func updateAlertRequestAlertFromWire(w *updateAlertRequestAlertWire) (*UpdateAlertRequestAlert, error) {
+	if w == nil {
+		return nil, nil
+	}
+	conditionPublicValue, err := alertConditionFromWire(w.Condition)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAlertRequestAlert.Condition", err)
+	}
+	return &UpdateAlertRequestAlert{
+		DisplayName:        w.DisplayName,
+		QueryId:            w.QueryId,
+		SecondsToRetrigger: w.SecondsToRetrigger,
+		CustomBody:         w.CustomBody,
+		CustomSubject:      w.CustomSubject,
+		Condition:          conditionPublicValue,
+		OwnerUserName:      w.OwnerUserName,
+		NotifyOnOk:         w.NotifyOnOk,
 	}, nil
 }
 

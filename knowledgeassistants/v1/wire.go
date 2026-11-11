@@ -8,14 +8,6 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type createExampleRequestWire struct {
 	Parent  *string      `json:"parent,omitempty"`
 	Example *exampleWire `json:"example,omitempty"`
@@ -32,6 +24,20 @@ func createExampleRequestToWire(v *CreateExampleRequest) (*createExampleRequestW
 	return &createExampleRequestWire{
 		Parent:  v.Parent,
 		Example: exampleWireValue,
+	}, nil
+}
+
+func createExampleRequestFromWire(w *createExampleRequestWire) (*CreateExampleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	examplePublicValue, err := exampleFromWire(w.Example)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateExampleRequest.Example", err)
+	}
+	return &CreateExampleRequest{
+		Parent:  w.Parent,
+		Example: examplePublicValue,
 	}, nil
 }
 
@@ -52,6 +58,19 @@ func createKnowledgeAssistantRequestToWire(v *CreateKnowledgeAssistantRequest) (
 	}, nil
 }
 
+func createKnowledgeAssistantRequestFromWire(w *createKnowledgeAssistantRequestWire) (*CreateKnowledgeAssistantRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	knowledgeAssistantPublicValue, err := knowledgeAssistantFromWire(w.KnowledgeAssistant)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateKnowledgeAssistantRequest.KnowledgeAssistant", err)
+	}
+	return &CreateKnowledgeAssistantRequest{
+		KnowledgeAssistant: knowledgeAssistantPublicValue,
+	}, nil
+}
+
 type createKnowledgeSourceRequestWire struct {
 	Parent          *string              `json:"parent,omitempty"`
 	KnowledgeSource *knowledgeSourceWire `json:"knowledge_source,omitempty"`
@@ -68,6 +87,86 @@ func createKnowledgeSourceRequestToWire(v *CreateKnowledgeSourceRequest) (*creat
 	return &createKnowledgeSourceRequestWire{
 		Parent:          v.Parent,
 		KnowledgeSource: knowledgeSourceWireValue,
+	}, nil
+}
+
+func createKnowledgeSourceRequestFromWire(w *createKnowledgeSourceRequestWire) (*CreateKnowledgeSourceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	knowledgeSourcePublicValue, err := knowledgeSourceFromWire(w.KnowledgeSource)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateKnowledgeSourceRequest.KnowledgeSource", err)
+	}
+	return &CreateKnowledgeSourceRequest{
+		Parent:          w.Parent,
+		KnowledgeSource: knowledgeSourcePublicValue,
+	}, nil
+}
+
+type deleteExampleRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteExampleRequestToWire(v *DeleteExampleRequest) (*deleteExampleRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteExampleRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteExampleRequestFromWire(w *deleteExampleRequestWire) (*DeleteExampleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteExampleRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteKnowledgeAssistantRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteKnowledgeAssistantRequestToWire(v *DeleteKnowledgeAssistantRequest) (*deleteKnowledgeAssistantRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteKnowledgeAssistantRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteKnowledgeAssistantRequestFromWire(w *deleteKnowledgeAssistantRequestWire) (*DeleteKnowledgeAssistantRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteKnowledgeAssistantRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteKnowledgeSourceRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteKnowledgeSourceRequestToWire(v *DeleteKnowledgeSourceRequest) (*deleteKnowledgeSourceRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteKnowledgeSourceRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteKnowledgeSourceRequestFromWire(w *deleteKnowledgeSourceRequestWire) (*DeleteKnowledgeSourceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteKnowledgeSourceRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -152,6 +251,72 @@ func filesSpecFromWire(w *filesSpecWire) (*FilesSpec, error) {
 	}
 	return &FilesSpec{
 		Path: w.Path,
+	}, nil
+}
+
+type getExampleRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getExampleRequestToWire(v *GetExampleRequest) (*getExampleRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getExampleRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getExampleRequestFromWire(w *getExampleRequestWire) (*GetExampleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetExampleRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getKnowledgeAssistantRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getKnowledgeAssistantRequestToWire(v *GetKnowledgeAssistantRequest) (*getKnowledgeAssistantRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getKnowledgeAssistantRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getKnowledgeAssistantRequestFromWire(w *getKnowledgeAssistantRequestWire) (*GetKnowledgeAssistantRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetKnowledgeAssistantRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getKnowledgeSourceRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getKnowledgeSourceRequestToWire(v *GetKnowledgeSourceRequest) (*getKnowledgeSourceRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getKnowledgeSourceRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getKnowledgeSourceRequestFromWire(w *getKnowledgeSourceRequestWire) (*GetKnowledgeSourceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetKnowledgeSourceRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -368,9 +533,34 @@ func listExamplesRequestToWire(v *ListExamplesRequest) (*listExamplesRequestWire
 	}, nil
 }
 
+func listExamplesRequestFromWire(w *listExamplesRequestWire) (*ListExamplesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListExamplesRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listExamplesResponseWire struct {
 	Examples      []exampleWire `json:"examples,omitempty"`
 	NextPageToken *string       `json:"next_page_token,omitempty"`
+}
+
+func listExamplesResponseToWire(v *ListExamplesResponse) (*listExamplesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	examplesWireValue, err := convertSlice(v.Examples, exampleToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListExamplesResponse.Examples", err)
+	}
+	return &listExamplesResponseWire{
+		Examples:      examplesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listExamplesResponseFromWire(w *listExamplesResponseWire) (*ListExamplesResponse, error) {
@@ -402,9 +592,33 @@ func listKnowledgeAssistantsRequestToWire(v *ListKnowledgeAssistantsRequest) (*l
 	}, nil
 }
 
+func listKnowledgeAssistantsRequestFromWire(w *listKnowledgeAssistantsRequestWire) (*ListKnowledgeAssistantsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListKnowledgeAssistantsRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listKnowledgeAssistantsResponseWire struct {
 	KnowledgeAssistants []knowledgeAssistantWire `json:"knowledge_assistants,omitempty"`
 	NextPageToken       *string                  `json:"next_page_token,omitempty"`
+}
+
+func listKnowledgeAssistantsResponseToWire(v *ListKnowledgeAssistantsResponse) (*listKnowledgeAssistantsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	knowledgeAssistantsWireValue, err := convertSlice(v.KnowledgeAssistants, knowledgeAssistantToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListKnowledgeAssistantsResponse.KnowledgeAssistants", err)
+	}
+	return &listKnowledgeAssistantsResponseWire{
+		KnowledgeAssistants: knowledgeAssistantsWireValue,
+		NextPageToken:       v.NextPageToken,
+	}, nil
 }
 
 func listKnowledgeAssistantsResponseFromWire(w *listKnowledgeAssistantsResponseWire) (*ListKnowledgeAssistantsResponse, error) {
@@ -438,9 +652,34 @@ func listKnowledgeSourcesRequestToWire(v *ListKnowledgeSourcesRequest) (*listKno
 	}, nil
 }
 
+func listKnowledgeSourcesRequestFromWire(w *listKnowledgeSourcesRequestWire) (*ListKnowledgeSourcesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListKnowledgeSourcesRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listKnowledgeSourcesResponseWire struct {
 	KnowledgeSources []knowledgeSourceWire `json:"knowledge_sources,omitempty"`
 	NextPageToken    *string               `json:"next_page_token,omitempty"`
+}
+
+func listKnowledgeSourcesResponseToWire(v *ListKnowledgeSourcesResponse) (*listKnowledgeSourcesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	knowledgeSourcesWireValue, err := convertSlice(v.KnowledgeSources, knowledgeSourceToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListKnowledgeSourcesResponse.KnowledgeSources", err)
+	}
+	return &listKnowledgeSourcesResponseWire{
+		KnowledgeSources: knowledgeSourcesWireValue,
+		NextPageToken:    v.NextPageToken,
+	}, nil
 }
 
 func listKnowledgeSourcesResponseFromWire(w *listKnowledgeSourcesResponseWire) (*ListKnowledgeSourcesResponse, error) {
@@ -470,10 +709,19 @@ func syncKnowledgeSourcesRequestToWire(v *SyncKnowledgeSourcesRequest) (*syncKno
 	}, nil
 }
 
+func syncKnowledgeSourcesRequestFromWire(w *syncKnowledgeSourcesRequestWire) (*SyncKnowledgeSourcesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SyncKnowledgeSourcesRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type updateExampleRequestWire struct {
-	Name       *string      `json:"name,omitempty"`
-	Example    *exampleWire `json:"example,omitempty"`
-	UpdateMask *string      `json:"update_mask,omitempty"`
+	Name       *string                   `json:"name,omitempty"`
+	Example    *exampleWire              `json:"example,omitempty"`
+	UpdateMask *types.FieldMask[Example] `json:"update_mask,omitempty"`
 }
 
 func updateExampleRequestToWire(v *UpdateExampleRequest) (*updateExampleRequestWire, error) {
@@ -487,13 +735,28 @@ func updateExampleRequestToWire(v *UpdateExampleRequest) (*updateExampleRequestW
 	return &updateExampleRequestWire{
 		Name:       v.Name,
 		Example:    exampleWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateExampleRequestFromWire(w *updateExampleRequestWire) (*UpdateExampleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	examplePublicValue, err := exampleFromWire(w.Example)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateExampleRequest.Example", err)
+	}
+	return &UpdateExampleRequest{
+		Name:       w.Name,
+		Example:    examplePublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 
 type updateKnowledgeAssistantRequestWire struct {
-	KnowledgeAssistant *knowledgeAssistantWire `json:"knowledge_assistant,omitempty"`
-	UpdateMask         *string                 `json:"update_mask,omitempty"`
+	KnowledgeAssistant *knowledgeAssistantWire              `json:"knowledge_assistant,omitempty"`
+	UpdateMask         *types.FieldMask[KnowledgeAssistant] `json:"update_mask,omitempty"`
 }
 
 func updateKnowledgeAssistantRequestToWire(v *UpdateKnowledgeAssistantRequest) (*updateKnowledgeAssistantRequestWire, error) {
@@ -506,14 +769,28 @@ func updateKnowledgeAssistantRequestToWire(v *UpdateKnowledgeAssistantRequest) (
 	}
 	return &updateKnowledgeAssistantRequestWire{
 		KnowledgeAssistant: knowledgeAssistantWireValue,
-		UpdateMask:         fieldMaskToWire(v.UpdateMask),
+		UpdateMask:         v.UpdateMask,
+	}, nil
+}
+
+func updateKnowledgeAssistantRequestFromWire(w *updateKnowledgeAssistantRequestWire) (*UpdateKnowledgeAssistantRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	knowledgeAssistantPublicValue, err := knowledgeAssistantFromWire(w.KnowledgeAssistant)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateKnowledgeAssistantRequest.KnowledgeAssistant", err)
+	}
+	return &UpdateKnowledgeAssistantRequest{
+		KnowledgeAssistant: knowledgeAssistantPublicValue,
+		UpdateMask:         w.UpdateMask,
 	}, nil
 }
 
 type updateKnowledgeSourceRequestWire struct {
-	Name            *string              `json:"name,omitempty"`
-	KnowledgeSource *knowledgeSourceWire `json:"knowledge_source,omitempty"`
-	UpdateMask      *string              `json:"update_mask,omitempty"`
+	Name            *string                           `json:"name,omitempty"`
+	KnowledgeSource *knowledgeSourceWire              `json:"knowledge_source,omitempty"`
+	UpdateMask      *types.FieldMask[KnowledgeSource] `json:"update_mask,omitempty"`
 }
 
 func updateKnowledgeSourceRequestToWire(v *UpdateKnowledgeSourceRequest) (*updateKnowledgeSourceRequestWire, error) {
@@ -527,7 +804,22 @@ func updateKnowledgeSourceRequestToWire(v *UpdateKnowledgeSourceRequest) (*updat
 	return &updateKnowledgeSourceRequestWire{
 		Name:            v.Name,
 		KnowledgeSource: knowledgeSourceWireValue,
-		UpdateMask:      fieldMaskToWire(v.UpdateMask),
+		UpdateMask:      v.UpdateMask,
+	}, nil
+}
+
+func updateKnowledgeSourceRequestFromWire(w *updateKnowledgeSourceRequestWire) (*UpdateKnowledgeSourceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	knowledgeSourcePublicValue, err := knowledgeSourceFromWire(w.KnowledgeSource)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateKnowledgeSourceRequest.KnowledgeSource", err)
+	}
+	return &UpdateKnowledgeSourceRequest{
+		Name:            w.Name,
+		KnowledgeSource: knowledgeSourcePublicValue,
+		UpdateMask:      w.UpdateMask,
 	}, nil
 }
 

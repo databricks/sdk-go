@@ -94,10 +94,32 @@ func dataframeSplitInputToWire(v *DataframeSplitInput) (*dataframeSplitInputWire
 	}, nil
 }
 
+func dataframeSplitInputFromWire(w *dataframeSplitInputWire) (*DataframeSplitInput, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DataframeSplitInput{
+		Index:   w.Index,
+		Columns: w.Columns,
+		Data:    w.Data,
+	}, nil
+}
+
 type embeddingsV1ResponseEmbeddingElementWire struct {
 	Embedding []float64                                  `json:"embedding,omitempty"`
 	Index     *int                                       `json:"index,omitempty"`
 	Object    EmbeddingsV1ResponseEmbeddingElementObject `json:"object,omitempty"`
+}
+
+func embeddingsV1ResponseEmbeddingElementToWire(v *EmbeddingsV1ResponseEmbeddingElement) (*embeddingsV1ResponseEmbeddingElementWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &embeddingsV1ResponseEmbeddingElementWire{
+		Embedding: v.Embedding,
+		Index:     v.Index,
+		Object:    v.Object,
+	}, nil
 }
 
 func embeddingsV1ResponseEmbeddingElementFromWire(w *embeddingsV1ResponseEmbeddingElementWire) (*EmbeddingsV1ResponseEmbeddingElement, error) {
@@ -115,6 +137,17 @@ type externalModelUsageElementWire struct {
 	PromptTokens     *int `json:"prompt_tokens,omitempty"`
 	CompletionTokens *int `json:"completion_tokens,omitempty"`
 	TotalTokens      *int `json:"total_tokens,omitempty"`
+}
+
+func externalModelUsageElementToWire(v *ExternalModelUsageElement) (*externalModelUsageElementWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &externalModelUsageElementWire{
+		PromptTokens:     v.PromptTokens,
+		CompletionTokens: v.CompletionTokens,
+		TotalTokens:      v.TotalTokens,
+	}, nil
 }
 
 func externalModelUsageElementFromWire(w *externalModelUsageElementWire) (*ExternalModelUsageElement, error) {
@@ -179,6 +212,38 @@ func queryEndpointRequestToWire(v *QueryEndpointRequest) (*queryEndpointRequestW
 	}, nil
 }
 
+func queryEndpointRequestFromWire(w *queryEndpointRequestWire) (*QueryEndpointRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	messagesPublicValue, err := convertSlice(w.Messages, chatMessageFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryEndpointRequest.Messages", err)
+	}
+	dataframeSplitPublicValue, err := dataframeSplitInputFromWire(w.DataframeSplit)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryEndpointRequest.DataframeSplit", err)
+	}
+	return &QueryEndpointRequest{
+		Name:             w.Name,
+		Prompt:           w.Prompt,
+		Input:            w.Input,
+		Messages:         messagesPublicValue,
+		Temperature:      w.Temperature,
+		Stop:             w.Stop,
+		MaxTokens:        w.MaxTokens,
+		N:                w.N,
+		Stream:           w.Stream,
+		ExtraParams:      w.ExtraParams,
+		DataframeRecords: w.DataframeRecords,
+		DataframeSplit:   dataframeSplitPublicValue,
+		Instances:        w.Instances,
+		Inputs:           w.Inputs,
+		ClientRequestId:  w.ClientRequestId,
+		UsageContext:     w.UsageContext,
+	}, nil
+}
+
 type queryEndpointResponseWire struct {
 	Choices     []v1ResponseChoiceElementWire              `json:"choices,omitempty"`
 	Data        []embeddingsV1ResponseEmbeddingElementWire `json:"data,omitempty"`
@@ -189,6 +254,39 @@ type queryEndpointResponseWire struct {
 	Object      QueryEndpointResponseObject                `json:"object,omitempty"`
 	Predictions []json.RawMessage                          `json:"predictions,omitempty"`
 	Outputs     []json.RawMessage                          `json:"outputs,omitempty"`
+}
+
+func queryEndpointResponseToWire(v *QueryEndpointResponse) (*queryEndpointResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	choicesWireValue, err := convertSlice(v.Choices, v1ResponseChoiceElementToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryEndpointResponse.Choices", err)
+	}
+	dataWireValue, err := convertSlice(v.Data, embeddingsV1ResponseEmbeddingElementToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryEndpointResponse.Data", err)
+	}
+	usageWireValue, err := externalModelUsageElementToWire(v.Usage)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryEndpointResponse.Usage", err)
+	}
+	createdWireValue, err := int64ToWire(v.Created)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "QueryEndpointResponse.Created", err)
+	}
+	return &queryEndpointResponseWire{
+		Choices:     choicesWireValue,
+		Data:        dataWireValue,
+		Model:       v.Model,
+		Usage:       usageWireValue,
+		Id:          v.Id,
+		Created:     createdWireValue,
+		Object:      v.Object,
+		Predictions: v.Predictions,
+		Outputs:     v.Outputs,
+	}, nil
 }
 
 func queryEndpointResponseFromWire(w *queryEndpointResponseWire) (*QueryEndpointResponse, error) {
@@ -230,6 +328,23 @@ type v1ResponseChoiceElementWire struct {
 	Index        *int             `json:"index,omitempty"`
 	FinishReason *string          `json:"finishReason,omitempty"`
 	Logprobs     *int             `json:"logprobs,omitempty"`
+}
+
+func v1ResponseChoiceElementToWire(v *V1ResponseChoiceElement) (*v1ResponseChoiceElementWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	messageWireValue, err := chatMessageToWire(v.Message)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "V1ResponseChoiceElement.Message", err)
+	}
+	return &v1ResponseChoiceElementWire{
+		Text:         v.Text,
+		Message:      messageWireValue,
+		Index:        v.Index,
+		FinishReason: v.FinishReason,
+		Logprobs:     v.Logprobs,
+	}, nil
 }
 
 func v1ResponseChoiceElementFromWire(w *v1ResponseChoiceElementWire) (*V1ResponseChoiceElement, error) {

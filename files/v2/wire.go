@@ -71,6 +71,37 @@ func addBlockRequestToWire(v *AddBlockRequest) (*addBlockRequestWire, error) {
 	}, nil
 }
 
+func addBlockRequestFromWire(w *addBlockRequestWire) (*AddBlockRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	handlePublicValue, err := int64FromWire(w.Handle)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AddBlockRequest.Handle", err)
+	}
+	return &AddBlockRequest{
+		Handle: handlePublicValue,
+		Data:   w.Data,
+	}, nil
+}
+
+type addBlockResponseWire struct {
+}
+
+func addBlockResponseToWire(v *AddBlockResponse) (*addBlockResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &addBlockResponseWire{}, nil
+}
+
+func addBlockResponseFromWire(w *addBlockResponseWire) (*AddBlockResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AddBlockResponse{}, nil
+}
+
 type closeRequestWire struct {
 	Handle *wireInt64 `json:"handle,omitempty"`
 }
@@ -88,6 +119,75 @@ func closeRequestToWire(v *CloseRequest) (*closeRequestWire, error) {
 	}, nil
 }
 
+func closeRequestFromWire(w *closeRequestWire) (*CloseRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	handlePublicValue, err := int64FromWire(w.Handle)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CloseRequest.Handle", err)
+	}
+	return &CloseRequest{
+		Handle: handlePublicValue,
+	}, nil
+}
+
+type closeResponseWire struct {
+}
+
+func closeResponseToWire(v *CloseResponse) (*closeResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &closeResponseWire{}, nil
+}
+
+func closeResponseFromWire(w *closeResponseWire) (*CloseResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CloseResponse{}, nil
+}
+
+type createDirectoryRequestWire struct {
+	DirectoryPath *string `json:"directory_path,omitempty"`
+}
+
+func createDirectoryRequestToWire(v *CreateDirectoryRequest) (*createDirectoryRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createDirectoryRequestWire{
+		DirectoryPath: v.DirectoryPath,
+	}, nil
+}
+
+func createDirectoryRequestFromWire(w *createDirectoryRequestWire) (*CreateDirectoryRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CreateDirectoryRequest{
+		DirectoryPath: w.DirectoryPath,
+	}, nil
+}
+
+type createDirectoryResponseWire struct {
+}
+
+func createDirectoryResponseToWire(v *CreateDirectoryResponse) (*createDirectoryResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createDirectoryResponseWire{}, nil
+}
+
+func createDirectoryResponseFromWire(w *createDirectoryResponseWire) (*CreateDirectoryResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CreateDirectoryResponse{}, nil
+}
+
 type createRequestWire struct {
 	Path      *string `json:"path,omitempty"`
 	Overwrite *bool   `json:"overwrite,omitempty"`
@@ -103,8 +203,31 @@ func createRequestToWire(v *CreateRequest) (*createRequestWire, error) {
 	}, nil
 }
 
+func createRequestFromWire(w *createRequestWire) (*CreateRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CreateRequest{
+		Path:      w.Path,
+		Overwrite: w.Overwrite,
+	}, nil
+}
+
 type createResponseWire struct {
 	Handle *wireInt64 `json:"handle,omitempty"`
+}
+
+func createResponseToWire(v *CreateResponse) (*createResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	handleWireValue, err := int64ToWire(v.Handle)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateResponse.Handle", err)
+	}
+	return &createResponseWire{
+		Handle: handleWireValue,
+	}, nil
 }
 
 func createResponseFromWire(w *createResponseWire) (*CreateResponse, error) {
@@ -118,6 +241,84 @@ func createResponseFromWire(w *createResponseWire) (*CreateResponse, error) {
 	return &CreateResponse{
 		Handle: handlePublicValue,
 	}, nil
+}
+
+type deleteDirectoryRequestWire struct {
+	DirectoryPath *string `json:"directory_path,omitempty"`
+}
+
+func deleteDirectoryRequestToWire(v *DeleteDirectoryRequest) (*deleteDirectoryRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteDirectoryRequestWire{
+		DirectoryPath: v.DirectoryPath,
+	}, nil
+}
+
+func deleteDirectoryRequestFromWire(w *deleteDirectoryRequestWire) (*DeleteDirectoryRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteDirectoryRequest{
+		DirectoryPath: w.DirectoryPath,
+	}, nil
+}
+
+type deleteDirectoryResponseWire struct {
+}
+
+func deleteDirectoryResponseToWire(v *DeleteDirectoryResponse) (*deleteDirectoryResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteDirectoryResponseWire{}, nil
+}
+
+func deleteDirectoryResponseFromWire(w *deleteDirectoryResponseWire) (*DeleteDirectoryResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteDirectoryResponse{}, nil
+}
+
+type deleteFileRequestWire struct {
+	FilePath *string `json:"file_path,omitempty"`
+}
+
+func deleteFileRequestToWire(v *DeleteFileRequest) (*deleteFileRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteFileRequestWire{
+		FilePath: v.FilePath,
+	}, nil
+}
+
+func deleteFileRequestFromWire(w *deleteFileRequestWire) (*DeleteFileRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteFileRequest{
+		FilePath: w.FilePath,
+	}, nil
+}
+
+type deleteFileResponseWire struct {
+}
+
+func deleteFileResponseToWire(v *DeleteFileResponse) (*deleteFileResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteFileResponseWire{}, nil
+}
+
+func deleteFileResponseFromWire(w *deleteFileResponseWire) (*DeleteFileResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteFileResponse{}, nil
 }
 
 type deleteRequestWire struct {
@@ -135,12 +336,52 @@ func deleteRequestToWire(v *DeleteRequest) (*deleteRequestWire, error) {
 	}, nil
 }
 
+func deleteRequestFromWire(w *deleteRequestWire) (*DeleteRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRequest{
+		Path:      w.Path,
+		Recursive: w.Recursive,
+	}, nil
+}
+
+type deleteResponseWire struct {
+}
+
+func deleteResponseToWire(v *DeleteResponse) (*deleteResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteResponseWire{}, nil
+}
+
+func deleteResponseFromWire(w *deleteResponseWire) (*DeleteResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteResponse{}, nil
+}
+
 type directoryEntryWire struct {
 	FileSize     *int    `json:"file_size,omitempty"`
 	IsDirectory  *bool   `json:"is_directory,omitempty"`
 	LastModified *int    `json:"last_modified,omitempty"`
 	Name         *string `json:"name,omitempty"`
 	Path         *string `json:"path,omitempty"`
+}
+
+func directoryEntryToWire(v *DirectoryEntry) (*directoryEntryWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &directoryEntryWire{
+		FileSize:     v.FileSize,
+		IsDirectory:  v.IsDirectory,
+		LastModified: v.LastModified,
+		Name:         v.Name,
+		Path:         v.Path,
+	}, nil
 }
 
 func directoryEntryFromWire(w *directoryEntryWire) (*DirectoryEntry, error) {
@@ -156,11 +397,70 @@ func directoryEntryFromWire(w *directoryEntryWire) (*DirectoryEntry, error) {
 	}, nil
 }
 
+type downloadFileRequestWire struct {
+	FilePath *string `json:"file_path,omitempty"`
+}
+
+func downloadFileRequestToWire(v *DownloadFileRequest) (*downloadFileRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &downloadFileRequestWire{
+		FilePath: v.FilePath,
+	}, nil
+}
+
+func downloadFileRequestFromWire(w *downloadFileRequestWire) (*DownloadFileRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DownloadFileRequest{
+		FilePath: w.FilePath,
+	}, nil
+}
+
+type downloadFileResponseWire struct {
+}
+
+func downloadFileResponseToWire(v *DownloadFileResponse) (*downloadFileResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &downloadFileResponseWire{}, nil
+}
+
+func downloadFileResponseFromWire(w *downloadFileResponseWire) (*DownloadFileResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DownloadFileResponse{}, nil
+}
+
 type fileInfoWire struct {
 	Path             *string    `json:"path,omitempty"`
 	IsDir            *bool      `json:"is_dir,omitempty"`
 	FileSize         *wireInt64 `json:"file_size,omitempty"`
 	ModificationTime *wireInt64 `json:"modification_time,omitempty"`
+}
+
+func fileInfoToWire(v *FileInfo) (*fileInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	fileSizeWireValue, err := int64ToWire(v.FileSize)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FileInfo.FileSize", err)
+	}
+	modificationTimeWireValue, err := int64ToWire(v.ModificationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FileInfo.ModificationTime", err)
+	}
+	return &fileInfoWire{
+		Path:             v.Path,
+		IsDir:            v.IsDir,
+		FileSize:         fileSizeWireValue,
+		ModificationTime: modificationTimeWireValue,
+	}, nil
 }
 
 func fileInfoFromWire(w *fileInfoWire) (*FileInfo, error) {
@@ -183,6 +483,84 @@ func fileInfoFromWire(w *fileInfoWire) (*FileInfo, error) {
 	}, nil
 }
 
+type getDirectoryMetadataRequestWire struct {
+	DirectoryPath *string `json:"directory_path,omitempty"`
+}
+
+func getDirectoryMetadataRequestToWire(v *GetDirectoryMetadataRequest) (*getDirectoryMetadataRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getDirectoryMetadataRequestWire{
+		DirectoryPath: v.DirectoryPath,
+	}, nil
+}
+
+func getDirectoryMetadataRequestFromWire(w *getDirectoryMetadataRequestWire) (*GetDirectoryMetadataRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetDirectoryMetadataRequest{
+		DirectoryPath: w.DirectoryPath,
+	}, nil
+}
+
+type getDirectoryMetadataResponseWire struct {
+}
+
+func getDirectoryMetadataResponseToWire(v *GetDirectoryMetadataResponse) (*getDirectoryMetadataResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getDirectoryMetadataResponseWire{}, nil
+}
+
+func getDirectoryMetadataResponseFromWire(w *getDirectoryMetadataResponseWire) (*GetDirectoryMetadataResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetDirectoryMetadataResponse{}, nil
+}
+
+type getFileMetadataRequestWire struct {
+	FilePath *string `json:"file_path,omitempty"`
+}
+
+func getFileMetadataRequestToWire(v *GetFileMetadataRequest) (*getFileMetadataRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getFileMetadataRequestWire{
+		FilePath: v.FilePath,
+	}, nil
+}
+
+func getFileMetadataRequestFromWire(w *getFileMetadataRequestWire) (*GetFileMetadataRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetFileMetadataRequest{
+		FilePath: w.FilePath,
+	}, nil
+}
+
+type getFileMetadataResponseWire struct {
+}
+
+func getFileMetadataResponseToWire(v *GetFileMetadataResponse) (*getFileMetadataResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getFileMetadataResponseWire{}, nil
+}
+
+func getFileMetadataResponseFromWire(w *getFileMetadataResponseWire) (*GetFileMetadataResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetFileMetadataResponse{}, nil
+}
+
 type getStatusRequestWire struct {
 	Path *string `json:"path,omitempty"`
 }
@@ -196,11 +574,40 @@ func getStatusRequestToWire(v *GetStatusRequest) (*getStatusRequestWire, error) 
 	}, nil
 }
 
+func getStatusRequestFromWire(w *getStatusRequestWire) (*GetStatusRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetStatusRequest{
+		Path: w.Path,
+	}, nil
+}
+
 type getStatusResponseWire struct {
 	Path             *string    `json:"path,omitempty"`
 	IsDir            *bool      `json:"is_dir,omitempty"`
 	FileSize         *wireInt64 `json:"file_size,omitempty"`
 	ModificationTime *wireInt64 `json:"modification_time,omitempty"`
+}
+
+func getStatusResponseToWire(v *GetStatusResponse) (*getStatusResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	fileSizeWireValue, err := int64ToWire(v.FileSize)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetStatusResponse.FileSize", err)
+	}
+	modificationTimeWireValue, err := int64ToWire(v.ModificationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetStatusResponse.ModificationTime", err)
+	}
+	return &getStatusResponseWire{
+		Path:             v.Path,
+		IsDir:            v.IsDir,
+		FileSize:         fileSizeWireValue,
+		ModificationTime: modificationTimeWireValue,
+	}, nil
 }
 
 func getStatusResponseFromWire(w *getStatusResponseWire) (*GetStatusResponse, error) {
@@ -244,9 +651,38 @@ func listDirectoryContentsRequestToWire(v *ListDirectoryContentsRequest) (*listD
 	}, nil
 }
 
+func listDirectoryContentsRequestFromWire(w *listDirectoryContentsRequestWire) (*ListDirectoryContentsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	pageSizePublicValue, err := int64FromWire(w.PageSize)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListDirectoryContentsRequest.PageSize", err)
+	}
+	return &ListDirectoryContentsRequest{
+		DirectoryPath: w.DirectoryPath,
+		PageSize:      pageSizePublicValue,
+		PageToken:     w.PageToken,
+	}, nil
+}
+
 type listDirectoryResponseWire struct {
 	Contents      []directoryEntryWire `json:"contents,omitempty"`
 	NextPageToken *string              `json:"next_page_token,omitempty"`
+}
+
+func listDirectoryResponseToWire(v *ListDirectoryResponse) (*listDirectoryResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	contentsWireValue, err := convertSlice(v.Contents, directoryEntryToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListDirectoryResponse.Contents", err)
+	}
+	return &listDirectoryResponseWire{
+		Contents:      contentsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listDirectoryResponseFromWire(w *listDirectoryResponseWire) (*ListDirectoryResponse, error) {
@@ -276,8 +712,30 @@ func listStatusRequestToWire(v *ListStatusRequest) (*listStatusRequestWire, erro
 	}, nil
 }
 
+func listStatusRequestFromWire(w *listStatusRequestWire) (*ListStatusRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListStatusRequest{
+		Path: w.Path,
+	}, nil
+}
+
 type listStatusResponseWire struct {
 	Files []fileInfoWire `json:"files,omitempty"`
+}
+
+func listStatusResponseToWire(v *ListStatusResponse) (*listStatusResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	filesWireValue, err := convertSlice(v.Files, fileInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListStatusResponse.Files", err)
+	}
+	return &listStatusResponseWire{
+		Files: filesWireValue,
+	}, nil
 }
 
 func listStatusResponseFromWire(w *listStatusResponseWire) (*ListStatusResponse, error) {
@@ -306,6 +764,32 @@ func mkDirsRequestToWire(v *MkDirsRequest) (*mkDirsRequestWire, error) {
 	}, nil
 }
 
+func mkDirsRequestFromWire(w *mkDirsRequestWire) (*MkDirsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &MkDirsRequest{
+		Path: w.Path,
+	}, nil
+}
+
+type mkDirsResponseWire struct {
+}
+
+func mkDirsResponseToWire(v *MkDirsResponse) (*mkDirsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &mkDirsResponseWire{}, nil
+}
+
+func mkDirsResponseFromWire(w *mkDirsResponseWire) (*MkDirsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &MkDirsResponse{}, nil
+}
+
 type moveRequestWire struct {
 	SourcePath      *string `json:"source_path,omitempty"`
 	DestinationPath *string `json:"destination_path,omitempty"`
@@ -319,6 +803,33 @@ func moveRequestToWire(v *MoveRequest) (*moveRequestWire, error) {
 		SourcePath:      v.SourcePath,
 		DestinationPath: v.DestinationPath,
 	}, nil
+}
+
+func moveRequestFromWire(w *moveRequestWire) (*MoveRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &MoveRequest{
+		SourcePath:      w.SourcePath,
+		DestinationPath: w.DestinationPath,
+	}, nil
+}
+
+type moveResponseWire struct {
+}
+
+func moveResponseToWire(v *MoveResponse) (*moveResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &moveResponseWire{}, nil
+}
+
+func moveResponseFromWire(w *moveResponseWire) (*MoveResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &MoveResponse{}, nil
 }
 
 type putRequestWire struct {
@@ -336,6 +847,34 @@ func putRequestToWire(v *PutRequest) (*putRequestWire, error) {
 		Contents:  v.Contents,
 		Overwrite: v.Overwrite,
 	}, nil
+}
+
+func putRequestFromWire(w *putRequestWire) (*PutRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PutRequest{
+		Path:      w.Path,
+		Contents:  w.Contents,
+		Overwrite: w.Overwrite,
+	}, nil
+}
+
+type putResponseWire struct {
+}
+
+func putResponseToWire(v *PutResponse) (*putResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &putResponseWire{}, nil
+}
+
+func putResponseFromWire(w *putResponseWire) (*PutResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PutResponse{}, nil
 }
 
 type readRequestWire struct {
@@ -363,9 +902,42 @@ func readRequestToWire(v *ReadRequest) (*readRequestWire, error) {
 	}, nil
 }
 
+func readRequestFromWire(w *readRequestWire) (*ReadRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	offsetPublicValue, err := int64FromWire(w.Offset)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ReadRequest.Offset", err)
+	}
+	lengthPublicValue, err := int64FromWire(w.Length)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ReadRequest.Length", err)
+	}
+	return &ReadRequest{
+		Path:   w.Path,
+		Offset: offsetPublicValue,
+		Length: lengthPublicValue,
+	}, nil
+}
+
 type readResponseWire struct {
 	BytesRead *wireInt64 `json:"bytes_read,omitempty"`
 	Data      []byte     `json:"data,omitempty"`
+}
+
+func readResponseToWire(v *ReadResponse) (*readResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	bytesReadWireValue, err := int64ToWire(v.BytesRead)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ReadResponse.BytesRead", err)
+	}
+	return &readResponseWire{
+		BytesRead: bytesReadWireValue,
+		Data:      v.Data,
+	}, nil
 }
 
 func readResponseFromWire(w *readResponseWire) (*ReadResponse, error) {
@@ -395,6 +967,33 @@ func uploadFileRequestToWire(v *UploadFileRequest) (*uploadFileRequestWire, erro
 		FilePath:  v.FilePath,
 		Overwrite: v.Overwrite,
 	}, nil
+}
+
+func uploadFileRequestFromWire(w *uploadFileRequestWire) (*UploadFileRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UploadFileRequest{
+		FilePath:  w.FilePath,
+		Overwrite: w.Overwrite,
+	}, nil
+}
+
+type uploadFileResponseWire struct {
+}
+
+func uploadFileResponseToWire(v *UploadFileResponse) (*uploadFileResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &uploadFileResponseWire{}, nil
+}
+
+func uploadFileResponseFromWire(w *uploadFileResponseWire) (*UploadFileResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UploadFileResponse{}, nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

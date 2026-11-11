@@ -54,14 +54,6 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type createDomainRequestWire struct {
 	Domain   *domainWire `json:"domain,omitempty"`
 	DomainId *string     `json:"domain_id,omitempty"`
@@ -81,6 +73,20 @@ func createDomainRequestToWire(v *CreateDomainRequest) (*createDomainRequestWire
 	}, nil
 }
 
+func createDomainRequestFromWire(w *createDomainRequestWire) (*CreateDomainRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	domainPublicValue, err := domainFromWire(w.Domain)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateDomainRequest.Domain", err)
+	}
+	return &CreateDomainRequest{
+		Domain:   domainPublicValue,
+		DomainId: w.DomainId,
+	}, nil
+}
+
 type deleteDomainRequestWire struct {
 	Name  *string `json:"name,omitempty"`
 	Force *bool   `json:"force,omitempty"`
@@ -93,6 +99,16 @@ func deleteDomainRequestToWire(v *DeleteDomainRequest) (*deleteDomainRequestWire
 	return &deleteDomainRequestWire{
 		Name:  v.Name,
 		Force: v.Force,
+	}, nil
+}
+
+func deleteDomainRequestFromWire(w *deleteDomainRequestWire) (*DeleteDomainRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteDomainRequest{
+		Name:  w.Name,
+		Force: w.Force,
 	}, nil
 }
 
@@ -203,6 +219,28 @@ func domainIconFromWire(w *domainIconWire) (*DomainIcon, error) {
 	}, nil
 }
 
+type getDomainRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getDomainRequestToWire(v *GetDomainRequest) (*getDomainRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getDomainRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getDomainRequestFromWire(w *getDomainRequestWire) (*GetDomainRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetDomainRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type listDomainsRequestWire struct {
 	PageSize       *int    `json:"page_size,omitempty"`
 	PageToken      *string `json:"page_token,omitempty"`
@@ -220,9 +258,34 @@ func listDomainsRequestToWire(v *ListDomainsRequest) (*listDomainsRequestWire, e
 	}, nil
 }
 
+func listDomainsRequestFromWire(w *listDomainsRequestWire) (*ListDomainsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListDomainsRequest{
+		PageSize:       w.PageSize,
+		PageToken:      w.PageToken,
+		ParentDomainId: w.ParentDomainId,
+	}, nil
+}
+
 type listDomainsResponseWire struct {
 	Domains       []domainWire `json:"domains,omitempty"`
 	NextPageToken *string      `json:"next_page_token,omitempty"`
+}
+
+func listDomainsResponseToWire(v *ListDomainsResponse) (*listDomainsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	domainsWireValue, err := convertSlice(v.Domains, domainToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListDomainsResponse.Domains", err)
+	}
+	return &listDomainsResponseWire{
+		Domains:       domainsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listDomainsResponseFromWire(w *listDomainsResponseWire) (*ListDomainsResponse, error) {
@@ -240,8 +303,8 @@ func listDomainsResponseFromWire(w *listDomainsResponseWire) (*ListDomainsRespon
 }
 
 type updateDomainRequestWire struct {
-	Domain     *domainWire `json:"domain,omitempty"`
-	UpdateMask *string     `json:"update_mask,omitempty"`
+	Domain     *domainWire              `json:"domain,omitempty"`
+	UpdateMask *types.FieldMask[Domain] `json:"update_mask,omitempty"`
 }
 
 func updateDomainRequestToWire(v *UpdateDomainRequest) (*updateDomainRequestWire, error) {
@@ -254,7 +317,21 @@ func updateDomainRequestToWire(v *UpdateDomainRequest) (*updateDomainRequestWire
 	}
 	return &updateDomainRequestWire{
 		Domain:     domainWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateDomainRequestFromWire(w *updateDomainRequestWire) (*UpdateDomainRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	domainPublicValue, err := domainFromWire(w.Domain)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateDomainRequest.Domain", err)
+	}
+	return &UpdateDomainRequest{
+		Domain:     domainPublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 

@@ -147,6 +147,19 @@ type alertSpendStatusWire struct {
 	PercentConsumed *string                      `json:"percent_consumed,omitempty"`
 }
 
+func alertSpendStatusToWire(v *AlertSpendStatus) (*alertSpendStatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &alertSpendStatusWire{
+		ScopeType:       v.ScopeType,
+		TimePeriod:      v.TimePeriod,
+		Spend:           v.Spend,
+		Threshold:       v.Threshold,
+		PercentConsumed: v.PercentConsumed,
+	}, nil
+}
+
 func alertSpendStatusFromWire(w *alertSpendStatusWire) (*AlertSpendStatus, error) {
 	if w == nil {
 		return nil, nil
@@ -170,6 +183,39 @@ type budgetConfigurationWire struct {
 	DisplayName           *string                        `json:"display_name,omitempty"`
 	IncludeExternalSpend  *bool                          `json:"include_external_spend,omitempty"`
 	ResourceType          BudgetResourceType             `json:"resource_type,omitempty"`
+}
+
+func budgetConfigurationToWire(v *BudgetConfiguration) (*budgetConfigurationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	createTimeWireValue, err := int64ToWire(v.CreateTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BudgetConfiguration.CreateTime", err)
+	}
+	updateTimeWireValue, err := int64ToWire(v.UpdateTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BudgetConfiguration.UpdateTime", err)
+	}
+	alertConfigurationsWireValue, err := convertSlice(v.AlertConfigurations, alertConfigurationToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BudgetConfiguration.AlertConfigurations", err)
+	}
+	filterWireValue, err := budgetConfigurationFilterToWire(v.Filter)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BudgetConfiguration.Filter", err)
+	}
+	return &budgetConfigurationWire{
+		BudgetConfigurationId: v.BudgetConfigurationId,
+		AccountId:             v.AccountId,
+		CreateTime:            createTimeWireValue,
+		UpdateTime:            updateTimeWireValue,
+		AlertConfigurations:   alertConfigurationsWireValue,
+		Filter:                filterWireValue,
+		DisplayName:           v.DisplayName,
+		IncludeExternalSpend:  v.IncludeExternalSpend,
+		ResourceType:          v.ResourceType,
+	}, nil
 }
 
 func budgetConfigurationFromWire(w *budgetConfigurationWire) (*BudgetConfiguration, error) {
@@ -342,6 +388,20 @@ type budgetSpendStatusWire struct {
 	AlertSpendStatuses []alertSpendStatusWire `json:"alert_spend_statuses,omitempty"`
 }
 
+func budgetSpendStatusToWire(v *BudgetSpendStatus) (*budgetSpendStatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	alertSpendStatusesWireValue, err := convertSlice(v.AlertSpendStatuses, alertSpendStatusToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BudgetSpendStatus.AlertSpendStatuses", err)
+	}
+	return &budgetSpendStatusWire{
+		Name:               v.Name,
+		AlertSpendStatuses: alertSpendStatusesWireValue,
+	}, nil
+}
+
 func budgetSpendStatusFromWire(w *budgetSpendStatusWire) (*BudgetSpendStatus, error) {
 	if w == nil {
 		return nil, nil
@@ -387,6 +447,28 @@ func createBudgetConfigurationBudgetToWire(v *CreateBudgetConfigurationBudget) (
 	}, nil
 }
 
+func createBudgetConfigurationBudgetFromWire(w *createBudgetConfigurationBudgetWire) (*CreateBudgetConfigurationBudget, error) {
+	if w == nil {
+		return nil, nil
+	}
+	alertConfigurationsPublicValue, err := convertSlice(w.AlertConfigurations, createBudgetConfigurationBudgetAlertConfigurationsFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationBudget.AlertConfigurations", err)
+	}
+	filterPublicValue, err := budgetConfigurationFilterFromWire(w.Filter)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationBudget.Filter", err)
+	}
+	return &CreateBudgetConfigurationBudget{
+		AccountId:            w.AccountId,
+		AlertConfigurations:  alertConfigurationsPublicValue,
+		Filter:               filterPublicValue,
+		DisplayName:          w.DisplayName,
+		IncludeExternalSpend: w.IncludeExternalSpend,
+		ResourceType:         w.ResourceType,
+	}, nil
+}
+
 type createBudgetConfigurationBudgetActionConfigurationsWire struct {
 	ActionType ActionConfigurationType `json:"action_type,omitempty"`
 	Target     *string                 `json:"target,omitempty"`
@@ -399,6 +481,16 @@ func createBudgetConfigurationBudgetActionConfigurationsToWire(v *CreateBudgetCo
 	return &createBudgetConfigurationBudgetActionConfigurationsWire{
 		ActionType: v.ActionType,
 		Target:     v.Target,
+	}, nil
+}
+
+func createBudgetConfigurationBudgetActionConfigurationsFromWire(w *createBudgetConfigurationBudgetActionConfigurationsWire) (*CreateBudgetConfigurationBudgetActionConfigurations, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CreateBudgetConfigurationBudgetActionConfigurations{
+		ActionType: w.ActionType,
+		Target:     w.Target,
 	}, nil
 }
 
@@ -435,6 +527,29 @@ func createBudgetConfigurationBudgetAlertConfigurationsToWire(v *CreateBudgetCon
 	}, nil
 }
 
+func createBudgetConfigurationBudgetAlertConfigurationsFromWire(w *createBudgetConfigurationBudgetAlertConfigurationsWire) (*CreateBudgetConfigurationBudgetAlertConfigurations, error) {
+	if w == nil {
+		return nil, nil
+	}
+	actionConfigurationsPublicValue, err := convertSlice(w.ActionConfigurations, createBudgetConfigurationBudgetActionConfigurationsFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationBudgetAlertConfigurations.ActionConfigurations", err)
+	}
+	principalOverridesPublicValue, err := convertSlice(w.PrincipalOverrides, principalOverrideFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationBudgetAlertConfigurations.PrincipalOverrides", err)
+	}
+	return &CreateBudgetConfigurationBudgetAlertConfigurations{
+		TimePeriod:           w.TimePeriod,
+		TriggerType:          w.TriggerType,
+		QuantityType:         w.QuantityType,
+		QuantityThreshold:    w.QuantityThreshold,
+		ActionConfigurations: actionConfigurationsPublicValue,
+		ScopeType:            w.ScopeType,
+		PrincipalOverrides:   principalOverridesPublicValue,
+	}, nil
+}
+
 type createBudgetConfigurationRequestWire struct {
 	Budget *createBudgetConfigurationBudgetWire `json:"budget,omitempty"`
 }
@@ -452,8 +567,34 @@ func createBudgetConfigurationRequestToWire(v *CreateBudgetConfigurationRequest)
 	}, nil
 }
 
+func createBudgetConfigurationRequestFromWire(w *createBudgetConfigurationRequestWire) (*CreateBudgetConfigurationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	budgetPublicValue, err := createBudgetConfigurationBudgetFromWire(w.Budget)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationRequest.Budget", err)
+	}
+	return &CreateBudgetConfigurationRequest{
+		Budget: budgetPublicValue,
+	}, nil
+}
+
 type createBudgetConfigurationResponseWire struct {
 	Budget *budgetConfigurationWire `json:"budget,omitempty"`
+}
+
+func createBudgetConfigurationResponseToWire(v *CreateBudgetConfigurationResponse) (*createBudgetConfigurationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	budgetWireValue, err := budgetConfigurationToWire(v.Budget)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateBudgetConfigurationResponse.Budget", err)
+	}
+	return &createBudgetConfigurationResponseWire{
+		Budget: budgetWireValue,
+	}, nil
 }
 
 func createBudgetConfigurationResponseFromWire(w *createBudgetConfigurationResponseWire) (*CreateBudgetConfigurationResponse, error) {
@@ -469,8 +610,88 @@ func createBudgetConfigurationResponseFromWire(w *createBudgetConfigurationRespo
 	}, nil
 }
 
+type deleteBudgetConfigurationRequestWire struct {
+	BudgetId  *string `json:"budget_id,omitempty"`
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func deleteBudgetConfigurationRequestToWire(v *DeleteBudgetConfigurationRequest) (*deleteBudgetConfigurationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteBudgetConfigurationRequestWire{
+		BudgetId:  v.BudgetId,
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func deleteBudgetConfigurationRequestFromWire(w *deleteBudgetConfigurationRequestWire) (*DeleteBudgetConfigurationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteBudgetConfigurationRequest{
+		BudgetId:  w.BudgetId,
+		AccountId: w.AccountId,
+	}, nil
+}
+
+type deleteBudgetConfigurationResponseWire struct {
+}
+
+func deleteBudgetConfigurationResponseToWire(v *DeleteBudgetConfigurationResponse) (*deleteBudgetConfigurationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteBudgetConfigurationResponseWire{}, nil
+}
+
+func deleteBudgetConfigurationResponseFromWire(w *deleteBudgetConfigurationResponseWire) (*DeleteBudgetConfigurationResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteBudgetConfigurationResponse{}, nil
+}
+
+type getBudgetConfigurationRequestWire struct {
+	BudgetId  *string `json:"budget_id,omitempty"`
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func getBudgetConfigurationRequestToWire(v *GetBudgetConfigurationRequest) (*getBudgetConfigurationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getBudgetConfigurationRequestWire{
+		BudgetId:  v.BudgetId,
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func getBudgetConfigurationRequestFromWire(w *getBudgetConfigurationRequestWire) (*GetBudgetConfigurationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetBudgetConfigurationRequest{
+		BudgetId:  w.BudgetId,
+		AccountId: w.AccountId,
+	}, nil
+}
+
 type getBudgetConfigurationResponseWire struct {
 	Budget *budgetConfigurationWire `json:"budget,omitempty"`
+}
+
+func getBudgetConfigurationResponseToWire(v *GetBudgetConfigurationResponse) (*getBudgetConfigurationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	budgetWireValue, err := budgetConfigurationToWire(v.Budget)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetBudgetConfigurationResponse.Budget", err)
+	}
+	return &getBudgetConfigurationResponseWire{
+		Budget: budgetWireValue,
+	}, nil
 }
 
 func getBudgetConfigurationResponseFromWire(w *getBudgetConfigurationResponseWire) (*GetBudgetConfigurationResponse, error) {
@@ -483,6 +704,28 @@ func getBudgetConfigurationResponseFromWire(w *getBudgetConfigurationResponseWir
 	}
 	return &GetBudgetConfigurationResponse{
 		Budget: budgetPublicValue,
+	}, nil
+}
+
+type getBudgetSpendStatusRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getBudgetSpendStatusRequestToWire(v *GetBudgetSpendStatusRequest) (*getBudgetSpendStatusRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getBudgetSpendStatusRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getBudgetSpendStatusRequestFromWire(w *getBudgetSpendStatusRequestWire) (*GetBudgetSpendStatusRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetBudgetSpendStatusRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -501,9 +744,33 @@ func listBudgetConfigurationsRequestToWire(v *ListBudgetConfigurationsRequest) (
 	}, nil
 }
 
+func listBudgetConfigurationsRequestFromWire(w *listBudgetConfigurationsRequestWire) (*ListBudgetConfigurationsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListBudgetConfigurationsRequest{
+		AccountId: w.AccountId,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listBudgetConfigurationsResponseWire struct {
 	Budgets       []budgetConfigurationWire `json:"budgets,omitempty"`
 	NextPageToken *string                   `json:"next_page_token,omitempty"`
+}
+
+func listBudgetConfigurationsResponseToWire(v *ListBudgetConfigurationsResponse) (*listBudgetConfigurationsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	budgetsWireValue, err := convertSlice(v.Budgets, budgetConfigurationToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListBudgetConfigurationsResponse.Budgets", err)
+	}
+	return &listBudgetConfigurationsResponseWire{
+		Budgets:       budgetsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listBudgetConfigurationsResponseFromWire(w *listBudgetConfigurationsResponseWire) (*ListBudgetConfigurationsResponse, error) {
@@ -539,9 +806,35 @@ func listBudgetSpendStatusesRequestToWire(v *ListBudgetSpendStatusesRequest) (*l
 	}, nil
 }
 
+func listBudgetSpendStatusesRequestFromWire(w *listBudgetSpendStatusesRequestWire) (*ListBudgetSpendStatusesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListBudgetSpendStatusesRequest{
+		Parent:    w.Parent,
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+		Filter:    w.Filter,
+	}, nil
+}
+
 type listBudgetSpendStatusesResponseWire struct {
 	BudgetSpendStatuses []budgetSpendStatusWire `json:"budget_spend_statuses,omitempty"`
 	NextPageToken       *string                 `json:"next_page_token,omitempty"`
+}
+
+func listBudgetSpendStatusesResponseToWire(v *ListBudgetSpendStatusesResponse) (*listBudgetSpendStatusesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	budgetSpendStatusesWireValue, err := convertSlice(v.BudgetSpendStatuses, budgetSpendStatusToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListBudgetSpendStatusesResponse.BudgetSpendStatuses", err)
+	}
+	return &listBudgetSpendStatusesResponseWire{
+		BudgetSpendStatuses: budgetSpendStatusesWireValue,
+		NextPageToken:       v.NextPageToken,
+	}, nil
 }
 
 func listBudgetSpendStatusesResponseFromWire(w *listBudgetSpendStatusesResponseWire) (*ListBudgetSpendStatusesResponse, error) {
@@ -624,6 +917,29 @@ func updateBudgetConfigurationBudgetToWire(v *UpdateBudgetConfigurationBudget) (
 	}, nil
 }
 
+func updateBudgetConfigurationBudgetFromWire(w *updateBudgetConfigurationBudgetWire) (*UpdateBudgetConfigurationBudget, error) {
+	if w == nil {
+		return nil, nil
+	}
+	alertConfigurationsPublicValue, err := convertSlice(w.AlertConfigurations, alertConfigurationFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateBudgetConfigurationBudget.AlertConfigurations", err)
+	}
+	filterPublicValue, err := budgetConfigurationFilterFromWire(w.Filter)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateBudgetConfigurationBudget.Filter", err)
+	}
+	return &UpdateBudgetConfigurationBudget{
+		BudgetConfigurationId: w.BudgetConfigurationId,
+		AccountId:             w.AccountId,
+		AlertConfigurations:   alertConfigurationsPublicValue,
+		Filter:                filterPublicValue,
+		DisplayName:           w.DisplayName,
+		IncludeExternalSpend:  w.IncludeExternalSpend,
+		ResourceType:          w.ResourceType,
+	}, nil
+}
+
 type updateBudgetConfigurationRequestWire struct {
 	BudgetId *string                              `json:"budget_id,omitempty"`
 	Budget   *updateBudgetConfigurationBudgetWire `json:"budget,omitempty"`
@@ -643,8 +959,35 @@ func updateBudgetConfigurationRequestToWire(v *UpdateBudgetConfigurationRequest)
 	}, nil
 }
 
+func updateBudgetConfigurationRequestFromWire(w *updateBudgetConfigurationRequestWire) (*UpdateBudgetConfigurationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	budgetPublicValue, err := updateBudgetConfigurationBudgetFromWire(w.Budget)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateBudgetConfigurationRequest.Budget", err)
+	}
+	return &UpdateBudgetConfigurationRequest{
+		BudgetId: w.BudgetId,
+		Budget:   budgetPublicValue,
+	}, nil
+}
+
 type updateBudgetConfigurationResponseWire struct {
 	Budget *budgetConfigurationWire `json:"budget,omitempty"`
+}
+
+func updateBudgetConfigurationResponseToWire(v *UpdateBudgetConfigurationResponse) (*updateBudgetConfigurationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	budgetWireValue, err := budgetConfigurationToWire(v.Budget)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateBudgetConfigurationResponse.Budget", err)
+	}
+	return &updateBudgetConfigurationResponseWire{
+		Budget: budgetWireValue,
+	}, nil
 }
 
 func updateBudgetConfigurationResponseFromWire(w *updateBudgetConfigurationResponseWire) (*UpdateBudgetConfigurationResponse, error) {
