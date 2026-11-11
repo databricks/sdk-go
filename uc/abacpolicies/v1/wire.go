@@ -54,14 +54,6 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type columnMaskOptionsWire struct {
 	FunctionName *string                `json:"function_name,omitempty"`
 	OnColumn     *string                `json:"on_column,omitempty"`
@@ -138,6 +130,64 @@ func createPolicyRequestToWire(v *CreatePolicyRequest) (*createPolicyRequestWire
 	return &createPolicyRequestWire{
 		PolicyInfo: policyInfoWireValue,
 	}, nil
+}
+
+func createPolicyRequestFromWire(w *createPolicyRequestWire) (*CreatePolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	policyInfoPublicValue, err := policyInfoFromWire(w.PolicyInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePolicyRequest.PolicyInfo", err)
+	}
+	return &CreatePolicyRequest{
+		PolicyInfo: policyInfoPublicValue,
+	}, nil
+}
+
+type deletePolicyRequestWire struct {
+	OnSecurableType     *string `json:"on_securable_type,omitempty"`
+	OnSecurableFullname *string `json:"on_securable_fullname,omitempty"`
+	Name                *string `json:"name,omitempty"`
+}
+
+func deletePolicyRequestToWire(v *DeletePolicyRequest) (*deletePolicyRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deletePolicyRequestWire{
+		OnSecurableType:     v.OnSecurableType,
+		OnSecurableFullname: v.OnSecurableFullname,
+		Name:                v.Name,
+	}, nil
+}
+
+func deletePolicyRequestFromWire(w *deletePolicyRequestWire) (*DeletePolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeletePolicyRequest{
+		OnSecurableType:     w.OnSecurableType,
+		OnSecurableFullname: w.OnSecurableFullname,
+		Name:                w.Name,
+	}, nil
+}
+
+type deletePolicyResponseWire struct {
+}
+
+func deletePolicyResponseToWire(v *DeletePolicyResponse) (*deletePolicyResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deletePolicyResponseWire{}, nil
+}
+
+func deletePolicyResponseFromWire(w *deletePolicyResponseWire) (*DeletePolicyResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeletePolicyResponse{}, nil
 }
 
 type denyOptionsWire struct {
@@ -290,6 +340,34 @@ func functionArgumentFromWire(w *functionArgumentWire) (*FunctionArgument, error
 	}, nil
 }
 
+type getPolicyRequestWire struct {
+	OnSecurableType     *string `json:"on_securable_type,omitempty"`
+	OnSecurableFullname *string `json:"on_securable_fullname,omitempty"`
+	Name                *string `json:"name,omitempty"`
+}
+
+func getPolicyRequestToWire(v *GetPolicyRequest) (*getPolicyRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getPolicyRequestWire{
+		OnSecurableType:     v.OnSecurableType,
+		OnSecurableFullname: v.OnSecurableFullname,
+		Name:                v.Name,
+	}, nil
+}
+
+func getPolicyRequestFromWire(w *getPolicyRequestWire) (*GetPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetPolicyRequest{
+		OnSecurableType:     w.OnSecurableType,
+		OnSecurableFullname: w.OnSecurableFullname,
+		Name:                w.Name,
+	}, nil
+}
+
 type governedTagReferenceWire struct {
 	TagKey   *string `json:"tag_key,omitempty"`
 	TagValue *string `json:"tag_value,omitempty"`
@@ -358,9 +436,36 @@ func listPoliciesRequestToWire(v *ListPoliciesRequest) (*listPoliciesRequestWire
 	}, nil
 }
 
+func listPoliciesRequestFromWire(w *listPoliciesRequestWire) (*ListPoliciesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListPoliciesRequest{
+		OnSecurableType:     w.OnSecurableType,
+		OnSecurableFullname: w.OnSecurableFullname,
+		IncludeInherited:    w.IncludeInherited,
+		MaxResults:          w.MaxResults,
+		PageToken:           w.PageToken,
+	}, nil
+}
+
 type listPoliciesResponseWire struct {
 	Policies      []policyInfoWire `json:"policies,omitempty"`
 	NextPageToken *string          `json:"next_page_token,omitempty"`
+}
+
+func listPoliciesResponseToWire(v *ListPoliciesResponse) (*listPoliciesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	policiesWireValue, err := convertSlice(v.Policies, policyInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListPoliciesResponse.Policies", err)
+	}
+	return &listPoliciesResponseWire{
+		Policies:      policiesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listPoliciesResponseFromWire(w *listPoliciesResponseWire) (*ListPoliciesResponse, error) {
@@ -722,11 +827,11 @@ func tagValueExtractionFromWire(w *tagValueExtractionWire) (*TagValueExtraction,
 }
 
 type updatePolicyRequestWire struct {
-	OnSecurableType     *string         `json:"on_securable_type,omitempty"`
-	OnSecurableFullname *string         `json:"on_securable_fullname,omitempty"`
-	Name                *string         `json:"name,omitempty"`
-	PolicyInfo          *policyInfoWire `json:"policy_info,omitempty"`
-	UpdateMask          *string         `json:"update_mask,omitempty"`
+	OnSecurableType     *string                      `json:"on_securable_type,omitempty"`
+	OnSecurableFullname *string                      `json:"on_securable_fullname,omitempty"`
+	Name                *string                      `json:"name,omitempty"`
+	PolicyInfo          *policyInfoWire              `json:"policy_info,omitempty"`
+	UpdateMask          *types.FieldMask[PolicyInfo] `json:"update_mask,omitempty"`
 }
 
 func updatePolicyRequestToWire(v *UpdatePolicyRequest) (*updatePolicyRequestWire, error) {
@@ -742,7 +847,24 @@ func updatePolicyRequestToWire(v *UpdatePolicyRequest) (*updatePolicyRequestWire
 		OnSecurableFullname: v.OnSecurableFullname,
 		Name:                v.Name,
 		PolicyInfo:          policyInfoWireValue,
-		UpdateMask:          fieldMaskToWire(v.UpdateMask),
+		UpdateMask:          v.UpdateMask,
+	}, nil
+}
+
+func updatePolicyRequestFromWire(w *updatePolicyRequestWire) (*UpdatePolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	policyInfoPublicValue, err := policyInfoFromWire(w.PolicyInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdatePolicyRequest.PolicyInfo", err)
+	}
+	return &UpdatePolicyRequest{
+		OnSecurableType:     w.OnSecurableType,
+		OnSecurableFullname: w.OnSecurableFullname,
+		Name:                w.Name,
+		PolicyInfo:          policyInfoPublicValue,
+		UpdateMask:          w.UpdateMask,
 	}, nil
 }
 

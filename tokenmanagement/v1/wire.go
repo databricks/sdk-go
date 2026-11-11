@@ -54,14 +54,6 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type adminTokenInfoWire struct {
 	TokenId           *string        `json:"token_id,omitempty"`
 	CreationTime      *wireInt64     `json:"creation_time,omitempty"`
@@ -193,9 +185,40 @@ func createOnBehalfOfTokenRequestToWire(v *CreateOnBehalfOfTokenRequest) (*creat
 	}, nil
 }
 
+func createOnBehalfOfTokenRequestFromWire(w *createOnBehalfOfTokenRequestWire) (*CreateOnBehalfOfTokenRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	lifetimeSecondsPublicValue, err := int64FromWire(w.LifetimeSeconds)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateOnBehalfOfTokenRequest.LifetimeSeconds", err)
+	}
+	return &CreateOnBehalfOfTokenRequest{
+		ApplicationId:    w.ApplicationId,
+		LifetimeSeconds:  lifetimeSecondsPublicValue,
+		Comment:          w.Comment,
+		Scopes:           w.Scopes,
+		AutoscopeEnabled: w.AutoscopeEnabled,
+	}, nil
+}
+
 type createOnBehalfOfTokenResponseWire struct {
 	TokenValue *string             `json:"token_value,omitempty"`
 	TokenInfo  *adminTokenInfoWire `json:"token_info,omitempty"`
+}
+
+func createOnBehalfOfTokenResponseToWire(v *CreateOnBehalfOfTokenResponse) (*createOnBehalfOfTokenResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tokenInfoWireValue, err := adminTokenInfoToWire(v.TokenInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateOnBehalfOfTokenResponse.TokenInfo", err)
+	}
+	return &createOnBehalfOfTokenResponseWire{
+		TokenValue: v.TokenValue,
+		TokenInfo:  tokenInfoWireValue,
+	}, nil
 }
 
 func createOnBehalfOfTokenResponseFromWire(w *createOnBehalfOfTokenResponseWire) (*CreateOnBehalfOfTokenResponse, error) {
@@ -212,8 +235,43 @@ func createOnBehalfOfTokenResponseFromWire(w *createOnBehalfOfTokenResponseWire)
 	}, nil
 }
 
+type getTokenRequestWire struct {
+	TokenId *string `json:"token_id,omitempty"`
+}
+
+func getTokenRequestToWire(v *GetTokenRequest) (*getTokenRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getTokenRequestWire{
+		TokenId: v.TokenId,
+	}, nil
+}
+
+func getTokenRequestFromWire(w *getTokenRequestWire) (*GetTokenRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetTokenRequest{
+		TokenId: w.TokenId,
+	}, nil
+}
+
 type getTokenResponseWire struct {
 	TokenInfo *adminTokenInfoWire `json:"token_info,omitempty"`
+}
+
+func getTokenResponseToWire(v *GetTokenResponse) (*getTokenResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tokenInfoWireValue, err := adminTokenInfoToWire(v.TokenInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetTokenResponse.TokenInfo", err)
+	}
+	return &getTokenResponseWire{
+		TokenInfo: tokenInfoWireValue,
+	}, nil
 }
 
 func getTokenResponseFromWire(w *getTokenResponseWire) (*GetTokenResponse, error) {
@@ -248,8 +306,35 @@ func listTokensRequestToWire(v *ListTokensRequest) (*listTokensRequestWire, erro
 	}, nil
 }
 
+func listTokensRequestFromWire(w *listTokensRequestWire) (*ListTokensRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	createdByIdPublicValue, err := int64FromWire(w.CreatedById)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListTokensRequest.CreatedById", err)
+	}
+	return &ListTokensRequest{
+		CreatedById:       createdByIdPublicValue,
+		CreatedByUsername: w.CreatedByUsername,
+	}, nil
+}
+
 type listTokensResponseWire struct {
 	TokenInfos []adminTokenInfoWire `json:"token_infos,omitempty"`
+}
+
+func listTokensResponseToWire(v *ListTokensResponse) (*listTokensResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tokenInfosWireValue, err := convertSlice(v.TokenInfos, adminTokenInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListTokensResponse.TokenInfos", err)
+	}
+	return &listTokensResponseWire{
+		TokenInfos: tokenInfosWireValue,
+	}, nil
 }
 
 func listTokensResponseFromWire(w *listTokensResponseWire) (*ListTokensResponse, error) {
@@ -265,9 +350,48 @@ func listTokensResponseFromWire(w *listTokensResponseWire) (*ListTokensResponse,
 	}, nil
 }
 
+type revokeTokenRequestWire struct {
+	TokenId *string `json:"token_id,omitempty"`
+}
+
+func revokeTokenRequestToWire(v *RevokeTokenRequest) (*revokeTokenRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &revokeTokenRequestWire{
+		TokenId: v.TokenId,
+	}, nil
+}
+
+func revokeTokenRequestFromWire(w *revokeTokenRequestWire) (*RevokeTokenRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RevokeTokenRequest{
+		TokenId: w.TokenId,
+	}, nil
+}
+
+type revokeTokenResponseWire struct {
+}
+
+func revokeTokenResponseToWire(v *RevokeTokenResponse) (*revokeTokenResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &revokeTokenResponseWire{}, nil
+}
+
+func revokeTokenResponseFromWire(w *revokeTokenResponseWire) (*RevokeTokenResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RevokeTokenResponse{}, nil
+}
+
 type updateTokenRequestWire struct {
-	Token      *adminTokenInfoWire `json:"token,omitempty"`
-	UpdateMask *string             `json:"update_mask,omitempty"`
+	Token      *adminTokenInfoWire              `json:"token,omitempty"`
+	UpdateMask *types.FieldMask[AdminTokenInfo] `json:"update_mask,omitempty"`
 }
 
 func updateTokenRequestToWire(v *UpdateTokenRequest) (*updateTokenRequestWire, error) {
@@ -280,7 +404,21 @@ func updateTokenRequestToWire(v *UpdateTokenRequest) (*updateTokenRequestWire, e
 	}
 	return &updateTokenRequestWire{
 		Token:      tokenWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateTokenRequestFromWire(w *updateTokenRequestWire) (*UpdateTokenRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tokenPublicValue, err := adminTokenInfoFromWire(w.Token)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateTokenRequest.Token", err)
+	}
+	return &UpdateTokenRequest{
+		Token:      tokenPublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 

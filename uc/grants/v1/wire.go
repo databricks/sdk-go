@@ -12,6 +12,17 @@ type effectivePrivilegeWire struct {
 	InheritedFromName *string `json:"inherited_from_name,omitempty"`
 }
 
+func effectivePrivilegeToWire(v *EffectivePrivilege) (*effectivePrivilegeWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &effectivePrivilegeWire{
+		Privilege:         v.Privilege,
+		InheritedFromType: v.InheritedFromType,
+		InheritedFromName: v.InheritedFromName,
+	}, nil
+}
+
 func effectivePrivilegeFromWire(w *effectivePrivilegeWire) (*EffectivePrivilege, error) {
 	if w == nil {
 		return nil, nil
@@ -26,6 +37,20 @@ func effectivePrivilegeFromWire(w *effectivePrivilegeWire) (*EffectivePrivilege,
 type effectivePrivilegeAssignmentWire struct {
 	Principal  *string                  `json:"principal,omitempty"`
 	Privileges []effectivePrivilegeWire `json:"privileges,omitempty"`
+}
+
+func effectivePrivilegeAssignmentToWire(v *EffectivePrivilegeAssignment) (*effectivePrivilegeAssignmentWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	privilegesWireValue, err := convertSlice(v.Privileges, effectivePrivilegeToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EffectivePrivilegeAssignment.Privileges", err)
+	}
+	return &effectivePrivilegeAssignmentWire{
+		Principal:  v.Principal,
+		Privileges: privilegesWireValue,
+	}, nil
 }
 
 func effectivePrivilegeAssignmentFromWire(w *effectivePrivilegeAssignmentWire) (*EffectivePrivilegeAssignment, error) {
@@ -63,9 +88,36 @@ func getEffectivePermissionsRequestToWire(v *GetEffectivePermissionsRequest) (*g
 	}, nil
 }
 
+func getEffectivePermissionsRequestFromWire(w *getEffectivePermissionsRequestWire) (*GetEffectivePermissionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetEffectivePermissionsRequest{
+		SecurableType:     w.SecurableType,
+		SecurableFullName: w.SecurableFullName,
+		Principal:         w.Principal,
+		MaxResults:        w.MaxResults,
+		PageToken:         w.PageToken,
+	}, nil
+}
+
 type getEffectivePermissionsResponseWire struct {
 	NextPageToken        *string                            `json:"next_page_token,omitempty"`
 	PrivilegeAssignments []effectivePrivilegeAssignmentWire `json:"privilege_assignments,omitempty"`
+}
+
+func getEffectivePermissionsResponseToWire(v *GetEffectivePermissionsResponse) (*getEffectivePermissionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	privilegeAssignmentsWireValue, err := convertSlice(v.PrivilegeAssignments, effectivePrivilegeAssignmentToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetEffectivePermissionsResponse.PrivilegeAssignments", err)
+	}
+	return &getEffectivePermissionsResponseWire{
+		NextPageToken:        v.NextPageToken,
+		PrivilegeAssignments: privilegeAssignmentsWireValue,
+	}, nil
 }
 
 func getEffectivePermissionsResponseFromWire(w *getEffectivePermissionsResponseWire) (*GetEffectivePermissionsResponse, error) {
@@ -103,9 +155,36 @@ func getPermissionsRequestToWire(v *GetPermissionsRequest) (*getPermissionsReque
 	}, nil
 }
 
+func getPermissionsRequestFromWire(w *getPermissionsRequestWire) (*GetPermissionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetPermissionsRequest{
+		SecurableType:     w.SecurableType,
+		SecurableFullName: w.SecurableFullName,
+		Principal:         w.Principal,
+		MaxResults:        w.MaxResults,
+		PageToken:         w.PageToken,
+	}, nil
+}
+
 type getPermissionsResponseWire struct {
 	NextPageToken        *string                   `json:"next_page_token,omitempty"`
 	PrivilegeAssignments []privilegeAssignmentWire `json:"privilege_assignments,omitempty"`
+}
+
+func getPermissionsResponseToWire(v *GetPermissionsResponse) (*getPermissionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	privilegeAssignmentsWireValue, err := convertSlice(v.PrivilegeAssignments, privilegeAssignmentToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetPermissionsResponse.PrivilegeAssignments", err)
+	}
+	return &getPermissionsResponseWire{
+		NextPageToken:        v.NextPageToken,
+		PrivilegeAssignments: privilegeAssignmentsWireValue,
+	}, nil
 }
 
 func getPermissionsResponseFromWire(w *getPermissionsResponseWire) (*GetPermissionsResponse, error) {
@@ -143,9 +222,36 @@ func listEffectivePrivilegeAssignmentsRequestToWire(v *ListEffectivePrivilegeAss
 	}, nil
 }
 
+func listEffectivePrivilegeAssignmentsRequestFromWire(w *listEffectivePrivilegeAssignmentsRequestWire) (*ListEffectivePrivilegeAssignmentsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListEffectivePrivilegeAssignmentsRequest{
+		SecurableType: w.SecurableType,
+		FullName:      w.FullName,
+		Principal:     w.Principal,
+		PageSize:      w.PageSize,
+		PageToken:     w.PageToken,
+	}, nil
+}
+
 type listEffectivePrivilegeAssignmentsResponseWire struct {
 	EffectivePrivilegeAssignments []effectivePrivilegeAssignmentWire `json:"effective_privilege_assignments,omitempty"`
 	NextPageToken                 *string                            `json:"next_page_token,omitempty"`
+}
+
+func listEffectivePrivilegeAssignmentsResponseToWire(v *ListEffectivePrivilegeAssignmentsResponse) (*listEffectivePrivilegeAssignmentsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	effectivePrivilegeAssignmentsWireValue, err := convertSlice(v.EffectivePrivilegeAssignments, effectivePrivilegeAssignmentToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListEffectivePrivilegeAssignmentsResponse.EffectivePrivilegeAssignments", err)
+	}
+	return &listEffectivePrivilegeAssignmentsResponseWire{
+		EffectivePrivilegeAssignments: effectivePrivilegeAssignmentsWireValue,
+		NextPageToken:                 v.NextPageToken,
+	}, nil
 }
 
 func listEffectivePrivilegeAssignmentsResponseFromWire(w *listEffectivePrivilegeAssignmentsResponseWire) (*ListEffectivePrivilegeAssignmentsResponse, error) {
@@ -183,9 +289,36 @@ func listPrivilegeAssignmentsRequestToWire(v *ListPrivilegeAssignmentsRequest) (
 	}, nil
 }
 
+func listPrivilegeAssignmentsRequestFromWire(w *listPrivilegeAssignmentsRequestWire) (*ListPrivilegeAssignmentsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListPrivilegeAssignmentsRequest{
+		SecurableType: w.SecurableType,
+		FullName:      w.FullName,
+		Principal:     w.Principal,
+		PageSize:      w.PageSize,
+		PageToken:     w.PageToken,
+	}, nil
+}
+
 type listPrivilegeAssignmentsResponseWire struct {
 	PrivilegeAssignments []privilegeAssignmentWire `json:"privilege_assignments,omitempty"`
 	NextPageToken        *string                   `json:"next_page_token,omitempty"`
+}
+
+func listPrivilegeAssignmentsResponseToWire(v *ListPrivilegeAssignmentsResponse) (*listPrivilegeAssignmentsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	privilegeAssignmentsWireValue, err := convertSlice(v.PrivilegeAssignments, privilegeAssignmentToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListPrivilegeAssignmentsResponse.PrivilegeAssignments", err)
+	}
+	return &listPrivilegeAssignmentsResponseWire{
+		PrivilegeAssignments: privilegeAssignmentsWireValue,
+		NextPageToken:        v.NextPageToken,
+	}, nil
 }
 
 func listPrivilegeAssignmentsResponseFromWire(w *listPrivilegeAssignmentsResponseWire) (*ListPrivilegeAssignmentsResponse, error) {
@@ -219,9 +352,30 @@ func permissionsChangeToWire(v *PermissionsChange) (*permissionsChangeWire, erro
 	}, nil
 }
 
+func permissionsChangeFromWire(w *permissionsChangeWire) (*PermissionsChange, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PermissionsChange{
+		Principal: w.Principal,
+		Add:       w.Add,
+		Remove:    w.Remove,
+	}, nil
+}
+
 type privilegeAssignmentWire struct {
 	Principal  *string  `json:"principal,omitempty"`
 	Privileges []string `json:"privileges,omitempty"`
+}
+
+func privilegeAssignmentToWire(v *PrivilegeAssignment) (*privilegeAssignmentWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &privilegeAssignmentWire{
+		Principal:  v.Principal,
+		Privileges: v.Privileges,
+	}, nil
 }
 
 func privilegeAssignmentFromWire(w *privilegeAssignmentWire) (*PrivilegeAssignment, error) {
@@ -257,8 +411,37 @@ func updatePermissionsRequestToWire(v *UpdatePermissionsRequest) (*updatePermiss
 	}, nil
 }
 
+func updatePermissionsRequestFromWire(w *updatePermissionsRequestWire) (*UpdatePermissionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	changesPublicValue, err := convertSlice(w.Changes, permissionsChangeFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdatePermissionsRequest.Changes", err)
+	}
+	return &UpdatePermissionsRequest{
+		SecurableType:             w.SecurableType,
+		SecurableFullName:         w.SecurableFullName,
+		OmitPermissionsInResponse: w.OmitPermissionsInResponse,
+		Changes:                   changesPublicValue,
+	}, nil
+}
+
 type updatePermissionsResponseWire struct {
 	PrivilegeAssignments []privilegeAssignmentWire `json:"privilege_assignments,omitempty"`
+}
+
+func updatePermissionsResponseToWire(v *UpdatePermissionsResponse) (*updatePermissionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	privilegeAssignmentsWireValue, err := convertSlice(v.PrivilegeAssignments, privilegeAssignmentToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdatePermissionsResponse.PrivilegeAssignments", err)
+	}
+	return &updatePermissionsResponseWire{
+		PrivilegeAssignments: privilegeAssignmentsWireValue,
+	}, nil
 }
 
 func updatePermissionsResponseFromWire(w *updatePermissionsResponseWire) (*UpdatePermissionsResponse, error) {

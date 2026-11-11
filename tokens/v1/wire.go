@@ -54,14 +54,6 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type createTokenRequestWire struct {
 	LifetimeSeconds  *wireInt64 `json:"lifetime_seconds,omitempty"`
 	Comment          *string    `json:"comment,omitempty"`
@@ -85,9 +77,39 @@ func createTokenRequestToWire(v *CreateTokenRequest) (*createTokenRequestWire, e
 	}, nil
 }
 
+func createTokenRequestFromWire(w *createTokenRequestWire) (*CreateTokenRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	lifetimeSecondsPublicValue, err := int64FromWire(w.LifetimeSeconds)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTokenRequest.LifetimeSeconds", err)
+	}
+	return &CreateTokenRequest{
+		LifetimeSeconds:  lifetimeSecondsPublicValue,
+		Comment:          w.Comment,
+		Scopes:           w.Scopes,
+		AutoscopeEnabled: w.AutoscopeEnabled,
+	}, nil
+}
+
 type createTokenResponseWire struct {
 	TokenValue *string              `json:"token_value,omitempty"`
 	TokenInfo  *publicTokenInfoWire `json:"token_info,omitempty"`
+}
+
+func createTokenResponseToWire(v *CreateTokenResponse) (*createTokenResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tokenInfoWireValue, err := publicTokenInfoToWire(v.TokenInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTokenResponse.TokenInfo", err)
+	}
+	return &createTokenResponseWire{
+		TokenValue: v.TokenValue,
+		TokenInfo:  tokenInfoWireValue,
+	}, nil
 }
 
 func createTokenResponseFromWire(w *createTokenResponseWire) (*CreateTokenResponse, error) {
@@ -104,8 +126,38 @@ func createTokenResponseFromWire(w *createTokenResponseWire) (*CreateTokenRespon
 	}, nil
 }
 
+type listTokensRequestWire struct {
+}
+
+func listTokensRequestToWire(v *ListTokensRequest) (*listTokensRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listTokensRequestWire{}, nil
+}
+
+func listTokensRequestFromWire(w *listTokensRequestWire) (*ListTokensRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListTokensRequest{}, nil
+}
+
 type listTokensResponseWire struct {
 	TokenInfos []publicTokenInfoWire `json:"token_infos,omitempty"`
+}
+
+func listTokensResponseToWire(v *ListTokensResponse) (*listTokensResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tokenInfosWireValue, err := convertSlice(v.TokenInfos, publicTokenInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListTokensResponse.TokenInfos", err)
+	}
+	return &listTokensResponseWire{
+		TokenInfos: tokenInfosWireValue,
+	}, nil
 }
 
 func listTokensResponseFromWire(w *listTokensResponseWire) (*ListTokensResponse, error) {
@@ -193,10 +245,36 @@ func revokeTokenRequestToWire(v *RevokeTokenRequest) (*revokeTokenRequestWire, e
 	}, nil
 }
 
+func revokeTokenRequestFromWire(w *revokeTokenRequestWire) (*RevokeTokenRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RevokeTokenRequest{
+		TokenId: w.TokenId,
+	}, nil
+}
+
+type revokeTokenResponseWire struct {
+}
+
+func revokeTokenResponseToWire(v *RevokeTokenResponse) (*revokeTokenResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &revokeTokenResponseWire{}, nil
+}
+
+func revokeTokenResponseFromWire(w *revokeTokenResponseWire) (*RevokeTokenResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RevokeTokenResponse{}, nil
+}
+
 type updateTokenRequestWire struct {
-	TokenId    *string              `json:"token_id,omitempty"`
-	Token      *publicTokenInfoWire `json:"token,omitempty"`
-	UpdateMask *string              `json:"update_mask,omitempty"`
+	TokenId    *string                           `json:"token_id,omitempty"`
+	Token      *publicTokenInfoWire              `json:"token,omitempty"`
+	UpdateMask *types.FieldMask[PublicTokenInfo] `json:"update_mask,omitempty"`
 }
 
 func updateTokenRequestToWire(v *UpdateTokenRequest) (*updateTokenRequestWire, error) {
@@ -210,8 +288,40 @@ func updateTokenRequestToWire(v *UpdateTokenRequest) (*updateTokenRequestWire, e
 	return &updateTokenRequestWire{
 		TokenId:    v.TokenId,
 		Token:      tokenWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
 	}, nil
+}
+
+func updateTokenRequestFromWire(w *updateTokenRequestWire) (*UpdateTokenRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tokenPublicValue, err := publicTokenInfoFromWire(w.Token)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateTokenRequest.Token", err)
+	}
+	return &UpdateTokenRequest{
+		TokenId:    w.TokenId,
+		Token:      tokenPublicValue,
+		UpdateMask: w.UpdateMask,
+	}, nil
+}
+
+type updateTokenResponseWire struct {
+}
+
+func updateTokenResponseToWire(v *UpdateTokenResponse) (*updateTokenResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &updateTokenResponseWire{}, nil
+}
+
+func updateTokenResponseFromWire(w *updateTokenResponseWire) (*UpdateTokenResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpdateTokenResponse{}, nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

@@ -73,6 +73,20 @@ func createFederationPolicyRequestToWire(v *CreateFederationPolicyRequest) (*cre
 	}, nil
 }
 
+func createFederationPolicyRequestFromWire(w *createFederationPolicyRequestWire) (*CreateFederationPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	policyPublicValue, err := federationPolicyFromWire(w.Policy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateFederationPolicyRequest.Policy", err)
+	}
+	return &CreateFederationPolicyRequest{
+		RecipientName: w.RecipientName,
+		Policy:        policyPublicValue,
+	}, nil
+}
+
 type createProviderRequestWire struct {
 	Name                          *string                        `json:"name,omitempty"`
 	AuthenticationType            DeltaSharingAuthenticationType `json:"authentication_type,omitempty"`
@@ -121,6 +135,40 @@ func createProviderRequestToWire(v *CreateProviderRequest) (*createProviderReque
 		Region:                        v.Region,
 		MetastoreId:                   v.MetastoreId,
 		DataProviderGlobalMetastoreId: v.DataProviderGlobalMetastoreId,
+	}, nil
+}
+
+func createProviderRequestFromWire(w *createProviderRequestWire) (*CreateProviderRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	recipientProfilePublicValue, err := recipientProfileFromWire(w.RecipientProfile)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateProviderRequest.RecipientProfile", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateProviderRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateProviderRequest.UpdatedAt", err)
+	}
+	return &CreateProviderRequest{
+		Name:                          w.Name,
+		AuthenticationType:            w.AuthenticationType,
+		RecipientProfileStr:           w.RecipientProfileStr,
+		Comment:                       w.Comment,
+		Owner:                         w.Owner,
+		RecipientProfile:              recipientProfilePublicValue,
+		CreatedAt:                     createdAtPublicValue,
+		CreatedBy:                     w.CreatedBy,
+		UpdatedAt:                     updatedAtPublicValue,
+		UpdatedBy:                     w.UpdatedBy,
+		Cloud:                         w.Cloud,
+		Region:                        w.Region,
+		MetastoreId:                   w.MetastoreId,
+		DataProviderGlobalMetastoreId: w.DataProviderGlobalMetastoreId,
 	}, nil
 }
 
@@ -199,6 +247,58 @@ func createRecipientRequestToWire(v *CreateRecipientRequest) (*createRecipientRe
 	}, nil
 }
 
+func createRecipientRequestFromWire(w *createRecipientRequestWire) (*CreateRecipientRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	ipAccessListPublicValue, err := ipAccessListFromWire(w.IpAccessList)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRecipientRequest.IpAccessList", err)
+	}
+	propertiesKvpairsPublicValue, err := propertiesKvPairsFromWire(w.PropertiesKvpairs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRecipientRequest.PropertiesKvpairs", err)
+	}
+	expirationTimePublicValue, err := int64FromWire(w.ExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRecipientRequest.ExpirationTime", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRecipientRequest.CreatedAt", err)
+	}
+	tokensPublicValue, err := convertSlice(w.Tokens, recipientTokenInfoFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRecipientRequest.Tokens", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRecipientRequest.UpdatedAt", err)
+	}
+	return &CreateRecipientRequest{
+		Name:                           w.Name,
+		AuthenticationType:             w.AuthenticationType,
+		SharingCode:                    w.SharingCode,
+		DataRecipientGlobalMetastoreId: w.DataRecipientGlobalMetastoreId,
+		Owner:                          w.Owner,
+		Comment:                        w.Comment,
+		IpAccessList:                   ipAccessListPublicValue,
+		PropertiesKvpairs:              propertiesKvpairsPublicValue,
+		ExpirationTime:                 expirationTimePublicValue,
+		ActivationUrl:                  w.ActivationUrl,
+		Activated:                      w.Activated,
+		CreatedAt:                      createdAtPublicValue,
+		CreatedBy:                      w.CreatedBy,
+		Tokens:                         tokensPublicValue,
+		UpdatedAt:                      updatedAtPublicValue,
+		UpdatedBy:                      w.UpdatedBy,
+		Cloud:                          w.Cloud,
+		Region:                         w.Region,
+		MetastoreId:                    w.MetastoreId,
+		Id:                             w.Id,
+	}, nil
+}
+
 type createShareRequestWire struct {
 	Name            *string                `json:"name,omitempty"`
 	Owner           *string                `json:"owner,omitempty"`
@@ -242,9 +342,214 @@ func createShareRequestToWire(v *CreateShareRequest) (*createShareRequestWire, e
 	}, nil
 }
 
+func createShareRequestFromWire(w *createShareRequestWire) (*CreateShareRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	objectsPublicValue, err := convertSlice(w.Objects, sharedDataObjectFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateShareRequest.Objects", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateShareRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateShareRequest.UpdatedAt", err)
+	}
+	return &CreateShareRequest{
+		Name:            w.Name,
+		Owner:           w.Owner,
+		Comment:         w.Comment,
+		StorageRoot:     w.StorageRoot,
+		Objects:         objectsPublicValue,
+		CreatedAt:       createdAtPublicValue,
+		CreatedBy:       w.CreatedBy,
+		UpdatedAt:       updatedAtPublicValue,
+		UpdatedBy:       w.UpdatedBy,
+		StorageLocation: w.StorageLocation,
+	}, nil
+}
+
+type deleteFederationPolicyRequestWire struct {
+	RecipientName *string `json:"recipient_name,omitempty"`
+	Name          *string `json:"name,omitempty"`
+}
+
+func deleteFederationPolicyRequestToWire(v *DeleteFederationPolicyRequest) (*deleteFederationPolicyRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteFederationPolicyRequestWire{
+		RecipientName: v.RecipientName,
+		Name:          v.Name,
+	}, nil
+}
+
+func deleteFederationPolicyRequestFromWire(w *deleteFederationPolicyRequestWire) (*DeleteFederationPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteFederationPolicyRequest{
+		RecipientName: w.RecipientName,
+		Name:          w.Name,
+	}, nil
+}
+
+type deleteProviderRequestWire struct {
+	NameArg *string `json:"name_arg,omitempty"`
+}
+
+func deleteProviderRequestToWire(v *DeleteProviderRequest) (*deleteProviderRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteProviderRequestWire{
+		NameArg: v.NameArg,
+	}, nil
+}
+
+func deleteProviderRequestFromWire(w *deleteProviderRequestWire) (*DeleteProviderRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteProviderRequest{
+		NameArg: w.NameArg,
+	}, nil
+}
+
+type deleteProviderResponseWire struct {
+}
+
+func deleteProviderResponseToWire(v *DeleteProviderResponse) (*deleteProviderResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteProviderResponseWire{}, nil
+}
+
+func deleteProviderResponseFromWire(w *deleteProviderResponseWire) (*DeleteProviderResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteProviderResponse{}, nil
+}
+
+type deleteRecipientRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteRecipientRequestToWire(v *DeleteRecipientRequest) (*deleteRecipientRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteRecipientRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteRecipientRequestFromWire(w *deleteRecipientRequestWire) (*DeleteRecipientRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRecipientRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteRecipientResponseWire struct {
+}
+
+func deleteRecipientResponseToWire(v *DeleteRecipientResponse) (*deleteRecipientResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteRecipientResponseWire{}, nil
+}
+
+func deleteRecipientResponseFromWire(w *deleteRecipientResponseWire) (*DeleteRecipientResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRecipientResponse{}, nil
+}
+
+type deleteShareRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteShareRequestToWire(v *DeleteShareRequest) (*deleteShareRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteShareRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteShareRequestFromWire(w *deleteShareRequestWire) (*DeleteShareRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteShareRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteShareResponseWire struct {
+}
+
+func deleteShareResponseToWire(v *DeleteShareResponse) (*deleteShareResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteShareResponseWire{}, nil
+}
+
+func deleteShareResponseFromWire(w *deleteShareResponseWire) (*DeleteShareResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteShareResponse{}, nil
+}
+
 type dependencyWire struct {
 	Table    *tableDependencyWire    `json:"table,omitempty"`
 	Function *functionDependencyWire `json:"function,omitempty"`
+}
+
+func dependencyToWire(v *Dependency) (*dependencyWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var valueTableWire *tableDependencyWire
+	var valueFunctionWire *functionDependencyWire
+	switch value := v.Value.(type) {
+	case nil:
+	case *Dependency_Value_Table:
+		if value != nil {
+			valueTableConverted, err := tableDependencyToWire(&value.Table)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Dependency.Value.Table", err)
+			}
+			valueTableWire = valueTableConverted
+		}
+	case *Dependency_Value_Function:
+		if value != nil {
+			valueFunctionConverted, err := functionDependencyToWire(&value.Function)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Dependency.Value.Function", err)
+			}
+			valueFunctionWire = valueFunctionConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Dependency.Value", value)
+	}
+	return &dependencyWire{
+		Table:    valueTableWire,
+		Function: valueFunctionWire,
+	}, nil
 }
 
 func dependencyFromWire(w *dependencyWire) (*Dependency, error) {
@@ -283,6 +588,19 @@ func dependencyFromWire(w *dependencyWire) (*Dependency, error) {
 
 type dependencyListWire struct {
 	Dependencies []dependencyWire `json:"dependencies,omitempty"`
+}
+
+func dependencyListToWire(v *DependencyList) (*dependencyListWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	dependenciesWireValue, err := convertSlice(v.Dependencies, dependencyToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DependencyList.Dependencies", err)
+	}
+	return &dependencyListWire{
+		Dependencies: dependenciesWireValue,
+	}, nil
 }
 
 func dependencyListFromWire(w *dependencyListWire) (*DependencyList, error) {
@@ -384,6 +702,46 @@ type functionWire struct {
 	Properties        *string                     `json:"properties,omitempty"`
 }
 
+func functionToWire(v *Function) (*functionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	aliasesWireValue, err := convertSlice(v.Aliases, registeredModelAliasToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Function.Aliases", err)
+	}
+	tagsWireValue, err := convertSlice(v.Tags, tagKeyValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Function.Tags", err)
+	}
+	inputParamsWireValue, err := functionParameterInfosToWire(v.InputParams)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Function.InputParams", err)
+	}
+	dependencyListWireValue, err := dependencyListToWire(v.DependencyList)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Function.DependencyList", err)
+	}
+	return &functionWire{
+		Name:              v.Name,
+		Schema:            v.Schema,
+		Share:             v.Share,
+		ShareId:           v.ShareId,
+		Id:                v.Id,
+		StorageLocation:   v.StorageLocation,
+		Comment:           v.Comment,
+		Aliases:           aliasesWireValue,
+		Tags:              tagsWireValue,
+		SecurableKind:     v.SecurableKind,
+		FullDataType:      v.FullDataType,
+		DataType:          v.DataType,
+		RoutineDefinition: v.RoutineDefinition,
+		InputParams:       inputParamsWireValue,
+		DependencyList:    dependencyListWireValue,
+		Properties:        v.Properties,
+	}, nil
+}
+
 func functionFromWire(w *functionWire) (*Function, error) {
 	if w == nil {
 		return nil, nil
@@ -429,6 +787,16 @@ type functionDependencyWire struct {
 	FunctionName *string `json:"function_name,omitempty"`
 }
 
+func functionDependencyToWire(v *FunctionDependency) (*functionDependencyWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &functionDependencyWire{
+		SchemaName:   v.SchemaName,
+		FunctionName: v.FunctionName,
+	}, nil
+}
+
 func functionDependencyFromWire(w *functionDependencyWire) (*FunctionDependency, error) {
 	if w == nil {
 		return nil, nil
@@ -452,6 +820,26 @@ type functionParameterInfoWire struct {
 	ParameterType    FunctionParameterType `json:"parameter_type,omitempty"`
 	ParameterDefault *string               `json:"parameter_default,omitempty"`
 	Comment          *string               `json:"comment,omitempty"`
+}
+
+func functionParameterInfoToWire(v *FunctionParameterInfo) (*functionParameterInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &functionParameterInfoWire{
+		Name:             v.Name,
+		TypeText:         v.TypeText,
+		TypeJson:         v.TypeJson,
+		TypeName:         v.TypeName,
+		TypePrecision:    v.TypePrecision,
+		TypeScale:        v.TypeScale,
+		TypeIntervalType: v.TypeIntervalType,
+		Position:         v.Position,
+		ParameterMode:    v.ParameterMode,
+		ParameterType:    v.ParameterType,
+		ParameterDefault: v.ParameterDefault,
+		Comment:          v.Comment,
+	}, nil
 }
 
 func functionParameterInfoFromWire(w *functionParameterInfoWire) (*FunctionParameterInfo, error) {
@@ -478,6 +866,19 @@ type functionParameterInfosWire struct {
 	Parameters []functionParameterInfoWire `json:"parameters,omitempty"`
 }
 
+func functionParameterInfosToWire(v *FunctionParameterInfos) (*functionParameterInfosWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	parametersWireValue, err := convertSlice(v.Parameters, functionParameterInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FunctionParameterInfos.Parameters", err)
+	}
+	return &functionParameterInfosWire{
+		Parameters: parametersWireValue,
+	}, nil
+}
+
 func functionParameterInfosFromWire(w *functionParameterInfosWire) (*FunctionParameterInfos, error) {
 	if w == nil {
 		return nil, nil
@@ -491,9 +892,131 @@ func functionParameterInfosFromWire(w *functionParameterInfosWire) (*FunctionPar
 	}, nil
 }
 
+type getActivationUrlInfoRequestWire struct {
+	ActivationUrl *string `json:"activation_url,omitempty"`
+}
+
+func getActivationUrlInfoRequestToWire(v *GetActivationUrlInfoRequest) (*getActivationUrlInfoRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getActivationUrlInfoRequestWire{
+		ActivationUrl: v.ActivationUrl,
+	}, nil
+}
+
+func getActivationUrlInfoRequestFromWire(w *getActivationUrlInfoRequestWire) (*GetActivationUrlInfoRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetActivationUrlInfoRequest{
+		ActivationUrl: w.ActivationUrl,
+	}, nil
+}
+
+type getActivationUrlInfoResponseWire struct {
+}
+
+func getActivationUrlInfoResponseToWire(v *GetActivationUrlInfoResponse) (*getActivationUrlInfoResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getActivationUrlInfoResponseWire{}, nil
+}
+
+func getActivationUrlInfoResponseFromWire(w *getActivationUrlInfoResponseWire) (*GetActivationUrlInfoResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetActivationUrlInfoResponse{}, nil
+}
+
+type getFederationPolicyRequestWire struct {
+	RecipientName *string `json:"recipient_name,omitempty"`
+	Name          *string `json:"name,omitempty"`
+}
+
+func getFederationPolicyRequestToWire(v *GetFederationPolicyRequest) (*getFederationPolicyRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getFederationPolicyRequestWire{
+		RecipientName: v.RecipientName,
+		Name:          v.Name,
+	}, nil
+}
+
+func getFederationPolicyRequestFromWire(w *getFederationPolicyRequestWire) (*GetFederationPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetFederationPolicyRequest{
+		RecipientName: w.RecipientName,
+		Name:          w.Name,
+	}, nil
+}
+
+type getProviderRequestWire struct {
+	NameArg *string `json:"name_arg,omitempty"`
+}
+
+func getProviderRequestToWire(v *GetProviderRequest) (*getProviderRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getProviderRequestWire{
+		NameArg: v.NameArg,
+	}, nil
+}
+
+func getProviderRequestFromWire(w *getProviderRequestWire) (*GetProviderRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetProviderRequest{
+		NameArg: w.NameArg,
+	}, nil
+}
+
+type getRecipientRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getRecipientRequestToWire(v *GetRecipientRequest) (*getRecipientRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getRecipientRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getRecipientRequestFromWire(w *getRecipientRequestWire) (*GetRecipientRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetRecipientRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type getRecipientSharePermissionsResponseWire struct {
 	PermissionsOut []shareToPrivilegeAssignmentWire `json:"permissions_out,omitempty"`
 	NextPageToken  *string                          `json:"next_page_token,omitempty"`
+}
+
+func getRecipientSharePermissionsResponseToWire(v *GetRecipientSharePermissionsResponse) (*getRecipientSharePermissionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	permissionsOutWireValue, err := convertSlice(v.PermissionsOut, shareToPrivilegeAssignmentToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRecipientSharePermissionsResponse.PermissionsOut", err)
+	}
+	return &getRecipientSharePermissionsResponseWire{
+		PermissionsOut: permissionsOutWireValue,
+		NextPageToken:  v.NextPageToken,
+	}, nil
 }
 
 func getRecipientSharePermissionsResponseFromWire(w *getRecipientSharePermissionsResponseWire) (*GetRecipientSharePermissionsResponse, error) {
@@ -513,6 +1036,20 @@ func getRecipientSharePermissionsResponseFromWire(w *getRecipientSharePermission
 type getSharePermissionsResponseWire struct {
 	NextPageToken        *string                   `json:"next_page_token,omitempty"`
 	PrivilegeAssignments []privilegeAssignmentWire `json:"privilege_assignments,omitempty"`
+}
+
+func getSharePermissionsResponseToWire(v *GetSharePermissionsResponse) (*getSharePermissionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	privilegeAssignmentsWireValue, err := convertSlice(v.PrivilegeAssignments, privilegeAssignmentToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetSharePermissionsResponse.PrivilegeAssignments", err)
+	}
+	return &getSharePermissionsResponseWire{
+		NextPageToken:        v.NextPageToken,
+		PrivilegeAssignments: privilegeAssignmentsWireValue,
+	}, nil
 }
 
 func getSharePermissionsResponseFromWire(w *getSharePermissionsResponseWire) (*GetSharePermissionsResponse, error) {
@@ -541,6 +1078,16 @@ func getShareRequestToWire(v *GetShareRequest) (*getShareRequestWire, error) {
 	return &getShareRequestWire{
 		Name:              v.Name,
 		IncludeSharedData: v.IncludeSharedData,
+	}, nil
+}
+
+func getShareRequestFromWire(w *getShareRequestWire) (*GetShareRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetShareRequest{
+		Name:              w.Name,
+		IncludeSharedData: w.IncludeSharedData,
 	}, nil
 }
 
@@ -583,9 +1130,34 @@ func listFederationPoliciesRequestToWire(v *ListFederationPoliciesRequest) (*lis
 	}, nil
 }
 
+func listFederationPoliciesRequestFromWire(w *listFederationPoliciesRequestWire) (*ListFederationPoliciesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListFederationPoliciesRequest{
+		RecipientName: w.RecipientName,
+		MaxResults:    w.MaxResults,
+		PageToken:     w.PageToken,
+	}, nil
+}
+
 type listFederationPoliciesResponseWire struct {
 	Policies      []federationPolicyWire `json:"policies,omitempty"`
 	NextPageToken *string                `json:"next_page_token,omitempty"`
+}
+
+func listFederationPoliciesResponseToWire(v *ListFederationPoliciesResponse) (*listFederationPoliciesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	policiesWireValue, err := convertSlice(v.Policies, federationPolicyToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListFederationPoliciesResponse.Policies", err)
+	}
+	return &listFederationPoliciesResponseWire{
+		Policies:      policiesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listFederationPoliciesResponseFromWire(w *listFederationPoliciesResponseWire) (*ListFederationPoliciesResponse, error) {
@@ -625,12 +1197,59 @@ func listProviderShareAssetsRequestToWire(v *ListProviderShareAssetsRequest) (*l
 	}, nil
 }
 
+func listProviderShareAssetsRequestFromWire(w *listProviderShareAssetsRequestWire) (*ListProviderShareAssetsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListProviderShareAssetsRequest{
+		ProviderNameArg:    w.ProviderNameArg,
+		ShareNameArg:       w.ShareNameArg,
+		TableMaxResults:    w.TableMaxResults,
+		FunctionMaxResults: w.FunctionMaxResults,
+		VolumeMaxResults:   w.VolumeMaxResults,
+		NotebookMaxResults: w.NotebookMaxResults,
+	}, nil
+}
+
 type listProviderShareAssetsResponseWire struct {
 	Tables    []tableWire        `json:"tables,omitempty"`
 	Functions []functionWire     `json:"functions,omitempty"`
 	Notebooks []notebookFileWire `json:"notebooks,omitempty"`
 	Volumes   []volumeWire       `json:"volumes,omitempty"`
 	Share     *shareWire         `json:"share,omitempty"`
+}
+
+func listProviderShareAssetsResponseToWire(v *ListProviderShareAssetsResponse) (*listProviderShareAssetsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tablesWireValue, err := convertSlice(v.Tables, tableToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListProviderShareAssetsResponse.Tables", err)
+	}
+	functionsWireValue, err := convertSlice(v.Functions, functionToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListProviderShareAssetsResponse.Functions", err)
+	}
+	notebooksWireValue, err := convertSlice(v.Notebooks, notebookFileToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListProviderShareAssetsResponse.Notebooks", err)
+	}
+	volumesWireValue, err := convertSlice(v.Volumes, volumeToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListProviderShareAssetsResponse.Volumes", err)
+	}
+	shareWireValue, err := shareToWire(v.Share)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListProviderShareAssetsResponse.Share", err)
+	}
+	return &listProviderShareAssetsResponseWire{
+		Tables:    tablesWireValue,
+		Functions: functionsWireValue,
+		Notebooks: notebooksWireValue,
+		Volumes:   volumesWireValue,
+		Share:     shareWireValue,
+	}, nil
 }
 
 func listProviderShareAssetsResponseFromWire(w *listProviderShareAssetsResponseWire) (*ListProviderShareAssetsResponse, error) {
@@ -683,9 +1302,34 @@ func listProviderSharesRequestToWire(v *ListProviderSharesRequest) (*listProvide
 	}, nil
 }
 
+func listProviderSharesRequestFromWire(w *listProviderSharesRequestWire) (*ListProviderSharesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListProviderSharesRequest{
+		ProviderNameArg: w.ProviderNameArg,
+		MaxResults:      w.MaxResults,
+		PageToken:       w.PageToken,
+	}, nil
+}
+
 type listProviderSharesResponseWire struct {
 	Shares        []providerShareWire `json:"shares,omitempty"`
 	NextPageToken *string             `json:"next_page_token,omitempty"`
+}
+
+func listProviderSharesResponseToWire(v *ListProviderSharesResponse) (*listProviderSharesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sharesWireValue, err := convertSlice(v.Shares, providerShareToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListProviderSharesResponse.Shares", err)
+	}
+	return &listProviderSharesResponseWire{
+		Shares:        sharesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listProviderSharesResponseFromWire(w *listProviderSharesResponseWire) (*ListProviderSharesResponse, error) {
@@ -719,9 +1363,34 @@ func listProvidersRequestToWire(v *ListProvidersRequest) (*listProvidersRequestW
 	}, nil
 }
 
+func listProvidersRequestFromWire(w *listProvidersRequestWire) (*ListProvidersRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListProvidersRequest{
+		DataProviderGlobalMetastoreId: w.DataProviderGlobalMetastoreId,
+		MaxResults:                    w.MaxResults,
+		PageToken:                     w.PageToken,
+	}, nil
+}
+
 type listProvidersResponseWire struct {
 	Providers     []providerInfoWire `json:"providers,omitempty"`
 	NextPageToken *string            `json:"next_page_token,omitempty"`
+}
+
+func listProvidersResponseToWire(v *ListProvidersResponse) (*listProvidersResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	providersWireValue, err := convertSlice(v.Providers, providerInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListProvidersResponse.Providers", err)
+	}
+	return &listProvidersResponseWire{
+		Providers:     providersWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listProvidersResponseFromWire(w *listProvidersResponseWire) (*ListProvidersResponse, error) {
@@ -755,6 +1424,17 @@ func listRecipientSharePermissionsRequestToWire(v *ListRecipientSharePermissions
 	}, nil
 }
 
+func listRecipientSharePermissionsRequestFromWire(w *listRecipientSharePermissionsRequestWire) (*ListRecipientSharePermissionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListRecipientSharePermissionsRequest{
+		Name:       w.Name,
+		MaxResults: w.MaxResults,
+		PageToken:  w.PageToken,
+	}, nil
+}
+
 type listRecipientsRequestWire struct {
 	DataRecipientGlobalMetastoreId *string `json:"data_recipient_global_metastore_id,omitempty"`
 	MaxResults                     *int    `json:"max_results,omitempty"`
@@ -772,9 +1452,34 @@ func listRecipientsRequestToWire(v *ListRecipientsRequest) (*listRecipientsReque
 	}, nil
 }
 
+func listRecipientsRequestFromWire(w *listRecipientsRequestWire) (*ListRecipientsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListRecipientsRequest{
+		DataRecipientGlobalMetastoreId: w.DataRecipientGlobalMetastoreId,
+		MaxResults:                     w.MaxResults,
+		PageToken:                      w.PageToken,
+	}, nil
+}
+
 type listRecipientsResponseWire struct {
 	Recipients    []recipientInfoWire `json:"recipients,omitempty"`
 	NextPageToken *string             `json:"next_page_token,omitempty"`
+}
+
+func listRecipientsResponseToWire(v *ListRecipientsResponse) (*listRecipientsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	recipientsWireValue, err := convertSlice(v.Recipients, recipientInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRecipientsResponse.Recipients", err)
+	}
+	return &listRecipientsResponseWire{
+		Recipients:    recipientsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listRecipientsResponseFromWire(w *listRecipientsResponseWire) (*ListRecipientsResponse, error) {
@@ -808,6 +1513,17 @@ func listSharePermissionsRequestToWire(v *ListSharePermissionsRequest) (*listSha
 	}, nil
 }
 
+func listSharePermissionsRequestFromWire(w *listSharePermissionsRequestWire) (*ListSharePermissionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSharePermissionsRequest{
+		Name:       w.Name,
+		MaxResults: w.MaxResults,
+		PageToken:  w.PageToken,
+	}, nil
+}
+
 type listSharesRequestWire struct {
 	MaxResults *int    `json:"max_results,omitempty"`
 	PageToken  *string `json:"page_token,omitempty"`
@@ -823,9 +1539,33 @@ func listSharesRequestToWire(v *ListSharesRequest) (*listSharesRequestWire, erro
 	}, nil
 }
 
+func listSharesRequestFromWire(w *listSharesRequestWire) (*ListSharesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSharesRequest{
+		MaxResults: w.MaxResults,
+		PageToken:  w.PageToken,
+	}, nil
+}
+
 type listSharesResponseWire struct {
 	Shares        []shareInfoWire `json:"shares,omitempty"`
 	NextPageToken *string         `json:"next_page_token,omitempty"`
+}
+
+func listSharesResponseToWire(v *ListSharesResponse) (*listSharesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sharesWireValue, err := convertSlice(v.Shares, shareInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSharesResponse.Shares", err)
+	}
+	return &listSharesResponseWire{
+		Shares:        sharesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listSharesResponseFromWire(w *listSharesResponseWire) (*ListSharesResponse, error) {
@@ -849,6 +1589,24 @@ type notebookFileWire struct {
 	Id      *string           `json:"id,omitempty"`
 	Comment *string           `json:"comment,omitempty"`
 	Tags    []tagKeyValueWire `json:"tags,omitempty"`
+}
+
+func notebookFileToWire(v *NotebookFile) (*notebookFileWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tagsWireValue, err := convertSlice(v.Tags, tagKeyValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NotebookFile.Tags", err)
+	}
+	return &notebookFileWire{
+		Name:    v.Name,
+		Share:   v.Share,
+		ShareId: v.ShareId,
+		Id:      v.Id,
+		Comment: v.Comment,
+		Tags:    tagsWireValue,
+	}, nil
 }
 
 func notebookFileFromWire(w *notebookFileWire) (*NotebookFile, error) {
@@ -898,6 +1656,23 @@ func oidcFederationPolicyFromWire(w *oidcFederationPolicyWire) (*OidcFederationP
 		Subject:      w.Subject,
 		Audiences:    w.Audiences,
 	}, nil
+}
+
+type partitionSpecificationWire struct {
+}
+
+func partitionSpecificationToWire(v *PartitionSpecification) (*partitionSpecificationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &partitionSpecificationWire{}, nil
+}
+
+func partitionSpecificationFromWire(w *partitionSpecificationWire) (*PartitionSpecification, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PartitionSpecification{}, nil
 }
 
 type partitionSpecification_PartitionWire struct {
@@ -978,9 +1753,30 @@ func permissionsChangeToWire(v *PermissionsChange) (*permissionsChangeWire, erro
 	}, nil
 }
 
+func permissionsChangeFromWire(w *permissionsChangeWire) (*PermissionsChange, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PermissionsChange{
+		Principal: w.Principal,
+		Add:       w.Add,
+		Remove:    w.Remove,
+	}, nil
+}
+
 type privilegeAssignmentWire struct {
 	Principal  *string  `json:"principal,omitempty"`
 	Privileges []string `json:"privileges,omitempty"`
+}
+
+func privilegeAssignmentToWire(v *PrivilegeAssignment) (*privilegeAssignmentWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &privilegeAssignmentWire{
+		Principal:  v.Principal,
+		Privileges: v.Privileges,
+	}, nil
 }
 
 func privilegeAssignmentFromWire(w *privilegeAssignmentWire) (*PrivilegeAssignment, error) {
@@ -1032,6 +1828,40 @@ type providerInfoWire struct {
 	DataProviderGlobalMetastoreId *string                        `json:"data_provider_global_metastore_id,omitempty"`
 }
 
+func providerInfoToWire(v *ProviderInfo) (*providerInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	recipientProfileWireValue, err := recipientProfileToWire(v.RecipientProfile)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ProviderInfo.RecipientProfile", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ProviderInfo.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ProviderInfo.UpdatedAt", err)
+	}
+	return &providerInfoWire{
+		Name:                          v.Name,
+		AuthenticationType:            v.AuthenticationType,
+		RecipientProfileStr:           v.RecipientProfileStr,
+		Comment:                       v.Comment,
+		Owner:                         v.Owner,
+		RecipientProfile:              recipientProfileWireValue,
+		CreatedAt:                     createdAtWireValue,
+		CreatedBy:                     v.CreatedBy,
+		UpdatedAt:                     updatedAtWireValue,
+		UpdatedBy:                     v.UpdatedBy,
+		Cloud:                         v.Cloud,
+		Region:                        v.Region,
+		MetastoreId:                   v.MetastoreId,
+		DataProviderGlobalMetastoreId: v.DataProviderGlobalMetastoreId,
+	}, nil
+}
+
 func providerInfoFromWire(w *providerInfoWire) (*ProviderInfo, error) {
 	if w == nil {
 		return nil, nil
@@ -1070,6 +1900,15 @@ type providerShareWire struct {
 	Name *string `json:"name,omitempty"`
 }
 
+func providerShareToWire(v *ProviderShare) (*providerShareWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &providerShareWire{
+		Name: v.Name,
+	}, nil
+}
+
 func providerShareFromWire(w *providerShareWire) (*ProviderShare, error) {
 	if w == nil {
 		return nil, nil
@@ -1100,6 +1939,58 @@ type recipientInfoWire struct {
 	Region                         *string                        `json:"region,omitempty"`
 	MetastoreId                    *string                        `json:"metastore_id,omitempty"`
 	Id                             *string                        `json:"id,omitempty"`
+}
+
+func recipientInfoToWire(v *RecipientInfo) (*recipientInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	ipAccessListWireValue, err := ipAccessListToWire(v.IpAccessList)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RecipientInfo.IpAccessList", err)
+	}
+	propertiesKvpairsWireValue, err := propertiesKvPairsToWire(v.PropertiesKvpairs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RecipientInfo.PropertiesKvpairs", err)
+	}
+	expirationTimeWireValue, err := int64ToWire(v.ExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RecipientInfo.ExpirationTime", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RecipientInfo.CreatedAt", err)
+	}
+	tokensWireValue, err := convertSlice(v.Tokens, recipientTokenInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RecipientInfo.Tokens", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RecipientInfo.UpdatedAt", err)
+	}
+	return &recipientInfoWire{
+		Name:                           v.Name,
+		AuthenticationType:             v.AuthenticationType,
+		SharingCode:                    v.SharingCode,
+		DataRecipientGlobalMetastoreId: v.DataRecipientGlobalMetastoreId,
+		Owner:                          v.Owner,
+		Comment:                        v.Comment,
+		IpAccessList:                   ipAccessListWireValue,
+		PropertiesKvpairs:              propertiesKvpairsWireValue,
+		ExpirationTime:                 expirationTimeWireValue,
+		ActivationUrl:                  v.ActivationUrl,
+		Activated:                      v.Activated,
+		CreatedAt:                      createdAtWireValue,
+		CreatedBy:                      v.CreatedBy,
+		Tokens:                         tokensWireValue,
+		UpdatedAt:                      updatedAtWireValue,
+		UpdatedBy:                      v.UpdatedBy,
+		Cloud:                          v.Cloud,
+		Region:                         v.Region,
+		MetastoreId:                    v.MetastoreId,
+		Id:                             v.Id,
+	}, nil
 }
 
 func recipientInfoFromWire(w *recipientInfoWire) (*RecipientInfo, error) {
@@ -1251,6 +2142,20 @@ type registeredModelAliasWire struct {
 	VersionNum *wireInt64 `json:"version_num,omitempty"`
 }
 
+func registeredModelAliasToWire(v *RegisteredModelAlias) (*registeredModelAliasWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	versionNumWireValue, err := int64ToWire(v.VersionNum)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegisteredModelAlias.VersionNum", err)
+	}
+	return &registeredModelAliasWire{
+		AliasName:  v.AliasName,
+		VersionNum: versionNumWireValue,
+	}, nil
+}
+
 func registeredModelAliasFromWire(w *registeredModelAliasWire) (*RegisteredModelAlias, error) {
 	if w == nil {
 		return nil, nil
@@ -1265,11 +2170,45 @@ func registeredModelAliasFromWire(w *registeredModelAliasWire) (*RegisteredModel
 	}, nil
 }
 
+type retrieveTokenRequestWire struct {
+	ActivationUrl *string `json:"activation_url,omitempty"`
+}
+
+func retrieveTokenRequestToWire(v *RetrieveTokenRequest) (*retrieveTokenRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &retrieveTokenRequestWire{
+		ActivationUrl: v.ActivationUrl,
+	}, nil
+}
+
+func retrieveTokenRequestFromWire(w *retrieveTokenRequestWire) (*RetrieveTokenRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RetrieveTokenRequest{
+		ActivationUrl: w.ActivationUrl,
+	}, nil
+}
+
 type retrieveTokenResponseWire struct {
 	ShareCredentialsVersion *int    `json:"shareCredentialsVersion,omitempty"`
 	BearerToken             *string `json:"bearerToken,omitempty"`
 	Endpoint                *string `json:"endpoint,omitempty"`
 	ExpirationTime          *string `json:"expirationTime,omitempty"`
+}
+
+func retrieveTokenResponseToWire(v *RetrieveTokenResponse) (*retrieveTokenResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &retrieveTokenResponseWire{
+		ShareCredentialsVersion: v.ShareCredentialsVersion,
+		BearerToken:             v.BearerToken,
+		Endpoint:                v.Endpoint,
+		ExpirationTime:          v.ExpirationTime,
+	}, nil
 }
 
 func retrieveTokenResponseFromWire(w *retrieveTokenResponseWire) (*RetrieveTokenResponse, error) {
@@ -1303,9 +2242,33 @@ func rotateRecipientTokenRequestToWire(v *RotateRecipientTokenRequest) (*rotateR
 	}, nil
 }
 
+func rotateRecipientTokenRequestFromWire(w *rotateRecipientTokenRequestWire) (*RotateRecipientTokenRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	existingTokenExpireInSecondsPublicValue, err := int64FromWire(w.ExistingTokenExpireInSeconds)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RotateRecipientTokenRequest.ExistingTokenExpireInSeconds", err)
+	}
+	return &RotateRecipientTokenRequest{
+		Name:                         w.Name,
+		ExistingTokenExpireInSeconds: existingTokenExpireInSecondsPublicValue,
+	}, nil
+}
+
 type shareWire struct {
 	Name *string `json:"name,omitempty"`
 	Id   *string `json:"id,omitempty"`
+}
+
+func shareToWire(v *Share) (*shareWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &shareWire{
+		Name: v.Name,
+		Id:   v.Id,
+	}, nil
 }
 
 func shareFromWire(w *shareWire) (*Share, error) {
@@ -1329,6 +2292,36 @@ type shareInfoWire struct {
 	UpdatedAt       *wireInt64             `json:"updated_at,omitempty"`
 	UpdatedBy       *string                `json:"updated_by,omitempty"`
 	StorageLocation *string                `json:"storage_location,omitempty"`
+}
+
+func shareInfoToWire(v *ShareInfo) (*shareInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	objectsWireValue, err := convertSlice(v.Objects, sharedDataObjectToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ShareInfo.Objects", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ShareInfo.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ShareInfo.UpdatedAt", err)
+	}
+	return &shareInfoWire{
+		Name:            v.Name,
+		Owner:           v.Owner,
+		Comment:         v.Comment,
+		StorageRoot:     v.StorageRoot,
+		Objects:         objectsWireValue,
+		CreatedAt:       createdAtWireValue,
+		CreatedBy:       v.CreatedBy,
+		UpdatedAt:       updatedAtWireValue,
+		UpdatedBy:       v.UpdatedBy,
+		StorageLocation: v.StorageLocation,
+	}, nil
 }
 
 func shareInfoFromWire(w *shareInfoWire) (*ShareInfo, error) {
@@ -1364,6 +2357,20 @@ func shareInfoFromWire(w *shareInfoWire) (*ShareInfo, error) {
 type shareToPrivilegeAssignmentWire struct {
 	ShareName            *string                   `json:"share_name,omitempty"`
 	PrivilegeAssignments []privilegeAssignmentWire `json:"privilege_assignments,omitempty"`
+}
+
+func shareToPrivilegeAssignmentToWire(v *ShareToPrivilegeAssignment) (*shareToPrivilegeAssignmentWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	privilegeAssignmentsWireValue, err := convertSlice(v.PrivilegeAssignments, privilegeAssignmentToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ShareToPrivilegeAssignment.PrivilegeAssignments", err)
+	}
+	return &shareToPrivilegeAssignmentWire{
+		ShareName:            v.ShareName,
+		PrivilegeAssignments: privilegeAssignmentsWireValue,
+	}, nil
 }
 
 func shareToPrivilegeAssignmentFromWire(w *shareToPrivilegeAssignmentWire) (*ShareToPrivilegeAssignment, error) {
@@ -1462,6 +2469,40 @@ func sharedDataObjectFromWire(w *sharedDataObjectWire) (*SharedDataObject, error
 	}, nil
 }
 
+type sharedDataObject_HistoryDataSharingStatusWire struct {
+}
+
+func sharedDataObject_HistoryDataSharingStatusToWire(v *SharedDataObject_HistoryDataSharingStatus) (*sharedDataObject_HistoryDataSharingStatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &sharedDataObject_HistoryDataSharingStatusWire{}, nil
+}
+
+func sharedDataObject_HistoryDataSharingStatusFromWire(w *sharedDataObject_HistoryDataSharingStatusWire) (*SharedDataObject_HistoryDataSharingStatus, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SharedDataObject_HistoryDataSharingStatus{}, nil
+}
+
+type sharedDataObject_StatusWire struct {
+}
+
+func sharedDataObject_StatusToWire(v *SharedDataObject_Status) (*sharedDataObject_StatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &sharedDataObject_StatusWire{}, nil
+}
+
+func sharedDataObject_StatusFromWire(w *sharedDataObject_StatusWire) (*SharedDataObject_Status, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SharedDataObject_Status{}, nil
+}
+
 type tableWire struct {
 	Name                     *string           `json:"name,omitempty"`
 	Schema                   *string           `json:"schema,omitempty"`
@@ -1472,6 +2513,27 @@ type tableWire struct {
 	Tags                     []tagKeyValueWire `json:"tags,omitempty"`
 	MaterializedTableName    *string           `json:"materialized_table_name,omitempty"`
 	MaterializationNamespace *string           `json:"materialization_namespace,omitempty"`
+}
+
+func tableToWire(v *Table) (*tableWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tagsWireValue, err := convertSlice(v.Tags, tagKeyValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Table.Tags", err)
+	}
+	return &tableWire{
+		Name:                     v.Name,
+		Schema:                   v.Schema,
+		Share:                    v.Share,
+		ShareId:                  v.ShareId,
+		Id:                       v.Id,
+		Comment:                  v.Comment,
+		Tags:                     tagsWireValue,
+		MaterializedTableName:    v.MaterializedTableName,
+		MaterializationNamespace: v.MaterializationNamespace,
+	}, nil
 }
 
 func tableFromWire(w *tableWire) (*Table, error) {
@@ -1500,6 +2562,16 @@ type tableDependencyWire struct {
 	TableName  *string `json:"table_name,omitempty"`
 }
 
+func tableDependencyToWire(v *TableDependency) (*tableDependencyWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &tableDependencyWire{
+		SchemaName: v.SchemaName,
+		TableName:  v.TableName,
+	}, nil
+}
+
 func tableDependencyFromWire(w *tableDependencyWire) (*TableDependency, error) {
 	if w == nil {
 		return nil, nil
@@ -1513,6 +2585,16 @@ func tableDependencyFromWire(w *tableDependencyWire) (*TableDependency, error) {
 type tagKeyValueWire struct {
 	Key   *string `json:"key,omitempty"`
 	Value *string `json:"value,omitempty"`
+}
+
+func tagKeyValueToWire(v *TagKeyValue) (*tagKeyValueWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &tagKeyValueWire{
+		Key:   v.Key,
+		Value: v.Value,
+	}, nil
 }
 
 func tagKeyValueFromWire(w *tagKeyValueWire) (*TagKeyValue, error) {
@@ -1577,6 +2659,42 @@ func updateProviderRequestToWire(v *UpdateProviderRequest) (*updateProviderReque
 		Region:                        v.Region,
 		MetastoreId:                   v.MetastoreId,
 		DataProviderGlobalMetastoreId: v.DataProviderGlobalMetastoreId,
+	}, nil
+}
+
+func updateProviderRequestFromWire(w *updateProviderRequestWire) (*UpdateProviderRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	recipientProfilePublicValue, err := recipientProfileFromWire(w.RecipientProfile)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateProviderRequest.RecipientProfile", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateProviderRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateProviderRequest.UpdatedAt", err)
+	}
+	return &UpdateProviderRequest{
+		NameArg:                       w.NameArg,
+		NewName:                       w.NewName,
+		Name:                          w.Name,
+		AuthenticationType:            w.AuthenticationType,
+		RecipientProfileStr:           w.RecipientProfileStr,
+		Comment:                       w.Comment,
+		Owner:                         w.Owner,
+		RecipientProfile:              recipientProfilePublicValue,
+		CreatedAt:                     createdAtPublicValue,
+		CreatedBy:                     w.CreatedBy,
+		UpdatedAt:                     updatedAtPublicValue,
+		UpdatedBy:                     w.UpdatedBy,
+		Cloud:                         w.Cloud,
+		Region:                        w.Region,
+		MetastoreId:                   w.MetastoreId,
+		DataProviderGlobalMetastoreId: w.DataProviderGlobalMetastoreId,
 	}, nil
 }
 
@@ -1659,6 +2777,60 @@ func updateRecipientRequestToWire(v *UpdateRecipientRequest) (*updateRecipientRe
 	}, nil
 }
 
+func updateRecipientRequestFromWire(w *updateRecipientRequestWire) (*UpdateRecipientRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	ipAccessListPublicValue, err := ipAccessListFromWire(w.IpAccessList)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRecipientRequest.IpAccessList", err)
+	}
+	propertiesKvpairsPublicValue, err := propertiesKvPairsFromWire(w.PropertiesKvpairs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRecipientRequest.PropertiesKvpairs", err)
+	}
+	expirationTimePublicValue, err := int64FromWire(w.ExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRecipientRequest.ExpirationTime", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRecipientRequest.CreatedAt", err)
+	}
+	tokensPublicValue, err := convertSlice(w.Tokens, recipientTokenInfoFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRecipientRequest.Tokens", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRecipientRequest.UpdatedAt", err)
+	}
+	return &UpdateRecipientRequest{
+		NameArg:                        w.NameArg,
+		NewName:                        w.NewName,
+		Name:                           w.Name,
+		AuthenticationType:             w.AuthenticationType,
+		SharingCode:                    w.SharingCode,
+		DataRecipientGlobalMetastoreId: w.DataRecipientGlobalMetastoreId,
+		Owner:                          w.Owner,
+		Comment:                        w.Comment,
+		IpAccessList:                   ipAccessListPublicValue,
+		PropertiesKvpairs:              propertiesKvpairsPublicValue,
+		ExpirationTime:                 expirationTimePublicValue,
+		ActivationUrl:                  w.ActivationUrl,
+		Activated:                      w.Activated,
+		CreatedAt:                      createdAtPublicValue,
+		CreatedBy:                      w.CreatedBy,
+		Tokens:                         tokensPublicValue,
+		UpdatedAt:                      updatedAtPublicValue,
+		UpdatedBy:                      w.UpdatedBy,
+		Cloud:                          w.Cloud,
+		Region:                         w.Region,
+		MetastoreId:                    w.MetastoreId,
+		Id:                             w.Id,
+	}, nil
+}
+
 type updateSharePermissionsRequestWire struct {
 	Name                *string                 `json:"name,omitempty"`
 	OmitPermissionsList *bool                   `json:"omit_permissions_list,omitempty"`
@@ -1680,8 +2852,36 @@ func updateSharePermissionsRequestToWire(v *UpdateSharePermissionsRequest) (*upd
 	}, nil
 }
 
+func updateSharePermissionsRequestFromWire(w *updateSharePermissionsRequestWire) (*UpdateSharePermissionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	changesPublicValue, err := convertSlice(w.Changes, permissionsChangeFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateSharePermissionsRequest.Changes", err)
+	}
+	return &UpdateSharePermissionsRequest{
+		Name:                w.Name,
+		OmitPermissionsList: w.OmitPermissionsList,
+		Changes:             changesPublicValue,
+	}, nil
+}
+
 type updateSharePermissionsResponseWire struct {
 	PrivilegeAssignments []privilegeAssignmentWire `json:"privilege_assignments,omitempty"`
+}
+
+func updateSharePermissionsResponseToWire(v *UpdateSharePermissionsResponse) (*updateSharePermissionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	privilegeAssignmentsWireValue, err := convertSlice(v.PrivilegeAssignments, privilegeAssignmentToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateSharePermissionsResponse.PrivilegeAssignments", err)
+	}
+	return &updateSharePermissionsResponseWire{
+		PrivilegeAssignments: privilegeAssignmentsWireValue,
+	}, nil
 }
 
 func updateSharePermissionsResponseFromWire(w *updateSharePermissionsResponseWire) (*UpdateSharePermissionsResponse, error) {
@@ -1750,6 +2950,43 @@ func updateShareRequestToWire(v *UpdateShareRequest) (*updateShareRequestWire, e
 	}, nil
 }
 
+func updateShareRequestFromWire(w *updateShareRequestWire) (*UpdateShareRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	updatesPublicValue, err := convertSlice(w.Updates, updateShareRequest_SharedDataObjectUpdateFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateShareRequest.Updates", err)
+	}
+	objectsPublicValue, err := convertSlice(w.Objects, sharedDataObjectFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateShareRequest.Objects", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateShareRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateShareRequest.UpdatedAt", err)
+	}
+	return &UpdateShareRequest{
+		NameArg:         w.NameArg,
+		NewName:         w.NewName,
+		Updates:         updatesPublicValue,
+		Name:            w.Name,
+		Owner:           w.Owner,
+		Comment:         w.Comment,
+		StorageRoot:     w.StorageRoot,
+		Objects:         objectsPublicValue,
+		CreatedAt:       createdAtPublicValue,
+		CreatedBy:       w.CreatedBy,
+		UpdatedAt:       updatedAtPublicValue,
+		UpdatedBy:       w.UpdatedBy,
+		StorageLocation: w.StorageLocation,
+	}, nil
+}
+
 type updateShareRequest_SharedDataObjectUpdateWire struct {
 	Action     UpdateShareRequest_SharedDataObjectUpdate_Action `json:"action,omitempty"`
 	DataObject *sharedDataObjectWire                            `json:"data_object,omitempty"`
@@ -1769,6 +3006,20 @@ func updateShareRequest_SharedDataObjectUpdateToWire(v *UpdateShareRequest_Share
 	}, nil
 }
 
+func updateShareRequest_SharedDataObjectUpdateFromWire(w *updateShareRequest_SharedDataObjectUpdateWire) (*UpdateShareRequest_SharedDataObjectUpdate, error) {
+	if w == nil {
+		return nil, nil
+	}
+	dataObjectPublicValue, err := sharedDataObjectFromWire(w.DataObject)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateShareRequest_SharedDataObjectUpdate.DataObject", err)
+	}
+	return &UpdateShareRequest_SharedDataObjectUpdate{
+		Action:     w.Action,
+		DataObject: dataObjectPublicValue,
+	}, nil
+}
+
 type volumeWire struct {
 	Name    *string           `json:"name,omitempty"`
 	Id      *string           `json:"id,omitempty"`
@@ -1777,6 +3028,25 @@ type volumeWire struct {
 	ShareId *string           `json:"share_id,omitempty"`
 	Comment *string           `json:"comment,omitempty"`
 	Tags    []tagKeyValueWire `json:"tags,omitempty"`
+}
+
+func volumeToWire(v *Volume) (*volumeWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tagsWireValue, err := convertSlice(v.Tags, tagKeyValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Volume.Tags", err)
+	}
+	return &volumeWire{
+		Name:    v.Name,
+		Id:      v.Id,
+		Schema:  v.Schema,
+		Share:   v.Share,
+		ShareId: v.ShareId,
+		Comment: v.Comment,
+		Tags:    tagsWireValue,
+	}, nil
 }
 
 func volumeFromWire(w *volumeWire) (*Volume, error) {

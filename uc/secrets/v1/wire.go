@@ -8,14 +8,6 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type createSecretRequestWire struct {
 	Secret *secretWire `json:"secret,omitempty"`
 }
@@ -33,6 +25,41 @@ func createSecretRequestToWire(v *CreateSecretRequest) (*createSecretRequestWire
 	}, nil
 }
 
+func createSecretRequestFromWire(w *createSecretRequestWire) (*CreateSecretRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	secretPublicValue, err := secretFromWire(w.Secret)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateSecretRequest.Secret", err)
+	}
+	return &CreateSecretRequest{
+		Secret: secretPublicValue,
+	}, nil
+}
+
+type deleteSecretRequestWire struct {
+	FullName *string `json:"full_name,omitempty"`
+}
+
+func deleteSecretRequestToWire(v *DeleteSecretRequest) (*deleteSecretRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteSecretRequestWire{
+		FullName: v.FullName,
+	}, nil
+}
+
+func deleteSecretRequestFromWire(w *deleteSecretRequestWire) (*DeleteSecretRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteSecretRequest{
+		FullName: w.FullName,
+	}, nil
+}
+
 type getSecretRequestWire struct {
 	FullName     *string `json:"full_name,omitempty"`
 	IncludeValue *bool   `json:"include_value,omitempty"`
@@ -45,6 +72,16 @@ func getSecretRequestToWire(v *GetSecretRequest) (*getSecretRequestWire, error) 
 	return &getSecretRequestWire{
 		FullName:     v.FullName,
 		IncludeValue: v.IncludeValue,
+	}, nil
+}
+
+func getSecretRequestFromWire(w *getSecretRequestWire) (*GetSecretRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetSecretRequest{
+		FullName:     w.FullName,
+		IncludeValue: w.IncludeValue,
 	}, nil
 }
 
@@ -67,9 +104,35 @@ func listSecretsRequestToWire(v *ListSecretsRequest) (*listSecretsRequestWire, e
 	}, nil
 }
 
+func listSecretsRequestFromWire(w *listSecretsRequestWire) (*ListSecretsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSecretsRequest{
+		CatalogName: w.CatalogName,
+		SchemaName:  w.SchemaName,
+		PageToken:   w.PageToken,
+		PageSize:    w.PageSize,
+	}, nil
+}
+
 type listSecretsResponseWire struct {
 	Secrets       []secretWire `json:"secrets,omitempty"`
 	NextPageToken *string      `json:"next_page_token,omitempty"`
+}
+
+func listSecretsResponseToWire(v *ListSecretsResponse) (*listSecretsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	secretsWireValue, err := convertSlice(v.Secrets, secretToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSecretsResponse.Secrets", err)
+	}
+	return &listSecretsResponseWire{
+		Secrets:       secretsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listSecretsResponseFromWire(w *listSecretsResponseWire) (*ListSecretsResponse, error) {
@@ -151,9 +214,9 @@ func secretFromWire(w *secretWire) (*Secret, error) {
 }
 
 type updateSecretRequestWire struct {
-	FullName   *string     `json:"full_name,omitempty"`
-	Secret     *secretWire `json:"secret,omitempty"`
-	UpdateMask *string     `json:"update_mask,omitempty"`
+	FullName   *string                  `json:"full_name,omitempty"`
+	Secret     *secretWire              `json:"secret,omitempty"`
+	UpdateMask *types.FieldMask[Secret] `json:"update_mask,omitempty"`
 }
 
 func updateSecretRequestToWire(v *UpdateSecretRequest) (*updateSecretRequestWire, error) {
@@ -167,7 +230,22 @@ func updateSecretRequestToWire(v *UpdateSecretRequest) (*updateSecretRequestWire
 	return &updateSecretRequestWire{
 		FullName:   v.FullName,
 		Secret:     secretWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateSecretRequestFromWire(w *updateSecretRequestWire) (*UpdateSecretRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	secretPublicValue, err := secretFromWire(w.Secret)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateSecretRequest.Secret", err)
+	}
+	return &UpdateSecretRequest{
+		FullName:   w.FullName,
+		Secret:     secretPublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 

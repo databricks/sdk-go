@@ -81,6 +81,25 @@ func createCredentialsRequestToWire(v *CreateCredentialsRequest) (*createCredent
 	}, nil
 }
 
+func createCredentialsRequestFromWire(w *createCredentialsRequestWire) (*CreateCredentialsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	principalIdPublicValue, err := int64FromWire(w.PrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCredentialsRequest.PrincipalId", err)
+	}
+	return &CreateCredentialsRequest{
+		GitProvider:          w.GitProvider,
+		GitUsername:          w.GitUsername,
+		PersonalAccessToken:  w.PersonalAccessToken,
+		PrincipalId:          principalIdPublicValue,
+		Name:                 w.Name,
+		IsDefaultForProvider: w.IsDefaultForProvider,
+		GitEmail:             w.GitEmail,
+	}, nil
+}
+
 type createCredentialsResponseWire struct {
 	CredentialId         *wireInt64 `json:"credential_id,omitempty"`
 	GitProvider          *string    `json:"git_provider,omitempty"`
@@ -88,6 +107,24 @@ type createCredentialsResponseWire struct {
 	Name                 *string    `json:"name,omitempty"`
 	IsDefaultForProvider *bool      `json:"is_default_for_provider,omitempty"`
 	GitEmail             *string    `json:"git_email,omitempty"`
+}
+
+func createCredentialsResponseToWire(v *CreateCredentialsResponse) (*createCredentialsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	credentialIdWireValue, err := int64ToWire(v.CredentialId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCredentialsResponse.CredentialId", err)
+	}
+	return &createCredentialsResponseWire{
+		CredentialId:         credentialIdWireValue,
+		GitProvider:          v.GitProvider,
+		GitUsername:          v.GitUsername,
+		Name:                 v.Name,
+		IsDefaultForProvider: v.IsDefaultForProvider,
+		GitEmail:             v.GitEmail,
+	}, nil
 }
 
 func createCredentialsResponseFromWire(w *createCredentialsResponseWire) (*CreateCredentialsResponse, error) {
@@ -115,6 +152,24 @@ type credentialWire struct {
 	Name                 *string    `json:"name,omitempty"`
 	IsDefaultForProvider *bool      `json:"is_default_for_provider,omitempty"`
 	GitEmail             *string    `json:"git_email,omitempty"`
+}
+
+func credentialToWire(v *Credential) (*credentialWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	credentialIdWireValue, err := int64ToWire(v.CredentialId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Credential.CredentialId", err)
+	}
+	return &credentialWire{
+		CredentialId:         credentialIdWireValue,
+		GitProvider:          v.GitProvider,
+		GitUsername:          v.GitUsername,
+		Name:                 v.Name,
+		IsDefaultForProvider: v.IsDefaultForProvider,
+		GitEmail:             v.GitEmail,
+	}, nil
 }
 
 func credentialFromWire(w *credentialWire) (*Credential, error) {
@@ -158,6 +213,41 @@ func deleteCredentialsRequestToWire(v *DeleteCredentialsRequest) (*deleteCredent
 	}, nil
 }
 
+func deleteCredentialsRequestFromWire(w *deleteCredentialsRequestWire) (*DeleteCredentialsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	idPublicValue, err := int64FromWire(w.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteCredentialsRequest.Id", err)
+	}
+	principalIdPublicValue, err := int64FromWire(w.PrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteCredentialsRequest.PrincipalId", err)
+	}
+	return &DeleteCredentialsRequest{
+		Id:          idPublicValue,
+		PrincipalId: principalIdPublicValue,
+	}, nil
+}
+
+type deleteCredentialsResponseWire struct {
+}
+
+func deleteCredentialsResponseToWire(v *DeleteCredentialsResponse) (*deleteCredentialsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCredentialsResponseWire{}, nil
+}
+
+func deleteCredentialsResponseFromWire(w *deleteCredentialsResponseWire) (*DeleteCredentialsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCredentialsResponse{}, nil
+}
+
 type getCredentialsRequestWire struct {
 	Id          *wireInt64 `json:"id,omitempty"`
 	PrincipalId *wireInt64 `json:"principal_id,omitempty"`
@@ -181,6 +271,24 @@ func getCredentialsRequestToWire(v *GetCredentialsRequest) (*getCredentialsReque
 	}, nil
 }
 
+func getCredentialsRequestFromWire(w *getCredentialsRequestWire) (*GetCredentialsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	idPublicValue, err := int64FromWire(w.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetCredentialsRequest.Id", err)
+	}
+	principalIdPublicValue, err := int64FromWire(w.PrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetCredentialsRequest.PrincipalId", err)
+	}
+	return &GetCredentialsRequest{
+		Id:          idPublicValue,
+		PrincipalId: principalIdPublicValue,
+	}, nil
+}
+
 type getCredentialsResponseWire struct {
 	CredentialId         *wireInt64 `json:"credential_id,omitempty"`
 	GitProvider          *string    `json:"git_provider,omitempty"`
@@ -188,6 +296,24 @@ type getCredentialsResponseWire struct {
 	Name                 *string    `json:"name,omitempty"`
 	IsDefaultForProvider *bool      `json:"is_default_for_provider,omitempty"`
 	GitEmail             *string    `json:"git_email,omitempty"`
+}
+
+func getCredentialsResponseToWire(v *GetCredentialsResponse) (*getCredentialsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	credentialIdWireValue, err := int64ToWire(v.CredentialId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetCredentialsResponse.CredentialId", err)
+	}
+	return &getCredentialsResponseWire{
+		CredentialId:         credentialIdWireValue,
+		GitProvider:          v.GitProvider,
+		GitUsername:          v.GitUsername,
+		Name:                 v.Name,
+		IsDefaultForProvider: v.IsDefaultForProvider,
+		GitEmail:             v.GitEmail,
+	}, nil
 }
 
 func getCredentialsResponseFromWire(w *getCredentialsResponseWire) (*GetCredentialsResponse, error) {
@@ -225,8 +351,34 @@ func listCredentialsRequestToWire(v *ListCredentialsRequest) (*listCredentialsRe
 	}, nil
 }
 
+func listCredentialsRequestFromWire(w *listCredentialsRequestWire) (*ListCredentialsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	principalIdPublicValue, err := int64FromWire(w.PrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCredentialsRequest.PrincipalId", err)
+	}
+	return &ListCredentialsRequest{
+		PrincipalId: principalIdPublicValue,
+	}, nil
+}
+
 type listCredentialsResponseWire struct {
 	Credentials []credentialWire `json:"credentials,omitempty"`
+}
+
+func listCredentialsResponseToWire(v *ListCredentialsResponse) (*listCredentialsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	credentialsWireValue, err := convertSlice(v.Credentials, credentialToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCredentialsResponse.Credentials", err)
+	}
+	return &listCredentialsResponseWire{
+		Credentials: credentialsWireValue,
+	}, nil
 }
 
 func listCredentialsResponseFromWire(w *listCredentialsResponseWire) (*ListCredentialsResponse, error) {
@@ -275,6 +427,47 @@ func updateCredentialsRequestToWire(v *UpdateCredentialsRequest) (*updateCredent
 		IsDefaultForProvider: v.IsDefaultForProvider,
 		GitEmail:             v.GitEmail,
 	}, nil
+}
+
+func updateCredentialsRequestFromWire(w *updateCredentialsRequestWire) (*UpdateCredentialsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	idPublicValue, err := int64FromWire(w.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCredentialsRequest.Id", err)
+	}
+	principalIdPublicValue, err := int64FromWire(w.PrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCredentialsRequest.PrincipalId", err)
+	}
+	return &UpdateCredentialsRequest{
+		Id:                   idPublicValue,
+		PersonalAccessToken:  w.PersonalAccessToken,
+		GitProvider:          w.GitProvider,
+		GitUsername:          w.GitUsername,
+		PrincipalId:          principalIdPublicValue,
+		Name:                 w.Name,
+		IsDefaultForProvider: w.IsDefaultForProvider,
+		GitEmail:             w.GitEmail,
+	}, nil
+}
+
+type updateCredentialsResponseWire struct {
+}
+
+func updateCredentialsResponseToWire(v *UpdateCredentialsResponse) (*updateCredentialsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &updateCredentialsResponseWire{}, nil
+}
+
+func updateCredentialsResponseFromWire(w *updateCredentialsResponseWire) (*UpdateCredentialsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpdateCredentialsResponse{}, nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

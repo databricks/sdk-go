@@ -9,19 +9,23 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type apiErrorWire struct {
 	ErrorCode  ErrorCode         `json:"error_code,omitempty"`
 	Message    *string           `json:"message,omitempty"`
 	StackTrace *string           `json:"stack_trace,omitempty"`
 	Details    []json.RawMessage `json:"details,omitempty"`
+}
+
+func apiErrorToWire(v *ApiError) (*apiErrorWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &apiErrorWire{
+		ErrorCode:  v.ErrorCode,
+		Message:    v.Message,
+		StackTrace: v.StackTrace,
+		Details:    v.Details,
+	}, nil
 }
 
 func apiErrorFromWire(w *apiErrorWire) (*ApiError, error) {
@@ -57,6 +61,21 @@ func createWorkspaceBaseEnvironmentRequestToWire(v *CreateWorkspaceBaseEnvironme
 	}, nil
 }
 
+func createWorkspaceBaseEnvironmentRequestFromWire(w *createWorkspaceBaseEnvironmentRequestWire) (*CreateWorkspaceBaseEnvironmentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	workspaceBaseEnvironmentPublicValue, err := workspaceBaseEnvironmentFromWire(w.WorkspaceBaseEnvironment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateWorkspaceBaseEnvironmentRequest.WorkspaceBaseEnvironment", err)
+	}
+	return &CreateWorkspaceBaseEnvironmentRequest{
+		WorkspaceBaseEnvironment:   workspaceBaseEnvironmentPublicValue,
+		WorkspaceBaseEnvironmentId: w.WorkspaceBaseEnvironmentId,
+		RequestId:                  w.RequestId,
+	}, nil
+}
+
 type defaultWorkspaceBaseEnvironmentWire struct {
 	Name                        *string `json:"name,omitempty"`
 	CpuWorkspaceBaseEnvironment *string `json:"cpu_workspace_base_environment,omitempty"`
@@ -85,6 +104,28 @@ func defaultWorkspaceBaseEnvironmentFromWire(w *defaultWorkspaceBaseEnvironmentW
 	}, nil
 }
 
+type deleteWorkspaceBaseEnvironmentRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteWorkspaceBaseEnvironmentRequestToWire(v *DeleteWorkspaceBaseEnvironmentRequest) (*deleteWorkspaceBaseEnvironmentRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteWorkspaceBaseEnvironmentRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteWorkspaceBaseEnvironmentRequestFromWire(w *deleteWorkspaceBaseEnvironmentRequestWire) (*DeleteWorkspaceBaseEnvironmentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteWorkspaceBaseEnvironmentRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type environmentSpecWire struct {
 	Dependencies       []string `json:"dependencies,omitempty"`
 	EnvironmentVersion *string  `json:"environment_version,omitempty"`
@@ -110,6 +151,72 @@ func environmentSpecFromWire(w *environmentSpecWire) (*EnvironmentSpec, error) {
 	}, nil
 }
 
+type getDefaultWorkspaceBaseEnvironmentRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getDefaultWorkspaceBaseEnvironmentRequestToWire(v *GetDefaultWorkspaceBaseEnvironmentRequest) (*getDefaultWorkspaceBaseEnvironmentRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getDefaultWorkspaceBaseEnvironmentRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getDefaultWorkspaceBaseEnvironmentRequestFromWire(w *getDefaultWorkspaceBaseEnvironmentRequestWire) (*GetDefaultWorkspaceBaseEnvironmentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetDefaultWorkspaceBaseEnvironmentRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getOperationRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getOperationRequestToWire(v *GetOperationRequest) (*getOperationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getOperationRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getOperationRequestFromWire(w *getOperationRequestWire) (*GetOperationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetOperationRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getWorkspaceBaseEnvironmentRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getWorkspaceBaseEnvironmentRequestToWire(v *GetWorkspaceBaseEnvironmentRequest) (*getWorkspaceBaseEnvironmentRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getWorkspaceBaseEnvironmentRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getWorkspaceBaseEnvironmentRequestFromWire(w *getWorkspaceBaseEnvironmentRequestWire) (*GetWorkspaceBaseEnvironmentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetWorkspaceBaseEnvironmentRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type listWorkspaceBaseEnvironmentsRequestWire struct {
 	PageSize  *int    `json:"page_size,omitempty"`
 	PageToken *string `json:"page_token,omitempty"`
@@ -125,9 +232,33 @@ func listWorkspaceBaseEnvironmentsRequestToWire(v *ListWorkspaceBaseEnvironments
 	}, nil
 }
 
+func listWorkspaceBaseEnvironmentsRequestFromWire(w *listWorkspaceBaseEnvironmentsRequestWire) (*ListWorkspaceBaseEnvironmentsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListWorkspaceBaseEnvironmentsRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listWorkspaceBaseEnvironmentsResponseWire struct {
 	WorkspaceBaseEnvironments []workspaceBaseEnvironmentWire `json:"workspace_base_environments,omitempty"`
 	NextPageToken             *string                        `json:"next_page_token,omitempty"`
+}
+
+func listWorkspaceBaseEnvironmentsResponseToWire(v *ListWorkspaceBaseEnvironmentsResponse) (*listWorkspaceBaseEnvironmentsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	workspaceBaseEnvironmentsWireValue, err := convertSlice(v.WorkspaceBaseEnvironments, workspaceBaseEnvironmentToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListWorkspaceBaseEnvironmentsResponse.WorkspaceBaseEnvironments", err)
+	}
+	return &listWorkspaceBaseEnvironmentsResponseWire{
+		WorkspaceBaseEnvironments: workspaceBaseEnvironmentsWireValue,
+		NextPageToken:             v.NextPageToken,
+	}, nil
 }
 
 func listWorkspaceBaseEnvironmentsResponseFromWire(w *listWorkspaceBaseEnvironmentsResponseWire) (*ListWorkspaceBaseEnvironmentsResponse, error) {
@@ -150,6 +281,38 @@ type operationWire struct {
 	Done     *bool           `json:"done,omitempty"`
 	Error    *apiErrorWire   `json:"error,omitempty"`
 	Response json.RawMessage `json:"response,omitempty"`
+}
+
+func operationToWire(v *Operation) (*operationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var resultErrorWire *apiErrorWire
+	var resultResponseWire json.RawMessage
+	switch value := v.Result.(type) {
+	case nil:
+	case *Operation_Result_Error:
+		if value != nil {
+			resultErrorConverted, err := apiErrorToWire(&value.Error)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Operation.Result.Error", err)
+			}
+			resultErrorWire = resultErrorConverted
+		}
+	case *Operation_Result_Response:
+		if value != nil {
+			resultResponseWire = value.Response
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Operation.Result", value)
+	}
+	return &operationWire{
+		Name:     v.Name,
+		Metadata: v.Metadata,
+		Done:     v.Done,
+		Error:    resultErrorWire,
+		Response: resultResponseWire,
+	}, nil
 }
 
 func operationFromWire(w *operationWire) (*Operation, error) {
@@ -198,9 +361,18 @@ func refreshWorkspaceBaseEnvironmentRequestToWire(v *RefreshWorkspaceBaseEnviron
 	}, nil
 }
 
+func refreshWorkspaceBaseEnvironmentRequestFromWire(w *refreshWorkspaceBaseEnvironmentRequestWire) (*RefreshWorkspaceBaseEnvironmentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RefreshWorkspaceBaseEnvironmentRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type updateDefaultWorkspaceBaseEnvironmentRequestWire struct {
-	DefaultWorkspaceBaseEnvironment *defaultWorkspaceBaseEnvironmentWire `json:"default_workspace_base_environment,omitempty"`
-	UpdateMask                      *string                              `json:"update_mask,omitempty"`
+	DefaultWorkspaceBaseEnvironment *defaultWorkspaceBaseEnvironmentWire              `json:"default_workspace_base_environment,omitempty"`
+	UpdateMask                      *types.FieldMask[DefaultWorkspaceBaseEnvironment] `json:"update_mask,omitempty"`
 }
 
 func updateDefaultWorkspaceBaseEnvironmentRequestToWire(v *UpdateDefaultWorkspaceBaseEnvironmentRequest) (*updateDefaultWorkspaceBaseEnvironmentRequestWire, error) {
@@ -213,7 +385,21 @@ func updateDefaultWorkspaceBaseEnvironmentRequestToWire(v *UpdateDefaultWorkspac
 	}
 	return &updateDefaultWorkspaceBaseEnvironmentRequestWire{
 		DefaultWorkspaceBaseEnvironment: defaultWorkspaceBaseEnvironmentWireValue,
-		UpdateMask:                      fieldMaskToWire(v.UpdateMask),
+		UpdateMask:                      v.UpdateMask,
+	}, nil
+}
+
+func updateDefaultWorkspaceBaseEnvironmentRequestFromWire(w *updateDefaultWorkspaceBaseEnvironmentRequestWire) (*UpdateDefaultWorkspaceBaseEnvironmentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	defaultWorkspaceBaseEnvironmentPublicValue, err := defaultWorkspaceBaseEnvironmentFromWire(w.DefaultWorkspaceBaseEnvironment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateDefaultWorkspaceBaseEnvironmentRequest.DefaultWorkspaceBaseEnvironment", err)
+	}
+	return &UpdateDefaultWorkspaceBaseEnvironmentRequest{
+		DefaultWorkspaceBaseEnvironment: defaultWorkspaceBaseEnvironmentPublicValue,
+		UpdateMask:                      w.UpdateMask,
 	}, nil
 }
 
@@ -233,6 +419,20 @@ func updateWorkspaceBaseEnvironmentRequestToWire(v *UpdateWorkspaceBaseEnvironme
 	return &updateWorkspaceBaseEnvironmentRequestWire{
 		Name:                     v.Name,
 		WorkspaceBaseEnvironment: workspaceBaseEnvironmentWireValue,
+	}, nil
+}
+
+func updateWorkspaceBaseEnvironmentRequestFromWire(w *updateWorkspaceBaseEnvironmentRequestWire) (*UpdateWorkspaceBaseEnvironmentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	workspaceBaseEnvironmentPublicValue, err := workspaceBaseEnvironmentFromWire(w.WorkspaceBaseEnvironment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateWorkspaceBaseEnvironmentRequest.WorkspaceBaseEnvironment", err)
+	}
+	return &UpdateWorkspaceBaseEnvironmentRequest{
+		Name:                     w.Name,
+		WorkspaceBaseEnvironment: workspaceBaseEnvironmentPublicValue,
 	}, nil
 }
 
@@ -299,7 +499,31 @@ func workspaceBaseEnvironmentFromWire(w *workspaceBaseEnvironmentWire) (*Workspa
 	}, nil
 }
 
+type workspaceBaseEnvironmentCacheWire struct {
+}
+
+func workspaceBaseEnvironmentCacheToWire(v *WorkspaceBaseEnvironmentCache) (*workspaceBaseEnvironmentCacheWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &workspaceBaseEnvironmentCacheWire{}, nil
+}
+
+func workspaceBaseEnvironmentCacheFromWire(w *workspaceBaseEnvironmentCacheWire) (*WorkspaceBaseEnvironmentCache, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &WorkspaceBaseEnvironmentCache{}, nil
+}
+
 type workspaceBaseEnvironmentOperationMetadataWire struct {
+}
+
+func workspaceBaseEnvironmentOperationMetadataToWire(v *WorkspaceBaseEnvironmentOperationMetadata) (*workspaceBaseEnvironmentOperationMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &workspaceBaseEnvironmentOperationMetadataWire{}, nil
 }
 
 func workspaceBaseEnvironmentOperationMetadataFromWire(w *workspaceBaseEnvironmentOperationMetadataWire) (*WorkspaceBaseEnvironmentOperationMetadata, error) {

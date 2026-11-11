@@ -81,6 +81,27 @@ func createRepoRequestToWire(v *CreateRepoRequest) (*createRepoRequestWire, erro
 	}, nil
 }
 
+func createRepoRequestFromWire(w *createRepoRequestWire) (*CreateRepoRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sparseCheckoutPublicValue, err := sparseCheckoutFromWire(w.SparseCheckout)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRepoRequest.SparseCheckout", err)
+	}
+	gitCredentialIdPublicValue, err := int64FromWire(w.GitCredentialId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRepoRequest.GitCredentialId", err)
+	}
+	return &CreateRepoRequest{
+		Url:             w.Url,
+		Provider:        w.Provider,
+		Path:            w.Path,
+		SparseCheckout:  sparseCheckoutPublicValue,
+		GitCredentialId: gitCredentialIdPublicValue,
+	}, nil
+}
+
 type createRepoResponseWire struct {
 	Id             *wireInt64          `json:"id,omitempty"`
 	Path           *string             `json:"path,omitempty"`
@@ -89,6 +110,29 @@ type createRepoResponseWire struct {
 	Branch         *string             `json:"branch,omitempty"`
 	HeadCommitId   *string             `json:"head_commit_id,omitempty"`
 	SparseCheckout *sparseCheckoutWire `json:"sparse_checkout,omitempty"`
+}
+
+func createRepoResponseToWire(v *CreateRepoResponse) (*createRepoResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	idWireValue, err := int64ToWire(v.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRepoResponse.Id", err)
+	}
+	sparseCheckoutWireValue, err := sparseCheckoutToWire(v.SparseCheckout)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRepoResponse.SparseCheckout", err)
+	}
+	return &createRepoResponseWire{
+		Id:             idWireValue,
+		Path:           v.Path,
+		Url:            v.Url,
+		Provider:       v.Provider,
+		Branch:         v.Branch,
+		HeadCommitId:   v.HeadCommitId,
+		SparseCheckout: sparseCheckoutWireValue,
+	}, nil
 }
 
 func createRepoResponseFromWire(w *createRepoResponseWire) (*CreateRepoResponse, error) {
@@ -114,6 +158,83 @@ func createRepoResponseFromWire(w *createRepoResponseWire) (*CreateRepoResponse,
 	}, nil
 }
 
+type deleteRepoRequestWire struct {
+	Id *wireInt64 `json:"id,omitempty"`
+}
+
+func deleteRepoRequestToWire(v *DeleteRepoRequest) (*deleteRepoRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	idWireValue, err := int64ToWire(v.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteRepoRequest.Id", err)
+	}
+	return &deleteRepoRequestWire{
+		Id: idWireValue,
+	}, nil
+}
+
+func deleteRepoRequestFromWire(w *deleteRepoRequestWire) (*DeleteRepoRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	idPublicValue, err := int64FromWire(w.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteRepoRequest.Id", err)
+	}
+	return &DeleteRepoRequest{
+		Id: idPublicValue,
+	}, nil
+}
+
+type deleteRepoResponseWire struct {
+}
+
+func deleteRepoResponseToWire(v *DeleteRepoResponse) (*deleteRepoResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteRepoResponseWire{}, nil
+}
+
+func deleteRepoResponseFromWire(w *deleteRepoResponseWire) (*DeleteRepoResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRepoResponse{}, nil
+}
+
+type getRepoRequestWire struct {
+	Id *wireInt64 `json:"id,omitempty"`
+}
+
+func getRepoRequestToWire(v *GetRepoRequest) (*getRepoRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	idWireValue, err := int64ToWire(v.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRepoRequest.Id", err)
+	}
+	return &getRepoRequestWire{
+		Id: idWireValue,
+	}, nil
+}
+
+func getRepoRequestFromWire(w *getRepoRequestWire) (*GetRepoRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	idPublicValue, err := int64FromWire(w.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRepoRequest.Id", err)
+	}
+	return &GetRepoRequest{
+		Id: idPublicValue,
+	}, nil
+}
+
 type getRepoResponseWire struct {
 	Id             *wireInt64          `json:"id,omitempty"`
 	Path           *string             `json:"path,omitempty"`
@@ -123,6 +244,30 @@ type getRepoResponseWire struct {
 	HeadCommitId   *string             `json:"head_commit_id,omitempty"`
 	SparseCheckout *sparseCheckoutWire `json:"sparse_checkout,omitempty"`
 	GitCliEnabled  *bool               `json:"git_cli_enabled,omitempty"`
+}
+
+func getRepoResponseToWire(v *GetRepoResponse) (*getRepoResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	idWireValue, err := int64ToWire(v.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRepoResponse.Id", err)
+	}
+	sparseCheckoutWireValue, err := sparseCheckoutToWire(v.SparseCheckout)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRepoResponse.SparseCheckout", err)
+	}
+	return &getRepoResponseWire{
+		Id:             idWireValue,
+		Path:           v.Path,
+		Url:            v.Url,
+		Provider:       v.Provider,
+		Branch:         v.Branch,
+		HeadCommitId:   v.HeadCommitId,
+		SparseCheckout: sparseCheckoutWireValue,
+		GitCliEnabled:  v.GitCliEnabled,
+	}, nil
 }
 
 func getRepoResponseFromWire(w *getRepoResponseWire) (*GetRepoResponse, error) {
@@ -164,9 +309,33 @@ func listReposRequestToWire(v *ListReposRequest) (*listReposRequestWire, error) 
 	}, nil
 }
 
+func listReposRequestFromWire(w *listReposRequestWire) (*ListReposRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListReposRequest{
+		PathPrefix:    w.PathPrefix,
+		NextPageToken: w.NextPageToken,
+	}, nil
+}
+
 type listReposResponseWire struct {
 	Repos         []repoInfoWire `json:"repos,omitempty"`
 	NextPageToken *string        `json:"next_page_token,omitempty"`
+}
+
+func listReposResponseToWire(v *ListReposResponse) (*listReposResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	reposWireValue, err := convertSlice(v.Repos, repoInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListReposResponse.Repos", err)
+	}
+	return &listReposResponseWire{
+		Repos:         reposWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listReposResponseFromWire(w *listReposResponseWire) (*ListReposResponse, error) {
@@ -191,6 +360,29 @@ type repoInfoWire struct {
 	Branch         *string             `json:"branch,omitempty"`
 	HeadCommitId   *string             `json:"head_commit_id,omitempty"`
 	SparseCheckout *sparseCheckoutWire `json:"sparse_checkout,omitempty"`
+}
+
+func repoInfoToWire(v *RepoInfo) (*repoInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	idWireValue, err := int64ToWire(v.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RepoInfo.Id", err)
+	}
+	sparseCheckoutWireValue, err := sparseCheckoutToWire(v.SparseCheckout)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RepoInfo.SparseCheckout", err)
+	}
+	return &repoInfoWire{
+		Id:             idWireValue,
+		Path:           v.Path,
+		Url:            v.Url,
+		Provider:       v.Provider,
+		Branch:         v.Branch,
+		HeadCommitId:   v.HeadCommitId,
+		SparseCheckout: sparseCheckoutWireValue,
+	}, nil
 }
 
 func repoInfoFromWire(w *repoInfoWire) (*RepoInfo, error) {
@@ -251,6 +443,15 @@ func sparseCheckoutUpdateToWire(v *SparseCheckoutUpdate) (*sparseCheckoutUpdateW
 	}, nil
 }
 
+func sparseCheckoutUpdateFromWire(w *sparseCheckoutUpdateWire) (*SparseCheckoutUpdate, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SparseCheckoutUpdate{
+		Patterns: w.Patterns,
+	}, nil
+}
+
 type updateRepoRequestWire struct {
 	Id                         *wireInt64                `json:"id,omitempty"`
 	Branch                     *string                   `json:"branch,omitempty"`
@@ -284,6 +485,49 @@ func updateRepoRequestToWire(v *UpdateRepoRequest) (*updateRepoRequestWire, erro
 		DangerouslyForceDiscardAll: v.DangerouslyForceDiscardAll,
 		GitCredentialId:            gitCredentialIdWireValue,
 	}, nil
+}
+
+func updateRepoRequestFromWire(w *updateRepoRequestWire) (*UpdateRepoRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	idPublicValue, err := int64FromWire(w.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRepoRequest.Id", err)
+	}
+	sparseCheckoutPublicValue, err := sparseCheckoutUpdateFromWire(w.SparseCheckout)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRepoRequest.SparseCheckout", err)
+	}
+	gitCredentialIdPublicValue, err := int64FromWire(w.GitCredentialId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRepoRequest.GitCredentialId", err)
+	}
+	return &UpdateRepoRequest{
+		Id:                         idPublicValue,
+		Branch:                     w.Branch,
+		Tag:                        w.Tag,
+		SparseCheckout:             sparseCheckoutPublicValue,
+		DangerouslyForceDiscardAll: w.DangerouslyForceDiscardAll,
+		GitCredentialId:            gitCredentialIdPublicValue,
+	}, nil
+}
+
+type updateRepoResponseWire struct {
+}
+
+func updateRepoResponseToWire(v *UpdateRepoResponse) (*updateRepoResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &updateRepoResponseWire{}, nil
+}
+
+func updateRepoResponseFromWire(w *updateRepoResponseWire) (*UpdateRepoResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpdateRepoResponse{}, nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

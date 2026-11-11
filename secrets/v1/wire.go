@@ -57,6 +57,16 @@ type aclItemWire struct {
 	Permission AclPermission `json:"permission,omitempty"`
 }
 
+func aclItemToWire(v *AclItem) (*aclItemWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &aclItemWire{
+		Principal:  v.Principal,
+		Permission: v.Permission,
+	}, nil
+}
+
 func aclItemFromWire(w *aclItemWire) (*AclItem, error) {
 	if w == nil {
 		return nil, nil
@@ -115,6 +125,39 @@ func createScopeRequestToWire(v *CreateScopeRequest) (*createScopeRequestWire, e
 	}, nil
 }
 
+func createScopeRequestFromWire(w *createScopeRequestWire) (*CreateScopeRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	backendAzureKeyvaultPublicValue, err := azureKeyVaultSecretScopeMetadataFromWire(w.BackendAzureKeyvault)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateScopeRequest.BackendAzureKeyvault", err)
+	}
+	return &CreateScopeRequest{
+		Scope:                  w.Scope,
+		InitialManagePrincipal: w.InitialManagePrincipal,
+		ScopeBackendType:       w.ScopeBackendType,
+		BackendAzureKeyvault:   backendAzureKeyvaultPublicValue,
+	}, nil
+}
+
+type createScopeResponseWire struct {
+}
+
+func createScopeResponseToWire(v *CreateScopeResponse) (*createScopeResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createScopeResponseWire{}, nil
+}
+
+func createScopeResponseFromWire(w *createScopeResponseWire) (*CreateScopeResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CreateScopeResponse{}, nil
+}
+
 type deleteAclRequestWire struct {
 	Scope     *string `json:"scope,omitempty"`
 	Principal *string `json:"principal,omitempty"`
@@ -130,6 +173,33 @@ func deleteAclRequestToWire(v *DeleteAclRequest) (*deleteAclRequestWire, error) 
 	}, nil
 }
 
+func deleteAclRequestFromWire(w *deleteAclRequestWire) (*DeleteAclRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteAclRequest{
+		Scope:     w.Scope,
+		Principal: w.Principal,
+	}, nil
+}
+
+type deleteAclResponseWire struct {
+}
+
+func deleteAclResponseToWire(v *DeleteAclResponse) (*deleteAclResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteAclResponseWire{}, nil
+}
+
+func deleteAclResponseFromWire(w *deleteAclResponseWire) (*DeleteAclResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteAclResponse{}, nil
+}
+
 type deleteScopeRequestWire struct {
 	Scope *string `json:"scope,omitempty"`
 }
@@ -141,6 +211,32 @@ func deleteScopeRequestToWire(v *DeleteScopeRequest) (*deleteScopeRequestWire, e
 	return &deleteScopeRequestWire{
 		Scope: v.Scope,
 	}, nil
+}
+
+func deleteScopeRequestFromWire(w *deleteScopeRequestWire) (*DeleteScopeRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteScopeRequest{
+		Scope: w.Scope,
+	}, nil
+}
+
+type deleteScopeResponseWire struct {
+}
+
+func deleteScopeResponseToWire(v *DeleteScopeResponse) (*deleteScopeResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteScopeResponseWire{}, nil
+}
+
+func deleteScopeResponseFromWire(w *deleteScopeResponseWire) (*DeleteScopeResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteScopeResponse{}, nil
 }
 
 type deleteSecretRequestWire struct {
@@ -158,6 +254,33 @@ func deleteSecretRequestToWire(v *DeleteSecretRequest) (*deleteSecretRequestWire
 	}, nil
 }
 
+func deleteSecretRequestFromWire(w *deleteSecretRequestWire) (*DeleteSecretRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteSecretRequest{
+		Scope: w.Scope,
+		Key:   w.Key,
+	}, nil
+}
+
+type deleteSecretResponseWire struct {
+}
+
+func deleteSecretResponseToWire(v *DeleteSecretResponse) (*deleteSecretResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteSecretResponseWire{}, nil
+}
+
+func deleteSecretResponseFromWire(w *deleteSecretResponseWire) (*DeleteSecretResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteSecretResponse{}, nil
+}
+
 type getAclRequestWire struct {
 	Scope     *string `json:"scope,omitempty"`
 	Principal *string `json:"principal,omitempty"`
@@ -170,6 +293,16 @@ func getAclRequestToWire(v *GetAclRequest) (*getAclRequestWire, error) {
 	return &getAclRequestWire{
 		Scope:     v.Scope,
 		Principal: v.Principal,
+	}, nil
+}
+
+func getAclRequestFromWire(w *getAclRequestWire) (*GetAclRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetAclRequest{
+		Scope:     w.Scope,
+		Principal: w.Principal,
 	}, nil
 }
 
@@ -188,9 +321,29 @@ func getSecretRequestToWire(v *GetSecretRequest) (*getSecretRequestWire, error) 
 	}, nil
 }
 
+func getSecretRequestFromWire(w *getSecretRequestWire) (*GetSecretRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetSecretRequest{
+		Scope: w.Scope,
+		Key:   w.Key,
+	}, nil
+}
+
 type getSecretResponseWire struct {
 	Key   *string `json:"key,omitempty"`
 	Value []byte  `json:"value,omitempty"`
+}
+
+func getSecretResponseToWire(v *GetSecretResponse) (*getSecretResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getSecretResponseWire{
+		Key:   v.Key,
+		Value: v.Value,
+	}, nil
 }
 
 func getSecretResponseFromWire(w *getSecretResponseWire) (*GetSecretResponse, error) {
@@ -216,8 +369,30 @@ func listAclsRequestToWire(v *ListAclsRequest) (*listAclsRequestWire, error) {
 	}, nil
 }
 
+func listAclsRequestFromWire(w *listAclsRequestWire) (*ListAclsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListAclsRequest{
+		Scope: w.Scope,
+	}, nil
+}
+
 type listAclsResponseWire struct {
 	Items []aclItemWire `json:"items,omitempty"`
+}
+
+func listAclsResponseToWire(v *ListAclsResponse) (*listAclsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	itemsWireValue, err := convertSlice(v.Items, aclItemToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAclsResponse.Items", err)
+	}
+	return &listAclsResponseWire{
+		Items: itemsWireValue,
+	}, nil
 }
 
 func listAclsResponseFromWire(w *listAclsResponseWire) (*ListAclsResponse, error) {
@@ -233,8 +408,38 @@ func listAclsResponseFromWire(w *listAclsResponseWire) (*ListAclsResponse, error
 	}, nil
 }
 
+type listScopesRequestWire struct {
+}
+
+func listScopesRequestToWire(v *ListScopesRequest) (*listScopesRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listScopesRequestWire{}, nil
+}
+
+func listScopesRequestFromWire(w *listScopesRequestWire) (*ListScopesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListScopesRequest{}, nil
+}
+
 type listScopesResponseWire struct {
 	Scopes []secretScopeWire `json:"scopes,omitempty"`
+}
+
+func listScopesResponseToWire(v *ListScopesResponse) (*listScopesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	scopesWireValue, err := convertSlice(v.Scopes, secretScopeToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListScopesResponse.Scopes", err)
+	}
+	return &listScopesResponseWire{
+		Scopes: scopesWireValue,
+	}, nil
 }
 
 func listScopesResponseFromWire(w *listScopesResponseWire) (*ListScopesResponse, error) {
@@ -263,8 +468,30 @@ func listSecretsRequestToWire(v *ListSecretsRequest) (*listSecretsRequestWire, e
 	}, nil
 }
 
+func listSecretsRequestFromWire(w *listSecretsRequestWire) (*ListSecretsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSecretsRequest{
+		Scope: w.Scope,
+	}, nil
+}
+
 type listSecretsResponseWire struct {
 	Secrets []secretMetadataWire `json:"secrets,omitempty"`
+}
+
+func listSecretsResponseToWire(v *ListSecretsResponse) (*listSecretsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	secretsWireValue, err := convertSlice(v.Secrets, secretMetadataToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSecretsResponse.Secrets", err)
+	}
+	return &listSecretsResponseWire{
+		Secrets: secretsWireValue,
+	}, nil
 }
 
 func listSecretsResponseFromWire(w *listSecretsResponseWire) (*ListSecretsResponse, error) {
@@ -295,6 +522,34 @@ func putAclRequestToWire(v *PutAclRequest) (*putAclRequestWire, error) {
 		Principal:  v.Principal,
 		Permission: v.Permission,
 	}, nil
+}
+
+func putAclRequestFromWire(w *putAclRequestWire) (*PutAclRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PutAclRequest{
+		Scope:      w.Scope,
+		Principal:  w.Principal,
+		Permission: w.Permission,
+	}, nil
+}
+
+type putAclResponseWire struct {
+}
+
+func putAclResponseToWire(v *PutAclResponse) (*putAclResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &putAclResponseWire{}, nil
+}
+
+func putAclResponseFromWire(w *putAclResponseWire) (*PutAclResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PutAclResponse{}, nil
 }
 
 type putSecretRequestWire struct {
@@ -331,9 +586,68 @@ func putSecretRequestToWire(v *PutSecretRequest) (*putSecretRequestWire, error) 
 	}, nil
 }
 
+func putSecretRequestFromWire(w *putSecretRequestWire) (*PutSecretRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	valueMembers := 0
+	if w.StringValue != nil {
+		valueMembers++
+	}
+	if w.BytesValue != nil {
+		valueMembers++
+	}
+	if valueMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "PutSecretRequest.Value")
+	}
+	var valueSelection isPutSecretRequest_Value
+	switch {
+	case w.StringValue != nil:
+		valueSelection = &PutSecretRequest_Value_StringValue{StringValue: *w.StringValue}
+	case w.BytesValue != nil:
+		valueSelection = &PutSecretRequest_Value_BytesValue{BytesValue: w.BytesValue}
+	}
+	return &PutSecretRequest{
+		Scope: w.Scope,
+		Key:   w.Key,
+		Value: valueSelection,
+	}, nil
+}
+
+type putSecretResponseWire struct {
+}
+
+func putSecretResponseToWire(v *PutSecretResponse) (*putSecretResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &putSecretResponseWire{}, nil
+}
+
+func putSecretResponseFromWire(w *putSecretResponseWire) (*PutSecretResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PutSecretResponse{}, nil
+}
+
 type secretMetadataWire struct {
 	Key                  *string    `json:"key,omitempty"`
 	LastUpdatedTimestamp *wireInt64 `json:"last_updated_timestamp,omitempty"`
+}
+
+func secretMetadataToWire(v *SecretMetadata) (*secretMetadataWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	lastUpdatedTimestampWireValue, err := int64ToWire(v.LastUpdatedTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SecretMetadata.LastUpdatedTimestamp", err)
+	}
+	return &secretMetadataWire{
+		Key:                  v.Key,
+		LastUpdatedTimestamp: lastUpdatedTimestampWireValue,
+	}, nil
 }
 
 func secretMetadataFromWire(w *secretMetadataWire) (*SecretMetadata, error) {
@@ -354,6 +668,21 @@ type secretScopeWire struct {
 	Name             *string                               `json:"name,omitempty"`
 	BackendType      ScopeBackendType                      `json:"backend_type,omitempty"`
 	KeyvaultMetadata *azureKeyVaultSecretScopeMetadataWire `json:"keyvault_metadata,omitempty"`
+}
+
+func secretScopeToWire(v *SecretScope) (*secretScopeWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	keyvaultMetadataWireValue, err := azureKeyVaultSecretScopeMetadataToWire(v.KeyvaultMetadata)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SecretScope.KeyvaultMetadata", err)
+	}
+	return &secretScopeWire{
+		Name:             v.Name,
+		BackendType:      v.BackendType,
+		KeyvaultMetadata: keyvaultMetadataWireValue,
+	}, nil
 }
 
 func secretScopeFromWire(w *secretScopeWire) (*SecretScope, error) {

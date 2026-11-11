@@ -54,14 +54,6 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type createAccountFederationPolicyRequestWire struct {
 	AccountId          *string               `json:"account_id,omitempty"`
 	ServicePrincipalId *wireInt64            `json:"service_principal_id,omitempty"`
@@ -86,6 +78,26 @@ func createAccountFederationPolicyRequestToWire(v *CreateAccountFederationPolicy
 		ServicePrincipalId: servicePrincipalIdWireValue,
 		PolicyId:           v.PolicyId,
 		Policy:             policyWireValue,
+	}, nil
+}
+
+func createAccountFederationPolicyRequestFromWire(w *createAccountFederationPolicyRequestWire) (*CreateAccountFederationPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccountFederationPolicyRequest.ServicePrincipalId", err)
+	}
+	policyPublicValue, err := federationPolicyFromWire(w.Policy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateAccountFederationPolicyRequest.Policy", err)
+	}
+	return &CreateAccountFederationPolicyRequest{
+		AccountId:          w.AccountId,
+		ServicePrincipalId: servicePrincipalIdPublicValue,
+		PolicyId:           w.PolicyId,
+		Policy:             policyPublicValue,
 	}, nil
 }
 
@@ -116,6 +128,26 @@ func createServicePrincipalFederationPolicyRequestToWire(v *CreateServicePrincip
 	}, nil
 }
 
+func createServicePrincipalFederationPolicyRequestFromWire(w *createServicePrincipalFederationPolicyRequestWire) (*CreateServicePrincipalFederationPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateServicePrincipalFederationPolicyRequest.ServicePrincipalId", err)
+	}
+	policyPublicValue, err := federationPolicyFromWire(w.Policy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateServicePrincipalFederationPolicyRequest.Policy", err)
+	}
+	return &CreateServicePrincipalFederationPolicyRequest{
+		AccountId:          w.AccountId,
+		ServicePrincipalId: servicePrincipalIdPublicValue,
+		PolicyId:           w.PolicyId,
+		Policy:             policyPublicValue,
+	}, nil
+}
+
 type createServicePrincipalSecretRequestWire struct {
 	AccountId        *string         `json:"account_id,omitempty"`
 	ServicePrincipal *string         `json:"service_principal,omitempty"`
@@ -135,6 +167,18 @@ func createServicePrincipalSecretRequestToWire(v *CreateServicePrincipalSecretRe
 	}, nil
 }
 
+func createServicePrincipalSecretRequestFromWire(w *createServicePrincipalSecretRequestWire) (*CreateServicePrincipalSecretRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CreateServicePrincipalSecretRequest{
+		AccountId:        w.AccountId,
+		ServicePrincipal: w.ServicePrincipal,
+		Lifetime:         w.Lifetime,
+		Scopes:           w.Scopes,
+	}, nil
+}
+
 type createServicePrincipalSecretResponseWire struct {
 	Id         *string     `json:"id,omitempty"`
 	Secret     *string     `json:"secret,omitempty"`
@@ -144,6 +188,22 @@ type createServicePrincipalSecretResponseWire struct {
 	Status     *string     `json:"status,omitempty"`
 	ExpireTime *types.Time `json:"expire_time,omitempty"`
 	Scopes     []string    `json:"scopes,omitempty"`
+}
+
+func createServicePrincipalSecretResponseToWire(v *CreateServicePrincipalSecretResponse) (*createServicePrincipalSecretResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createServicePrincipalSecretResponseWire{
+		Id:         v.Id,
+		Secret:     v.Secret,
+		SecretHash: v.SecretHash,
+		CreateTime: v.CreateTime,
+		UpdateTime: v.UpdateTime,
+		Status:     v.Status,
+		ExpireTime: v.ExpireTime,
+		Scopes:     v.Scopes,
+	}, nil
 }
 
 func createServicePrincipalSecretResponseFromWire(w *createServicePrincipalSecretResponseWire) (*CreateServicePrincipalSecretResponse, error) {
@@ -183,6 +243,57 @@ func deleteAccountFederationPolicyRequestToWire(v *DeleteAccountFederationPolicy
 	}, nil
 }
 
+func deleteAccountFederationPolicyRequestFromWire(w *deleteAccountFederationPolicyRequestWire) (*DeleteAccountFederationPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteAccountFederationPolicyRequest.ServicePrincipalId", err)
+	}
+	return &DeleteAccountFederationPolicyRequest{
+		AccountId:          w.AccountId,
+		ServicePrincipalId: servicePrincipalIdPublicValue,
+		PolicyId:           w.PolicyId,
+	}, nil
+}
+
+type deleteServicePrincipalFederationPolicyRequestWire struct {
+	AccountId          *string    `json:"account_id,omitempty"`
+	ServicePrincipalId *wireInt64 `json:"service_principal_id,omitempty"`
+	PolicyId           *string    `json:"policy_id,omitempty"`
+}
+
+func deleteServicePrincipalFederationPolicyRequestToWire(v *DeleteServicePrincipalFederationPolicyRequest) (*deleteServicePrincipalFederationPolicyRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	servicePrincipalIdWireValue, err := int64ToWire(v.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteServicePrincipalFederationPolicyRequest.ServicePrincipalId", err)
+	}
+	return &deleteServicePrincipalFederationPolicyRequestWire{
+		AccountId:          v.AccountId,
+		ServicePrincipalId: servicePrincipalIdWireValue,
+		PolicyId:           v.PolicyId,
+	}, nil
+}
+
+func deleteServicePrincipalFederationPolicyRequestFromWire(w *deleteServicePrincipalFederationPolicyRequestWire) (*DeleteServicePrincipalFederationPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteServicePrincipalFederationPolicyRequest.ServicePrincipalId", err)
+	}
+	return &DeleteServicePrincipalFederationPolicyRequest{
+		AccountId:          w.AccountId,
+		ServicePrincipalId: servicePrincipalIdPublicValue,
+		PolicyId:           w.PolicyId,
+	}, nil
+}
+
 type deleteServicePrincipalSecretRequestWire struct {
 	AccountId        *string `json:"account_id,omitempty"`
 	ServicePrincipal *string `json:"service_principal,omitempty"`
@@ -198,6 +309,34 @@ func deleteServicePrincipalSecretRequestToWire(v *DeleteServicePrincipalSecretRe
 		ServicePrincipal: v.ServicePrincipal,
 		SecretId:         v.SecretId,
 	}, nil
+}
+
+func deleteServicePrincipalSecretRequestFromWire(w *deleteServicePrincipalSecretRequestWire) (*DeleteServicePrincipalSecretRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteServicePrincipalSecretRequest{
+		AccountId:        w.AccountId,
+		ServicePrincipal: w.ServicePrincipal,
+		SecretId:         w.SecretId,
+	}, nil
+}
+
+type deleteServicePrincipalSecretResponseWire struct {
+}
+
+func deleteServicePrincipalSecretResponseToWire(v *DeleteServicePrincipalSecretResponse) (*deleteServicePrincipalSecretResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteServicePrincipalSecretResponseWire{}, nil
+}
+
+func deleteServicePrincipalSecretResponseFromWire(w *deleteServicePrincipalSecretResponseWire) (*DeleteServicePrincipalSecretResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteServicePrincipalSecretResponse{}, nil
 }
 
 type federationPolicyWire struct {
@@ -302,6 +441,57 @@ func getAccountFederationPolicyRequestToWire(v *GetAccountFederationPolicyReques
 	}, nil
 }
 
+func getAccountFederationPolicyRequestFromWire(w *getAccountFederationPolicyRequestWire) (*GetAccountFederationPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetAccountFederationPolicyRequest.ServicePrincipalId", err)
+	}
+	return &GetAccountFederationPolicyRequest{
+		AccountId:          w.AccountId,
+		ServicePrincipalId: servicePrincipalIdPublicValue,
+		PolicyId:           w.PolicyId,
+	}, nil
+}
+
+type getServicePrincipalFederationPolicyRequestWire struct {
+	AccountId          *string    `json:"account_id,omitempty"`
+	ServicePrincipalId *wireInt64 `json:"service_principal_id,omitempty"`
+	PolicyId           *string    `json:"policy_id,omitempty"`
+}
+
+func getServicePrincipalFederationPolicyRequestToWire(v *GetServicePrincipalFederationPolicyRequest) (*getServicePrincipalFederationPolicyRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	servicePrincipalIdWireValue, err := int64ToWire(v.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetServicePrincipalFederationPolicyRequest.ServicePrincipalId", err)
+	}
+	return &getServicePrincipalFederationPolicyRequestWire{
+		AccountId:          v.AccountId,
+		ServicePrincipalId: servicePrincipalIdWireValue,
+		PolicyId:           v.PolicyId,
+	}, nil
+}
+
+func getServicePrincipalFederationPolicyRequestFromWire(w *getServicePrincipalFederationPolicyRequestWire) (*GetServicePrincipalFederationPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetServicePrincipalFederationPolicyRequest.ServicePrincipalId", err)
+	}
+	return &GetServicePrincipalFederationPolicyRequest{
+		AccountId:          w.AccountId,
+		ServicePrincipalId: servicePrincipalIdPublicValue,
+		PolicyId:           w.PolicyId,
+	}, nil
+}
+
 type listAccountFederationPoliciesRequestWire struct {
 	AccountId          *string    `json:"account_id,omitempty"`
 	ServicePrincipalId *wireInt64 `json:"service_principal_id,omitempty"`
@@ -325,9 +515,39 @@ func listAccountFederationPoliciesRequestToWire(v *ListAccountFederationPolicies
 	}, nil
 }
 
+func listAccountFederationPoliciesRequestFromWire(w *listAccountFederationPoliciesRequestWire) (*ListAccountFederationPoliciesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAccountFederationPoliciesRequest.ServicePrincipalId", err)
+	}
+	return &ListAccountFederationPoliciesRequest{
+		AccountId:          w.AccountId,
+		ServicePrincipalId: servicePrincipalIdPublicValue,
+		PageSize:           w.PageSize,
+		PageToken:          w.PageToken,
+	}, nil
+}
+
 type listFederationPoliciesResponseWire struct {
 	Policies      []federationPolicyWire `json:"policies,omitempty"`
 	NextPageToken *string                `json:"next_page_token,omitempty"`
+}
+
+func listFederationPoliciesResponseToWire(v *ListFederationPoliciesResponse) (*listFederationPoliciesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	policiesWireValue, err := convertSlice(v.Policies, federationPolicyToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListFederationPoliciesResponse.Policies", err)
+	}
+	return &listFederationPoliciesResponseWire{
+		Policies:      policiesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listFederationPoliciesResponseFromWire(w *listFederationPoliciesResponseWire) (*ListFederationPoliciesResponse, error) {
@@ -367,6 +587,22 @@ func listServicePrincipalFederationPoliciesRequestToWire(v *ListServicePrincipal
 	}, nil
 }
 
+func listServicePrincipalFederationPoliciesRequestFromWire(w *listServicePrincipalFederationPoliciesRequestWire) (*ListServicePrincipalFederationPoliciesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListServicePrincipalFederationPoliciesRequest.ServicePrincipalId", err)
+	}
+	return &ListServicePrincipalFederationPoliciesRequest{
+		AccountId:          w.AccountId,
+		ServicePrincipalId: servicePrincipalIdPublicValue,
+		PageSize:           w.PageSize,
+		PageToken:          w.PageToken,
+	}, nil
+}
+
 type listServicePrincipalSecretsRequestWire struct {
 	AccountId        *string `json:"account_id,omitempty"`
 	ServicePrincipal *string `json:"service_principal,omitempty"`
@@ -386,9 +622,35 @@ func listServicePrincipalSecretsRequestToWire(v *ListServicePrincipalSecretsRequ
 	}, nil
 }
 
+func listServicePrincipalSecretsRequestFromWire(w *listServicePrincipalSecretsRequestWire) (*ListServicePrincipalSecretsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListServicePrincipalSecretsRequest{
+		AccountId:        w.AccountId,
+		ServicePrincipal: w.ServicePrincipal,
+		PageToken:        w.PageToken,
+		PageSize:         w.PageSize,
+	}, nil
+}
+
 type listServicePrincipalSecretsResponseWire struct {
 	Secrets       []servicePrincipalSecretWire `json:"secrets,omitempty"`
 	NextPageToken *string                      `json:"next_page_token,omitempty"`
+}
+
+func listServicePrincipalSecretsResponseToWire(v *ListServicePrincipalSecretsResponse) (*listServicePrincipalSecretsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	secretsWireValue, err := convertSlice(v.Secrets, servicePrincipalSecretToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListServicePrincipalSecretsResponse.Secrets", err)
+	}
+	return &listServicePrincipalSecretsResponseWire{
+		Secrets:       secretsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listServicePrincipalSecretsResponseFromWire(w *listServicePrincipalSecretsResponseWire) (*ListServicePrincipalSecretsResponse, error) {
@@ -453,6 +715,22 @@ type servicePrincipalSecretWire struct {
 	Scopes     []string    `json:"scopes,omitempty"`
 }
 
+func servicePrincipalSecretToWire(v *ServicePrincipalSecret) (*servicePrincipalSecretWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &servicePrincipalSecretWire{
+		Id:         v.Id,
+		Secret:     v.Secret,
+		SecretHash: v.SecretHash,
+		CreateTime: v.CreateTime,
+		UpdateTime: v.UpdateTime,
+		Status:     v.Status,
+		ExpireTime: v.ExpireTime,
+		Scopes:     v.Scopes,
+	}, nil
+}
+
 func servicePrincipalSecretFromWire(w *servicePrincipalSecretWire) (*ServicePrincipalSecret, error) {
 	if w == nil {
 		return nil, nil
@@ -470,11 +748,11 @@ func servicePrincipalSecretFromWire(w *servicePrincipalSecretWire) (*ServicePrin
 }
 
 type updateAccountFederationPolicyRequestWire struct {
-	AccountId          *string               `json:"account_id,omitempty"`
-	ServicePrincipalId *wireInt64            `json:"service_principal_id,omitempty"`
-	PolicyId           *string               `json:"policy_id,omitempty"`
-	Policy             *federationPolicyWire `json:"policy,omitempty"`
-	UpdateMask         *string               `json:"update_mask,omitempty"`
+	AccountId          *string                            `json:"account_id,omitempty"`
+	ServicePrincipalId *wireInt64                         `json:"service_principal_id,omitempty"`
+	PolicyId           *string                            `json:"policy_id,omitempty"`
+	Policy             *federationPolicyWire              `json:"policy,omitempty"`
+	UpdateMask         *types.FieldMask[FederationPolicy] `json:"update_mask,omitempty"`
 }
 
 func updateAccountFederationPolicyRequestToWire(v *UpdateAccountFederationPolicyRequest) (*updateAccountFederationPolicyRequestWire, error) {
@@ -494,16 +772,37 @@ func updateAccountFederationPolicyRequestToWire(v *UpdateAccountFederationPolicy
 		ServicePrincipalId: servicePrincipalIdWireValue,
 		PolicyId:           v.PolicyId,
 		Policy:             policyWireValue,
-		UpdateMask:         fieldMaskToWire(v.UpdateMask),
+		UpdateMask:         v.UpdateMask,
+	}, nil
+}
+
+func updateAccountFederationPolicyRequestFromWire(w *updateAccountFederationPolicyRequestWire) (*UpdateAccountFederationPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccountFederationPolicyRequest.ServicePrincipalId", err)
+	}
+	policyPublicValue, err := federationPolicyFromWire(w.Policy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAccountFederationPolicyRequest.Policy", err)
+	}
+	return &UpdateAccountFederationPolicyRequest{
+		AccountId:          w.AccountId,
+		ServicePrincipalId: servicePrincipalIdPublicValue,
+		PolicyId:           w.PolicyId,
+		Policy:             policyPublicValue,
+		UpdateMask:         w.UpdateMask,
 	}, nil
 }
 
 type updateServicePrincipalFederationPolicyRequestWire struct {
-	AccountId          *string               `json:"account_id,omitempty"`
-	ServicePrincipalId *wireInt64            `json:"service_principal_id,omitempty"`
-	PolicyId           *string               `json:"policy_id,omitempty"`
-	Policy             *federationPolicyWire `json:"policy,omitempty"`
-	UpdateMask         *string               `json:"update_mask,omitempty"`
+	AccountId          *string                            `json:"account_id,omitempty"`
+	ServicePrincipalId *wireInt64                         `json:"service_principal_id,omitempty"`
+	PolicyId           *string                            `json:"policy_id,omitempty"`
+	Policy             *federationPolicyWire              `json:"policy,omitempty"`
+	UpdateMask         *types.FieldMask[FederationPolicy] `json:"update_mask,omitempty"`
 }
 
 func updateServicePrincipalFederationPolicyRequestToWire(v *UpdateServicePrincipalFederationPolicyRequest) (*updateServicePrincipalFederationPolicyRequestWire, error) {
@@ -523,7 +822,28 @@ func updateServicePrincipalFederationPolicyRequestToWire(v *UpdateServicePrincip
 		ServicePrincipalId: servicePrincipalIdWireValue,
 		PolicyId:           v.PolicyId,
 		Policy:             policyWireValue,
-		UpdateMask:         fieldMaskToWire(v.UpdateMask),
+		UpdateMask:         v.UpdateMask,
+	}, nil
+}
+
+func updateServicePrincipalFederationPolicyRequestFromWire(w *updateServicePrincipalFederationPolicyRequestWire) (*UpdateServicePrincipalFederationPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	servicePrincipalIdPublicValue, err := int64FromWire(w.ServicePrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateServicePrincipalFederationPolicyRequest.ServicePrincipalId", err)
+	}
+	policyPublicValue, err := federationPolicyFromWire(w.Policy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateServicePrincipalFederationPolicyRequest.Policy", err)
+	}
+	return &UpdateServicePrincipalFederationPolicyRequest{
+		AccountId:          w.AccountId,
+		ServicePrincipalId: servicePrincipalIdPublicValue,
+		PolicyId:           w.PolicyId,
+		Policy:             policyPublicValue,
+		UpdateMask:         w.UpdateMask,
 	}, nil
 }
 

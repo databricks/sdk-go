@@ -109,6 +109,82 @@ func createVolumeRequestToWire(v *CreateVolumeRequest) (*createVolumeRequestWire
 	}, nil
 }
 
+func createVolumeRequestFromWire(w *createVolumeRequestWire) (*CreateVolumeRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateVolumeRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateVolumeRequest.UpdatedAt", err)
+	}
+	encryptionDetailsPublicValue, err := encryptionDetailsFromWire(w.EncryptionDetails)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateVolumeRequest.EncryptionDetails", err)
+	}
+	return &CreateVolumeRequest{
+		Name:              w.Name,
+		CatalogName:       w.CatalogName,
+		SchemaName:        w.SchemaName,
+		VolumeType:        w.VolumeType,
+		StorageLocation:   w.StorageLocation,
+		Owner:             w.Owner,
+		Comment:           w.Comment,
+		FullName:          w.FullName,
+		VolumeId:          w.VolumeId,
+		MetastoreId:       w.MetastoreId,
+		CreatedAt:         createdAtPublicValue,
+		CreatedBy:         w.CreatedBy,
+		UpdatedAt:         updatedAtPublicValue,
+		UpdatedBy:         w.UpdatedBy,
+		AccessPoint:       w.AccessPoint,
+		EncryptionDetails: encryptionDetailsPublicValue,
+		BrowseOnly:        w.BrowseOnly,
+	}, nil
+}
+
+type deleteVolumeRequestWire struct {
+	FullNameArg *string `json:"full_name_arg,omitempty"`
+}
+
+func deleteVolumeRequestToWire(v *DeleteVolumeRequest) (*deleteVolumeRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteVolumeRequestWire{
+		FullNameArg: v.FullNameArg,
+	}, nil
+}
+
+func deleteVolumeRequestFromWire(w *deleteVolumeRequestWire) (*DeleteVolumeRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteVolumeRequest{
+		FullNameArg: w.FullNameArg,
+	}, nil
+}
+
+type deleteVolumeResponseWire struct {
+}
+
+func deleteVolumeResponseToWire(v *DeleteVolumeResponse) (*deleteVolumeResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteVolumeResponseWire{}, nil
+}
+
+func deleteVolumeResponseFromWire(w *deleteVolumeResponseWire) (*DeleteVolumeResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteVolumeResponse{}, nil
+}
+
 type encryptionDetailsWire struct {
 	SseEncryptionDetails *sseEncryptionDetailsWire `json:"sse_encryption_details,omitempty"`
 }
@@ -176,6 +252,16 @@ func getVolumeRequestToWire(v *GetVolumeRequest) (*getVolumeRequestWire, error) 
 	}, nil
 }
 
+func getVolumeRequestFromWire(w *getVolumeRequestWire) (*GetVolumeRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetVolumeRequest{
+		FullNameArg:   w.FullNameArg,
+		IncludeBrowse: w.IncludeBrowse,
+	}, nil
+}
+
 type listVolumesRequestWire struct {
 	CatalogName   *string `json:"catalog_name,omitempty"`
 	SchemaName    *string `json:"schema_name,omitempty"`
@@ -197,9 +283,36 @@ func listVolumesRequestToWire(v *ListVolumesRequest) (*listVolumesRequestWire, e
 	}, nil
 }
 
+func listVolumesRequestFromWire(w *listVolumesRequestWire) (*ListVolumesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListVolumesRequest{
+		CatalogName:   w.CatalogName,
+		SchemaName:    w.SchemaName,
+		IncludeBrowse: w.IncludeBrowse,
+		MaxResults:    w.MaxResults,
+		PageToken:     w.PageToken,
+	}, nil
+}
+
 type listVolumesResponseWire struct {
 	Volumes       []volumeInfoWire `json:"volumes,omitempty"`
 	NextPageToken *string          `json:"next_page_token,omitempty"`
+}
+
+func listVolumesResponseToWire(v *ListVolumesResponse) (*listVolumesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	volumesWireValue, err := convertSlice(v.Volumes, volumeInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListVolumesResponse.Volumes", err)
+	}
+	return &listVolumesResponseWire{
+		Volumes:       volumesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listVolumesResponseFromWire(w *listVolumesResponseWire) (*ListVolumesResponse, error) {
@@ -302,6 +415,45 @@ func updateVolumeRequestToWire(v *UpdateVolumeRequest) (*updateVolumeRequestWire
 	}, nil
 }
 
+func updateVolumeRequestFromWire(w *updateVolumeRequestWire) (*UpdateVolumeRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateVolumeRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateVolumeRequest.UpdatedAt", err)
+	}
+	encryptionDetailsPublicValue, err := encryptionDetailsFromWire(w.EncryptionDetails)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateVolumeRequest.EncryptionDetails", err)
+	}
+	return &UpdateVolumeRequest{
+		FullNameArg:       w.FullNameArg,
+		NewName:           w.NewName,
+		Name:              w.Name,
+		CatalogName:       w.CatalogName,
+		SchemaName:        w.SchemaName,
+		VolumeType:        w.VolumeType,
+		StorageLocation:   w.StorageLocation,
+		Owner:             w.Owner,
+		Comment:           w.Comment,
+		FullName:          w.FullName,
+		VolumeId:          w.VolumeId,
+		MetastoreId:       w.MetastoreId,
+		CreatedAt:         createdAtPublicValue,
+		CreatedBy:         w.CreatedBy,
+		UpdatedAt:         updatedAtPublicValue,
+		UpdatedBy:         w.UpdatedBy,
+		AccessPoint:       w.AccessPoint,
+		EncryptionDetails: encryptionDetailsPublicValue,
+		BrowseOnly:        w.BrowseOnly,
+	}, nil
+}
+
 type volumeInfoWire struct {
 	Name              *string                `json:"name,omitempty"`
 	CatalogName       *string                `json:"catalog_name,omitempty"`
@@ -320,6 +472,43 @@ type volumeInfoWire struct {
 	AccessPoint       *string                `json:"access_point,omitempty"`
 	EncryptionDetails *encryptionDetailsWire `json:"encryption_details,omitempty"`
 	BrowseOnly        *bool                  `json:"browse_only,omitempty"`
+}
+
+func volumeInfoToWire(v *VolumeInfo) (*volumeInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "VolumeInfo.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "VolumeInfo.UpdatedAt", err)
+	}
+	encryptionDetailsWireValue, err := encryptionDetailsToWire(v.EncryptionDetails)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "VolumeInfo.EncryptionDetails", err)
+	}
+	return &volumeInfoWire{
+		Name:              v.Name,
+		CatalogName:       v.CatalogName,
+		SchemaName:        v.SchemaName,
+		VolumeType:        v.VolumeType,
+		StorageLocation:   v.StorageLocation,
+		Owner:             v.Owner,
+		Comment:           v.Comment,
+		FullName:          v.FullName,
+		VolumeId:          v.VolumeId,
+		MetastoreId:       v.MetastoreId,
+		CreatedAt:         createdAtWireValue,
+		CreatedBy:         v.CreatedBy,
+		UpdatedAt:         updatedAtWireValue,
+		UpdatedBy:         v.UpdatedBy,
+		AccessPoint:       v.AccessPoint,
+		EncryptionDetails: encryptionDetailsWireValue,
+		BrowseOnly:        v.BrowseOnly,
+	}, nil
 }
 
 func volumeInfoFromWire(w *volumeInfoWire) (*VolumeInfo, error) {

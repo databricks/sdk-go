@@ -125,6 +125,40 @@ func createRegisteredModelRequestToWire(v *CreateRegisteredModelRequest) (*creat
 	}, nil
 }
 
+func createRegisteredModelRequestFromWire(w *createRegisteredModelRequestWire) (*CreateRegisteredModelRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRegisteredModelRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRegisteredModelRequest.UpdatedAt", err)
+	}
+	aliasesPublicValue, err := convertSlice(w.Aliases, registeredModelAliasInfoFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRegisteredModelRequest.Aliases", err)
+	}
+	return &CreateRegisteredModelRequest{
+		Name:            w.Name,
+		CatalogName:     w.CatalogName,
+		SchemaName:      w.SchemaName,
+		Owner:           w.Owner,
+		Comment:         w.Comment,
+		StorageLocation: w.StorageLocation,
+		MetastoreId:     w.MetastoreId,
+		FullName:        w.FullName,
+		CreatedAt:       createdAtPublicValue,
+		CreatedBy:       w.CreatedBy,
+		UpdatedAt:       updatedAtPublicValue,
+		UpdatedBy:       w.UpdatedBy,
+		Aliases:         aliasesPublicValue,
+		BrowseOnly:      w.BrowseOnly,
+	}, nil
+}
+
 type credentialDependencyWire struct {
 	CredentialName *string `json:"credential_name,omitempty"`
 }
@@ -145,6 +179,137 @@ func credentialDependencyFromWire(w *credentialDependencyWire) (*CredentialDepen
 	return &CredentialDependency{
 		CredentialName: w.CredentialName,
 	}, nil
+}
+
+type deleteModelVersionRequestWire struct {
+	FullNameArg *string    `json:"full_name_arg,omitempty"`
+	VersionArg  *wireInt64 `json:"version_arg,omitempty"`
+}
+
+func deleteModelVersionRequestToWire(v *DeleteModelVersionRequest) (*deleteModelVersionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	versionArgWireValue, err := int64ToWire(v.VersionArg)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteModelVersionRequest.VersionArg", err)
+	}
+	return &deleteModelVersionRequestWire{
+		FullNameArg: v.FullNameArg,
+		VersionArg:  versionArgWireValue,
+	}, nil
+}
+
+func deleteModelVersionRequestFromWire(w *deleteModelVersionRequestWire) (*DeleteModelVersionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	versionArgPublicValue, err := int64FromWire(w.VersionArg)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteModelVersionRequest.VersionArg", err)
+	}
+	return &DeleteModelVersionRequest{
+		FullNameArg: w.FullNameArg,
+		VersionArg:  versionArgPublicValue,
+	}, nil
+}
+
+type deleteModelVersionResponseWire struct {
+}
+
+func deleteModelVersionResponseToWire(v *DeleteModelVersionResponse) (*deleteModelVersionResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteModelVersionResponseWire{}, nil
+}
+
+func deleteModelVersionResponseFromWire(w *deleteModelVersionResponseWire) (*DeleteModelVersionResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteModelVersionResponse{}, nil
+}
+
+type deleteRegisteredModelAliasRequestWire struct {
+	FullNameArg *string `json:"full_name_arg,omitempty"`
+	AliasArg    *string `json:"alias_arg,omitempty"`
+}
+
+func deleteRegisteredModelAliasRequestToWire(v *DeleteRegisteredModelAliasRequest) (*deleteRegisteredModelAliasRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteRegisteredModelAliasRequestWire{
+		FullNameArg: v.FullNameArg,
+		AliasArg:    v.AliasArg,
+	}, nil
+}
+
+func deleteRegisteredModelAliasRequestFromWire(w *deleteRegisteredModelAliasRequestWire) (*DeleteRegisteredModelAliasRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRegisteredModelAliasRequest{
+		FullNameArg: w.FullNameArg,
+		AliasArg:    w.AliasArg,
+	}, nil
+}
+
+type deleteRegisteredModelAliasResponseWire struct {
+}
+
+func deleteRegisteredModelAliasResponseToWire(v *DeleteRegisteredModelAliasResponse) (*deleteRegisteredModelAliasResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteRegisteredModelAliasResponseWire{}, nil
+}
+
+func deleteRegisteredModelAliasResponseFromWire(w *deleteRegisteredModelAliasResponseWire) (*DeleteRegisteredModelAliasResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRegisteredModelAliasResponse{}, nil
+}
+
+type deleteRegisteredModelRequestWire struct {
+	FullNameArg *string `json:"full_name_arg,omitempty"`
+}
+
+func deleteRegisteredModelRequestToWire(v *DeleteRegisteredModelRequest) (*deleteRegisteredModelRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteRegisteredModelRequestWire{
+		FullNameArg: v.FullNameArg,
+	}, nil
+}
+
+func deleteRegisteredModelRequestFromWire(w *deleteRegisteredModelRequestWire) (*DeleteRegisteredModelRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRegisteredModelRequest{
+		FullNameArg: w.FullNameArg,
+	}, nil
+}
+
+type deleteRegisteredModelResponseWire struct {
+}
+
+func deleteRegisteredModelResponseToWire(v *DeleteRegisteredModelResponse) (*deleteRegisteredModelResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteRegisteredModelResponseWire{}, nil
+}
+
+func deleteRegisteredModelResponseFromWire(w *deleteRegisteredModelResponseWire) (*DeleteRegisteredModelResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRegisteredModelResponse{}, nil
 }
 
 type dependencyWire struct {
@@ -328,6 +493,17 @@ func getModelVersionByAliasRequestToWire(v *GetModelVersionByAliasRequest) (*get
 	}, nil
 }
 
+func getModelVersionByAliasRequestFromWire(w *getModelVersionByAliasRequestWire) (*GetModelVersionByAliasRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetModelVersionByAliasRequest{
+		FullNameArg:    w.FullNameArg,
+		AliasArg:       w.AliasArg,
+		IncludeAliases: w.IncludeAliases,
+	}, nil
+}
+
 type getModelVersionRequestWire struct {
 	FullNameArg    *string    `json:"full_name_arg,omitempty"`
 	VersionArg     *wireInt64 `json:"version_arg,omitempty"`
@@ -351,6 +527,22 @@ func getModelVersionRequestToWire(v *GetModelVersionRequest) (*getModelVersionRe
 	}, nil
 }
 
+func getModelVersionRequestFromWire(w *getModelVersionRequestWire) (*GetModelVersionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	versionArgPublicValue, err := int64FromWire(w.VersionArg)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetModelVersionRequest.VersionArg", err)
+	}
+	return &GetModelVersionRequest{
+		FullNameArg:    w.FullNameArg,
+		VersionArg:     versionArgPublicValue,
+		IncludeAliases: w.IncludeAliases,
+		IncludeBrowse:  w.IncludeBrowse,
+	}, nil
+}
+
 type getRegisteredModelRequestWire struct {
 	FullNameArg    *string `json:"full_name_arg,omitempty"`
 	IncludeAliases *bool   `json:"include_aliases,omitempty"`
@@ -365,6 +557,17 @@ func getRegisteredModelRequestToWire(v *GetRegisteredModelRequest) (*getRegister
 		FullNameArg:    v.FullNameArg,
 		IncludeAliases: v.IncludeAliases,
 		IncludeBrowse:  v.IncludeBrowse,
+	}, nil
+}
+
+func getRegisteredModelRequestFromWire(w *getRegisteredModelRequestWire) (*GetRegisteredModelRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetRegisteredModelRequest{
+		FullNameArg:    w.FullNameArg,
+		IncludeAliases: w.IncludeAliases,
+		IncludeBrowse:  w.IncludeBrowse,
 	}, nil
 }
 
@@ -391,9 +594,39 @@ func listModelVersionsRequestToWire(v *ListModelVersionsRequest) (*listModelVers
 	}, nil
 }
 
+func listModelVersionsRequestFromWire(w *listModelVersionsRequestWire) (*ListModelVersionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	maxResultsPublicValue, err := int64FromWire(w.MaxResults)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListModelVersionsRequest.MaxResults", err)
+	}
+	return &ListModelVersionsRequest{
+		FullNameArg:   w.FullNameArg,
+		MaxResults:    maxResultsPublicValue,
+		PageToken:     w.PageToken,
+		IncludeBrowse: w.IncludeBrowse,
+	}, nil
+}
+
 type listModelVersionsResponseWire struct {
 	ModelVersions []modelVersionInfoWire `json:"model_versions,omitempty"`
 	NextPageToken *string                `json:"next_page_token,omitempty"`
+}
+
+func listModelVersionsResponseToWire(v *ListModelVersionsResponse) (*listModelVersionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	modelVersionsWireValue, err := convertSlice(v.ModelVersions, modelVersionInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListModelVersionsResponse.ModelVersions", err)
+	}
+	return &listModelVersionsResponseWire{
+		ModelVersions: modelVersionsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listModelVersionsResponseFromWire(w *listModelVersionsResponseWire) (*ListModelVersionsResponse, error) {
@@ -435,9 +668,40 @@ func listRegisteredModelsRequestToWire(v *ListRegisteredModelsRequest) (*listReg
 	}, nil
 }
 
+func listRegisteredModelsRequestFromWire(w *listRegisteredModelsRequestWire) (*ListRegisteredModelsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	maxResultsPublicValue, err := int64FromWire(w.MaxResults)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRegisteredModelsRequest.MaxResults", err)
+	}
+	return &ListRegisteredModelsRequest{
+		CatalogName:   w.CatalogName,
+		SchemaName:    w.SchemaName,
+		IncludeBrowse: w.IncludeBrowse,
+		MaxResults:    maxResultsPublicValue,
+		PageToken:     w.PageToken,
+	}, nil
+}
+
 type listRegisteredModelsResponseWire struct {
 	RegisteredModels []registeredModelInfoWire `json:"registered_models,omitempty"`
 	NextPageToken    *string                   `json:"next_page_token,omitempty"`
+}
+
+func listRegisteredModelsResponseToWire(v *ListRegisteredModelsResponse) (*listRegisteredModelsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	registeredModelsWireValue, err := convertSlice(v.RegisteredModels, registeredModelInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRegisteredModelsResponse.RegisteredModels", err)
+	}
+	return &listRegisteredModelsResponseWire{
+		RegisteredModels: registeredModelsWireValue,
+		NextPageToken:    v.NextPageToken,
+	}, nil
 }
 
 func listRegisteredModelsResponseFromWire(w *listRegisteredModelsResponseWire) (*ListRegisteredModelsResponse, error) {
@@ -473,6 +737,56 @@ type modelVersionInfoWire struct {
 	UpdatedBy                *string                        `json:"updated_by,omitempty"`
 	Id                       *string                        `json:"id,omitempty"`
 	Aliases                  []registeredModelAliasInfoWire `json:"aliases,omitempty"`
+}
+
+func modelVersionInfoToWire(v *ModelVersionInfo) (*modelVersionInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	runWorkspaceIdWireValue, err := int64ToWire(v.RunWorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelVersionInfo.RunWorkspaceId", err)
+	}
+	modelVersionDependenciesWireValue, err := dependencyListToWire(v.ModelVersionDependencies)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelVersionInfo.ModelVersionDependencies", err)
+	}
+	versionWireValue, err := int64ToWire(v.Version)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelVersionInfo.Version", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelVersionInfo.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelVersionInfo.UpdatedAt", err)
+	}
+	aliasesWireValue, err := convertSlice(v.Aliases, registeredModelAliasInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ModelVersionInfo.Aliases", err)
+	}
+	return &modelVersionInfoWire{
+		ModelName:                v.ModelName,
+		CatalogName:              v.CatalogName,
+		SchemaName:               v.SchemaName,
+		Source:                   v.Source,
+		Comment:                  v.Comment,
+		RunId:                    v.RunId,
+		RunWorkspaceId:           runWorkspaceIdWireValue,
+		ModelVersionDependencies: modelVersionDependenciesWireValue,
+		Status:                   v.Status,
+		Version:                  versionWireValue,
+		StorageLocation:          v.StorageLocation,
+		MetastoreId:              v.MetastoreId,
+		CreatedAt:                createdAtWireValue,
+		CreatedBy:                v.CreatedBy,
+		UpdatedAt:                updatedAtWireValue,
+		UpdatedBy:                v.UpdatedBy,
+		Id:                       v.Id,
+		Aliases:                  aliasesWireValue,
+	}, nil
 }
 
 func modelVersionInfoFromWire(w *modelVersionInfoWire) (*ModelVersionInfo, error) {
@@ -587,6 +901,40 @@ type registeredModelInfoWire struct {
 	BrowseOnly      *bool                          `json:"browse_only,omitempty"`
 }
 
+func registeredModelInfoToWire(v *RegisteredModelInfo) (*registeredModelInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegisteredModelInfo.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegisteredModelInfo.UpdatedAt", err)
+	}
+	aliasesWireValue, err := convertSlice(v.Aliases, registeredModelAliasInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RegisteredModelInfo.Aliases", err)
+	}
+	return &registeredModelInfoWire{
+		Name:            v.Name,
+		CatalogName:     v.CatalogName,
+		SchemaName:      v.SchemaName,
+		Owner:           v.Owner,
+		Comment:         v.Comment,
+		StorageLocation: v.StorageLocation,
+		MetastoreId:     v.MetastoreId,
+		FullName:        v.FullName,
+		CreatedAt:       createdAtWireValue,
+		CreatedBy:       v.CreatedBy,
+		UpdatedAt:       updatedAtWireValue,
+		UpdatedBy:       v.UpdatedBy,
+		Aliases:         aliasesWireValue,
+		BrowseOnly:      v.BrowseOnly,
+	}, nil
+}
+
 func registeredModelInfoFromWire(w *registeredModelInfoWire) (*RegisteredModelInfo, error) {
 	if w == nil {
 		return nil, nil
@@ -639,6 +987,21 @@ func setRegisteredModelAliasRequestToWire(v *SetRegisteredModelAliasRequest) (*s
 		FullNameArg: v.FullNameArg,
 		AliasArg:    v.AliasArg,
 		VersionNum:  versionNumWireValue,
+	}, nil
+}
+
+func setRegisteredModelAliasRequestFromWire(w *setRegisteredModelAliasRequestWire) (*SetRegisteredModelAliasRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	versionNumPublicValue, err := int64FromWire(w.VersionNum)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SetRegisteredModelAliasRequest.VersionNum", err)
+	}
+	return &SetRegisteredModelAliasRequest{
+		FullNameArg: w.FullNameArg,
+		AliasArg:    w.AliasArg,
+		VersionNum:  versionNumPublicValue,
 	}, nil
 }
 
@@ -743,6 +1106,62 @@ func updateModelVersionRequestToWire(v *UpdateModelVersionRequest) (*updateModel
 	}, nil
 }
 
+func updateModelVersionRequestFromWire(w *updateModelVersionRequestWire) (*UpdateModelVersionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	versionArgPublicValue, err := int64FromWire(w.VersionArg)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateModelVersionRequest.VersionArg", err)
+	}
+	runWorkspaceIdPublicValue, err := int64FromWire(w.RunWorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateModelVersionRequest.RunWorkspaceId", err)
+	}
+	modelVersionDependenciesPublicValue, err := dependencyListFromWire(w.ModelVersionDependencies)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateModelVersionRequest.ModelVersionDependencies", err)
+	}
+	versionPublicValue, err := int64FromWire(w.Version)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateModelVersionRequest.Version", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateModelVersionRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateModelVersionRequest.UpdatedAt", err)
+	}
+	aliasesPublicValue, err := convertSlice(w.Aliases, registeredModelAliasInfoFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateModelVersionRequest.Aliases", err)
+	}
+	return &UpdateModelVersionRequest{
+		FullNameArg:              w.FullNameArg,
+		VersionArg:               versionArgPublicValue,
+		ModelName:                w.ModelName,
+		CatalogName:              w.CatalogName,
+		SchemaName:               w.SchemaName,
+		Source:                   w.Source,
+		Comment:                  w.Comment,
+		RunId:                    w.RunId,
+		RunWorkspaceId:           runWorkspaceIdPublicValue,
+		ModelVersionDependencies: modelVersionDependenciesPublicValue,
+		Status:                   w.Status,
+		Version:                  versionPublicValue,
+		StorageLocation:          w.StorageLocation,
+		MetastoreId:              w.MetastoreId,
+		CreatedAt:                createdAtPublicValue,
+		CreatedBy:                w.CreatedBy,
+		UpdatedAt:                updatedAtPublicValue,
+		UpdatedBy:                w.UpdatedBy,
+		Id:                       w.Id,
+		Aliases:                  aliasesPublicValue,
+	}, nil
+}
+
 type updateRegisteredModelRequestWire struct {
 	FullNameArg     *string                        `json:"full_name_arg,omitempty"`
 	NewName         *string                        `json:"new_name,omitempty"`
@@ -795,6 +1214,42 @@ func updateRegisteredModelRequestToWire(v *UpdateRegisteredModelRequest) (*updat
 		UpdatedBy:       v.UpdatedBy,
 		Aliases:         aliasesWireValue,
 		BrowseOnly:      v.BrowseOnly,
+	}, nil
+}
+
+func updateRegisteredModelRequestFromWire(w *updateRegisteredModelRequestWire) (*UpdateRegisteredModelRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRegisteredModelRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRegisteredModelRequest.UpdatedAt", err)
+	}
+	aliasesPublicValue, err := convertSlice(w.Aliases, registeredModelAliasInfoFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRegisteredModelRequest.Aliases", err)
+	}
+	return &UpdateRegisteredModelRequest{
+		FullNameArg:     w.FullNameArg,
+		NewName:         w.NewName,
+		Name:            w.Name,
+		CatalogName:     w.CatalogName,
+		SchemaName:      w.SchemaName,
+		Owner:           w.Owner,
+		Comment:         w.Comment,
+		StorageLocation: w.StorageLocation,
+		MetastoreId:     w.MetastoreId,
+		FullName:        w.FullName,
+		CreatedAt:       createdAtPublicValue,
+		CreatedBy:       w.CreatedBy,
+		UpdatedAt:       updatedAtPublicValue,
+		UpdatedBy:       w.UpdatedBy,
+		Aliases:         aliasesPublicValue,
+		BrowseOnly:      w.BrowseOnly,
 	}, nil
 }
 

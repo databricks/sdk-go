@@ -1008,8 +1008,12 @@ type CreateKafkaConfigRequest struct {
 }
 
 type CreateMaterializationSetRequest struct {
-	// The materialization set to create. Supply materialization_set_id to choose
-	// the identifier; leave it unset to have one assigned.
+	// The materialization set to create. Set `materialization_set_id` to choose the
+	// identifier, or omit it to have one assigned.
+	//
+	// Members with a cron schedule or table trigger must request the same `paused`
+	// value. An omitted `paused` defaults to `false`. A set can be created paused
+	// only if all members are batch materializations.
 	MaterializationSet *MaterializationSet
 	// Idempotency token for the request. A second request carrying a token that has
 	// already been used returns the operation the first one created, whatever state
@@ -1945,8 +1949,8 @@ type MaterializationFailureNotification struct {
 	FinalAttemptOnly *bool `fieldmask:"final_attempt_only"`
 }
 
-// Notifications for the jobs and pipelines that materialize the features in a
-// set, one field per trigger..
+// Notifications for the jobs and pipelines that materialize features, one field
+// per trigger..
 type MaterializationNotifications struct {
 	// Who to notify when a run succeeds.
 	OnSuccess *MaterializationSuccessNotification `fieldmask:"on_success"`
@@ -2119,8 +2123,9 @@ type MaterializedFeature struct {
 	// The ID of the job that materializes the feature. This is present for both
 	// batch and streaming features.
 	JobId *int64 `fieldmask:"job_id"`
-	// Notification configuration for the jobs and pipelines that materialize this
-	// feature.
+	// Notification configuration around the lifecycle of the job or pipeline that
+	// materializes this feature. Features which are materialized in the same
+	// pipeline will share the same notification.
 	Notifications *MaterializationNotifications `fieldmask:"notifications"`
 	// The ID of the materialization set containing this materialized feature. Unset
 	// for a materialized feature that is not part of a set.

@@ -54,14 +54,6 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type adlsgen2InfoWire struct {
 	Destination *string `json:"destination,omitempty"`
 }
@@ -215,6 +207,33 @@ func cancelPendingClusterEnforcementRequestToWire(v *CancelPendingClusterEnforce
 	}, nil
 }
 
+func cancelPendingClusterEnforcementRequestFromWire(w *cancelPendingClusterEnforcementRequestWire) (*CancelPendingClusterEnforcementRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CancelPendingClusterEnforcementRequest{
+		ClusterId:    w.ClusterId,
+		AllowMissing: w.AllowMissing,
+	}, nil
+}
+
+type cancelPendingClusterEnforcementResponseWire struct {
+}
+
+func cancelPendingClusterEnforcementResponseToWire(v *CancelPendingClusterEnforcementResponse) (*cancelPendingClusterEnforcementResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &cancelPendingClusterEnforcementResponseWire{}, nil
+}
+
+func cancelPendingClusterEnforcementResponseFromWire(w *cancelPendingClusterEnforcementResponseWire) (*CancelPendingClusterEnforcementResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CancelPendingClusterEnforcementResponse{}, nil
+}
+
 type changeClusterOwnerRequestWire struct {
 	ClusterId     *string `json:"cluster_id,omitempty"`
 	OwnerUsername *string `json:"owner_username,omitempty"`
@@ -230,6 +249,33 @@ func changeClusterOwnerRequestToWire(v *ChangeClusterOwnerRequest) (*changeClust
 	}, nil
 }
 
+func changeClusterOwnerRequestFromWire(w *changeClusterOwnerRequestWire) (*ChangeClusterOwnerRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ChangeClusterOwnerRequest{
+		ClusterId:     w.ClusterId,
+		OwnerUsername: w.OwnerUsername,
+	}, nil
+}
+
+type changeClusterOwnerResponseWire struct {
+}
+
+func changeClusterOwnerResponseToWire(v *ChangeClusterOwnerResponse) (*changeClusterOwnerResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &changeClusterOwnerResponseWire{}, nil
+}
+
+func changeClusterOwnerResponseFromWire(w *changeClusterOwnerResponseWire) (*ChangeClusterOwnerResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ChangeClusterOwnerResponse{}, nil
+}
+
 type cloneClusterWire struct {
 	SourceClusterId *string `json:"source_cluster_id,omitempty"`
 }
@@ -243,8 +289,26 @@ func cloneClusterToWire(v *CloneCluster) (*cloneClusterWire, error) {
 	}, nil
 }
 
+func cloneClusterFromWire(w *cloneClusterWire) (*CloneCluster, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CloneCluster{
+		SourceClusterId: w.SourceClusterId,
+	}, nil
+}
+
 type cloudProviderNodeInfoWire struct {
 	Status []CloudProviderNodeStatus `json:"status,omitempty"`
+}
+
+func cloudProviderNodeInfoToWire(v *CloudProviderNodeInfo) (*cloudProviderNodeInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &cloudProviderNodeInfoWire{
+		Status: v.Status,
+	}, nil
 }
 
 func cloudProviderNodeInfoFromWire(w *cloudProviderNodeInfoWire) (*CloudProviderNodeInfo, error) {
@@ -289,6 +353,82 @@ type clusterAttributesWire struct {
 	RemoteDiskThroughput       *int                     `json:"remote_disk_throughput,omitempty"`
 	TotalInitialRemoteDiskSize *int                     `json:"total_initial_remote_disk_size,omitempty"`
 	DependencyMode             DependencyMode           `json:"dependency_mode,omitempty"`
+}
+
+func clusterAttributesToWire(v *ClusterAttributes) (*clusterAttributesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	awsAttributesWireValue, err := awsAttributesToWire(v.AwsAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterAttributes.AwsAttributes", err)
+	}
+	azureAttributesWireValue, err := azureAttributesToWire(v.AzureAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterAttributes.AzureAttributes", err)
+	}
+	gcpAttributesWireValue, err := gcpAttributesToWire(v.GcpAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterAttributes.GcpAttributes", err)
+	}
+	workerNodeTypeFlexibilityWireValue, err := nodeTypeFlexibilityToWire(v.WorkerNodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterAttributes.WorkerNodeTypeFlexibility", err)
+	}
+	driverNodeTypeFlexibilityWireValue, err := nodeTypeFlexibilityToWire(v.DriverNodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterAttributes.DriverNodeTypeFlexibility", err)
+	}
+	clusterLogConfWireValue, err := clusterLogConfToWire(v.ClusterLogConf)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterAttributes.ClusterLogConf", err)
+	}
+	initScriptsWireValue, err := convertSlice(v.InitScripts, initScriptInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterAttributes.InitScripts", err)
+	}
+	dockerImageWireValue, err := dockerImageToWire(v.DockerImage)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterAttributes.DockerImage", err)
+	}
+	workloadTypeWireValue, err := workloadTypeToWire(v.WorkloadType)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterAttributes.WorkloadType", err)
+	}
+	return &clusterAttributesWire{
+		ClusterName:                v.ClusterName,
+		SparkVersion:               v.SparkVersion,
+		SparkConf:                  v.SparkConf,
+		AwsAttributes:              awsAttributesWireValue,
+		AzureAttributes:            azureAttributesWireValue,
+		GcpAttributes:              gcpAttributesWireValue,
+		NodeTypeId:                 v.NodeTypeId,
+		DriverNodeTypeId:           v.DriverNodeTypeId,
+		WorkerNodeTypeFlexibility:  workerNodeTypeFlexibilityWireValue,
+		DriverNodeTypeFlexibility:  driverNodeTypeFlexibilityWireValue,
+		SshPublicKeys:              v.SshPublicKeys,
+		CustomTags:                 v.CustomTags,
+		ClusterLogConf:             clusterLogConfWireValue,
+		SparkEnvVars:               v.SparkEnvVars,
+		AutoterminationMinutes:     v.AutoterminationMinutes,
+		EnableElasticDisk:          v.EnableElasticDisk,
+		InitScripts:                initScriptsWireValue,
+		DockerImage:                dockerImageWireValue,
+		InstancePoolId:             v.InstancePoolId,
+		SingleUserName:             v.SingleUserName,
+		PolicyId:                   v.PolicyId,
+		EnableLocalDiskEncryption:  v.EnableLocalDiskEncryption,
+		DriverInstancePoolId:       v.DriverInstancePoolId,
+		WorkloadType:               workloadTypeWireValue,
+		DataSecurityMode:           v.DataSecurityMode,
+		RuntimeEngine:              v.RuntimeEngine,
+		Kind:                       v.Kind,
+		UseMlRuntime:               v.UseMlRuntime,
+		IsSingleNode:               v.IsSingleNode,
+		RemoteDiskThroughput:       v.RemoteDiskThroughput,
+		TotalInitialRemoteDiskSize: v.TotalInitialRemoteDiskSize,
+		DependencyMode:             v.DependencyMode,
+	}, nil
 }
 
 func clusterAttributesFromWire(w *clusterAttributesWire) (*ClusterAttributes, error) {
@@ -374,6 +514,22 @@ type clusterComplianceWire struct {
 	PendingEnforcement *pendingEnforcementWire `json:"pending_enforcement,omitempty"`
 }
 
+func clusterComplianceToWire(v *ClusterCompliance) (*clusterComplianceWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	pendingEnforcementWireValue, err := pendingEnforcementToWire(v.PendingEnforcement)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterCompliance.PendingEnforcement", err)
+	}
+	return &clusterComplianceWire{
+		ClusterId:          v.ClusterId,
+		IsCompliant:        v.IsCompliant,
+		Violations:         v.Violations,
+		PendingEnforcement: pendingEnforcementWireValue,
+	}, nil
+}
+
 func clusterComplianceFromWire(w *clusterComplianceWire) (*ClusterCompliance, error) {
 	if w == nil {
 		return nil, nil
@@ -396,6 +552,31 @@ type clusterEventWire struct {
 	Type                  ClusterEventType_ClusterEventType `json:"type,omitempty"`
 	Details               *eventDetailsWire                 `json:"details,omitempty"`
 	DataPlaneEventDetails *dataPlaneEventDetailsWire        `json:"data_plane_event_details,omitempty"`
+}
+
+func clusterEventToWire(v *ClusterEvent) (*clusterEventWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	timestampWireValue, err := int64ToWire(v.Timestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterEvent.Timestamp", err)
+	}
+	detailsWireValue, err := eventDetailsToWire(v.Details)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterEvent.Details", err)
+	}
+	dataPlaneEventDetailsWireValue, err := dataPlaneEventDetailsToWire(v.DataPlaneEventDetails)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterEvent.DataPlaneEventDetails", err)
+	}
+	return &clusterEventWire{
+		ClusterId:             v.ClusterId,
+		Timestamp:             timestampWireValue,
+		Type:                  v.Type,
+		Details:               detailsWireValue,
+		DataPlaneEventDetails: dataPlaneEventDetailsWireValue,
+	}, nil
 }
 
 func clusterEventFromWire(w *clusterEventWire) (*ClusterEvent, error) {
@@ -421,6 +602,23 @@ func clusterEventFromWire(w *clusterEventWire) (*ClusterEvent, error) {
 		Details:               detailsPublicValue,
 		DataPlaneEventDetails: dataPlaneEventDetailsPublicValue,
 	}, nil
+}
+
+type clusterEventTypeWire struct {
+}
+
+func clusterEventTypeToWire(v *ClusterEventType) (*clusterEventTypeWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &clusterEventTypeWire{}, nil
+}
+
+func clusterEventTypeFromWire(w *clusterEventTypeWire) (*ClusterEventType, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ClusterEventType{}, nil
 }
 
 type clusterInfoWire struct {
@@ -476,6 +674,165 @@ type clusterInfoWire struct {
 	LastRestartedTime          *wireInt64                   `json:"last_restarted_time,omitempty"`
 	NumWorkers                 *int                         `json:"num_workers,omitempty"`
 	Autoscale                  *autoScaleWire               `json:"autoscale,omitempty"`
+}
+
+func clusterInfoToWire(v *ClusterInfo) (*clusterInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	clusterMemoryMbWireValue, err := int64ToWire(v.ClusterMemoryMb)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.ClusterMemoryMb", err)
+	}
+	clusterLogStatusWireValue, err := logSyncStatusToWire(v.ClusterLogStatus)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.ClusterLogStatus", err)
+	}
+	terminationReasonWireValue, err := terminationReasonToWire(v.TerminationReason)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.TerminationReason", err)
+	}
+	specWireValue, err := clusterInfo_ComputeSpecToWire(v.Spec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.Spec", err)
+	}
+	driverWireValue, err := sparkInfo_SparkNodeToWire(v.Driver)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.Driver", err)
+	}
+	executorsWireValue, err := convertSlice(v.Executors, sparkInfo_SparkNodeToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.Executors", err)
+	}
+	sparkContextIdWireValue, err := int64ToWire(v.SparkContextId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.SparkContextId", err)
+	}
+	awsAttributesWireValue, err := awsAttributesToWire(v.AwsAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.AwsAttributes", err)
+	}
+	azureAttributesWireValue, err := azureAttributesToWire(v.AzureAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.AzureAttributes", err)
+	}
+	gcpAttributesWireValue, err := gcpAttributesToWire(v.GcpAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.GcpAttributes", err)
+	}
+	workerNodeTypeFlexibilityWireValue, err := nodeTypeFlexibilityToWire(v.WorkerNodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.WorkerNodeTypeFlexibility", err)
+	}
+	driverNodeTypeFlexibilityWireValue, err := nodeTypeFlexibilityToWire(v.DriverNodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.DriverNodeTypeFlexibility", err)
+	}
+	clusterLogConfWireValue, err := clusterLogConfToWire(v.ClusterLogConf)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.ClusterLogConf", err)
+	}
+	initScriptsWireValue, err := convertSlice(v.InitScripts, initScriptInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.InitScripts", err)
+	}
+	dockerImageWireValue, err := dockerImageToWire(v.DockerImage)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.DockerImage", err)
+	}
+	workloadTypeWireValue, err := workloadTypeToWire(v.WorkloadType)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.WorkloadType", err)
+	}
+	startTimeWireValue, err := int64ToWire(v.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.StartTime", err)
+	}
+	terminatedTimeWireValue, err := int64ToWire(v.TerminatedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.TerminatedTime", err)
+	}
+	lastStateLossTimeWireValue, err := int64ToWire(v.LastStateLossTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.LastStateLossTime", err)
+	}
+	lastRestartedTimeWireValue, err := int64ToWire(v.LastRestartedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo.LastRestartedTime", err)
+	}
+	var sizeNumWorkersWire *int
+	var sizeAutoscaleWire *autoScaleWire
+	switch value := v.Size.(type) {
+	case nil:
+	case *ClusterInfo_Size_NumWorkers:
+		if value != nil {
+			sizeNumWorkersWire = new(value.NumWorkers)
+		}
+	case *ClusterInfo_Size_Autoscale:
+		if value != nil {
+			sizeAutoscaleConverted, err := autoScaleToWire(&value.Autoscale)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ClusterInfo.Size.Autoscale", err)
+			}
+			sizeAutoscaleWire = sizeAutoscaleConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "ClusterInfo.Size", value)
+	}
+	return &clusterInfoWire{
+		ClusterId:                  v.ClusterId,
+		CreatorUserName:            v.CreatorUserName,
+		State:                      v.State,
+		StateMessage:               v.StateMessage,
+		ClusterMemoryMb:            clusterMemoryMbWireValue,
+		ClusterCores:               v.ClusterCores,
+		DefaultTags:                v.DefaultTags,
+		ClusterLogStatus:           clusterLogStatusWireValue,
+		TerminationReason:          terminationReasonWireValue,
+		Spec:                       specWireValue,
+		Driver:                     driverWireValue,
+		Executors:                  executorsWireValue,
+		SparkContextId:             sparkContextIdWireValue,
+		JdbcPort:                   v.JdbcPort,
+		ClusterName:                v.ClusterName,
+		SparkVersion:               v.SparkVersion,
+		SparkConf:                  v.SparkConf,
+		AwsAttributes:              awsAttributesWireValue,
+		AzureAttributes:            azureAttributesWireValue,
+		GcpAttributes:              gcpAttributesWireValue,
+		NodeTypeId:                 v.NodeTypeId,
+		DriverNodeTypeId:           v.DriverNodeTypeId,
+		WorkerNodeTypeFlexibility:  workerNodeTypeFlexibilityWireValue,
+		DriverNodeTypeFlexibility:  driverNodeTypeFlexibilityWireValue,
+		SshPublicKeys:              v.SshPublicKeys,
+		CustomTags:                 v.CustomTags,
+		ClusterLogConf:             clusterLogConfWireValue,
+		SparkEnvVars:               v.SparkEnvVars,
+		AutoterminationMinutes:     v.AutoterminationMinutes,
+		EnableElasticDisk:          v.EnableElasticDisk,
+		InitScripts:                initScriptsWireValue,
+		DockerImage:                dockerImageWireValue,
+		InstancePoolId:             v.InstancePoolId,
+		SingleUserName:             v.SingleUserName,
+		PolicyId:                   v.PolicyId,
+		EnableLocalDiskEncryption:  v.EnableLocalDiskEncryption,
+		DriverInstancePoolId:       v.DriverInstancePoolId,
+		WorkloadType:               workloadTypeWireValue,
+		DataSecurityMode:           v.DataSecurityMode,
+		RuntimeEngine:              v.RuntimeEngine,
+		Kind:                       v.Kind,
+		UseMlRuntime:               v.UseMlRuntime,
+		IsSingleNode:               v.IsSingleNode,
+		RemoteDiskThroughput:       v.RemoteDiskThroughput,
+		TotalInitialRemoteDiskSize: v.TotalInitialRemoteDiskSize,
+		DependencyMode:             v.DependencyMode,
+		StartTime:                  startTimeWireValue,
+		TerminatedTime:             terminatedTimeWireValue,
+		LastStateLossTime:          lastStateLossTimeWireValue,
+		LastRestartedTime:          lastRestartedTimeWireValue,
+		NumWorkers:                 sizeNumWorkersWire,
+		Autoscale:                  sizeAutoscaleWire,
+	}, nil
 }
 
 func clusterInfoFromWire(w *clusterInfoWire) (*ClusterInfo, error) {
@@ -676,6 +1033,104 @@ type clusterInfo_ComputeSpecWire struct {
 	Autoscale                  *autoScaleWire           `json:"autoscale,omitempty"`
 }
 
+func clusterInfo_ComputeSpecToWire(v *ClusterInfo_ComputeSpec) (*clusterInfo_ComputeSpecWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	awsAttributesWireValue, err := awsAttributesToWire(v.AwsAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo_ComputeSpec.AwsAttributes", err)
+	}
+	azureAttributesWireValue, err := azureAttributesToWire(v.AzureAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo_ComputeSpec.AzureAttributes", err)
+	}
+	gcpAttributesWireValue, err := gcpAttributesToWire(v.GcpAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo_ComputeSpec.GcpAttributes", err)
+	}
+	workerNodeTypeFlexibilityWireValue, err := nodeTypeFlexibilityToWire(v.WorkerNodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo_ComputeSpec.WorkerNodeTypeFlexibility", err)
+	}
+	driverNodeTypeFlexibilityWireValue, err := nodeTypeFlexibilityToWire(v.DriverNodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo_ComputeSpec.DriverNodeTypeFlexibility", err)
+	}
+	clusterLogConfWireValue, err := clusterLogConfToWire(v.ClusterLogConf)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo_ComputeSpec.ClusterLogConf", err)
+	}
+	initScriptsWireValue, err := convertSlice(v.InitScripts, initScriptInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo_ComputeSpec.InitScripts", err)
+	}
+	dockerImageWireValue, err := dockerImageToWire(v.DockerImage)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo_ComputeSpec.DockerImage", err)
+	}
+	workloadTypeWireValue, err := workloadTypeToWire(v.WorkloadType)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterInfo_ComputeSpec.WorkloadType", err)
+	}
+	var sizeNumWorkersWire *int
+	var sizeAutoscaleWire *autoScaleWire
+	switch value := v.Size.(type) {
+	case nil:
+	case *ClusterInfo_ComputeSpec_Size_NumWorkers:
+		if value != nil {
+			sizeNumWorkersWire = new(value.NumWorkers)
+		}
+	case *ClusterInfo_ComputeSpec_Size_Autoscale:
+		if value != nil {
+			sizeAutoscaleConverted, err := autoScaleToWire(&value.Autoscale)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ClusterInfo_ComputeSpec.Size.Autoscale", err)
+			}
+			sizeAutoscaleWire = sizeAutoscaleConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "ClusterInfo_ComputeSpec.Size", value)
+	}
+	return &clusterInfo_ComputeSpecWire{
+		ApplyPolicyDefaultValues:   v.ApplyPolicyDefaultValues,
+		ClusterName:                v.ClusterName,
+		SparkVersion:               v.SparkVersion,
+		SparkConf:                  v.SparkConf,
+		AwsAttributes:              awsAttributesWireValue,
+		AzureAttributes:            azureAttributesWireValue,
+		GcpAttributes:              gcpAttributesWireValue,
+		NodeTypeId:                 v.NodeTypeId,
+		DriverNodeTypeId:           v.DriverNodeTypeId,
+		WorkerNodeTypeFlexibility:  workerNodeTypeFlexibilityWireValue,
+		DriverNodeTypeFlexibility:  driverNodeTypeFlexibilityWireValue,
+		SshPublicKeys:              v.SshPublicKeys,
+		CustomTags:                 v.CustomTags,
+		ClusterLogConf:             clusterLogConfWireValue,
+		SparkEnvVars:               v.SparkEnvVars,
+		AutoterminationMinutes:     v.AutoterminationMinutes,
+		EnableElasticDisk:          v.EnableElasticDisk,
+		InitScripts:                initScriptsWireValue,
+		DockerImage:                dockerImageWireValue,
+		InstancePoolId:             v.InstancePoolId,
+		SingleUserName:             v.SingleUserName,
+		PolicyId:                   v.PolicyId,
+		EnableLocalDiskEncryption:  v.EnableLocalDiskEncryption,
+		DriverInstancePoolId:       v.DriverInstancePoolId,
+		WorkloadType:               workloadTypeWireValue,
+		DataSecurityMode:           v.DataSecurityMode,
+		RuntimeEngine:              v.RuntimeEngine,
+		Kind:                       v.Kind,
+		UseMlRuntime:               v.UseMlRuntime,
+		IsSingleNode:               v.IsSingleNode,
+		RemoteDiskThroughput:       v.RemoteDiskThroughput,
+		TotalInitialRemoteDiskSize: v.TotalInitialRemoteDiskSize,
+		DependencyMode:             v.DependencyMode,
+		NumWorkers:                 sizeNumWorkersWire,
+		Autoscale:                  sizeAutoscaleWire,
+	}, nil
+}
+
 func clusterInfo_ComputeSpecFromWire(w *clusterInfo_ComputeSpecWire) (*ClusterInfo_ComputeSpec, error) {
 	if w == nil {
 		return nil, nil
@@ -872,6 +1327,35 @@ type clusterSizeWire struct {
 	Autoscale  *autoScaleWire `json:"autoscale,omitempty"`
 }
 
+func clusterSizeToWire(v *ClusterSize) (*clusterSizeWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var sizeNumWorkersWire *int
+	var sizeAutoscaleWire *autoScaleWire
+	switch value := v.Size.(type) {
+	case nil:
+	case *ClusterSize_Size_NumWorkers:
+		if value != nil {
+			sizeNumWorkersWire = new(value.NumWorkers)
+		}
+	case *ClusterSize_Size_Autoscale:
+		if value != nil {
+			sizeAutoscaleConverted, err := autoScaleToWire(&value.Autoscale)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ClusterSize.Size.Autoscale", err)
+			}
+			sizeAutoscaleWire = sizeAutoscaleConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "ClusterSize.Size", value)
+	}
+	return &clusterSizeWire{
+		NumWorkers: sizeNumWorkersWire,
+		Autoscale:  sizeAutoscaleWire,
+	}, nil
+}
+
 func clusterSizeFromWire(w *clusterSizeWire) (*ClusterSize, error) {
 	if w == nil {
 		return nil, nil
@@ -900,6 +1384,23 @@ func clusterSizeFromWire(w *clusterSizeWire) (*ClusterSize, error) {
 	return &ClusterSize{
 		Size: sizeSelection,
 	}, nil
+}
+
+type clusterStateWire struct {
+}
+
+func clusterStateToWire(v *ClusterState) (*clusterStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &clusterStateWire{}, nil
+}
+
+func clusterStateFromWire(w *clusterStateWire) (*ClusterState, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ClusterState{}, nil
 }
 
 type createClusterRequestWire struct {
@@ -1044,8 +1545,121 @@ func createClusterRequestToWire(v *CreateClusterRequest) (*createClusterRequestW
 	}, nil
 }
 
+func createClusterRequestFromWire(w *createClusterRequestWire) (*CreateClusterRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sizeMembers := 0
+	if w.NumWorkers != nil {
+		sizeMembers++
+	}
+	if w.Autoscale != nil {
+		sizeMembers++
+	}
+	if sizeMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "CreateClusterRequest.Size")
+	}
+	cloneFromPublicValue, err := cloneClusterFromWire(w.CloneFrom)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateClusterRequest.CloneFrom", err)
+	}
+	awsAttributesPublicValue, err := awsAttributesFromWire(w.AwsAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateClusterRequest.AwsAttributes", err)
+	}
+	azureAttributesPublicValue, err := azureAttributesFromWire(w.AzureAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateClusterRequest.AzureAttributes", err)
+	}
+	gcpAttributesPublicValue, err := gcpAttributesFromWire(w.GcpAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateClusterRequest.GcpAttributes", err)
+	}
+	workerNodeTypeFlexibilityPublicValue, err := nodeTypeFlexibilityFromWire(w.WorkerNodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateClusterRequest.WorkerNodeTypeFlexibility", err)
+	}
+	driverNodeTypeFlexibilityPublicValue, err := nodeTypeFlexibilityFromWire(w.DriverNodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateClusterRequest.DriverNodeTypeFlexibility", err)
+	}
+	clusterLogConfPublicValue, err := clusterLogConfFromWire(w.ClusterLogConf)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateClusterRequest.ClusterLogConf", err)
+	}
+	initScriptsPublicValue, err := convertSlice(w.InitScripts, initScriptInfoFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateClusterRequest.InitScripts", err)
+	}
+	dockerImagePublicValue, err := dockerImageFromWire(w.DockerImage)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateClusterRequest.DockerImage", err)
+	}
+	workloadTypePublicValue, err := workloadTypeFromWire(w.WorkloadType)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateClusterRequest.WorkloadType", err)
+	}
+	var sizeSelection isCreateClusterRequest_Size
+	switch {
+	case w.NumWorkers != nil:
+		sizeSelection = &CreateClusterRequest_Size_NumWorkers{NumWorkers: *w.NumWorkers}
+	case w.Autoscale != nil:
+		sizeAutoscaleConverted, err := autoScaleFromWire(w.Autoscale)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "CreateClusterRequest.Size.Autoscale", err)
+		}
+		sizeSelection = &CreateClusterRequest_Size_Autoscale{Autoscale: *sizeAutoscaleConverted}
+	}
+	return &CreateClusterRequest{
+		ApplyPolicyDefaultValues:   w.ApplyPolicyDefaultValues,
+		CloneFrom:                  cloneFromPublicValue,
+		ClusterName:                w.ClusterName,
+		SparkVersion:               w.SparkVersion,
+		SparkConf:                  w.SparkConf,
+		AwsAttributes:              awsAttributesPublicValue,
+		AzureAttributes:            azureAttributesPublicValue,
+		GcpAttributes:              gcpAttributesPublicValue,
+		NodeTypeId:                 w.NodeTypeId,
+		DriverNodeTypeId:           w.DriverNodeTypeId,
+		WorkerNodeTypeFlexibility:  workerNodeTypeFlexibilityPublicValue,
+		DriverNodeTypeFlexibility:  driverNodeTypeFlexibilityPublicValue,
+		SshPublicKeys:              w.SshPublicKeys,
+		CustomTags:                 w.CustomTags,
+		ClusterLogConf:             clusterLogConfPublicValue,
+		SparkEnvVars:               w.SparkEnvVars,
+		AutoterminationMinutes:     w.AutoterminationMinutes,
+		EnableElasticDisk:          w.EnableElasticDisk,
+		InitScripts:                initScriptsPublicValue,
+		DockerImage:                dockerImagePublicValue,
+		InstancePoolId:             w.InstancePoolId,
+		SingleUserName:             w.SingleUserName,
+		PolicyId:                   w.PolicyId,
+		EnableLocalDiskEncryption:  w.EnableLocalDiskEncryption,
+		DriverInstancePoolId:       w.DriverInstancePoolId,
+		WorkloadType:               workloadTypePublicValue,
+		DataSecurityMode:           w.DataSecurityMode,
+		RuntimeEngine:              w.RuntimeEngine,
+		Kind:                       w.Kind,
+		UseMlRuntime:               w.UseMlRuntime,
+		IsSingleNode:               w.IsSingleNode,
+		RemoteDiskThroughput:       w.RemoteDiskThroughput,
+		TotalInitialRemoteDiskSize: w.TotalInitialRemoteDiskSize,
+		DependencyMode:             w.DependencyMode,
+		Size:                       sizeSelection,
+	}, nil
+}
+
 type createClusterResponseWire struct {
 	ClusterId *string `json:"cluster_id,omitempty"`
+}
+
+func createClusterResponseToWire(v *CreateClusterResponse) (*createClusterResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createClusterResponseWire{
+		ClusterId: v.ClusterId,
+	}, nil
 }
 
 func createClusterResponseFromWire(w *createClusterResponseWire) (*CreateClusterResponse, error) {
@@ -1062,6 +1676,22 @@ type dataPlaneEventDetailsWire struct {
 	Timestamp        *wireInt64                `json:"timestamp,omitempty"`
 	HostId           *string                   `json:"host_id,omitempty"`
 	ExecutorFailures *int                      `json:"executor_failures,omitempty"`
+}
+
+func dataPlaneEventDetailsToWire(v *DataPlaneEventDetails) (*dataPlaneEventDetailsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	timestampWireValue, err := int64ToWire(v.Timestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DataPlaneEventDetails.Timestamp", err)
+	}
+	return &dataPlaneEventDetailsWire{
+		EventType:        v.EventType,
+		Timestamp:        timestampWireValue,
+		HostId:           v.HostId,
+		ExecutorFailures: v.ExecutorFailures,
+	}, nil
 }
 
 func dataPlaneEventDetailsFromWire(w *dataPlaneEventDetailsWire) (*DataPlaneEventDetails, error) {
@@ -1113,6 +1743,32 @@ func deleteClusterRequestToWire(v *DeleteClusterRequest) (*deleteClusterRequestW
 	return &deleteClusterRequestWire{
 		ClusterId: v.ClusterId,
 	}, nil
+}
+
+func deleteClusterRequestFromWire(w *deleteClusterRequestWire) (*DeleteClusterRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteClusterRequest{
+		ClusterId: w.ClusterId,
+	}, nil
+}
+
+type deleteClusterResponseWire struct {
+}
+
+func deleteClusterResponseToWire(v *DeleteClusterResponse) (*deleteClusterResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteClusterResponseWire{}, nil
+}
+
+func deleteClusterResponseFromWire(w *deleteClusterResponseWire) (*DeleteClusterResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteClusterResponse{}, nil
 }
 
 type dockerBasicAuthWire struct {
@@ -1333,6 +1989,123 @@ func editClusterRequestToWire(v *EditClusterRequest) (*editClusterRequestWire, e
 	}, nil
 }
 
+func editClusterRequestFromWire(w *editClusterRequestWire) (*EditClusterRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sizeMembers := 0
+	if w.NumWorkers != nil {
+		sizeMembers++
+	}
+	if w.Autoscale != nil {
+		sizeMembers++
+	}
+	if sizeMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "EditClusterRequest.Size")
+	}
+	awsAttributesPublicValue, err := awsAttributesFromWire(w.AwsAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditClusterRequest.AwsAttributes", err)
+	}
+	azureAttributesPublicValue, err := azureAttributesFromWire(w.AzureAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditClusterRequest.AzureAttributes", err)
+	}
+	gcpAttributesPublicValue, err := gcpAttributesFromWire(w.GcpAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditClusterRequest.GcpAttributes", err)
+	}
+	workerNodeTypeFlexibilityPublicValue, err := nodeTypeFlexibilityFromWire(w.WorkerNodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditClusterRequest.WorkerNodeTypeFlexibility", err)
+	}
+	driverNodeTypeFlexibilityPublicValue, err := nodeTypeFlexibilityFromWire(w.DriverNodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditClusterRequest.DriverNodeTypeFlexibility", err)
+	}
+	clusterLogConfPublicValue, err := clusterLogConfFromWire(w.ClusterLogConf)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditClusterRequest.ClusterLogConf", err)
+	}
+	initScriptsPublicValue, err := convertSlice(w.InitScripts, initScriptInfoFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditClusterRequest.InitScripts", err)
+	}
+	dockerImagePublicValue, err := dockerImageFromWire(w.DockerImage)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditClusterRequest.DockerImage", err)
+	}
+	workloadTypePublicValue, err := workloadTypeFromWire(w.WorkloadType)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditClusterRequest.WorkloadType", err)
+	}
+	var sizeSelection isEditClusterRequest_Size
+	switch {
+	case w.NumWorkers != nil:
+		sizeSelection = &EditClusterRequest_Size_NumWorkers{NumWorkers: *w.NumWorkers}
+	case w.Autoscale != nil:
+		sizeAutoscaleConverted, err := autoScaleFromWire(w.Autoscale)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "EditClusterRequest.Size.Autoscale", err)
+		}
+		sizeSelection = &EditClusterRequest_Size_Autoscale{Autoscale: *sizeAutoscaleConverted}
+	}
+	return &EditClusterRequest{
+		ClusterId:                  w.ClusterId,
+		ApplyPolicyDefaultValues:   w.ApplyPolicyDefaultValues,
+		ClusterName:                w.ClusterName,
+		SparkVersion:               w.SparkVersion,
+		SparkConf:                  w.SparkConf,
+		AwsAttributes:              awsAttributesPublicValue,
+		AzureAttributes:            azureAttributesPublicValue,
+		GcpAttributes:              gcpAttributesPublicValue,
+		NodeTypeId:                 w.NodeTypeId,
+		DriverNodeTypeId:           w.DriverNodeTypeId,
+		WorkerNodeTypeFlexibility:  workerNodeTypeFlexibilityPublicValue,
+		DriverNodeTypeFlexibility:  driverNodeTypeFlexibilityPublicValue,
+		SshPublicKeys:              w.SshPublicKeys,
+		CustomTags:                 w.CustomTags,
+		ClusterLogConf:             clusterLogConfPublicValue,
+		SparkEnvVars:               w.SparkEnvVars,
+		AutoterminationMinutes:     w.AutoterminationMinutes,
+		EnableElasticDisk:          w.EnableElasticDisk,
+		InitScripts:                initScriptsPublicValue,
+		DockerImage:                dockerImagePublicValue,
+		InstancePoolId:             w.InstancePoolId,
+		SingleUserName:             w.SingleUserName,
+		PolicyId:                   w.PolicyId,
+		EnableLocalDiskEncryption:  w.EnableLocalDiskEncryption,
+		DriverInstancePoolId:       w.DriverInstancePoolId,
+		WorkloadType:               workloadTypePublicValue,
+		DataSecurityMode:           w.DataSecurityMode,
+		RuntimeEngine:              w.RuntimeEngine,
+		Kind:                       w.Kind,
+		UseMlRuntime:               w.UseMlRuntime,
+		IsSingleNode:               w.IsSingleNode,
+		RemoteDiskThroughput:       w.RemoteDiskThroughput,
+		TotalInitialRemoteDiskSize: w.TotalInitialRemoteDiskSize,
+		DependencyMode:             w.DependencyMode,
+		Size:                       sizeSelection,
+	}, nil
+}
+
+type editClusterResponseWire struct {
+}
+
+func editClusterResponseToWire(v *EditClusterResponse) (*editClusterResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &editClusterResponseWire{}, nil
+}
+
+func editClusterResponseFromWire(w *editClusterResponseWire) (*EditClusterResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &EditClusterResponse{}, nil
+}
+
 type enforcePolicyComplianceForClusterRequestWire struct {
 	ClusterId    *string                                              `json:"cluster_id,omitempty"`
 	ValidateOnly *bool                                                `json:"validate_only,omitempty"`
@@ -1350,10 +2123,36 @@ func enforcePolicyComplianceForClusterRequestToWire(v *EnforcePolicyComplianceFo
 	}, nil
 }
 
+func enforcePolicyComplianceForClusterRequestFromWire(w *enforcePolicyComplianceForClusterRequestWire) (*EnforcePolicyComplianceForClusterRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &EnforcePolicyComplianceForClusterRequest{
+		ClusterId:    w.ClusterId,
+		ValidateOnly: w.ValidateOnly,
+		EnforceMode:  w.EnforceMode,
+	}, nil
+}
+
 type enforcePolicyComplianceForClusterResponseWire struct {
 	HasChanges    *bool                                                                 `json:"has_changes,omitempty"`
 	Changes       []enforcePolicyComplianceForClusterResponse_ClusterSettingsChangeWire `json:"changes,omitempty"`
 	EnforceResult EnforcePolicyComplianceForClusterResponse_EnforceResult               `json:"enforce_result,omitempty"`
+}
+
+func enforcePolicyComplianceForClusterResponseToWire(v *EnforcePolicyComplianceForClusterResponse) (*enforcePolicyComplianceForClusterResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	changesWireValue, err := convertSlice(v.Changes, enforcePolicyComplianceForClusterResponse_ClusterSettingsChangeToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EnforcePolicyComplianceForClusterResponse.Changes", err)
+	}
+	return &enforcePolicyComplianceForClusterResponseWire{
+		HasChanges:    v.HasChanges,
+		Changes:       changesWireValue,
+		EnforceResult: v.EnforceResult,
+	}, nil
 }
 
 func enforcePolicyComplianceForClusterResponseFromWire(w *enforcePolicyComplianceForClusterResponseWire) (*EnforcePolicyComplianceForClusterResponse, error) {
@@ -1406,6 +2205,103 @@ type enforcePolicyComplianceForClusterResponse_ClusterSettingsWire struct {
 	DependencyMode             DependencyMode           `json:"dependency_mode,omitempty"`
 	NumWorkers                 *int                     `json:"num_workers,omitempty"`
 	Autoscale                  *autoScaleWire           `json:"autoscale,omitempty"`
+}
+
+func enforcePolicyComplianceForClusterResponse_ClusterSettingsToWire(v *EnforcePolicyComplianceForClusterResponse_ClusterSettings) (*enforcePolicyComplianceForClusterResponse_ClusterSettingsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	awsAttributesWireValue, err := awsAttributesToWire(v.AwsAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EnforcePolicyComplianceForClusterResponse_ClusterSettings.AwsAttributes", err)
+	}
+	azureAttributesWireValue, err := azureAttributesToWire(v.AzureAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EnforcePolicyComplianceForClusterResponse_ClusterSettings.AzureAttributes", err)
+	}
+	gcpAttributesWireValue, err := gcpAttributesToWire(v.GcpAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EnforcePolicyComplianceForClusterResponse_ClusterSettings.GcpAttributes", err)
+	}
+	workerNodeTypeFlexibilityWireValue, err := nodeTypeFlexibilityToWire(v.WorkerNodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EnforcePolicyComplianceForClusterResponse_ClusterSettings.WorkerNodeTypeFlexibility", err)
+	}
+	driverNodeTypeFlexibilityWireValue, err := nodeTypeFlexibilityToWire(v.DriverNodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EnforcePolicyComplianceForClusterResponse_ClusterSettings.DriverNodeTypeFlexibility", err)
+	}
+	clusterLogConfWireValue, err := clusterLogConfToWire(v.ClusterLogConf)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EnforcePolicyComplianceForClusterResponse_ClusterSettings.ClusterLogConf", err)
+	}
+	initScriptsWireValue, err := convertSlice(v.InitScripts, initScriptInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EnforcePolicyComplianceForClusterResponse_ClusterSettings.InitScripts", err)
+	}
+	dockerImageWireValue, err := dockerImageToWire(v.DockerImage)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EnforcePolicyComplianceForClusterResponse_ClusterSettings.DockerImage", err)
+	}
+	workloadTypeWireValue, err := workloadTypeToWire(v.WorkloadType)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EnforcePolicyComplianceForClusterResponse_ClusterSettings.WorkloadType", err)
+	}
+	var sizeNumWorkersWire *int
+	var sizeAutoscaleWire *autoScaleWire
+	switch value := v.Size.(type) {
+	case nil:
+	case *EnforcePolicyComplianceForClusterResponse_ClusterSettings_Size_NumWorkers:
+		if value != nil {
+			sizeNumWorkersWire = new(value.NumWorkers)
+		}
+	case *EnforcePolicyComplianceForClusterResponse_ClusterSettings_Size_Autoscale:
+		if value != nil {
+			sizeAutoscaleConverted, err := autoScaleToWire(&value.Autoscale)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "EnforcePolicyComplianceForClusterResponse_ClusterSettings.Size.Autoscale", err)
+			}
+			sizeAutoscaleWire = sizeAutoscaleConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "EnforcePolicyComplianceForClusterResponse_ClusterSettings.Size", value)
+	}
+	return &enforcePolicyComplianceForClusterResponse_ClusterSettingsWire{
+		ClusterName:                v.ClusterName,
+		SparkVersion:               v.SparkVersion,
+		SparkConf:                  v.SparkConf,
+		AwsAttributes:              awsAttributesWireValue,
+		AzureAttributes:            azureAttributesWireValue,
+		GcpAttributes:              gcpAttributesWireValue,
+		NodeTypeId:                 v.NodeTypeId,
+		DriverNodeTypeId:           v.DriverNodeTypeId,
+		WorkerNodeTypeFlexibility:  workerNodeTypeFlexibilityWireValue,
+		DriverNodeTypeFlexibility:  driverNodeTypeFlexibilityWireValue,
+		SshPublicKeys:              v.SshPublicKeys,
+		CustomTags:                 v.CustomTags,
+		ClusterLogConf:             clusterLogConfWireValue,
+		SparkEnvVars:               v.SparkEnvVars,
+		AutoterminationMinutes:     v.AutoterminationMinutes,
+		EnableElasticDisk:          v.EnableElasticDisk,
+		InitScripts:                initScriptsWireValue,
+		DockerImage:                dockerImageWireValue,
+		InstancePoolId:             v.InstancePoolId,
+		SingleUserName:             v.SingleUserName,
+		PolicyId:                   v.PolicyId,
+		EnableLocalDiskEncryption:  v.EnableLocalDiskEncryption,
+		DriverInstancePoolId:       v.DriverInstancePoolId,
+		WorkloadType:               workloadTypeWireValue,
+		DataSecurityMode:           v.DataSecurityMode,
+		RuntimeEngine:              v.RuntimeEngine,
+		Kind:                       v.Kind,
+		UseMlRuntime:               v.UseMlRuntime,
+		IsSingleNode:               v.IsSingleNode,
+		RemoteDiskThroughput:       v.RemoteDiskThroughput,
+		TotalInitialRemoteDiskSize: v.TotalInitialRemoteDiskSize,
+		DependencyMode:             v.DependencyMode,
+		NumWorkers:                 sizeNumWorkersWire,
+		Autoscale:                  sizeAutoscaleWire,
+	}, nil
 }
 
 func enforcePolicyComplianceForClusterResponse_ClusterSettingsFromWire(w *enforcePolicyComplianceForClusterResponse_ClusterSettingsWire) (*EnforcePolicyComplianceForClusterResponse_ClusterSettings, error) {
@@ -1512,6 +2408,17 @@ type enforcePolicyComplianceForClusterResponse_ClusterSettingsChangeWire struct 
 	NewValue      *string `json:"new_value,omitempty"`
 }
 
+func enforcePolicyComplianceForClusterResponse_ClusterSettingsChangeToWire(v *EnforcePolicyComplianceForClusterResponse_ClusterSettingsChange) (*enforcePolicyComplianceForClusterResponse_ClusterSettingsChangeWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &enforcePolicyComplianceForClusterResponse_ClusterSettingsChangeWire{
+		Field:         v.Field,
+		PreviousValue: v.PreviousValue,
+		NewValue:      v.NewValue,
+	}, nil
+}
+
 func enforcePolicyComplianceForClusterResponse_ClusterSettingsChangeFromWire(w *enforcePolicyComplianceForClusterResponse_ClusterSettingsChangeWire) (*EnforcePolicyComplianceForClusterResponse_ClusterSettingsChange, error) {
 	if w == nil {
 		return nil, nil
@@ -1544,6 +2451,70 @@ type eventDetailsWire struct {
 	EnableTerminationForNodeBlocklisted *bool                       `json:"enable_termination_for_node_blocklisted,omitempty"`
 	CurrentNumVcpus                     *int                        `json:"current_num_vcpus,omitempty"`
 	TargetNumVcpus                      *int                        `json:"target_num_vcpus,omitempty"`
+}
+
+func eventDetailsToWire(v *EventDetails) (*eventDetailsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	previousAttributesWireValue, err := clusterAttributesToWire(v.PreviousAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EventDetails.PreviousAttributes", err)
+	}
+	attributesWireValue, err := clusterAttributesToWire(v.Attributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EventDetails.Attributes", err)
+	}
+	previousClusterSizeWireValue, err := clusterSizeToWire(v.PreviousClusterSize)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EventDetails.PreviousClusterSize", err)
+	}
+	clusterSizeWireValue, err := clusterSizeToWire(v.ClusterSize)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EventDetails.ClusterSize", err)
+	}
+	reasonWireValue, err := terminationReasonToWire(v.Reason)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EventDetails.Reason", err)
+	}
+	previousDiskSizeWireValue, err := int64ToWire(v.PreviousDiskSize)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EventDetails.PreviousDiskSize", err)
+	}
+	diskSizeWireValue, err := int64ToWire(v.DiskSize)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EventDetails.DiskSize", err)
+	}
+	freeSpaceWireValue, err := int64ToWire(v.FreeSpace)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EventDetails.FreeSpace", err)
+	}
+	initScriptsWireValue, err := initScriptEventDetailsToWire(v.InitScripts)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EventDetails.InitScripts", err)
+	}
+	return &eventDetailsWire{
+		CurrentNumWorkers:                   v.CurrentNumWorkers,
+		TargetNumWorkers:                    v.TargetNumWorkers,
+		PreviousAttributes:                  previousAttributesWireValue,
+		Attributes:                          attributesWireValue,
+		PreviousClusterSize:                 previousClusterSizeWireValue,
+		ClusterSize:                         clusterSizeWireValue,
+		Cause:                               v.Cause,
+		Reason:                              reasonWireValue,
+		User:                                v.User,
+		PreviousDiskSize:                    previousDiskSizeWireValue,
+		DiskSize:                            diskSizeWireValue,
+		FreeSpace:                           freeSpaceWireValue,
+		InstanceId:                          v.InstanceId,
+		DidNotExpandReason:                  v.DidNotExpandReason,
+		DriverStateMessage:                  v.DriverStateMessage,
+		JobRunName:                          v.JobRunName,
+		InitScripts:                         initScriptsWireValue,
+		EnableTerminationForNodeBlocklisted: v.EnableTerminationForNodeBlocklisted,
+		CurrentNumVcpus:                     v.CurrentNumVcpus,
+		TargetNumVcpus:                      v.TargetNumVcpus,
+	}, nil
 }
 
 func eventDetailsFromWire(w *eventDetailsWire) (*EventDetails, error) {
@@ -1688,12 +2659,46 @@ func getClusterRequestToWire(v *GetClusterRequest) (*getClusterRequestWire, erro
 	}, nil
 }
 
+func getClusterRequestFromWire(w *getClusterRequestWire) (*GetClusterRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetClusterRequest{
+		ClusterId: w.ClusterId,
+	}, nil
+}
+
 type getEventsResponseWire struct {
 	Events        []clusterEventWire     `json:"events,omitempty"`
 	NextPage      *listEventsRequestWire `json:"next_page,omitempty"`
 	TotalCount    *wireInt64             `json:"total_count,omitempty"`
 	NextPageToken *string                `json:"next_page_token,omitempty"`
 	PrevPageToken *string                `json:"prev_page_token,omitempty"`
+}
+
+func getEventsResponseToWire(v *GetEventsResponse) (*getEventsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	eventsWireValue, err := convertSlice(v.Events, clusterEventToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetEventsResponse.Events", err)
+	}
+	nextPageWireValue, err := listEventsRequestToWire(v.NextPage)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetEventsResponse.NextPage", err)
+	}
+	totalCountWireValue, err := int64ToWire(v.TotalCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetEventsResponse.TotalCount", err)
+	}
+	return &getEventsResponseWire{
+		Events:        eventsWireValue,
+		NextPage:      nextPageWireValue,
+		TotalCount:    totalCountWireValue,
+		NextPageToken: v.NextPageToken,
+		PrevPageToken: v.PrevPageToken,
+	}, nil
 }
 
 func getEventsResponseFromWire(w *getEventsResponseWire) (*GetEventsResponse, error) {
@@ -1734,10 +2739,34 @@ func getPolicyComplianceForClusterRequestToWire(v *GetPolicyComplianceForCluster
 	}, nil
 }
 
+func getPolicyComplianceForClusterRequestFromWire(w *getPolicyComplianceForClusterRequestWire) (*GetPolicyComplianceForClusterRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetPolicyComplianceForClusterRequest{
+		ClusterId: w.ClusterId,
+	}, nil
+}
+
 type getPolicyComplianceForClusterResponseWire struct {
 	IsCompliant        *bool                   `json:"is_compliant,omitempty"`
 	Violations         map[string]string       `json:"violations,omitempty"`
 	PendingEnforcement *pendingEnforcementWire `json:"pending_enforcement,omitempty"`
+}
+
+func getPolicyComplianceForClusterResponseToWire(v *GetPolicyComplianceForClusterResponse) (*getPolicyComplianceForClusterResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	pendingEnforcementWireValue, err := pendingEnforcementToWire(v.PendingEnforcement)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetPolicyComplianceForClusterResponse.PendingEnforcement", err)
+	}
+	return &getPolicyComplianceForClusterResponseWire{
+		IsCompliant:        v.IsCompliant,
+		Violations:         v.Violations,
+		PendingEnforcement: pendingEnforcementWireValue,
+	}, nil
 }
 
 func getPolicyComplianceForClusterResponseFromWire(w *getPolicyComplianceForClusterResponseWire) (*GetPolicyComplianceForClusterResponse, error) {
@@ -1755,8 +2784,38 @@ func getPolicyComplianceForClusterResponseFromWire(w *getPolicyComplianceForClus
 	}, nil
 }
 
+type getSparkVersionsRequestWire struct {
+}
+
+func getSparkVersionsRequestToWire(v *GetSparkVersionsRequest) (*getSparkVersionsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getSparkVersionsRequestWire{}, nil
+}
+
+func getSparkVersionsRequestFromWire(w *getSparkVersionsRequestWire) (*GetSparkVersionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetSparkVersionsRequest{}, nil
+}
+
 type getSparkVersionsResponseWire struct {
 	Versions []sparkVersionWire `json:"versions,omitempty"`
+}
+
+func getSparkVersionsResponseToWire(v *GetSparkVersionsResponse) (*getSparkVersionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	versionsWireValue, err := convertSlice(v.Versions, sparkVersionToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetSparkVersionsResponse.Versions", err)
+	}
+	return &getSparkVersionsResponseWire{
+		Versions: versionsWireValue,
+	}, nil
 }
 
 func getSparkVersionsResponseFromWire(w *getSparkVersionsResponseWire) (*GetSparkVersionsResponse, error) {
@@ -1776,6 +2835,25 @@ type initScriptEventDetailsWire struct {
 	ReportedForNode *string                                                        `json:"reported_for_node,omitempty"`
 	Global          []initScriptEventDetails_InitScriptInfoAndExecutionDetailsWire `json:"global,omitempty"`
 	Cluster         []initScriptEventDetails_InitScriptInfoAndExecutionDetailsWire `json:"cluster,omitempty"`
+}
+
+func initScriptEventDetailsToWire(v *InitScriptEventDetails) (*initScriptEventDetailsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	globalWireValue, err := convertSlice(v.Global, initScriptEventDetails_InitScriptInfoAndExecutionDetailsToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InitScriptEventDetails.Global", err)
+	}
+	clusterWireValue, err := convertSlice(v.Cluster, initScriptEventDetails_InitScriptInfoAndExecutionDetailsToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "InitScriptEventDetails.Cluster", err)
+	}
+	return &initScriptEventDetailsWire{
+		ReportedForNode: v.ReportedForNode,
+		Global:          globalWireValue,
+		Cluster:         clusterWireValue,
+	}, nil
 }
 
 func initScriptEventDetailsFromWire(w *initScriptEventDetailsWire) (*InitScriptEventDetails, error) {
@@ -1809,6 +2887,93 @@ type initScriptEventDetails_InitScriptInfoAndExecutionDetailsWire struct {
 	ExecutionDurationSeconds *int                                                 `json:"execution_duration_seconds,omitempty"`
 	ErrorMessage             *string                                              `json:"error_message,omitempty"`
 	Stderr                   *string                                              `json:"stderr,omitempty"`
+}
+
+func initScriptEventDetails_InitScriptInfoAndExecutionDetailsToWire(v *InitScriptEventDetails_InitScriptInfoAndExecutionDetails) (*initScriptEventDetails_InitScriptInfoAndExecutionDetailsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var storageInfoDbfsWire *dbfsStorageInfoWire
+	var storageInfoS3Wire *s3StorageInfoWire
+	var storageInfoFileWire *localFileInfoWire
+	var storageInfoGcsWire *gcsStorageInfoWire
+	var storageInfoAbfssWire *adlsgen2InfoWire
+	var storageInfoWorkspaceWire *workspaceStorageInfoWire
+	var storageInfoVolumesWire *volumesStorageInfoWire
+	switch value := v.StorageInfo.(type) {
+	case nil:
+	case *InitScriptEventDetails_InitScriptInfoAndExecutionDetails_StorageInfo_Dbfs:
+		if value != nil {
+			storageInfoDbfsConverted, err := dbfsStorageInfoToWire(&value.Dbfs)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "InitScriptEventDetails_InitScriptInfoAndExecutionDetails.StorageInfo.Dbfs", err)
+			}
+			storageInfoDbfsWire = storageInfoDbfsConverted
+		}
+	case *InitScriptEventDetails_InitScriptInfoAndExecutionDetails_StorageInfo_S3:
+		if value != nil {
+			storageInfoS3Converted, err := s3StorageInfoToWire(&value.S3)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "InitScriptEventDetails_InitScriptInfoAndExecutionDetails.StorageInfo.S3", err)
+			}
+			storageInfoS3Wire = storageInfoS3Converted
+		}
+	case *InitScriptEventDetails_InitScriptInfoAndExecutionDetails_StorageInfo_File:
+		if value != nil {
+			storageInfoFileConverted, err := localFileInfoToWire(&value.File)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "InitScriptEventDetails_InitScriptInfoAndExecutionDetails.StorageInfo.File", err)
+			}
+			storageInfoFileWire = storageInfoFileConverted
+		}
+	case *InitScriptEventDetails_InitScriptInfoAndExecutionDetails_StorageInfo_Gcs:
+		if value != nil {
+			storageInfoGcsConverted, err := gcsStorageInfoToWire(&value.Gcs)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "InitScriptEventDetails_InitScriptInfoAndExecutionDetails.StorageInfo.Gcs", err)
+			}
+			storageInfoGcsWire = storageInfoGcsConverted
+		}
+	case *InitScriptEventDetails_InitScriptInfoAndExecutionDetails_StorageInfo_Abfss:
+		if value != nil {
+			storageInfoAbfssConverted, err := adlsgen2InfoToWire(&value.Abfss)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "InitScriptEventDetails_InitScriptInfoAndExecutionDetails.StorageInfo.Abfss", err)
+			}
+			storageInfoAbfssWire = storageInfoAbfssConverted
+		}
+	case *InitScriptEventDetails_InitScriptInfoAndExecutionDetails_StorageInfo_Workspace:
+		if value != nil {
+			storageInfoWorkspaceConverted, err := workspaceStorageInfoToWire(&value.Workspace)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "InitScriptEventDetails_InitScriptInfoAndExecutionDetails.StorageInfo.Workspace", err)
+			}
+			storageInfoWorkspaceWire = storageInfoWorkspaceConverted
+		}
+	case *InitScriptEventDetails_InitScriptInfoAndExecutionDetails_StorageInfo_Volumes:
+		if value != nil {
+			storageInfoVolumesConverted, err := volumesStorageInfoToWire(&value.Volumes)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "InitScriptEventDetails_InitScriptInfoAndExecutionDetails.StorageInfo.Volumes", err)
+			}
+			storageInfoVolumesWire = storageInfoVolumesConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "InitScriptEventDetails_InitScriptInfoAndExecutionDetails.StorageInfo", value)
+	}
+	return &initScriptEventDetails_InitScriptInfoAndExecutionDetailsWire{
+		Dbfs:                     storageInfoDbfsWire,
+		S3:                       storageInfoS3Wire,
+		File:                     storageInfoFileWire,
+		Gcs:                      storageInfoGcsWire,
+		Abfss:                    storageInfoAbfssWire,
+		Workspace:                storageInfoWorkspaceWire,
+		Volumes:                  storageInfoVolumesWire,
+		Status:                   v.Status,
+		ExecutionDurationSeconds: v.ExecutionDurationSeconds,
+		ErrorMessage:             v.ErrorMessage,
+		Stderr:                   v.Stderr,
+	}, nil
 }
 
 func initScriptEventDetails_InitScriptInfoAndExecutionDetailsFromWire(w *initScriptEventDetails_InitScriptInfoAndExecutionDetailsWire) (*InitScriptEventDetails_InitScriptInfoAndExecutionDetails, error) {
@@ -1892,6 +3057,23 @@ func initScriptEventDetails_InitScriptInfoAndExecutionDetailsFromWire(w *initScr
 		Stderr:                   w.Stderr,
 		StorageInfo:              storageInfoSelection,
 	}, nil
+}
+
+type initScriptExecutionDetailsWire struct {
+}
+
+func initScriptExecutionDetailsToWire(v *InitScriptExecutionDetails) (*initScriptExecutionDetailsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &initScriptExecutionDetailsWire{}, nil
+}
+
+func initScriptExecutionDetailsFromWire(w *initScriptExecutionDetailsWire) (*InitScriptExecutionDetails, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &InitScriptExecutionDetails{}, nil
 }
 
 type initScriptInfoWire struct {
@@ -2066,9 +3248,36 @@ func initScriptInfoFromWire(w *initScriptInfoWire) (*InitScriptInfo, error) {
 	}, nil
 }
 
+type listAvailableZonesRequestWire struct {
+}
+
+func listAvailableZonesRequestToWire(v *ListAvailableZonesRequest) (*listAvailableZonesRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listAvailableZonesRequestWire{}, nil
+}
+
+func listAvailableZonesRequestFromWire(w *listAvailableZonesRequestWire) (*ListAvailableZonesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListAvailableZonesRequest{}, nil
+}
+
 type listAvailableZonesResponseWire struct {
 	Zones       []string `json:"zones,omitempty"`
 	DefaultZone *string  `json:"default_zone,omitempty"`
+}
+
+func listAvailableZonesResponseToWire(v *ListAvailableZonesResponse) (*listAvailableZonesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listAvailableZonesResponseWire{
+		Zones:       v.Zones,
+		DefaultZone: v.DefaultZone,
+	}, nil
 }
 
 func listAvailableZonesResponseFromWire(w *listAvailableZonesResponseWire) (*ListAvailableZonesResponse, error) {
@@ -2098,10 +3307,36 @@ func listClusterComplianceForPolicyRequestToWire(v *ListClusterComplianceForPoli
 	}, nil
 }
 
+func listClusterComplianceForPolicyRequestFromWire(w *listClusterComplianceForPolicyRequestWire) (*ListClusterComplianceForPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListClusterComplianceForPolicyRequest{
+		PolicyId:  w.PolicyId,
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listClusterComplianceForPolicyResponseWire struct {
 	Clusters      []clusterComplianceWire `json:"clusters,omitempty"`
 	NextPageToken *string                 `json:"next_page_token,omitempty"`
 	PrevPageToken *string                 `json:"prev_page_token,omitempty"`
+}
+
+func listClusterComplianceForPolicyResponseToWire(v *ListClusterComplianceForPolicyResponse) (*listClusterComplianceForPolicyResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	clustersWireValue, err := convertSlice(v.Clusters, clusterComplianceToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListClusterComplianceForPolicyResponse.Clusters", err)
+	}
+	return &listClusterComplianceForPolicyResponseWire{
+		Clusters:      clustersWireValue,
+		NextPageToken: v.NextPageToken,
+		PrevPageToken: v.PrevPageToken,
+	}, nil
 }
 
 func listClusterComplianceForPolicyResponseFromWire(w *listClusterComplianceForPolicyResponseWire) (*ListClusterComplianceForPolicyResponse, error) {
@@ -2134,10 +3369,35 @@ func listClustersRequestToWire(v *ListClustersRequest) (*listClustersRequestWire
 	}, nil
 }
 
+func listClustersRequestFromWire(w *listClustersRequestWire) (*ListClustersRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListClustersRequest{
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listClustersResponseWire struct {
 	Clusters      []clusterInfoWire `json:"clusters,omitempty"`
 	NextPageToken *string           `json:"next_page_token,omitempty"`
 	PrevPageToken *string           `json:"prev_page_token,omitempty"`
+}
+
+func listClustersResponseToWire(v *ListClustersResponse) (*listClustersResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	clustersWireValue, err := convertSlice(v.Clusters, clusterInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListClustersResponse.Clusters", err)
+	}
+	return &listClustersResponseWire{
+		Clusters:      clustersWireValue,
+		NextPageToken: v.NextPageToken,
+		PrevPageToken: v.PrevPageToken,
+	}, nil
 }
 
 func listClustersResponseFromWire(w *listClustersResponseWire) (*ListClustersResponse, error) {
@@ -2233,8 +3493,38 @@ func listEventsRequestFromWire(w *listEventsRequestWire) (*ListEventsRequest, er
 	}, nil
 }
 
+type listNodeTypesRequestWire struct {
+}
+
+func listNodeTypesRequestToWire(v *ListNodeTypesRequest) (*listNodeTypesRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listNodeTypesRequestWire{}, nil
+}
+
+func listNodeTypesRequestFromWire(w *listNodeTypesRequestWire) (*ListNodeTypesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListNodeTypesRequest{}, nil
+}
+
 type listNodeTypesResponseWire struct {
 	NodeTypes []nodeTypeWire `json:"node_types,omitempty"`
+}
+
+func listNodeTypesResponseToWire(v *ListNodeTypesResponse) (*listNodeTypesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	nodeTypesWireValue, err := convertSlice(v.NodeTypes, nodeTypeToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListNodeTypesResponse.NodeTypes", err)
+	}
+	return &listNodeTypesResponseWire{
+		NodeTypes: nodeTypesWireValue,
+	}, nil
 }
 
 func listNodeTypesResponseFromWire(w *listNodeTypesResponseWire) (*ListNodeTypesResponse, error) {
@@ -2302,6 +3592,20 @@ type logSyncStatusWire struct {
 	LastException *string    `json:"last_exception,omitempty"`
 }
 
+func logSyncStatusToWire(v *LogSyncStatus) (*logSyncStatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	lastAttemptedWireValue, err := int64ToWire(v.LastAttempted)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LogSyncStatus.LastAttempted", err)
+	}
+	return &logSyncStatusWire{
+		LastAttempted: lastAttemptedWireValue,
+		LastException: v.LastException,
+	}, nil
+}
+
 func logSyncStatusFromWire(w *logSyncStatusWire) (*LogSyncStatus, error) {
 	if w == nil {
 		return nil, nil
@@ -2322,6 +3626,19 @@ type nodeInstanceTypeWire struct {
 	LocalDiskSizeGb     *int    `json:"local_disk_size_gb,omitempty"`
 	LocalNvmeDiskSizeGb *int    `json:"local_nvme_disk_size_gb,omitempty"`
 	LocalNvmeDisks      *int    `json:"local_nvme_disks,omitempty"`
+}
+
+func nodeInstanceTypeToWire(v *NodeInstanceType) (*nodeInstanceTypeWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &nodeInstanceTypeWire{
+		InstanceTypeId:      v.InstanceTypeId,
+		LocalDisks:          v.LocalDisks,
+		LocalDiskSizeGb:     v.LocalDiskSizeGb,
+		LocalNvmeDiskSizeGb: v.LocalNvmeDiskSizeGb,
+		LocalNvmeDisks:      v.LocalNvmeDisks,
+	}, nil
 }
 
 func nodeInstanceTypeFromWire(w *nodeInstanceTypeWire) (*NodeInstanceType, error) {
@@ -2358,6 +3675,42 @@ type nodeTypeWire struct {
 	PhotonDriverCapable   *bool                      `json:"photon_driver_capable,omitempty"`
 	IsEncryptedInTransit  *bool                      `json:"is_encrypted_in_transit,omitempty"`
 	IsGraviton            *bool                      `json:"is_graviton,omitempty"`
+}
+
+func nodeTypeToWire(v *NodeType) (*nodeTypeWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	nodeInstanceTypeWireValue, err := nodeInstanceTypeToWire(v.NodeInstanceType)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NodeType.NodeInstanceType", err)
+	}
+	nodeInfoWireValue, err := cloudProviderNodeInfoToWire(v.NodeInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NodeType.NodeInfo", err)
+	}
+	return &nodeTypeWire{
+		NodeTypeId:            v.NodeTypeId,
+		MemoryMb:              v.MemoryMb,
+		NumCores:              v.NumCores,
+		Description:           v.Description,
+		InstanceTypeId:        v.InstanceTypeId,
+		IsDeprecated:          v.IsDeprecated,
+		Category:              v.Category,
+		SupportEbsVolumes:     v.SupportEbsVolumes,
+		SupportClusterTags:    v.SupportClusterTags,
+		NumGpus:               v.NumGpus,
+		NodeInstanceType:      nodeInstanceTypeWireValue,
+		IsHidden:              v.IsHidden,
+		SupportPortForwarding: v.SupportPortForwarding,
+		DisplayOrder:          v.DisplayOrder,
+		IsIoCacheEnabled:      v.IsIoCacheEnabled,
+		NodeInfo:              nodeInfoWireValue,
+		PhotonWorkerCapable:   v.PhotonWorkerCapable,
+		PhotonDriverCapable:   v.PhotonDriverCapable,
+		IsEncryptedInTransit:  v.IsEncryptedInTransit,
+		IsGraviton:            v.IsGraviton,
+	}, nil
 }
 
 func nodeTypeFromWire(w *nodeTypeWire) (*NodeType, error) {
@@ -2429,6 +3782,27 @@ type pendingEnforcementWire struct {
 	InitiatorUser     *string                                                               `json:"initiator_user,omitempty"`
 }
 
+func pendingEnforcementToWire(v *PendingEnforcement) (*pendingEnforcementWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	targetSpecWireValue, err := enforcePolicyComplianceForClusterResponse_ClusterSettingsToWire(v.TargetSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PendingEnforcement.TargetSpec", err)
+	}
+	targetChangesWireValue, err := convertSlice(v.TargetChanges, enforcePolicyComplianceForClusterResponse_ClusterSettingsChangeToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PendingEnforcement.TargetChanges", err)
+	}
+	return &pendingEnforcementWire{
+		TargetSpec:        targetSpecWireValue,
+		InitiateTime:      v.InitiateTime,
+		EnforcementStatus: v.EnforcementStatus,
+		TargetChanges:     targetChangesWireValue,
+		InitiatorUser:     v.InitiatorUser,
+	}, nil
+}
+
 func pendingEnforcementFromWire(w *pendingEnforcementWire) (*PendingEnforcement, error) {
 	if w == nil {
 		return nil, nil
@@ -2463,6 +3837,32 @@ func permanentDeleteClusterRequestToWire(v *PermanentDeleteClusterRequest) (*per
 	}, nil
 }
 
+func permanentDeleteClusterRequestFromWire(w *permanentDeleteClusterRequestWire) (*PermanentDeleteClusterRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PermanentDeleteClusterRequest{
+		ClusterId: w.ClusterId,
+	}, nil
+}
+
+type permanentDeleteClusterResponseWire struct {
+}
+
+func permanentDeleteClusterResponseToWire(v *PermanentDeleteClusterResponse) (*permanentDeleteClusterResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &permanentDeleteClusterResponseWire{}, nil
+}
+
+func permanentDeleteClusterResponseFromWire(w *permanentDeleteClusterResponseWire) (*PermanentDeleteClusterResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PermanentDeleteClusterResponse{}, nil
+}
+
 type pinClusterRequestWire struct {
 	ClusterId *string `json:"cluster_id,omitempty"`
 }
@@ -2474,6 +3874,49 @@ func pinClusterRequestToWire(v *PinClusterRequest) (*pinClusterRequestWire, erro
 	return &pinClusterRequestWire{
 		ClusterId: v.ClusterId,
 	}, nil
+}
+
+func pinClusterRequestFromWire(w *pinClusterRequestWire) (*PinClusterRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PinClusterRequest{
+		ClusterId: w.ClusterId,
+	}, nil
+}
+
+type pinClusterResponseWire struct {
+}
+
+func pinClusterResponseToWire(v *PinClusterResponse) (*pinClusterResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &pinClusterResponseWire{}, nil
+}
+
+func pinClusterResponseFromWire(w *pinClusterResponseWire) (*PinClusterResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PinClusterResponse{}, nil
+}
+
+type resizeCauseWire struct {
+}
+
+func resizeCauseToWire(v *ResizeCause) (*resizeCauseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &resizeCauseWire{}, nil
+}
+
+func resizeCauseFromWire(w *resizeCauseWire) (*ResizeCause, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ResizeCause{}, nil
 }
 
 type resizeClusterRequestWire struct {
@@ -2512,6 +3955,54 @@ func resizeClusterRequestToWire(v *ResizeClusterRequest) (*resizeClusterRequestW
 	}, nil
 }
 
+func resizeClusterRequestFromWire(w *resizeClusterRequestWire) (*ResizeClusterRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sizeMembers := 0
+	if w.NumWorkers != nil {
+		sizeMembers++
+	}
+	if w.Autoscale != nil {
+		sizeMembers++
+	}
+	if sizeMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "ResizeClusterRequest.Size")
+	}
+	var sizeSelection isResizeClusterRequest_Size
+	switch {
+	case w.NumWorkers != nil:
+		sizeSelection = &ResizeClusterRequest_Size_NumWorkers{NumWorkers: *w.NumWorkers}
+	case w.Autoscale != nil:
+		sizeAutoscaleConverted, err := autoScaleFromWire(w.Autoscale)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "ResizeClusterRequest.Size.Autoscale", err)
+		}
+		sizeSelection = &ResizeClusterRequest_Size_Autoscale{Autoscale: *sizeAutoscaleConverted}
+	}
+	return &ResizeClusterRequest{
+		ClusterId: w.ClusterId,
+		Size:      sizeSelection,
+	}, nil
+}
+
+type resizeClusterResponseWire struct {
+}
+
+func resizeClusterResponseToWire(v *ResizeClusterResponse) (*resizeClusterResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &resizeClusterResponseWire{}, nil
+}
+
+func resizeClusterResponseFromWire(w *resizeClusterResponseWire) (*ResizeClusterResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ResizeClusterResponse{}, nil
+}
+
 type restartClusterRequestWire struct {
 	ClusterId   *string `json:"cluster_id,omitempty"`
 	RestartUser *string `json:"restart_user,omitempty"`
@@ -2525,6 +4016,33 @@ func restartClusterRequestToWire(v *RestartClusterRequest) (*restartClusterReque
 		ClusterId:   v.ClusterId,
 		RestartUser: v.RestartUser,
 	}, nil
+}
+
+func restartClusterRequestFromWire(w *restartClusterRequestWire) (*RestartClusterRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RestartClusterRequest{
+		ClusterId:   w.ClusterId,
+		RestartUser: w.RestartUser,
+	}, nil
+}
+
+type restartClusterResponseWire struct {
+}
+
+func restartClusterResponseToWire(v *RestartClusterResponse) (*restartClusterResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &restartClusterResponseWire{}, nil
+}
+
+func restartClusterResponseFromWire(w *restartClusterResponseWire) (*RestartClusterResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RestartClusterResponse{}, nil
 }
 
 type s3StorageInfoWire struct {
@@ -2567,6 +4085,23 @@ func s3StorageInfoFromWire(w *s3StorageInfoWire) (*S3StorageInfo, error) {
 	}, nil
 }
 
+type sparkInfoWire struct {
+}
+
+func sparkInfoToWire(v *SparkInfo) (*sparkInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &sparkInfoWire{}, nil
+}
+
+func sparkInfoFromWire(w *sparkInfoWire) (*SparkInfo, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SparkInfo{}, nil
+}
+
 type sparkInfo_SparkNodeWire struct {
 	PrivateIp         *string                                         `json:"private_ip,omitempty"`
 	PublicDns         *string                                         `json:"public_dns,omitempty"`
@@ -2575,6 +4110,29 @@ type sparkInfo_SparkNodeWire struct {
 	StartTimestamp    *wireInt64                                      `json:"start_timestamp,omitempty"`
 	NodeAwsAttributes *sparkInfo_SparkNode_SparkNodeAwsAttributesWire `json:"node_aws_attributes,omitempty"`
 	HostPrivateIp     *string                                         `json:"host_private_ip,omitempty"`
+}
+
+func sparkInfo_SparkNodeToWire(v *SparkInfo_SparkNode) (*sparkInfo_SparkNodeWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	startTimestampWireValue, err := int64ToWire(v.StartTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SparkInfo_SparkNode.StartTimestamp", err)
+	}
+	nodeAwsAttributesWireValue, err := sparkInfo_SparkNode_SparkNodeAwsAttributesToWire(v.NodeAwsAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SparkInfo_SparkNode.NodeAwsAttributes", err)
+	}
+	return &sparkInfo_SparkNodeWire{
+		PrivateIp:         v.PrivateIp,
+		PublicDns:         v.PublicDns,
+		NodeId:            v.NodeId,
+		InstanceId:        v.InstanceId,
+		StartTimestamp:    startTimestampWireValue,
+		NodeAwsAttributes: nodeAwsAttributesWireValue,
+		HostPrivateIp:     v.HostPrivateIp,
+	}, nil
 }
 
 func sparkInfo_SparkNodeFromWire(w *sparkInfo_SparkNodeWire) (*SparkInfo_SparkNode, error) {
@@ -2604,6 +4162,15 @@ type sparkInfo_SparkNode_SparkNodeAwsAttributesWire struct {
 	IsSpot *bool `json:"is_spot,omitempty"`
 }
 
+func sparkInfo_SparkNode_SparkNodeAwsAttributesToWire(v *SparkInfo_SparkNode_SparkNodeAwsAttributes) (*sparkInfo_SparkNode_SparkNodeAwsAttributesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &sparkInfo_SparkNode_SparkNodeAwsAttributesWire{
+		IsSpot: v.IsSpot,
+	}, nil
+}
+
 func sparkInfo_SparkNode_SparkNodeAwsAttributesFromWire(w *sparkInfo_SparkNode_SparkNodeAwsAttributesWire) (*SparkInfo_SparkNode_SparkNodeAwsAttributes, error) {
 	if w == nil {
 		return nil, nil
@@ -2616,6 +4183,16 @@ func sparkInfo_SparkNode_SparkNodeAwsAttributesFromWire(w *sparkInfo_SparkNode_S
 type sparkVersionWire struct {
 	Key  *string `json:"key,omitempty"`
 	Name *string `json:"name,omitempty"`
+}
+
+func sparkVersionToWire(v *SparkVersion) (*sparkVersionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &sparkVersionWire{
+		Key:  v.Key,
+		Name: v.Name,
+	}, nil
 }
 
 func sparkVersionFromWire(w *sparkVersionWire) (*SparkVersion, error) {
@@ -2641,10 +4218,47 @@ func startClusterRequestToWire(v *StartClusterRequest) (*startClusterRequestWire
 	}, nil
 }
 
+func startClusterRequestFromWire(w *startClusterRequestWire) (*StartClusterRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &StartClusterRequest{
+		ClusterId: w.ClusterId,
+	}, nil
+}
+
+type startClusterResponseWire struct {
+}
+
+func startClusterResponseToWire(v *StartClusterResponse) (*startClusterResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &startClusterResponseWire{}, nil
+}
+
+func startClusterResponseFromWire(w *startClusterResponseWire) (*StartClusterResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &StartClusterResponse{}, nil
+}
+
 type terminationReasonWire struct {
 	Code       TerminationCode   `json:"code,omitempty"`
 	Type       TerminationType   `json:"type,omitempty"`
 	Parameters map[string]string `json:"parameters,omitempty"`
+}
+
+func terminationReasonToWire(v *TerminationReason) (*terminationReasonWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &terminationReasonWire{
+		Code:       v.Code,
+		Type:       v.Type,
+		Parameters: v.Parameters,
+	}, nil
 }
 
 func terminationReasonFromWire(w *terminationReasonWire) (*TerminationReason, error) {
@@ -2671,10 +4285,36 @@ func unpinClusterRequestToWire(v *UnpinClusterRequest) (*unpinClusterRequestWire
 	}, nil
 }
 
+func unpinClusterRequestFromWire(w *unpinClusterRequestWire) (*UnpinClusterRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UnpinClusterRequest{
+		ClusterId: w.ClusterId,
+	}, nil
+}
+
+type unpinClusterResponseWire struct {
+}
+
+func unpinClusterResponseToWire(v *UnpinClusterResponse) (*unpinClusterResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &unpinClusterResponseWire{}, nil
+}
+
+func unpinClusterResponseFromWire(w *unpinClusterResponseWire) (*UnpinClusterResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UnpinClusterResponse{}, nil
+}
+
 type updateClusterRequestWire struct {
-	ClusterId  *string                                         `json:"cluster_id,omitempty"`
-	Cluster    *updateClusterRequest_UpdateClusterResourceWire `json:"cluster,omitempty"`
-	UpdateMask *string                                         `json:"update_mask,omitempty"`
+	ClusterId  *string                                                      `json:"cluster_id,omitempty"`
+	Cluster    *updateClusterRequest_UpdateClusterResourceWire              `json:"cluster,omitempty"`
+	UpdateMask *types.FieldMask[UpdateClusterRequest_UpdateClusterResource] `json:"update_mask,omitempty"`
 }
 
 func updateClusterRequestToWire(v *UpdateClusterRequest) (*updateClusterRequestWire, error) {
@@ -2688,7 +4328,22 @@ func updateClusterRequestToWire(v *UpdateClusterRequest) (*updateClusterRequestW
 	return &updateClusterRequestWire{
 		ClusterId:  v.ClusterId,
 		Cluster:    clusterWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateClusterRequestFromWire(w *updateClusterRequestWire) (*UpdateClusterRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	clusterPublicValue, err := updateClusterRequest_UpdateClusterResourceFromWire(w.Cluster)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateClusterRequest.Cluster", err)
+	}
+	return &UpdateClusterRequest{
+		ClusterId:  w.ClusterId,
+		Cluster:    clusterPublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 
@@ -2824,6 +4479,121 @@ func updateClusterRequest_UpdateClusterResourceToWire(v *UpdateClusterRequest_Up
 		TotalInitialRemoteDiskSize: v.TotalInitialRemoteDiskSize,
 		DependencyMode:             v.DependencyMode,
 	}, nil
+}
+
+func updateClusterRequest_UpdateClusterResourceFromWire(w *updateClusterRequest_UpdateClusterResourceWire) (*UpdateClusterRequest_UpdateClusterResource, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sizeMembers := 0
+	if w.NumWorkers != nil {
+		sizeMembers++
+	}
+	if w.Autoscale != nil {
+		sizeMembers++
+	}
+	if sizeMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "UpdateClusterRequest_UpdateClusterResource.Size")
+	}
+	awsAttributesPublicValue, err := awsAttributesFromWire(w.AwsAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateClusterRequest_UpdateClusterResource.AwsAttributes", err)
+	}
+	azureAttributesPublicValue, err := azureAttributesFromWire(w.AzureAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateClusterRequest_UpdateClusterResource.AzureAttributes", err)
+	}
+	gcpAttributesPublicValue, err := gcpAttributesFromWire(w.GcpAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateClusterRequest_UpdateClusterResource.GcpAttributes", err)
+	}
+	workerNodeTypeFlexibilityPublicValue, err := nodeTypeFlexibilityFromWire(w.WorkerNodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateClusterRequest_UpdateClusterResource.WorkerNodeTypeFlexibility", err)
+	}
+	driverNodeTypeFlexibilityPublicValue, err := nodeTypeFlexibilityFromWire(w.DriverNodeTypeFlexibility)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateClusterRequest_UpdateClusterResource.DriverNodeTypeFlexibility", err)
+	}
+	clusterLogConfPublicValue, err := clusterLogConfFromWire(w.ClusterLogConf)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateClusterRequest_UpdateClusterResource.ClusterLogConf", err)
+	}
+	initScriptsPublicValue, err := convertSlice(w.InitScripts, initScriptInfoFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateClusterRequest_UpdateClusterResource.InitScripts", err)
+	}
+	dockerImagePublicValue, err := dockerImageFromWire(w.DockerImage)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateClusterRequest_UpdateClusterResource.DockerImage", err)
+	}
+	workloadTypePublicValue, err := workloadTypeFromWire(w.WorkloadType)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateClusterRequest_UpdateClusterResource.WorkloadType", err)
+	}
+	var sizeSelection isUpdateClusterRequest_UpdateClusterResource_Size
+	switch {
+	case w.NumWorkers != nil:
+		sizeSelection = &UpdateClusterRequest_UpdateClusterResource_Size_NumWorkers{NumWorkers: *w.NumWorkers}
+	case w.Autoscale != nil:
+		sizeAutoscaleConverted, err := autoScaleFromWire(w.Autoscale)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "UpdateClusterRequest_UpdateClusterResource.Size.Autoscale", err)
+		}
+		sizeSelection = &UpdateClusterRequest_UpdateClusterResource_Size_Autoscale{Autoscale: *sizeAutoscaleConverted}
+	}
+	return &UpdateClusterRequest_UpdateClusterResource{
+		ClusterName:                w.ClusterName,
+		SparkVersion:               w.SparkVersion,
+		SparkConf:                  w.SparkConf,
+		AwsAttributes:              awsAttributesPublicValue,
+		AzureAttributes:            azureAttributesPublicValue,
+		GcpAttributes:              gcpAttributesPublicValue,
+		NodeTypeId:                 w.NodeTypeId,
+		DriverNodeTypeId:           w.DriverNodeTypeId,
+		WorkerNodeTypeFlexibility:  workerNodeTypeFlexibilityPublicValue,
+		DriverNodeTypeFlexibility:  driverNodeTypeFlexibilityPublicValue,
+		SshPublicKeys:              w.SshPublicKeys,
+		CustomTags:                 w.CustomTags,
+		ClusterLogConf:             clusterLogConfPublicValue,
+		SparkEnvVars:               w.SparkEnvVars,
+		AutoterminationMinutes:     w.AutoterminationMinutes,
+		EnableElasticDisk:          w.EnableElasticDisk,
+		InitScripts:                initScriptsPublicValue,
+		DockerImage:                dockerImagePublicValue,
+		InstancePoolId:             w.InstancePoolId,
+		SingleUserName:             w.SingleUserName,
+		PolicyId:                   w.PolicyId,
+		EnableLocalDiskEncryption:  w.EnableLocalDiskEncryption,
+		DriverInstancePoolId:       w.DriverInstancePoolId,
+		WorkloadType:               workloadTypePublicValue,
+		DataSecurityMode:           w.DataSecurityMode,
+		RuntimeEngine:              w.RuntimeEngine,
+		Kind:                       w.Kind,
+		UseMlRuntime:               w.UseMlRuntime,
+		IsSingleNode:               w.IsSingleNode,
+		RemoteDiskThroughput:       w.RemoteDiskThroughput,
+		TotalInitialRemoteDiskSize: w.TotalInitialRemoteDiskSize,
+		DependencyMode:             w.DependencyMode,
+		Size:                       sizeSelection,
+	}, nil
+}
+
+type updateClusterResponseWire struct {
+}
+
+func updateClusterResponseToWire(v *UpdateClusterResponse) (*updateClusterResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &updateClusterResponseWire{}, nil
+}
+
+func updateClusterResponseFromWire(w *updateClusterResponseWire) (*UpdateClusterResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpdateClusterResponse{}, nil
 }
 
 type volumesStorageInfoWire struct {

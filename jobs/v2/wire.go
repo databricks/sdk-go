@@ -93,6 +93,38 @@ func accessControlRequestToWire(v *AccessControlRequest) (*accessControlRequestW
 	}, nil
 }
 
+func accessControlRequestFromWire(w *accessControlRequestWire) (*AccessControlRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	principalNameMembers := 0
+	if w.UserName != nil {
+		principalNameMembers++
+	}
+	if w.GroupName != nil {
+		principalNameMembers++
+	}
+	if w.ServicePrincipalName != nil {
+		principalNameMembers++
+	}
+	if principalNameMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "AccessControlRequest.PrincipalName")
+	}
+	var principalNameSelection isAccessControlRequest_PrincipalName
+	switch {
+	case w.UserName != nil:
+		principalNameSelection = &AccessControlRequest_PrincipalName_UserName{UserName: *w.UserName}
+	case w.GroupName != nil:
+		principalNameSelection = &AccessControlRequest_PrincipalName_GroupName{GroupName: *w.GroupName}
+	case w.ServicePrincipalName != nil:
+		principalNameSelection = &AccessControlRequest_PrincipalName_ServicePrincipalName{ServicePrincipalName: *w.ServicePrincipalName}
+	}
+	return &AccessControlRequest{
+		PermissionLevel: w.PermissionLevel,
+		PrincipalName:   principalNameSelection,
+	}, nil
+}
+
 type adlsgen2InfoWire struct {
 	Destination *string `json:"destination,omitempty"`
 }
@@ -438,6 +470,35 @@ type aiFunctionTaskOutputWire struct {
 	OutputTable            *qualifiedNameWire `json:"output_table,omitempty"`
 }
 
+func aiFunctionTaskOutputToWire(v *AiFunctionTaskOutput) (*aiFunctionTaskOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	totalRowCountWireValue, err := int64ToWire(v.TotalRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiFunctionTaskOutput.TotalRowCount", err)
+	}
+	succeededRowCountWireValue, err := int64ToWire(v.SucceededRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiFunctionTaskOutput.SucceededRowCount", err)
+	}
+	failedRowCountWireValue, err := int64ToWire(v.FailedRowCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiFunctionTaskOutput.FailedRowCount", err)
+	}
+	outputTableWireValue, err := qualifiedNameToWire(v.OutputTable)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AiFunctionTaskOutput.OutputTable", err)
+	}
+	return &aiFunctionTaskOutputWire{
+		TotalRowCount:          totalRowCountWireValue,
+		SucceededRowCount:      succeededRowCountWireValue,
+		FailedRowCount:         failedRowCountWireValue,
+		EstimatedTimeRemaining: v.EstimatedTimeRemaining,
+		OutputTable:            outputTableWireValue,
+	}, nil
+}
+
 func aiFunctionTaskOutputFromWire(w *aiFunctionTaskOutputWire) (*AiFunctionTaskOutput, error) {
 	if w == nil {
 		return nil, nil
@@ -558,6 +619,17 @@ type aiRuntimeTaskOutputWire struct {
 	StatusMessage      *string `json:"status_message,omitempty"`
 }
 
+func aiRuntimeTaskOutputToWire(v *AiRuntimeTaskOutput) (*aiRuntimeTaskOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &aiRuntimeTaskOutputWire{
+		MlflowExperimentId: v.MlflowExperimentId,
+		MlflowRunId:        v.MlflowRunId,
+		StatusMessage:      v.StatusMessage,
+	}, nil
+}
+
 func aiRuntimeTaskOutputFromWire(w *aiRuntimeTaskOutputWire) (*AiRuntimeTaskOutput, error) {
 	if w == nil {
 		return nil, nil
@@ -567,6 +639,23 @@ func aiRuntimeTaskOutputFromWire(w *aiRuntimeTaskOutputWire) (*AiRuntimeTaskOutp
 		MlflowRunId:        w.MlflowRunId,
 		StatusMessage:      w.StatusMessage,
 	}, nil
+}
+
+type alertEvaluationStateWire struct {
+}
+
+func alertEvaluationStateToWire(v *AlertEvaluationState) (*alertEvaluationStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &alertEvaluationStateWire{}, nil
+}
+
+func alertEvaluationStateFromWire(w *alertEvaluationStateWire) (*AlertEvaluationState, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AlertEvaluationState{}, nil
 }
 
 type alertTaskWire struct {
@@ -613,6 +702,15 @@ func alertTaskFromWire(w *alertTaskWire) (*AlertTask, error) {
 
 type alertTaskOutputWire struct {
 	AlertState AlertEvaluationState_AlertEvaluationState `json:"alert_state,omitempty"`
+}
+
+func alertTaskOutputToWire(v *AlertTaskOutput) (*alertTaskOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &alertTaskOutputWire{
+		AlertState: v.AlertState,
+	}, nil
 }
 
 func alertTaskOutputFromWire(w *alertTaskOutputWire) (*AlertTaskOutput, error) {
@@ -809,6 +907,44 @@ type baseJobWire struct {
 	TriggerDetails          []triggerDetailsWire `json:"trigger_details,omitempty"`
 }
 
+func baseJobToWire(v *BaseJob) (*baseJobWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	jobIdWireValue, err := int64ToWire(v.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseJob.JobId", err)
+	}
+	settingsWireValue, err := jobSettingsToWire(v.Settings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseJob.Settings", err)
+	}
+	createdTimeWireValue, err := int64ToWire(v.CreatedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseJob.CreatedTime", err)
+	}
+	triggerStateWireValue, err := triggerStateToWire(v.TriggerState)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseJob.TriggerState", err)
+	}
+	triggerDetailsWireValue, err := convertSlice(v.TriggerDetails, triggerDetailsToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseJob.TriggerDetails", err)
+	}
+	return &baseJobWire{
+		JobId:                   jobIdWireValue,
+		CreatorUserName:         v.CreatorUserName,
+		RunAsUserName:           v.RunAsUserName,
+		Settings:                settingsWireValue,
+		CreatedTime:             createdTimeWireValue,
+		TriggerState:            triggerStateWireValue,
+		HasMore:                 v.HasMore,
+		EffectiveBudgetPolicyId: v.EffectiveBudgetPolicyId,
+		EffectiveUsagePolicyId:  v.EffectiveUsagePolicyId,
+		TriggerDetails:          triggerDetailsWireValue,
+	}, nil
+}
+
 func baseJobFromWire(w *baseJobWire) (*BaseJob, error) {
 	if w == nil {
 		return nil, nil
@@ -886,6 +1022,152 @@ type baseRunWire struct {
 	EndTime                    *wireInt64                          `json:"end_time,omitempty"`
 	RunDuration                *wireInt64                          `json:"run_duration,omitempty"`
 	QueueDuration              *wireInt64                          `json:"queue_duration,omitempty"`
+}
+
+func baseRunToWire(v *BaseRun) (*baseRunWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	jobIdWireValue, err := int64ToWire(v.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.JobId", err)
+	}
+	runIdWireValue, err := int64ToWire(v.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.RunId", err)
+	}
+	numberInJobWireValue, err := int64ToWire(v.NumberInJob)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.NumberInJob", err)
+	}
+	originalAttemptRunIdWireValue, err := int64ToWire(v.OriginalAttemptRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.OriginalAttemptRunId", err)
+	}
+	stateWireValue, err := runStateToWire(v.State)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.State", err)
+	}
+	scheduleWireValue, err := cronScheduleToWire(v.Schedule)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.Schedule", err)
+	}
+	clusterSpecWireValue, err := clusterSpecToWire(v.ClusterSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.ClusterSpec", err)
+	}
+	clusterInstanceWireValue, err := clusterInstanceToWire(v.ClusterInstance)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.ClusterInstance", err)
+	}
+	jobParametersWireValue, err := convertSlice(v.JobParameters, run_JobLevelParametersToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.JobParameters", err)
+	}
+	overridingParametersWireValue, err := runParametersToWire(v.OverridingParameters)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.OverridingParameters", err)
+	}
+	triggerInfoWireValue, err := runTriggerInfoToWire(v.TriggerInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.TriggerInfo", err)
+	}
+	tasksWireValue, err := convertSlice(v.Tasks, runTaskToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.Tasks", err)
+	}
+	jobClustersWireValue, err := convertSlice(v.JobClusters, jobClusterToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.JobClusters", err)
+	}
+	gitSourceWireValue, err := gitSourceToWire(v.GitSource)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.GitSource", err)
+	}
+	repairHistoryWireValue, err := convertSlice(v.RepairHistory, repairToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.RepairHistory", err)
+	}
+	statusWireValue, err := runStatusToWire(v.Status)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.Status", err)
+	}
+	jobRunIdWireValue, err := int64ToWire(v.JobRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.JobRunId", err)
+	}
+	environmentVariablesWireValue, err := convertSlice(v.EnvironmentVariables, jobEnvironmentVariablesToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.EnvironmentVariables", err)
+	}
+	startTimeWireValue, err := int64ToWire(v.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.StartTime", err)
+	}
+	setupDurationWireValue, err := int64ToWire(v.SetupDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.SetupDuration", err)
+	}
+	executionDurationWireValue, err := int64ToWire(v.ExecutionDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.ExecutionDuration", err)
+	}
+	cleanupDurationWireValue, err := int64ToWire(v.CleanupDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.CleanupDuration", err)
+	}
+	endTimeWireValue, err := int64ToWire(v.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.EndTime", err)
+	}
+	runDurationWireValue, err := int64ToWire(v.RunDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.RunDuration", err)
+	}
+	queueDurationWireValue, err := int64ToWire(v.QueueDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BaseRun.QueueDuration", err)
+	}
+	return &baseRunWire{
+		JobId:                      jobIdWireValue,
+		RunId:                      runIdWireValue,
+		CreatorUserName:            v.CreatorUserName,
+		NumberInJob:                numberInJobWireValue,
+		OriginalAttemptRunId:       originalAttemptRunIdWireValue,
+		State:                      stateWireValue,
+		Schedule:                   scheduleWireValue,
+		ClusterSpec:                clusterSpecWireValue,
+		ClusterInstance:            clusterInstanceWireValue,
+		JobParameters:              jobParametersWireValue,
+		OverridingParameters:       overridingParametersWireValue,
+		Trigger:                    v.Trigger,
+		TriggerInfo:                triggerInfoWireValue,
+		RunName:                    v.RunName,
+		RunPageUrl:                 v.RunPageUrl,
+		RunType:                    v.RunType,
+		Tasks:                      tasksWireValue,
+		Description:                v.Description,
+		AttemptNumber:              v.AttemptNumber,
+		JobClusters:                jobClustersWireValue,
+		GitSource:                  gitSourceWireValue,
+		RepairHistory:              repairHistoryWireValue,
+		Status:                     statusWireValue,
+		JobRunId:                   jobRunIdWireValue,
+		HasMore:                    v.HasMore,
+		EffectivePerformanceTarget: v.EffectivePerformanceTarget,
+		DurationTarget:             v.DurationTarget,
+		EffectiveUsagePolicyId:     v.EffectiveUsagePolicyId,
+		EnvironmentVariables:       environmentVariablesWireValue,
+		DeploymentId:               v.DeploymentId,
+		VersionId:                  v.VersionId,
+		StartTime:                  startTimeWireValue,
+		SetupDuration:              setupDurationWireValue,
+		ExecutionDuration:          executionDurationWireValue,
+		CleanupDuration:            cleanupDurationWireValue,
+		EndTime:                    endTimeWireValue,
+		RunDuration:                runDurationWireValue,
+		QueueDuration:              queueDurationWireValue,
+	}, nil
 }
 
 func baseRunFromWire(w *baseRunWire) (*BaseRun, error) {
@@ -1053,6 +1335,37 @@ func cancelAllRunsRequestToWire(v *CancelAllRunsRequest) (*cancelAllRunsRequestW
 	}, nil
 }
 
+func cancelAllRunsRequestFromWire(w *cancelAllRunsRequestWire) (*CancelAllRunsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	jobIdPublicValue, err := int64FromWire(w.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CancelAllRunsRequest.JobId", err)
+	}
+	return &CancelAllRunsRequest{
+		JobId:         jobIdPublicValue,
+		AllQueuedRuns: w.AllQueuedRuns,
+	}, nil
+}
+
+type cancelAllRunsResponseWire struct {
+}
+
+func cancelAllRunsResponseToWire(v *CancelAllRunsResponse) (*cancelAllRunsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &cancelAllRunsResponseWire{}, nil
+}
+
+func cancelAllRunsResponseFromWire(w *cancelAllRunsResponseWire) (*CancelAllRunsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CancelAllRunsResponse{}, nil
+}
+
 type cancelRunRequestWire struct {
 	RunId *wireInt64 `json:"run_id,omitempty"`
 }
@@ -1070,9 +1383,83 @@ func cancelRunRequestToWire(v *CancelRunRequest) (*cancelRunRequestWire, error) 
 	}, nil
 }
 
+func cancelRunRequestFromWire(w *cancelRunRequestWire) (*CancelRunRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	runIdPublicValue, err := int64FromWire(w.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CancelRunRequest.RunId", err)
+	}
+	return &CancelRunRequest{
+		RunId: runIdPublicValue,
+	}, nil
+}
+
+type cancelRunResponseWire struct {
+}
+
+func cancelRunResponseToWire(v *CancelRunResponse) (*cancelRunResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &cancelRunResponseWire{}, nil
+}
+
+func cancelRunResponseFromWire(w *cancelRunResponseWire) (*CancelRunResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CancelRunResponse{}, nil
+}
+
+type cleanRoomTaskRunLifeCycleStateWire struct {
+}
+
+func cleanRoomTaskRunLifeCycleStateToWire(v *CleanRoomTaskRunLifeCycleState) (*cleanRoomTaskRunLifeCycleStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &cleanRoomTaskRunLifeCycleStateWire{}, nil
+}
+
+func cleanRoomTaskRunLifeCycleStateFromWire(w *cleanRoomTaskRunLifeCycleStateWire) (*CleanRoomTaskRunLifeCycleState, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CleanRoomTaskRunLifeCycleState{}, nil
+}
+
+type cleanRoomTaskRunResultStateWire struct {
+}
+
+func cleanRoomTaskRunResultStateToWire(v *CleanRoomTaskRunResultState) (*cleanRoomTaskRunResultStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &cleanRoomTaskRunResultStateWire{}, nil
+}
+
+func cleanRoomTaskRunResultStateFromWire(w *cleanRoomTaskRunResultStateWire) (*CleanRoomTaskRunResultState, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CleanRoomTaskRunResultState{}, nil
+}
+
 type cleanRoomTaskRunStateWire struct {
 	LifeCycleState CleanRoomTaskRunLifeCycleState_CleanRoomTaskRunLifeCycleState `json:"life_cycle_state,omitempty"`
 	ResultState    CleanRoomTaskRunResultState_CleanRoomTaskRunResultState       `json:"result_state,omitempty"`
+}
+
+func cleanRoomTaskRunStateToWire(v *CleanRoomTaskRunState) (*cleanRoomTaskRunStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &cleanRoomTaskRunStateWire{
+		LifeCycleState: v.LifeCycleState,
+		ResultState:    v.ResultState,
+	}, nil
 }
 
 func cleanRoomTaskRunStateFromWire(w *cleanRoomTaskRunStateWire) (*CleanRoomTaskRunState, error) {
@@ -1122,6 +1509,29 @@ type cleanRoomsNotebookTask_CleanRoomsNotebookTaskOutputWire struct {
 	OutputSchemaInfo     *outputSchemaInfoWire            `json:"output_schema_info,omitempty"`
 }
 
+func cleanRoomsNotebookTask_CleanRoomsNotebookTaskOutputToWire(v *CleanRoomsNotebookTask_CleanRoomsNotebookTaskOutput) (*cleanRoomsNotebookTask_CleanRoomsNotebookTaskOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	cleanRoomJobRunStateWireValue, err := cleanRoomTaskRunStateToWire(v.CleanRoomJobRunState)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomsNotebookTask_CleanRoomsNotebookTaskOutput.CleanRoomJobRunState", err)
+	}
+	notebookOutputWireValue, err := notebookTask_NotebookOutputToWire(v.NotebookOutput)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomsNotebookTask_CleanRoomsNotebookTaskOutput.NotebookOutput", err)
+	}
+	outputSchemaInfoWireValue, err := outputSchemaInfoToWire(v.OutputSchemaInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CleanRoomsNotebookTask_CleanRoomsNotebookTaskOutput.OutputSchemaInfo", err)
+	}
+	return &cleanRoomsNotebookTask_CleanRoomsNotebookTaskOutputWire{
+		CleanRoomJobRunState: cleanRoomJobRunStateWireValue,
+		NotebookOutput:       notebookOutputWireValue,
+		OutputSchemaInfo:     outputSchemaInfoWireValue,
+	}, nil
+}
+
 func cleanRoomsNotebookTask_CleanRoomsNotebookTaskOutputFromWire(w *cleanRoomsNotebookTask_CleanRoomsNotebookTaskOutputWire) (*CleanRoomsNotebookTask_CleanRoomsNotebookTaskOutput, error) {
 	if w == nil {
 		return nil, nil
@@ -1148,6 +1558,16 @@ func cleanRoomsNotebookTask_CleanRoomsNotebookTaskOutputFromWire(w *cleanRoomsNo
 type clusterInstanceWire struct {
 	ClusterId      *string `json:"cluster_id,omitempty"`
 	SparkContextId *string `json:"spark_context_id,omitempty"`
+}
+
+func clusterInstanceToWire(v *ClusterInstance) (*clusterInstanceWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &clusterInstanceWire{
+		ClusterId:      v.ClusterId,
+		SparkContextId: v.SparkContextId,
+	}, nil
 }
 
 func clusterInstanceFromWire(w *clusterInstanceWire) (*ClusterInstance, error) {
@@ -1257,6 +1677,46 @@ type clusterSpecWire struct {
 	NewCluster        *clusterSpec_NewClusterWire `json:"new_cluster,omitempty"`
 	JobClusterKey     *string                     `json:"job_cluster_key,omitempty"`
 	Libraries         []libraryWire               `json:"libraries,omitempty"`
+}
+
+func clusterSpecToWire(v *ClusterSpec) (*clusterSpecWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	librariesWireValue, err := convertSlice(v.Libraries, libraryToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClusterSpec.Libraries", err)
+	}
+	var specExistingClusterIdWire *string
+	var specNewClusterWire *clusterSpec_NewClusterWire
+	var specJobClusterKeyWire *string
+	switch value := v.Spec.(type) {
+	case nil:
+	case *ClusterSpec_Spec_ExistingClusterId:
+		if value != nil {
+			specExistingClusterIdWire = new(value.ExistingClusterId)
+		}
+	case *ClusterSpec_Spec_NewCluster:
+		if value != nil {
+			specNewClusterConverted, err := clusterSpec_NewClusterToWire(&value.NewCluster)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ClusterSpec.Spec.NewCluster", err)
+			}
+			specNewClusterWire = specNewClusterConverted
+		}
+	case *ClusterSpec_Spec_JobClusterKey:
+		if value != nil {
+			specJobClusterKeyWire = new(value.JobClusterKey)
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "ClusterSpec.Spec", value)
+	}
+	return &clusterSpecWire{
+		ExistingClusterId: specExistingClusterIdWire,
+		NewCluster:        specNewClusterWire,
+		JobClusterKey:     specJobClusterKeyWire,
+		Libraries:         librariesWireValue,
+	}, nil
 }
 
 func clusterSpecFromWire(w *clusterSpecWire) (*ClusterSpec, error) {
@@ -1542,6 +2002,19 @@ type completedJobWire struct {
 	CompletionTime  *types.Time          `json:"completion_time,omitempty"`
 }
 
+func completedJobToWire(v *CompletedJob) (*completedJobWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &completedJobWire{
+		WorkspaceId:     v.WorkspaceId,
+		JobId:           v.JobId,
+		RunId:           v.RunId,
+		TerminationCode: v.TerminationCode,
+		CompletionTime:  v.CompletionTime,
+	}, nil
+}
+
 func completedJobFromWire(w *completedJobWire) (*CompletedJob, error) {
 	if w == nil {
 		return nil, nil
@@ -1739,6 +2212,21 @@ type continuousTriggerStateWire struct {
 	IsBackingOff        *bool      `json:"is_backing_off,omitempty"`
 }
 
+func continuousTriggerStateToWire(v *ContinuousTriggerState) (*continuousTriggerStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	nextAttemptMsWireValue, err := int64ToWire(v.NextAttemptMs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ContinuousTriggerState.NextAttemptMs", err)
+	}
+	return &continuousTriggerStateWire{
+		ConsecutiveFailures: v.ConsecutiveFailures,
+		NextAttemptMs:       nextAttemptMsWireValue,
+		IsBackingOff:        v.IsBackingOff,
+	}, nil
+}
+
 func continuousTriggerStateFromWire(w *continuousTriggerStateWire) (*ContinuousTriggerState, error) {
 	if w == nil {
 		return nil, nil
@@ -1905,8 +2393,135 @@ func createJobRequestToWire(v *CreateJobRequest) (*createJobRequestWire, error) 
 	}, nil
 }
 
+func createJobRequestFromWire(w *createJobRequestWire) (*CreateJobRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	accessControlListPublicValue, err := convertSlice(w.AccessControlList, accessControlRequestFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobRequest.AccessControlList", err)
+	}
+	emailNotificationsPublicValue, err := jobEmailNotificationsFromWire(w.EmailNotifications)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobRequest.EmailNotifications", err)
+	}
+	webhookNotificationsPublicValue, err := webhookNotificationsFromWire(w.WebhookNotifications)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobRequest.WebhookNotifications", err)
+	}
+	notificationSettingsPublicValue, err := notificationSettingsFromWire(w.NotificationSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobRequest.NotificationSettings", err)
+	}
+	healthPublicValue, err := jobsHealthRulesFromWire(w.Health)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobRequest.Health", err)
+	}
+	schedulePublicValue, err := cronScheduleFromWire(w.Schedule)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobRequest.Schedule", err)
+	}
+	triggerPublicValue, err := triggerSettingsFromWire(w.Trigger)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobRequest.Trigger", err)
+	}
+	continuousPublicValue, err := continuousSettingsFromWire(w.Continuous)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobRequest.Continuous", err)
+	}
+	tasksPublicValue, err := convertSlice(w.Tasks, taskSettingsFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobRequest.Tasks", err)
+	}
+	jobClustersPublicValue, err := convertSlice(w.JobClusters, jobClusterFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobRequest.JobClusters", err)
+	}
+	gitSourcePublicValue, err := gitSourceFromWire(w.GitSource)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobRequest.GitSource", err)
+	}
+	queuePublicValue, err := queueSettingsFromWire(w.Queue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobRequest.Queue", err)
+	}
+	parametersPublicValue, err := convertSlice(w.Parameters, jobLevelParameterFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobRequest.Parameters", err)
+	}
+	runAsPublicValue, err := jobRunAsFromWire(w.RunAs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobRequest.RunAs", err)
+	}
+	deploymentPublicValue, err := jobDeploymentFromWire(w.Deployment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobRequest.Deployment", err)
+	}
+	environmentsPublicValue, err := convertSlice(w.Environments, jobEnvironmentFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobRequest.Environments", err)
+	}
+	triggersPublicValue, err := convertSlice(w.Triggers, triggerConfigurationFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobRequest.Triggers", err)
+	}
+	environmentVariablesPublicValue, err := convertSlice(w.EnvironmentVariables, jobEnvironmentVariablesFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobRequest.EnvironmentVariables", err)
+	}
+	return &CreateJobRequest{
+		AccessControlList:       accessControlListPublicValue,
+		Name:                    w.Name,
+		Description:             w.Description,
+		EmailNotifications:      emailNotificationsPublicValue,
+		WebhookNotifications:    webhookNotificationsPublicValue,
+		NotificationSettings:    notificationSettingsPublicValue,
+		TimeoutSeconds:          w.TimeoutSeconds,
+		Health:                  healthPublicValue,
+		Schedule:                schedulePublicValue,
+		Trigger:                 triggerPublicValue,
+		Continuous:              continuousPublicValue,
+		MaxConcurrentRuns:       w.MaxConcurrentRuns,
+		Tasks:                   tasksPublicValue,
+		JobClusters:             jobClustersPublicValue,
+		GitSource:               gitSourcePublicValue,
+		Tags:                    w.Tags,
+		Format:                  w.Format,
+		Queue:                   queuePublicValue,
+		Parameters:              parametersPublicValue,
+		RunAs:                   runAsPublicValue,
+		EditMode:                w.EditMode,
+		Deployment:              deploymentPublicValue,
+		Environments:            environmentsPublicValue,
+		BudgetPolicyId:          w.BudgetPolicyId,
+		UsagePolicyId:           w.UsagePolicyId,
+		PerformanceTarget:       w.PerformanceTarget,
+		DurationTarget:          w.DurationTarget,
+		ParentPath:              w.ParentPath,
+		Triggers:                triggersPublicValue,
+		EnvironmentVariables:    environmentVariablesPublicValue,
+		MaxRetries:              w.MaxRetries,
+		MinRetryIntervalMillis:  w.MinRetryIntervalMillis,
+		RetryOnTimeout:          w.RetryOnTimeout,
+		DisableAutoOptimization: w.DisableAutoOptimization,
+	}, nil
+}
+
 type createJobResponseWire struct {
 	JobId *wireInt64 `json:"job_id,omitempty"`
+}
+
+func createJobResponseToWire(v *CreateJobResponse) (*createJobResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	jobIdWireValue, err := int64ToWire(v.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateJobResponse.JobId", err)
+	}
+	return &createJobResponseWire{
+		JobId: jobIdWireValue,
+	}, nil
 }
 
 func createJobResponseFromWire(w *createJobResponseWire) (*CreateJobResponse, error) {
@@ -1991,6 +2606,20 @@ type dashboardPageSnapshotWire struct {
 	WidgetErrorDetails []widgetErrorDetailWire `json:"widget_error_details,omitempty"`
 }
 
+func dashboardPageSnapshotToWire(v *DashboardPageSnapshot) (*dashboardPageSnapshotWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	widgetErrorDetailsWireValue, err := convertSlice(v.WidgetErrorDetails, widgetErrorDetailToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardPageSnapshot.WidgetErrorDetails", err)
+	}
+	return &dashboardPageSnapshotWire{
+		PageDisplayName:    v.PageDisplayName,
+		WidgetErrorDetails: widgetErrorDetailsWireValue,
+	}, nil
+}
+
 func dashboardPageSnapshotFromWire(w *dashboardPageSnapshotWire) (*DashboardPageSnapshot, error) {
 	if w == nil {
 		return nil, nil
@@ -2048,6 +2677,19 @@ type dashboardTaskOutputWire struct {
 	PageSnapshots []dashboardPageSnapshotWire `json:"page_snapshots,omitempty"`
 }
 
+func dashboardTaskOutputToWire(v *DashboardTaskOutput) (*dashboardTaskOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	pageSnapshotsWireValue, err := convertSlice(v.PageSnapshots, dashboardPageSnapshotToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DashboardTaskOutput.PageSnapshots", err)
+	}
+	return &dashboardTaskOutputWire{
+		PageSnapshots: pageSnapshotsWireValue,
+	}, nil
+}
+
 func dashboardTaskOutputFromWire(w *dashboardTaskOutputWire) (*DashboardTaskOutput, error) {
 	if w == nil {
 		return nil, nil
@@ -2088,6 +2730,18 @@ type dbtCloudJobRunStepWire struct {
 	Name   *string              `json:"name,omitempty"`
 	Status DbtPlatformRunStatus `json:"status,omitempty"`
 	Logs   *string              `json:"logs,omitempty"`
+}
+
+func dbtCloudJobRunStepToWire(v *DbtCloudJobRunStep) (*dbtCloudJobRunStepWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &dbtCloudJobRunStepWire{
+		Index:  v.Index,
+		Name:   v.Name,
+		Status: v.Status,
+		Logs:   v.Logs,
+	}, nil
 }
 
 func dbtCloudJobRunStepFromWire(w *dbtCloudJobRunStepWire) (*DbtCloudJobRunStep, error) {
@@ -2141,6 +2795,25 @@ type dbtCloudTaskOutputWire struct {
 	DbtCloudJobRunOutput []dbtCloudJobRunStepWire `json:"dbt_cloud_job_run_output,omitempty"`
 }
 
+func dbtCloudTaskOutputToWire(v *DbtCloudTaskOutput) (*dbtCloudTaskOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	dbtCloudJobRunIdWireValue, err := int64ToWire(v.DbtCloudJobRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DbtCloudTaskOutput.DbtCloudJobRunId", err)
+	}
+	dbtCloudJobRunOutputWireValue, err := convertSlice(v.DbtCloudJobRunOutput, dbtCloudJobRunStepToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DbtCloudTaskOutput.DbtCloudJobRunOutput", err)
+	}
+	return &dbtCloudTaskOutputWire{
+		DbtCloudJobRunId:     dbtCloudJobRunIdWireValue,
+		DbtCloudJobRunUrl:    v.DbtCloudJobRunUrl,
+		DbtCloudJobRunOutput: dbtCloudJobRunOutputWireValue,
+	}, nil
+}
+
 func dbtCloudTaskOutputFromWire(w *dbtCloudTaskOutputWire) (*DbtCloudTaskOutput, error) {
 	if w == nil {
 		return nil, nil
@@ -2167,6 +2840,20 @@ type dbtPlatformJobRunStepWire struct {
 	Logs          *string              `json:"logs,omitempty"`
 	NameTruncated *bool                `json:"name_truncated,omitempty"`
 	LogsTruncated *bool                `json:"logs_truncated,omitempty"`
+}
+
+func dbtPlatformJobRunStepToWire(v *DbtPlatformJobRunStep) (*dbtPlatformJobRunStepWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &dbtPlatformJobRunStepWire{
+		Index:         v.Index,
+		Name:          v.Name,
+		Status:        v.Status,
+		Logs:          v.Logs,
+		NameTruncated: v.NameTruncated,
+		LogsTruncated: v.LogsTruncated,
+	}, nil
 }
 
 func dbtPlatformJobRunStepFromWire(w *dbtPlatformJobRunStepWire) (*DbtPlatformJobRunStep, error) {
@@ -2213,6 +2900,22 @@ type dbtPlatformTaskOutputWire struct {
 	DbtPlatformJobRunUrl    *string                     `json:"dbt_platform_job_run_url,omitempty"`
 	DbtPlatformJobRunOutput []dbtPlatformJobRunStepWire `json:"dbt_platform_job_run_output,omitempty"`
 	StepsTruncated          *bool                       `json:"steps_truncated,omitempty"`
+}
+
+func dbtPlatformTaskOutputToWire(v *DbtPlatformTaskOutput) (*dbtPlatformTaskOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	dbtPlatformJobRunOutputWireValue, err := convertSlice(v.DbtPlatformJobRunOutput, dbtPlatformJobRunStepToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DbtPlatformTaskOutput.DbtPlatformJobRunOutput", err)
+	}
+	return &dbtPlatformTaskOutputWire{
+		DbtPlatformJobRunId:     v.DbtPlatformJobRunId,
+		DbtPlatformJobRunUrl:    v.DbtPlatformJobRunUrl,
+		DbtPlatformJobRunOutput: dbtPlatformJobRunOutputWireValue,
+		StepsTruncated:          v.StepsTruncated,
+	}, nil
 }
 
 func dbtPlatformTaskOutputFromWire(w *dbtPlatformTaskOutputWire) (*DbtPlatformTaskOutput, error) {
@@ -2276,6 +2979,16 @@ type dbtTask_DbtTaskOutputWire struct {
 	ArtifactsHeaders map[string]string `json:"artifacts_headers,omitempty"`
 }
 
+func dbtTask_DbtTaskOutputToWire(v *DbtTask_DbtTaskOutput) (*dbtTask_DbtTaskOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &dbtTask_DbtTaskOutputWire{
+		ArtifactsLink:    v.ArtifactsLink,
+		ArtifactsHeaders: v.ArtifactsHeaders,
+	}, nil
+}
+
 func dbtTask_DbtTaskOutputFromWire(w *dbtTask_DbtTaskOutputWire) (*DbtTask_DbtTaskOutput, error) {
 	if w == nil {
 		return nil, nil
@@ -2303,6 +3016,36 @@ func deleteJobRequestToWire(v *DeleteJobRequest) (*deleteJobRequestWire, error) 
 	}, nil
 }
 
+func deleteJobRequestFromWire(w *deleteJobRequestWire) (*DeleteJobRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	jobIdPublicValue, err := int64FromWire(w.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteJobRequest.JobId", err)
+	}
+	return &DeleteJobRequest{
+		JobId: jobIdPublicValue,
+	}, nil
+}
+
+type deleteJobResponseWire struct {
+}
+
+func deleteJobResponseToWire(v *DeleteJobResponse) (*deleteJobResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteJobResponseWire{}, nil
+}
+
+func deleteJobResponseFromWire(w *deleteJobResponseWire) (*DeleteJobResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteJobResponse{}, nil
+}
+
 type deleteRunRequestWire struct {
 	RunId *wireInt64 `json:"run_id,omitempty"`
 }
@@ -2318,6 +3061,36 @@ func deleteRunRequestToWire(v *DeleteRunRequest) (*deleteRunRequestWire, error) 
 	return &deleteRunRequestWire{
 		RunId: runIdWireValue,
 	}, nil
+}
+
+func deleteRunRequestFromWire(w *deleteRunRequestWire) (*DeleteRunRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	runIdPublicValue, err := int64FromWire(w.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteRunRequest.RunId", err)
+	}
+	return &DeleteRunRequest{
+		RunId: runIdPublicValue,
+	}, nil
+}
+
+type deleteRunResponseWire struct {
+}
+
+func deleteRunResponseToWire(v *DeleteRunResponse) (*deleteRunResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteRunResponseWire{}, nil
+}
+
+func deleteRunResponseFromWire(w *deleteRunResponseWire) (*DeleteRunResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRunResponse{}, nil
 }
 
 type deltaTableSourceWire struct {
@@ -2483,10 +3256,43 @@ func enforcePolicyComplianceForJobToWire(v *EnforcePolicyComplianceForJob) (*enf
 	}, nil
 }
 
+func enforcePolicyComplianceForJobFromWire(w *enforcePolicyComplianceForJobWire) (*EnforcePolicyComplianceForJob, error) {
+	if w == nil {
+		return nil, nil
+	}
+	jobIdPublicValue, err := int64FromWire(w.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EnforcePolicyComplianceForJob.JobId", err)
+	}
+	return &EnforcePolicyComplianceForJob{
+		JobId:        jobIdPublicValue,
+		ValidateOnly: w.ValidateOnly,
+	}, nil
+}
+
 type enforcePolicyComplianceResponseWire struct {
 	HasChanges        *bool                                                          `json:"has_changes,omitempty"`
 	JobClusterChanges []enforcePolicyComplianceResponse_JobClusterSettingsChangeWire `json:"job_cluster_changes,omitempty"`
 	Settings          *jobSettingsWire                                               `json:"settings,omitempty"`
+}
+
+func enforcePolicyComplianceResponseToWire(v *EnforcePolicyComplianceResponse) (*enforcePolicyComplianceResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	jobClusterChangesWireValue, err := convertSlice(v.JobClusterChanges, enforcePolicyComplianceResponse_JobClusterSettingsChangeToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EnforcePolicyComplianceResponse.JobClusterChanges", err)
+	}
+	settingsWireValue, err := jobSettingsToWire(v.Settings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EnforcePolicyComplianceResponse.Settings", err)
+	}
+	return &enforcePolicyComplianceResponseWire{
+		HasChanges:        v.HasChanges,
+		JobClusterChanges: jobClusterChangesWireValue,
+		Settings:          settingsWireValue,
+	}, nil
 }
 
 func enforcePolicyComplianceResponseFromWire(w *enforcePolicyComplianceResponseWire) (*EnforcePolicyComplianceResponse, error) {
@@ -2512,6 +3318,17 @@ type enforcePolicyComplianceResponse_JobClusterSettingsChangeWire struct {
 	Field         *string `json:"field,omitempty"`
 	PreviousValue *string `json:"previous_value,omitempty"`
 	NewValue      *string `json:"new_value,omitempty"`
+}
+
+func enforcePolicyComplianceResponse_JobClusterSettingsChangeToWire(v *EnforcePolicyComplianceResponse_JobClusterSettingsChange) (*enforcePolicyComplianceResponse_JobClusterSettingsChangeWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &enforcePolicyComplianceResponse_JobClusterSettingsChangeWire{
+		Field:         v.Field,
+		PreviousValue: v.PreviousValue,
+		NewValue:      v.NewValue,
+	}, nil
 }
 
 func enforcePolicyComplianceResponse_JobClusterSettingsChangeFromWire(w *enforcePolicyComplianceResponse_JobClusterSettingsChangeWire) (*EnforcePolicyComplianceResponse_JobClusterSettingsChange, error) {
@@ -2581,8 +3398,35 @@ func exportRunRequestToWire(v *ExportRunRequest) (*exportRunRequestWire, error) 
 	}, nil
 }
 
+func exportRunRequestFromWire(w *exportRunRequestWire) (*ExportRunRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	runIdPublicValue, err := int64FromWire(w.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExportRunRequest.RunId", err)
+	}
+	return &ExportRunRequest{
+		RunId:         runIdPublicValue,
+		ViewsToExport: w.ViewsToExport,
+	}, nil
+}
+
 type exportRunResponseWire struct {
 	Views []viewItemWire `json:"views,omitempty"`
+}
+
+func exportRunResponseToWire(v *ExportRunResponse) (*exportRunResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	viewsWireValue, err := convertSlice(v.Views, viewItemToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExportRunResponse.Views", err)
+	}
+	return &exportRunResponseWire{
+		Views: viewsWireValue,
+	}, nil
 }
 
 func exportRunResponseFromWire(w *exportRunResponseWire) (*ExportRunResponse, error) {
@@ -2628,6 +3472,15 @@ func fileArrivalTriggerConfigurationFromWire(w *fileArrivalTriggerConfigurationW
 
 type fileArrivalTriggerStateWire struct {
 	UsingFileEvents *bool `json:"using_file_events,omitempty"`
+}
+
+func fileArrivalTriggerStateToWire(v *FileArrivalTriggerState) (*fileArrivalTriggerStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &fileArrivalTriggerStateWire{
+		UsingFileEvents: v.UsingFileEvents,
+	}, nil
 }
 
 func fileArrivalTriggerStateFromWire(w *fileArrivalTriggerStateWire) (*FileArrivalTriggerState, error) {
@@ -2812,6 +3665,21 @@ func getJobRequestToWire(v *GetJobRequest) (*getJobRequestWire, error) {
 	}, nil
 }
 
+func getJobRequestFromWire(w *getJobRequestWire) (*GetJobRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	jobIdPublicValue, err := int64FromWire(w.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetJobRequest.JobId", err)
+	}
+	return &GetJobRequest{
+		JobId:               jobIdPublicValue,
+		IncludeTriggerState: w.IncludeTriggerState,
+		PageToken:           w.PageToken,
+	}, nil
+}
+
 type getJobResponseWire struct {
 	NextPageToken           *string              `json:"next_page_token,omitempty"`
 	JobId                   *wireInt64           `json:"job_id,omitempty"`
@@ -2824,6 +3692,45 @@ type getJobResponseWire struct {
 	EffectiveBudgetPolicyId *string              `json:"effective_budget_policy_id,omitempty"`
 	EffectiveUsagePolicyId  *string              `json:"effective_usage_policy_id,omitempty"`
 	TriggerDetails          []triggerDetailsWire `json:"trigger_details,omitempty"`
+}
+
+func getJobResponseToWire(v *GetJobResponse) (*getJobResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	jobIdWireValue, err := int64ToWire(v.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetJobResponse.JobId", err)
+	}
+	settingsWireValue, err := jobSettingsToWire(v.Settings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetJobResponse.Settings", err)
+	}
+	createdTimeWireValue, err := int64ToWire(v.CreatedTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetJobResponse.CreatedTime", err)
+	}
+	triggerStateWireValue, err := triggerStateToWire(v.TriggerState)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetJobResponse.TriggerState", err)
+	}
+	triggerDetailsWireValue, err := convertSlice(v.TriggerDetails, triggerDetailsToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetJobResponse.TriggerDetails", err)
+	}
+	return &getJobResponseWire{
+		NextPageToken:           v.NextPageToken,
+		JobId:                   jobIdWireValue,
+		CreatorUserName:         v.CreatorUserName,
+		RunAsUserName:           v.RunAsUserName,
+		Settings:                settingsWireValue,
+		CreatedTime:             createdTimeWireValue,
+		TriggerState:            triggerStateWireValue,
+		HasMore:                 v.HasMore,
+		EffectiveBudgetPolicyId: v.EffectiveBudgetPolicyId,
+		EffectiveUsagePolicyId:  v.EffectiveUsagePolicyId,
+		TriggerDetails:          triggerDetailsWireValue,
+	}, nil
 }
 
 func getJobResponseFromWire(w *getJobResponseWire) (*GetJobResponse, error) {
@@ -2882,9 +3789,32 @@ func getPolicyComplianceForJobRequestToWire(v *GetPolicyComplianceForJobRequest)
 	}, nil
 }
 
+func getPolicyComplianceForJobRequestFromWire(w *getPolicyComplianceForJobRequestWire) (*GetPolicyComplianceForJobRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	jobIdPublicValue, err := int64FromWire(w.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetPolicyComplianceForJobRequest.JobId", err)
+	}
+	return &GetPolicyComplianceForJobRequest{
+		JobId: jobIdPublicValue,
+	}, nil
+}
+
 type getPolicyComplianceForJobResponseWire struct {
 	IsCompliant *bool             `json:"is_compliant,omitempty"`
 	Violations  map[string]string `json:"violations,omitempty"`
+}
+
+func getPolicyComplianceForJobResponseToWire(v *GetPolicyComplianceForJobResponse) (*getPolicyComplianceForJobResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getPolicyComplianceForJobResponseWire{
+		IsCompliant: v.IsCompliant,
+		Violations:  v.Violations,
+	}, nil
 }
 
 func getPolicyComplianceForJobResponseFromWire(w *getPolicyComplianceForJobResponseWire) (*GetPolicyComplianceForJobResponse, error) {
@@ -2914,6 +3844,19 @@ func getRunOutputRequestToWire(v *GetRunOutputRequest) (*getRunOutputRequestWire
 	}, nil
 }
 
+func getRunOutputRequestFromWire(w *getRunOutputRequestWire) (*GetRunOutputRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	runIdPublicValue, err := int64FromWire(w.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunOutputRequest.RunId", err)
+	}
+	return &GetRunOutputRequest{
+		RunId: runIdPublicValue,
+	}, nil
+}
+
 type getRunOutputResponseWire struct {
 	Metadata                 *runWire                                                 `json:"metadata,omitempty"`
 	Error                    *string                                                  `json:"error,omitempty"`
@@ -2932,6 +3875,139 @@ type getRunOutputResponseWire struct {
 	Logs                     *string                                                  `json:"logs,omitempty"`
 	LogsTruncated            *bool                                                    `json:"logs_truncated,omitempty"`
 	ErrorTrace               *string                                                  `json:"error_trace,omitempty"`
+}
+
+func getRunOutputResponseToWire(v *GetRunOutputResponse) (*getRunOutputResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	metadataWireValue, err := runToWire(v.Metadata)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunOutputResponse.Metadata", err)
+	}
+	var resultNotebookOutputWire *notebookTask_NotebookOutputWire
+	var resultSqlOutputWire *sqlTask_SqlOutputWire
+	var resultDbtOutputWire *dbtTask_DbtTaskOutputWire
+	var resultRunJobOutputWire *runJobTask_RunJobTaskOutputWire
+	var resultCleanRoomsNotebookOutputWire *cleanRoomsNotebookTask_CleanRoomsNotebookTaskOutputWire
+	var resultDashboardOutputWire *dashboardTaskOutputWire
+	var resultDbtCloudOutputWire *dbtCloudTaskOutputWire
+	var resultDbtPlatformOutputWire *dbtPlatformTaskOutputWire
+	var resultAlertOutputWire *alertTaskOutputWire
+	var resultAiRuntimeTaskOutputWire *aiRuntimeTaskOutputWire
+	var resultAiFunctionTaskOutputWire *aiFunctionTaskOutputWire
+	switch value := v.Result.(type) {
+	case nil:
+	case *GetRunOutputResponse_Result_NotebookOutput:
+		if value != nil {
+			resultNotebookOutputConverted, err := notebookTask_NotebookOutputToWire(&value.NotebookOutput)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GetRunOutputResponse.Result.NotebookOutput", err)
+			}
+			resultNotebookOutputWire = resultNotebookOutputConverted
+		}
+	case *GetRunOutputResponse_Result_SqlOutput:
+		if value != nil {
+			resultSqlOutputConverted, err := sqlTask_SqlOutputToWire(&value.SqlOutput)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GetRunOutputResponse.Result.SqlOutput", err)
+			}
+			resultSqlOutputWire = resultSqlOutputConverted
+		}
+	case *GetRunOutputResponse_Result_DbtOutput:
+		if value != nil {
+			resultDbtOutputConverted, err := dbtTask_DbtTaskOutputToWire(&value.DbtOutput)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GetRunOutputResponse.Result.DbtOutput", err)
+			}
+			resultDbtOutputWire = resultDbtOutputConverted
+		}
+	case *GetRunOutputResponse_Result_RunJobOutput:
+		if value != nil {
+			resultRunJobOutputConverted, err := runJobTask_RunJobTaskOutputToWire(&value.RunJobOutput)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GetRunOutputResponse.Result.RunJobOutput", err)
+			}
+			resultRunJobOutputWire = resultRunJobOutputConverted
+		}
+	case *GetRunOutputResponse_Result_CleanRoomsNotebookOutput:
+		if value != nil {
+			resultCleanRoomsNotebookOutputConverted, err := cleanRoomsNotebookTask_CleanRoomsNotebookTaskOutputToWire(&value.CleanRoomsNotebookOutput)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GetRunOutputResponse.Result.CleanRoomsNotebookOutput", err)
+			}
+			resultCleanRoomsNotebookOutputWire = resultCleanRoomsNotebookOutputConverted
+		}
+	case *GetRunOutputResponse_Result_DashboardOutput:
+		if value != nil {
+			resultDashboardOutputConverted, err := dashboardTaskOutputToWire(&value.DashboardOutput)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GetRunOutputResponse.Result.DashboardOutput", err)
+			}
+			resultDashboardOutputWire = resultDashboardOutputConverted
+		}
+	case *GetRunOutputResponse_Result_DbtCloudOutput:
+		if value != nil {
+			resultDbtCloudOutputConverted, err := dbtCloudTaskOutputToWire(&value.DbtCloudOutput)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GetRunOutputResponse.Result.DbtCloudOutput", err)
+			}
+			resultDbtCloudOutputWire = resultDbtCloudOutputConverted
+		}
+	case *GetRunOutputResponse_Result_DbtPlatformOutput:
+		if value != nil {
+			resultDbtPlatformOutputConverted, err := dbtPlatformTaskOutputToWire(&value.DbtPlatformOutput)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GetRunOutputResponse.Result.DbtPlatformOutput", err)
+			}
+			resultDbtPlatformOutputWire = resultDbtPlatformOutputConverted
+		}
+	case *GetRunOutputResponse_Result_AlertOutput:
+		if value != nil {
+			resultAlertOutputConverted, err := alertTaskOutputToWire(&value.AlertOutput)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GetRunOutputResponse.Result.AlertOutput", err)
+			}
+			resultAlertOutputWire = resultAlertOutputConverted
+		}
+	case *GetRunOutputResponse_Result_AiRuntimeTaskOutput:
+		if value != nil {
+			resultAiRuntimeTaskOutputConverted, err := aiRuntimeTaskOutputToWire(&value.AiRuntimeTaskOutput)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GetRunOutputResponse.Result.AiRuntimeTaskOutput", err)
+			}
+			resultAiRuntimeTaskOutputWire = resultAiRuntimeTaskOutputConverted
+		}
+	case *GetRunOutputResponse_Result_AiFunctionTaskOutput:
+		if value != nil {
+			resultAiFunctionTaskOutputConverted, err := aiFunctionTaskOutputToWire(&value.AiFunctionTaskOutput)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "GetRunOutputResponse.Result.AiFunctionTaskOutput", err)
+			}
+			resultAiFunctionTaskOutputWire = resultAiFunctionTaskOutputConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "GetRunOutputResponse.Result", value)
+	}
+	return &getRunOutputResponseWire{
+		Metadata:                 metadataWireValue,
+		Error:                    v.Error,
+		Info:                     v.Info,
+		NotebookOutput:           resultNotebookOutputWire,
+		SqlOutput:                resultSqlOutputWire,
+		DbtOutput:                resultDbtOutputWire,
+		RunJobOutput:             resultRunJobOutputWire,
+		CleanRoomsNotebookOutput: resultCleanRoomsNotebookOutputWire,
+		DashboardOutput:          resultDashboardOutputWire,
+		DbtCloudOutput:           resultDbtCloudOutputWire,
+		DbtPlatformOutput:        resultDbtPlatformOutputWire,
+		AlertOutput:              resultAlertOutputWire,
+		AiRuntimeTaskOutput:      resultAiRuntimeTaskOutputWire,
+		AiFunctionTaskOutput:     resultAiFunctionTaskOutputWire,
+		Logs:                     v.Logs,
+		LogsTruncated:            v.LogsTruncated,
+		ErrorTrace:               v.ErrorTrace,
+	}, nil
 }
 
 func getRunOutputResponseFromWire(w *getRunOutputResponseWire) (*GetRunOutputResponse, error) {
@@ -3082,6 +4158,22 @@ func getRunRequestToWire(v *GetRunRequest) (*getRunRequestWire, error) {
 	}, nil
 }
 
+func getRunRequestFromWire(w *getRunRequestWire) (*GetRunRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	runIdPublicValue, err := int64FromWire(w.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunRequest.RunId", err)
+	}
+	return &GetRunRequest{
+		RunId:                 runIdPublicValue,
+		IncludeHistory:        w.IncludeHistory,
+		IncludeResolvedValues: w.IncludeResolvedValues,
+		PageToken:             w.PageToken,
+	}, nil
+}
+
 type getRunResponseWire struct {
 	NextPageToken              *string                             `json:"next_page_token,omitempty"`
 	JobId                      *wireInt64                          `json:"job_id,omitempty"`
@@ -3122,6 +4214,153 @@ type getRunResponseWire struct {
 	EndTime                    *wireInt64                          `json:"end_time,omitempty"`
 	RunDuration                *wireInt64                          `json:"run_duration,omitempty"`
 	QueueDuration              *wireInt64                          `json:"queue_duration,omitempty"`
+}
+
+func getRunResponseToWire(v *GetRunResponse) (*getRunResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	jobIdWireValue, err := int64ToWire(v.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.JobId", err)
+	}
+	runIdWireValue, err := int64ToWire(v.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.RunId", err)
+	}
+	numberInJobWireValue, err := int64ToWire(v.NumberInJob)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.NumberInJob", err)
+	}
+	originalAttemptRunIdWireValue, err := int64ToWire(v.OriginalAttemptRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.OriginalAttemptRunId", err)
+	}
+	stateWireValue, err := runStateToWire(v.State)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.State", err)
+	}
+	scheduleWireValue, err := cronScheduleToWire(v.Schedule)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.Schedule", err)
+	}
+	clusterSpecWireValue, err := clusterSpecToWire(v.ClusterSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.ClusterSpec", err)
+	}
+	clusterInstanceWireValue, err := clusterInstanceToWire(v.ClusterInstance)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.ClusterInstance", err)
+	}
+	jobParametersWireValue, err := convertSlice(v.JobParameters, run_JobLevelParametersToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.JobParameters", err)
+	}
+	overridingParametersWireValue, err := runParametersToWire(v.OverridingParameters)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.OverridingParameters", err)
+	}
+	triggerInfoWireValue, err := runTriggerInfoToWire(v.TriggerInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.TriggerInfo", err)
+	}
+	tasksWireValue, err := convertSlice(v.Tasks, runTaskToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.Tasks", err)
+	}
+	jobClustersWireValue, err := convertSlice(v.JobClusters, jobClusterToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.JobClusters", err)
+	}
+	gitSourceWireValue, err := gitSourceToWire(v.GitSource)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.GitSource", err)
+	}
+	repairHistoryWireValue, err := convertSlice(v.RepairHistory, repairToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.RepairHistory", err)
+	}
+	statusWireValue, err := runStatusToWire(v.Status)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.Status", err)
+	}
+	jobRunIdWireValue, err := int64ToWire(v.JobRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.JobRunId", err)
+	}
+	environmentVariablesWireValue, err := convertSlice(v.EnvironmentVariables, jobEnvironmentVariablesToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.EnvironmentVariables", err)
+	}
+	startTimeWireValue, err := int64ToWire(v.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.StartTime", err)
+	}
+	setupDurationWireValue, err := int64ToWire(v.SetupDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.SetupDuration", err)
+	}
+	executionDurationWireValue, err := int64ToWire(v.ExecutionDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.ExecutionDuration", err)
+	}
+	cleanupDurationWireValue, err := int64ToWire(v.CleanupDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.CleanupDuration", err)
+	}
+	endTimeWireValue, err := int64ToWire(v.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.EndTime", err)
+	}
+	runDurationWireValue, err := int64ToWire(v.RunDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.RunDuration", err)
+	}
+	queueDurationWireValue, err := int64ToWire(v.QueueDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetRunResponse.QueueDuration", err)
+	}
+	return &getRunResponseWire{
+		NextPageToken:              v.NextPageToken,
+		JobId:                      jobIdWireValue,
+		RunId:                      runIdWireValue,
+		CreatorUserName:            v.CreatorUserName,
+		NumberInJob:                numberInJobWireValue,
+		OriginalAttemptRunId:       originalAttemptRunIdWireValue,
+		State:                      stateWireValue,
+		Schedule:                   scheduleWireValue,
+		ClusterSpec:                clusterSpecWireValue,
+		ClusterInstance:            clusterInstanceWireValue,
+		JobParameters:              jobParametersWireValue,
+		OverridingParameters:       overridingParametersWireValue,
+		Trigger:                    v.Trigger,
+		TriggerInfo:                triggerInfoWireValue,
+		RunName:                    v.RunName,
+		RunPageUrl:                 v.RunPageUrl,
+		RunType:                    v.RunType,
+		Tasks:                      tasksWireValue,
+		Description:                v.Description,
+		AttemptNumber:              v.AttemptNumber,
+		JobClusters:                jobClustersWireValue,
+		GitSource:                  gitSourceWireValue,
+		RepairHistory:              repairHistoryWireValue,
+		Status:                     statusWireValue,
+		JobRunId:                   jobRunIdWireValue,
+		HasMore:                    v.HasMore,
+		EffectivePerformanceTarget: v.EffectivePerformanceTarget,
+		DurationTarget:             v.DurationTarget,
+		EffectiveUsagePolicyId:     v.EffectiveUsagePolicyId,
+		EnvironmentVariables:       environmentVariablesWireValue,
+		DeploymentId:               v.DeploymentId,
+		VersionId:                  v.VersionId,
+		StartTime:                  startTimeWireValue,
+		SetupDuration:              setupDurationWireValue,
+		ExecutionDuration:          executionDurationWireValue,
+		CleanupDuration:            cleanupDurationWireValue,
+		EndTime:                    endTimeWireValue,
+		RunDuration:                runDurationWireValue,
+		QueueDuration:              queueDurationWireValue,
+	}, nil
 }
 
 func getRunResponseFromWire(w *getRunResponseWire) (*GetRunResponse, error) {
@@ -3703,6 +4942,19 @@ type jobCompletionTriggerRunInfoDetailsWire struct {
 	CompletedJobs []completedJobWire `json:"completed_jobs,omitempty"`
 }
 
+func jobCompletionTriggerRunInfoDetailsToWire(v *JobCompletionTriggerRunInfoDetails) (*jobCompletionTriggerRunInfoDetailsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	completedJobsWireValue, err := convertSlice(v.CompletedJobs, completedJobToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "JobCompletionTriggerRunInfoDetails.CompletedJobs", err)
+	}
+	return &jobCompletionTriggerRunInfoDetailsWire{
+		CompletedJobs: completedJobsWireValue,
+	}, nil
+}
+
 func jobCompletionTriggerRunInfoDetailsFromWire(w *jobCompletionTriggerRunInfoDetailsWire) (*JobCompletionTriggerRunInfoDetails, error) {
 	if w == nil {
 		return nil, nil
@@ -3718,6 +4970,19 @@ func jobCompletionTriggerRunInfoDetailsFromWire(w *jobCompletionTriggerRunInfoDe
 
 type jobCompletionTriggerStateWire struct {
 	MonitoredJobStates []jobCompletionTriggerState_MonitoredJobStateWire `json:"monitored_job_states,omitempty"`
+}
+
+func jobCompletionTriggerStateToWire(v *JobCompletionTriggerState) (*jobCompletionTriggerStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	monitoredJobStatesWireValue, err := convertSlice(v.MonitoredJobStates, jobCompletionTriggerState_MonitoredJobStateToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "JobCompletionTriggerState.MonitoredJobStates", err)
+	}
+	return &jobCompletionTriggerStateWire{
+		MonitoredJobStates: monitoredJobStatesWireValue,
+	}, nil
 }
 
 func jobCompletionTriggerStateFromWire(w *jobCompletionTriggerStateWire) (*JobCompletionTriggerState, error) {
@@ -3742,6 +5007,22 @@ type jobCompletionTriggerState_MonitoredJobStateWire struct {
 	LastSeenResult          TerminationCode_Code `json:"last_seen_result,omitempty"`
 	IsDeleted               *bool                `json:"is_deleted,omitempty"`
 	LatestNonMatchingResult TerminationCode_Code `json:"latest_non_matching_result,omitempty"`
+}
+
+func jobCompletionTriggerState_MonitoredJobStateToWire(v *JobCompletionTriggerState_MonitoredJobState) (*jobCompletionTriggerState_MonitoredJobStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &jobCompletionTriggerState_MonitoredJobStateWire{
+		WorkspaceId:             v.WorkspaceId,
+		JobId:                   v.JobId,
+		LastSeenCompletionTime:  v.LastSeenCompletionTime,
+		LastSeenRunId:           v.LastSeenRunId,
+		HasSeenCompletion:       v.HasSeenCompletion,
+		LastSeenResult:          v.LastSeenResult,
+		IsDeleted:               v.IsDeleted,
+		LatestNonMatchingResult: v.LatestNonMatchingResult,
+	}, nil
 }
 
 func jobCompletionTriggerState_MonitoredJobStateFromWire(w *jobCompletionTriggerState_MonitoredJobStateWire) (*JobCompletionTriggerState_MonitoredJobState, error) {
@@ -4545,10 +5826,36 @@ func listJobComplianceForPolicyToWire(v *ListJobComplianceForPolicy) (*listJobCo
 	}, nil
 }
 
+func listJobComplianceForPolicyFromWire(w *listJobComplianceForPolicyWire) (*ListJobComplianceForPolicy, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListJobComplianceForPolicy{
+		PolicyId:  w.PolicyId,
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listJobComplianceForPolicy_JobComplianceWire struct {
 	JobId       *wireInt64        `json:"job_id,omitempty"`
 	IsCompliant *bool             `json:"is_compliant,omitempty"`
 	Violations  map[string]string `json:"violations,omitempty"`
+}
+
+func listJobComplianceForPolicy_JobComplianceToWire(v *ListJobComplianceForPolicy_JobCompliance) (*listJobComplianceForPolicy_JobComplianceWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	jobIdWireValue, err := int64ToWire(v.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListJobComplianceForPolicy_JobCompliance.JobId", err)
+	}
+	return &listJobComplianceForPolicy_JobComplianceWire{
+		JobId:       jobIdWireValue,
+		IsCompliant: v.IsCompliant,
+		Violations:  v.Violations,
+	}, nil
 }
 
 func listJobComplianceForPolicy_JobComplianceFromWire(w *listJobComplianceForPolicy_JobComplianceWire) (*ListJobComplianceForPolicy_JobCompliance, error) {
@@ -4570,6 +5877,21 @@ type listJobComplianceResponseWire struct {
 	Jobs          []listJobComplianceForPolicy_JobComplianceWire `json:"jobs,omitempty"`
 	NextPageToken *string                                        `json:"next_page_token,omitempty"`
 	PrevPageToken *string                                        `json:"prev_page_token,omitempty"`
+}
+
+func listJobComplianceResponseToWire(v *ListJobComplianceResponse) (*listJobComplianceResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	jobsWireValue, err := convertSlice(v.Jobs, listJobComplianceForPolicy_JobComplianceToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListJobComplianceResponse.Jobs", err)
+	}
+	return &listJobComplianceResponseWire{
+		Jobs:          jobsWireValue,
+		NextPageToken: v.NextPageToken,
+		PrevPageToken: v.PrevPageToken,
+	}, nil
 }
 
 func listJobComplianceResponseFromWire(w *listJobComplianceResponseWire) (*ListJobComplianceResponse, error) {
@@ -4608,11 +5930,40 @@ func listJobsRequestToWire(v *ListJobsRequest) (*listJobsRequestWire, error) {
 	}, nil
 }
 
+func listJobsRequestFromWire(w *listJobsRequestWire) (*ListJobsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListJobsRequest{
+		Offset:      w.Offset,
+		Limit:       w.Limit,
+		ExpandTasks: w.ExpandTasks,
+		Name:        w.Name,
+		PageToken:   w.PageToken,
+	}, nil
+}
+
 type listJobsResponseWire struct {
 	Jobs          []baseJobWire `json:"jobs,omitempty"`
 	HasMore       *bool         `json:"has_more,omitempty"`
 	NextPageToken *string       `json:"next_page_token,omitempty"`
 	PrevPageToken *string       `json:"prev_page_token,omitempty"`
+}
+
+func listJobsResponseToWire(v *ListJobsResponse) (*listJobsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	jobsWireValue, err := convertSlice(v.Jobs, baseJobToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListJobsResponse.Jobs", err)
+	}
+	return &listJobsResponseWire{
+		Jobs:          jobsWireValue,
+		HasMore:       v.HasMore,
+		NextPageToken: v.NextPageToken,
+		PrevPageToken: v.PrevPageToken,
+	}, nil
 }
 
 func listJobsResponseFromWire(w *listJobsResponseWire) (*ListJobsResponse, error) {
@@ -4689,11 +6040,73 @@ func listRunsRequestToWire(v *ListRunsRequest) (*listRunsRequestWire, error) {
 	}, nil
 }
 
+func listRunsRequestFromWire(w *listRunsRequestWire) (*ListRunsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	stateConstraintMembers := 0
+	if w.ActiveOnly != nil {
+		stateConstraintMembers++
+	}
+	if w.CompletedOnly != nil {
+		stateConstraintMembers++
+	}
+	if stateConstraintMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "ListRunsRequest.StateConstraint")
+	}
+	jobIdPublicValue, err := int64FromWire(w.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRunsRequest.JobId", err)
+	}
+	startTimeFromPublicValue, err := int64FromWire(w.StartTimeFrom)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRunsRequest.StartTimeFrom", err)
+	}
+	startTimeToPublicValue, err := int64FromWire(w.StartTimeTo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRunsRequest.StartTimeTo", err)
+	}
+	var stateConstraintSelection isListRunsRequest_StateConstraint
+	switch {
+	case w.ActiveOnly != nil:
+		stateConstraintSelection = &ListRunsRequest_StateConstraint_ActiveOnly{ActiveOnly: *w.ActiveOnly}
+	case w.CompletedOnly != nil:
+		stateConstraintSelection = &ListRunsRequest_StateConstraint_CompletedOnly{CompletedOnly: *w.CompletedOnly}
+	}
+	return &ListRunsRequest{
+		JobId:           jobIdPublicValue,
+		Offset:          w.Offset,
+		Limit:           w.Limit,
+		RunType:         w.RunType,
+		ExpandTasks:     w.ExpandTasks,
+		StartTimeFrom:   startTimeFromPublicValue,
+		StartTimeTo:     startTimeToPublicValue,
+		PageToken:       w.PageToken,
+		StateConstraint: stateConstraintSelection,
+	}, nil
+}
+
 type listRunsResponseWire struct {
 	Runs          []baseRunWire `json:"runs,omitempty"`
 	HasMore       *bool         `json:"has_more,omitempty"`
 	NextPageToken *string       `json:"next_page_token,omitempty"`
 	PrevPageToken *string       `json:"prev_page_token,omitempty"`
+}
+
+func listRunsResponseToWire(v *ListRunsResponse) (*listRunsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	runsWireValue, err := convertSlice(v.Runs, baseRunToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRunsResponse.Runs", err)
+	}
+	return &listRunsResponseWire{
+		Runs:          runsWireValue,
+		HasMore:       v.HasMore,
+		NextPageToken: v.NextPageToken,
+		PrevPageToken: v.PrevPageToken,
+	}, nil
 }
 
 func listRunsResponseFromWire(w *listRunsResponseWire) (*ListRunsResponse, error) {
@@ -4852,6 +6265,13 @@ func modelTriggerConfigurationFromWire(w *modelTriggerConfigurationWire) (*Model
 type modelTriggerStateWire struct {
 }
 
+func modelTriggerStateToWire(v *ModelTriggerState) (*modelTriggerStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &modelTriggerStateWire{}, nil
+}
+
 func modelTriggerStateFromWire(w *modelTriggerStateWire) (*ModelTriggerState, error) {
 	if w == nil {
 		return nil, nil
@@ -4920,6 +6340,16 @@ type notebookTask_NotebookOutputWire struct {
 	Truncated *bool   `json:"truncated,omitempty"`
 }
 
+func notebookTask_NotebookOutputToWire(v *NotebookTask_NotebookOutput) (*notebookTask_NotebookOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &notebookTask_NotebookOutputWire{
+		Result:    v.Result,
+		Truncated: v.Truncated,
+	}, nil
+}
+
 func notebookTask_NotebookOutputFromWire(w *notebookTask_NotebookOutputWire) (*NotebookTask_NotebookOutput, error) {
 	if w == nil {
 		return nil, nil
@@ -4964,6 +6394,21 @@ type outputSchemaInfoWire struct {
 	ExpirationTime *wireInt64 `json:"expiration_time,omitempty"`
 }
 
+func outputSchemaInfoToWire(v *OutputSchemaInfo) (*outputSchemaInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	expirationTimeWireValue, err := int64ToWire(v.ExpirationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "OutputSchemaInfo.ExpirationTime", err)
+	}
+	return &outputSchemaInfoWire{
+		CatalogName:    v.CatalogName,
+		SchemaName:     v.SchemaName,
+		ExpirationTime: expirationTimeWireValue,
+	}, nil
+}
+
 func outputSchemaInfoFromWire(w *outputSchemaInfoWire) (*OutputSchemaInfo, error) {
 	if w == nil {
 		return nil, nil
@@ -4989,6 +6434,95 @@ type perTriggerStateWire struct {
 	JobCompletion *jobCompletionTriggerStateWire `json:"job_completion,omitempty"`
 	SqlCondition  *sqlConditionStateWire         `json:"sql_condition,omitempty"`
 	PauseStatus   SchedulePauseStatus            `json:"pause_status,omitempty"`
+}
+
+func perTriggerStateToWire(v *PerTriggerState) (*perTriggerStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sqlConditionWireValue, err := sqlConditionStateToWire(v.SqlCondition)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PerTriggerState.SqlCondition", err)
+	}
+	var triggerTypePeriodicWire *periodicTriggerStateWire
+	var triggerTypeScheduleWire *scheduleTriggerStateWire
+	var triggerTypeContinuousWire *continuousTriggerStateWire
+	var triggerTypeFileArrivalWire *fileArrivalTriggerStateWire
+	var triggerTypeTableUpdateWire *tableTriggerStateWire
+	var triggerTypeModelWire *modelTriggerStateWire
+	var triggerTypeJobCompletionWire *jobCompletionTriggerStateWire
+	switch value := v.TriggerType.(type) {
+	case nil:
+	case *PerTriggerState_TriggerType_Periodic:
+		if value != nil {
+			triggerTypePeriodicConverted, err := periodicTriggerStateToWire(&value.Periodic)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "PerTriggerState.TriggerType.Periodic", err)
+			}
+			triggerTypePeriodicWire = triggerTypePeriodicConverted
+		}
+	case *PerTriggerState_TriggerType_Schedule:
+		if value != nil {
+			triggerTypeScheduleConverted, err := scheduleTriggerStateToWire(&value.Schedule)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "PerTriggerState.TriggerType.Schedule", err)
+			}
+			triggerTypeScheduleWire = triggerTypeScheduleConverted
+		}
+	case *PerTriggerState_TriggerType_Continuous:
+		if value != nil {
+			triggerTypeContinuousConverted, err := continuousTriggerStateToWire(&value.Continuous)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "PerTriggerState.TriggerType.Continuous", err)
+			}
+			triggerTypeContinuousWire = triggerTypeContinuousConverted
+		}
+	case *PerTriggerState_TriggerType_FileArrival:
+		if value != nil {
+			triggerTypeFileArrivalConverted, err := fileArrivalTriggerStateToWire(&value.FileArrival)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "PerTriggerState.TriggerType.FileArrival", err)
+			}
+			triggerTypeFileArrivalWire = triggerTypeFileArrivalConverted
+		}
+	case *PerTriggerState_TriggerType_TableUpdate:
+		if value != nil {
+			triggerTypeTableUpdateConverted, err := tableTriggerStateToWire(&value.TableUpdate)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "PerTriggerState.TriggerType.TableUpdate", err)
+			}
+			triggerTypeTableUpdateWire = triggerTypeTableUpdateConverted
+		}
+	case *PerTriggerState_TriggerType_Model:
+		if value != nil {
+			triggerTypeModelConverted, err := modelTriggerStateToWire(&value.Model)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "PerTriggerState.TriggerType.Model", err)
+			}
+			triggerTypeModelWire = triggerTypeModelConverted
+		}
+	case *PerTriggerState_TriggerType_JobCompletion:
+		if value != nil {
+			triggerTypeJobCompletionConverted, err := jobCompletionTriggerStateToWire(&value.JobCompletion)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "PerTriggerState.TriggerType.JobCompletion", err)
+			}
+			triggerTypeJobCompletionWire = triggerTypeJobCompletionConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "PerTriggerState.TriggerType", value)
+	}
+	return &perTriggerStateWire{
+		Periodic:      triggerTypePeriodicWire,
+		Schedule:      triggerTypeScheduleWire,
+		Continuous:    triggerTypeContinuousWire,
+		FileArrival:   triggerTypeFileArrivalWire,
+		TableUpdate:   triggerTypeTableUpdateWire,
+		Model:         triggerTypeModelWire,
+		JobCompletion: triggerTypeJobCompletionWire,
+		SqlCondition:  sqlConditionWireValue,
+		PauseStatus:   v.PauseStatus,
+	}, nil
 }
 
 func perTriggerStateFromWire(w *perTriggerStateWire) (*PerTriggerState, error) {
@@ -5076,6 +6610,23 @@ func perTriggerStateFromWire(w *perTriggerStateWire) (*PerTriggerState, error) {
 	}, nil
 }
 
+type performanceTargetWire struct {
+}
+
+func performanceTargetToWire(v *PerformanceTarget) (*performanceTargetWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &performanceTargetWire{}, nil
+}
+
+func performanceTargetFromWire(w *performanceTargetWire) (*PerformanceTarget, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PerformanceTarget{}, nil
+}
+
 type periodicTriggerConfigurationWire struct {
 	Interval *int                                  `json:"interval,omitempty"`
 	Unit     PeriodicTriggerConfiguration_TimeUnit `json:"unit,omitempty"`
@@ -5103,6 +6654,19 @@ func periodicTriggerConfigurationFromWire(w *periodicTriggerConfigurationWire) (
 
 type periodicTriggerStateWire struct {
 	NextRunTime *wireInt64 `json:"next_run_time,omitempty"`
+}
+
+func periodicTriggerStateToWire(v *PeriodicTriggerState) (*periodicTriggerStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	nextRunTimeWireValue, err := int64ToWire(v.NextRunTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PeriodicTriggerState.NextRunTime", err)
+	}
+	return &periodicTriggerStateWire{
+		NextRunTime: nextRunTimeWireValue,
+	}, nil
 }
 
 func periodicTriggerStateFromWire(w *periodicTriggerStateWire) (*PeriodicTriggerState, error) {
@@ -5454,6 +7018,16 @@ type queueDetailsWire struct {
 	Message *string               `json:"message,omitempty"`
 }
 
+func queueDetailsToWire(v *QueueDetails) (*queueDetailsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &queueDetailsWire{
+		Code:    v.Code,
+		Message: v.Message,
+	}, nil
+}
+
 func queueDetailsFromWire(w *queueDetailsWire) (*QueueDetails, error) {
 	if w == nil {
 		return nil, nil
@@ -5462,6 +7036,23 @@ func queueDetailsFromWire(w *queueDetailsWire) (*QueueDetails, error) {
 		Code:    w.Code,
 		Message: w.Message,
 	}, nil
+}
+
+type queueDetailsCodeWire struct {
+}
+
+func queueDetailsCodeToWire(v *QueueDetailsCode) (*queueDetailsCodeWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &queueDetailsCodeWire{}, nil
+}
+
+func queueDetailsCodeFromWire(w *queueDetailsCodeWire) (*QueueDetailsCode, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &QueueDetailsCode{}, nil
 }
 
 type queueSettingsWire struct {
@@ -5520,6 +7111,46 @@ type repairWire struct {
 	TaskRunIds                 []wireInt64                         `json:"task_run_ids,omitempty"`
 	Status                     *runStatusWire                      `json:"status,omitempty"`
 	EffectivePerformanceTarget PerformanceTarget_PerformanceTarget `json:"effective_performance_target,omitempty"`
+}
+
+func repairToWire(v *Repair) (*repairWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	startTimeWireValue, err := int64ToWire(v.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Repair.StartTime", err)
+	}
+	endTimeWireValue, err := int64ToWire(v.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Repair.EndTime", err)
+	}
+	stateWireValue, err := runStateToWire(v.State)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Repair.State", err)
+	}
+	idWireValue, err := int64ToWire(v.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Repair.Id", err)
+	}
+	taskRunIdsWireValue, err := convertSlice(v.TaskRunIds, int64ToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Repair.TaskRunIds", err)
+	}
+	statusWireValue, err := runStatusToWire(v.Status)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Repair.Status", err)
+	}
+	return &repairWire{
+		Type:                       v.Type,
+		StartTime:                  startTimeWireValue,
+		EndTime:                    endTimeWireValue,
+		State:                      stateWireValue,
+		Id:                         idWireValue,
+		TaskRunIds:                 taskRunIdsWireValue,
+		Status:                     statusWireValue,
+		EffectivePerformanceTarget: v.EffectivePerformanceTarget,
+	}, nil
 }
 
 func repairFromWire(w *repairWire) (*Repair, error) {
@@ -5617,8 +7248,57 @@ func repairRunRequestToWire(v *RepairRunRequest) (*repairRunRequestWire, error) 
 	}, nil
 }
 
+func repairRunRequestFromWire(w *repairRunRequestWire) (*RepairRunRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	runIdPublicValue, err := int64FromWire(w.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RepairRunRequest.RunId", err)
+	}
+	latestRepairIdPublicValue, err := int64FromWire(w.LatestRepairId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RepairRunRequest.LatestRepairId", err)
+	}
+	pipelineParamsPublicValue, err := pipelineParametersFromWire(w.PipelineParams)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RepairRunRequest.PipelineParams", err)
+	}
+	return &RepairRunRequest{
+		RunId:               runIdPublicValue,
+		LatestRepairId:      latestRepairIdPublicValue,
+		RerunTasks:          w.RerunTasks,
+		JobParameters:       w.JobParameters,
+		RerunAllFailedTasks: w.RerunAllFailedTasks,
+		RerunDependentTasks: w.RerunDependentTasks,
+		PerformanceTarget:   w.PerformanceTarget,
+		DurationTarget:      w.DurationTarget,
+		PipelineParams:      pipelineParamsPublicValue,
+		JarParams:           w.JarParams,
+		NotebookParams:      w.NotebookParams,
+		PythonParams:        w.PythonParams,
+		SparkSubmitParams:   w.SparkSubmitParams,
+		PythonNamedParams:   w.PythonNamedParams,
+		SqlParams:           w.SqlParams,
+		DbtCommands:         w.DbtCommands,
+	}, nil
+}
+
 type repairRunResponseWire struct {
 	RepairId *wireInt64 `json:"repair_id,omitempty"`
+}
+
+func repairRunResponseToWire(v *RepairRunResponse) (*repairRunResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	repairIdWireValue, err := int64ToWire(v.RepairId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RepairRunResponse.RepairId", err)
+	}
+	return &repairRunResponseWire{
+		RepairId: repairIdWireValue,
+	}, nil
 }
 
 func repairRunResponseFromWire(w *repairRunResponseWire) (*RepairRunResponse, error) {
@@ -5657,6 +7337,41 @@ func resetJobRequestToWire(v *ResetJobRequest) (*resetJobRequestWire, error) {
 	}, nil
 }
 
+func resetJobRequestFromWire(w *resetJobRequestWire) (*ResetJobRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	jobIdPublicValue, err := int64FromWire(w.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ResetJobRequest.JobId", err)
+	}
+	newSettingsPublicValue, err := jobSettingsFromWire(w.NewSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ResetJobRequest.NewSettings", err)
+	}
+	return &ResetJobRequest{
+		JobId:       jobIdPublicValue,
+		NewSettings: newSettingsPublicValue,
+	}, nil
+}
+
+type resetJobResponseWire struct {
+}
+
+func resetJobResponseToWire(v *ResetJobResponse) (*resetJobResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &resetJobResponseWire{}, nil
+}
+
+func resetJobResponseFromWire(w *resetJobResponseWire) (*ResetJobResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ResetJobResponse{}, nil
+}
+
 type resolvedValuesWire struct {
 	NotebookTask    *resolvedValues_NotebookTaskResolvedValuesWire    `json:"notebook_task,omitempty"`
 	SparkJarTask    *resolvedValues_SparkJarTaskResolvedValuesWire    `json:"spark_jar_task,omitempty"`
@@ -5671,6 +7386,149 @@ type resolvedValuesWire struct {
 	PipelineTask    *resolvedValues_PipelineTaskResolvedValuesWire    `json:"pipeline_task,omitempty"`
 	AiRuntimeTask   *resolvedValues_AiRuntimeTaskResolvedValuesWire   `json:"ai_runtime_task,omitempty"`
 	AiFunctionTask  *resolvedValues_AiFunctionTaskResolvedValuesWire  `json:"ai_function_task,omitempty"`
+}
+
+func resolvedValuesToWire(v *ResolvedValues) (*resolvedValuesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var resolvedNotebookTaskWire *resolvedValues_NotebookTaskResolvedValuesWire
+	var resolvedSparkJarTaskWire *resolvedValues_SparkJarTaskResolvedValuesWire
+	var resolvedSparkPythonTaskWire *resolvedValues_SparkPythonTaskResolvedValuesWire
+	var resolvedSparkSubmitTaskWire *resolvedValues_SparkSubmitTaskResolvedValuesWire
+	var resolvedPythonWheelTaskWire *resolvedValues_PythonWheelTaskResolvedValuesWire
+	var resolvedDbtTaskWire *resolvedValues_DbtTaskResolvedValuesWire
+	var resolvedSqlTaskWire *resolvedValues_SqlTaskResolvedValuesWire
+	var resolvedRunJobTaskWire *resolvedValues_RunJobTaskResolvedValuesWire
+	var resolvedConditionTaskWire *resolvedValues_ConditionTaskResolvedValuesWire
+	var resolvedSimulationTaskWire *resolvedValues_SimulationTaskResolvedValuesWire
+	var resolvedPipelineTaskWire *resolvedValues_PipelineTaskResolvedValuesWire
+	var resolvedAiRuntimeTaskWire *resolvedValues_AiRuntimeTaskResolvedValuesWire
+	var resolvedAiFunctionTaskWire *resolvedValues_AiFunctionTaskResolvedValuesWire
+	switch value := v.Resolved.(type) {
+	case nil:
+	case *ResolvedValues_Resolved_NotebookTask:
+		if value != nil {
+			resolvedNotebookTaskConverted, err := resolvedValues_NotebookTaskResolvedValuesToWire(&value.NotebookTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ResolvedValues.Resolved.NotebookTask", err)
+			}
+			resolvedNotebookTaskWire = resolvedNotebookTaskConverted
+		}
+	case *ResolvedValues_Resolved_SparkJarTask:
+		if value != nil {
+			resolvedSparkJarTaskConverted, err := resolvedValues_SparkJarTaskResolvedValuesToWire(&value.SparkJarTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ResolvedValues.Resolved.SparkJarTask", err)
+			}
+			resolvedSparkJarTaskWire = resolvedSparkJarTaskConverted
+		}
+	case *ResolvedValues_Resolved_SparkPythonTask:
+		if value != nil {
+			resolvedSparkPythonTaskConverted, err := resolvedValues_SparkPythonTaskResolvedValuesToWire(&value.SparkPythonTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ResolvedValues.Resolved.SparkPythonTask", err)
+			}
+			resolvedSparkPythonTaskWire = resolvedSparkPythonTaskConverted
+		}
+	case *ResolvedValues_Resolved_SparkSubmitTask:
+		if value != nil {
+			resolvedSparkSubmitTaskConverted, err := resolvedValues_SparkSubmitTaskResolvedValuesToWire(&value.SparkSubmitTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ResolvedValues.Resolved.SparkSubmitTask", err)
+			}
+			resolvedSparkSubmitTaskWire = resolvedSparkSubmitTaskConverted
+		}
+	case *ResolvedValues_Resolved_PythonWheelTask:
+		if value != nil {
+			resolvedPythonWheelTaskConverted, err := resolvedValues_PythonWheelTaskResolvedValuesToWire(&value.PythonWheelTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ResolvedValues.Resolved.PythonWheelTask", err)
+			}
+			resolvedPythonWheelTaskWire = resolvedPythonWheelTaskConverted
+		}
+	case *ResolvedValues_Resolved_DbtTask:
+		if value != nil {
+			resolvedDbtTaskConverted, err := resolvedValues_DbtTaskResolvedValuesToWire(&value.DbtTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ResolvedValues.Resolved.DbtTask", err)
+			}
+			resolvedDbtTaskWire = resolvedDbtTaskConverted
+		}
+	case *ResolvedValues_Resolved_SqlTask:
+		if value != nil {
+			resolvedSqlTaskConverted, err := resolvedValues_SqlTaskResolvedValuesToWire(&value.SqlTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ResolvedValues.Resolved.SqlTask", err)
+			}
+			resolvedSqlTaskWire = resolvedSqlTaskConverted
+		}
+	case *ResolvedValues_Resolved_RunJobTask:
+		if value != nil {
+			resolvedRunJobTaskConverted, err := resolvedValues_RunJobTaskResolvedValuesToWire(&value.RunJobTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ResolvedValues.Resolved.RunJobTask", err)
+			}
+			resolvedRunJobTaskWire = resolvedRunJobTaskConverted
+		}
+	case *ResolvedValues_Resolved_ConditionTask:
+		if value != nil {
+			resolvedConditionTaskConverted, err := resolvedValues_ConditionTaskResolvedValuesToWire(&value.ConditionTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ResolvedValues.Resolved.ConditionTask", err)
+			}
+			resolvedConditionTaskWire = resolvedConditionTaskConverted
+		}
+	case *ResolvedValues_Resolved_SimulationTask:
+		if value != nil {
+			resolvedSimulationTaskConverted, err := resolvedValues_SimulationTaskResolvedValuesToWire(&value.SimulationTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ResolvedValues.Resolved.SimulationTask", err)
+			}
+			resolvedSimulationTaskWire = resolvedSimulationTaskConverted
+		}
+	case *ResolvedValues_Resolved_PipelineTask:
+		if value != nil {
+			resolvedPipelineTaskConverted, err := resolvedValues_PipelineTaskResolvedValuesToWire(&value.PipelineTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ResolvedValues.Resolved.PipelineTask", err)
+			}
+			resolvedPipelineTaskWire = resolvedPipelineTaskConverted
+		}
+	case *ResolvedValues_Resolved_AiRuntimeTask:
+		if value != nil {
+			resolvedAiRuntimeTaskConverted, err := resolvedValues_AiRuntimeTaskResolvedValuesToWire(&value.AiRuntimeTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ResolvedValues.Resolved.AiRuntimeTask", err)
+			}
+			resolvedAiRuntimeTaskWire = resolvedAiRuntimeTaskConverted
+		}
+	case *ResolvedValues_Resolved_AiFunctionTask:
+		if value != nil {
+			resolvedAiFunctionTaskConverted, err := resolvedValues_AiFunctionTaskResolvedValuesToWire(&value.AiFunctionTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "ResolvedValues.Resolved.AiFunctionTask", err)
+			}
+			resolvedAiFunctionTaskWire = resolvedAiFunctionTaskConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "ResolvedValues.Resolved", value)
+	}
+	return &resolvedValuesWire{
+		NotebookTask:    resolvedNotebookTaskWire,
+		SparkJarTask:    resolvedSparkJarTaskWire,
+		SparkPythonTask: resolvedSparkPythonTaskWire,
+		SparkSubmitTask: resolvedSparkSubmitTaskWire,
+		PythonWheelTask: resolvedPythonWheelTaskWire,
+		DbtTask:         resolvedDbtTaskWire,
+		SqlTask:         resolvedSqlTaskWire,
+		RunJobTask:      resolvedRunJobTaskWire,
+		ConditionTask:   resolvedConditionTaskWire,
+		SimulationTask:  resolvedSimulationTaskWire,
+		PipelineTask:    resolvedPipelineTaskWire,
+		AiRuntimeTask:   resolvedAiRuntimeTaskWire,
+		AiFunctionTask:  resolvedAiFunctionTaskWire,
+	}, nil
 }
 
 func resolvedValuesFromWire(w *resolvedValuesWire) (*ResolvedValues, error) {
@@ -5810,6 +7668,19 @@ type resolvedValues_AiFunctionTaskResolvedValuesWire struct {
 	DeltaTable *deltaTableSourceWire `json:"delta_table,omitempty"`
 }
 
+func resolvedValues_AiFunctionTaskResolvedValuesToWire(v *ResolvedValues_AiFunctionTaskResolvedValues) (*resolvedValues_AiFunctionTaskResolvedValuesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	deltaTableWireValue, err := deltaTableSourceToWire(v.DeltaTable)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ResolvedValues_AiFunctionTaskResolvedValues.DeltaTable", err)
+	}
+	return &resolvedValues_AiFunctionTaskResolvedValuesWire{
+		DeltaTable: deltaTableWireValue,
+	}, nil
+}
+
 func resolvedValues_AiFunctionTaskResolvedValuesFromWire(w *resolvedValues_AiFunctionTaskResolvedValuesWire) (*ResolvedValues_AiFunctionTaskResolvedValues, error) {
 	if w == nil {
 		return nil, nil
@@ -5826,6 +7697,13 @@ func resolvedValues_AiFunctionTaskResolvedValuesFromWire(w *resolvedValues_AiFun
 type resolvedValues_AiRuntimeTaskResolvedValuesWire struct {
 }
 
+func resolvedValues_AiRuntimeTaskResolvedValuesToWire(v *ResolvedValues_AiRuntimeTaskResolvedValues) (*resolvedValues_AiRuntimeTaskResolvedValuesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &resolvedValues_AiRuntimeTaskResolvedValuesWire{}, nil
+}
+
 func resolvedValues_AiRuntimeTaskResolvedValuesFromWire(w *resolvedValues_AiRuntimeTaskResolvedValuesWire) (*ResolvedValues_AiRuntimeTaskResolvedValues, error) {
 	if w == nil {
 		return nil, nil
@@ -5836,6 +7714,16 @@ func resolvedValues_AiRuntimeTaskResolvedValuesFromWire(w *resolvedValues_AiRunt
 type resolvedValues_ConditionTaskResolvedValuesWire struct {
 	Left  *string `json:"left,omitempty"`
 	Right *string `json:"right,omitempty"`
+}
+
+func resolvedValues_ConditionTaskResolvedValuesToWire(v *ResolvedValues_ConditionTaskResolvedValues) (*resolvedValues_ConditionTaskResolvedValuesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &resolvedValues_ConditionTaskResolvedValuesWire{
+		Left:  v.Left,
+		Right: v.Right,
+	}, nil
 }
 
 func resolvedValues_ConditionTaskResolvedValuesFromWire(w *resolvedValues_ConditionTaskResolvedValuesWire) (*ResolvedValues_ConditionTaskResolvedValues, error) {
@@ -5852,6 +7740,15 @@ type resolvedValues_DbtTaskResolvedValuesWire struct {
 	Commands []string `json:"commands,omitempty"`
 }
 
+func resolvedValues_DbtTaskResolvedValuesToWire(v *ResolvedValues_DbtTaskResolvedValues) (*resolvedValues_DbtTaskResolvedValuesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &resolvedValues_DbtTaskResolvedValuesWire{
+		Commands: v.Commands,
+	}, nil
+}
+
 func resolvedValues_DbtTaskResolvedValuesFromWire(w *resolvedValues_DbtTaskResolvedValuesWire) (*ResolvedValues_DbtTaskResolvedValues, error) {
 	if w == nil {
 		return nil, nil
@@ -5863,6 +7760,15 @@ func resolvedValues_DbtTaskResolvedValuesFromWire(w *resolvedValues_DbtTaskResol
 
 type resolvedValues_NotebookTaskResolvedValuesWire struct {
 	BaseParameters map[string]string `json:"base_parameters,omitempty"`
+}
+
+func resolvedValues_NotebookTaskResolvedValuesToWire(v *ResolvedValues_NotebookTaskResolvedValues) (*resolvedValues_NotebookTaskResolvedValuesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &resolvedValues_NotebookTaskResolvedValuesWire{
+		BaseParameters: v.BaseParameters,
+	}, nil
 }
 
 func resolvedValues_NotebookTaskResolvedValuesFromWire(w *resolvedValues_NotebookTaskResolvedValuesWire) (*ResolvedValues_NotebookTaskResolvedValues, error) {
@@ -5878,6 +7784,15 @@ type resolvedValues_PipelineTaskResolvedValuesWire struct {
 	PipelineTaskParameters map[string]string `json:"parameters,omitempty"`
 }
 
+func resolvedValues_PipelineTaskResolvedValuesToWire(v *ResolvedValues_PipelineTaskResolvedValues) (*resolvedValues_PipelineTaskResolvedValuesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &resolvedValues_PipelineTaskResolvedValuesWire{
+		PipelineTaskParameters: v.PipelineTaskParameters,
+	}, nil
+}
+
 func resolvedValues_PipelineTaskResolvedValuesFromWire(w *resolvedValues_PipelineTaskResolvedValuesWire) (*ResolvedValues_PipelineTaskResolvedValues, error) {
 	if w == nil {
 		return nil, nil
@@ -5890,6 +7805,16 @@ func resolvedValues_PipelineTaskResolvedValuesFromWire(w *resolvedValues_Pipelin
 type resolvedValues_PythonWheelTaskResolvedValuesWire struct {
 	Parameters      []string          `json:"parameters,omitempty"`
 	NamedParameters map[string]string `json:"named_parameters,omitempty"`
+}
+
+func resolvedValues_PythonWheelTaskResolvedValuesToWire(v *ResolvedValues_PythonWheelTaskResolvedValues) (*resolvedValues_PythonWheelTaskResolvedValuesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &resolvedValues_PythonWheelTaskResolvedValuesWire{
+		Parameters:      v.Parameters,
+		NamedParameters: v.NamedParameters,
+	}, nil
 }
 
 func resolvedValues_PythonWheelTaskResolvedValuesFromWire(w *resolvedValues_PythonWheelTaskResolvedValuesWire) (*ResolvedValues_PythonWheelTaskResolvedValues, error) {
@@ -5907,6 +7832,16 @@ type resolvedValues_RunJobTaskResolvedValuesWire struct {
 	JobParameters map[string]string `json:"job_parameters,omitempty"`
 }
 
+func resolvedValues_RunJobTaskResolvedValuesToWire(v *ResolvedValues_RunJobTaskResolvedValues) (*resolvedValues_RunJobTaskResolvedValuesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &resolvedValues_RunJobTaskResolvedValuesWire{
+		Parameters:    v.Parameters,
+		JobParameters: v.JobParameters,
+	}, nil
+}
+
 func resolvedValues_RunJobTaskResolvedValuesFromWire(w *resolvedValues_RunJobTaskResolvedValuesWire) (*ResolvedValues_RunJobTaskResolvedValues, error) {
 	if w == nil {
 		return nil, nil
@@ -5919,6 +7854,15 @@ func resolvedValues_RunJobTaskResolvedValuesFromWire(w *resolvedValues_RunJobTas
 
 type resolvedValues_SimulationTaskResolvedValuesWire struct {
 	Parameters map[string]string `json:"parameters,omitempty"`
+}
+
+func resolvedValues_SimulationTaskResolvedValuesToWire(v *ResolvedValues_SimulationTaskResolvedValues) (*resolvedValues_SimulationTaskResolvedValuesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &resolvedValues_SimulationTaskResolvedValuesWire{
+		Parameters: v.Parameters,
+	}, nil
 }
 
 func resolvedValues_SimulationTaskResolvedValuesFromWire(w *resolvedValues_SimulationTaskResolvedValuesWire) (*ResolvedValues_SimulationTaskResolvedValues, error) {
@@ -5934,6 +7878,15 @@ type resolvedValues_SparkJarTaskResolvedValuesWire struct {
 	Parameters []string `json:"parameters,omitempty"`
 }
 
+func resolvedValues_SparkJarTaskResolvedValuesToWire(v *ResolvedValues_SparkJarTaskResolvedValues) (*resolvedValues_SparkJarTaskResolvedValuesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &resolvedValues_SparkJarTaskResolvedValuesWire{
+		Parameters: v.Parameters,
+	}, nil
+}
+
 func resolvedValues_SparkJarTaskResolvedValuesFromWire(w *resolvedValues_SparkJarTaskResolvedValuesWire) (*ResolvedValues_SparkJarTaskResolvedValues, error) {
 	if w == nil {
 		return nil, nil
@@ -5946,6 +7899,13 @@ func resolvedValues_SparkJarTaskResolvedValuesFromWire(w *resolvedValues_SparkJa
 type resolvedValues_SparkPythonTaskResolvedValuesWire struct {
 }
 
+func resolvedValues_SparkPythonTaskResolvedValuesToWire(v *ResolvedValues_SparkPythonTaskResolvedValues) (*resolvedValues_SparkPythonTaskResolvedValuesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &resolvedValues_SparkPythonTaskResolvedValuesWire{}, nil
+}
+
 func resolvedValues_SparkPythonTaskResolvedValuesFromWire(w *resolvedValues_SparkPythonTaskResolvedValuesWire) (*ResolvedValues_SparkPythonTaskResolvedValues, error) {
 	if w == nil {
 		return nil, nil
@@ -5954,6 +7914,13 @@ func resolvedValues_SparkPythonTaskResolvedValuesFromWire(w *resolvedValues_Spar
 }
 
 type resolvedValues_SparkSubmitTaskResolvedValuesWire struct {
+}
+
+func resolvedValues_SparkSubmitTaskResolvedValuesToWire(v *ResolvedValues_SparkSubmitTaskResolvedValues) (*resolvedValues_SparkSubmitTaskResolvedValuesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &resolvedValues_SparkSubmitTaskResolvedValuesWire{}, nil
 }
 
 func resolvedValues_SparkSubmitTaskResolvedValuesFromWire(w *resolvedValues_SparkSubmitTaskResolvedValuesWire) (*ResolvedValues_SparkSubmitTaskResolvedValues, error) {
@@ -5965,6 +7932,15 @@ func resolvedValues_SparkSubmitTaskResolvedValuesFromWire(w *resolvedValues_Spar
 
 type resolvedValues_SqlTaskResolvedValuesWire struct {
 	Parameters map[string]string `json:"parameters,omitempty"`
+}
+
+func resolvedValues_SqlTaskResolvedValuesToWire(v *ResolvedValues_SqlTaskResolvedValues) (*resolvedValues_SqlTaskResolvedValuesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &resolvedValues_SqlTaskResolvedValuesWire{
+		Parameters: v.Parameters,
+	}, nil
 }
 
 func resolvedValues_SqlTaskResolvedValuesFromWire(w *resolvedValues_SqlTaskResolvedValuesWire) (*ResolvedValues_SqlTaskResolvedValues, error) {
@@ -6015,6 +7991,152 @@ type runWire struct {
 	EndTime                    *wireInt64                          `json:"end_time,omitempty"`
 	RunDuration                *wireInt64                          `json:"run_duration,omitempty"`
 	QueueDuration              *wireInt64                          `json:"queue_duration,omitempty"`
+}
+
+func runToWire(v *Run) (*runWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	jobIdWireValue, err := int64ToWire(v.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.JobId", err)
+	}
+	runIdWireValue, err := int64ToWire(v.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.RunId", err)
+	}
+	numberInJobWireValue, err := int64ToWire(v.NumberInJob)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.NumberInJob", err)
+	}
+	originalAttemptRunIdWireValue, err := int64ToWire(v.OriginalAttemptRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.OriginalAttemptRunId", err)
+	}
+	stateWireValue, err := runStateToWire(v.State)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.State", err)
+	}
+	scheduleWireValue, err := cronScheduleToWire(v.Schedule)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.Schedule", err)
+	}
+	clusterSpecWireValue, err := clusterSpecToWire(v.ClusterSpec)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.ClusterSpec", err)
+	}
+	clusterInstanceWireValue, err := clusterInstanceToWire(v.ClusterInstance)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.ClusterInstance", err)
+	}
+	jobParametersWireValue, err := convertSlice(v.JobParameters, run_JobLevelParametersToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.JobParameters", err)
+	}
+	overridingParametersWireValue, err := runParametersToWire(v.OverridingParameters)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.OverridingParameters", err)
+	}
+	triggerInfoWireValue, err := runTriggerInfoToWire(v.TriggerInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.TriggerInfo", err)
+	}
+	tasksWireValue, err := convertSlice(v.Tasks, runTaskToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.Tasks", err)
+	}
+	jobClustersWireValue, err := convertSlice(v.JobClusters, jobClusterToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.JobClusters", err)
+	}
+	gitSourceWireValue, err := gitSourceToWire(v.GitSource)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.GitSource", err)
+	}
+	repairHistoryWireValue, err := convertSlice(v.RepairHistory, repairToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.RepairHistory", err)
+	}
+	statusWireValue, err := runStatusToWire(v.Status)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.Status", err)
+	}
+	jobRunIdWireValue, err := int64ToWire(v.JobRunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.JobRunId", err)
+	}
+	environmentVariablesWireValue, err := convertSlice(v.EnvironmentVariables, jobEnvironmentVariablesToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.EnvironmentVariables", err)
+	}
+	startTimeWireValue, err := int64ToWire(v.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.StartTime", err)
+	}
+	setupDurationWireValue, err := int64ToWire(v.SetupDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.SetupDuration", err)
+	}
+	executionDurationWireValue, err := int64ToWire(v.ExecutionDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.ExecutionDuration", err)
+	}
+	cleanupDurationWireValue, err := int64ToWire(v.CleanupDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.CleanupDuration", err)
+	}
+	endTimeWireValue, err := int64ToWire(v.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.EndTime", err)
+	}
+	runDurationWireValue, err := int64ToWire(v.RunDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.RunDuration", err)
+	}
+	queueDurationWireValue, err := int64ToWire(v.QueueDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Run.QueueDuration", err)
+	}
+	return &runWire{
+		JobId:                      jobIdWireValue,
+		RunId:                      runIdWireValue,
+		CreatorUserName:            v.CreatorUserName,
+		NumberInJob:                numberInJobWireValue,
+		OriginalAttemptRunId:       originalAttemptRunIdWireValue,
+		State:                      stateWireValue,
+		Schedule:                   scheduleWireValue,
+		ClusterSpec:                clusterSpecWireValue,
+		ClusterInstance:            clusterInstanceWireValue,
+		JobParameters:              jobParametersWireValue,
+		OverridingParameters:       overridingParametersWireValue,
+		Trigger:                    v.Trigger,
+		TriggerInfo:                triggerInfoWireValue,
+		RunName:                    v.RunName,
+		RunPageUrl:                 v.RunPageUrl,
+		RunType:                    v.RunType,
+		Tasks:                      tasksWireValue,
+		Description:                v.Description,
+		AttemptNumber:              v.AttemptNumber,
+		JobClusters:                jobClustersWireValue,
+		GitSource:                  gitSourceWireValue,
+		RepairHistory:              repairHistoryWireValue,
+		Status:                     statusWireValue,
+		JobRunId:                   jobRunIdWireValue,
+		HasMore:                    v.HasMore,
+		EffectivePerformanceTarget: v.EffectivePerformanceTarget,
+		DurationTarget:             v.DurationTarget,
+		EffectiveUsagePolicyId:     v.EffectiveUsagePolicyId,
+		EnvironmentVariables:       environmentVariablesWireValue,
+		DeploymentId:               v.DeploymentId,
+		VersionId:                  v.VersionId,
+		StartTime:                  startTimeWireValue,
+		SetupDuration:              setupDurationWireValue,
+		ExecutionDuration:          executionDurationWireValue,
+		CleanupDuration:            cleanupDurationWireValue,
+		EndTime:                    endTimeWireValue,
+		RunDuration:                runDurationWireValue,
+		QueueDuration:              queueDurationWireValue,
+	}, nil
 }
 
 func runFromWire(w *runWire) (*Run, error) {
@@ -6169,6 +8291,17 @@ type run_JobLevelParametersWire struct {
 	Value   *string `json:"value,omitempty"`
 }
 
+func run_JobLevelParametersToWire(v *Run_JobLevelParameters) (*run_JobLevelParametersWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &run_JobLevelParametersWire{
+		Name:    v.Name,
+		Default: v.Default,
+		Value:   v.Value,
+	}, nil
+}
+
 func run_JobLevelParametersFromWire(w *run_JobLevelParametersWire) (*Run_JobLevelParameters, error) {
 	if w == nil {
 		return nil, nil
@@ -6249,6 +8382,19 @@ type runJobTask_RunJobTaskOutputWire struct {
 	RunId *wireInt64 `json:"run_id,omitempty"`
 }
 
+func runJobTask_RunJobTaskOutputToWire(v *RunJobTask_RunJobTaskOutput) (*runJobTask_RunJobTaskOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	runIdWireValue, err := int64ToWire(v.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunJobTask_RunJobTaskOutput.RunId", err)
+	}
+	return &runJobTask_RunJobTaskOutputWire{
+		RunId: runIdWireValue,
+	}, nil
+}
+
 func runJobTask_RunJobTaskOutputFromWire(w *runJobTask_RunJobTaskOutputWire) (*RunJobTask_RunJobTaskOutput, error) {
 	if w == nil {
 		return nil, nil
@@ -6260,6 +8406,40 @@ func runJobTask_RunJobTaskOutputFromWire(w *runJobTask_RunJobTaskOutputWire) (*R
 	return &RunJobTask_RunJobTaskOutput{
 		RunId: runIdPublicValue,
 	}, nil
+}
+
+type runLifeCycleStateWire struct {
+}
+
+func runLifeCycleStateToWire(v *RunLifeCycleState) (*runLifeCycleStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &runLifeCycleStateWire{}, nil
+}
+
+func runLifeCycleStateFromWire(w *runLifeCycleStateWire) (*RunLifeCycleState, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RunLifeCycleState{}, nil
+}
+
+type runLifecycleStateV2Wire struct {
+}
+
+func runLifecycleStateV2ToWire(v *RunLifecycleStateV2) (*runLifecycleStateV2Wire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &runLifecycleStateV2Wire{}, nil
+}
+
+func runLifecycleStateV2FromWire(w *runLifecycleStateV2Wire) (*RunLifecycleStateV2, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RunLifecycleStateV2{}, nil
 }
 
 type runNowRequestWire struct {
@@ -6315,9 +8495,62 @@ func runNowRequestToWire(v *RunNowRequest) (*runNowRequestWire, error) {
 	}, nil
 }
 
+func runNowRequestFromWire(w *runNowRequestWire) (*RunNowRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	jobIdPublicValue, err := int64FromWire(w.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunNowRequest.JobId", err)
+	}
+	queuePublicValue, err := queueSettingsFromWire(w.Queue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunNowRequest.Queue", err)
+	}
+	pipelineParamsPublicValue, err := pipelineParametersFromWire(w.PipelineParams)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunNowRequest.PipelineParams", err)
+	}
+	return &RunNowRequest{
+		JobId:             jobIdPublicValue,
+		JobParameters:     w.JobParameters,
+		IdempotencyToken:  w.IdempotencyToken,
+		Queue:             queuePublicValue,
+		Only:              w.Only,
+		PerformanceTarget: w.PerformanceTarget,
+		DurationTarget:    w.DurationTarget,
+		PipelineParams:    pipelineParamsPublicValue,
+		JarParams:         w.JarParams,
+		NotebookParams:    w.NotebookParams,
+		PythonParams:      w.PythonParams,
+		SparkSubmitParams: w.SparkSubmitParams,
+		PythonNamedParams: w.PythonNamedParams,
+		SqlParams:         w.SqlParams,
+		DbtCommands:       w.DbtCommands,
+	}, nil
+}
+
 type runNowResponseWire struct {
 	RunId       *wireInt64 `json:"run_id,omitempty"`
 	NumberInJob *wireInt64 `json:"number_in_job,omitempty"`
+}
+
+func runNowResponseToWire(v *RunNowResponse) (*runNowResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	runIdWireValue, err := int64ToWire(v.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunNowResponse.RunId", err)
+	}
+	numberInJobWireValue, err := int64ToWire(v.NumberInJob)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunNowResponse.NumberInJob", err)
+	}
+	return &runNowResponseWire{
+		RunId:       runIdWireValue,
+		NumberInJob: numberInJobWireValue,
+	}, nil
 }
 
 func runNowResponseFromWire(w *runNowResponseWire) (*RunNowResponse, error) {
@@ -6349,6 +8582,26 @@ type runParametersWire struct {
 	DbtCommands       []string                `json:"dbt_commands,omitempty"`
 }
 
+func runParametersToWire(v *RunParameters) (*runParametersWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	pipelineParamsWireValue, err := pipelineParametersToWire(v.PipelineParams)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunParameters.PipelineParams", err)
+	}
+	return &runParametersWire{
+		PipelineParams:    pipelineParamsWireValue,
+		JarParams:         v.JarParams,
+		NotebookParams:    v.NotebookParams,
+		PythonParams:      v.PythonParams,
+		SparkSubmitParams: v.SparkSubmitParams,
+		PythonNamedParams: v.PythonNamedParams,
+		SqlParams:         v.SqlParams,
+		DbtCommands:       v.DbtCommands,
+	}, nil
+}
+
 func runParametersFromWire(w *runParametersWire) (*RunParameters, error) {
 	if w == nil {
 		return nil, nil
@@ -6369,12 +8622,42 @@ func runParametersFromWire(w *runParametersWire) (*RunParameters, error) {
 	}, nil
 }
 
+type runResultStateWire struct {
+}
+
+func runResultStateToWire(v *RunResultState) (*runResultStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &runResultStateWire{}, nil
+}
+
+func runResultStateFromWire(w *runResultStateWire) (*RunResultState, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RunResultState{}, nil
+}
+
 type runStateWire struct {
 	LifeCycleState          RunLifeCycleState_RunLifeCycleState `json:"life_cycle_state,omitempty"`
 	ResultState             RunResultState_RunResultState       `json:"result_state,omitempty"`
 	StateMessage            *string                             `json:"state_message,omitempty"`
 	UserCancelledOrTimedout *bool                               `json:"user_cancelled_or_timedout,omitempty"`
 	QueueReason             *string                             `json:"queue_reason,omitempty"`
+}
+
+func runStateToWire(v *RunState) (*runStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &runStateWire{
+		LifeCycleState:          v.LifeCycleState,
+		ResultState:             v.ResultState,
+		StateMessage:            v.StateMessage,
+		UserCancelledOrTimedout: v.UserCancelledOrTimedout,
+		QueueReason:             v.QueueReason,
+	}, nil
 }
 
 func runStateFromWire(w *runStateWire) (*RunState, error) {
@@ -6394,6 +8677,25 @@ type runStatusWire struct {
 	State              RunLifecycleStateV2_State `json:"state,omitempty"`
 	TerminationDetails *terminationDetailsWire   `json:"termination_details,omitempty"`
 	QueueDetails       *queueDetailsWire         `json:"queue_details,omitempty"`
+}
+
+func runStatusToWire(v *RunStatus) (*runStatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	terminationDetailsWireValue, err := terminationDetailsToWire(v.TerminationDetails)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunStatus.TerminationDetails", err)
+	}
+	queueDetailsWireValue, err := queueDetailsToWire(v.QueueDetails)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunStatus.QueueDetails", err)
+	}
+	return &runStatusWire{
+		State:              v.State,
+		TerminationDetails: terminationDetailsWireValue,
+		QueueDetails:       queueDetailsWireValue,
+	}, nil
 }
 
 func runStatusFromWire(w *runStatusWire) (*RunStatus, error) {
@@ -6474,6 +8776,380 @@ type runTaskWire struct {
 	EndTime                    *wireInt64                          `json:"end_time,omitempty"`
 	RunDuration                *wireInt64                          `json:"run_duration,omitempty"`
 	QueueDuration              *wireInt64                          `json:"queue_duration,omitempty"`
+}
+
+func runTaskToWire(v *RunTask) (*runTaskWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	runIdWireValue, err := int64ToWire(v.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.RunId", err)
+	}
+	stateWireValue, err := runStateToWire(v.State)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.State", err)
+	}
+	clusterInstanceWireValue, err := clusterInstanceToWire(v.ClusterInstance)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.ClusterInstance", err)
+	}
+	gitSourceWireValue, err := gitSourceToWire(v.GitSource)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.GitSource", err)
+	}
+	resolvedValuesWireValue, err := resolvedValuesToWire(v.ResolvedValues)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.ResolvedValues", err)
+	}
+	statusWireValue, err := runStatusToWire(v.Status)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.Status", err)
+	}
+	dependsOnWireValue, err := convertSlice(v.DependsOn, taskDependencyToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.DependsOn", err)
+	}
+	emailNotificationsWireValue, err := jobEmailNotificationsToWire(v.EmailNotifications)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.EmailNotifications", err)
+	}
+	healthWireValue, err := jobsHealthRulesToWire(v.Health)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.Health", err)
+	}
+	notificationSettingsWireValue, err := notificationSettingsToWire(v.NotificationSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.NotificationSettings", err)
+	}
+	webhookNotificationsWireValue, err := webhookNotificationsToWire(v.WebhookNotifications)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.WebhookNotifications", err)
+	}
+	computeWireValue, err := computeToWire(v.Compute)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.Compute", err)
+	}
+	librariesWireValue, err := convertSlice(v.Libraries, libraryToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.Libraries", err)
+	}
+	startTimeWireValue, err := int64ToWire(v.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.StartTime", err)
+	}
+	setupDurationWireValue, err := int64ToWire(v.SetupDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.SetupDuration", err)
+	}
+	executionDurationWireValue, err := int64ToWire(v.ExecutionDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.ExecutionDuration", err)
+	}
+	cleanupDurationWireValue, err := int64ToWire(v.CleanupDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.CleanupDuration", err)
+	}
+	endTimeWireValue, err := int64ToWire(v.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.EndTime", err)
+	}
+	runDurationWireValue, err := int64ToWire(v.RunDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.RunDuration", err)
+	}
+	queueDurationWireValue, err := int64ToWire(v.QueueDuration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTask.QueueDuration", err)
+	}
+	var environmentRefEnvironmentKeyWire *string
+	switch value := v.EnvironmentRef.(type) {
+	case nil:
+	case *RunTask_EnvironmentRef_EnvironmentKey:
+		if value != nil {
+			environmentRefEnvironmentKeyWire = new(value.EnvironmentKey)
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "RunTask.EnvironmentRef", value)
+	}
+	var taskNotebookTaskWire *notebookTaskWire
+	var taskSparkJarTaskWire *sparkJarTaskWire
+	var taskSparkPythonTaskWire *sparkPythonTaskWire
+	var taskSparkSubmitTaskWire *sparkSubmitTaskWire
+	var taskPipelineTaskWire *pipelineTaskWire
+	var taskPythonWheelTaskWire *pythonWheelTaskWire
+	var taskDbtTaskWire *dbtTaskWire
+	var taskSqlTaskWire *sqlTaskWire
+	var taskRunJobTaskWire *runJobTaskWire
+	var taskConditionTaskWire *conditionTaskWire
+	var taskForEachTaskWire *forEachTaskWire
+	var taskCleanRoomsNotebookTaskWire *cleanRoomsNotebookTaskWire
+	var taskGenAiComputeTaskWire *genAiComputeTaskWire
+	var taskAlertTaskWire *alertTaskWire
+	var taskPowerBiTaskWire *powerBiTaskWire
+	var taskDashboardTaskWire *dashboardTaskWire
+	var taskDbtCloudTaskWire *dbtCloudTaskWire
+	var taskDbtPlatformTaskWire *dbtPlatformTaskWire
+	var taskPythonOperatorTaskWire *pythonOperatorTaskWire
+	var taskAiRuntimeTaskWire *aiRuntimeTaskWire
+	var taskAiFunctionTaskWire *aiFunctionTaskWire
+	switch value := v.Task.(type) {
+	case nil:
+	case *RunTask_Task_NotebookTask:
+		if value != nil {
+			taskNotebookTaskConverted, err := notebookTaskToWire(&value.NotebookTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.NotebookTask", err)
+			}
+			taskNotebookTaskWire = taskNotebookTaskConverted
+		}
+	case *RunTask_Task_SparkJarTask:
+		if value != nil {
+			taskSparkJarTaskConverted, err := sparkJarTaskToWire(&value.SparkJarTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.SparkJarTask", err)
+			}
+			taskSparkJarTaskWire = taskSparkJarTaskConverted
+		}
+	case *RunTask_Task_SparkPythonTask:
+		if value != nil {
+			taskSparkPythonTaskConverted, err := sparkPythonTaskToWire(&value.SparkPythonTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.SparkPythonTask", err)
+			}
+			taskSparkPythonTaskWire = taskSparkPythonTaskConverted
+		}
+	case *RunTask_Task_SparkSubmitTask:
+		if value != nil {
+			taskSparkSubmitTaskConverted, err := sparkSubmitTaskToWire(&value.SparkSubmitTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.SparkSubmitTask", err)
+			}
+			taskSparkSubmitTaskWire = taskSparkSubmitTaskConverted
+		}
+	case *RunTask_Task_PipelineTask:
+		if value != nil {
+			taskPipelineTaskConverted, err := pipelineTaskToWire(&value.PipelineTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.PipelineTask", err)
+			}
+			taskPipelineTaskWire = taskPipelineTaskConverted
+		}
+	case *RunTask_Task_PythonWheelTask:
+		if value != nil {
+			taskPythonWheelTaskConverted, err := pythonWheelTaskToWire(&value.PythonWheelTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.PythonWheelTask", err)
+			}
+			taskPythonWheelTaskWire = taskPythonWheelTaskConverted
+		}
+	case *RunTask_Task_DbtTask:
+		if value != nil {
+			taskDbtTaskConverted, err := dbtTaskToWire(&value.DbtTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.DbtTask", err)
+			}
+			taskDbtTaskWire = taskDbtTaskConverted
+		}
+	case *RunTask_Task_SqlTask:
+		if value != nil {
+			taskSqlTaskConverted, err := sqlTaskToWire(&value.SqlTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.SqlTask", err)
+			}
+			taskSqlTaskWire = taskSqlTaskConverted
+		}
+	case *RunTask_Task_RunJobTask:
+		if value != nil {
+			taskRunJobTaskConverted, err := runJobTaskToWire(&value.RunJobTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.RunJobTask", err)
+			}
+			taskRunJobTaskWire = taskRunJobTaskConverted
+		}
+	case *RunTask_Task_ConditionTask:
+		if value != nil {
+			taskConditionTaskConverted, err := conditionTaskToWire(&value.ConditionTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.ConditionTask", err)
+			}
+			taskConditionTaskWire = taskConditionTaskConverted
+		}
+	case *RunTask_Task_ForEachTask:
+		if value != nil {
+			taskForEachTaskConverted, err := forEachTaskToWire(&value.ForEachTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.ForEachTask", err)
+			}
+			taskForEachTaskWire = taskForEachTaskConverted
+		}
+	case *RunTask_Task_CleanRoomsNotebookTask:
+		if value != nil {
+			taskCleanRoomsNotebookTaskConverted, err := cleanRoomsNotebookTaskToWire(&value.CleanRoomsNotebookTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.CleanRoomsNotebookTask", err)
+			}
+			taskCleanRoomsNotebookTaskWire = taskCleanRoomsNotebookTaskConverted
+		}
+	case *RunTask_Task_GenAiComputeTask:
+		if value != nil {
+			taskGenAiComputeTaskConverted, err := genAiComputeTaskToWire(&value.GenAiComputeTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.GenAiComputeTask", err)
+			}
+			taskGenAiComputeTaskWire = taskGenAiComputeTaskConverted
+		}
+	case *RunTask_Task_AlertTask:
+		if value != nil {
+			taskAlertTaskConverted, err := alertTaskToWire(&value.AlertTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.AlertTask", err)
+			}
+			taskAlertTaskWire = taskAlertTaskConverted
+		}
+	case *RunTask_Task_PowerBiTask:
+		if value != nil {
+			taskPowerBiTaskConverted, err := powerBiTaskToWire(&value.PowerBiTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.PowerBiTask", err)
+			}
+			taskPowerBiTaskWire = taskPowerBiTaskConverted
+		}
+	case *RunTask_Task_DashboardTask:
+		if value != nil {
+			taskDashboardTaskConverted, err := dashboardTaskToWire(&value.DashboardTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.DashboardTask", err)
+			}
+			taskDashboardTaskWire = taskDashboardTaskConverted
+		}
+	case *RunTask_Task_DbtCloudTask:
+		if value != nil {
+			taskDbtCloudTaskConverted, err := dbtCloudTaskToWire(&value.DbtCloudTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.DbtCloudTask", err)
+			}
+			taskDbtCloudTaskWire = taskDbtCloudTaskConverted
+		}
+	case *RunTask_Task_DbtPlatformTask:
+		if value != nil {
+			taskDbtPlatformTaskConverted, err := dbtPlatformTaskToWire(&value.DbtPlatformTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.DbtPlatformTask", err)
+			}
+			taskDbtPlatformTaskWire = taskDbtPlatformTaskConverted
+		}
+	case *RunTask_Task_PythonOperatorTask:
+		if value != nil {
+			taskPythonOperatorTaskConverted, err := pythonOperatorTaskToWire(&value.PythonOperatorTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.PythonOperatorTask", err)
+			}
+			taskPythonOperatorTaskWire = taskPythonOperatorTaskConverted
+		}
+	case *RunTask_Task_AiRuntimeTask:
+		if value != nil {
+			taskAiRuntimeTaskConverted, err := aiRuntimeTaskToWire(&value.AiRuntimeTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.AiRuntimeTask", err)
+			}
+			taskAiRuntimeTaskWire = taskAiRuntimeTaskConverted
+		}
+	case *RunTask_Task_AiFunctionTask:
+		if value != nil {
+			taskAiFunctionTaskConverted, err := aiFunctionTaskToWire(&value.AiFunctionTask)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Task.AiFunctionTask", err)
+			}
+			taskAiFunctionTaskWire = taskAiFunctionTaskConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "RunTask.Task", value)
+	}
+	var specExistingClusterIdWire *string
+	var specNewClusterWire *clusterSpec_NewClusterWire
+	var specJobClusterKeyWire *string
+	switch value := v.Spec.(type) {
+	case nil:
+	case *RunTask_Spec_ExistingClusterId:
+		if value != nil {
+			specExistingClusterIdWire = new(value.ExistingClusterId)
+		}
+	case *RunTask_Spec_NewCluster:
+		if value != nil {
+			specNewClusterConverted, err := clusterSpec_NewClusterToWire(&value.NewCluster)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "RunTask.Spec.NewCluster", err)
+			}
+			specNewClusterWire = specNewClusterConverted
+		}
+	case *RunTask_Spec_JobClusterKey:
+		if value != nil {
+			specJobClusterKeyWire = new(value.JobClusterKey)
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "RunTask.Spec", value)
+	}
+	return &runTaskWire{
+		RunId:                      runIdWireValue,
+		State:                      stateWireValue,
+		RunPageUrl:                 v.RunPageUrl,
+		ClusterInstance:            clusterInstanceWireValue,
+		AttemptNumber:              v.AttemptNumber,
+		GitSource:                  gitSourceWireValue,
+		ResolvedValues:             resolvedValuesWireValue,
+		Status:                     statusWireValue,
+		EffectivePerformanceTarget: v.EffectivePerformanceTarget,
+		TaskKey:                    v.TaskKey,
+		Description:                v.Description,
+		DependsOn:                  dependsOnWireValue,
+		RunIf:                      v.RunIf,
+		TimeoutSeconds:             v.TimeoutSeconds,
+		EmailNotifications:         emailNotificationsWireValue,
+		Health:                     healthWireValue,
+		NotificationSettings:       notificationSettingsWireValue,
+		WebhookNotifications:       webhookNotificationsWireValue,
+		EnvironmentKey:             environmentRefEnvironmentKeyWire,
+		Disabled:                   v.Disabled,
+		Compute:                    computeWireValue,
+		EnvironmentVariablesKey:    v.EnvironmentVariablesKey,
+		NotebookTask:               taskNotebookTaskWire,
+		SparkJarTask:               taskSparkJarTaskWire,
+		SparkPythonTask:            taskSparkPythonTaskWire,
+		SparkSubmitTask:            taskSparkSubmitTaskWire,
+		PipelineTask:               taskPipelineTaskWire,
+		PythonWheelTask:            taskPythonWheelTaskWire,
+		DbtTask:                    taskDbtTaskWire,
+		SqlTask:                    taskSqlTaskWire,
+		RunJobTask:                 taskRunJobTaskWire,
+		ConditionTask:              taskConditionTaskWire,
+		ForEachTask:                taskForEachTaskWire,
+		CleanRoomsNotebookTask:     taskCleanRoomsNotebookTaskWire,
+		GenAiComputeTask:           taskGenAiComputeTaskWire,
+		AlertTask:                  taskAlertTaskWire,
+		PowerBiTask:                taskPowerBiTaskWire,
+		DashboardTask:              taskDashboardTaskWire,
+		DbtCloudTask:               taskDbtCloudTaskWire,
+		DbtPlatformTask:            taskDbtPlatformTaskWire,
+		PythonOperatorTask:         taskPythonOperatorTaskWire,
+		AiRuntimeTask:              taskAiRuntimeTaskWire,
+		AiFunctionTask:             taskAiFunctionTaskWire,
+		ExistingClusterId:          specExistingClusterIdWire,
+		NewCluster:                 specNewClusterWire,
+		JobClusterKey:              specJobClusterKeyWire,
+		Libraries:                  librariesWireValue,
+		MaxRetries:                 v.MaxRetries,
+		MinRetryIntervalMillis:     v.MinRetryIntervalMillis,
+		RetryOnTimeout:             v.RetryOnTimeout,
+		DisableAutoOptimization:    v.DisableAutoOptimization,
+		StartTime:                  startTimeWireValue,
+		SetupDuration:              setupDurationWireValue,
+		ExecutionDuration:          executionDurationWireValue,
+		CleanupDuration:            cleanupDurationWireValue,
+		EndTime:                    endTimeWireValue,
+		RunDuration:                runDurationWireValue,
+		QueueDuration:              queueDurationWireValue,
+	}, nil
 }
 
 func runTaskFromWire(w *runTaskWire) (*RunTask, error) {
@@ -7185,10 +9861,323 @@ func runTaskSettingsToWire(v *RunTaskSettings) (*runTaskSettingsWire, error) {
 	}, nil
 }
 
+func runTaskSettingsFromWire(w *runTaskSettingsWire) (*RunTaskSettings, error) {
+	if w == nil {
+		return nil, nil
+	}
+	environmentRefMembers := 0
+	if w.EnvironmentKey != nil {
+		environmentRefMembers++
+	}
+	if environmentRefMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "RunTaskSettings.EnvironmentRef")
+	}
+	taskMembers := 0
+	if w.NotebookTask != nil {
+		taskMembers++
+	}
+	if w.SparkJarTask != nil {
+		taskMembers++
+	}
+	if w.SparkPythonTask != nil {
+		taskMembers++
+	}
+	if w.SparkSubmitTask != nil {
+		taskMembers++
+	}
+	if w.PipelineTask != nil {
+		taskMembers++
+	}
+	if w.PythonWheelTask != nil {
+		taskMembers++
+	}
+	if w.DbtTask != nil {
+		taskMembers++
+	}
+	if w.SqlTask != nil {
+		taskMembers++
+	}
+	if w.RunJobTask != nil {
+		taskMembers++
+	}
+	if w.ConditionTask != nil {
+		taskMembers++
+	}
+	if w.ForEachTask != nil {
+		taskMembers++
+	}
+	if w.CleanRoomsNotebookTask != nil {
+		taskMembers++
+	}
+	if w.GenAiComputeTask != nil {
+		taskMembers++
+	}
+	if w.AlertTask != nil {
+		taskMembers++
+	}
+	if w.PowerBiTask != nil {
+		taskMembers++
+	}
+	if w.DashboardTask != nil {
+		taskMembers++
+	}
+	if w.DbtCloudTask != nil {
+		taskMembers++
+	}
+	if w.DbtPlatformTask != nil {
+		taskMembers++
+	}
+	if w.PythonOperatorTask != nil {
+		taskMembers++
+	}
+	if w.AiRuntimeTask != nil {
+		taskMembers++
+	}
+	if w.AiFunctionTask != nil {
+		taskMembers++
+	}
+	if taskMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "RunTaskSettings.Task")
+	}
+	specMembers := 0
+	if w.ExistingClusterId != nil {
+		specMembers++
+	}
+	if w.NewCluster != nil {
+		specMembers++
+	}
+	if w.JobClusterKey != nil {
+		specMembers++
+	}
+	if specMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "RunTaskSettings.Spec")
+	}
+	dependsOnPublicValue, err := convertSlice(w.DependsOn, taskDependencyFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTaskSettings.DependsOn", err)
+	}
+	emailNotificationsPublicValue, err := jobEmailNotificationsFromWire(w.EmailNotifications)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTaskSettings.EmailNotifications", err)
+	}
+	healthPublicValue, err := jobsHealthRulesFromWire(w.Health)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Health", err)
+	}
+	notificationSettingsPublicValue, err := notificationSettingsFromWire(w.NotificationSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTaskSettings.NotificationSettings", err)
+	}
+	webhookNotificationsPublicValue, err := webhookNotificationsFromWire(w.WebhookNotifications)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTaskSettings.WebhookNotifications", err)
+	}
+	computePublicValue, err := computeFromWire(w.Compute)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Compute", err)
+	}
+	librariesPublicValue, err := convertSlice(w.Libraries, libraryFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Libraries", err)
+	}
+	var environmentRefSelection isRunTaskSettings_EnvironmentRef
+	switch {
+	case w.EnvironmentKey != nil:
+		environmentRefSelection = &RunTaskSettings_EnvironmentRef_EnvironmentKey{EnvironmentKey: *w.EnvironmentKey}
+	}
+	var taskSelection isRunTaskSettings_Task
+	switch {
+	case w.NotebookTask != nil:
+		taskNotebookTaskConverted, err := notebookTaskFromWire(w.NotebookTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.NotebookTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_NotebookTask{NotebookTask: *taskNotebookTaskConverted}
+	case w.SparkJarTask != nil:
+		taskSparkJarTaskConverted, err := sparkJarTaskFromWire(w.SparkJarTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.SparkJarTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_SparkJarTask{SparkJarTask: *taskSparkJarTaskConverted}
+	case w.SparkPythonTask != nil:
+		taskSparkPythonTaskConverted, err := sparkPythonTaskFromWire(w.SparkPythonTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.SparkPythonTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_SparkPythonTask{SparkPythonTask: *taskSparkPythonTaskConverted}
+	case w.SparkSubmitTask != nil:
+		taskSparkSubmitTaskConverted, err := sparkSubmitTaskFromWire(w.SparkSubmitTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.SparkSubmitTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_SparkSubmitTask{SparkSubmitTask: *taskSparkSubmitTaskConverted}
+	case w.PipelineTask != nil:
+		taskPipelineTaskConverted, err := pipelineTaskFromWire(w.PipelineTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.PipelineTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_PipelineTask{PipelineTask: *taskPipelineTaskConverted}
+	case w.PythonWheelTask != nil:
+		taskPythonWheelTaskConverted, err := pythonWheelTaskFromWire(w.PythonWheelTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.PythonWheelTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_PythonWheelTask{PythonWheelTask: *taskPythonWheelTaskConverted}
+	case w.DbtTask != nil:
+		taskDbtTaskConverted, err := dbtTaskFromWire(w.DbtTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.DbtTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_DbtTask{DbtTask: *taskDbtTaskConverted}
+	case w.SqlTask != nil:
+		taskSqlTaskConverted, err := sqlTaskFromWire(w.SqlTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.SqlTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_SqlTask{SqlTask: *taskSqlTaskConverted}
+	case w.RunJobTask != nil:
+		taskRunJobTaskConverted, err := runJobTaskFromWire(w.RunJobTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.RunJobTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_RunJobTask{RunJobTask: *taskRunJobTaskConverted}
+	case w.ConditionTask != nil:
+		taskConditionTaskConverted, err := conditionTaskFromWire(w.ConditionTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.ConditionTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_ConditionTask{ConditionTask: *taskConditionTaskConverted}
+	case w.ForEachTask != nil:
+		taskForEachTaskConverted, err := forEachTaskFromWire(w.ForEachTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.ForEachTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_ForEachTask{ForEachTask: *taskForEachTaskConverted}
+	case w.CleanRoomsNotebookTask != nil:
+		taskCleanRoomsNotebookTaskConverted, err := cleanRoomsNotebookTaskFromWire(w.CleanRoomsNotebookTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.CleanRoomsNotebookTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_CleanRoomsNotebookTask{CleanRoomsNotebookTask: *taskCleanRoomsNotebookTaskConverted}
+	case w.GenAiComputeTask != nil:
+		taskGenAiComputeTaskConverted, err := genAiComputeTaskFromWire(w.GenAiComputeTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.GenAiComputeTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_GenAiComputeTask{GenAiComputeTask: *taskGenAiComputeTaskConverted}
+	case w.AlertTask != nil:
+		taskAlertTaskConverted, err := alertTaskFromWire(w.AlertTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.AlertTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_AlertTask{AlertTask: *taskAlertTaskConverted}
+	case w.PowerBiTask != nil:
+		taskPowerBiTaskConverted, err := powerBiTaskFromWire(w.PowerBiTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.PowerBiTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_PowerBiTask{PowerBiTask: *taskPowerBiTaskConverted}
+	case w.DashboardTask != nil:
+		taskDashboardTaskConverted, err := dashboardTaskFromWire(w.DashboardTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.DashboardTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_DashboardTask{DashboardTask: *taskDashboardTaskConverted}
+	case w.DbtCloudTask != nil:
+		taskDbtCloudTaskConverted, err := dbtCloudTaskFromWire(w.DbtCloudTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.DbtCloudTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_DbtCloudTask{DbtCloudTask: *taskDbtCloudTaskConverted}
+	case w.DbtPlatformTask != nil:
+		taskDbtPlatformTaskConverted, err := dbtPlatformTaskFromWire(w.DbtPlatformTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.DbtPlatformTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_DbtPlatformTask{DbtPlatformTask: *taskDbtPlatformTaskConverted}
+	case w.PythonOperatorTask != nil:
+		taskPythonOperatorTaskConverted, err := pythonOperatorTaskFromWire(w.PythonOperatorTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.PythonOperatorTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_PythonOperatorTask{PythonOperatorTask: *taskPythonOperatorTaskConverted}
+	case w.AiRuntimeTask != nil:
+		taskAiRuntimeTaskConverted, err := aiRuntimeTaskFromWire(w.AiRuntimeTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.AiRuntimeTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_AiRuntimeTask{AiRuntimeTask: *taskAiRuntimeTaskConverted}
+	case w.AiFunctionTask != nil:
+		taskAiFunctionTaskConverted, err := aiFunctionTaskFromWire(w.AiFunctionTask)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Task.AiFunctionTask", err)
+		}
+		taskSelection = &RunTaskSettings_Task_AiFunctionTask{AiFunctionTask: *taskAiFunctionTaskConverted}
+	}
+	var specSelection isRunTaskSettings_Spec
+	switch {
+	case w.ExistingClusterId != nil:
+		specSelection = &RunTaskSettings_Spec_ExistingClusterId{ExistingClusterId: *w.ExistingClusterId}
+	case w.NewCluster != nil:
+		specNewClusterConverted, err := clusterSpec_NewClusterFromWire(w.NewCluster)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "RunTaskSettings.Spec.NewCluster", err)
+		}
+		specSelection = &RunTaskSettings_Spec_NewCluster{NewCluster: *specNewClusterConverted}
+	case w.JobClusterKey != nil:
+		specSelection = &RunTaskSettings_Spec_JobClusterKey{JobClusterKey: *w.JobClusterKey}
+	}
+	return &RunTaskSettings{
+		TaskKey:                 w.TaskKey,
+		Description:             w.Description,
+		DependsOn:               dependsOnPublicValue,
+		RunIf:                   w.RunIf,
+		TimeoutSeconds:          w.TimeoutSeconds,
+		EmailNotifications:      emailNotificationsPublicValue,
+		Health:                  healthPublicValue,
+		NotificationSettings:    notificationSettingsPublicValue,
+		WebhookNotifications:    webhookNotificationsPublicValue,
+		Disabled:                w.Disabled,
+		Compute:                 computePublicValue,
+		EnvironmentVariablesKey: w.EnvironmentVariablesKey,
+		Libraries:               librariesPublicValue,
+		MaxRetries:              w.MaxRetries,
+		MinRetryIntervalMillis:  w.MinRetryIntervalMillis,
+		RetryOnTimeout:          w.RetryOnTimeout,
+		DisableAutoOptimization: w.DisableAutoOptimization,
+		EnvironmentRef:          environmentRefSelection,
+		Task:                    taskSelection,
+		Spec:                    specSelection,
+	}, nil
+}
+
 type runTriggerInfoWire struct {
 	SqlCondition  *sqlConditionRunInfoDetailsWire         `json:"sql_condition,omitempty"`
 	JobCompletion *jobCompletionTriggerRunInfoDetailsWire `json:"job_completion,omitempty"`
 	RunId         *wireInt64                              `json:"run_id,omitempty"`
+}
+
+func runTriggerInfoToWire(v *RunTriggerInfo) (*runTriggerInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sqlConditionWireValue, err := sqlConditionRunInfoDetailsToWire(v.SqlCondition)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTriggerInfo.SqlCondition", err)
+	}
+	jobCompletionWireValue, err := jobCompletionTriggerRunInfoDetailsToWire(v.JobCompletion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTriggerInfo.JobCompletion", err)
+	}
+	runIdWireValue, err := int64ToWire(v.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RunTriggerInfo.RunId", err)
+	}
+	return &runTriggerInfoWire{
+		SqlCondition:  sqlConditionWireValue,
+		JobCompletion: jobCompletionWireValue,
+		RunId:         runIdWireValue,
+	}, nil
 }
 
 func runTriggerInfoFromWire(w *runTriggerInfoWire) (*RunTriggerInfo, error) {
@@ -7255,6 +10244,13 @@ func s3StorageInfoFromWire(w *s3StorageInfoWire) (*S3StorageInfo, error) {
 }
 
 type scheduleTriggerStateWire struct {
+}
+
+func scheduleTriggerStateToWire(v *ScheduleTriggerState) (*scheduleTriggerStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &scheduleTriggerStateWire{}, nil
 }
 
 func scheduleTriggerStateFromWire(w *scheduleTriggerStateWire) (*ScheduleTriggerState, error) {
@@ -7367,6 +10363,23 @@ func sparseCheckoutFromWire(w *sparseCheckoutWire) (*SparseCheckout, error) {
 	}, nil
 }
 
+type sqlAlertStateWire struct {
+}
+
+func sqlAlertStateToWire(v *SqlAlertState) (*sqlAlertStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &sqlAlertStateWire{}, nil
+}
+
+func sqlAlertStateFromWire(w *sqlAlertStateWire) (*SqlAlertState, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SqlAlertState{}, nil
+}
+
 type sqlConditionConfigurationWire struct {
 	SqlQueryId  *string                 `json:"sql_query_id,omitempty"`
 	WarehouseId *string                 `json:"warehouse_id,omitempty"`
@@ -7401,6 +10414,17 @@ type sqlConditionRunInfoDetailsWire struct {
 	ConditionEvaluationSqlSessionId   *string `json:"condition_evaluation_sql_session_id,omitempty"`
 }
 
+func sqlConditionRunInfoDetailsToWire(v *SqlConditionRunInfoDetails) (*sqlConditionRunInfoDetailsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &sqlConditionRunInfoDetailsWire{
+		ConditionEvaluationSqlStatementId: v.ConditionEvaluationSqlStatementId,
+		ConditionEvaluationSatisfied:      v.ConditionEvaluationSatisfied,
+		ConditionEvaluationSqlSessionId:   v.ConditionEvaluationSqlSessionId,
+	}, nil
+}
+
 func sqlConditionRunInfoDetailsFromWire(w *sqlConditionRunInfoDetailsWire) (*SqlConditionRunInfoDetails, error) {
 	if w == nil {
 		return nil, nil
@@ -7418,6 +10442,17 @@ type sqlConditionStateWire struct {
 	LatestConditionEvaluationSqlSessionId   *string `json:"latest_condition_evaluation_sql_session_id,omitempty"`
 }
 
+func sqlConditionStateToWire(v *SqlConditionState) (*sqlConditionStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &sqlConditionStateWire{
+		LatestConditionEvaluationSqlStatementId: v.LatestConditionEvaluationSqlStatementId,
+		LatestConditionEvaluationSatisfied:      v.LatestConditionEvaluationSatisfied,
+		LatestConditionEvaluationSqlSessionId:   v.LatestConditionEvaluationSqlSessionId,
+	}, nil
+}
+
 func sqlConditionStateFromWire(w *sqlConditionStateWire) (*SqlConditionState, error) {
 	if w == nil {
 		return nil, nil
@@ -7433,6 +10468,25 @@ type sqlStatementQueryResultWire struct {
 	Columns   []sqlStatementQueryResult_ColumnWire `json:"columns,omitempty"`
 	Rows      []sqlStatementQueryResult_RowWire    `json:"rows,omitempty"`
 	Truncated *bool                                `json:"truncated,omitempty"`
+}
+
+func sqlStatementQueryResultToWire(v *SqlStatementQueryResult) (*sqlStatementQueryResultWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	columnsWireValue, err := convertSlice(v.Columns, sqlStatementQueryResult_ColumnToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SqlStatementQueryResult.Columns", err)
+	}
+	rowsWireValue, err := convertSlice(v.Rows, sqlStatementQueryResult_RowToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SqlStatementQueryResult.Rows", err)
+	}
+	return &sqlStatementQueryResultWire{
+		Columns:   columnsWireValue,
+		Rows:      rowsWireValue,
+		Truncated: v.Truncated,
+	}, nil
 }
 
 func sqlStatementQueryResultFromWire(w *sqlStatementQueryResultWire) (*SqlStatementQueryResult, error) {
@@ -7458,6 +10512,15 @@ type sqlStatementQueryResult_ColumnWire struct {
 	Name *string `json:"name,omitempty"`
 }
 
+func sqlStatementQueryResult_ColumnToWire(v *SqlStatementQueryResult_Column) (*sqlStatementQueryResult_ColumnWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &sqlStatementQueryResult_ColumnWire{
+		Name: v.Name,
+	}, nil
+}
+
 func sqlStatementQueryResult_ColumnFromWire(w *sqlStatementQueryResult_ColumnWire) (*SqlStatementQueryResult_Column, error) {
 	if w == nil {
 		return nil, nil
@@ -7469,6 +10532,19 @@ func sqlStatementQueryResult_ColumnFromWire(w *sqlStatementQueryResult_ColumnWir
 
 type sqlStatementQueryResult_RowWire struct {
 	Values []sqlStatementQueryResult_Row_RowValueWire `json:"values,omitempty"`
+}
+
+func sqlStatementQueryResult_RowToWire(v *SqlStatementQueryResult_Row) (*sqlStatementQueryResult_RowWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	valuesWireValue, err := convertSlice(v.Values, sqlStatementQueryResult_Row_RowValueToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SqlStatementQueryResult_Row.Values", err)
+	}
+	return &sqlStatementQueryResult_RowWire{
+		Values: valuesWireValue,
+	}, nil
 }
 
 func sqlStatementQueryResult_RowFromWire(w *sqlStatementQueryResult_RowWire) (*SqlStatementQueryResult_Row, error) {
@@ -7486,6 +10562,15 @@ func sqlStatementQueryResult_RowFromWire(w *sqlStatementQueryResult_RowWire) (*S
 
 type sqlStatementQueryResult_Row_RowValueWire struct {
 	StringValue *string `json:"string_value,omitempty"`
+}
+
+func sqlStatementQueryResult_Row_RowValueToWire(v *SqlStatementQueryResult_Row_RowValue) (*sqlStatementQueryResult_Row_RowValueWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &sqlStatementQueryResult_Row_RowValueWire{
+		StringValue: v.StringValue,
+	}, nil
 }
 
 func sqlStatementQueryResult_Row_RowValueFromWire(w *sqlStatementQueryResult_Row_RowValueWire) (*SqlStatementQueryResult_Row_RowValue, error) {
@@ -7623,6 +10708,23 @@ type sqlTask_SqlAlertOutputWire struct {
 	AlertState    SqlAlertState_SqlAlertState      `json:"alert_state,omitempty"`
 }
 
+func sqlTask_SqlAlertOutputToWire(v *SqlTask_SqlAlertOutput) (*sqlTask_SqlAlertOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sqlStatementsWireValue, err := convertSlice(v.SqlStatements, sqlTask_SqlStatementOutputToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SqlTask_SqlAlertOutput.SqlStatements", err)
+	}
+	return &sqlTask_SqlAlertOutputWire{
+		QueryText:     v.QueryText,
+		SqlStatements: sqlStatementsWireValue,
+		OutputLink:    v.OutputLink,
+		WarehouseId:   v.WarehouseId,
+		AlertState:    v.AlertState,
+	}, nil
+}
+
 func sqlTask_SqlAlertOutputFromWire(w *sqlTask_SqlAlertOutputWire) (*SqlTask_SqlAlertOutput, error) {
 	if w == nil {
 		return nil, nil
@@ -7643,6 +10745,20 @@ func sqlTask_SqlAlertOutputFromWire(w *sqlTask_SqlAlertOutputWire) (*SqlTask_Sql
 type sqlTask_SqlDashboardOutputWire struct {
 	Widgets     []sqlTask_SqlDashboardWidgetOutputWire `json:"widgets,omitempty"`
 	WarehouseId *string                                `json:"warehouse_id,omitempty"`
+}
+
+func sqlTask_SqlDashboardOutputToWire(v *SqlTask_SqlDashboardOutput) (*sqlTask_SqlDashboardOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	widgetsWireValue, err := convertSlice(v.Widgets, sqlTask_SqlDashboardWidgetOutputToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SqlTask_SqlDashboardOutput.Widgets", err)
+	}
+	return &sqlTask_SqlDashboardOutputWire{
+		Widgets:     widgetsWireValue,
+		WarehouseId: v.WarehouseId,
+	}, nil
 }
 
 func sqlTask_SqlDashboardOutputFromWire(w *sqlTask_SqlDashboardOutputWire) (*SqlTask_SqlDashboardOutput, error) {
@@ -7667,6 +10783,33 @@ type sqlTask_SqlDashboardWidgetOutputWire struct {
 	Error       *sqlTask_SqlOutputErrorWire `json:"error,omitempty"`
 	StartTime   *wireInt64                  `json:"start_time,omitempty"`
 	EndTime     *wireInt64                  `json:"end_time,omitempty"`
+}
+
+func sqlTask_SqlDashboardWidgetOutputToWire(v *SqlTask_SqlDashboardWidgetOutput) (*sqlTask_SqlDashboardWidgetOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	errorWireValue, err := sqlTask_SqlOutputErrorToWire(v.Error)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SqlTask_SqlDashboardWidgetOutput.Error", err)
+	}
+	startTimeWireValue, err := int64ToWire(v.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SqlTask_SqlDashboardWidgetOutput.StartTime", err)
+	}
+	endTimeWireValue, err := int64ToWire(v.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SqlTask_SqlDashboardWidgetOutput.EndTime", err)
+	}
+	return &sqlTask_SqlDashboardWidgetOutputWire{
+		WidgetId:    v.WidgetId,
+		WidgetTitle: v.WidgetTitle,
+		OutputLink:  v.OutputLink,
+		Status:      v.Status,
+		Error:       errorWireValue,
+		StartTime:   startTimeWireValue,
+		EndTime:     endTimeWireValue,
+	}, nil
 }
 
 func sqlTask_SqlDashboardWidgetOutputFromWire(w *sqlTask_SqlDashboardWidgetOutputWire) (*SqlTask_SqlDashboardWidgetOutput, error) {
@@ -7703,6 +10846,26 @@ type sqlTask_SqlFileOutputWire struct {
 	WarehouseId   *string                          `json:"warehouse_id,omitempty"`
 }
 
+func sqlTask_SqlFileOutputToWire(v *SqlTask_SqlFileOutput) (*sqlTask_SqlFileOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sqlStatementsWireValue, err := convertSlice(v.SqlStatements, sqlTask_SqlStatementOutputToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SqlTask_SqlFileOutput.SqlStatements", err)
+	}
+	queryResultWireValue, err := sqlStatementQueryResultToWire(v.QueryResult)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SqlTask_SqlFileOutput.QueryResult", err)
+	}
+	return &sqlTask_SqlFileOutputWire{
+		QueryText:     v.QueryText,
+		SqlStatements: sqlStatementsWireValue,
+		QueryResult:   queryResultWireValue,
+		WarehouseId:   v.WarehouseId,
+	}, nil
+}
+
 func sqlTask_SqlFileOutputFromWire(w *sqlTask_SqlFileOutputWire) (*SqlTask_SqlFileOutput, error) {
 	if w == nil {
 		return nil, nil
@@ -7728,6 +10891,59 @@ type sqlTask_SqlOutputWire struct {
 	DashboardOutput *sqlTask_SqlDashboardOutputWire `json:"dashboard_output,omitempty"`
 	AlertOutput     *sqlTask_SqlAlertOutputWire     `json:"alert_output,omitempty"`
 	FileOutput      *sqlTask_SqlFileOutputWire      `json:"file_output,omitempty"`
+}
+
+func sqlTask_SqlOutputToWire(v *SqlTask_SqlOutput) (*sqlTask_SqlOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var sqlOutputTypeQueryOutputWire *sqlTask_SqlQueryOutputWire
+	var sqlOutputTypeDashboardOutputWire *sqlTask_SqlDashboardOutputWire
+	var sqlOutputTypeAlertOutputWire *sqlTask_SqlAlertOutputWire
+	var sqlOutputTypeFileOutputWire *sqlTask_SqlFileOutputWire
+	switch value := v.SqlOutputType.(type) {
+	case nil:
+	case *SqlTask_SqlOutput_SqlOutputType_QueryOutput:
+		if value != nil {
+			sqlOutputTypeQueryOutputConverted, err := sqlTask_SqlQueryOutputToWire(&value.QueryOutput)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "SqlTask_SqlOutput.SqlOutputType.QueryOutput", err)
+			}
+			sqlOutputTypeQueryOutputWire = sqlOutputTypeQueryOutputConverted
+		}
+	case *SqlTask_SqlOutput_SqlOutputType_DashboardOutput:
+		if value != nil {
+			sqlOutputTypeDashboardOutputConverted, err := sqlTask_SqlDashboardOutputToWire(&value.DashboardOutput)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "SqlTask_SqlOutput.SqlOutputType.DashboardOutput", err)
+			}
+			sqlOutputTypeDashboardOutputWire = sqlOutputTypeDashboardOutputConverted
+		}
+	case *SqlTask_SqlOutput_SqlOutputType_AlertOutput:
+		if value != nil {
+			sqlOutputTypeAlertOutputConverted, err := sqlTask_SqlAlertOutputToWire(&value.AlertOutput)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "SqlTask_SqlOutput.SqlOutputType.AlertOutput", err)
+			}
+			sqlOutputTypeAlertOutputWire = sqlOutputTypeAlertOutputConverted
+		}
+	case *SqlTask_SqlOutput_SqlOutputType_FileOutput:
+		if value != nil {
+			sqlOutputTypeFileOutputConverted, err := sqlTask_SqlFileOutputToWire(&value.FileOutput)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "SqlTask_SqlOutput.SqlOutputType.FileOutput", err)
+			}
+			sqlOutputTypeFileOutputWire = sqlOutputTypeFileOutputConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "SqlTask_SqlOutput.SqlOutputType", value)
+	}
+	return &sqlTask_SqlOutputWire{
+		QueryOutput:     sqlOutputTypeQueryOutputWire,
+		DashboardOutput: sqlOutputTypeDashboardOutputWire,
+		AlertOutput:     sqlOutputTypeAlertOutputWire,
+		FileOutput:      sqlOutputTypeFileOutputWire,
+	}, nil
 }
 
 func sqlTask_SqlOutputFromWire(w *sqlTask_SqlOutputWire) (*SqlTask_SqlOutput, error) {
@@ -7786,6 +11002,15 @@ type sqlTask_SqlOutputErrorWire struct {
 	Message *string `json:"message,omitempty"`
 }
 
+func sqlTask_SqlOutputErrorToWire(v *SqlTask_SqlOutputError) (*sqlTask_SqlOutputErrorWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &sqlTask_SqlOutputErrorWire{
+		Message: v.Message,
+	}, nil
+}
+
 func sqlTask_SqlOutputErrorFromWire(w *sqlTask_SqlOutputErrorWire) (*SqlTask_SqlOutputError, error) {
 	if w == nil {
 		return nil, nil
@@ -7801,6 +11026,23 @@ type sqlTask_SqlQueryOutputWire struct {
 	SqlStatements []sqlTask_SqlStatementOutputWire `json:"sql_statements,omitempty"`
 	OutputLink    *string                          `json:"output_link,omitempty"`
 	WarehouseId   *string                          `json:"warehouse_id,omitempty"`
+}
+
+func sqlTask_SqlQueryOutputToWire(v *SqlTask_SqlQueryOutput) (*sqlTask_SqlQueryOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sqlStatementsWireValue, err := convertSlice(v.SqlStatements, sqlTask_SqlStatementOutputToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SqlTask_SqlQueryOutput.SqlStatements", err)
+	}
+	return &sqlTask_SqlQueryOutputWire{
+		QueryText:     v.QueryText,
+		EndpointId:    v.EndpointId,
+		SqlStatements: sqlStatementsWireValue,
+		OutputLink:    v.OutputLink,
+		WarehouseId:   v.WarehouseId,
+	}, nil
 }
 
 func sqlTask_SqlQueryOutputFromWire(w *sqlTask_SqlQueryOutputWire) (*SqlTask_SqlQueryOutput, error) {
@@ -7822,6 +11064,15 @@ func sqlTask_SqlQueryOutputFromWire(w *sqlTask_SqlQueryOutputWire) (*SqlTask_Sql
 
 type sqlTask_SqlStatementOutputWire struct {
 	LookupKey *string `json:"lookup_key,omitempty"`
+}
+
+func sqlTask_SqlStatementOutputToWire(v *SqlTask_SqlStatementOutput) (*sqlTask_SqlStatementOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &sqlTask_SqlStatementOutputWire{
+		LookupKey: v.LookupKey,
+	}, nil
 }
 
 func sqlTask_SqlStatementOutputFromWire(w *sqlTask_SqlStatementOutputWire) (*SqlTask_SqlStatementOutput, error) {
@@ -8124,8 +11375,91 @@ func submitRunRequestToWire(v *SubmitRunRequest) (*submitRunRequestWire, error) 
 	}, nil
 }
 
+func submitRunRequestFromWire(w *submitRunRequestWire) (*SubmitRunRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	accessControlListPublicValue, err := convertSlice(w.AccessControlList, accessControlRequestFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SubmitRunRequest.AccessControlList", err)
+	}
+	queuePublicValue, err := queueSettingsFromWire(w.Queue)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SubmitRunRequest.Queue", err)
+	}
+	runAsPublicValue, err := jobRunAsFromWire(w.RunAs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SubmitRunRequest.RunAs", err)
+	}
+	healthPublicValue, err := jobsHealthRulesFromWire(w.Health)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SubmitRunRequest.Health", err)
+	}
+	tasksPublicValue, err := convertSlice(w.Tasks, runTaskSettingsFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SubmitRunRequest.Tasks", err)
+	}
+	gitSourcePublicValue, err := gitSourceFromWire(w.GitSource)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SubmitRunRequest.GitSource", err)
+	}
+	webhookNotificationsPublicValue, err := webhookNotificationsFromWire(w.WebhookNotifications)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SubmitRunRequest.WebhookNotifications", err)
+	}
+	emailNotificationsPublicValue, err := jobEmailNotificationsFromWire(w.EmailNotifications)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SubmitRunRequest.EmailNotifications", err)
+	}
+	notificationSettingsPublicValue, err := notificationSettingsFromWire(w.NotificationSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SubmitRunRequest.NotificationSettings", err)
+	}
+	environmentsPublicValue, err := convertSlice(w.Environments, jobEnvironmentFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SubmitRunRequest.Environments", err)
+	}
+	environmentVariablesPublicValue, err := convertSlice(w.EnvironmentVariables, jobEnvironmentVariablesFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SubmitRunRequest.EnvironmentVariables", err)
+	}
+	return &SubmitRunRequest{
+		AccessControlList:    accessControlListPublicValue,
+		Queue:                queuePublicValue,
+		RunAs:                runAsPublicValue,
+		RunName:              w.RunName,
+		TimeoutSeconds:       w.TimeoutSeconds,
+		Health:               healthPublicValue,
+		IdempotencyToken:     w.IdempotencyToken,
+		Tasks:                tasksPublicValue,
+		GitSource:            gitSourcePublicValue,
+		WebhookNotifications: webhookNotificationsPublicValue,
+		EmailNotifications:   emailNotificationsPublicValue,
+		NotificationSettings: notificationSettingsPublicValue,
+		Environments:         environmentsPublicValue,
+		BudgetPolicyId:       w.BudgetPolicyId,
+		UsagePolicyId:        w.UsagePolicyId,
+		EnvironmentVariables: environmentVariablesPublicValue,
+		PerformanceTarget:    w.PerformanceTarget,
+		DurationTarget:       w.DurationTarget,
+	}, nil
+}
+
 type submitRunResponseWire struct {
 	RunId *wireInt64 `json:"run_id,omitempty"`
+}
+
+func submitRunResponseToWire(v *SubmitRunResponse) (*submitRunResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	runIdWireValue, err := int64ToWire(v.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SubmitRunResponse.RunId", err)
+	}
+	return &submitRunResponseWire{
+		RunId: runIdWireValue,
+	}, nil
 }
 
 func submitRunResponseFromWire(w *submitRunResponseWire) (*SubmitRunResponse, error) {
@@ -8376,6 +11710,16 @@ type tableStateWire struct {
 	HasSeenUpdates *bool   `json:"has_seen_updates,omitempty"`
 }
 
+func tableStateToWire(v *TableState) (*tableStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &tableStateWire{
+		TableName:      v.TableName,
+		HasSeenUpdates: v.HasSeenUpdates,
+	}, nil
+}
+
 func tableStateFromWire(w *tableStateWire) (*TableState, error) {
 	if w == nil {
 		return nil, nil
@@ -8420,6 +11764,20 @@ func tableTriggerConfigurationFromWire(w *tableTriggerConfigurationWire) (*Table
 type tableTriggerStateWire struct {
 	LastSeenTableStates     []tableStateWire `json:"last_seen_table_states,omitempty"`
 	UsingScalableMonitoring *bool            `json:"using_scalable_monitoring,omitempty"`
+}
+
+func tableTriggerStateToWire(v *TableTriggerState) (*tableTriggerStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	lastSeenTableStatesWireValue, err := convertSlice(v.LastSeenTableStates, tableStateToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TableTriggerState.LastSeenTableStates", err)
+	}
+	return &tableTriggerStateWire{
+		LastSeenTableStates:     lastSeenTableStatesWireValue,
+		UsingScalableMonitoring: v.UsingScalableMonitoring,
+	}, nil
 }
 
 func tableTriggerStateFromWire(w *tableTriggerStateWire) (*TableTriggerState, error) {
@@ -9102,10 +12460,38 @@ func taskSettingsFromWire(w *taskSettingsWire) (*TaskSettings, error) {
 	}, nil
 }
 
+type terminationCodeWire struct {
+}
+
+func terminationCodeToWire(v *TerminationCode) (*terminationCodeWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &terminationCodeWire{}, nil
+}
+
+func terminationCodeFromWire(w *terminationCodeWire) (*TerminationCode, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &TerminationCode{}, nil
+}
+
 type terminationDetailsWire struct {
 	Code    TerminationCode_Code `json:"code,omitempty"`
 	Type    TerminationType_Type `json:"type,omitempty"`
 	Message *string              `json:"message,omitempty"`
+}
+
+func terminationDetailsToWire(v *TerminationDetails) (*terminationDetailsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &terminationDetailsWire{
+		Code:    v.Code,
+		Type:    v.Type,
+		Message: v.Message,
+	}, nil
 }
 
 func terminationDetailsFromWire(w *terminationDetailsWire) (*TerminationDetails, error) {
@@ -9117,6 +12503,23 @@ func terminationDetailsFromWire(w *terminationDetailsWire) (*TerminationDetails,
 		Type:    w.Type,
 		Message: w.Message,
 	}, nil
+}
+
+type terminationTypeWire struct {
+}
+
+func terminationTypeToWire(v *TerminationType) (*terminationTypeWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &terminationTypeWire{}, nil
+}
+
+func terminationTypeFromWire(w *terminationTypeWire) (*TerminationType, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &TerminationType{}, nil
 }
 
 type triggerConfigurationWire struct {
@@ -9234,6 +12637,24 @@ type triggerDetailsWire struct {
 	History *triggerHistoryWire  `json:"history,omitempty"`
 }
 
+func triggerDetailsToWire(v *TriggerDetails) (*triggerDetailsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	stateWireValue, err := perTriggerStateToWire(v.State)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TriggerDetails.State", err)
+	}
+	historyWireValue, err := triggerHistoryToWire(v.History)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TriggerDetails.History", err)
+	}
+	return &triggerDetailsWire{
+		State:   stateWireValue,
+		History: historyWireValue,
+	}, nil
+}
+
 func triggerDetailsFromWire(w *triggerDetailsWire) (*TriggerDetails, error) {
 	if w == nil {
 		return nil, nil
@@ -9256,6 +12677,25 @@ type triggerEvaluationWire struct {
 	Timestamp   *wireInt64 `json:"timestamp,omitempty"`
 	Description *string    `json:"description,omitempty"`
 	RunId       *wireInt64 `json:"run_id,omitempty"`
+}
+
+func triggerEvaluationToWire(v *TriggerEvaluation) (*triggerEvaluationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	timestampWireValue, err := int64ToWire(v.Timestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TriggerEvaluation.Timestamp", err)
+	}
+	runIdWireValue, err := int64ToWire(v.RunId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TriggerEvaluation.RunId", err)
+	}
+	return &triggerEvaluationWire{
+		Timestamp:   timestampWireValue,
+		Description: v.Description,
+		RunId:       runIdWireValue,
+	}, nil
 }
 
 func triggerEvaluationFromWire(w *triggerEvaluationWire) (*TriggerEvaluation, error) {
@@ -9281,6 +12721,29 @@ type triggerHistoryWire struct {
 	LastTriggered    *triggerEvaluationWire `json:"last_triggered,omitempty"`
 	LastNotTriggered *triggerEvaluationWire `json:"last_not_triggered,omitempty"`
 	LastFailed       *triggerEvaluationWire `json:"last_failed,omitempty"`
+}
+
+func triggerHistoryToWire(v *TriggerHistory) (*triggerHistoryWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	lastTriggeredWireValue, err := triggerEvaluationToWire(v.LastTriggered)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TriggerHistory.LastTriggered", err)
+	}
+	lastNotTriggeredWireValue, err := triggerEvaluationToWire(v.LastNotTriggered)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TriggerHistory.LastNotTriggered", err)
+	}
+	lastFailedWireValue, err := triggerEvaluationToWire(v.LastFailed)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TriggerHistory.LastFailed", err)
+	}
+	return &triggerHistoryWire{
+		LastTriggered:    lastTriggeredWireValue,
+		LastNotTriggered: lastNotTriggeredWireValue,
+		LastFailed:       lastFailedWireValue,
+	}, nil
 }
 
 func triggerHistoryFromWire(w *triggerHistoryWire) (*TriggerHistory, error) {
@@ -9460,6 +12923,55 @@ type triggerStateWire struct {
 	PauseStatus   SchedulePauseStatus            `json:"pause_status,omitempty"`
 }
 
+func triggerStateToWire(v *TriggerState) (*triggerStateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sqlConditionWireValue, err := sqlConditionStateToWire(v.SqlCondition)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "TriggerState.SqlCondition", err)
+	}
+	var triggerTypeTableWire *tableTriggerStateWire
+	var triggerTypeFileArrivalWire *fileArrivalTriggerStateWire
+	var triggerTypeJobCompletionWire *jobCompletionTriggerStateWire
+	switch value := v.TriggerType.(type) {
+	case nil:
+	case *TriggerState_TriggerType_Table:
+		if value != nil {
+			triggerTypeTableConverted, err := tableTriggerStateToWire(&value.Table)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "TriggerState.TriggerType.Table", err)
+			}
+			triggerTypeTableWire = triggerTypeTableConverted
+		}
+	case *TriggerState_TriggerType_FileArrival:
+		if value != nil {
+			triggerTypeFileArrivalConverted, err := fileArrivalTriggerStateToWire(&value.FileArrival)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "TriggerState.TriggerType.FileArrival", err)
+			}
+			triggerTypeFileArrivalWire = triggerTypeFileArrivalConverted
+		}
+	case *TriggerState_TriggerType_JobCompletion:
+		if value != nil {
+			triggerTypeJobCompletionConverted, err := jobCompletionTriggerStateToWire(&value.JobCompletion)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "TriggerState.TriggerType.JobCompletion", err)
+			}
+			triggerTypeJobCompletionWire = triggerTypeJobCompletionConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "TriggerState.TriggerType", value)
+	}
+	return &triggerStateWire{
+		Table:         triggerTypeTableWire,
+		FileArrival:   triggerTypeFileArrivalWire,
+		JobCompletion: triggerTypeJobCompletionWire,
+		SqlCondition:  sqlConditionWireValue,
+		PauseStatus:   v.PauseStatus,
+	}, nil
+}
+
 func triggerStateFromWire(w *triggerStateWire) (*TriggerState, error) {
 	if w == nil {
 		return nil, nil
@@ -9534,10 +13046,57 @@ func updateJobRequestToWire(v *UpdateJobRequest) (*updateJobRequestWire, error) 
 	}, nil
 }
 
+func updateJobRequestFromWire(w *updateJobRequestWire) (*UpdateJobRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	jobIdPublicValue, err := int64FromWire(w.JobId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateJobRequest.JobId", err)
+	}
+	newSettingsPublicValue, err := jobSettingsFromWire(w.NewSettings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateJobRequest.NewSettings", err)
+	}
+	return &UpdateJobRequest{
+		JobId:          jobIdPublicValue,
+		NewSettings:    newSettingsPublicValue,
+		FieldsToRemove: w.FieldsToRemove,
+	}, nil
+}
+
+type updateJobResponseWire struct {
+}
+
+func updateJobResponseToWire(v *UpdateJobResponse) (*updateJobResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &updateJobResponseWire{}, nil
+}
+
+func updateJobResponseFromWire(w *updateJobResponseWire) (*UpdateJobResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpdateJobResponse{}, nil
+}
+
 type viewItemWire struct {
 	Content *string  `json:"content,omitempty"`
 	Name    *string  `json:"name,omitempty"`
 	Type    ViewType `json:"type,omitempty"`
+}
+
+func viewItemToWire(v *ViewItem) (*viewItemWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &viewItemWire{
+		Content: v.Content,
+		Name:    v.Name,
+		Type:    v.Type,
+	}, nil
 }
 
 func viewItemFromWire(w *viewItemWire) (*ViewItem, error) {
@@ -9715,6 +13274,15 @@ func webhookNotificationsFromWire(w *webhookNotificationsWire) (*WebhookNotifica
 
 type widgetErrorDetailWire struct {
 	Message *string `json:"message,omitempty"`
+}
+
+func widgetErrorDetailToWire(v *WidgetErrorDetail) (*widgetErrorDetailWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &widgetErrorDetailWire{
+		Message: v.Message,
+	}, nil
 }
 
 func widgetErrorDetailFromWire(w *widgetErrorDetailWire) (*WidgetErrorDetail, error) {

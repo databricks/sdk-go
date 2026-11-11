@@ -71,8 +71,29 @@ func createGlobalInitScriptRequestToWire(v *CreateGlobalInitScriptRequest) (*cre
 	}, nil
 }
 
+func createGlobalInitScriptRequestFromWire(w *createGlobalInitScriptRequestWire) (*CreateGlobalInitScriptRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &CreateGlobalInitScriptRequest{
+		Name:     w.Name,
+		Script:   w.Script,
+		Position: w.Position,
+		Enabled:  w.Enabled,
+	}, nil
+}
+
 type createGlobalInitScriptResponseWire struct {
 	ScriptId *string `json:"script_id,omitempty"`
+}
+
+func createGlobalInitScriptResponseToWire(v *CreateGlobalInitScriptResponse) (*createGlobalInitScriptResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createGlobalInitScriptResponseWire{
+		ScriptId: v.ScriptId,
+	}, nil
 }
 
 func createGlobalInitScriptResponseFromWire(w *createGlobalInitScriptResponseWire) (*CreateGlobalInitScriptResponse, error) {
@@ -80,6 +101,67 @@ func createGlobalInitScriptResponseFromWire(w *createGlobalInitScriptResponseWir
 		return nil, nil
 	}
 	return &CreateGlobalInitScriptResponse{
+		ScriptId: w.ScriptId,
+	}, nil
+}
+
+type deleteGlobalInitScriptRequestWire struct {
+	ScriptId *string `json:"script_id,omitempty"`
+}
+
+func deleteGlobalInitScriptRequestToWire(v *DeleteGlobalInitScriptRequest) (*deleteGlobalInitScriptRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteGlobalInitScriptRequestWire{
+		ScriptId: v.ScriptId,
+	}, nil
+}
+
+func deleteGlobalInitScriptRequestFromWire(w *deleteGlobalInitScriptRequestWire) (*DeleteGlobalInitScriptRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteGlobalInitScriptRequest{
+		ScriptId: w.ScriptId,
+	}, nil
+}
+
+type deleteGlobalInitScriptResponseWire struct {
+}
+
+func deleteGlobalInitScriptResponseToWire(v *DeleteGlobalInitScriptResponse) (*deleteGlobalInitScriptResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteGlobalInitScriptResponseWire{}, nil
+}
+
+func deleteGlobalInitScriptResponseFromWire(w *deleteGlobalInitScriptResponseWire) (*DeleteGlobalInitScriptResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteGlobalInitScriptResponse{}, nil
+}
+
+type getGlobalInitScriptRequestWire struct {
+	ScriptId *string `json:"script_id,omitempty"`
+}
+
+func getGlobalInitScriptRequestToWire(v *GetGlobalInitScriptRequest) (*getGlobalInitScriptRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getGlobalInitScriptRequestWire{
+		ScriptId: v.ScriptId,
+	}, nil
+}
+
+func getGlobalInitScriptRequestFromWire(w *getGlobalInitScriptRequestWire) (*GetGlobalInitScriptRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetGlobalInitScriptRequest{
 		ScriptId: w.ScriptId,
 	}, nil
 }
@@ -93,6 +175,30 @@ type globalInitScriptDetailsWire struct {
 	CreatedAt *wireInt64 `json:"created_at,omitempty"`
 	UpdatedBy *string    `json:"updated_by,omitempty"`
 	UpdatedAt *wireInt64 `json:"updated_at,omitempty"`
+}
+
+func globalInitScriptDetailsToWire(v *GlobalInitScriptDetails) (*globalInitScriptDetailsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GlobalInitScriptDetails.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GlobalInitScriptDetails.UpdatedAt", err)
+	}
+	return &globalInitScriptDetailsWire{
+		ScriptId:  v.ScriptId,
+		Name:      v.Name,
+		Position:  v.Position,
+		Enabled:   v.Enabled,
+		CreatedBy: v.CreatedBy,
+		CreatedAt: createdAtWireValue,
+		UpdatedBy: v.UpdatedBy,
+		UpdatedAt: updatedAtWireValue,
+	}, nil
 }
 
 func globalInitScriptDetailsFromWire(w *globalInitScriptDetailsWire) (*GlobalInitScriptDetails, error) {
@@ -119,8 +225,38 @@ func globalInitScriptDetailsFromWire(w *globalInitScriptDetailsWire) (*GlobalIni
 	}, nil
 }
 
+type listGlobalInitScriptsRequestWire struct {
+}
+
+func listGlobalInitScriptsRequestToWire(v *ListGlobalInitScriptsRequest) (*listGlobalInitScriptsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listGlobalInitScriptsRequestWire{}, nil
+}
+
+func listGlobalInitScriptsRequestFromWire(w *listGlobalInitScriptsRequestWire) (*ListGlobalInitScriptsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListGlobalInitScriptsRequest{}, nil
+}
+
 type listGlobalInitScriptsResponseWire struct {
 	Scripts []globalInitScriptDetailsWire `json:"scripts,omitempty"`
+}
+
+func listGlobalInitScriptsResponseToWire(v *ListGlobalInitScriptsResponse) (*listGlobalInitScriptsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	scriptsWireValue, err := convertSlice(v.Scripts, globalInitScriptDetailsToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListGlobalInitScriptsResponse.Scripts", err)
+	}
+	return &listGlobalInitScriptsResponseWire{
+		Scripts: scriptsWireValue,
+	}, nil
 }
 
 func listGlobalInitScriptsResponseFromWire(w *listGlobalInitScriptsResponseWire) (*ListGlobalInitScriptsResponse, error) {
@@ -155,6 +291,36 @@ func updateGlobalInitScriptRequestToWire(v *UpdateGlobalInitScriptRequest) (*upd
 		Position: v.Position,
 		Enabled:  v.Enabled,
 	}, nil
+}
+
+func updateGlobalInitScriptRequestFromWire(w *updateGlobalInitScriptRequestWire) (*UpdateGlobalInitScriptRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpdateGlobalInitScriptRequest{
+		ScriptId: w.ScriptId,
+		Name:     w.Name,
+		Script:   w.Script,
+		Position: w.Position,
+		Enabled:  w.Enabled,
+	}, nil
+}
+
+type updateGlobalInitScriptResponseWire struct {
+}
+
+func updateGlobalInitScriptResponseToWire(v *UpdateGlobalInitScriptResponse) (*updateGlobalInitScriptResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &updateGlobalInitScriptResponseWire{}, nil
+}
+
+func updateGlobalInitScriptResponseFromWire(w *updateGlobalInitScriptResponseWire) (*UpdateGlobalInitScriptResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpdateGlobalInitScriptResponse{}, nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

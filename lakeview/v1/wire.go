@@ -61,6 +61,22 @@ type authorizationDetailsWire struct {
 	GrantRules            []authorizationDetails_GrantRuleWire `json:"grant_rules,omitempty"`
 }
 
+func authorizationDetailsToWire(v *AuthorizationDetails) (*authorizationDetailsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	grantRulesWireValue, err := convertSlice(v.GrantRules, authorizationDetails_GrantRuleToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AuthorizationDetails.GrantRules", err)
+	}
+	return &authorizationDetailsWire{
+		Type:                  v.Type,
+		ResourceName:          v.ResourceName,
+		ResourceLegacyAclPath: v.ResourceLegacyAclPath,
+		GrantRules:            grantRulesWireValue,
+	}, nil
+}
+
 func authorizationDetailsFromWire(w *authorizationDetailsWire) (*AuthorizationDetails, error) {
 	if w == nil {
 		return nil, nil
@@ -79,6 +95,15 @@ func authorizationDetailsFromWire(w *authorizationDetailsWire) (*AuthorizationDe
 
 type authorizationDetails_GrantRuleWire struct {
 	PermissionSet *string `json:"permission_set,omitempty"`
+}
+
+func authorizationDetails_GrantRuleToWire(v *AuthorizationDetails_GrantRule) (*authorizationDetails_GrantRuleWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &authorizationDetails_GrantRuleWire{
+		PermissionSet: v.PermissionSet,
+	}, nil
 }
 
 func authorizationDetails_GrantRuleFromWire(w *authorizationDetails_GrantRuleWire) (*AuthorizationDetails_GrantRule, error) {
@@ -111,6 +136,21 @@ func createDashboardRequestToWire(v *CreateDashboardRequest) (*createDashboardRe
 	}, nil
 }
 
+func createDashboardRequestFromWire(w *createDashboardRequestWire) (*CreateDashboardRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	dashboardPublicValue, err := dashboardCreateFromWire(w.Dashboard)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateDashboardRequest.Dashboard", err)
+	}
+	return &CreateDashboardRequest{
+		Dashboard:      dashboardPublicValue,
+		DatasetCatalog: w.DatasetCatalog,
+		DatasetSchema:  w.DatasetSchema,
+	}, nil
+}
+
 type createScheduleRequestWire struct {
 	Schedule *scheduleCreateWire `json:"schedule,omitempty"`
 }
@@ -128,6 +168,19 @@ func createScheduleRequestToWire(v *CreateScheduleRequest) (*createScheduleReque
 	}, nil
 }
 
+func createScheduleRequestFromWire(w *createScheduleRequestWire) (*CreateScheduleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	schedulePublicValue, err := scheduleCreateFromWire(w.Schedule)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateScheduleRequest.Schedule", err)
+	}
+	return &CreateScheduleRequest{
+		Schedule: schedulePublicValue,
+	}, nil
+}
+
 type createSubscriptionRequestWire struct {
 	Subscription *subscriptionCreateWire `json:"subscription,omitempty"`
 }
@@ -142,6 +195,19 @@ func createSubscriptionRequestToWire(v *CreateSubscriptionRequest) (*createSubsc
 	}
 	return &createSubscriptionRequestWire{
 		Subscription: subscriptionWireValue,
+	}, nil
+}
+
+func createSubscriptionRequestFromWire(w *createSubscriptionRequestWire) (*CreateSubscriptionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	subscriptionPublicValue, err := subscriptionCreateFromWire(w.Subscription)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateSubscriptionRequest.Subscription", err)
+	}
+	return &CreateSubscriptionRequest{
+		Subscription: subscriptionPublicValue,
 	}, nil
 }
 
@@ -248,6 +314,23 @@ func dashboardCreateToWire(v *DashboardCreate) (*dashboardCreateWire, error) {
 	}, nil
 }
 
+func dashboardCreateFromWire(w *dashboardCreateWire) (*DashboardCreate, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DashboardCreate{
+		DashboardId:         w.DashboardId,
+		DisplayName:         w.DisplayName,
+		Path:                w.Path,
+		CreateTime:          w.CreateTime,
+		UpdateTime:          w.UpdateTime,
+		WarehouseId:         w.WarehouseId,
+		SerializedDashboard: w.SerializedDashboard,
+		LifecycleState:      w.LifecycleState,
+		ParentPath:          w.ParentPath,
+	}, nil
+}
+
 type deleteScheduleRequestWire struct {
 	ScheduleId  *string `json:"schedule_id,omitempty"`
 	DashboardId *string `json:"dashboard_id,omitempty"`
@@ -262,6 +345,17 @@ func deleteScheduleRequestToWire(v *DeleteScheduleRequest) (*deleteScheduleReque
 		ScheduleId:  v.ScheduleId,
 		DashboardId: v.DashboardId,
 		Etag:        v.Etag,
+	}, nil
+}
+
+func deleteScheduleRequestFromWire(w *deleteScheduleRequestWire) (*DeleteScheduleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteScheduleRequest{
+		ScheduleId:  w.ScheduleId,
+		DashboardId: w.DashboardId,
+		Etag:        w.Etag,
 	}, nil
 }
 
@@ -284,6 +378,62 @@ func deleteSubscriptionRequestToWire(v *DeleteSubscriptionRequest) (*deleteSubsc
 	}, nil
 }
 
+func deleteSubscriptionRequestFromWire(w *deleteSubscriptionRequestWire) (*DeleteSubscriptionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteSubscriptionRequest{
+		SubscriptionId: w.SubscriptionId,
+		ScheduleId:     w.ScheduleId,
+		DashboardId:    w.DashboardId,
+		Etag:           w.Etag,
+	}, nil
+}
+
+type getDashboardRequestWire struct {
+	DashboardId *string `json:"dashboard_id,omitempty"`
+}
+
+func getDashboardRequestToWire(v *GetDashboardRequest) (*getDashboardRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getDashboardRequestWire{
+		DashboardId: v.DashboardId,
+	}, nil
+}
+
+func getDashboardRequestFromWire(w *getDashboardRequestWire) (*GetDashboardRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetDashboardRequest{
+		DashboardId: w.DashboardId,
+	}, nil
+}
+
+type getPublishedDashboardRequestWire struct {
+	DashboardId *string `json:"dashboard_id,omitempty"`
+}
+
+func getPublishedDashboardRequestToWire(v *GetPublishedDashboardRequest) (*getPublishedDashboardRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getPublishedDashboardRequestWire{
+		DashboardId: v.DashboardId,
+	}, nil
+}
+
+func getPublishedDashboardRequestFromWire(w *getPublishedDashboardRequestWire) (*GetPublishedDashboardRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetPublishedDashboardRequest{
+		DashboardId: w.DashboardId,
+	}, nil
+}
+
 type getPublishedDashboardTokenInfoRequestWire struct {
 	DashboardId      *string `json:"dashboard_id,omitempty"`
 	ExternalValue    *string `json:"external_value,omitempty"`
@@ -301,10 +451,36 @@ func getPublishedDashboardTokenInfoRequestToWire(v *GetPublishedDashboardTokenIn
 	}, nil
 }
 
+func getPublishedDashboardTokenInfoRequestFromWire(w *getPublishedDashboardTokenInfoRequestWire) (*GetPublishedDashboardTokenInfoRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetPublishedDashboardTokenInfoRequest{
+		DashboardId:      w.DashboardId,
+		ExternalValue:    w.ExternalValue,
+		ExternalViewerId: w.ExternalViewerId,
+	}, nil
+}
+
 type getPublishedDashboardTokenInfoResponseWire struct {
 	CustomClaim          *string                    `json:"custom_claim,omitempty"`
 	Scope                *string                    `json:"scope,omitempty"`
 	AuthorizationDetails []authorizationDetailsWire `json:"authorization_details,omitempty"`
+}
+
+func getPublishedDashboardTokenInfoResponseToWire(v *GetPublishedDashboardTokenInfoResponse) (*getPublishedDashboardTokenInfoResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	authorizationDetailsWireValue, err := convertSlice(v.AuthorizationDetails, authorizationDetailsToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetPublishedDashboardTokenInfoResponse.AuthorizationDetails", err)
+	}
+	return &getPublishedDashboardTokenInfoResponseWire{
+		CustomClaim:          v.CustomClaim,
+		Scope:                v.Scope,
+		AuthorizationDetails: authorizationDetailsWireValue,
+	}, nil
 }
 
 func getPublishedDashboardTokenInfoResponseFromWire(w *getPublishedDashboardTokenInfoResponseWire) (*GetPublishedDashboardTokenInfoResponse, error) {
@@ -319,6 +495,59 @@ func getPublishedDashboardTokenInfoResponseFromWire(w *getPublishedDashboardToke
 		CustomClaim:          w.CustomClaim,
 		Scope:                w.Scope,
 		AuthorizationDetails: authorizationDetailsPublicValue,
+	}, nil
+}
+
+type getScheduleRequestWire struct {
+	ScheduleId  *string `json:"schedule_id,omitempty"`
+	DashboardId *string `json:"dashboard_id,omitempty"`
+}
+
+func getScheduleRequestToWire(v *GetScheduleRequest) (*getScheduleRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getScheduleRequestWire{
+		ScheduleId:  v.ScheduleId,
+		DashboardId: v.DashboardId,
+	}, nil
+}
+
+func getScheduleRequestFromWire(w *getScheduleRequestWire) (*GetScheduleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetScheduleRequest{
+		ScheduleId:  w.ScheduleId,
+		DashboardId: w.DashboardId,
+	}, nil
+}
+
+type getSubscriptionRequestWire struct {
+	SubscriptionId *string `json:"subscription_id,omitempty"`
+	ScheduleId     *string `json:"schedule_id,omitempty"`
+	DashboardId    *string `json:"dashboard_id,omitempty"`
+}
+
+func getSubscriptionRequestToWire(v *GetSubscriptionRequest) (*getSubscriptionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getSubscriptionRequestWire{
+		SubscriptionId: v.SubscriptionId,
+		ScheduleId:     v.ScheduleId,
+		DashboardId:    v.DashboardId,
+	}, nil
+}
+
+func getSubscriptionRequestFromWire(w *getSubscriptionRequestWire) (*GetSubscriptionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetSubscriptionRequest{
+		SubscriptionId: w.SubscriptionId,
+		ScheduleId:     w.ScheduleId,
+		DashboardId:    w.DashboardId,
 	}, nil
 }
 
@@ -341,9 +570,35 @@ func listDashboardsRequestToWire(v *ListDashboardsRequest) (*listDashboardsReque
 	}, nil
 }
 
+func listDashboardsRequestFromWire(w *listDashboardsRequestWire) (*ListDashboardsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListDashboardsRequest{
+		PageSize:    w.PageSize,
+		PageToken:   w.PageToken,
+		ShowTrashed: w.ShowTrashed,
+		View:        w.View,
+	}, nil
+}
+
 type listDashboardsResponseWire struct {
 	Dashboards    []dashboardWire `json:"dashboards,omitempty"`
 	NextPageToken *string         `json:"next_page_token,omitempty"`
+}
+
+func listDashboardsResponseToWire(v *ListDashboardsResponse) (*listDashboardsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	dashboardsWireValue, err := convertSlice(v.Dashboards, dashboardToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListDashboardsResponse.Dashboards", err)
+	}
+	return &listDashboardsResponseWire{
+		Dashboards:    dashboardsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listDashboardsResponseFromWire(w *listDashboardsResponseWire) (*ListDashboardsResponse, error) {
@@ -377,9 +632,34 @@ func listSchedulesRequestToWire(v *ListSchedulesRequest) (*listSchedulesRequestW
 	}, nil
 }
 
+func listSchedulesRequestFromWire(w *listSchedulesRequestWire) (*ListSchedulesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSchedulesRequest{
+		DashboardId: w.DashboardId,
+		PageSize:    w.PageSize,
+		PageToken:   w.PageToken,
+	}, nil
+}
+
 type listSchedulesResponseWire struct {
 	Schedules     []scheduleWire `json:"schedules,omitempty"`
 	NextPageToken *string        `json:"next_page_token,omitempty"`
+}
+
+func listSchedulesResponseToWire(v *ListSchedulesResponse) (*listSchedulesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	schedulesWireValue, err := convertSlice(v.Schedules, scheduleToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSchedulesResponse.Schedules", err)
+	}
+	return &listSchedulesResponseWire{
+		Schedules:     schedulesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listSchedulesResponseFromWire(w *listSchedulesResponseWire) (*ListSchedulesResponse, error) {
@@ -415,9 +695,35 @@ func listSubscriptionsRequestToWire(v *ListSubscriptionsRequest) (*listSubscript
 	}, nil
 }
 
+func listSubscriptionsRequestFromWire(w *listSubscriptionsRequestWire) (*ListSubscriptionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSubscriptionsRequest{
+		DashboardId: w.DashboardId,
+		ScheduleId:  w.ScheduleId,
+		PageSize:    w.PageSize,
+		PageToken:   w.PageToken,
+	}, nil
+}
+
 type listSubscriptionsResponseWire struct {
 	Subscriptions []subscriptionWire `json:"subscriptions,omitempty"`
 	NextPageToken *string            `json:"next_page_token,omitempty"`
+}
+
+func listSubscriptionsResponseToWire(v *ListSubscriptionsResponse) (*listSubscriptionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	subscriptionsWireValue, err := convertSlice(v.Subscriptions, subscriptionToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSubscriptionsResponse.Subscriptions", err)
+	}
+	return &listSubscriptionsResponseWire{
+		Subscriptions: subscriptionsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listSubscriptionsResponseFromWire(w *listSubscriptionsResponseWire) (*ListSubscriptionsResponse, error) {
@@ -453,6 +759,18 @@ func migrateDashboardRequestToWire(v *MigrateDashboardRequest) (*migrateDashboar
 	}, nil
 }
 
+func migrateDashboardRequestFromWire(w *migrateDashboardRequestWire) (*MigrateDashboardRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &MigrateDashboardRequest{
+		SourceDashboardId:     w.SourceDashboardId,
+		DisplayName:           w.DisplayName,
+		ParentPath:            w.ParentPath,
+		UpdateParameterSyntax: w.UpdateParameterSyntax,
+	}, nil
+}
+
 type publishDashboardRequestWire struct {
 	DashboardId      *string `json:"dashboard_id,omitempty"`
 	EmbedCredentials *bool   `json:"embed_credentials,omitempty"`
@@ -470,11 +788,34 @@ func publishDashboardRequestToWire(v *PublishDashboardRequest) (*publishDashboar
 	}, nil
 }
 
+func publishDashboardRequestFromWire(w *publishDashboardRequestWire) (*PublishDashboardRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PublishDashboardRequest{
+		DashboardId:      w.DashboardId,
+		EmbedCredentials: w.EmbedCredentials,
+		WarehouseId:      w.WarehouseId,
+	}, nil
+}
+
 type publishedDashboardWire struct {
 	DisplayName        *string     `json:"display_name,omitempty"`
 	WarehouseId        *string     `json:"warehouse_id,omitempty"`
 	EmbedCredentials   *bool       `json:"embed_credentials,omitempty"`
 	RevisionCreateTime *types.Time `json:"revision_create_time,omitempty"`
+}
+
+func publishedDashboardToWire(v *PublishedDashboard) (*publishedDashboardWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &publishedDashboardWire{
+		DisplayName:        v.DisplayName,
+		WarehouseId:        v.WarehouseId,
+		EmbedCredentials:   v.EmbedCredentials,
+		RevisionCreateTime: v.RevisionCreateTime,
+	}, nil
 }
 
 func publishedDashboardFromWire(w *publishedDashboardWire) (*PublishedDashboard, error) {
@@ -504,8 +845,31 @@ func revertDashboardRequestToWire(v *RevertDashboardRequest) (*revertDashboardRe
 	}, nil
 }
 
+func revertDashboardRequestFromWire(w *revertDashboardRequestWire) (*RevertDashboardRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RevertDashboardRequest{
+		DashboardId: w.DashboardId,
+		Etag:        w.Etag,
+	}, nil
+}
+
 type revertDashboardResponseWire struct {
 	Dashboard *dashboardWire `json:"dashboard,omitempty"`
+}
+
+func revertDashboardResponseToWire(v *RevertDashboardResponse) (*revertDashboardResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	dashboardWireValue, err := dashboardToWire(v.Dashboard)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RevertDashboardResponse.Dashboard", err)
+	}
+	return &revertDashboardResponseWire{
+		Dashboard: dashboardWireValue,
+	}, nil
 }
 
 func revertDashboardResponseFromWire(w *revertDashboardResponseWire) (*RevertDashboardResponse, error) {
@@ -606,6 +970,26 @@ func scheduleCreateToWire(v *ScheduleCreate) (*scheduleCreateWire, error) {
 	}, nil
 }
 
+func scheduleCreateFromWire(w *scheduleCreateWire) (*ScheduleCreate, error) {
+	if w == nil {
+		return nil, nil
+	}
+	cronSchedulePublicValue, err := cronScheduleFromWire(w.CronSchedule)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ScheduleCreate.CronSchedule", err)
+	}
+	return &ScheduleCreate{
+		ScheduleId:   w.ScheduleId,
+		DashboardId:  w.DashboardId,
+		CronSchedule: cronSchedulePublicValue,
+		PauseStatus:  w.PauseStatus,
+		DisplayName:  w.DisplayName,
+		CreateTime:   w.CreateTime,
+		UpdateTime:   w.UpdateTime,
+		WarehouseId:  w.WarehouseId,
+	}, nil
+}
+
 type subscriptionWire struct {
 	SubscriptionId  *string                      `json:"subscription_id,omitempty"`
 	ScheduleId      *string                      `json:"schedule_id,omitempty"`
@@ -616,6 +1000,31 @@ type subscriptionWire struct {
 	CreateTime      *types.Time                  `json:"create_time,omitempty"`
 	UpdateTime      *types.Time                  `json:"update_time,omitempty"`
 	SkipNotify      *bool                        `json:"skip_notify,omitempty"`
+}
+
+func subscriptionToWire(v *Subscription) (*subscriptionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	subscriberWireValue, err := subscription_SubscriberToWire(v.Subscriber)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Subscription.Subscriber", err)
+	}
+	createdByUserIdWireValue, err := int64ToWire(v.CreatedByUserId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Subscription.CreatedByUserId", err)
+	}
+	return &subscriptionWire{
+		SubscriptionId:  v.SubscriptionId,
+		ScheduleId:      v.ScheduleId,
+		DashboardId:     v.DashboardId,
+		Subscriber:      subscriberWireValue,
+		CreatedByUserId: createdByUserIdWireValue,
+		Etag:            v.Etag,
+		CreateTime:      v.CreateTime,
+		UpdateTime:      v.UpdateTime,
+		SkipNotify:      v.SkipNotify,
+	}, nil
 }
 
 func subscriptionFromWire(w *subscriptionWire) (*Subscription, error) {
@@ -771,6 +1180,108 @@ func subscriptionCreateToWire(v *SubscriptionCreate) (*subscriptionCreateWire, e
 	}, nil
 }
 
+func subscriptionCreateFromWire(w *subscriptionCreateWire) (*SubscriptionCreate, error) {
+	if w == nil {
+		return nil, nil
+	}
+	subscriberPublicValue, err := subscription_SubscriberFromWire(w.Subscriber)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SubscriptionCreate.Subscriber", err)
+	}
+	createdByUserIdPublicValue, err := int64FromWire(w.CreatedByUserId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SubscriptionCreate.CreatedByUserId", err)
+	}
+	return &SubscriptionCreate{
+		SubscriptionId:  w.SubscriptionId,
+		ScheduleId:      w.ScheduleId,
+		DashboardId:     w.DashboardId,
+		Subscriber:      subscriberPublicValue,
+		CreatedByUserId: createdByUserIdPublicValue,
+		CreateTime:      w.CreateTime,
+		UpdateTime:      w.UpdateTime,
+		SkipNotify:      w.SkipNotify,
+	}, nil
+}
+
+type trashDashboardRequestWire struct {
+	DashboardId *string `json:"dashboard_id,omitempty"`
+}
+
+func trashDashboardRequestToWire(v *TrashDashboardRequest) (*trashDashboardRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &trashDashboardRequestWire{
+		DashboardId: v.DashboardId,
+	}, nil
+}
+
+func trashDashboardRequestFromWire(w *trashDashboardRequestWire) (*TrashDashboardRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &TrashDashboardRequest{
+		DashboardId: w.DashboardId,
+	}, nil
+}
+
+type trashDashboardResponseWire struct {
+}
+
+func trashDashboardResponseToWire(v *TrashDashboardResponse) (*trashDashboardResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &trashDashboardResponseWire{}, nil
+}
+
+func trashDashboardResponseFromWire(w *trashDashboardResponseWire) (*TrashDashboardResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &TrashDashboardResponse{}, nil
+}
+
+type unpublishDashboardRequestWire struct {
+	DashboardId *string `json:"dashboard_id,omitempty"`
+}
+
+func unpublishDashboardRequestToWire(v *UnpublishDashboardRequest) (*unpublishDashboardRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &unpublishDashboardRequestWire{
+		DashboardId: v.DashboardId,
+	}, nil
+}
+
+func unpublishDashboardRequestFromWire(w *unpublishDashboardRequestWire) (*UnpublishDashboardRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UnpublishDashboardRequest{
+		DashboardId: w.DashboardId,
+	}, nil
+}
+
+type unpublishDashboardResponseWire struct {
+}
+
+func unpublishDashboardResponseToWire(v *UnpublishDashboardResponse) (*unpublishDashboardResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &unpublishDashboardResponseWire{}, nil
+}
+
+func unpublishDashboardResponseFromWire(w *unpublishDashboardResponseWire) (*UnpublishDashboardResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UnpublishDashboardResponse{}, nil
+}
+
 type updateDashboardRequestWire struct {
 	Dashboard      *dashboardWire `json:"dashboard,omitempty"`
 	DatasetCatalog *string        `json:"dataset_catalog,omitempty"`
@@ -792,6 +1303,21 @@ func updateDashboardRequestToWire(v *UpdateDashboardRequest) (*updateDashboardRe
 	}, nil
 }
 
+func updateDashboardRequestFromWire(w *updateDashboardRequestWire) (*UpdateDashboardRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	dashboardPublicValue, err := dashboardFromWire(w.Dashboard)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateDashboardRequest.Dashboard", err)
+	}
+	return &UpdateDashboardRequest{
+		Dashboard:      dashboardPublicValue,
+		DatasetCatalog: w.DatasetCatalog,
+		DatasetSchema:  w.DatasetSchema,
+	}, nil
+}
+
 type updateScheduleRequestWire struct {
 	Schedule *scheduleWire `json:"schedule,omitempty"`
 }
@@ -806,6 +1332,19 @@ func updateScheduleRequestToWire(v *UpdateScheduleRequest) (*updateScheduleReque
 	}
 	return &updateScheduleRequestWire{
 		Schedule: scheduleWireValue,
+	}, nil
+}
+
+func updateScheduleRequestFromWire(w *updateScheduleRequestWire) (*UpdateScheduleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	schedulePublicValue, err := scheduleFromWire(w.Schedule)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateScheduleRequest.Schedule", err)
+	}
+	return &UpdateScheduleRequest{
+		Schedule: schedulePublicValue,
 	}, nil
 }
 

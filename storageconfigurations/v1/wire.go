@@ -75,6 +75,124 @@ func createStorageConfigurationRequestToWire(v *CreateStorageConfigurationReques
 	}, nil
 }
 
+func createStorageConfigurationRequestFromWire(w *createStorageConfigurationRequestWire) (*CreateStorageConfigurationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	rootBucketInfoPublicValue, err := rootBucketInfoFromWire(w.RootBucketInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateStorageConfigurationRequest.RootBucketInfo", err)
+	}
+	return &CreateStorageConfigurationRequest{
+		AccountId:                w.AccountId,
+		StorageConfigurationName: w.StorageConfigurationName,
+		RootBucketInfo:           rootBucketInfoPublicValue,
+		RoleArn:                  w.RoleArn,
+	}, nil
+}
+
+type deleteStorageConfigurationRequestWire struct {
+	StorageConfigurationId *string `json:"storage_configuration_id,omitempty"`
+	AccountId              *string `json:"account_id,omitempty"`
+}
+
+func deleteStorageConfigurationRequestToWire(v *DeleteStorageConfigurationRequest) (*deleteStorageConfigurationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteStorageConfigurationRequestWire{
+		StorageConfigurationId: v.StorageConfigurationId,
+		AccountId:              v.AccountId,
+	}, nil
+}
+
+func deleteStorageConfigurationRequestFromWire(w *deleteStorageConfigurationRequestWire) (*DeleteStorageConfigurationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteStorageConfigurationRequest{
+		StorageConfigurationId: w.StorageConfigurationId,
+		AccountId:              w.AccountId,
+	}, nil
+}
+
+type getStorageConfigurationRequestWire struct {
+	StorageConfigurationId *string `json:"storage_configuration_id,omitempty"`
+	AccountId              *string `json:"account_id,omitempty"`
+}
+
+func getStorageConfigurationRequestToWire(v *GetStorageConfigurationRequest) (*getStorageConfigurationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getStorageConfigurationRequestWire{
+		StorageConfigurationId: v.StorageConfigurationId,
+		AccountId:              v.AccountId,
+	}, nil
+}
+
+func getStorageConfigurationRequestFromWire(w *getStorageConfigurationRequestWire) (*GetStorageConfigurationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetStorageConfigurationRequest{
+		StorageConfigurationId: w.StorageConfigurationId,
+		AccountId:              w.AccountId,
+	}, nil
+}
+
+type listStorageConfigurationRequestWire struct {
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func listStorageConfigurationRequestToWire(v *ListStorageConfigurationRequest) (*listStorageConfigurationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listStorageConfigurationRequestWire{
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func listStorageConfigurationRequestFromWire(w *listStorageConfigurationRequestWire) (*ListStorageConfigurationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListStorageConfigurationRequest{
+		AccountId: w.AccountId,
+	}, nil
+}
+
+type listStorageConfigurationResponseWire struct {
+	StorageConfigurations []storageConfigurationWire `json:"storage_configurations,omitempty"`
+}
+
+func listStorageConfigurationResponseToWire(v *ListStorageConfigurationResponse) (*listStorageConfigurationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	storageConfigurationsWireValue, err := convertSlice(v.StorageConfigurations, storageConfigurationToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListStorageConfigurationResponse.StorageConfigurations", err)
+	}
+	return &listStorageConfigurationResponseWire{
+		StorageConfigurations: storageConfigurationsWireValue,
+	}, nil
+}
+
+func listStorageConfigurationResponseFromWire(w *listStorageConfigurationResponseWire) (*ListStorageConfigurationResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	storageConfigurationsPublicValue, err := convertSlice(w.StorageConfigurations, storageConfigurationFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListStorageConfigurationResponse.StorageConfigurations", err)
+	}
+	return &ListStorageConfigurationResponse{
+		StorageConfigurations: storageConfigurationsPublicValue,
+	}, nil
+}
+
 type rootBucketInfoWire struct {
 	BucketName *string `json:"bucket_name,omitempty"`
 }
@@ -104,6 +222,28 @@ type storageConfigurationWire struct {
 	StorageConfigurationName *string             `json:"storage_configuration_name,omitempty"`
 	CreationTime             *wireInt64          `json:"creation_time,omitempty"`
 	RoleArn                  *string             `json:"role_arn,omitempty"`
+}
+
+func storageConfigurationToWire(v *StorageConfiguration) (*storageConfigurationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	rootBucketInfoWireValue, err := rootBucketInfoToWire(v.RootBucketInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "StorageConfiguration.RootBucketInfo", err)
+	}
+	creationTimeWireValue, err := int64ToWire(v.CreationTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "StorageConfiguration.CreationTime", err)
+	}
+	return &storageConfigurationWire{
+		StorageConfigurationId:   v.StorageConfigurationId,
+		AccountId:                v.AccountId,
+		RootBucketInfo:           rootBucketInfoWireValue,
+		StorageConfigurationName: v.StorageConfigurationName,
+		CreationTime:             creationTimeWireValue,
+		RoleArn:                  v.RoleArn,
+	}, nil
 }
 
 func storageConfigurationFromWire(w *storageConfigurationWire) (*StorageConfiguration, error) {

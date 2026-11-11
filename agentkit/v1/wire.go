@@ -54,14 +54,6 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type appendSessionItemsRequestWire struct {
 	Items  []sessionItemWire `json:"items,omitempty"`
 	Parent *string           `json:"parent,omitempty"`
@@ -81,8 +73,35 @@ func appendSessionItemsRequestToWire(v *AppendSessionItemsRequest) (*appendSessi
 	}, nil
 }
 
+func appendSessionItemsRequestFromWire(w *appendSessionItemsRequestWire) (*AppendSessionItemsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	itemsPublicValue, err := convertSlice(w.Items, sessionItemFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AppendSessionItemsRequest.Items", err)
+	}
+	return &AppendSessionItemsRequest{
+		Items:  itemsPublicValue,
+		Parent: w.Parent,
+	}, nil
+}
+
 type appendSessionItemsResponseWire struct {
 	SessionItems []sessionItemWire `json:"session_items,omitempty"`
+}
+
+func appendSessionItemsResponseToWire(v *AppendSessionItemsResponse) (*appendSessionItemsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sessionItemsWireValue, err := convertSlice(v.SessionItems, sessionItemToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AppendSessionItemsResponse.SessionItems", err)
+	}
+	return &appendSessionItemsResponseWire{
+		SessionItems: sessionItemsWireValue,
+	}, nil
 }
 
 func appendSessionItemsResponseFromWire(w *appendSessionItemsResponseWire) (*AppendSessionItemsResponse, error) {
@@ -111,6 +130,32 @@ func clearSessionItemsRequestToWire(v *ClearSessionItemsRequest) (*clearSessionI
 	}, nil
 }
 
+func clearSessionItemsRequestFromWire(w *clearSessionItemsRequestWire) (*ClearSessionItemsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ClearSessionItemsRequest{
+		Parent: w.Parent,
+	}, nil
+}
+
+type clearSessionItemsResponseWire struct {
+}
+
+func clearSessionItemsResponseToWire(v *ClearSessionItemsResponse) (*clearSessionItemsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &clearSessionItemsResponseWire{}, nil
+}
+
+func clearSessionItemsResponseFromWire(w *clearSessionItemsResponseWire) (*ClearSessionItemsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ClearSessionItemsResponse{}, nil
+}
+
 type createManagedMemoryEntryRequestWire struct {
 	Parent               *string                 `json:"parent,omitempty"`
 	ManagedMemoryEntry   *managedMemoryEntryWire `json:"managed_memory_entry,omitempty"`
@@ -132,6 +177,21 @@ func createManagedMemoryEntryRequestToWire(v *CreateManagedMemoryEntryRequest) (
 	}, nil
 }
 
+func createManagedMemoryEntryRequestFromWire(w *createManagedMemoryEntryRequestWire) (*CreateManagedMemoryEntryRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	managedMemoryEntryPublicValue, err := managedMemoryEntryFromWire(w.ManagedMemoryEntry)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateManagedMemoryEntryRequest.ManagedMemoryEntry", err)
+	}
+	return &CreateManagedMemoryEntryRequest{
+		Parent:               w.Parent,
+		ManagedMemoryEntry:   managedMemoryEntryPublicValue,
+		ManagedMemoryEntryId: w.ManagedMemoryEntryId,
+	}, nil
+}
+
 type createManagedMemoryStoreRequestWire struct {
 	ManagedMemoryStore   *managedMemoryStoreWire `json:"managed_memory_store,omitempty"`
 	ManagedMemoryStoreId *string                 `json:"managed_memory_store_id,omitempty"`
@@ -148,6 +208,20 @@ func createManagedMemoryStoreRequestToWire(v *CreateManagedMemoryStoreRequest) (
 	return &createManagedMemoryStoreRequestWire{
 		ManagedMemoryStore:   managedMemoryStoreWireValue,
 		ManagedMemoryStoreId: v.ManagedMemoryStoreId,
+	}, nil
+}
+
+func createManagedMemoryStoreRequestFromWire(w *createManagedMemoryStoreRequestWire) (*CreateManagedMemoryStoreRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	managedMemoryStorePublicValue, err := managedMemoryStoreFromWire(w.ManagedMemoryStore)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateManagedMemoryStoreRequest.ManagedMemoryStore", err)
+	}
+	return &CreateManagedMemoryStoreRequest{
+		ManagedMemoryStore:   managedMemoryStorePublicValue,
+		ManagedMemoryStoreId: w.ManagedMemoryStoreId,
 	}, nil
 }
 
@@ -172,6 +246,21 @@ func createSessionRequestToWire(v *CreateSessionRequest) (*createSessionRequestW
 	}, nil
 }
 
+func createSessionRequestFromWire(w *createSessionRequestWire) (*CreateSessionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sessionPublicValue, err := sessionFromWire(w.Session)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateSessionRequest.Session", err)
+	}
+	return &CreateSessionRequest{
+		Session:   sessionPublicValue,
+		SessionId: w.SessionId,
+		Parent:    w.Parent,
+	}, nil
+}
+
 type createSessionStoreRequestWire struct {
 	SessionStore   *sessionStoreWire `json:"session_store,omitempty"`
 	SessionStoreId *string           `json:"session_store_id,omitempty"`
@@ -188,6 +277,108 @@ func createSessionStoreRequestToWire(v *CreateSessionStoreRequest) (*createSessi
 	return &createSessionStoreRequestWire{
 		SessionStore:   sessionStoreWireValue,
 		SessionStoreId: v.SessionStoreId,
+	}, nil
+}
+
+func createSessionStoreRequestFromWire(w *createSessionStoreRequestWire) (*CreateSessionStoreRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sessionStorePublicValue, err := sessionStoreFromWire(w.SessionStore)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateSessionStoreRequest.SessionStore", err)
+	}
+	return &CreateSessionStoreRequest{
+		SessionStore:   sessionStorePublicValue,
+		SessionStoreId: w.SessionStoreId,
+	}, nil
+}
+
+type deleteManagedMemoryEntryRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteManagedMemoryEntryRequestToWire(v *DeleteManagedMemoryEntryRequest) (*deleteManagedMemoryEntryRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteManagedMemoryEntryRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteManagedMemoryEntryRequestFromWire(w *deleteManagedMemoryEntryRequestWire) (*DeleteManagedMemoryEntryRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteManagedMemoryEntryRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteManagedMemoryStoreRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteManagedMemoryStoreRequestToWire(v *DeleteManagedMemoryStoreRequest) (*deleteManagedMemoryStoreRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteManagedMemoryStoreRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteManagedMemoryStoreRequestFromWire(w *deleteManagedMemoryStoreRequestWire) (*DeleteManagedMemoryStoreRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteManagedMemoryStoreRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteSessionRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteSessionRequestToWire(v *DeleteSessionRequest) (*deleteSessionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteSessionRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteSessionRequestFromWire(w *deleteSessionRequestWire) (*DeleteSessionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteSessionRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteSessionStoreRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteSessionStoreRequestToWire(v *DeleteSessionStoreRequest) (*deleteSessionStoreRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteSessionStoreRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteSessionStoreRequestFromWire(w *deleteSessionStoreRequestWire) (*DeleteSessionStoreRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteSessionStoreRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -212,9 +403,36 @@ func extractMemoriesRequestToWire(v *ExtractMemoriesRequest) (*extractMemoriesRe
 	}, nil
 }
 
+func extractMemoriesRequestFromWire(w *extractMemoriesRequestWire) (*ExtractMemoriesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ExtractMemoriesRequest{
+		MemoryStore:  w.MemoryStore,
+		SessionStore: w.SessionStore,
+		SessionId:    w.SessionId,
+		Instructions: w.Instructions,
+		DryRun:       w.DryRun,
+	}, nil
+}
+
 type extractMemoriesResponseWire struct {
 	Name    *string                  `json:"name,omitempty"`
 	Entries []managedMemoryEntryWire `json:"entries,omitempty"`
+}
+
+func extractMemoriesResponseToWire(v *ExtractMemoriesResponse) (*extractMemoriesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	entriesWireValue, err := convertSlice(v.Entries, managedMemoryEntryToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExtractMemoriesResponse.Entries", err)
+	}
+	return &extractMemoriesResponseWire{
+		Name:    v.Name,
+		Entries: entriesWireValue,
+	}, nil
 }
 
 func extractMemoriesResponseFromWire(w *extractMemoriesResponseWire) (*ExtractMemoriesResponse, error) {
@@ -254,8 +472,35 @@ func forkSessionRequestToWire(v *ForkSessionRequest) (*forkSessionRequestWire, e
 	}, nil
 }
 
+func forkSessionRequestFromWire(w *forkSessionRequestWire) (*ForkSessionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ForkSessionRequest{
+		SourceSessionId: w.SourceSessionId,
+		UpToItemId:      w.UpToItemId,
+		SessionId:       w.SessionId,
+		ActorId:         w.ActorId,
+		Metadata:        w.Metadata,
+		Parent:          w.Parent,
+	}, nil
+}
+
 type forkSessionResponseWire struct {
 	Session *sessionWire `json:"session,omitempty"`
+}
+
+func forkSessionResponseToWire(v *ForkSessionResponse) (*forkSessionResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sessionWireValue, err := sessionToWire(v.Session)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ForkSessionResponse.Session", err)
+	}
+	return &forkSessionResponseWire{
+		Session: sessionWireValue,
+	}, nil
 }
 
 func forkSessionResponseFromWire(w *forkSessionResponseWire) (*ForkSessionResponse, error) {
@@ -286,6 +531,126 @@ func getManagedMemoryEntryRequestToWire(v *GetManagedMemoryEntryRequest) (*getMa
 	}, nil
 }
 
+func getManagedMemoryEntryRequestFromWire(w *getManagedMemoryEntryRequestWire) (*GetManagedMemoryEntryRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetManagedMemoryEntryRequest{
+		Name: w.Name,
+		View: w.View,
+	}, nil
+}
+
+type getManagedMemoryStoreRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getManagedMemoryStoreRequestToWire(v *GetManagedMemoryStoreRequest) (*getManagedMemoryStoreRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getManagedMemoryStoreRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getManagedMemoryStoreRequestFromWire(w *getManagedMemoryStoreRequestWire) (*GetManagedMemoryStoreRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetManagedMemoryStoreRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getMemoryStorePermissionRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getMemoryStorePermissionRequestToWire(v *GetMemoryStorePermissionRequest) (*getMemoryStorePermissionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getMemoryStorePermissionRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getMemoryStorePermissionRequestFromWire(w *getMemoryStorePermissionRequestWire) (*GetMemoryStorePermissionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetMemoryStorePermissionRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getSessionRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getSessionRequestToWire(v *GetSessionRequest) (*getSessionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getSessionRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getSessionRequestFromWire(w *getSessionRequestWire) (*GetSessionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetSessionRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getSessionStorePermissionRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getSessionStorePermissionRequestToWire(v *GetSessionStorePermissionRequest) (*getSessionStorePermissionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getSessionStorePermissionRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getSessionStorePermissionRequestFromWire(w *getSessionStorePermissionRequestWire) (*GetSessionStorePermissionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetSessionStorePermissionRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getSessionStoreRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getSessionStoreRequestToWire(v *GetSessionStoreRequest) (*getSessionStoreRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getSessionStoreRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getSessionStoreRequestFromWire(w *getSessionStoreRequestWire) (*GetSessionStoreRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetSessionStoreRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type grantMemoryStorePermissionRequestWire struct {
 	Name       *string             `json:"name,omitempty"`
 	Principal  *storePrincipalWire `json:"principal,omitempty"`
@@ -307,6 +672,38 @@ func grantMemoryStorePermissionRequestToWire(v *GrantMemoryStorePermissionReques
 	}, nil
 }
 
+func grantMemoryStorePermissionRequestFromWire(w *grantMemoryStorePermissionRequestWire) (*GrantMemoryStorePermissionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	principalPublicValue, err := storePrincipalFromWire(w.Principal)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GrantMemoryStorePermissionRequest.Principal", err)
+	}
+	return &GrantMemoryStorePermissionRequest{
+		Name:       w.Name,
+		Principal:  principalPublicValue,
+		Permission: w.Permission,
+	}, nil
+}
+
+type grantMemoryStorePermissionResponseWire struct {
+}
+
+func grantMemoryStorePermissionResponseToWire(v *GrantMemoryStorePermissionResponse) (*grantMemoryStorePermissionResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &grantMemoryStorePermissionResponseWire{}, nil
+}
+
+func grantMemoryStorePermissionResponseFromWire(w *grantMemoryStorePermissionResponseWire) (*GrantMemoryStorePermissionResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GrantMemoryStorePermissionResponse{}, nil
+}
+
 type grantSessionStorePermissionRequestWire struct {
 	Name       *string             `json:"name,omitempty"`
 	Principal  *storePrincipalWire `json:"principal,omitempty"`
@@ -326,6 +723,38 @@ func grantSessionStorePermissionRequestToWire(v *GrantSessionStorePermissionRequ
 		Principal:  principalWireValue,
 		Permission: v.Permission,
 	}, nil
+}
+
+func grantSessionStorePermissionRequestFromWire(w *grantSessionStorePermissionRequestWire) (*GrantSessionStorePermissionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	principalPublicValue, err := storePrincipalFromWire(w.Principal)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GrantSessionStorePermissionRequest.Principal", err)
+	}
+	return &GrantSessionStorePermissionRequest{
+		Name:       w.Name,
+		Principal:  principalPublicValue,
+		Permission: w.Permission,
+	}, nil
+}
+
+type grantSessionStorePermissionResponseWire struct {
+}
+
+func grantSessionStorePermissionResponseToWire(v *GrantSessionStorePermissionResponse) (*grantSessionStorePermissionResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &grantSessionStorePermissionResponseWire{}, nil
+}
+
+func grantSessionStorePermissionResponseFromWire(w *grantSessionStorePermissionResponseWire) (*GrantSessionStorePermissionResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GrantSessionStorePermissionResponse{}, nil
 }
 
 type listManagedMemoryEntriesRequestWire struct {
@@ -353,9 +782,38 @@ func listManagedMemoryEntriesRequestToWire(v *ListManagedMemoryEntriesRequest) (
 	}, nil
 }
 
+func listManagedMemoryEntriesRequestFromWire(w *listManagedMemoryEntriesRequestWire) (*ListManagedMemoryEntriesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListManagedMemoryEntriesRequest{
+		Parent:     w.Parent,
+		PageSize:   w.PageSize,
+		PageToken:  w.PageToken,
+		ActorId:    w.ActorId,
+		PathPrefix: w.PathPrefix,
+		SessionId:  w.SessionId,
+		View:       w.View,
+	}, nil
+}
+
 type listManagedMemoryEntriesResponseWire struct {
 	ManagedMemoryEntries []managedMemoryEntryWire `json:"managed_memory_entries,omitempty"`
 	NextPageToken        *string                  `json:"next_page_token,omitempty"`
+}
+
+func listManagedMemoryEntriesResponseToWire(v *ListManagedMemoryEntriesResponse) (*listManagedMemoryEntriesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	managedMemoryEntriesWireValue, err := convertSlice(v.ManagedMemoryEntries, managedMemoryEntryToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListManagedMemoryEntriesResponse.ManagedMemoryEntries", err)
+	}
+	return &listManagedMemoryEntriesResponseWire{
+		ManagedMemoryEntries: managedMemoryEntriesWireValue,
+		NextPageToken:        v.NextPageToken,
+	}, nil
 }
 
 func listManagedMemoryEntriesResponseFromWire(w *listManagedMemoryEntriesResponseWire) (*ListManagedMemoryEntriesResponse, error) {
@@ -387,9 +845,33 @@ func listManagedMemoryStoresRequestToWire(v *ListManagedMemoryStoresRequest) (*l
 	}, nil
 }
 
+func listManagedMemoryStoresRequestFromWire(w *listManagedMemoryStoresRequestWire) (*ListManagedMemoryStoresRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListManagedMemoryStoresRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listManagedMemoryStoresResponseWire struct {
 	ManagedMemoryStores []managedMemoryStoreWire `json:"managed_memory_stores,omitempty"`
 	NextPageToken       *string                  `json:"next_page_token,omitempty"`
+}
+
+func listManagedMemoryStoresResponseToWire(v *ListManagedMemoryStoresResponse) (*listManagedMemoryStoresResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	managedMemoryStoresWireValue, err := convertSlice(v.ManagedMemoryStores, managedMemoryStoreToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListManagedMemoryStoresResponse.ManagedMemoryStores", err)
+	}
+	return &listManagedMemoryStoresResponseWire{
+		ManagedMemoryStores: managedMemoryStoresWireValue,
+		NextPageToken:       v.NextPageToken,
+	}, nil
 }
 
 func listManagedMemoryStoresResponseFromWire(w *listManagedMemoryStoresResponseWire) (*ListManagedMemoryStoresResponse, error) {
@@ -423,9 +905,34 @@ func listMemoryStorePermissionsRequestToWire(v *ListMemoryStorePermissionsReques
 	}, nil
 }
 
+func listMemoryStorePermissionsRequestFromWire(w *listMemoryStorePermissionsRequestWire) (*ListMemoryStorePermissionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListMemoryStorePermissionsRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listMemoryStorePermissionsResponseWire struct {
 	MemoryStorePermissions []memoryStorePermissionWire `json:"memory_store_permissions,omitempty"`
 	NextPageToken          *string                     `json:"next_page_token,omitempty"`
+}
+
+func listMemoryStorePermissionsResponseToWire(v *ListMemoryStorePermissionsResponse) (*listMemoryStorePermissionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	memoryStorePermissionsWireValue, err := convertSlice(v.MemoryStorePermissions, memoryStorePermissionToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListMemoryStorePermissionsResponse.MemoryStorePermissions", err)
+	}
+	return &listMemoryStorePermissionsResponseWire{
+		MemoryStorePermissions: memoryStorePermissionsWireValue,
+		NextPageToken:          v.NextPageToken,
+	}, nil
 }
 
 func listMemoryStorePermissionsResponseFromWire(w *listMemoryStorePermissionsResponseWire) (*ListMemoryStorePermissionsResponse, error) {
@@ -461,9 +968,35 @@ func listSessionItemsRequestToWire(v *ListSessionItemsRequest) (*listSessionItem
 	}, nil
 }
 
+func listSessionItemsRequestFromWire(w *listSessionItemsRequestWire) (*ListSessionItemsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSessionItemsRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+		OrderBy:   w.OrderBy,
+		Parent:    w.Parent,
+	}, nil
+}
+
 type listSessionItemsResponseWire struct {
 	SessionItems  []sessionItemWire `json:"session_items,omitempty"`
 	NextPageToken *string           `json:"next_page_token,omitempty"`
+}
+
+func listSessionItemsResponseToWire(v *ListSessionItemsResponse) (*listSessionItemsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sessionItemsWireValue, err := convertSlice(v.SessionItems, sessionItemToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSessionItemsResponse.SessionItems", err)
+	}
+	return &listSessionItemsResponseWire{
+		SessionItems:  sessionItemsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listSessionItemsResponseFromWire(w *listSessionItemsResponseWire) (*ListSessionItemsResponse, error) {
@@ -497,9 +1030,34 @@ func listSessionStorePermissionsRequestToWire(v *ListSessionStorePermissionsRequ
 	}, nil
 }
 
+func listSessionStorePermissionsRequestFromWire(w *listSessionStorePermissionsRequestWire) (*ListSessionStorePermissionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSessionStorePermissionsRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listSessionStorePermissionsResponseWire struct {
 	SessionStorePermissions []sessionStorePermissionWire `json:"session_store_permissions,omitempty"`
 	NextPageToken           *string                      `json:"next_page_token,omitempty"`
+}
+
+func listSessionStorePermissionsResponseToWire(v *ListSessionStorePermissionsResponse) (*listSessionStorePermissionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sessionStorePermissionsWireValue, err := convertSlice(v.SessionStorePermissions, sessionStorePermissionToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSessionStorePermissionsResponse.SessionStorePermissions", err)
+	}
+	return &listSessionStorePermissionsResponseWire{
+		SessionStorePermissions: sessionStorePermissionsWireValue,
+		NextPageToken:           v.NextPageToken,
+	}, nil
 }
 
 func listSessionStorePermissionsResponseFromWire(w *listSessionStorePermissionsResponseWire) (*ListSessionStorePermissionsResponse, error) {
@@ -531,9 +1089,33 @@ func listSessionStoresRequestToWire(v *ListSessionStoresRequest) (*listSessionSt
 	}, nil
 }
 
+func listSessionStoresRequestFromWire(w *listSessionStoresRequestWire) (*ListSessionStoresRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSessionStoresRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listSessionStoresResponseWire struct {
 	SessionStores []sessionStoreWire `json:"session_stores,omitempty"`
 	NextPageToken *string            `json:"next_page_token,omitempty"`
+}
+
+func listSessionStoresResponseToWire(v *ListSessionStoresResponse) (*listSessionStoresResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sessionStoresWireValue, err := convertSlice(v.SessionStores, sessionStoreToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSessionStoresResponse.SessionStores", err)
+	}
+	return &listSessionStoresResponseWire{
+		SessionStores: sessionStoresWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listSessionStoresResponseFromWire(w *listSessionStoresResponseWire) (*ListSessionStoresResponse, error) {
@@ -571,9 +1153,36 @@ func listSessionsRequestToWire(v *ListSessionsRequest) (*listSessionsRequestWire
 	}, nil
 }
 
+func listSessionsRequestFromWire(w *listSessionsRequestWire) (*ListSessionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSessionsRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+		Filter:    w.Filter,
+		OrderBy:   w.OrderBy,
+		Parent:    w.Parent,
+	}, nil
+}
+
 type listSessionsResponseWire struct {
 	Sessions      []sessionWire `json:"sessions,omitempty"`
 	NextPageToken *string       `json:"next_page_token,omitempty"`
+}
+
+func listSessionsResponseToWire(v *ListSessionsResponse) (*listSessionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sessionsWireValue, err := convertSlice(v.Sessions, sessionToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSessionsResponse.Sessions", err)
+	}
+	return &listSessionsResponseWire{
+		Sessions:      sessionsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listSessionsResponseFromWire(w *listSessionsResponseWire) (*ListSessionsResponse, error) {
@@ -639,6 +1248,20 @@ func managedMemoryEntryFromWire(w *managedMemoryEntryWire) (*ManagedMemoryEntry,
 type managedMemoryEntrySearchResultWire struct {
 	ManagedMemoryEntry *managedMemoryEntryWire `json:"managed_memory_entry,omitempty"`
 	Score              *float64                `json:"score,omitempty"`
+}
+
+func managedMemoryEntrySearchResultToWire(v *ManagedMemoryEntrySearchResult) (*managedMemoryEntrySearchResultWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	managedMemoryEntryWireValue, err := managedMemoryEntryToWire(v.ManagedMemoryEntry)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ManagedMemoryEntrySearchResult.ManagedMemoryEntry", err)
+	}
+	return &managedMemoryEntrySearchResultWire{
+		ManagedMemoryEntry: managedMemoryEntryWireValue,
+		Score:              v.Score,
+	}, nil
 }
 
 func managedMemoryEntrySearchResultFromWire(w *managedMemoryEntrySearchResultWire) (*ManagedMemoryEntrySearchResult, error) {
@@ -722,6 +1345,20 @@ type memoryStorePermissionWire struct {
 	Permission PermissionLevel     `json:"permission,omitempty"`
 }
 
+func memoryStorePermissionToWire(v *MemoryStorePermission) (*memoryStorePermissionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	principalWireValue, err := storePrincipalToWire(v.Principal)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MemoryStorePermission.Principal", err)
+	}
+	return &memoryStorePermissionWire{
+		Principal:  principalWireValue,
+		Permission: v.Permission,
+	}, nil
+}
+
 func memoryStorePermissionFromWire(w *memoryStorePermissionWire) (*MemoryStorePermission, error) {
 	if w == nil {
 		return nil, nil
@@ -749,8 +1386,30 @@ func popSessionItemRequestToWire(v *PopSessionItemRequest) (*popSessionItemReque
 	}, nil
 }
 
+func popSessionItemRequestFromWire(w *popSessionItemRequestWire) (*PopSessionItemRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PopSessionItemRequest{
+		Parent: w.Parent,
+	}, nil
+}
+
 type popSessionItemResponseWire struct {
 	Item *sessionItemWire `json:"item,omitempty"`
+}
+
+func popSessionItemResponseToWire(v *PopSessionItemResponse) (*popSessionItemResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	itemWireValue, err := sessionItemToWire(v.Item)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PopSessionItemResponse.Item", err)
+	}
+	return &popSessionItemResponseWire{
+		Item: itemWireValue,
+	}, nil
 }
 
 func popSessionItemResponseFromWire(w *popSessionItemResponseWire) (*PopSessionItemResponse, error) {
@@ -785,6 +1444,37 @@ func revokeMemoryStorePermissionRequestToWire(v *RevokeMemoryStorePermissionRequ
 	}, nil
 }
 
+func revokeMemoryStorePermissionRequestFromWire(w *revokeMemoryStorePermissionRequestWire) (*RevokeMemoryStorePermissionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	principalPublicValue, err := storePrincipalFromWire(w.Principal)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RevokeMemoryStorePermissionRequest.Principal", err)
+	}
+	return &RevokeMemoryStorePermissionRequest{
+		Name:      w.Name,
+		Principal: principalPublicValue,
+	}, nil
+}
+
+type revokeMemoryStorePermissionResponseWire struct {
+}
+
+func revokeMemoryStorePermissionResponseToWire(v *RevokeMemoryStorePermissionResponse) (*revokeMemoryStorePermissionResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &revokeMemoryStorePermissionResponseWire{}, nil
+}
+
+func revokeMemoryStorePermissionResponseFromWire(w *revokeMemoryStorePermissionResponseWire) (*RevokeMemoryStorePermissionResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RevokeMemoryStorePermissionResponse{}, nil
+}
+
 type revokeSessionStorePermissionRequestWire struct {
 	Name      *string             `json:"name,omitempty"`
 	Principal *storePrincipalWire `json:"principal,omitempty"`
@@ -802,6 +1492,37 @@ func revokeSessionStorePermissionRequestToWire(v *RevokeSessionStorePermissionRe
 		Name:      v.Name,
 		Principal: principalWireValue,
 	}, nil
+}
+
+func revokeSessionStorePermissionRequestFromWire(w *revokeSessionStorePermissionRequestWire) (*RevokeSessionStorePermissionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	principalPublicValue, err := storePrincipalFromWire(w.Principal)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RevokeSessionStorePermissionRequest.Principal", err)
+	}
+	return &RevokeSessionStorePermissionRequest{
+		Name:      w.Name,
+		Principal: principalPublicValue,
+	}, nil
+}
+
+type revokeSessionStorePermissionResponseWire struct {
+}
+
+func revokeSessionStorePermissionResponseToWire(v *RevokeSessionStorePermissionResponse) (*revokeSessionStorePermissionResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &revokeSessionStorePermissionResponseWire{}, nil
+}
+
+func revokeSessionStorePermissionResponseFromWire(w *revokeSessionStorePermissionResponseWire) (*RevokeSessionStorePermissionResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RevokeSessionStorePermissionResponse{}, nil
 }
 
 type searchManagedMemoryEntriesRequestWire struct {
@@ -833,10 +1554,46 @@ func searchManagedMemoryEntriesRequestToWire(v *SearchManagedMemoryEntriesReques
 	}, nil
 }
 
+func searchManagedMemoryEntriesRequestFromWire(w *searchManagedMemoryEntriesRequestWire) (*SearchManagedMemoryEntriesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &SearchManagedMemoryEntriesRequest{
+		Parent:     w.Parent,
+		ActorId:    w.ActorId,
+		Query:      w.Query,
+		Limit:      w.Limit,
+		PageSize:   w.PageSize,
+		PageToken:  w.PageToken,
+		SessionId:  w.SessionId,
+		PathPrefix: w.PathPrefix,
+		View:       w.View,
+	}, nil
+}
+
 type searchManagedMemoryEntriesResponseWire struct {
 	ManagedMemoryEntries []managedMemoryEntryWire             `json:"managed_memory_entries,omitempty"`
 	NextPageToken        *string                              `json:"next_page_token,omitempty"`
 	Results              []managedMemoryEntrySearchResultWire `json:"results,omitempty"`
+}
+
+func searchManagedMemoryEntriesResponseToWire(v *SearchManagedMemoryEntriesResponse) (*searchManagedMemoryEntriesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	managedMemoryEntriesWireValue, err := convertSlice(v.ManagedMemoryEntries, managedMemoryEntryToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SearchManagedMemoryEntriesResponse.ManagedMemoryEntries", err)
+	}
+	resultsWireValue, err := convertSlice(v.Results, managedMemoryEntrySearchResultToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SearchManagedMemoryEntriesResponse.Results", err)
+	}
+	return &searchManagedMemoryEntriesResponseWire{
+		ManagedMemoryEntries: managedMemoryEntriesWireValue,
+		NextPageToken:        v.NextPageToken,
+		Results:              resultsWireValue,
+	}, nil
 }
 
 func searchManagedMemoryEntriesResponseFromWire(w *searchManagedMemoryEntriesResponseWire) (*SearchManagedMemoryEntriesResponse, error) {
@@ -974,6 +1731,20 @@ type sessionStorePermissionWire struct {
 	Permission PermissionLevel     `json:"permission,omitempty"`
 }
 
+func sessionStorePermissionToWire(v *SessionStorePermission) (*sessionStorePermissionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	principalWireValue, err := storePrincipalToWire(v.Principal)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SessionStorePermission.Principal", err)
+	}
+	return &sessionStorePermissionWire{
+		Principal:  principalWireValue,
+		Permission: v.Permission,
+	}, nil
+}
+
 func sessionStorePermissionFromWire(w *sessionStorePermissionWire) (*SessionStorePermission, error) {
 	if w == nil {
 		return nil, nil
@@ -1039,8 +1810,8 @@ func storePrincipalFromWire(w *storePrincipalWire) (*StorePrincipal, error) {
 }
 
 type updateManagedMemoryEntryRequestWire struct {
-	ManagedMemoryEntry *managedMemoryEntryWire `json:"managed_memory_entry,omitempty"`
-	UpdateMask         *string                 `json:"update_mask,omitempty"`
+	ManagedMemoryEntry *managedMemoryEntryWire              `json:"managed_memory_entry,omitempty"`
+	UpdateMask         *types.FieldMask[ManagedMemoryEntry] `json:"update_mask,omitempty"`
 }
 
 func updateManagedMemoryEntryRequestToWire(v *UpdateManagedMemoryEntryRequest) (*updateManagedMemoryEntryRequestWire, error) {
@@ -1053,13 +1824,27 @@ func updateManagedMemoryEntryRequestToWire(v *UpdateManagedMemoryEntryRequest) (
 	}
 	return &updateManagedMemoryEntryRequestWire{
 		ManagedMemoryEntry: managedMemoryEntryWireValue,
-		UpdateMask:         fieldMaskToWire(v.UpdateMask),
+		UpdateMask:         v.UpdateMask,
+	}, nil
+}
+
+func updateManagedMemoryEntryRequestFromWire(w *updateManagedMemoryEntryRequestWire) (*UpdateManagedMemoryEntryRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	managedMemoryEntryPublicValue, err := managedMemoryEntryFromWire(w.ManagedMemoryEntry)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateManagedMemoryEntryRequest.ManagedMemoryEntry", err)
+	}
+	return &UpdateManagedMemoryEntryRequest{
+		ManagedMemoryEntry: managedMemoryEntryPublicValue,
+		UpdateMask:         w.UpdateMask,
 	}, nil
 }
 
 type updateManagedMemoryStoreRequestWire struct {
-	ManagedMemoryStore *managedMemoryStoreWire `json:"managed_memory_store,omitempty"`
-	UpdateMask         *string                 `json:"update_mask,omitempty"`
+	ManagedMemoryStore *managedMemoryStoreWire              `json:"managed_memory_store,omitempty"`
+	UpdateMask         *types.FieldMask[ManagedMemoryStore] `json:"update_mask,omitempty"`
 }
 
 func updateManagedMemoryStoreRequestToWire(v *UpdateManagedMemoryStoreRequest) (*updateManagedMemoryStoreRequestWire, error) {
@@ -1072,13 +1857,27 @@ func updateManagedMemoryStoreRequestToWire(v *UpdateManagedMemoryStoreRequest) (
 	}
 	return &updateManagedMemoryStoreRequestWire{
 		ManagedMemoryStore: managedMemoryStoreWireValue,
-		UpdateMask:         fieldMaskToWire(v.UpdateMask),
+		UpdateMask:         v.UpdateMask,
+	}, nil
+}
+
+func updateManagedMemoryStoreRequestFromWire(w *updateManagedMemoryStoreRequestWire) (*UpdateManagedMemoryStoreRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	managedMemoryStorePublicValue, err := managedMemoryStoreFromWire(w.ManagedMemoryStore)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateManagedMemoryStoreRequest.ManagedMemoryStore", err)
+	}
+	return &UpdateManagedMemoryStoreRequest{
+		ManagedMemoryStore: managedMemoryStorePublicValue,
+		UpdateMask:         w.UpdateMask,
 	}, nil
 }
 
 type updateSessionRequestWire struct {
-	Session    *sessionWire `json:"session,omitempty"`
-	UpdateMask *string      `json:"update_mask,omitempty"`
+	Session    *sessionWire              `json:"session,omitempty"`
+	UpdateMask *types.FieldMask[Session] `json:"update_mask,omitempty"`
 }
 
 func updateSessionRequestToWire(v *UpdateSessionRequest) (*updateSessionRequestWire, error) {
@@ -1091,13 +1890,27 @@ func updateSessionRequestToWire(v *UpdateSessionRequest) (*updateSessionRequestW
 	}
 	return &updateSessionRequestWire{
 		Session:    sessionWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateSessionRequestFromWire(w *updateSessionRequestWire) (*UpdateSessionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sessionPublicValue, err := sessionFromWire(w.Session)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateSessionRequest.Session", err)
+	}
+	return &UpdateSessionRequest{
+		Session:    sessionPublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 
 type updateSessionStoreRequestWire struct {
-	SessionStore *sessionStoreWire `json:"session_store,omitempty"`
-	UpdateMask   *string           `json:"update_mask,omitempty"`
+	SessionStore *sessionStoreWire              `json:"session_store,omitempty"`
+	UpdateMask   *types.FieldMask[SessionStore] `json:"update_mask,omitempty"`
 }
 
 func updateSessionStoreRequestToWire(v *UpdateSessionStoreRequest) (*updateSessionStoreRequestWire, error) {
@@ -1110,7 +1923,21 @@ func updateSessionStoreRequestToWire(v *UpdateSessionStoreRequest) (*updateSessi
 	}
 	return &updateSessionStoreRequestWire{
 		SessionStore: sessionStoreWireValue,
-		UpdateMask:   fieldMaskToWire(v.UpdateMask),
+		UpdateMask:   v.UpdateMask,
+	}, nil
+}
+
+func updateSessionStoreRequestFromWire(w *updateSessionStoreRequestWire) (*UpdateSessionStoreRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sessionStorePublicValue, err := sessionStoreFromWire(w.SessionStore)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateSessionStoreRequest.SessionStore", err)
+	}
+	return &UpdateSessionStoreRequest{
+		SessionStore: sessionStorePublicValue,
+		UpdateMask:   w.UpdateMask,
 	}, nil
 }
 

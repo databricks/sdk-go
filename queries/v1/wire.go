@@ -8,14 +8,6 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type createQueryRequestWire struct {
 	Query                  *createQueryRequestQueryWire `json:"query,omitempty"`
 	AutoResolveDisplayName *bool                        `json:"auto_resolve_display_name,omitempty"`
@@ -32,6 +24,20 @@ func createQueryRequestToWire(v *CreateQueryRequest) (*createQueryRequestWire, e
 	return &createQueryRequestWire{
 		Query:                  queryWireValue,
 		AutoResolveDisplayName: v.AutoResolveDisplayName,
+	}, nil
+}
+
+func createQueryRequestFromWire(w *createQueryRequestWire) (*CreateQueryRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	queryPublicValue, err := createQueryRequestQueryFromWire(w.Query)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateQueryRequest.Query", err)
+	}
+	return &CreateQueryRequest{
+		Query:                  queryPublicValue,
+		AutoResolveDisplayName: w.AutoResolveDisplayName,
 	}, nil
 }
 
@@ -69,6 +75,29 @@ func createQueryRequestQueryToWire(v *CreateQueryRequestQuery) (*createQueryRequ
 		ApplyAutoLimit: v.ApplyAutoLimit,
 		Catalog:        v.Catalog,
 		Schema:         v.Schema,
+	}, nil
+}
+
+func createQueryRequestQueryFromWire(w *createQueryRequestQueryWire) (*CreateQueryRequestQuery, error) {
+	if w == nil {
+		return nil, nil
+	}
+	parametersPublicValue, err := convertSlice(w.Parameters, queryParameterFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateQueryRequestQuery.Parameters", err)
+	}
+	return &CreateQueryRequestQuery{
+		DisplayName:    w.DisplayName,
+		Description:    w.Description,
+		WarehouseId:    w.WarehouseId,
+		QueryText:      w.QueryText,
+		RunAsMode:      w.RunAsMode,
+		ParentPath:     w.ParentPath,
+		Tags:           w.Tags,
+		Parameters:     parametersPublicValue,
+		ApplyAutoLimit: w.ApplyAutoLimit,
+		Catalog:        w.Catalog,
+		Schema:         w.Schema,
 	}, nil
 }
 
@@ -226,6 +255,23 @@ func dateValueFromWire(w *dateValueWire) (*DateValue, error) {
 	}, nil
 }
 
+type emptyWire struct {
+}
+
+func emptyToWire(v *Empty) (*emptyWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &emptyWire{}, nil
+}
+
+func emptyFromWire(w *emptyWire) (*Empty, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &Empty{}, nil
+}
+
 type enumValueWire struct {
 	Values             []string                `json:"values,omitempty"`
 	EnumOptions        *string                 `json:"enum_options,omitempty"`
@@ -262,6 +308,28 @@ func enumValueFromWire(w *enumValueWire) (*EnumValue, error) {
 	}, nil
 }
 
+type getQueryRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func getQueryRequestToWire(v *GetQueryRequest) (*getQueryRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getQueryRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func getQueryRequestFromWire(w *getQueryRequestWire) (*GetQueryRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetQueryRequest{
+		Id: w.Id,
+	}, nil
+}
+
 type listQueriesRequestWire struct {
 	PageToken *string `json:"page_token,omitempty"`
 	PageSize  *int    `json:"page_size,omitempty"`
@@ -277,9 +345,33 @@ func listQueriesRequestToWire(v *ListQueriesRequest) (*listQueriesRequestWire, e
 	}, nil
 }
 
+func listQueriesRequestFromWire(w *listQueriesRequestWire) (*ListQueriesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListQueriesRequest{
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listQueriesResponseWire struct {
 	Results       []listQueryObjectsResponseQueryWire `json:"results,omitempty"`
 	NextPageToken *string                             `json:"next_page_token,omitempty"`
+}
+
+func listQueriesResponseToWire(v *ListQueriesResponse) (*listQueriesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	resultsWireValue, err := convertSlice(v.Results, listQueryObjectsResponseQueryToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListQueriesResponse.Results", err)
+	}
+	return &listQueriesResponseWire{
+		Results:       resultsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listQueriesResponseFromWire(w *listQueriesResponseWire) (*ListQueriesResponse, error) {
@@ -313,6 +405,34 @@ type listQueryObjectsResponseQueryWire struct {
 	ApplyAutoLimit       *bool                `json:"apply_auto_limit,omitempty"`
 	Catalog              *string              `json:"catalog,omitempty"`
 	Schema               *string              `json:"schema,omitempty"`
+}
+
+func listQueryObjectsResponseQueryToWire(v *ListQueryObjectsResponseQuery) (*listQueryObjectsResponseQueryWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	parametersWireValue, err := convertSlice(v.Parameters, queryParameterToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListQueryObjectsResponseQuery.Parameters", err)
+	}
+	return &listQueryObjectsResponseQueryWire{
+		Id:                   v.Id,
+		DisplayName:          v.DisplayName,
+		Description:          v.Description,
+		OwnerUserName:        v.OwnerUserName,
+		WarehouseId:          v.WarehouseId,
+		QueryText:            v.QueryText,
+		RunAsMode:            v.RunAsMode,
+		LifecycleState:       v.LifecycleState,
+		LastModifierUserName: v.LastModifierUserName,
+		Tags:                 v.Tags,
+		CreateTime:           v.CreateTime,
+		UpdateTime:           v.UpdateTime,
+		Parameters:           parametersWireValue,
+		ApplyAutoLimit:       v.ApplyAutoLimit,
+		Catalog:              v.Catalog,
+		Schema:               v.Schema,
+	}, nil
 }
 
 func listQueryObjectsResponseQueryFromWire(w *listQueryObjectsResponseQueryWire) (*ListQueryObjectsResponseQuery, error) {
@@ -360,9 +480,34 @@ func listVisualizationsForQueryRequestToWire(v *ListVisualizationsForQueryReques
 	}, nil
 }
 
+func listVisualizationsForQueryRequestFromWire(w *listVisualizationsForQueryRequestWire) (*ListVisualizationsForQueryRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListVisualizationsForQueryRequest{
+		Id:        w.Id,
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listVisualizationsForQueryResponseWire struct {
 	Results       []visualizationWire `json:"results,omitempty"`
 	NextPageToken *string             `json:"next_page_token,omitempty"`
+}
+
+func listVisualizationsForQueryResponseToWire(v *ListVisualizationsForQueryResponse) (*listVisualizationsForQueryResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	resultsWireValue, err := convertSlice(v.Results, visualizationToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListVisualizationsForQueryResponse.Results", err)
+	}
+	return &listVisualizationsForQueryResponseWire{
+		Results:       resultsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listVisualizationsForQueryResponseFromWire(w *listVisualizationsForQueryResponseWire) (*ListVisualizationsForQueryResponse, error) {
@@ -447,6 +592,35 @@ type queryWire struct {
 	ApplyAutoLimit       *bool                `json:"apply_auto_limit,omitempty"`
 	Catalog              *string              `json:"catalog,omitempty"`
 	Schema               *string              `json:"schema,omitempty"`
+}
+
+func queryToWire(v *Query) (*queryWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	parametersWireValue, err := convertSlice(v.Parameters, queryParameterToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Query.Parameters", err)
+	}
+	return &queryWire{
+		Id:                   v.Id,
+		DisplayName:          v.DisplayName,
+		Description:          v.Description,
+		OwnerUserName:        v.OwnerUserName,
+		WarehouseId:          v.WarehouseId,
+		QueryText:            v.QueryText,
+		RunAsMode:            v.RunAsMode,
+		LifecycleState:       v.LifecycleState,
+		LastModifierUserName: v.LastModifierUserName,
+		ParentPath:           v.ParentPath,
+		Tags:                 v.Tags,
+		CreateTime:           v.CreateTime,
+		UpdateTime:           v.UpdateTime,
+		Parameters:           parametersWireValue,
+		ApplyAutoLimit:       v.ApplyAutoLimit,
+		Catalog:              v.Catalog,
+		Schema:               v.Schema,
+	}, nil
 }
 
 func queryFromWire(w *queryWire) (*Query, error) {
@@ -694,11 +868,33 @@ func textValueFromWire(w *textValueWire) (*TextValue, error) {
 	}, nil
 }
 
+type trashQueryRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func trashQueryRequestToWire(v *TrashQueryRequest) (*trashQueryRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &trashQueryRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func trashQueryRequestFromWire(w *trashQueryRequestWire) (*TrashQueryRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &TrashQueryRequest{
+		Id: w.Id,
+	}, nil
+}
+
 type updateQueryRequestWire struct {
-	Query                  *updateQueryRequestQueryWire `json:"query,omitempty"`
-	UpdateMask             *string                      `json:"update_mask,omitempty"`
-	Id                     *string                      `json:"id,omitempty"`
-	AutoResolveDisplayName *bool                        `json:"auto_resolve_display_name,omitempty"`
+	Query                  *updateQueryRequestQueryWire              `json:"query,omitempty"`
+	UpdateMask             *types.FieldMask[UpdateQueryRequestQuery] `json:"update_mask,omitempty"`
+	Id                     *string                                   `json:"id,omitempty"`
+	AutoResolveDisplayName *bool                                     `json:"auto_resolve_display_name,omitempty"`
 }
 
 func updateQueryRequestToWire(v *UpdateQueryRequest) (*updateQueryRequestWire, error) {
@@ -711,9 +907,25 @@ func updateQueryRequestToWire(v *UpdateQueryRequest) (*updateQueryRequestWire, e
 	}
 	return &updateQueryRequestWire{
 		Query:                  queryWireValue,
-		UpdateMask:             fieldMaskToWire(v.UpdateMask),
+		UpdateMask:             v.UpdateMask,
 		Id:                     v.Id,
 		AutoResolveDisplayName: v.AutoResolveDisplayName,
+	}, nil
+}
+
+func updateQueryRequestFromWire(w *updateQueryRequestWire) (*UpdateQueryRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	queryPublicValue, err := updateQueryRequestQueryFromWire(w.Query)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateQueryRequest.Query", err)
+	}
+	return &UpdateQueryRequest{
+		Query:                  queryPublicValue,
+		UpdateMask:             w.UpdateMask,
+		Id:                     w.Id,
+		AutoResolveDisplayName: w.AutoResolveDisplayName,
 	}, nil
 }
 
@@ -754,6 +966,29 @@ func updateQueryRequestQueryToWire(v *UpdateQueryRequestQuery) (*updateQueryRequ
 	}, nil
 }
 
+func updateQueryRequestQueryFromWire(w *updateQueryRequestQueryWire) (*UpdateQueryRequestQuery, error) {
+	if w == nil {
+		return nil, nil
+	}
+	parametersPublicValue, err := convertSlice(w.Parameters, queryParameterFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateQueryRequestQuery.Parameters", err)
+	}
+	return &UpdateQueryRequestQuery{
+		DisplayName:    w.DisplayName,
+		Description:    w.Description,
+		OwnerUserName:  w.OwnerUserName,
+		WarehouseId:    w.WarehouseId,
+		QueryText:      w.QueryText,
+		RunAsMode:      w.RunAsMode,
+		Tags:           w.Tags,
+		Parameters:     parametersPublicValue,
+		ApplyAutoLimit: w.ApplyAutoLimit,
+		Catalog:        w.Catalog,
+		Schema:         w.Schema,
+	}, nil
+}
+
 type visualizationWire struct {
 	Id                  *string     `json:"id,omitempty"`
 	DisplayName         *string     `json:"display_name,omitempty"`
@@ -763,6 +998,22 @@ type visualizationWire struct {
 	SerializedQueryPlan *string     `json:"serialized_query_plan,omitempty"`
 	SerializedOptions   *string     `json:"serialized_options,omitempty"`
 	QueryId             *string     `json:"query_id,omitempty"`
+}
+
+func visualizationToWire(v *Visualization) (*visualizationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &visualizationWire{
+		Id:                  v.Id,
+		DisplayName:         v.DisplayName,
+		Type:                v.Type,
+		CreateTime:          v.CreateTime,
+		UpdateTime:          v.UpdateTime,
+		SerializedQueryPlan: v.SerializedQueryPlan,
+		SerializedOptions:   v.SerializedOptions,
+		QueryId:             v.QueryId,
+	}, nil
 }
 
 func visualizationFromWire(w *visualizationWire) (*Visualization, error) {
