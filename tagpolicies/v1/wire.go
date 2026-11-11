@@ -8,14 +8,6 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type createTagPolicyRequestWire struct {
 	TagPolicy *tagPolicyWire `json:"tag_policy,omitempty"`
 }
@@ -30,6 +22,63 @@ func createTagPolicyRequestToWire(v *CreateTagPolicyRequest) (*createTagPolicyRe
 	}
 	return &createTagPolicyRequestWire{
 		TagPolicy: tagPolicyWireValue,
+	}, nil
+}
+
+func createTagPolicyRequestFromWire(w *createTagPolicyRequestWire) (*CreateTagPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tagPolicyPublicValue, err := tagPolicyFromWire(w.TagPolicy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateTagPolicyRequest.TagPolicy", err)
+	}
+	return &CreateTagPolicyRequest{
+		TagPolicy: tagPolicyPublicValue,
+	}, nil
+}
+
+type deleteTagPolicyRequestWire struct {
+	TagKey *string `json:"tag_key,omitempty"`
+}
+
+func deleteTagPolicyRequestToWire(v *DeleteTagPolicyRequest) (*deleteTagPolicyRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteTagPolicyRequestWire{
+		TagKey: v.TagKey,
+	}, nil
+}
+
+func deleteTagPolicyRequestFromWire(w *deleteTagPolicyRequestWire) (*DeleteTagPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteTagPolicyRequest{
+		TagKey: w.TagKey,
+	}, nil
+}
+
+type getTagPolicyRequestWire struct {
+	TagKey *string `json:"tag_key,omitempty"`
+}
+
+func getTagPolicyRequestToWire(v *GetTagPolicyRequest) (*getTagPolicyRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getTagPolicyRequestWire{
+		TagKey: v.TagKey,
+	}, nil
+}
+
+func getTagPolicyRequestFromWire(w *getTagPolicyRequestWire) (*GetTagPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetTagPolicyRequest{
+		TagKey: w.TagKey,
 	}, nil
 }
 
@@ -48,9 +97,33 @@ func listTagPoliciesRequestToWire(v *ListTagPoliciesRequest) (*listTagPoliciesRe
 	}, nil
 }
 
+func listTagPoliciesRequestFromWire(w *listTagPoliciesRequestWire) (*ListTagPoliciesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListTagPoliciesRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listTagPoliciesResponseWire struct {
 	TagPolicies   []tagPolicyWire `json:"tag_policies,omitempty"`
 	NextPageToken *string         `json:"next_page_token,omitempty"`
+}
+
+func listTagPoliciesResponseToWire(v *ListTagPoliciesResponse) (*listTagPoliciesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tagPoliciesWireValue, err := convertSlice(v.TagPolicies, tagPolicyToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListTagPoliciesResponse.TagPolicies", err)
+	}
+	return &listTagPoliciesResponseWire{
+		TagPolicies:   tagPoliciesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listTagPoliciesResponseFromWire(w *listTagPoliciesResponseWire) (*ListTagPoliciesResponse, error) {
@@ -113,8 +186,8 @@ func tagPolicyFromWire(w *tagPolicyWire) (*TagPolicy, error) {
 }
 
 type updateTagPolicyRequestWire struct {
-	TagPolicy  *tagPolicyWire `json:"tag_policy,omitempty"`
-	UpdateMask *string        `json:"update_mask,omitempty"`
+	TagPolicy  *tagPolicyWire              `json:"tag_policy,omitempty"`
+	UpdateMask *types.FieldMask[TagPolicy] `json:"update_mask,omitempty"`
 }
 
 func updateTagPolicyRequestToWire(v *UpdateTagPolicyRequest) (*updateTagPolicyRequestWire, error) {
@@ -127,7 +200,21 @@ func updateTagPolicyRequestToWire(v *UpdateTagPolicyRequest) (*updateTagPolicyRe
 	}
 	return &updateTagPolicyRequestWire{
 		TagPolicy:  tagPolicyWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateTagPolicyRequestFromWire(w *updateTagPolicyRequestWire) (*UpdateTagPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tagPolicyPublicValue, err := tagPolicyFromWire(w.TagPolicy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateTagPolicyRequest.TagPolicy", err)
+	}
+	return &UpdateTagPolicyRequest{
+		TagPolicy:  tagPolicyPublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 

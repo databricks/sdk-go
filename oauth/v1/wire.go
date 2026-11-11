@@ -81,6 +81,25 @@ func createCustomOAuthAppIntegrationRequestToWire(v *CreateCustomOAuthAppIntegra
 	}, nil
 }
 
+func createCustomOAuthAppIntegrationRequestFromWire(w *createCustomOAuthAppIntegrationRequestWire) (*CreateCustomOAuthAppIntegrationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tokenAccessPolicyPublicValue, err := tokenAccessPolicyFromWire(w.TokenAccessPolicy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateCustomOAuthAppIntegrationRequest.TokenAccessPolicy", err)
+	}
+	return &CreateCustomOAuthAppIntegrationRequest{
+		AccountId:            w.AccountId,
+		RedirectUrls:         w.RedirectUrls,
+		Name:                 w.Name,
+		Confidential:         w.Confidential,
+		TokenAccessPolicy:    tokenAccessPolicyPublicValue,
+		Scopes:               w.Scopes,
+		UserAuthorizedScopes: w.UserAuthorizedScopes,
+	}, nil
+}
+
 type createPublishedOAuthAppIntegrationRequestWire struct {
 	AccountId         *string                `json:"account_id,omitempty"`
 	AppId             *string                `json:"app_id,omitempty"`
@@ -102,8 +121,32 @@ func createPublishedOAuthAppIntegrationRequestToWire(v *CreatePublishedOAuthAppI
 	}, nil
 }
 
+func createPublishedOAuthAppIntegrationRequestFromWire(w *createPublishedOAuthAppIntegrationRequestWire) (*CreatePublishedOAuthAppIntegrationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tokenAccessPolicyPublicValue, err := tokenAccessPolicyFromWire(w.TokenAccessPolicy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePublishedOAuthAppIntegrationRequest.TokenAccessPolicy", err)
+	}
+	return &CreatePublishedOAuthAppIntegrationRequest{
+		AccountId:         w.AccountId,
+		AppId:             w.AppId,
+		TokenAccessPolicy: tokenAccessPolicyPublicValue,
+	}, nil
+}
+
 type createPublishedOAuthAppIntegrationResponseWire struct {
 	IntegrationId *string `json:"integration_id,omitempty"`
+}
+
+func createPublishedOAuthAppIntegrationResponseToWire(v *CreatePublishedOAuthAppIntegrationResponse) (*createPublishedOAuthAppIntegrationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createPublishedOAuthAppIntegrationResponseWire{
+		IntegrationId: v.IntegrationId,
+	}, nil
 }
 
 func createPublishedOAuthAppIntegrationResponseFromWire(w *createPublishedOAuthAppIntegrationResponseWire) (*CreatePublishedOAuthAppIntegrationResponse, error) {
@@ -132,6 +175,19 @@ func credentialPartitionIdToWire(v *CredentialPartitionId) (*credentialPartition
 	}, nil
 }
 
+func credentialPartitionIdFromWire(w *credentialPartitionIdWire) (*CredentialPartitionId, error) {
+	if w == nil {
+		return nil, nil
+	}
+	workspaceIdPublicValue, err := int64FromWire(w.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CredentialPartitionId.WorkspaceId", err)
+	}
+	return &CredentialPartitionId{
+		WorkspaceId: workspaceIdPublicValue,
+	}, nil
+}
+
 type customOAuthAppIntegrationWire struct {
 	IntegrationId        *string                `json:"integration_id,omitempty"`
 	ClientId             *string                `json:"client_id,omitempty"`
@@ -144,6 +200,33 @@ type customOAuthAppIntegrationWire struct {
 	CreateTime           *string                `json:"create_time,omitempty"`
 	CreatorUsername      *string                `json:"creator_username,omitempty"`
 	UserAuthorizedScopes []string               `json:"user_authorized_scopes,omitempty"`
+}
+
+func customOAuthAppIntegrationToWire(v *CustomOAuthAppIntegration) (*customOAuthAppIntegrationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tokenAccessPolicyWireValue, err := tokenAccessPolicyToWire(v.TokenAccessPolicy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CustomOAuthAppIntegration.TokenAccessPolicy", err)
+	}
+	createdByWireValue, err := int64ToWire(v.CreatedBy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CustomOAuthAppIntegration.CreatedBy", err)
+	}
+	return &customOAuthAppIntegrationWire{
+		IntegrationId:        v.IntegrationId,
+		ClientId:             v.ClientId,
+		RedirectUrls:         v.RedirectUrls,
+		Name:                 v.Name,
+		Confidential:         v.Confidential,
+		TokenAccessPolicy:    tokenAccessPolicyWireValue,
+		Scopes:               v.Scopes,
+		CreatedBy:            createdByWireValue,
+		CreateTime:           v.CreateTime,
+		CreatorUsername:      v.CreatorUsername,
+		UserAuthorizedScopes: v.UserAuthorizedScopes,
+	}, nil
 }
 
 func customOAuthAppIntegrationFromWire(w *customOAuthAppIntegrationWire) (*CustomOAuthAppIntegration, error) {
@@ -179,6 +262,17 @@ type customOAuthAppIntegrationSecretWire struct {
 	ClientSecret  *string `json:"client_secret,omitempty"`
 }
 
+func customOAuthAppIntegrationSecretToWire(v *CustomOAuthAppIntegrationSecret) (*customOAuthAppIntegrationSecretWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &customOAuthAppIntegrationSecretWire{
+		IntegrationId: v.IntegrationId,
+		ClientId:      v.ClientId,
+		ClientSecret:  v.ClientSecret,
+	}, nil
+}
+
 func customOAuthAppIntegrationSecretFromWire(w *customOAuthAppIntegrationSecretWire) (*CustomOAuthAppIntegrationSecret, error) {
 	if w == nil {
 		return nil, nil
@@ -190,12 +284,117 @@ func customOAuthAppIntegrationSecretFromWire(w *customOAuthAppIntegrationSecretW
 	}, nil
 }
 
+type deleteCustomOAuthAppIntegrationRequestWire struct {
+	AccountId     *string `json:"account_id,omitempty"`
+	IntegrationId *string `json:"integration_id,omitempty"`
+}
+
+func deleteCustomOAuthAppIntegrationRequestToWire(v *DeleteCustomOAuthAppIntegrationRequest) (*deleteCustomOAuthAppIntegrationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCustomOAuthAppIntegrationRequestWire{
+		AccountId:     v.AccountId,
+		IntegrationId: v.IntegrationId,
+	}, nil
+}
+
+func deleteCustomOAuthAppIntegrationRequestFromWire(w *deleteCustomOAuthAppIntegrationRequestWire) (*DeleteCustomOAuthAppIntegrationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCustomOAuthAppIntegrationRequest{
+		AccountId:     w.AccountId,
+		IntegrationId: w.IntegrationId,
+	}, nil
+}
+
+type deleteCustomOAuthAppIntegrationResponseWire struct {
+}
+
+func deleteCustomOAuthAppIntegrationResponseToWire(v *DeleteCustomOAuthAppIntegrationResponse) (*deleteCustomOAuthAppIntegrationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteCustomOAuthAppIntegrationResponseWire{}, nil
+}
+
+func deleteCustomOAuthAppIntegrationResponseFromWire(w *deleteCustomOAuthAppIntegrationResponseWire) (*DeleteCustomOAuthAppIntegrationResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteCustomOAuthAppIntegrationResponse{}, nil
+}
+
+type deletePublishedOAuthAppIntegrationRequestWire struct {
+	AccountId     *string `json:"account_id,omitempty"`
+	IntegrationId *string `json:"integration_id,omitempty"`
+}
+
+func deletePublishedOAuthAppIntegrationRequestToWire(v *DeletePublishedOAuthAppIntegrationRequest) (*deletePublishedOAuthAppIntegrationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deletePublishedOAuthAppIntegrationRequestWire{
+		AccountId:     v.AccountId,
+		IntegrationId: v.IntegrationId,
+	}, nil
+}
+
+func deletePublishedOAuthAppIntegrationRequestFromWire(w *deletePublishedOAuthAppIntegrationRequestWire) (*DeletePublishedOAuthAppIntegrationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeletePublishedOAuthAppIntegrationRequest{
+		AccountId:     w.AccountId,
+		IntegrationId: w.IntegrationId,
+	}, nil
+}
+
+type deletePublishedOAuthAppIntegrationResponseWire struct {
+}
+
+func deletePublishedOAuthAppIntegrationResponseToWire(v *DeletePublishedOAuthAppIntegrationResponse) (*deletePublishedOAuthAppIntegrationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deletePublishedOAuthAppIntegrationResponseWire{}, nil
+}
+
+func deletePublishedOAuthAppIntegrationResponseFromWire(w *deletePublishedOAuthAppIntegrationResponseWire) (*DeletePublishedOAuthAppIntegrationResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeletePublishedOAuthAppIntegrationResponse{}, nil
+}
+
 type exchangeTokenWire struct {
 	TokenType         ExchangeTokenType `json:"tokenType,omitempty"`
 	Credential        *string           `json:"credential,omitempty"`
 	Scopes            []string          `json:"scopes,omitempty"`
 	CredentialEolTime *wireInt64        `json:"credentialEolTime,omitempty"`
 	OwnerId           *wireInt64        `json:"ownerId,omitempty"`
+}
+
+func exchangeTokenToWire(v *ExchangeToken) (*exchangeTokenWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	credentialEolTimeWireValue, err := int64ToWire(v.CredentialEolTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExchangeToken.CredentialEolTime", err)
+	}
+	ownerIdWireValue, err := int64ToWire(v.OwnerId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExchangeToken.OwnerId", err)
+	}
+	return &exchangeTokenWire{
+		TokenType:         v.TokenType,
+		Credential:        v.Credential,
+		Scopes:            v.Scopes,
+		CredentialEolTime: credentialEolTimeWireValue,
+		OwnerId:           ownerIdWireValue,
+	}, nil
 }
 
 func exchangeTokenFromWire(w *exchangeTokenWire) (*ExchangeToken, error) {
@@ -240,8 +439,36 @@ func exchangeTokenExchangeRequestToWire(v *ExchangeTokenExchangeRequest) (*excha
 	}, nil
 }
 
+func exchangeTokenExchangeRequestFromWire(w *exchangeTokenExchangeRequestWire) (*ExchangeTokenExchangeRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	partitionIdPublicValue, err := credentialPartitionIdFromWire(w.PartitionId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExchangeTokenExchangeRequest.PartitionId", err)
+	}
+	return &ExchangeTokenExchangeRequest{
+		PartitionId: partitionIdPublicValue,
+		TokenType:   w.TokenType,
+		Scopes:      w.Scopes,
+	}, nil
+}
+
 type exchangeTokenExchangeRequest_ResponseWire struct {
 	Values []exchangeTokenWire `json:"values,omitempty"`
+}
+
+func exchangeTokenExchangeRequest_ResponseToWire(v *ExchangeTokenExchangeRequest_Response) (*exchangeTokenExchangeRequest_ResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	valuesWireValue, err := convertSlice(v.Values, exchangeTokenToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ExchangeTokenExchangeRequest_Response.Values", err)
+	}
+	return &exchangeTokenExchangeRequest_ResponseWire{
+		Values: valuesWireValue,
+	}, nil
 }
 
 func exchangeTokenExchangeRequest_ResponseFromWire(w *exchangeTokenExchangeRequest_ResponseWire) (*ExchangeTokenExchangeRequest_Response, error) {
@@ -254,6 +481,56 @@ func exchangeTokenExchangeRequest_ResponseFromWire(w *exchangeTokenExchangeReque
 	}
 	return &ExchangeTokenExchangeRequest_Response{
 		Values: valuesPublicValue,
+	}, nil
+}
+
+type getCustomOAuthAppIntegrationRequestWire struct {
+	AccountId     *string `json:"account_id,omitempty"`
+	IntegrationId *string `json:"integration_id,omitempty"`
+}
+
+func getCustomOAuthAppIntegrationRequestToWire(v *GetCustomOAuthAppIntegrationRequest) (*getCustomOAuthAppIntegrationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getCustomOAuthAppIntegrationRequestWire{
+		AccountId:     v.AccountId,
+		IntegrationId: v.IntegrationId,
+	}, nil
+}
+
+func getCustomOAuthAppIntegrationRequestFromWire(w *getCustomOAuthAppIntegrationRequestWire) (*GetCustomOAuthAppIntegrationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCustomOAuthAppIntegrationRequest{
+		AccountId:     w.AccountId,
+		IntegrationId: w.IntegrationId,
+	}, nil
+}
+
+type getPublishedOAuthAppIntegrationRequestWire struct {
+	AccountId     *string `json:"account_id,omitempty"`
+	IntegrationId *string `json:"integration_id,omitempty"`
+}
+
+func getPublishedOAuthAppIntegrationRequestToWire(v *GetPublishedOAuthAppIntegrationRequest) (*getPublishedOAuthAppIntegrationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getPublishedOAuthAppIntegrationRequestWire{
+		AccountId:     v.AccountId,
+		IntegrationId: v.IntegrationId,
+	}, nil
+}
+
+func getPublishedOAuthAppIntegrationRequestFromWire(w *getPublishedOAuthAppIntegrationRequestWire) (*GetPublishedOAuthAppIntegrationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetPublishedOAuthAppIntegrationRequest{
+		AccountId:     w.AccountId,
+		IntegrationId: w.IntegrationId,
 	}, nil
 }
 
@@ -276,9 +553,35 @@ func listCustomOAuthAppIntegrationsRequestToWire(v *ListCustomOAuthAppIntegratio
 	}, nil
 }
 
+func listCustomOAuthAppIntegrationsRequestFromWire(w *listCustomOAuthAppIntegrationsRequestWire) (*ListCustomOAuthAppIntegrationsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListCustomOAuthAppIntegrationsRequest{
+		AccountId:              w.AccountId,
+		PageToken:              w.PageToken,
+		PageSize:               w.PageSize,
+		IncludeCreatorUsername: w.IncludeCreatorUsername,
+	}, nil
+}
+
 type listCustomOAuthAppIntegrationsResponseWire struct {
 	Apps          []customOAuthAppIntegrationWire `json:"apps,omitempty"`
 	NextPageToken *string                         `json:"next_page_token,omitempty"`
+}
+
+func listCustomOAuthAppIntegrationsResponseToWire(v *ListCustomOAuthAppIntegrationsResponse) (*listCustomOAuthAppIntegrationsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	appsWireValue, err := convertSlice(v.Apps, customOAuthAppIntegrationToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListCustomOAuthAppIntegrationsResponse.Apps", err)
+	}
+	return &listCustomOAuthAppIntegrationsResponseWire{
+		Apps:          appsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listCustomOAuthAppIntegrationsResponseFromWire(w *listCustomOAuthAppIntegrationsResponseWire) (*ListCustomOAuthAppIntegrationsResponse, error) {
@@ -312,9 +615,34 @@ func listPublishedOAuthAppIntegrationsRequestToWire(v *ListPublishedOAuthAppInte
 	}, nil
 }
 
+func listPublishedOAuthAppIntegrationsRequestFromWire(w *listPublishedOAuthAppIntegrationsRequestWire) (*ListPublishedOAuthAppIntegrationsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListPublishedOAuthAppIntegrationsRequest{
+		AccountId: w.AccountId,
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listPublishedOAuthAppIntegrationsResponseWire struct {
 	Apps          []publishedOAuthAppIntegrationWire `json:"apps,omitempty"`
 	NextPageToken *string                            `json:"next_page_token,omitempty"`
+}
+
+func listPublishedOAuthAppIntegrationsResponseToWire(v *ListPublishedOAuthAppIntegrationsResponse) (*listPublishedOAuthAppIntegrationsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	appsWireValue, err := convertSlice(v.Apps, publishedOAuthAppIntegrationToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListPublishedOAuthAppIntegrationsResponse.Apps", err)
+	}
+	return &listPublishedOAuthAppIntegrationsResponseWire{
+		Apps:          appsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listPublishedOAuthAppIntegrationsResponseFromWire(w *listPublishedOAuthAppIntegrationsResponseWire) (*ListPublishedOAuthAppIntegrationsResponse, error) {
@@ -348,9 +676,34 @@ func listPublishedOAuthAppsRequestToWire(v *ListPublishedOAuthAppsRequest) (*lis
 	}, nil
 }
 
+func listPublishedOAuthAppsRequestFromWire(w *listPublishedOAuthAppsRequestWire) (*ListPublishedOAuthAppsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListPublishedOAuthAppsRequest{
+		AccountId: w.AccountId,
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listPublishedOAuthAppsResponseWire struct {
 	Apps          []publishedOAuthAppWire `json:"apps,omitempty"`
 	NextPageToken *string                 `json:"next_page_token,omitempty"`
+}
+
+func listPublishedOAuthAppsResponseToWire(v *ListPublishedOAuthAppsResponse) (*listPublishedOAuthAppsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	appsWireValue, err := convertSlice(v.Apps, publishedOAuthAppToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListPublishedOAuthAppsResponse.Apps", err)
+	}
+	return &listPublishedOAuthAppsResponseWire{
+		Apps:          appsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listPublishedOAuthAppsResponseFromWire(w *listPublishedOAuthAppsResponseWire) (*ListPublishedOAuthAppsResponse, error) {
@@ -377,6 +730,21 @@ type publishedOAuthAppWire struct {
 	Scopes               []string `json:"scopes,omitempty"`
 }
 
+func publishedOAuthAppToWire(v *PublishedOAuthApp) (*publishedOAuthAppWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &publishedOAuthAppWire{
+		AppId:                v.AppId,
+		ClientId:             v.ClientId,
+		Name:                 v.Name,
+		Description:          v.Description,
+		IsConfidentialClient: v.IsConfidentialClient,
+		RedirectUrls:         v.RedirectUrls,
+		Scopes:               v.Scopes,
+	}, nil
+}
+
 func publishedOAuthAppFromWire(w *publishedOAuthAppWire) (*PublishedOAuthApp, error) {
 	if w == nil {
 		return nil, nil
@@ -399,6 +767,28 @@ type publishedOAuthAppIntegrationWire struct {
 	TokenAccessPolicy *tokenAccessPolicyWire `json:"token_access_policy,omitempty"`
 	CreatedBy         *wireInt64             `json:"created_by,omitempty"`
 	CreateTime        *string                `json:"create_time,omitempty"`
+}
+
+func publishedOAuthAppIntegrationToWire(v *PublishedOAuthAppIntegration) (*publishedOAuthAppIntegrationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tokenAccessPolicyWireValue, err := tokenAccessPolicyToWire(v.TokenAccessPolicy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PublishedOAuthAppIntegration.TokenAccessPolicy", err)
+	}
+	createdByWireValue, err := int64ToWire(v.CreatedBy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PublishedOAuthAppIntegration.CreatedBy", err)
+	}
+	return &publishedOAuthAppIntegrationWire{
+		AppId:             v.AppId,
+		IntegrationId:     v.IntegrationId,
+		Name:              v.Name,
+		TokenAccessPolicy: tokenAccessPolicyWireValue,
+		CreatedBy:         createdByWireValue,
+		CreateTime:        v.CreateTime,
+	}, nil
 }
 
 func publishedOAuthAppIntegrationFromWire(w *publishedOAuthAppIntegrationWire) (*PublishedOAuthAppIntegration, error) {
@@ -481,6 +871,41 @@ func updateCustomOAuthAppIntegrationRequestToWire(v *UpdateCustomOAuthAppIntegra
 	}, nil
 }
 
+func updateCustomOAuthAppIntegrationRequestFromWire(w *updateCustomOAuthAppIntegrationRequestWire) (*UpdateCustomOAuthAppIntegrationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tokenAccessPolicyPublicValue, err := tokenAccessPolicyFromWire(w.TokenAccessPolicy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCustomOAuthAppIntegrationRequest.TokenAccessPolicy", err)
+	}
+	return &UpdateCustomOAuthAppIntegrationRequest{
+		AccountId:            w.AccountId,
+		IntegrationId:        w.IntegrationId,
+		RedirectUrls:         w.RedirectUrls,
+		TokenAccessPolicy:    tokenAccessPolicyPublicValue,
+		Scopes:               w.Scopes,
+		UserAuthorizedScopes: w.UserAuthorizedScopes,
+	}, nil
+}
+
+type updateCustomOAuthAppIntegrationResponseWire struct {
+}
+
+func updateCustomOAuthAppIntegrationResponseToWire(v *UpdateCustomOAuthAppIntegrationResponse) (*updateCustomOAuthAppIntegrationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &updateCustomOAuthAppIntegrationResponseWire{}, nil
+}
+
+func updateCustomOAuthAppIntegrationResponseFromWire(w *updateCustomOAuthAppIntegrationResponseWire) (*UpdateCustomOAuthAppIntegrationResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpdateCustomOAuthAppIntegrationResponse{}, nil
+}
+
 type updatePublishedOAuthAppIntegrationRequestWire struct {
 	AccountId         *string                `json:"account_id,omitempty"`
 	IntegrationId     *string                `json:"integration_id,omitempty"`
@@ -500,6 +925,38 @@ func updatePublishedOAuthAppIntegrationRequestToWire(v *UpdatePublishedOAuthAppI
 		IntegrationId:     v.IntegrationId,
 		TokenAccessPolicy: tokenAccessPolicyWireValue,
 	}, nil
+}
+
+func updatePublishedOAuthAppIntegrationRequestFromWire(w *updatePublishedOAuthAppIntegrationRequestWire) (*UpdatePublishedOAuthAppIntegrationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tokenAccessPolicyPublicValue, err := tokenAccessPolicyFromWire(w.TokenAccessPolicy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdatePublishedOAuthAppIntegrationRequest.TokenAccessPolicy", err)
+	}
+	return &UpdatePublishedOAuthAppIntegrationRequest{
+		AccountId:         w.AccountId,
+		IntegrationId:     w.IntegrationId,
+		TokenAccessPolicy: tokenAccessPolicyPublicValue,
+	}, nil
+}
+
+type updatePublishedOAuthAppIntegrationResponseWire struct {
+}
+
+func updatePublishedOAuthAppIntegrationResponseToWire(v *UpdatePublishedOAuthAppIntegrationResponse) (*updatePublishedOAuthAppIntegrationResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &updatePublishedOAuthAppIntegrationResponseWire{}, nil
+}
+
+func updatePublishedOAuthAppIntegrationResponseFromWire(w *updatePublishedOAuthAppIntegrationResponseWire) (*UpdatePublishedOAuthAppIntegrationResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UpdatePublishedOAuthAppIntegrationResponse{}, nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

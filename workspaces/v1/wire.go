@@ -54,14 +54,6 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type azureWorkspaceInfoWire struct {
 	ResourceGroup  *string `json:"resource_group,omitempty"`
 	SubscriptionId *string `json:"subscription_id,omitempty"`
@@ -200,6 +192,78 @@ func createWorkspaceRequestToWire(v *CreateWorkspaceRequest) (*createWorkspaceRe
 	}, nil
 }
 
+func createWorkspaceRequestFromWire(w *createWorkspaceRequestWire) (*CreateWorkspaceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	cloudResourceContainerPublicValue, err := cloudResourceContainerFromWire(w.CloudResourceContainer)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateWorkspaceRequest.CloudResourceContainer", err)
+	}
+	gcpManagedNetworkConfigPublicValue, err := gcpManagedNetworkConfigFromWire(w.GcpManagedNetworkConfig)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateWorkspaceRequest.GcpManagedNetworkConfig", err)
+	}
+	gkeConfigPublicValue, err := gkeConfigFromWire(w.GkeConfig)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateWorkspaceRequest.GkeConfig", err)
+	}
+	return &CreateWorkspaceRequest{
+		AccountId:                           w.AccountId,
+		WorkspaceName:                       w.WorkspaceName,
+		DeploymentName:                      w.DeploymentName,
+		AwsRegion:                           w.AwsRegion,
+		Location:                            w.Location,
+		Cloud:                               w.Cloud,
+		PricingTier:                         w.PricingTier,
+		CloudResourceContainer:              cloudResourceContainerPublicValue,
+		CredentialsId:                       w.CredentialsId,
+		StorageConfigurationId:              w.StorageConfigurationId,
+		NetworkId:                           w.NetworkId,
+		GcpManagedNetworkConfig:             gcpManagedNetworkConfigPublicValue,
+		GkeConfig:                           gkeConfigPublicValue,
+		PrivateAccessSettingsId:             w.PrivateAccessSettingsId,
+		ManagedServicesCustomerManagedKeyId: w.ManagedServicesCustomerManagedKeyId,
+		StorageCustomerManagedKeyId:         w.StorageCustomerManagedKeyId,
+		CustomTags:                          w.CustomTags,
+		ComputeMode:                         w.ComputeMode,
+		NetworkConnectivityConfigId:         w.NetworkConnectivityConfigId,
+	}, nil
+}
+
+type deleteWorkspaceRequestWire struct {
+	WorkspaceId *wireInt64 `json:"workspace_id,omitempty"`
+	AccountId   *string    `json:"account_id,omitempty"`
+}
+
+func deleteWorkspaceRequestToWire(v *DeleteWorkspaceRequest) (*deleteWorkspaceRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteWorkspaceRequest.WorkspaceId", err)
+	}
+	return &deleteWorkspaceRequestWire{
+		WorkspaceId: workspaceIdWireValue,
+		AccountId:   v.AccountId,
+	}, nil
+}
+
+func deleteWorkspaceRequestFromWire(w *deleteWorkspaceRequestWire) (*DeleteWorkspaceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	workspaceIdPublicValue, err := int64FromWire(w.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteWorkspaceRequest.WorkspaceId", err)
+	}
+	return &DeleteWorkspaceRequest{
+		WorkspaceId: workspaceIdPublicValue,
+		AccountId:   w.AccountId,
+	}, nil
+}
+
 type gcpCloudResourceContainerWire struct {
 	ProjectId *string `json:"project_id,omitempty"`
 }
@@ -275,6 +339,39 @@ func gcpManagedNetworkConfigFromWire(w *gcpManagedNetworkConfigWire) (*GcpManage
 	}, nil
 }
 
+type getWorkspaceRequestWire struct {
+	WorkspaceId *wireInt64 `json:"workspace_id,omitempty"`
+	AccountId   *string    `json:"account_id,omitempty"`
+}
+
+func getWorkspaceRequestToWire(v *GetWorkspaceRequest) (*getWorkspaceRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetWorkspaceRequest.WorkspaceId", err)
+	}
+	return &getWorkspaceRequestWire{
+		WorkspaceId: workspaceIdWireValue,
+		AccountId:   v.AccountId,
+	}, nil
+}
+
+func getWorkspaceRequestFromWire(w *getWorkspaceRequestWire) (*GetWorkspaceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	workspaceIdPublicValue, err := int64FromWire(w.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetWorkspaceRequest.WorkspaceId", err)
+	}
+	return &GetWorkspaceRequest{
+		WorkspaceId: workspaceIdPublicValue,
+		AccountId:   w.AccountId,
+	}, nil
+}
+
 type gkeConfigWire struct {
 	ConnectivityType GkeConnectivityType `json:"connectivity_type,omitempty"`
 	MasterIpRange    *string             `json:"master_ip_range,omitempty"`
@@ -300,9 +397,61 @@ func gkeConfigFromWire(w *gkeConfigWire) (*GkeConfig, error) {
 	}, nil
 }
 
+type listWorkspacesRequestWire struct {
+	AccountId *string `json:"account_id,omitempty"`
+}
+
+func listWorkspacesRequestToWire(v *ListWorkspacesRequest) (*listWorkspacesRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listWorkspacesRequestWire{
+		AccountId: v.AccountId,
+	}, nil
+}
+
+func listWorkspacesRequestFromWire(w *listWorkspacesRequestWire) (*ListWorkspacesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListWorkspacesRequest{
+		AccountId: w.AccountId,
+	}, nil
+}
+
+type listWorkspacesResponseWire struct {
+	Workspaces []workspaceWire `json:"workspaces,omitempty"`
+}
+
+func listWorkspacesResponseToWire(v *ListWorkspacesResponse) (*listWorkspacesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	workspacesWireValue, err := convertSlice(v.Workspaces, workspaceToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListWorkspacesResponse.Workspaces", err)
+	}
+	return &listWorkspacesResponseWire{
+		Workspaces: workspacesWireValue,
+	}, nil
+}
+
+func listWorkspacesResponseFromWire(w *listWorkspacesResponseWire) (*ListWorkspacesResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	workspacesPublicValue, err := convertSlice(w.Workspaces, workspaceFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListWorkspacesResponse.Workspaces", err)
+	}
+	return &ListWorkspacesResponse{
+		Workspaces: workspacesPublicValue,
+	}, nil
+}
+
 type updateWorkspaceRequestWire struct {
-	CustomerFacingWorkspace *workspaceWire `json:"customer_facing_workspace,omitempty"`
-	UpdateMask              *string        `json:"update_mask,omitempty"`
+	CustomerFacingWorkspace *workspaceWire              `json:"customer_facing_workspace,omitempty"`
+	UpdateMask              *types.FieldMask[Workspace] `json:"update_mask,omitempty"`
 }
 
 func updateWorkspaceRequestToWire(v *UpdateWorkspaceRequest) (*updateWorkspaceRequestWire, error) {
@@ -315,7 +464,21 @@ func updateWorkspaceRequestToWire(v *UpdateWorkspaceRequest) (*updateWorkspaceRe
 	}
 	return &updateWorkspaceRequestWire{
 		CustomerFacingWorkspace: customerFacingWorkspaceWireValue,
-		UpdateMask:              fieldMaskToWire(v.UpdateMask),
+		UpdateMask:              v.UpdateMask,
+	}, nil
+}
+
+func updateWorkspaceRequestFromWire(w *updateWorkspaceRequestWire) (*UpdateWorkspaceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	customerFacingWorkspacePublicValue, err := workspaceFromWire(w.CustomerFacingWorkspace)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateWorkspaceRequest.CustomerFacingWorkspace", err)
+	}
+	return &UpdateWorkspaceRequest{
+		CustomerFacingWorkspace: customerFacingWorkspacePublicValue,
+		UpdateMask:              w.UpdateMask,
 	}, nil
 }
 

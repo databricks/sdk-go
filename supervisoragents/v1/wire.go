@@ -8,14 +8,6 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type appWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -57,6 +49,20 @@ func createExampleRequestToWire(v *CreateExampleRequest) (*createExampleRequestW
 	}, nil
 }
 
+func createExampleRequestFromWire(w *createExampleRequestWire) (*CreateExampleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	examplePublicValue, err := exampleFromWire(w.Example)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateExampleRequest.Example", err)
+	}
+	return &CreateExampleRequest{
+		Parent:  w.Parent,
+		Example: examplePublicValue,
+	}, nil
+}
+
 type createSupervisorAgentRequestWire struct {
 	SupervisorAgent *supervisorAgentWire `json:"supervisor_agent,omitempty"`
 }
@@ -71,6 +77,19 @@ func createSupervisorAgentRequestToWire(v *CreateSupervisorAgentRequest) (*creat
 	}
 	return &createSupervisorAgentRequestWire{
 		SupervisorAgent: supervisorAgentWireValue,
+	}, nil
+}
+
+func createSupervisorAgentRequestFromWire(w *createSupervisorAgentRequestWire) (*CreateSupervisorAgentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	supervisorAgentPublicValue, err := supervisorAgentFromWire(w.SupervisorAgent)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateSupervisorAgentRequest.SupervisorAgent", err)
+	}
+	return &CreateSupervisorAgentRequest{
+		SupervisorAgent: supervisorAgentPublicValue,
 	}, nil
 }
 
@@ -92,6 +111,87 @@ func createToolRequestToWire(v *CreateToolRequest) (*createToolRequestWire, erro
 		Parent: v.Parent,
 		Tool:   toolWireValue,
 		ToolId: v.ToolId,
+	}, nil
+}
+
+func createToolRequestFromWire(w *createToolRequestWire) (*CreateToolRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	toolPublicValue, err := toolFromWire(w.Tool)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateToolRequest.Tool", err)
+	}
+	return &CreateToolRequest{
+		Parent: w.Parent,
+		Tool:   toolPublicValue,
+		ToolId: w.ToolId,
+	}, nil
+}
+
+type deleteExampleRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteExampleRequestToWire(v *DeleteExampleRequest) (*deleteExampleRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteExampleRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteExampleRequestFromWire(w *deleteExampleRequestWire) (*DeleteExampleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteExampleRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteSupervisorAgentRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteSupervisorAgentRequestToWire(v *DeleteSupervisorAgentRequest) (*deleteSupervisorAgentRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteSupervisorAgentRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteSupervisorAgentRequestFromWire(w *deleteSupervisorAgentRequestWire) (*DeleteSupervisorAgentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteSupervisorAgentRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteToolRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteToolRequestToWire(v *DeleteToolRequest) (*deleteToolRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteToolRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteToolRequestFromWire(w *deleteToolRequestWire) (*DeleteToolRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteToolRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -148,6 +248,72 @@ func genieSpaceFromWire(w *genieSpaceWire) (*GenieSpace, error) {
 	}, nil
 }
 
+type getExampleRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getExampleRequestToWire(v *GetExampleRequest) (*getExampleRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getExampleRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getExampleRequestFromWire(w *getExampleRequestWire) (*GetExampleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetExampleRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getSupervisorAgentRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getSupervisorAgentRequestToWire(v *GetSupervisorAgentRequest) (*getSupervisorAgentRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getSupervisorAgentRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getSupervisorAgentRequestFromWire(w *getSupervisorAgentRequestWire) (*GetSupervisorAgentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetSupervisorAgentRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getToolRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getToolRequestToWire(v *GetToolRequest) (*getToolRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getToolRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getToolRequestFromWire(w *getToolRequestWire) (*GetToolRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetToolRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type knowledgeAssistantWire struct {
 	ServingEndpointName  *string `json:"serving_endpoint_name,omitempty"`
 	KnowledgeAssistantId *string `json:"knowledge_assistant_id,omitempty"`
@@ -190,9 +356,34 @@ func listExamplesRequestToWire(v *ListExamplesRequest) (*listExamplesRequestWire
 	}, nil
 }
 
+func listExamplesRequestFromWire(w *listExamplesRequestWire) (*ListExamplesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListExamplesRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listExamplesResponseWire struct {
 	Examples      []exampleWire `json:"examples,omitempty"`
 	NextPageToken *string       `json:"next_page_token,omitempty"`
+}
+
+func listExamplesResponseToWire(v *ListExamplesResponse) (*listExamplesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	examplesWireValue, err := convertSlice(v.Examples, exampleToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListExamplesResponse.Examples", err)
+	}
+	return &listExamplesResponseWire{
+		Examples:      examplesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listExamplesResponseFromWire(w *listExamplesResponseWire) (*ListExamplesResponse, error) {
@@ -224,9 +415,33 @@ func listSupervisorAgentsRequestToWire(v *ListSupervisorAgentsRequest) (*listSup
 	}, nil
 }
 
+func listSupervisorAgentsRequestFromWire(w *listSupervisorAgentsRequestWire) (*ListSupervisorAgentsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSupervisorAgentsRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listSupervisorAgentsResponseWire struct {
 	SupervisorAgents []supervisorAgentWire `json:"supervisor_agents,omitempty"`
 	NextPageToken    *string               `json:"next_page_token,omitempty"`
+}
+
+func listSupervisorAgentsResponseToWire(v *ListSupervisorAgentsResponse) (*listSupervisorAgentsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	supervisorAgentsWireValue, err := convertSlice(v.SupervisorAgents, supervisorAgentToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSupervisorAgentsResponse.SupervisorAgents", err)
+	}
+	return &listSupervisorAgentsResponseWire{
+		SupervisorAgents: supervisorAgentsWireValue,
+		NextPageToken:    v.NextPageToken,
+	}, nil
 }
 
 func listSupervisorAgentsResponseFromWire(w *listSupervisorAgentsResponseWire) (*ListSupervisorAgentsResponse, error) {
@@ -260,9 +475,34 @@ func listToolsRequestToWire(v *ListToolsRequest) (*listToolsRequestWire, error) 
 	}, nil
 }
 
+func listToolsRequestFromWire(w *listToolsRequestWire) (*ListToolsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListToolsRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listToolsResponseWire struct {
 	Tools         []toolWire `json:"tools,omitempty"`
 	NextPageToken *string    `json:"next_page_token,omitempty"`
+}
+
+func listToolsResponseToWire(v *ListToolsResponse) (*listToolsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	toolsWireValue, err := convertSlice(v.Tools, toolToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListToolsResponse.Tools", err)
+	}
+	return &listToolsResponseWire{
+		Tools:         toolsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listToolsResponseFromWire(w *listToolsResponseWire) (*ListToolsResponse, error) {
@@ -540,9 +780,9 @@ func ucFunctionFromWire(w *ucFunctionWire) (*UcFunction, error) {
 }
 
 type updateExampleRequestWire struct {
-	Name       *string      `json:"name,omitempty"`
-	Example    *exampleWire `json:"example,omitempty"`
-	UpdateMask *string      `json:"update_mask,omitempty"`
+	Name       *string                   `json:"name,omitempty"`
+	Example    *exampleWire              `json:"example,omitempty"`
+	UpdateMask *types.FieldMask[Example] `json:"update_mask,omitempty"`
 }
 
 func updateExampleRequestToWire(v *UpdateExampleRequest) (*updateExampleRequestWire, error) {
@@ -556,13 +796,28 @@ func updateExampleRequestToWire(v *UpdateExampleRequest) (*updateExampleRequestW
 	return &updateExampleRequestWire{
 		Name:       v.Name,
 		Example:    exampleWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateExampleRequestFromWire(w *updateExampleRequestWire) (*UpdateExampleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	examplePublicValue, err := exampleFromWire(w.Example)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateExampleRequest.Example", err)
+	}
+	return &UpdateExampleRequest{
+		Name:       w.Name,
+		Example:    examplePublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 
 type updateSupervisorAgentRequestWire struct {
-	SupervisorAgent *supervisorAgentWire `json:"supervisor_agent,omitempty"`
-	UpdateMask      *string              `json:"update_mask,omitempty"`
+	SupervisorAgent *supervisorAgentWire              `json:"supervisor_agent,omitempty"`
+	UpdateMask      *types.FieldMask[SupervisorAgent] `json:"update_mask,omitempty"`
 }
 
 func updateSupervisorAgentRequestToWire(v *UpdateSupervisorAgentRequest) (*updateSupervisorAgentRequestWire, error) {
@@ -575,13 +830,27 @@ func updateSupervisorAgentRequestToWire(v *UpdateSupervisorAgentRequest) (*updat
 	}
 	return &updateSupervisorAgentRequestWire{
 		SupervisorAgent: supervisorAgentWireValue,
-		UpdateMask:      fieldMaskToWire(v.UpdateMask),
+		UpdateMask:      v.UpdateMask,
+	}, nil
+}
+
+func updateSupervisorAgentRequestFromWire(w *updateSupervisorAgentRequestWire) (*UpdateSupervisorAgentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	supervisorAgentPublicValue, err := supervisorAgentFromWire(w.SupervisorAgent)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateSupervisorAgentRequest.SupervisorAgent", err)
+	}
+	return &UpdateSupervisorAgentRequest{
+		SupervisorAgent: supervisorAgentPublicValue,
+		UpdateMask:      w.UpdateMask,
 	}, nil
 }
 
 type updateToolRequestWire struct {
-	Tool       *toolWire `json:"tool,omitempty"`
-	UpdateMask *string   `json:"update_mask,omitempty"`
+	Tool       *toolWire              `json:"tool,omitempty"`
+	UpdateMask *types.FieldMask[Tool] `json:"update_mask,omitempty"`
 }
 
 func updateToolRequestToWire(v *UpdateToolRequest) (*updateToolRequestWire, error) {
@@ -594,7 +863,21 @@ func updateToolRequestToWire(v *UpdateToolRequest) (*updateToolRequestWire, erro
 	}
 	return &updateToolRequestWire{
 		Tool:       toolWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
+	}, nil
+}
+
+func updateToolRequestFromWire(w *updateToolRequestWire) (*UpdateToolRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	toolPublicValue, err := toolFromWire(w.Tool)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateToolRequest.Tool", err)
+	}
+	return &UpdateToolRequest{
+		Tool:       toolPublicValue,
+		UpdateMask: w.UpdateMask,
 	}, nil
 }
 

@@ -54,14 +54,6 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type createMcpServiceRequestWire struct {
 	Parent       *string         `json:"parent,omitempty"`
 	McpServiceId *string         `json:"mcp_service_id,omitempty"`
@@ -83,6 +75,21 @@ func createMcpServiceRequestToWire(v *CreateMcpServiceRequest) (*createMcpServic
 	}, nil
 }
 
+func createMcpServiceRequestFromWire(w *createMcpServiceRequestWire) (*CreateMcpServiceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	mcpServicePublicValue, err := mcpServiceFromWire(w.McpService)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateMcpServiceRequest.McpService", err)
+	}
+	return &CreateMcpServiceRequest{
+		Parent:       w.Parent,
+		McpServiceId: w.McpServiceId,
+		McpService:   mcpServicePublicValue,
+	}, nil
+}
+
 type createMcpServiceUserMappedCredentialRequestWire struct {
 	Name  *string                                  `json:"name,omitempty"`
 	Login *mcpServiceUserMappedCredentialLoginWire `json:"login,omitempty"`
@@ -99,6 +106,20 @@ func createMcpServiceUserMappedCredentialRequestToWire(v *CreateMcpServiceUserMa
 	return &createMcpServiceUserMappedCredentialRequestWire{
 		Name:  v.Name,
 		Login: loginWireValue,
+	}, nil
+}
+
+func createMcpServiceUserMappedCredentialRequestFromWire(w *createMcpServiceUserMappedCredentialRequestWire) (*CreateMcpServiceUserMappedCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	loginPublicValue, err := mcpServiceUserMappedCredentialLoginFromWire(w.Login)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateMcpServiceUserMappedCredentialRequest.Login", err)
+	}
+	return &CreateMcpServiceUserMappedCredentialRequest{
+		Name:  w.Name,
+		Login: loginPublicValue,
 	}, nil
 }
 
@@ -123,6 +144,21 @@ func createModelProviderServiceRequestToWire(v *CreateModelProviderServiceReques
 	}, nil
 }
 
+func createModelProviderServiceRequestFromWire(w *createModelProviderServiceRequestWire) (*CreateModelProviderServiceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	modelProviderServicePublicValue, err := modelProviderServiceFromWire(w.ModelProviderService)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateModelProviderServiceRequest.ModelProviderService", err)
+	}
+	return &CreateModelProviderServiceRequest{
+		Parent:                 w.Parent,
+		ModelProviderServiceId: w.ModelProviderServiceId,
+		ModelProviderService:   modelProviderServicePublicValue,
+	}, nil
+}
+
 type createModelServiceRequestWire struct {
 	Parent         *string           `json:"parent,omitempty"`
 	ModelServiceId *string           `json:"model_service_id,omitempty"`
@@ -141,6 +177,21 @@ func createModelServiceRequestToWire(v *CreateModelServiceRequest) (*createModel
 		Parent:         v.Parent,
 		ModelServiceId: v.ModelServiceId,
 		ModelService:   modelServiceWireValue,
+	}, nil
+}
+
+func createModelServiceRequestFromWire(w *createModelServiceRequestWire) (*CreateModelServiceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	modelServicePublicValue, err := modelServiceFromWire(w.ModelService)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateModelServiceRequest.ModelService", err)
+	}
+	return &CreateModelServiceRequest{
+		Parent:         w.Parent,
+		ModelServiceId: w.ModelServiceId,
+		ModelService:   modelServicePublicValue,
 	}, nil
 }
 
@@ -165,6 +216,21 @@ func createSkillRequestToWire(v *CreateSkillRequest) (*createSkillRequestWire, e
 	}, nil
 }
 
+func createSkillRequestFromWire(w *createSkillRequestWire) (*CreateSkillRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	skillPublicValue, err := skillFromWire(w.Skill)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateSkillRequest.Skill", err)
+	}
+	return &CreateSkillRequest{
+		Parent:  w.Parent,
+		SkillId: w.SkillId,
+		Skill:   skillPublicValue,
+	}, nil
+}
+
 type deleteMcpServiceRequestWire struct {
 	Name *string `json:"name,omitempty"`
 	Etag []byte  `json:"etag,omitempty"`
@@ -180,6 +246,55 @@ func deleteMcpServiceRequestToWire(v *DeleteMcpServiceRequest) (*deleteMcpServic
 	}, nil
 }
 
+func deleteMcpServiceRequestFromWire(w *deleteMcpServiceRequestWire) (*DeleteMcpServiceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteMcpServiceRequest{
+		Name: w.Name,
+		Etag: w.Etag,
+	}, nil
+}
+
+type deleteMcpServiceUserMappedCredentialRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteMcpServiceUserMappedCredentialRequestToWire(v *DeleteMcpServiceUserMappedCredentialRequest) (*deleteMcpServiceUserMappedCredentialRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteMcpServiceUserMappedCredentialRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteMcpServiceUserMappedCredentialRequestFromWire(w *deleteMcpServiceUserMappedCredentialRequestWire) (*DeleteMcpServiceUserMappedCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteMcpServiceUserMappedCredentialRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteMcpServiceUserMappedCredentialResponseWire struct {
+}
+
+func deleteMcpServiceUserMappedCredentialResponseToWire(v *DeleteMcpServiceUserMappedCredentialResponse) (*deleteMcpServiceUserMappedCredentialResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteMcpServiceUserMappedCredentialResponseWire{}, nil
+}
+
+func deleteMcpServiceUserMappedCredentialResponseFromWire(w *deleteMcpServiceUserMappedCredentialResponseWire) (*DeleteMcpServiceUserMappedCredentialResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteMcpServiceUserMappedCredentialResponse{}, nil
+}
+
 type deleteModelProviderServiceRequestWire struct {
 	Name *string `json:"name,omitempty"`
 	Etag []byte  `json:"etag,omitempty"`
@@ -192,6 +307,16 @@ func deleteModelProviderServiceRequestToWire(v *DeleteModelProviderServiceReques
 	return &deleteModelProviderServiceRequestWire{
 		Name: v.Name,
 		Etag: v.Etag,
+	}, nil
+}
+
+func deleteModelProviderServiceRequestFromWire(w *deleteModelProviderServiceRequestWire) (*DeleteModelProviderServiceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteModelProviderServiceRequest{
+		Name: w.Name,
+		Etag: w.Etag,
 	}, nil
 }
 
@@ -210,6 +335,16 @@ func deleteModelServiceRequestToWire(v *DeleteModelServiceRequest) (*deleteModel
 	}, nil
 }
 
+func deleteModelServiceRequestFromWire(w *deleteModelServiceRequestWire) (*DeleteModelServiceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteModelServiceRequest{
+		Name: w.Name,
+		Etag: w.Etag,
+	}, nil
+}
+
 type deleteSkillRequestWire struct {
 	Name *string `json:"name,omitempty"`
 	Etag []byte  `json:"etag,omitempty"`
@@ -222,6 +357,148 @@ func deleteSkillRequestToWire(v *DeleteSkillRequest) (*deleteSkillRequestWire, e
 	return &deleteSkillRequestWire{
 		Name: v.Name,
 		Etag: v.Etag,
+	}, nil
+}
+
+func deleteSkillRequestFromWire(w *deleteSkillRequestWire) (*DeleteSkillRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteSkillRequest{
+		Name: w.Name,
+		Etag: w.Etag,
+	}, nil
+}
+
+type finalizeSkillRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func finalizeSkillRequestToWire(v *FinalizeSkillRequest) (*finalizeSkillRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &finalizeSkillRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func finalizeSkillRequestFromWire(w *finalizeSkillRequestWire) (*FinalizeSkillRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &FinalizeSkillRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getMcpServiceRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getMcpServiceRequestToWire(v *GetMcpServiceRequest) (*getMcpServiceRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getMcpServiceRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getMcpServiceRequestFromWire(w *getMcpServiceRequestWire) (*GetMcpServiceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetMcpServiceRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getMcpServiceUserMappedCredentialRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getMcpServiceUserMappedCredentialRequestToWire(v *GetMcpServiceUserMappedCredentialRequest) (*getMcpServiceUserMappedCredentialRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getMcpServiceUserMappedCredentialRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getMcpServiceUserMappedCredentialRequestFromWire(w *getMcpServiceUserMappedCredentialRequestWire) (*GetMcpServiceUserMappedCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetMcpServiceUserMappedCredentialRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getModelProviderServiceRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getModelProviderServiceRequestToWire(v *GetModelProviderServiceRequest) (*getModelProviderServiceRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getModelProviderServiceRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getModelProviderServiceRequestFromWire(w *getModelProviderServiceRequestWire) (*GetModelProviderServiceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetModelProviderServiceRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getModelServiceRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getModelServiceRequestToWire(v *GetModelServiceRequest) (*getModelServiceRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getModelServiceRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getModelServiceRequestFromWire(w *getModelServiceRequestWire) (*GetModelServiceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetModelServiceRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getSkillRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getSkillRequestToWire(v *GetSkillRequest) (*getSkillRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getSkillRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getSkillRequestFromWire(w *getSkillRequestWire) (*GetSkillRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetSkillRequest{
+		Name: w.Name,
 	}, nil
 }
 
@@ -275,9 +552,35 @@ func listMcpServicesRequestToWire(v *ListMcpServicesRequest) (*listMcpServicesRe
 	}, nil
 }
 
+func listMcpServicesRequestFromWire(w *listMcpServicesRequestWire) (*ListMcpServicesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListMcpServicesRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+		View:      w.View,
+	}, nil
+}
+
 type listMcpServicesResponseWire struct {
 	McpServices   []mcpServiceWire `json:"mcp_services,omitempty"`
 	NextPageToken *string          `json:"next_page_token,omitempty"`
+}
+
+func listMcpServicesResponseToWire(v *ListMcpServicesResponse) (*listMcpServicesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	mcpServicesWireValue, err := convertSlice(v.McpServices, mcpServiceToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListMcpServicesResponse.McpServices", err)
+	}
+	return &listMcpServicesResponseWire{
+		McpServices:   mcpServicesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listMcpServicesResponseFromWire(w *listMcpServicesResponseWire) (*ListMcpServicesResponse, error) {
@@ -313,9 +616,35 @@ func listModelProviderServicesRequestToWire(v *ListModelProviderServicesRequest)
 	}, nil
 }
 
+func listModelProviderServicesRequestFromWire(w *listModelProviderServicesRequestWire) (*ListModelProviderServicesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListModelProviderServicesRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+		View:      w.View,
+	}, nil
+}
+
 type listModelProviderServicesResponseWire struct {
 	ModelProviderServices []modelProviderServiceWire `json:"model_provider_services,omitempty"`
 	NextPageToken         *string                    `json:"next_page_token,omitempty"`
+}
+
+func listModelProviderServicesResponseToWire(v *ListModelProviderServicesResponse) (*listModelProviderServicesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	modelProviderServicesWireValue, err := convertSlice(v.ModelProviderServices, modelProviderServiceToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListModelProviderServicesResponse.ModelProviderServices", err)
+	}
+	return &listModelProviderServicesResponseWire{
+		ModelProviderServices: modelProviderServicesWireValue,
+		NextPageToken:         v.NextPageToken,
+	}, nil
 }
 
 func listModelProviderServicesResponseFromWire(w *listModelProviderServicesResponseWire) (*ListModelProviderServicesResponse, error) {
@@ -351,9 +680,35 @@ func listModelServicesRequestToWire(v *ListModelServicesRequest) (*listModelServ
 	}, nil
 }
 
+func listModelServicesRequestFromWire(w *listModelServicesRequestWire) (*ListModelServicesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListModelServicesRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+		View:      w.View,
+	}, nil
+}
+
 type listModelServicesResponseWire struct {
 	ModelServices []modelServiceWire `json:"model_services,omitempty"`
 	NextPageToken *string            `json:"next_page_token,omitempty"`
+}
+
+func listModelServicesResponseToWire(v *ListModelServicesResponse) (*listModelServicesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	modelServicesWireValue, err := convertSlice(v.ModelServices, modelServiceToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListModelServicesResponse.ModelServices", err)
+	}
+	return &listModelServicesResponseWire{
+		ModelServices: modelServicesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listModelServicesResponseFromWire(w *listModelServicesResponseWire) (*ListModelServicesResponse, error) {
@@ -387,9 +742,34 @@ func listSkillsRequestToWire(v *ListSkillsRequest) (*listSkillsRequestWire, erro
 	}, nil
 }
 
+func listSkillsRequestFromWire(w *listSkillsRequestWire) (*ListSkillsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSkillsRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listSkillsResponseWire struct {
 	Skills        []skillWire `json:"skills,omitempty"`
 	NextPageToken *string     `json:"next_page_token,omitempty"`
+}
+
+func listSkillsResponseToWire(v *ListSkillsResponse) (*listSkillsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	skillsWireValue, err := convertSlice(v.Skills, skillToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSkillsResponse.Skills", err)
+	}
+	return &listSkillsResponseWire{
+		Skills:        skillsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listSkillsResponseFromWire(w *listSkillsResponseWire) (*ListSkillsResponse, error) {
@@ -562,6 +942,20 @@ type mcpServiceUserMappedCredentialWire struct {
 	ProvisioningInfo *provisioningInfoWire `json:"provisioning_info,omitempty"`
 }
 
+func mcpServiceUserMappedCredentialToWire(v *McpServiceUserMappedCredential) (*mcpServiceUserMappedCredentialWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	provisioningInfoWireValue, err := provisioningInfoToWire(v.ProvisioningInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "McpServiceUserMappedCredential.ProvisioningInfo", err)
+	}
+	return &mcpServiceUserMappedCredentialWire{
+		Options:          v.Options,
+		ProvisioningInfo: provisioningInfoWireValue,
+	}, nil
+}
+
 func mcpServiceUserMappedCredentialFromWire(w *mcpServiceUserMappedCredentialWire) (*McpServiceUserMappedCredential, error) {
 	if w == nil {
 		return nil, nil
@@ -586,6 +980,15 @@ func mcpServiceUserMappedCredentialLoginToWire(v *McpServiceUserMappedCredential
 	}
 	return &mcpServiceUserMappedCredentialLoginWire{
 		Options: v.Options,
+	}, nil
+}
+
+func mcpServiceUserMappedCredentialLoginFromWire(w *mcpServiceUserMappedCredentialLoginWire) (*McpServiceUserMappedCredentialLogin, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &McpServiceUserMappedCredentialLogin{
+		Options: w.Options,
 	}, nil
 }
 
@@ -2479,6 +2882,15 @@ type provisioningInfoWire struct {
 	State ProvisioningInfo_State `json:"state,omitempty"`
 }
 
+func provisioningInfoToWire(v *ProvisioningInfo) (*provisioningInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &provisioningInfoWire{
+		State: v.State,
+	}, nil
+}
+
 func provisioningInfoFromWire(w *provisioningInfoWire) (*ProvisioningInfo, error) {
 	if w == nil {
 		return nil, nil
@@ -2594,9 +3006,9 @@ func skillFromWire(w *skillWire) (*Skill, error) {
 }
 
 type updateMcpServiceRequestWire struct {
-	McpService *mcpServiceWire `json:"mcp_service,omitempty"`
-	UpdateMask *string         `json:"update_mask,omitempty"`
-	Etag       []byte          `json:"etag,omitempty"`
+	McpService *mcpServiceWire              `json:"mcp_service,omitempty"`
+	UpdateMask *types.FieldMask[McpService] `json:"update_mask,omitempty"`
+	Etag       []byte                       `json:"etag,omitempty"`
 }
 
 func updateMcpServiceRequestToWire(v *UpdateMcpServiceRequest) (*updateMcpServiceRequestWire, error) {
@@ -2609,15 +3021,30 @@ func updateMcpServiceRequestToWire(v *UpdateMcpServiceRequest) (*updateMcpServic
 	}
 	return &updateMcpServiceRequestWire{
 		McpService: mcpServiceWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
 		Etag:       v.Etag,
 	}, nil
 }
 
+func updateMcpServiceRequestFromWire(w *updateMcpServiceRequestWire) (*UpdateMcpServiceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	mcpServicePublicValue, err := mcpServiceFromWire(w.McpService)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateMcpServiceRequest.McpService", err)
+	}
+	return &UpdateMcpServiceRequest{
+		McpService: mcpServicePublicValue,
+		UpdateMask: w.UpdateMask,
+		Etag:       w.Etag,
+	}, nil
+}
+
 type updateModelProviderServiceRequestWire struct {
-	ModelProviderService *modelProviderServiceWire `json:"model_provider_service,omitempty"`
-	UpdateMask           *string                   `json:"update_mask,omitempty"`
-	Etag                 []byte                    `json:"etag,omitempty"`
+	ModelProviderService *modelProviderServiceWire              `json:"model_provider_service,omitempty"`
+	UpdateMask           *types.FieldMask[ModelProviderService] `json:"update_mask,omitempty"`
+	Etag                 []byte                                 `json:"etag,omitempty"`
 }
 
 func updateModelProviderServiceRequestToWire(v *UpdateModelProviderServiceRequest) (*updateModelProviderServiceRequestWire, error) {
@@ -2630,15 +3057,30 @@ func updateModelProviderServiceRequestToWire(v *UpdateModelProviderServiceReques
 	}
 	return &updateModelProviderServiceRequestWire{
 		ModelProviderService: modelProviderServiceWireValue,
-		UpdateMask:           fieldMaskToWire(v.UpdateMask),
+		UpdateMask:           v.UpdateMask,
 		Etag:                 v.Etag,
 	}, nil
 }
 
+func updateModelProviderServiceRequestFromWire(w *updateModelProviderServiceRequestWire) (*UpdateModelProviderServiceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	modelProviderServicePublicValue, err := modelProviderServiceFromWire(w.ModelProviderService)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateModelProviderServiceRequest.ModelProviderService", err)
+	}
+	return &UpdateModelProviderServiceRequest{
+		ModelProviderService: modelProviderServicePublicValue,
+		UpdateMask:           w.UpdateMask,
+		Etag:                 w.Etag,
+	}, nil
+}
+
 type updateModelServiceRequestWire struct {
-	ModelService *modelServiceWire `json:"model_service,omitempty"`
-	UpdateMask   *string           `json:"update_mask,omitempty"`
-	Etag         []byte            `json:"etag,omitempty"`
+	ModelService *modelServiceWire              `json:"model_service,omitempty"`
+	UpdateMask   *types.FieldMask[ModelService] `json:"update_mask,omitempty"`
+	Etag         []byte                         `json:"etag,omitempty"`
 }
 
 func updateModelServiceRequestToWire(v *UpdateModelServiceRequest) (*updateModelServiceRequestWire, error) {
@@ -2651,15 +3093,30 @@ func updateModelServiceRequestToWire(v *UpdateModelServiceRequest) (*updateModel
 	}
 	return &updateModelServiceRequestWire{
 		ModelService: modelServiceWireValue,
-		UpdateMask:   fieldMaskToWire(v.UpdateMask),
+		UpdateMask:   v.UpdateMask,
 		Etag:         v.Etag,
 	}, nil
 }
 
+func updateModelServiceRequestFromWire(w *updateModelServiceRequestWire) (*UpdateModelServiceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	modelServicePublicValue, err := modelServiceFromWire(w.ModelService)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateModelServiceRequest.ModelService", err)
+	}
+	return &UpdateModelServiceRequest{
+		ModelService: modelServicePublicValue,
+		UpdateMask:   w.UpdateMask,
+		Etag:         w.Etag,
+	}, nil
+}
+
 type updateSkillRequestWire struct {
-	Skill      *skillWire `json:"skill,omitempty"`
-	UpdateMask *string    `json:"update_mask,omitempty"`
-	Etag       []byte     `json:"etag,omitempty"`
+	Skill      *skillWire              `json:"skill,omitempty"`
+	UpdateMask *types.FieldMask[Skill] `json:"update_mask,omitempty"`
+	Etag       []byte                  `json:"etag,omitempty"`
 }
 
 func updateSkillRequestToWire(v *UpdateSkillRequest) (*updateSkillRequestWire, error) {
@@ -2672,8 +3129,23 @@ func updateSkillRequestToWire(v *UpdateSkillRequest) (*updateSkillRequestWire, e
 	}
 	return &updateSkillRequestWire{
 		Skill:      skillWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
 		Etag:       v.Etag,
+	}, nil
+}
+
+func updateSkillRequestFromWire(w *updateSkillRequestWire) (*UpdateSkillRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	skillPublicValue, err := skillFromWire(w.Skill)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateSkillRequest.Skill", err)
+	}
+	return &UpdateSkillRequest{
+		Skill:      skillPublicValue,
+		UpdateMask: w.UpdateMask,
+		Etag:       w.Etag,
 	}, nil
 }
 

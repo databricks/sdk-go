@@ -105,8 +105,50 @@ func createForecastingExperimentRequestToWire(v *CreateForecastingExperimentRequ
 	}, nil
 }
 
+func createForecastingExperimentRequestFromWire(w *createForecastingExperimentRequestWire) (*CreateForecastingExperimentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	forecastHorizonPublicValue, err := int64FromWire(w.ForecastHorizon)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateForecastingExperimentRequest.ForecastHorizon", err)
+	}
+	maxRuntimePublicValue, err := int64FromWire(w.MaxRuntime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateForecastingExperimentRequest.MaxRuntime", err)
+	}
+	return &CreateForecastingExperimentRequest{
+		TrainDataPath:               w.TrainDataPath,
+		TargetColumn:                w.TargetColumn,
+		TimeColumn:                  w.TimeColumn,
+		ForecastGranularity:         w.ForecastGranularity,
+		ForecastHorizon:             forecastHorizonPublicValue,
+		PrimaryMetric:               w.PrimaryMetric,
+		TrainingFrameworks:          w.TrainingFrameworks,
+		ExperimentPath:              w.ExperimentPath,
+		MaxRuntime:                  maxRuntimePublicValue,
+		SplitColumn:                 w.SplitColumn,
+		CustomWeightsColumn:         w.CustomWeightsColumn,
+		RegisterTo:                  w.RegisterTo,
+		HolidayRegions:              w.HolidayRegions,
+		TimeseriesIdentifierColumns: w.TimeseriesIdentifierColumns,
+		PredictionDataPath:          w.PredictionDataPath,
+		IncludeFeatures:             w.IncludeFeatures,
+		FutureFeatureDataPath:       w.FutureFeatureDataPath,
+	}, nil
+}
+
 type createForecastingExperimentResponseWire struct {
 	ExperimentId *string `json:"experiment_id,omitempty"`
+}
+
+func createForecastingExperimentResponseToWire(v *CreateForecastingExperimentResponse) (*createForecastingExperimentResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createForecastingExperimentResponseWire{
+		ExperimentId: v.ExperimentId,
+	}, nil
 }
 
 func createForecastingExperimentResponseFromWire(w *createForecastingExperimentResponseWire) (*CreateForecastingExperimentResponse, error) {
@@ -124,6 +166,17 @@ type forecastingExperimentWire struct {
 	State             ForecastingExperiment_State `json:"state,omitempty"`
 }
 
+func forecastingExperimentToWire(v *ForecastingExperiment) (*forecastingExperimentWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &forecastingExperimentWire{
+		ExperimentId:      v.ExperimentId,
+		ExperimentPageUrl: v.ExperimentPageUrl,
+		State:             v.State,
+	}, nil
+}
+
 func forecastingExperimentFromWire(w *forecastingExperimentWire) (*ForecastingExperiment, error) {
 	if w == nil {
 		return nil, nil
@@ -132,5 +185,27 @@ func forecastingExperimentFromWire(w *forecastingExperimentWire) (*ForecastingEx
 		ExperimentId:      w.ExperimentId,
 		ExperimentPageUrl: w.ExperimentPageUrl,
 		State:             w.State,
+	}, nil
+}
+
+type getForecastingExperimentRequestWire struct {
+	ExperimentId *string `json:"experiment_id,omitempty"`
+}
+
+func getForecastingExperimentRequestToWire(v *GetForecastingExperimentRequest) (*getForecastingExperimentRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getForecastingExperimentRequestWire{
+		ExperimentId: v.ExperimentId,
+	}, nil
+}
+
+func getForecastingExperimentRequestFromWire(w *getForecastingExperimentRequestWire) (*GetForecastingExperimentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetForecastingExperimentRequest{
+		ExperimentId: w.ExperimentId,
 	}, nil
 }

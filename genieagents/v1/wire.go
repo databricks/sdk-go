@@ -8,14 +8,6 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type createGenieAgentRequestWire struct {
 	GenieAgent   *genieAgentWire `json:"genie_agent,omitempty"`
 	GenieAgentId *string         `json:"genie_agent_id,omitempty"`
@@ -35,6 +27,20 @@ func createGenieAgentRequestToWire(v *CreateGenieAgentRequest) (*createGenieAgen
 	}, nil
 }
 
+func createGenieAgentRequestFromWire(w *createGenieAgentRequestWire) (*CreateGenieAgentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	genieAgentPublicValue, err := genieAgentFromWire(w.GenieAgent)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateGenieAgentRequest.GenieAgent", err)
+	}
+	return &CreateGenieAgentRequest{
+		GenieAgent:   genieAgentPublicValue,
+		GenieAgentId: w.GenieAgentId,
+	}, nil
+}
+
 type deleteGenieAgentRequestWire struct {
 	Name *string `json:"name,omitempty"`
 	Etag *string `json:"etag,omitempty"`
@@ -47,6 +53,16 @@ func deleteGenieAgentRequestToWire(v *DeleteGenieAgentRequest) (*deleteGenieAgen
 	return &deleteGenieAgentRequestWire{
 		Name: v.Name,
 		Etag: v.Etag,
+	}, nil
+}
+
+func deleteGenieAgentRequestFromWire(w *deleteGenieAgentRequestWire) (*DeleteGenieAgentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteGenieAgentRequest{
+		Name: w.Name,
+		Etag: w.Etag,
 	}, nil
 }
 
@@ -998,6 +1014,28 @@ func genieAgentVolumeFromWire(w *genieAgentVolumeWire) (*GenieAgentVolume, error
 	}, nil
 }
 
+type getGenieAgentRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getGenieAgentRequestToWire(v *GetGenieAgentRequest) (*getGenieAgentRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getGenieAgentRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getGenieAgentRequestFromWire(w *getGenieAgentRequestWire) (*GetGenieAgentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetGenieAgentRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type listGenieAgentsRequestWire struct {
 	PageSize  *int           `json:"page_size,omitempty"`
 	PageToken *string        `json:"page_token,omitempty"`
@@ -1015,10 +1053,36 @@ func listGenieAgentsRequestToWire(v *ListGenieAgentsRequest) (*listGenieAgentsRe
 	}, nil
 }
 
+func listGenieAgentsRequestFromWire(w *listGenieAgentsRequestWire) (*ListGenieAgentsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListGenieAgentsRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+		View:      w.View,
+	}, nil
+}
+
 type listGenieAgentsResponseWire struct {
 	GenieAgents   []genieAgentWire `json:"genie_agents,omitempty"`
 	NextPageToken *string          `json:"next_page_token,omitempty"`
 	Unreachable   []string         `json:"unreachable,omitempty"`
+}
+
+func listGenieAgentsResponseToWire(v *ListGenieAgentsResponse) (*listGenieAgentsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	genieAgentsWireValue, err := convertSlice(v.GenieAgents, genieAgentToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListGenieAgentsResponse.GenieAgents", err)
+	}
+	return &listGenieAgentsResponseWire{
+		GenieAgents:   genieAgentsWireValue,
+		NextPageToken: v.NextPageToken,
+		Unreachable:   v.Unreachable,
+	}, nil
 }
 
 func listGenieAgentsResponseFromWire(w *listGenieAgentsResponseWire) (*ListGenieAgentsResponse, error) {
@@ -1037,9 +1101,9 @@ func listGenieAgentsResponseFromWire(w *listGenieAgentsResponseWire) (*ListGenie
 }
 
 type updateGenieAgentRequestWire struct {
-	GenieAgent *genieAgentWire `json:"genie_agent,omitempty"`
-	UpdateMask *string         `json:"update_mask,omitempty"`
-	Etag       *string         `json:"etag,omitempty"`
+	GenieAgent *genieAgentWire              `json:"genie_agent,omitempty"`
+	UpdateMask *types.FieldMask[GenieAgent] `json:"update_mask,omitempty"`
+	Etag       *string                      `json:"etag,omitempty"`
 }
 
 func updateGenieAgentRequestToWire(v *UpdateGenieAgentRequest) (*updateGenieAgentRequestWire, error) {
@@ -1052,8 +1116,23 @@ func updateGenieAgentRequestToWire(v *UpdateGenieAgentRequest) (*updateGenieAgen
 	}
 	return &updateGenieAgentRequestWire{
 		GenieAgent: genieAgentWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
 		Etag:       v.Etag,
+	}, nil
+}
+
+func updateGenieAgentRequestFromWire(w *updateGenieAgentRequestWire) (*UpdateGenieAgentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	genieAgentPublicValue, err := genieAgentFromWire(w.GenieAgent)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateGenieAgentRequest.GenieAgent", err)
+	}
+	return &UpdateGenieAgentRequest{
+		GenieAgent: genieAgentPublicValue,
+		UpdateMask: w.UpdateMask,
+		Etag:       w.Etag,
 	}, nil
 }
 

@@ -165,6 +165,64 @@ func createFunctionToWire(v *CreateFunction) (*createFunctionWire, error) {
 	}, nil
 }
 
+func createFunctionFromWire(w *createFunctionWire) (*CreateFunction, error) {
+	if w == nil {
+		return nil, nil
+	}
+	inputParamsPublicValue, err := functionParameterInfosFromWire(w.InputParams)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateFunction.InputParams", err)
+	}
+	returnParamsPublicValue, err := functionParameterInfosFromWire(w.ReturnParams)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateFunction.ReturnParams", err)
+	}
+	routineDependenciesPublicValue, err := dependencyListFromWire(w.RoutineDependencies)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateFunction.RoutineDependencies", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateFunction.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateFunction.UpdatedAt", err)
+	}
+	return &CreateFunction{
+		Name:                w.Name,
+		CatalogName:         w.CatalogName,
+		SchemaName:          w.SchemaName,
+		InputParams:         inputParamsPublicValue,
+		DataType:            w.DataType,
+		FullDataType:        w.FullDataType,
+		RoutineBody:         w.RoutineBody,
+		RoutineDefinition:   w.RoutineDefinition,
+		ParameterStyle:      w.ParameterStyle,
+		IsDeterministic:     w.IsDeterministic,
+		SqlDataAccess:       w.SqlDataAccess,
+		IsNullCall:          w.IsNullCall,
+		SecurityType:        w.SecurityType,
+		SpecificName:        w.SpecificName,
+		ReturnParams:        returnParamsPublicValue,
+		ExternalName:        w.ExternalName,
+		ExternalLanguage:    w.ExternalLanguage,
+		SqlPath:             w.SqlPath,
+		Owner:               w.Owner,
+		Comment:             w.Comment,
+		Properties:          w.Properties,
+		RoutineDependencies: routineDependenciesPublicValue,
+		MetastoreId:         w.MetastoreId,
+		FullName:            w.FullName,
+		CreatedAt:           createdAtPublicValue,
+		CreatedBy:           w.CreatedBy,
+		UpdatedAt:           updatedAtPublicValue,
+		UpdatedBy:           w.UpdatedBy,
+		FunctionId:          w.FunctionId,
+		BrowseOnly:          w.BrowseOnly,
+	}, nil
+}
+
 type createFunctionRequestWire struct {
 	FunctionInfo *createFunctionWire `json:"function_info,omitempty"`
 }
@@ -179,6 +237,19 @@ func createFunctionRequestToWire(v *CreateFunctionRequest) (*createFunctionReque
 	}
 	return &createFunctionRequestWire{
 		FunctionInfo: functionInfoWireValue,
+	}, nil
+}
+
+func createFunctionRequestFromWire(w *createFunctionRequestWire) (*CreateFunctionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	functionInfoPublicValue, err := createFunctionFromWire(w.FunctionInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateFunctionRequest.FunctionInfo", err)
+	}
+	return &CreateFunctionRequest{
+		FunctionInfo: functionInfoPublicValue,
 	}, nil
 }
 
@@ -217,6 +288,33 @@ func deleteFunctionRequestToWire(v *DeleteFunctionRequest) (*deleteFunctionReque
 		FullNameArg: v.FullNameArg,
 		Force:       v.Force,
 	}, nil
+}
+
+func deleteFunctionRequestFromWire(w *deleteFunctionRequestWire) (*DeleteFunctionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteFunctionRequest{
+		FullNameArg: w.FullNameArg,
+		Force:       w.Force,
+	}, nil
+}
+
+type deleteFunctionResponseWire struct {
+}
+
+func deleteFunctionResponseToWire(v *DeleteFunctionResponse) (*deleteFunctionResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteFunctionResponseWire{}, nil
+}
+
+func deleteFunctionResponseFromWire(w *deleteFunctionResponseWire) (*DeleteFunctionResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteFunctionResponse{}, nil
 }
 
 type dependencyWire struct {
@@ -416,6 +514,64 @@ type functionInfoWire struct {
 	BrowseOnly          *bool                       `json:"browse_only,omitempty"`
 }
 
+func functionInfoToWire(v *FunctionInfo) (*functionInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	inputParamsWireValue, err := functionParameterInfosToWire(v.InputParams)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FunctionInfo.InputParams", err)
+	}
+	returnParamsWireValue, err := functionParameterInfosToWire(v.ReturnParams)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FunctionInfo.ReturnParams", err)
+	}
+	routineDependenciesWireValue, err := dependencyListToWire(v.RoutineDependencies)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FunctionInfo.RoutineDependencies", err)
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FunctionInfo.CreatedAt", err)
+	}
+	updatedAtWireValue, err := int64ToWire(v.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FunctionInfo.UpdatedAt", err)
+	}
+	return &functionInfoWire{
+		Name:                v.Name,
+		CatalogName:         v.CatalogName,
+		SchemaName:          v.SchemaName,
+		InputParams:         inputParamsWireValue,
+		DataType:            v.DataType,
+		FullDataType:        v.FullDataType,
+		RoutineBody:         v.RoutineBody,
+		RoutineDefinition:   v.RoutineDefinition,
+		ParameterStyle:      v.ParameterStyle,
+		IsDeterministic:     v.IsDeterministic,
+		SqlDataAccess:       v.SqlDataAccess,
+		IsNullCall:          v.IsNullCall,
+		SecurityType:        v.SecurityType,
+		SpecificName:        v.SpecificName,
+		ReturnParams:        returnParamsWireValue,
+		ExternalName:        v.ExternalName,
+		ExternalLanguage:    v.ExternalLanguage,
+		SqlPath:             v.SqlPath,
+		Owner:               v.Owner,
+		Comment:             v.Comment,
+		Properties:          v.Properties,
+		RoutineDependencies: routineDependenciesWireValue,
+		MetastoreId:         v.MetastoreId,
+		FullName:            v.FullName,
+		CreatedAt:           createdAtWireValue,
+		CreatedBy:           v.CreatedBy,
+		UpdatedAt:           updatedAtWireValue,
+		UpdatedBy:           v.UpdatedBy,
+		FunctionId:          v.FunctionId,
+		BrowseOnly:          v.BrowseOnly,
+	}, nil
+}
+
 func functionInfoFromWire(w *functionInfoWire) (*FunctionInfo, error) {
 	if w == nil {
 		return nil, nil
@@ -574,6 +730,16 @@ func getFunctionRequestToWire(v *GetFunctionRequest) (*getFunctionRequestWire, e
 	}, nil
 }
 
+func getFunctionRequestFromWire(w *getFunctionRequestWire) (*GetFunctionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetFunctionRequest{
+		FullNameArg:   w.FullNameArg,
+		IncludeBrowse: w.IncludeBrowse,
+	}, nil
+}
+
 type listFunctionsRequestWire struct {
 	CatalogName   *string `json:"catalog_name,omitempty"`
 	SchemaName    *string `json:"schema_name,omitempty"`
@@ -595,9 +761,36 @@ func listFunctionsRequestToWire(v *ListFunctionsRequest) (*listFunctionsRequestW
 	}, nil
 }
 
+func listFunctionsRequestFromWire(w *listFunctionsRequestWire) (*ListFunctionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListFunctionsRequest{
+		CatalogName:   w.CatalogName,
+		SchemaName:    w.SchemaName,
+		IncludeBrowse: w.IncludeBrowse,
+		MaxResults:    w.MaxResults,
+		PageToken:     w.PageToken,
+	}, nil
+}
+
 type listFunctionsResponseWire struct {
 	Functions     []functionInfoWire `json:"functions,omitempty"`
 	NextPageToken *string            `json:"next_page_token,omitempty"`
+}
+
+func listFunctionsResponseToWire(v *ListFunctionsResponse) (*listFunctionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	functionsWireValue, err := convertSlice(v.Functions, functionInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListFunctionsResponse.Functions", err)
+	}
+	return &listFunctionsResponseWire{
+		Functions:     functionsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listFunctionsResponseFromWire(w *listFunctionsResponseWire) (*ListFunctionsResponse, error) {
@@ -726,6 +919,65 @@ func updateFunctionRequestToWire(v *UpdateFunctionRequest) (*updateFunctionReque
 		UpdatedBy:           v.UpdatedBy,
 		FunctionId:          v.FunctionId,
 		BrowseOnly:          v.BrowseOnly,
+	}, nil
+}
+
+func updateFunctionRequestFromWire(w *updateFunctionRequestWire) (*UpdateFunctionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	inputParamsPublicValue, err := functionParameterInfosFromWire(w.InputParams)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateFunctionRequest.InputParams", err)
+	}
+	returnParamsPublicValue, err := functionParameterInfosFromWire(w.ReturnParams)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateFunctionRequest.ReturnParams", err)
+	}
+	routineDependenciesPublicValue, err := dependencyListFromWire(w.RoutineDependencies)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateFunctionRequest.RoutineDependencies", err)
+	}
+	createdAtPublicValue, err := int64FromWire(w.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateFunctionRequest.CreatedAt", err)
+	}
+	updatedAtPublicValue, err := int64FromWire(w.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateFunctionRequest.UpdatedAt", err)
+	}
+	return &UpdateFunctionRequest{
+		FullNameArg:         w.FullNameArg,
+		Name:                w.Name,
+		CatalogName:         w.CatalogName,
+		SchemaName:          w.SchemaName,
+		InputParams:         inputParamsPublicValue,
+		DataType:            w.DataType,
+		FullDataType:        w.FullDataType,
+		RoutineBody:         w.RoutineBody,
+		RoutineDefinition:   w.RoutineDefinition,
+		ParameterStyle:      w.ParameterStyle,
+		IsDeterministic:     w.IsDeterministic,
+		SqlDataAccess:       w.SqlDataAccess,
+		IsNullCall:          w.IsNullCall,
+		SecurityType:        w.SecurityType,
+		SpecificName:        w.SpecificName,
+		ReturnParams:        returnParamsPublicValue,
+		ExternalName:        w.ExternalName,
+		ExternalLanguage:    w.ExternalLanguage,
+		SqlPath:             w.SqlPath,
+		Owner:               w.Owner,
+		Comment:             w.Comment,
+		Properties:          w.Properties,
+		RoutineDependencies: routineDependenciesPublicValue,
+		MetastoreId:         w.MetastoreId,
+		FullName:            w.FullName,
+		CreatedAt:           createdAtPublicValue,
+		CreatedBy:           w.CreatedBy,
+		UpdatedAt:           updatedAtPublicValue,
+		UpdatedBy:           w.UpdatedBy,
+		FunctionId:          w.FunctionId,
+		BrowseOnly:          w.BrowseOnly,
 	}, nil
 }
 

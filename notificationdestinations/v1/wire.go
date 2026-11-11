@@ -243,6 +243,20 @@ func createNotificationDestinationRequestToWire(v *CreateNotificationDestination
 	}, nil
 }
 
+func createNotificationDestinationRequestFromWire(w *createNotificationDestinationRequestWire) (*CreateNotificationDestinationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	configPublicValue, err := configFromWire(w.Config)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateNotificationDestinationRequest.Config", err)
+	}
+	return &CreateNotificationDestinationRequest{
+		DisplayName: w.DisplayName,
+		Config:      configPublicValue,
+	}, nil
+}
+
 type databricksAppSlackConfigWire struct {
 	TeamId       *string `json:"team_id,omitempty"`
 	TeamIdSet    *bool   `json:"team_id_set,omitempty"`
@@ -311,6 +325,28 @@ func databricksAppTeamsConfigFromWire(w *databricksAppTeamsConfigWire) (*Databri
 	}, nil
 }
 
+type deleteNotificationDestinationRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func deleteNotificationDestinationRequestToWire(v *DeleteNotificationDestinationRequest) (*deleteNotificationDestinationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteNotificationDestinationRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func deleteNotificationDestinationRequestFromWire(w *deleteNotificationDestinationRequestWire) (*DeleteNotificationDestinationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteNotificationDestinationRequest{
+		Id: w.Id,
+	}, nil
+}
+
 type emailConfigWire struct {
 	Addresses []string `json:"addresses,omitempty"`
 }
@@ -331,6 +367,23 @@ func emailConfigFromWire(w *emailConfigWire) (*EmailConfig, error) {
 	return &EmailConfig{
 		Addresses: w.Addresses,
 	}, nil
+}
+
+type emptyWire struct {
+}
+
+func emptyToWire(v *Empty) (*emptyWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &emptyWire{}, nil
+}
+
+func emptyFromWire(w *emptyWire) (*Empty, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &Empty{}, nil
 }
 
 type genericWebhookConfigWire struct {
@@ -370,6 +423,28 @@ func genericWebhookConfigFromWire(w *genericWebhookConfigWire) (*GenericWebhookC
 	}, nil
 }
 
+type getNotificationDestinationRequestWire struct {
+	Id *string `json:"id,omitempty"`
+}
+
+func getNotificationDestinationRequestToWire(v *GetNotificationDestinationRequest) (*getNotificationDestinationRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getNotificationDestinationRequestWire{
+		Id: v.Id,
+	}, nil
+}
+
+func getNotificationDestinationRequestFromWire(w *getNotificationDestinationRequestWire) (*GetNotificationDestinationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetNotificationDestinationRequest{
+		Id: w.Id,
+	}, nil
+}
+
 type listNotificationDestinationsRequestWire struct {
 	PageToken *string    `json:"page_token,omitempty"`
 	PageSize  *wireInt64 `json:"page_size,omitempty"`
@@ -389,9 +464,37 @@ func listNotificationDestinationsRequestToWire(v *ListNotificationDestinationsRe
 	}, nil
 }
 
+func listNotificationDestinationsRequestFromWire(w *listNotificationDestinationsRequestWire) (*ListNotificationDestinationsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	pageSizePublicValue, err := int64FromWire(w.PageSize)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListNotificationDestinationsRequest.PageSize", err)
+	}
+	return &ListNotificationDestinationsRequest{
+		PageToken: w.PageToken,
+		PageSize:  pageSizePublicValue,
+	}, nil
+}
+
 type listNotificationDestinationsResponseWire struct {
 	Results       []listNotificationDestinationsResultWire `json:"results,omitempty"`
 	NextPageToken *string                                  `json:"next_page_token,omitempty"`
+}
+
+func listNotificationDestinationsResponseToWire(v *ListNotificationDestinationsResponse) (*listNotificationDestinationsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	resultsWireValue, err := convertSlice(v.Results, listNotificationDestinationsResultToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListNotificationDestinationsResponse.Results", err)
+	}
+	return &listNotificationDestinationsResponseWire{
+		Results:       resultsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listNotificationDestinationsResponseFromWire(w *listNotificationDestinationsResponseWire) (*ListNotificationDestinationsResponse, error) {
@@ -413,6 +516,22 @@ type listNotificationDestinationsResultWire struct {
 	DisplayName     *string         `json:"display_name,omitempty"`
 	DestinationType DestinationType `json:"destination_type,omitempty"`
 	Config          *configWire     `json:"config,omitempty"`
+}
+
+func listNotificationDestinationsResultToWire(v *ListNotificationDestinationsResult) (*listNotificationDestinationsResultWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	configWireValue, err := configToWire(v.Config)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListNotificationDestinationsResult.Config", err)
+	}
+	return &listNotificationDestinationsResultWire{
+		Id:              v.Id,
+		DisplayName:     v.DisplayName,
+		DestinationType: v.DestinationType,
+		Config:          configWireValue,
+	}, nil
 }
 
 func listNotificationDestinationsResultFromWire(w *listNotificationDestinationsResultWire) (*ListNotificationDestinationsResult, error) {
@@ -485,6 +604,22 @@ type notificationDestinationWire struct {
 	DisplayName     *string         `json:"display_name,omitempty"`
 	DestinationType DestinationType `json:"destination_type,omitempty"`
 	Config          *configWire     `json:"config,omitempty"`
+}
+
+func notificationDestinationToWire(v *NotificationDestination) (*notificationDestinationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	configWireValue, err := configToWire(v.Config)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "NotificationDestination.Config", err)
+	}
+	return &notificationDestinationWire{
+		Id:              v.Id,
+		DisplayName:     v.DisplayName,
+		DestinationType: v.DestinationType,
+		Config:          configWireValue,
+	}, nil
 }
 
 func notificationDestinationFromWire(w *notificationDestinationWire) (*NotificationDestination, error) {
@@ -583,6 +718,21 @@ func updateNotificationDestinationRequestToWire(v *UpdateNotificationDestination
 		Id:          v.Id,
 		DisplayName: v.DisplayName,
 		Config:      configWireValue,
+	}, nil
+}
+
+func updateNotificationDestinationRequestFromWire(w *updateNotificationDestinationRequestWire) (*UpdateNotificationDestinationRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	configPublicValue, err := configFromWire(w.Config)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateNotificationDestinationRequest.Config", err)
+	}
+	return &UpdateNotificationDestinationRequest{
+		Id:          w.Id,
+		DisplayName: w.DisplayName,
+		Config:      configPublicValue,
 	}, nil
 }
 

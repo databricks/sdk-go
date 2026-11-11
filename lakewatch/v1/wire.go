@@ -54,14 +54,6 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type alertConfigWire struct {
 	Name                                         *string           `json:"name,omitempty"`
 	Version                                      *wireInt64        `json:"version,omitempty"`
@@ -284,8 +276,6 @@ type commonConfigWire struct {
 	UpdateTime                    *types.Time    `json:"update_time,omitempty"`
 	UpdatedBy                     *principalWire `json:"updated_by,omitempty"`
 	Etag                          *string        `json:"etag,omitempty"`
-	CustomPresetsPath             *string        `json:"custom_presets_path,omitempty"`
-	CustomContentPackPath         *string        `json:"custom_content_pack_path,omitempty"`
 	PerResourcePermissionsEnabled *bool          `json:"per_resource_permissions_enabled,omitempty"`
 }
 
@@ -307,8 +297,6 @@ func commonConfigToWire(v *CommonConfig) (*commonConfigWire, error) {
 		UpdateTime:                    v.UpdateTime,
 		UpdatedBy:                     updatedByWireValue,
 		Etag:                          v.Etag,
-		CustomPresetsPath:             v.CustomPresetsPath,
-		CustomContentPackPath:         v.CustomContentPackPath,
 		PerResourcePermissionsEnabled: v.PerResourcePermissionsEnabled,
 	}, nil
 }
@@ -331,8 +319,6 @@ func commonConfigFromWire(w *commonConfigWire) (*CommonConfig, error) {
 		UpdateTime:                    w.UpdateTime,
 		UpdatedBy:                     updatedByPublicValue,
 		Etag:                          w.Etag,
-		CustomPresetsPath:             w.CustomPresetsPath,
-		CustomContentPackPath:         w.CustomContentPackPath,
 		PerResourcePermissionsEnabled: w.PerResourcePermissionsEnabled,
 	}, nil
 }
@@ -379,6 +365,19 @@ func createDatasourceRequestToWire(v *CreateDatasourceRequest) (*createDatasourc
 	}, nil
 }
 
+func createDatasourceRequestFromWire(w *createDatasourceRequestWire) (*CreateDatasourceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	datasourcePublicValue, err := datasourceFromWire(w.Datasource)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateDatasourceRequest.Datasource", err)
+	}
+	return &CreateDatasourceRequest{
+		Datasource: datasourcePublicValue,
+	}, nil
+}
+
 type createRuleRequestWire struct {
 	Rule *ruleWire `json:"rule,omitempty"`
 }
@@ -393,6 +392,19 @@ func createRuleRequestToWire(v *CreateRuleRequest) (*createRuleRequestWire, erro
 	}
 	return &createRuleRequestWire{
 		Rule: ruleWireValue,
+	}, nil
+}
+
+func createRuleRequestFromWire(w *createRuleRequestWire) (*CreateRuleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	rulePublicValue, err := ruleFromWire(w.Rule)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateRuleRequest.Rule", err)
+	}
+	return &CreateRuleRequest{
+		Rule: rulePublicValue,
 	}, nil
 }
 
@@ -719,6 +731,50 @@ func datasourceStatusFromWire(w *datasourceStatusWire) (*DatasourceStatus, error
 	}, nil
 }
 
+type deleteDatasourceRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteDatasourceRequestToWire(v *DeleteDatasourceRequest) (*deleteDatasourceRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteDatasourceRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteDatasourceRequestFromWire(w *deleteDatasourceRequestWire) (*DeleteDatasourceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteDatasourceRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type deleteRuleRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteRuleRequestToWire(v *DeleteRuleRequest) (*deleteRuleRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteRuleRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteRuleRequestFromWire(w *deleteRuleRequestWire) (*DeleteRuleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRuleRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type envelopeWire struct {
 	JsonArray      *jsonArrayEnvelopeWire      `json:"json_array,omitempty"`
 	CloudWatchLogs *cloudWatchLogsEnvelopeWire `json:"cloud_watch_logs,omitempty"`
@@ -969,6 +1025,138 @@ func exportConfigFromWire(w *exportConfigWire) (*ExportConfig, error) {
 	}, nil
 }
 
+type getAlertConfigRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getAlertConfigRequestToWire(v *GetAlertConfigRequest) (*getAlertConfigRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getAlertConfigRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getAlertConfigRequestFromWire(w *getAlertConfigRequestWire) (*GetAlertConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetAlertConfigRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getCommonConfigRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getCommonConfigRequestToWire(v *GetCommonConfigRequest) (*getCommonConfigRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getCommonConfigRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getCommonConfigRequestFromWire(w *getCommonConfigRequestWire) (*GetCommonConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCommonConfigRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getDatasourceConfigRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getDatasourceConfigRequestToWire(v *GetDatasourceConfigRequest) (*getDatasourceConfigRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getDatasourceConfigRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getDatasourceConfigRequestFromWire(w *getDatasourceConfigRequestWire) (*GetDatasourceConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetDatasourceConfigRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getDatasourceRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getDatasourceRequestToWire(v *GetDatasourceRequest) (*getDatasourceRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getDatasourceRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getDatasourceRequestFromWire(w *getDatasourceRequestWire) (*GetDatasourceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetDatasourceRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getRuleConfigRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getRuleConfigRequestToWire(v *GetRuleConfigRequest) (*getRuleConfigRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getRuleConfigRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getRuleConfigRequestFromWire(w *getRuleConfigRequestWire) (*GetRuleConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetRuleConfigRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getRuleRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getRuleRequestToWire(v *GetRuleRequest) (*getRuleRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getRuleRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getRuleRequestFromWire(w *getRuleRequestWire) (*GetRuleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetRuleRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type jiraExportConfigWire struct {
 	InstanceUrl      *string `json:"instance_url,omitempty"`
 	ProjectKey       *string `json:"project_key,omitempty"`
@@ -1048,9 +1236,37 @@ func listDatasourcesRequestToWire(v *ListDatasourcesRequest) (*listDatasourcesRe
 	}, nil
 }
 
+func listDatasourcesRequestFromWire(w *listDatasourcesRequestWire) (*ListDatasourcesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListDatasourcesRequest{
+		PageSize:    w.PageSize,
+		PageToken:   w.PageToken,
+		Filter:      w.Filter,
+		CatalogName: w.CatalogName,
+		SchemaName:  w.SchemaName,
+		View:        w.View,
+	}, nil
+}
+
 type listDatasourcesResponseWire struct {
 	Datasources   []datasourceWire `json:"datasources,omitempty"`
 	NextPageToken *string          `json:"next_page_token,omitempty"`
+}
+
+func listDatasourcesResponseToWire(v *ListDatasourcesResponse) (*listDatasourcesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	datasourcesWireValue, err := convertSlice(v.Datasources, datasourceToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListDatasourcesResponse.Datasources", err)
+	}
+	return &listDatasourcesResponseWire{
+		Datasources:   datasourcesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listDatasourcesResponseFromWire(w *listDatasourcesResponseWire) (*ListDatasourcesResponse, error) {
@@ -1090,9 +1306,37 @@ func listRulesRequestToWire(v *ListRulesRequest) (*listRulesRequestWire, error) 
 	}, nil
 }
 
+func listRulesRequestFromWire(w *listRulesRequestWire) (*ListRulesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListRulesRequest{
+		PageSize:    w.PageSize,
+		PageToken:   w.PageToken,
+		Filter:      w.Filter,
+		CatalogName: w.CatalogName,
+		SchemaName:  w.SchemaName,
+		View:        w.View,
+	}, nil
+}
+
 type listRulesResponseWire struct {
 	Rules         []ruleWire `json:"rules,omitempty"`
 	NextPageToken *string    `json:"next_page_token,omitempty"`
+}
+
+func listRulesResponseToWire(v *ListRulesResponse) (*listRulesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	rulesWireValue, err := convertSlice(v.Rules, ruleToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRulesResponse.Rules", err)
+	}
+	return &listRulesResponseWire{
+		Rules:         rulesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listRulesResponseFromWire(w *listRulesResponseWire) (*ListRulesResponse, error) {
@@ -2056,9 +2300,9 @@ func unityCatalogConnectionFromWire(w *unityCatalogConnectionWire) (*UnityCatalo
 }
 
 type updateAlertConfigRequestWire struct {
-	AlertConfig *alertConfigWire `json:"alert_config,omitempty"`
-	UpdateMask  *string          `json:"update_mask,omitempty"`
-	Etag        *string          `json:"etag,omitempty"`
+	AlertConfig *alertConfigWire              `json:"alert_config,omitempty"`
+	UpdateMask  *types.FieldMask[AlertConfig] `json:"update_mask,omitempty"`
+	Etag        *string                       `json:"etag,omitempty"`
 }
 
 func updateAlertConfigRequestToWire(v *UpdateAlertConfigRequest) (*updateAlertConfigRequestWire, error) {
@@ -2071,15 +2315,30 @@ func updateAlertConfigRequestToWire(v *UpdateAlertConfigRequest) (*updateAlertCo
 	}
 	return &updateAlertConfigRequestWire{
 		AlertConfig: alertConfigWireValue,
-		UpdateMask:  fieldMaskToWire(v.UpdateMask),
+		UpdateMask:  v.UpdateMask,
 		Etag:        v.Etag,
 	}, nil
 }
 
+func updateAlertConfigRequestFromWire(w *updateAlertConfigRequestWire) (*UpdateAlertConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	alertConfigPublicValue, err := alertConfigFromWire(w.AlertConfig)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAlertConfigRequest.AlertConfig", err)
+	}
+	return &UpdateAlertConfigRequest{
+		AlertConfig: alertConfigPublicValue,
+		UpdateMask:  w.UpdateMask,
+		Etag:        w.Etag,
+	}, nil
+}
+
 type updateCommonConfigRequestWire struct {
-	CommonConfig *commonConfigWire `json:"common_config,omitempty"`
-	UpdateMask   *string           `json:"update_mask,omitempty"`
-	Etag         *string           `json:"etag,omitempty"`
+	CommonConfig *commonConfigWire              `json:"common_config,omitempty"`
+	UpdateMask   *types.FieldMask[CommonConfig] `json:"update_mask,omitempty"`
+	Etag         *string                        `json:"etag,omitempty"`
 }
 
 func updateCommonConfigRequestToWire(v *UpdateCommonConfigRequest) (*updateCommonConfigRequestWire, error) {
@@ -2092,15 +2351,30 @@ func updateCommonConfigRequestToWire(v *UpdateCommonConfigRequest) (*updateCommo
 	}
 	return &updateCommonConfigRequestWire{
 		CommonConfig: commonConfigWireValue,
-		UpdateMask:   fieldMaskToWire(v.UpdateMask),
+		UpdateMask:   v.UpdateMask,
 		Etag:         v.Etag,
 	}, nil
 }
 
+func updateCommonConfigRequestFromWire(w *updateCommonConfigRequestWire) (*UpdateCommonConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	commonConfigPublicValue, err := commonConfigFromWire(w.CommonConfig)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCommonConfigRequest.CommonConfig", err)
+	}
+	return &UpdateCommonConfigRequest{
+		CommonConfig: commonConfigPublicValue,
+		UpdateMask:   w.UpdateMask,
+		Etag:         w.Etag,
+	}, nil
+}
+
 type updateDatasourceConfigRequestWire struct {
-	DatasourceConfig *datasourceConfigWire `json:"datasource_config,omitempty"`
-	UpdateMask       *string               `json:"update_mask,omitempty"`
-	Etag             *string               `json:"etag,omitempty"`
+	DatasourceConfig *datasourceConfigWire              `json:"datasource_config,omitempty"`
+	UpdateMask       *types.FieldMask[DatasourceConfig] `json:"update_mask,omitempty"`
+	Etag             *string                            `json:"etag,omitempty"`
 }
 
 func updateDatasourceConfigRequestToWire(v *UpdateDatasourceConfigRequest) (*updateDatasourceConfigRequestWire, error) {
@@ -2113,15 +2387,30 @@ func updateDatasourceConfigRequestToWire(v *UpdateDatasourceConfigRequest) (*upd
 	}
 	return &updateDatasourceConfigRequestWire{
 		DatasourceConfig: datasourceConfigWireValue,
-		UpdateMask:       fieldMaskToWire(v.UpdateMask),
+		UpdateMask:       v.UpdateMask,
 		Etag:             v.Etag,
 	}, nil
 }
 
+func updateDatasourceConfigRequestFromWire(w *updateDatasourceConfigRequestWire) (*UpdateDatasourceConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	datasourceConfigPublicValue, err := datasourceConfigFromWire(w.DatasourceConfig)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateDatasourceConfigRequest.DatasourceConfig", err)
+	}
+	return &UpdateDatasourceConfigRequest{
+		DatasourceConfig: datasourceConfigPublicValue,
+		UpdateMask:       w.UpdateMask,
+		Etag:             w.Etag,
+	}, nil
+}
+
 type updateDatasourceRequestWire struct {
-	Datasource *datasourceWire `json:"datasource,omitempty"`
-	UpdateMask *string         `json:"update_mask,omitempty"`
-	Etag       *string         `json:"etag,omitempty"`
+	Datasource *datasourceWire              `json:"datasource,omitempty"`
+	UpdateMask *types.FieldMask[Datasource] `json:"update_mask,omitempty"`
+	Etag       *string                      `json:"etag,omitempty"`
 }
 
 func updateDatasourceRequestToWire(v *UpdateDatasourceRequest) (*updateDatasourceRequestWire, error) {
@@ -2134,15 +2423,30 @@ func updateDatasourceRequestToWire(v *UpdateDatasourceRequest) (*updateDatasourc
 	}
 	return &updateDatasourceRequestWire{
 		Datasource: datasourceWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
 		Etag:       v.Etag,
 	}, nil
 }
 
+func updateDatasourceRequestFromWire(w *updateDatasourceRequestWire) (*UpdateDatasourceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	datasourcePublicValue, err := datasourceFromWire(w.Datasource)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateDatasourceRequest.Datasource", err)
+	}
+	return &UpdateDatasourceRequest{
+		Datasource: datasourcePublicValue,
+		UpdateMask: w.UpdateMask,
+		Etag:       w.Etag,
+	}, nil
+}
+
 type updateRuleConfigRequestWire struct {
-	RuleConfig *ruleConfigWire `json:"rule_config,omitempty"`
-	UpdateMask *string         `json:"update_mask,omitempty"`
-	Etag       *string         `json:"etag,omitempty"`
+	RuleConfig *ruleConfigWire              `json:"rule_config,omitempty"`
+	UpdateMask *types.FieldMask[RuleConfig] `json:"update_mask,omitempty"`
+	Etag       *string                      `json:"etag,omitempty"`
 }
 
 func updateRuleConfigRequestToWire(v *UpdateRuleConfigRequest) (*updateRuleConfigRequestWire, error) {
@@ -2155,15 +2459,30 @@ func updateRuleConfigRequestToWire(v *UpdateRuleConfigRequest) (*updateRuleConfi
 	}
 	return &updateRuleConfigRequestWire{
 		RuleConfig: ruleConfigWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
 		Etag:       v.Etag,
 	}, nil
 }
 
+func updateRuleConfigRequestFromWire(w *updateRuleConfigRequestWire) (*UpdateRuleConfigRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	ruleConfigPublicValue, err := ruleConfigFromWire(w.RuleConfig)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRuleConfigRequest.RuleConfig", err)
+	}
+	return &UpdateRuleConfigRequest{
+		RuleConfig: ruleConfigPublicValue,
+		UpdateMask: w.UpdateMask,
+		Etag:       w.Etag,
+	}, nil
+}
+
 type updateRuleRequestWire struct {
-	Rule       *ruleWire `json:"rule,omitempty"`
-	UpdateMask *string   `json:"update_mask,omitempty"`
-	Etag       *string   `json:"etag,omitempty"`
+	Rule       *ruleWire              `json:"rule,omitempty"`
+	UpdateMask *types.FieldMask[Rule] `json:"update_mask,omitempty"`
+	Etag       *string                `json:"etag,omitempty"`
 }
 
 func updateRuleRequestToWire(v *UpdateRuleRequest) (*updateRuleRequestWire, error) {
@@ -2176,8 +2495,23 @@ func updateRuleRequestToWire(v *UpdateRuleRequest) (*updateRuleRequestWire, erro
 	}
 	return &updateRuleRequestWire{
 		Rule:       ruleWireValue,
-		UpdateMask: fieldMaskToWire(v.UpdateMask),
+		UpdateMask: v.UpdateMask,
 		Etag:       v.Etag,
+	}, nil
+}
+
+func updateRuleRequestFromWire(w *updateRuleRequestWire) (*UpdateRuleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	rulePublicValue, err := ruleFromWire(w.Rule)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRuleRequest.Rule", err)
+	}
+	return &UpdateRuleRequest{
+		Rule:       rulePublicValue,
+		UpdateMask: w.UpdateMask,
+		Etag:       w.Etag,
 	}, nil
 }
 

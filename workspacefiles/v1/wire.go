@@ -67,8 +67,44 @@ func deleteRequestToWire(v *DeleteRequest) (*deleteRequestWire, error) {
 	}, nil
 }
 
+func deleteRequestFromWire(w *deleteRequestWire) (*DeleteRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteRequest{
+		Path:      w.Path,
+		Recursive: w.Recursive,
+	}, nil
+}
+
+type deleteResponseWire struct {
+}
+
+func deleteResponseToWire(v *DeleteResponse) (*deleteResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteResponseWire{}, nil
+}
+
+func deleteResponseFromWire(w *deleteResponseWire) (*DeleteResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteResponse{}, nil
+}
+
 type directoryInfoWire struct {
 	IsGitFolder *bool `json:"is_git_folder,omitempty"`
+}
+
+func directoryInfoToWire(v *DirectoryInfo) (*directoryInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &directoryInfoWire{
+		IsGitFolder: v.IsGitFolder,
+	}, nil
 }
 
 func directoryInfoFromWire(w *directoryInfoWire) (*DirectoryInfo, error) {
@@ -97,9 +133,30 @@ func exportRequestToWire(v *ExportRequest) (*exportRequestWire, error) {
 	}, nil
 }
 
+func exportRequestFromWire(w *exportRequestWire) (*ExportRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ExportRequest{
+		Path:           w.Path,
+		Format:         w.Format,
+		DirectDownload: w.DirectDownload,
+	}, nil
+}
+
 type exportResponseWire struct {
 	Content  []byte  `json:"content,omitempty"`
 	FileType *string `json:"file_type,omitempty"`
+}
+
+func exportResponseToWire(v *ExportResponse) (*exportResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &exportResponseWire{
+		Content:  v.Content,
+		FileType: v.FileType,
+	}, nil
 }
 
 func exportResponseFromWire(w *exportResponseWire) (*ExportResponse, error) {
@@ -125,6 +182,15 @@ func getStatusRequestToWire(v *GetStatusRequest) (*getStatusRequestWire, error) 
 	}, nil
 }
 
+func getStatusRequestFromWire(w *getStatusRequestWire) (*GetStatusRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetStatusRequest{
+		Path: w.Path,
+	}, nil
+}
+
 type importRequestWire struct {
 	Path      *string      `json:"path,omitempty"`
 	Format    ExportFormat `json:"format,omitempty"`
@@ -146,6 +212,36 @@ func importRequestToWire(v *ImportRequest) (*importRequestWire, error) {
 	}, nil
 }
 
+func importRequestFromWire(w *importRequestWire) (*ImportRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ImportRequest{
+		Path:      w.Path,
+		Format:    w.Format,
+		Language:  w.Language,
+		Content:   w.Content,
+		Overwrite: w.Overwrite,
+	}, nil
+}
+
+type importResponseWire struct {
+}
+
+func importResponseToWire(v *ImportResponse) (*importResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &importResponseWire{}, nil
+}
+
+func importResponseFromWire(w *importResponseWire) (*ImportResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ImportResponse{}, nil
+}
+
 type listRequestWire struct {
 	Path                   *string    `json:"path,omitempty"`
 	NotebooksModifiedAfter *wireInt64 `json:"notebooks_modified_after,omitempty"`
@@ -165,8 +261,35 @@ func listRequestToWire(v *ListRequest) (*listRequestWire, error) {
 	}, nil
 }
 
+func listRequestFromWire(w *listRequestWire) (*ListRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	notebooksModifiedAfterPublicValue, err := int64FromWire(w.NotebooksModifiedAfter)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListRequest.NotebooksModifiedAfter", err)
+	}
+	return &ListRequest{
+		Path:                   w.Path,
+		NotebooksModifiedAfter: notebooksModifiedAfterPublicValue,
+	}, nil
+}
+
 type listResponseWire struct {
 	Objects []objectInfoWire `json:"objects,omitempty"`
+}
+
+func listResponseToWire(v *ListResponse) (*listResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	objectsWireValue, err := convertSlice(v.Objects, objectInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListResponse.Objects", err)
+	}
+	return &listResponseWire{
+		Objects: objectsWireValue,
+	}, nil
 }
 
 func listResponseFromWire(w *listResponseWire) (*ListResponse, error) {
@@ -195,6 +318,32 @@ func mkdirsRequestToWire(v *MkdirsRequest) (*mkdirsRequestWire, error) {
 	}, nil
 }
 
+func mkdirsRequestFromWire(w *mkdirsRequestWire) (*MkdirsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &MkdirsRequest{
+		Path: w.Path,
+	}, nil
+}
+
+type mkdirsResponseWire struct {
+}
+
+func mkdirsResponseToWire(v *MkdirsResponse) (*mkdirsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &mkdirsResponseWire{}, nil
+}
+
+func mkdirsResponseFromWire(w *mkdirsResponseWire) (*MkdirsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &MkdirsResponse{}, nil
+}
+
 type objectInfoWire struct {
 	ObjectType    ObjectType         `json:"object_type,omitempty"`
 	Path          *string            `json:"path,omitempty"`
@@ -205,6 +354,43 @@ type objectInfoWire struct {
 	Size          *wireInt64         `json:"size,omitempty"`
 	ResourceId    *string            `json:"resource_id,omitempty"`
 	DirectoryInfo *directoryInfoWire `json:"directory_info,omitempty"`
+}
+
+func objectInfoToWire(v *ObjectInfo) (*objectInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	createdAtWireValue, err := int64ToWire(v.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ObjectInfo.CreatedAt", err)
+	}
+	modifiedAtWireValue, err := int64ToWire(v.ModifiedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ObjectInfo.ModifiedAt", err)
+	}
+	objectIdWireValue, err := int64ToWire(v.ObjectId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ObjectInfo.ObjectId", err)
+	}
+	sizeWireValue, err := int64ToWire(v.Size)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ObjectInfo.Size", err)
+	}
+	directoryInfoWireValue, err := directoryInfoToWire(v.DirectoryInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ObjectInfo.DirectoryInfo", err)
+	}
+	return &objectInfoWire{
+		ObjectType:    v.ObjectType,
+		Path:          v.Path,
+		Language:      v.Language,
+		CreatedAt:     createdAtWireValue,
+		ModifiedAt:    modifiedAtWireValue,
+		ObjectId:      objectIdWireValue,
+		Size:          sizeWireValue,
+		ResourceId:    v.ResourceId,
+		DirectoryInfo: directoryInfoWireValue,
+	}, nil
 }
 
 func objectInfoFromWire(w *objectInfoWire) (*ObjectInfo, error) {

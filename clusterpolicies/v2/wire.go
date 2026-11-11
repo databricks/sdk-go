@@ -59,6 +59,24 @@ type allowedComputeProductsWire struct {
 	Lakebase  *lakebaseConstraintsWire  `json:"lakebase,omitempty"`
 }
 
+func allowedComputeProductsToWire(v *AllowedComputeProducts) (*allowedComputeProductsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	automatedWireValue, err := automatedConstraintsToWire(v.Automated)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AllowedComputeProducts.Automated", err)
+	}
+	lakebaseWireValue, err := lakebaseConstraintsToWire(v.Lakebase)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AllowedComputeProducts.Lakebase", err)
+	}
+	return &allowedComputeProductsWire{
+		Automated: automatedWireValue,
+		Lakebase:  lakebaseWireValue,
+	}, nil
+}
+
 func allowedComputeProductsFromWire(w *allowedComputeProductsWire) (*AllowedComputeProducts, error) {
 	if w == nil {
 		return nil, nil
@@ -79,6 +97,19 @@ func allowedComputeProductsFromWire(w *allowedComputeProductsWire) (*AllowedComp
 
 type automatedConstraintsWire struct {
 	PerWorkloadMax *rateLimitConfigWire `json:"per_workload_max,omitempty"`
+}
+
+func automatedConstraintsToWire(v *AutomatedConstraints) (*automatedConstraintsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	perWorkloadMaxWireValue, err := rateLimitConfigToWire(v.PerWorkloadMax)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AutomatedConstraints.PerWorkloadMax", err)
+	}
+	return &automatedConstraintsWire{
+		PerWorkloadMax: perWorkloadMaxWireValue,
+	}, nil
 }
 
 func automatedConstraintsFromWire(w *automatedConstraintsWire) (*AutomatedConstraints, error) {
@@ -103,6 +134,26 @@ type computePolicyWire struct {
 	CreateTime             *types.Time                 `json:"create_time,omitempty"`
 	CanUse                 *bool                       `json:"can_use,omitempty"`
 	CanManage              *bool                       `json:"can_manage,omitempty"`
+}
+
+func computePolicyToWire(v *ComputePolicy) (*computePolicyWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	allowedComputeProductsWireValue, err := allowedComputeProductsToWire(v.AllowedComputeProducts)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ComputePolicy.AllowedComputeProducts", err)
+	}
+	return &computePolicyWire{
+		ComputePolicyId:        v.ComputePolicyId,
+		DisplayName:            v.DisplayName,
+		AllowedComputeProducts: allowedComputeProductsWireValue,
+		Tags:                   v.Tags,
+		IsDefault:              v.IsDefault,
+		CreateTime:             v.CreateTime,
+		CanUse:                 v.CanUse,
+		CanManage:              v.CanManage,
+	}, nil
 }
 
 func computePolicyFromWire(w *computePolicyWire) (*ComputePolicy, error) {
@@ -158,8 +209,40 @@ func createPolicyRequestToWire(v *CreatePolicyRequest) (*createPolicyRequestWire
 	}, nil
 }
 
+func createPolicyRequestFromWire(w *createPolicyRequestWire) (*CreatePolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	maxClustersPerUserPublicValue, err := int64FromWire(w.MaxClustersPerUser)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePolicyRequest.MaxClustersPerUser", err)
+	}
+	librariesPublicValue, err := convertSlice(w.Libraries, libraryFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePolicyRequest.Libraries", err)
+	}
+	return &CreatePolicyRequest{
+		Name:                            w.Name,
+		Definition:                      w.Definition,
+		Description:                     w.Description,
+		PolicyFamilyId:                  w.PolicyFamilyId,
+		PolicyFamilyDefinitionOverrides: w.PolicyFamilyDefinitionOverrides,
+		MaxClustersPerUser:              maxClustersPerUserPublicValue,
+		Libraries:                       librariesPublicValue,
+	}, nil
+}
+
 type createPolicyResponseWire struct {
 	PolicyId *string `json:"policy_id,omitempty"`
+}
+
+func createPolicyResponseToWire(v *CreatePolicyResponse) (*createPolicyResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &createPolicyResponseWire{
+		PolicyId: v.PolicyId,
+	}, nil
 }
 
 func createPolicyResponseFromWire(w *createPolicyResponseWire) (*CreatePolicyResponse, error) {
@@ -182,6 +265,32 @@ func deletePolicyRequestToWire(v *DeletePolicyRequest) (*deletePolicyRequestWire
 	return &deletePolicyRequestWire{
 		PolicyId: v.PolicyId,
 	}, nil
+}
+
+func deletePolicyRequestFromWire(w *deletePolicyRequestWire) (*DeletePolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeletePolicyRequest{
+		PolicyId: w.PolicyId,
+	}, nil
+}
+
+type deletePolicyResponseWire struct {
+}
+
+func deletePolicyResponseToWire(v *DeletePolicyResponse) (*deletePolicyResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deletePolicyResponseWire{}, nil
+}
+
+func deletePolicyResponseFromWire(w *deletePolicyResponseWire) (*DeletePolicyResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeletePolicyResponse{}, nil
 }
 
 type editPolicyRequestWire struct {
@@ -219,6 +328,47 @@ func editPolicyRequestToWire(v *EditPolicyRequest) (*editPolicyRequestWire, erro
 	}, nil
 }
 
+func editPolicyRequestFromWire(w *editPolicyRequestWire) (*EditPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	maxClustersPerUserPublicValue, err := int64FromWire(w.MaxClustersPerUser)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditPolicyRequest.MaxClustersPerUser", err)
+	}
+	librariesPublicValue, err := convertSlice(w.Libraries, libraryFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditPolicyRequest.Libraries", err)
+	}
+	return &EditPolicyRequest{
+		PolicyId:                        w.PolicyId,
+		Name:                            w.Name,
+		Definition:                      w.Definition,
+		Description:                     w.Description,
+		PolicyFamilyId:                  w.PolicyFamilyId,
+		PolicyFamilyDefinitionOverrides: w.PolicyFamilyDefinitionOverrides,
+		MaxClustersPerUser:              maxClustersPerUserPublicValue,
+		Libraries:                       librariesPublicValue,
+	}, nil
+}
+
+type editPolicyResponseWire struct {
+}
+
+func editPolicyResponseToWire(v *EditPolicyResponse) (*editPolicyResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &editPolicyResponseWire{}, nil
+}
+
+func editPolicyResponseFromWire(w *editPolicyResponseWire) (*EditPolicyResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &EditPolicyResponse{}, nil
+}
+
 type getPolicyRequestWire struct {
 	PolicyId *string `json:"policy_id,omitempty"`
 }
@@ -232,9 +382,36 @@ func getPolicyRequestToWire(v *GetPolicyRequest) (*getPolicyRequestWire, error) 
 	}, nil
 }
 
+func getPolicyRequestFromWire(w *getPolicyRequestWire) (*GetPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetPolicyRequest{
+		PolicyId: w.PolicyId,
+	}, nil
+}
+
 type lakebaseConstraintsWire struct {
 	MaxCapacityUnitsPerInstance     *wireInt64 `json:"max_capacity_units_per_instance,omitempty"`
 	MaxIdleMinutesBeforeScaleToZero *wireInt64 `json:"max_idle_minutes_before_scale_to_zero,omitempty"`
+}
+
+func lakebaseConstraintsToWire(v *LakebaseConstraints) (*lakebaseConstraintsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	maxCapacityUnitsPerInstanceWireValue, err := int64ToWire(v.MaxCapacityUnitsPerInstance)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LakebaseConstraints.MaxCapacityUnitsPerInstance", err)
+	}
+	maxIdleMinutesBeforeScaleToZeroWireValue, err := int64ToWire(v.MaxIdleMinutesBeforeScaleToZero)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "LakebaseConstraints.MaxIdleMinutesBeforeScaleToZero", err)
+	}
+	return &lakebaseConstraintsWire{
+		MaxCapacityUnitsPerInstance:     maxCapacityUnitsPerInstanceWireValue,
+		MaxIdleMinutesBeforeScaleToZero: maxIdleMinutesBeforeScaleToZeroWireValue,
+	}, nil
 }
 
 func lakebaseConstraintsFromWire(w *lakebaseConstraintsWire) (*LakebaseConstraints, error) {
@@ -410,9 +587,33 @@ func listComputePoliciesRequestToWire(v *ListComputePoliciesRequest) (*listCompu
 	}, nil
 }
 
+func listComputePoliciesRequestFromWire(w *listComputePoliciesRequestWire) (*ListComputePoliciesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListComputePoliciesRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listComputePoliciesResponseWire struct {
 	ComputePolicies []computePolicyWire `json:"compute_policies,omitempty"`
 	NextPageToken   *string             `json:"next_page_token,omitempty"`
+}
+
+func listComputePoliciesResponseToWire(v *ListComputePoliciesResponse) (*listComputePoliciesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	computePoliciesWireValue, err := convertSlice(v.ComputePolicies, computePolicyToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListComputePoliciesResponse.ComputePolicies", err)
+	}
+	return &listComputePoliciesResponseWire{
+		ComputePolicies: computePoliciesWireValue,
+		NextPageToken:   v.NextPageToken,
+	}, nil
 }
 
 func listComputePoliciesResponseFromWire(w *listComputePoliciesResponseWire) (*ListComputePoliciesResponse, error) {
@@ -444,8 +645,31 @@ func listPoliciesRequestToWire(v *ListPoliciesRequest) (*listPoliciesRequestWire
 	}, nil
 }
 
+func listPoliciesRequestFromWire(w *listPoliciesRequestWire) (*ListPoliciesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListPoliciesRequest{
+		SortOrder:  w.SortOrder,
+		SortColumn: w.SortColumn,
+	}, nil
+}
+
 type listPoliciesResponseWire struct {
 	Policies []policyWire `json:"policies,omitempty"`
+}
+
+func listPoliciesResponseToWire(v *ListPoliciesResponse) (*listPoliciesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	policiesWireValue, err := convertSlice(v.Policies, policyToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListPoliciesResponse.Policies", err)
+	}
+	return &listPoliciesResponseWire{
+		Policies: policiesWireValue,
+	}, nil
 }
 
 func listPoliciesResponseFromWire(w *listPoliciesResponseWire) (*ListPoliciesResponse, error) {
@@ -476,9 +700,33 @@ func listServerlessComputesRequestToWire(v *ListServerlessComputesRequest) (*lis
 	}, nil
 }
 
+func listServerlessComputesRequestFromWire(w *listServerlessComputesRequestWire) (*ListServerlessComputesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListServerlessComputesRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
 type listServerlessComputesResponseWire struct {
 	ServerlessComputes []serverlessComputeWire `json:"serverless_computes,omitempty"`
 	NextPageToken      *string                 `json:"next_page_token,omitempty"`
+}
+
+func listServerlessComputesResponseToWire(v *ListServerlessComputesResponse) (*listServerlessComputesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	serverlessComputesWireValue, err := convertSlice(v.ServerlessComputes, serverlessComputeToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListServerlessComputesResponse.ServerlessComputes", err)
+	}
+	return &listServerlessComputesResponseWire{
+		ServerlessComputes: serverlessComputesWireValue,
+		NextPageToken:      v.NextPageToken,
+	}, nil
 }
 
 func listServerlessComputesResponseFromWire(w *listServerlessComputesResponseWire) (*ListServerlessComputesResponse, error) {
@@ -535,6 +783,37 @@ type policyWire struct {
 	PolicyFamilyDefinitionOverrides *string       `json:"policy_family_definition_overrides,omitempty"`
 	MaxClustersPerUser              *wireInt64    `json:"max_clusters_per_user,omitempty"`
 	Libraries                       []libraryWire `json:"libraries,omitempty"`
+}
+
+func policyToWire(v *Policy) (*policyWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	createdAtTimestampWireValue, err := int64ToWire(v.CreatedAtTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Policy.CreatedAtTimestamp", err)
+	}
+	maxClustersPerUserWireValue, err := int64ToWire(v.MaxClustersPerUser)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Policy.MaxClustersPerUser", err)
+	}
+	librariesWireValue, err := convertSlice(v.Libraries, libraryToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Policy.Libraries", err)
+	}
+	return &policyWire{
+		PolicyId:                        v.PolicyId,
+		CreatorUserName:                 v.CreatorUserName,
+		CreatedAtTimestamp:              createdAtTimestampWireValue,
+		IsDefault:                       v.IsDefault,
+		Name:                            v.Name,
+		Definition:                      v.Definition,
+		Description:                     v.Description,
+		PolicyFamilyId:                  v.PolicyFamilyId,
+		PolicyFamilyDefinitionOverrides: v.PolicyFamilyDefinitionOverrides,
+		MaxClustersPerUser:              maxClustersPerUserWireValue,
+		Libraries:                       librariesWireValue,
+	}, nil
 }
 
 func policyFromWire(w *policyWire) (*Policy, error) {
@@ -623,6 +902,16 @@ type rateLimitConfigWire struct {
 	TShirtSizeName *string    `json:"t_shirt_size_name,omitempty"`
 }
 
+func rateLimitConfigToWire(v *RateLimitConfig) (*rateLimitConfigWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &rateLimitConfigWire{
+		TShirtSize:     v.TShirtSize,
+		TShirtSizeName: v.TShirtSizeName,
+	}, nil
+}
+
 func rateLimitConfigFromWire(w *rateLimitConfigWire) (*RateLimitConfig, error) {
 	if w == nil {
 		return nil, nil
@@ -640,6 +929,20 @@ type serverlessComputeWire struct {
 	CreateTime          *types.Time `json:"create_time,omitempty"`
 	CanUse              *bool       `json:"can_use,omitempty"`
 	CanManage           *bool       `json:"can_manage,omitempty"`
+}
+
+func serverlessComputeToWire(v *ServerlessCompute) (*serverlessComputeWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &serverlessComputeWire{
+		ServerlessComputeId: v.ServerlessComputeId,
+		Name:                v.Name,
+		IsDefault:           v.IsDefault,
+		CreateTime:          v.CreateTime,
+		CanUse:              v.CanUse,
+		CanManage:           v.CanManage,
+	}, nil
 }
 
 func serverlessComputeFromWire(w *serverlessComputeWire) (*ServerlessCompute, error) {

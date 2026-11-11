@@ -54,14 +54,6 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
-func fieldMaskToWire[T any](mask *types.FieldMask[T]) *string {
-	if mask == nil {
-		return nil
-	}
-	value := mask.String()
-	return &value
-}
-
 type createDatabaseCatalogRequestWire struct {
 	Catalog *databaseCatalogWire `json:"catalog,omitempty"`
 }
@@ -79,6 +71,19 @@ func createDatabaseCatalogRequestToWire(v *CreateDatabaseCatalogRequest) (*creat
 	}, nil
 }
 
+func createDatabaseCatalogRequestFromWire(w *createDatabaseCatalogRequestWire) (*CreateDatabaseCatalogRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	catalogPublicValue, err := databaseCatalogFromWire(w.Catalog)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateDatabaseCatalogRequest.Catalog", err)
+	}
+	return &CreateDatabaseCatalogRequest{
+		Catalog: catalogPublicValue,
+	}, nil
+}
+
 type createDatabaseInstanceRequestWire struct {
 	DatabaseInstance *databaseInstanceWire `json:"database_instance,omitempty"`
 }
@@ -93,6 +98,19 @@ func createDatabaseInstanceRequestToWire(v *CreateDatabaseInstanceRequest) (*cre
 	}
 	return &createDatabaseInstanceRequestWire{
 		DatabaseInstance: databaseInstanceWireValue,
+	}, nil
+}
+
+func createDatabaseInstanceRequestFromWire(w *createDatabaseInstanceRequestWire) (*CreateDatabaseInstanceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	databaseInstancePublicValue, err := databaseInstanceFromWire(w.DatabaseInstance)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateDatabaseInstanceRequest.DatabaseInstance", err)
+	}
+	return &CreateDatabaseInstanceRequest{
+		DatabaseInstance: databaseInstancePublicValue,
 	}, nil
 }
 
@@ -117,6 +135,21 @@ func createDatabaseInstanceRoleRequestToWire(v *CreateDatabaseInstanceRoleReques
 	}, nil
 }
 
+func createDatabaseInstanceRoleRequestFromWire(w *createDatabaseInstanceRoleRequestWire) (*CreateDatabaseInstanceRoleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	databaseInstanceRolePublicValue, err := databaseInstanceRoleFromWire(w.DatabaseInstanceRole)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateDatabaseInstanceRoleRequest.DatabaseInstanceRole", err)
+	}
+	return &CreateDatabaseInstanceRoleRequest{
+		InstanceName:         w.InstanceName,
+		DatabaseInstanceRole: databaseInstanceRolePublicValue,
+		DatabaseInstanceName: w.DatabaseInstanceName,
+	}, nil
+}
+
 type createDatabaseTableRequestWire struct {
 	Table *databaseTableWire `json:"table,omitempty"`
 }
@@ -134,6 +167,19 @@ func createDatabaseTableRequestToWire(v *CreateDatabaseTableRequest) (*createDat
 	}, nil
 }
 
+func createDatabaseTableRequestFromWire(w *createDatabaseTableRequestWire) (*CreateDatabaseTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tablePublicValue, err := databaseTableFromWire(w.Table)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateDatabaseTableRequest.Table", err)
+	}
+	return &CreateDatabaseTableRequest{
+		Table: tablePublicValue,
+	}, nil
+}
+
 type createSyncedDatabaseTableRequestWire struct {
 	SyncedTable *syncedDatabaseTableWire `json:"synced_table,omitempty"`
 }
@@ -148,6 +194,19 @@ func createSyncedDatabaseTableRequestToWire(v *CreateSyncedDatabaseTableRequest)
 	}
 	return &createSyncedDatabaseTableRequestWire{
 		SyncedTable: syncedTableWireValue,
+	}, nil
+}
+
+func createSyncedDatabaseTableRequestFromWire(w *createSyncedDatabaseTableRequestWire) (*CreateSyncedDatabaseTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	syncedTablePublicValue, err := syncedDatabaseTableFromWire(w.SyncedTable)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateSyncedDatabaseTableRequest.SyncedTable", err)
+	}
+	return &CreateSyncedDatabaseTableRequest{
+		SyncedTable: syncedTablePublicValue,
 	}, nil
 }
 
@@ -213,6 +272,16 @@ func databaseCatalogFromWire(w *databaseCatalogWire) (*DatabaseCatalog, error) {
 type databaseCredentialWire struct {
 	Token          *string     `json:"token,omitempty"`
 	ExpirationTime *types.Time `json:"expiration_time,omitempty"`
+}
+
+func databaseCredentialToWire(v *DatabaseCredential) (*databaseCredentialWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &databaseCredentialWire{
+		Token:          v.Token,
+		ExpirationTime: v.ExpirationTime,
+	}, nil
 }
 
 func databaseCredentialFromWire(w *databaseCredentialWire) (*DatabaseCredential, error) {
@@ -497,6 +566,28 @@ func databaseTableFromWire(w *databaseTableWire) (*DatabaseTable, error) {
 	}, nil
 }
 
+type deleteDatabaseCatalogRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteDatabaseCatalogRequestToWire(v *DeleteDatabaseCatalogRequest) (*deleteDatabaseCatalogRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteDatabaseCatalogRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteDatabaseCatalogRequestFromWire(w *deleteDatabaseCatalogRequestWire) (*DeleteDatabaseCatalogRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteDatabaseCatalogRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type deleteDatabaseInstanceRequestWire struct {
 	Name  *string `json:"name,omitempty"`
 	Force *bool   `json:"force,omitempty"`
@@ -511,6 +602,17 @@ func deleteDatabaseInstanceRequestToWire(v *DeleteDatabaseInstanceRequest) (*del
 		Name:  v.Name,
 		Force: v.Force,
 		Purge: v.Purge,
+	}, nil
+}
+
+func deleteDatabaseInstanceRequestFromWire(w *deleteDatabaseInstanceRequestWire) (*DeleteDatabaseInstanceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteDatabaseInstanceRequest{
+		Name:  w.Name,
+		Force: w.Force,
+		Purge: w.Purge,
 	}, nil
 }
 
@@ -533,6 +635,40 @@ func deleteDatabaseInstanceRoleRequestToWire(v *DeleteDatabaseInstanceRoleReques
 	}, nil
 }
 
+func deleteDatabaseInstanceRoleRequestFromWire(w *deleteDatabaseInstanceRoleRequestWire) (*DeleteDatabaseInstanceRoleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteDatabaseInstanceRoleRequest{
+		InstanceName:    w.InstanceName,
+		Name:            w.Name,
+		ReassignOwnedTo: w.ReassignOwnedTo,
+		AllowMissing:    w.AllowMissing,
+	}, nil
+}
+
+type deleteDatabaseTableRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteDatabaseTableRequestToWire(v *DeleteDatabaseTableRequest) (*deleteDatabaseTableRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteDatabaseTableRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteDatabaseTableRequestFromWire(w *deleteDatabaseTableRequestWire) (*DeleteDatabaseTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteDatabaseTableRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type deleteSyncedDatabaseTableRequestWire struct {
 	Name      *string `json:"name,omitempty"`
 	PurgeData *bool   `json:"purge_data,omitempty"`
@@ -545,6 +681,16 @@ func deleteSyncedDatabaseTableRequestToWire(v *DeleteSyncedDatabaseTableRequest)
 	return &deleteSyncedDatabaseTableRequestWire{
 		Name:      v.Name,
 		PurgeData: v.PurgeData,
+	}, nil
+}
+
+func deleteSyncedDatabaseTableRequestFromWire(w *deleteSyncedDatabaseTableRequestWire) (*DeleteSyncedDatabaseTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteSyncedDatabaseTableRequest{
+		Name:      w.Name,
+		PurgeData: w.PurgeData,
 	}, nil
 }
 
@@ -594,6 +740,15 @@ func findDatabaseInstanceByUidRequestToWire(v *FindDatabaseInstanceByUidRequest)
 	}, nil
 }
 
+func findDatabaseInstanceByUidRequestFromWire(w *findDatabaseInstanceByUidRequestWire) (*FindDatabaseInstanceByUidRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &FindDatabaseInstanceByUidRequest{
+		Uid: w.Uid,
+	}, nil
+}
+
 type generateDatabaseCredentialRequestWire struct {
 	RequestId     *string               `json:"request_id,omitempty"`
 	InstanceNames []string              `json:"instance_names,omitempty"`
@@ -615,6 +770,134 @@ func generateDatabaseCredentialRequestToWire(v *GenerateDatabaseCredentialReques
 	}, nil
 }
 
+func generateDatabaseCredentialRequestFromWire(w *generateDatabaseCredentialRequestWire) (*GenerateDatabaseCredentialRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	claimsPublicValue, err := convertSlice(w.Claims, requestedClaimsFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenerateDatabaseCredentialRequest.Claims", err)
+	}
+	return &GenerateDatabaseCredentialRequest{
+		RequestId:     w.RequestId,
+		InstanceNames: w.InstanceNames,
+		Claims:        claimsPublicValue,
+	}, nil
+}
+
+type getDatabaseCatalogRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getDatabaseCatalogRequestToWire(v *GetDatabaseCatalogRequest) (*getDatabaseCatalogRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getDatabaseCatalogRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getDatabaseCatalogRequestFromWire(w *getDatabaseCatalogRequestWire) (*GetDatabaseCatalogRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetDatabaseCatalogRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getDatabaseInstanceRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getDatabaseInstanceRequestToWire(v *GetDatabaseInstanceRequest) (*getDatabaseInstanceRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getDatabaseInstanceRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getDatabaseInstanceRequestFromWire(w *getDatabaseInstanceRequestWire) (*GetDatabaseInstanceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetDatabaseInstanceRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getDatabaseInstanceRoleRequestWire struct {
+	InstanceName *string `json:"instance_name,omitempty"`
+	Name         *string `json:"name,omitempty"`
+}
+
+func getDatabaseInstanceRoleRequestToWire(v *GetDatabaseInstanceRoleRequest) (*getDatabaseInstanceRoleRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getDatabaseInstanceRoleRequestWire{
+		InstanceName: v.InstanceName,
+		Name:         v.Name,
+	}, nil
+}
+
+func getDatabaseInstanceRoleRequestFromWire(w *getDatabaseInstanceRoleRequestWire) (*GetDatabaseInstanceRoleRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetDatabaseInstanceRoleRequest{
+		InstanceName: w.InstanceName,
+		Name:         w.Name,
+	}, nil
+}
+
+type getDatabaseTableRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getDatabaseTableRequestToWire(v *GetDatabaseTableRequest) (*getDatabaseTableRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getDatabaseTableRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getDatabaseTableRequestFromWire(w *getDatabaseTableRequestWire) (*GetDatabaseTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetDatabaseTableRequest{
+		Name: w.Name,
+	}, nil
+}
+
+type getSyncedDatabaseTableRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getSyncedDatabaseTableRequestToWire(v *GetSyncedDatabaseTableRequest) (*getSyncedDatabaseTableRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getSyncedDatabaseTableRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getSyncedDatabaseTableRequestFromWire(w *getSyncedDatabaseTableRequestWire) (*GetSyncedDatabaseTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetSyncedDatabaseTableRequest{
+		Name: w.Name,
+	}, nil
+}
+
 type listDatabaseCatalogsRequestWire struct {
 	InstanceName *string `json:"instance_name,omitempty"`
 	PageToken    *string `json:"page_token,omitempty"`
@@ -632,9 +915,34 @@ func listDatabaseCatalogsRequestToWire(v *ListDatabaseCatalogsRequest) (*listDat
 	}, nil
 }
 
+func listDatabaseCatalogsRequestFromWire(w *listDatabaseCatalogsRequestWire) (*ListDatabaseCatalogsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListDatabaseCatalogsRequest{
+		InstanceName: w.InstanceName,
+		PageToken:    w.PageToken,
+		PageSize:     w.PageSize,
+	}, nil
+}
+
 type listDatabaseCatalogsResponseWire struct {
 	DatabaseCatalogs []databaseCatalogWire `json:"database_catalogs,omitempty"`
 	NextPageToken    *string               `json:"next_page_token,omitempty"`
+}
+
+func listDatabaseCatalogsResponseToWire(v *ListDatabaseCatalogsResponse) (*listDatabaseCatalogsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	databaseCatalogsWireValue, err := convertSlice(v.DatabaseCatalogs, databaseCatalogToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListDatabaseCatalogsResponse.DatabaseCatalogs", err)
+	}
+	return &listDatabaseCatalogsResponseWire{
+		DatabaseCatalogs: databaseCatalogsWireValue,
+		NextPageToken:    v.NextPageToken,
+	}, nil
 }
 
 func listDatabaseCatalogsResponseFromWire(w *listDatabaseCatalogsResponseWire) (*ListDatabaseCatalogsResponse, error) {
@@ -668,9 +976,34 @@ func listDatabaseInstanceRolesRequestToWire(v *ListDatabaseInstanceRolesRequest)
 	}, nil
 }
 
+func listDatabaseInstanceRolesRequestFromWire(w *listDatabaseInstanceRolesRequestWire) (*ListDatabaseInstanceRolesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListDatabaseInstanceRolesRequest{
+		InstanceName: w.InstanceName,
+		PageToken:    w.PageToken,
+		PageSize:     w.PageSize,
+	}, nil
+}
+
 type listDatabaseInstanceRolesResponseWire struct {
 	DatabaseInstanceRoles []databaseInstanceRoleWire `json:"database_instance_roles,omitempty"`
 	NextPageToken         *string                    `json:"next_page_token,omitempty"`
+}
+
+func listDatabaseInstanceRolesResponseToWire(v *ListDatabaseInstanceRolesResponse) (*listDatabaseInstanceRolesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	databaseInstanceRolesWireValue, err := convertSlice(v.DatabaseInstanceRoles, databaseInstanceRoleToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListDatabaseInstanceRolesResponse.DatabaseInstanceRoles", err)
+	}
+	return &listDatabaseInstanceRolesResponseWire{
+		DatabaseInstanceRoles: databaseInstanceRolesWireValue,
+		NextPageToken:         v.NextPageToken,
+	}, nil
 }
 
 func listDatabaseInstanceRolesResponseFromWire(w *listDatabaseInstanceRolesResponseWire) (*ListDatabaseInstanceRolesResponse, error) {
@@ -702,9 +1035,33 @@ func listDatabaseInstancesRequestToWire(v *ListDatabaseInstancesRequest) (*listD
 	}, nil
 }
 
+func listDatabaseInstancesRequestFromWire(w *listDatabaseInstancesRequestWire) (*ListDatabaseInstancesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListDatabaseInstancesRequest{
+		PageToken: w.PageToken,
+		PageSize:  w.PageSize,
+	}, nil
+}
+
 type listDatabaseInstancesResponseWire struct {
 	DatabaseInstances []databaseInstanceWire `json:"database_instances,omitempty"`
 	NextPageToken     *string                `json:"next_page_token,omitempty"`
+}
+
+func listDatabaseInstancesResponseToWire(v *ListDatabaseInstancesResponse) (*listDatabaseInstancesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	databaseInstancesWireValue, err := convertSlice(v.DatabaseInstances, databaseInstanceToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListDatabaseInstancesResponse.DatabaseInstances", err)
+	}
+	return &listDatabaseInstancesResponseWire{
+		DatabaseInstances: databaseInstancesWireValue,
+		NextPageToken:     v.NextPageToken,
+	}, nil
 }
 
 func listDatabaseInstancesResponseFromWire(w *listDatabaseInstancesResponseWire) (*ListDatabaseInstancesResponse, error) {
@@ -738,9 +1095,34 @@ func listSyncedDatabaseTablesRequestToWire(v *ListSyncedDatabaseTablesRequest) (
 	}, nil
 }
 
+func listSyncedDatabaseTablesRequestFromWire(w *listSyncedDatabaseTablesRequestWire) (*ListSyncedDatabaseTablesRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListSyncedDatabaseTablesRequest{
+		InstanceName: w.InstanceName,
+		PageToken:    w.PageToken,
+		PageSize:     w.PageSize,
+	}, nil
+}
+
 type listSyncedDatabaseTablesResponseWire struct {
 	SyncedTables  []syncedDatabaseTableWire `json:"synced_tables,omitempty"`
 	NextPageToken *string                   `json:"next_page_token,omitempty"`
+}
+
+func listSyncedDatabaseTablesResponseToWire(v *ListSyncedDatabaseTablesResponse) (*listSyncedDatabaseTablesResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	syncedTablesWireValue, err := convertSlice(v.SyncedTables, syncedDatabaseTableToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListSyncedDatabaseTablesResponse.SyncedTables", err)
+	}
+	return &listSyncedDatabaseTablesResponseWire{
+		SyncedTables:  syncedTablesWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func listSyncedDatabaseTablesResponseFromWire(w *listSyncedDatabaseTablesResponseWire) (*ListSyncedDatabaseTablesResponse, error) {
@@ -785,6 +1167,23 @@ func newPipelineSpecFromWire(w *newPipelineSpecWire) (*NewPipelineSpec, error) {
 	}, nil
 }
 
+type provisioningInfoWire struct {
+}
+
+func provisioningInfoToWire(v *ProvisioningInfo) (*provisioningInfoWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &provisioningInfoWire{}, nil
+}
+
+func provisioningInfoFromWire(w *provisioningInfoWire) (*ProvisioningInfo, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ProvisioningInfo{}, nil
+}
+
 type requestedClaimsWire struct {
 	PermissionSet RequestedClaims_PermissionSet `json:"permission_set,omitempty"`
 	Resources     []requestedResourceWire       `json:"resources,omitempty"`
@@ -801,6 +1200,20 @@ func requestedClaimsToWire(v *RequestedClaims) (*requestedClaimsWire, error) {
 	return &requestedClaimsWire{
 		PermissionSet: v.PermissionSet,
 		Resources:     resourcesWireValue,
+	}, nil
+}
+
+func requestedClaimsFromWire(w *requestedClaimsWire) (*RequestedClaims, error) {
+	if w == nil {
+		return nil, nil
+	}
+	resourcesPublicValue, err := convertSlice(w.Resources, requestedResourceFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RequestedClaims.Resources", err)
+	}
+	return &RequestedClaims{
+		PermissionSet: w.PermissionSet,
+		Resources:     resourcesPublicValue,
 	}, nil
 }
 
@@ -831,6 +1244,32 @@ func requestedResourceToWire(v *RequestedResource) (*requestedResourceWire, erro
 	return &requestedResourceWire{
 		UnspecifiedResourceName: resourceNameUnspecifiedResourceNameWire,
 		TableName:               resourceNameTableNameWire,
+	}, nil
+}
+
+func requestedResourceFromWire(w *requestedResourceWire) (*RequestedResource, error) {
+	if w == nil {
+		return nil, nil
+	}
+	resourceNameMembers := 0
+	if w.UnspecifiedResourceName != nil {
+		resourceNameMembers++
+	}
+	if w.TableName != nil {
+		resourceNameMembers++
+	}
+	if resourceNameMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "RequestedResource.ResourceName")
+	}
+	var resourceNameSelection isRequestedResource_ResourceName
+	switch {
+	case w.UnspecifiedResourceName != nil:
+		resourceNameSelection = &RequestedResource_ResourceName_UnspecifiedResourceName{UnspecifiedResourceName: *w.UnspecifiedResourceName}
+	case w.TableName != nil:
+		resourceNameSelection = &RequestedResource_ResourceName_TableName{TableName: *w.TableName}
+	}
+	return &RequestedResource{
+		ResourceName: resourceNameSelection,
 	}, nil
 }
 
@@ -1386,8 +1825,8 @@ func syncedTableTriggeredUpdateStatusFromWire(w *syncedTableTriggeredUpdateStatu
 }
 
 type updateDatabaseCatalogRequestWire struct {
-	DatabaseCatalog *databaseCatalogWire `json:"database_catalog,omitempty"`
-	UpdateMask      *string              `json:"update_mask,omitempty"`
+	DatabaseCatalog *databaseCatalogWire              `json:"database_catalog,omitempty"`
+	UpdateMask      *types.FieldMask[DatabaseCatalog] `json:"update_mask,omitempty"`
 }
 
 func updateDatabaseCatalogRequestToWire(v *UpdateDatabaseCatalogRequest) (*updateDatabaseCatalogRequestWire, error) {
@@ -1400,13 +1839,27 @@ func updateDatabaseCatalogRequestToWire(v *UpdateDatabaseCatalogRequest) (*updat
 	}
 	return &updateDatabaseCatalogRequestWire{
 		DatabaseCatalog: databaseCatalogWireValue,
-		UpdateMask:      fieldMaskToWire(v.UpdateMask),
+		UpdateMask:      v.UpdateMask,
+	}, nil
+}
+
+func updateDatabaseCatalogRequestFromWire(w *updateDatabaseCatalogRequestWire) (*UpdateDatabaseCatalogRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	databaseCatalogPublicValue, err := databaseCatalogFromWire(w.DatabaseCatalog)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateDatabaseCatalogRequest.DatabaseCatalog", err)
+	}
+	return &UpdateDatabaseCatalogRequest{
+		DatabaseCatalog: databaseCatalogPublicValue,
+		UpdateMask:      w.UpdateMask,
 	}, nil
 }
 
 type updateDatabaseInstanceRequestWire struct {
-	DatabaseInstance *databaseInstanceWire `json:"database_instance,omitempty"`
-	UpdateMask       *string               `json:"update_mask,omitempty"`
+	DatabaseInstance *databaseInstanceWire              `json:"database_instance,omitempty"`
+	UpdateMask       *types.FieldMask[DatabaseInstance] `json:"update_mask,omitempty"`
 }
 
 func updateDatabaseInstanceRequestToWire(v *UpdateDatabaseInstanceRequest) (*updateDatabaseInstanceRequestWire, error) {
@@ -1419,13 +1872,27 @@ func updateDatabaseInstanceRequestToWire(v *UpdateDatabaseInstanceRequest) (*upd
 	}
 	return &updateDatabaseInstanceRequestWire{
 		DatabaseInstance: databaseInstanceWireValue,
-		UpdateMask:       fieldMaskToWire(v.UpdateMask),
+		UpdateMask:       v.UpdateMask,
+	}, nil
+}
+
+func updateDatabaseInstanceRequestFromWire(w *updateDatabaseInstanceRequestWire) (*UpdateDatabaseInstanceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	databaseInstancePublicValue, err := databaseInstanceFromWire(w.DatabaseInstance)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateDatabaseInstanceRequest.DatabaseInstance", err)
+	}
+	return &UpdateDatabaseInstanceRequest{
+		DatabaseInstance: databaseInstancePublicValue,
+		UpdateMask:       w.UpdateMask,
 	}, nil
 }
 
 type updateSyncedDatabaseTableRequestWire struct {
-	SyncedTable *syncedDatabaseTableWire `json:"synced_table,omitempty"`
-	UpdateMask  *string                  `json:"update_mask,omitempty"`
+	SyncedTable *syncedDatabaseTableWire              `json:"synced_table,omitempty"`
+	UpdateMask  *types.FieldMask[SyncedDatabaseTable] `json:"update_mask,omitempty"`
 }
 
 func updateSyncedDatabaseTableRequestToWire(v *UpdateSyncedDatabaseTableRequest) (*updateSyncedDatabaseTableRequestWire, error) {
@@ -1438,7 +1905,21 @@ func updateSyncedDatabaseTableRequestToWire(v *UpdateSyncedDatabaseTableRequest)
 	}
 	return &updateSyncedDatabaseTableRequestWire{
 		SyncedTable: syncedTableWireValue,
-		UpdateMask:  fieldMaskToWire(v.UpdateMask),
+		UpdateMask:  v.UpdateMask,
+	}, nil
+}
+
+func updateSyncedDatabaseTableRequestFromWire(w *updateSyncedDatabaseTableRequestWire) (*UpdateSyncedDatabaseTableRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	syncedTablePublicValue, err := syncedDatabaseTableFromWire(w.SyncedTable)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateSyncedDatabaseTableRequest.SyncedTable", err)
+	}
+	return &UpdateSyncedDatabaseTableRequest{
+		SyncedTable: syncedTablePublicValue,
+		UpdateMask:  w.UpdateMask,
 	}, nil
 }
 

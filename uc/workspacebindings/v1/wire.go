@@ -52,8 +52,43 @@ func int64FromWire(v *wireInt64) (*int64, error) {
 	return &converted, nil
 }
 
+type getCatalogWorkspaceBindingsRequestWire struct {
+	CatalogName *string `json:"catalog_name,omitempty"`
+}
+
+func getCatalogWorkspaceBindingsRequestToWire(v *GetCatalogWorkspaceBindingsRequest) (*getCatalogWorkspaceBindingsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getCatalogWorkspaceBindingsRequestWire{
+		CatalogName: v.CatalogName,
+	}, nil
+}
+
+func getCatalogWorkspaceBindingsRequestFromWire(w *getCatalogWorkspaceBindingsRequestWire) (*GetCatalogWorkspaceBindingsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetCatalogWorkspaceBindingsRequest{
+		CatalogName: w.CatalogName,
+	}, nil
+}
+
 type getCatalogWorkspaceBindingsResponseWire struct {
 	Workspaces []wireInt64 `json:"workspaces,omitempty"`
+}
+
+func getCatalogWorkspaceBindingsResponseToWire(v *GetCatalogWorkspaceBindingsResponse) (*getCatalogWorkspaceBindingsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	workspacesWireValue, err := convertSlice(v.Workspaces, int64ToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetCatalogWorkspaceBindingsResponse.Workspaces", err)
+	}
+	return &getCatalogWorkspaceBindingsResponseWire{
+		Workspaces: workspacesWireValue,
+	}, nil
 }
 
 func getCatalogWorkspaceBindingsResponseFromWire(w *getCatalogWorkspaceBindingsResponseWire) (*GetCatalogWorkspaceBindingsResponse, error) {
@@ -88,9 +123,35 @@ func getWorkspaceBindingsRequestToWire(v *GetWorkspaceBindingsRequest) (*getWork
 	}, nil
 }
 
+func getWorkspaceBindingsRequestFromWire(w *getWorkspaceBindingsRequestWire) (*GetWorkspaceBindingsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetWorkspaceBindingsRequest{
+		SecurableType:     w.SecurableType,
+		SecurableFullName: w.SecurableFullName,
+		MaxResults:        w.MaxResults,
+		PageToken:         w.PageToken,
+	}, nil
+}
+
 type getWorkspaceBindingsResponseWire struct {
 	Bindings      []workspaceBindingInfoWire `json:"bindings,omitempty"`
 	NextPageToken *string                    `json:"next_page_token,omitempty"`
+}
+
+func getWorkspaceBindingsResponseToWire(v *GetWorkspaceBindingsResponse) (*getWorkspaceBindingsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	bindingsWireValue, err := convertSlice(v.Bindings, workspaceBindingInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GetWorkspaceBindingsResponse.Bindings", err)
+	}
+	return &getWorkspaceBindingsResponseWire{
+		Bindings:      bindingsWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
 }
 
 func getWorkspaceBindingsResponseFromWire(w *getWorkspaceBindingsResponseWire) (*GetWorkspaceBindingsResponse, error) {
@@ -132,8 +193,40 @@ func updateCatalogWorkspaceBindingsRequestToWire(v *UpdateCatalogWorkspaceBindin
 	}, nil
 }
 
+func updateCatalogWorkspaceBindingsRequestFromWire(w *updateCatalogWorkspaceBindingsRequestWire) (*UpdateCatalogWorkspaceBindingsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	assignWorkspacesPublicValue, err := convertSlice(w.AssignWorkspaces, int64FromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogWorkspaceBindingsRequest.AssignWorkspaces", err)
+	}
+	unassignWorkspacesPublicValue, err := convertSlice(w.UnassignWorkspaces, int64FromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogWorkspaceBindingsRequest.UnassignWorkspaces", err)
+	}
+	return &UpdateCatalogWorkspaceBindingsRequest{
+		CatalogName:        w.CatalogName,
+		AssignWorkspaces:   assignWorkspacesPublicValue,
+		UnassignWorkspaces: unassignWorkspacesPublicValue,
+	}, nil
+}
+
 type updateCatalogWorkspaceBindingsResponseWire struct {
 	Workspaces []wireInt64 `json:"workspaces,omitempty"`
+}
+
+func updateCatalogWorkspaceBindingsResponseToWire(v *UpdateCatalogWorkspaceBindingsResponse) (*updateCatalogWorkspaceBindingsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	workspacesWireValue, err := convertSlice(v.Workspaces, int64ToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateCatalogWorkspaceBindingsResponse.Workspaces", err)
+	}
+	return &updateCatalogWorkspaceBindingsResponseWire{
+		Workspaces: workspacesWireValue,
+	}, nil
 }
 
 func updateCatalogWorkspaceBindingsResponseFromWire(w *updateCatalogWorkspaceBindingsResponseWire) (*UpdateCatalogWorkspaceBindingsResponse, error) {
@@ -176,8 +269,41 @@ func updateWorkspaceBindingsRequestToWire(v *UpdateWorkspaceBindingsRequest) (*u
 	}, nil
 }
 
+func updateWorkspaceBindingsRequestFromWire(w *updateWorkspaceBindingsRequestWire) (*UpdateWorkspaceBindingsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	addPublicValue, err := convertSlice(w.Add, workspaceBindingInfoFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateWorkspaceBindingsRequest.Add", err)
+	}
+	removePublicValue, err := convertSlice(w.Remove, workspaceBindingInfoFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateWorkspaceBindingsRequest.Remove", err)
+	}
+	return &UpdateWorkspaceBindingsRequest{
+		SecurableType:     w.SecurableType,
+		SecurableFullName: w.SecurableFullName,
+		Add:               addPublicValue,
+		Remove:            removePublicValue,
+	}, nil
+}
+
 type updateWorkspaceBindingsResponseWire struct {
 	Bindings []workspaceBindingInfoWire `json:"bindings,omitempty"`
+}
+
+func updateWorkspaceBindingsResponseToWire(v *UpdateWorkspaceBindingsResponse) (*updateWorkspaceBindingsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	bindingsWireValue, err := convertSlice(v.Bindings, workspaceBindingInfoToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateWorkspaceBindingsResponse.Bindings", err)
+	}
+	return &updateWorkspaceBindingsResponseWire{
+		Bindings: bindingsWireValue,
+	}, nil
 }
 
 func updateWorkspaceBindingsResponseFromWire(w *updateWorkspaceBindingsResponseWire) (*UpdateWorkspaceBindingsResponse, error) {

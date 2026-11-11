@@ -91,12 +91,81 @@ func accessControlRequestToWire(v *AccessControlRequest) (*accessControlRequestW
 	}, nil
 }
 
+func accessControlRequestFromWire(w *accessControlRequestWire) (*AccessControlRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	principalNameMembers := 0
+	if w.UserName != nil {
+		principalNameMembers++
+	}
+	if w.GroupName != nil {
+		principalNameMembers++
+	}
+	if w.ServicePrincipalName != nil {
+		principalNameMembers++
+	}
+	if principalNameMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "AccessControlRequest.PrincipalName")
+	}
+	var principalNameSelection isAccessControlRequest_PrincipalName
+	switch {
+	case w.UserName != nil:
+		principalNameSelection = &AccessControlRequest_PrincipalName_UserName{UserName: *w.UserName}
+	case w.GroupName != nil:
+		principalNameSelection = &AccessControlRequest_PrincipalName_GroupName{GroupName: *w.GroupName}
+	case w.ServicePrincipalName != nil:
+		principalNameSelection = &AccessControlRequest_PrincipalName_ServicePrincipalName{ServicePrincipalName: *w.ServicePrincipalName}
+	}
+	return &AccessControlRequest{
+		PermissionLevel: w.PermissionLevel,
+		PrincipalName:   principalNameSelection,
+	}, nil
+}
+
 type accessControlResponseWire struct {
 	UserName             *string          `json:"user_name,omitempty"`
 	GroupName            *string          `json:"group_name,omitempty"`
 	ServicePrincipalName *string          `json:"service_principal_name,omitempty"`
 	DisplayName          *string          `json:"display_name,omitempty"`
 	AllPermissions       []permissionWire `json:"all_permissions,omitempty"`
+}
+
+func accessControlResponseToWire(v *AccessControlResponse) (*accessControlResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	allPermissionsWireValue, err := convertSlice(v.AllPermissions, permissionToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccessControlResponse.AllPermissions", err)
+	}
+	var principalNameUserNameWire *string
+	var principalNameGroupNameWire *string
+	var principalNameServicePrincipalNameWire *string
+	switch value := v.PrincipalName.(type) {
+	case nil:
+	case *AccessControlResponse_PrincipalName_UserName:
+		if value != nil {
+			principalNameUserNameWire = new(value.UserName)
+		}
+	case *AccessControlResponse_PrincipalName_GroupName:
+		if value != nil {
+			principalNameGroupNameWire = new(value.GroupName)
+		}
+	case *AccessControlResponse_PrincipalName_ServicePrincipalName:
+		if value != nil {
+			principalNameServicePrincipalNameWire = new(value.ServicePrincipalName)
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "AccessControlResponse.PrincipalName", value)
+	}
+	return &accessControlResponseWire{
+		UserName:             principalNameUserNameWire,
+		GroupName:            principalNameGroupNameWire,
+		ServicePrincipalName: principalNameServicePrincipalNameWire,
+		DisplayName:          v.DisplayName,
+		AllPermissions:       allPermissionsWireValue,
+	}, nil
 }
 
 func accessControlResponseFromWire(w *accessControlResponseWire) (*AccessControlResponse, error) {
@@ -163,6 +232,31 @@ func actorToWire(v *Actor) (*actorWire, error) {
 	}, nil
 }
 
+func actorFromWire(w *actorWire) (*Actor, error) {
+	if w == nil {
+		return nil, nil
+	}
+	kindMembers := 0
+	if w.ActorId != nil {
+		kindMembers++
+	}
+	if kindMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "Actor.Kind")
+	}
+	var kindSelection isActor_Kind
+	switch {
+	case w.ActorId != nil:
+		kindActorIdConverted, err := int64FromWire(w.ActorId)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "Actor.Kind.ActorId", err)
+		}
+		kindSelection = &Actor_Kind_ActorId{ActorId: *kindActorIdConverted}
+	}
+	return &Actor{
+		Kind: kindSelection,
+	}, nil
+}
+
 type checkPolicyRequestWire struct {
 	Actor            *actorWire            `json:"actor,omitempty"`
 	Permission       *string               `json:"permission,omitempty"`
@@ -198,9 +292,49 @@ func checkPolicyRequestToWire(v *CheckPolicyRequest) (*checkPolicyRequestWire, e
 	}, nil
 }
 
+func checkPolicyRequestFromWire(w *checkPolicyRequestWire) (*CheckPolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	actorPublicValue, err := actorFromWire(w.Actor)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CheckPolicyRequest.Actor", err)
+	}
+	consistencyTokenPublicValue, err := consistencyTokenFromWire(w.ConsistencyToken)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CheckPolicyRequest.ConsistencyToken", err)
+	}
+	resourceInfoPublicValue, err := resourceInfoFromWire(w.ResourceInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CheckPolicyRequest.ResourceInfo", err)
+	}
+	return &CheckPolicyRequest{
+		Actor:            actorPublicValue,
+		Permission:       w.Permission,
+		Resource:         w.Resource,
+		ConsistencyToken: consistencyTokenPublicValue,
+		AuthzIdentity:    w.AuthzIdentity,
+		ResourceInfo:     resourceInfoPublicValue,
+	}, nil
+}
+
 type checkPolicyResponseWire struct {
 	IsPermitted      *bool                 `json:"is_permitted,omitempty"`
 	ConsistencyToken *consistencyTokenWire `json:"consistency_token,omitempty"`
+}
+
+func checkPolicyResponseToWire(v *CheckPolicyResponse) (*checkPolicyResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	consistencyTokenWireValue, err := consistencyTokenToWire(v.ConsistencyToken)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CheckPolicyResponse.ConsistencyToken", err)
+	}
+	return &checkPolicyResponseWire{
+		IsPermitted:      v.IsPermitted,
+		ConsistencyToken: consistencyTokenWireValue,
+	}, nil
 }
 
 func checkPolicyResponseFromWire(w *checkPolicyResponseWire) (*CheckPolicyResponse, error) {
@@ -239,6 +373,92 @@ func consistencyTokenFromWire(w *consistencyTokenWire) (*ConsistencyToken, error
 	}, nil
 }
 
+type deleteWorkspacePermissionAssignmentRequestWire struct {
+	AccountId   *string    `json:"account_id,omitempty"`
+	WorkspaceId *wireInt64 `json:"workspace_id,omitempty"`
+	PrincipalId *wireInt64 `json:"principal_id,omitempty"`
+}
+
+func deleteWorkspacePermissionAssignmentRequestToWire(v *DeleteWorkspacePermissionAssignmentRequest) (*deleteWorkspacePermissionAssignmentRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteWorkspacePermissionAssignmentRequest.WorkspaceId", err)
+	}
+	principalIdWireValue, err := int64ToWire(v.PrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteWorkspacePermissionAssignmentRequest.PrincipalId", err)
+	}
+	return &deleteWorkspacePermissionAssignmentRequestWire{
+		AccountId:   v.AccountId,
+		WorkspaceId: workspaceIdWireValue,
+		PrincipalId: principalIdWireValue,
+	}, nil
+}
+
+func deleteWorkspacePermissionAssignmentRequestFromWire(w *deleteWorkspacePermissionAssignmentRequestWire) (*DeleteWorkspacePermissionAssignmentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	workspaceIdPublicValue, err := int64FromWire(w.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteWorkspacePermissionAssignmentRequest.WorkspaceId", err)
+	}
+	principalIdPublicValue, err := int64FromWire(w.PrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "DeleteWorkspacePermissionAssignmentRequest.PrincipalId", err)
+	}
+	return &DeleteWorkspacePermissionAssignmentRequest{
+		AccountId:   w.AccountId,
+		WorkspaceId: workspaceIdPublicValue,
+		PrincipalId: principalIdPublicValue,
+	}, nil
+}
+
+type deleteWorkspacePermissionAssignmentResponseWire struct {
+}
+
+func deleteWorkspacePermissionAssignmentResponseToWire(v *DeleteWorkspacePermissionAssignmentResponse) (*deleteWorkspacePermissionAssignmentResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteWorkspacePermissionAssignmentResponseWire{}, nil
+}
+
+func deleteWorkspacePermissionAssignmentResponseFromWire(w *deleteWorkspacePermissionAssignmentResponseWire) (*DeleteWorkspacePermissionAssignmentResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteWorkspacePermissionAssignmentResponse{}, nil
+}
+
+type getObjectPermissionsRequestWire struct {
+	RequestObjectType *string `json:"request_object_type,omitempty"`
+	RequestObjectId   *string `json:"request_object_id,omitempty"`
+}
+
+func getObjectPermissionsRequestToWire(v *GetObjectPermissionsRequest) (*getObjectPermissionsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getObjectPermissionsRequestWire{
+		RequestObjectType: v.RequestObjectType,
+		RequestObjectId:   v.RequestObjectId,
+	}, nil
+}
+
+func getObjectPermissionsRequestFromWire(w *getObjectPermissionsRequestWire) (*GetObjectPermissionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetObjectPermissionsRequest{
+		RequestObjectType: w.RequestObjectType,
+		RequestObjectId:   w.RequestObjectId,
+	}, nil
+}
+
 type getRuleSetRequestWire struct {
 	AccountId *string `json:"account_id,omitempty"`
 	Name      *string `json:"name,omitempty"`
@@ -253,6 +473,17 @@ func getRuleSetRequestToWire(v *GetRuleSetRequest) (*getRuleSetRequestWire, erro
 		AccountId: v.AccountId,
 		Name:      v.Name,
 		Etag:      v.Etag,
+	}, nil
+}
+
+func getRuleSetRequestFromWire(w *getRuleSetRequestWire) (*GetRuleSetRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetRuleSetRequest{
+		AccountId: w.AccountId,
+		Name:      w.Name,
+		Etag:      w.Etag,
 	}, nil
 }
 
@@ -296,8 +527,31 @@ func listAssignableRolesForResourceRequestToWire(v *ListAssignableRolesForResour
 	}, nil
 }
 
+func listAssignableRolesForResourceRequestFromWire(w *listAssignableRolesForResourceRequestWire) (*ListAssignableRolesForResourceRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListAssignableRolesForResourceRequest{
+		AccountId: w.AccountId,
+		Resource:  w.Resource,
+	}, nil
+}
+
 type listAssignableRolesForResourceResponseWire struct {
 	Roles []roleWire `json:"roles,omitempty"`
+}
+
+func listAssignableRolesForResourceResponseToWire(v *ListAssignableRolesForResourceResponse) (*listAssignableRolesForResourceResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	rolesWireValue, err := convertSlice(v.Roles, roleToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAssignableRolesForResourceResponse.Roles", err)
+	}
+	return &listAssignableRolesForResourceResponseWire{
+		Roles: rolesWireValue,
+	}, nil
 }
 
 func listAssignableRolesForResourceResponseFromWire(w *listAssignableRolesForResourceResponseWire) (*ListAssignableRolesForResourceResponse, error) {
@@ -313,8 +567,46 @@ func listAssignableRolesForResourceResponseFromWire(w *listAssignableRolesForRes
 	}, nil
 }
 
+type listPermissionLevelsRequestWire struct {
+	RequestObjectType *string `json:"request_object_type,omitempty"`
+	RequestObjectId   *string `json:"request_object_id,omitempty"`
+}
+
+func listPermissionLevelsRequestToWire(v *ListPermissionLevelsRequest) (*listPermissionLevelsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listPermissionLevelsRequestWire{
+		RequestObjectType: v.RequestObjectType,
+		RequestObjectId:   v.RequestObjectId,
+	}, nil
+}
+
+func listPermissionLevelsRequestFromWire(w *listPermissionLevelsRequestWire) (*ListPermissionLevelsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListPermissionLevelsRequest{
+		RequestObjectType: w.RequestObjectType,
+		RequestObjectId:   w.RequestObjectId,
+	}, nil
+}
+
 type listPermissionLevelsResponseWire struct {
 	PermissionLevels []permissionsDescriptionWire `json:"permission_levels,omitempty"`
+}
+
+func listPermissionLevelsResponseToWire(v *ListPermissionLevelsResponse) (*listPermissionLevelsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	permissionLevelsWireValue, err := convertSlice(v.PermissionLevels, permissionsDescriptionToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListPermissionLevelsResponse.PermissionLevels", err)
+	}
+	return &listPermissionLevelsResponseWire{
+		PermissionLevels: permissionLevelsWireValue,
+	}, nil
 }
 
 func listPermissionLevelsResponseFromWire(w *listPermissionLevelsResponseWire) (*ListPermissionLevelsResponse, error) {
@@ -330,8 +622,54 @@ func listPermissionLevelsResponseFromWire(w *listPermissionLevelsResponseWire) (
 	}, nil
 }
 
+type listWorkspacePermissionAssignmentsRequestWire struct {
+	AccountId   *string    `json:"account_id,omitempty"`
+	WorkspaceId *wireInt64 `json:"workspace_id,omitempty"`
+}
+
+func listWorkspacePermissionAssignmentsRequestToWire(v *ListWorkspacePermissionAssignmentsRequest) (*listWorkspacePermissionAssignmentsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListWorkspacePermissionAssignmentsRequest.WorkspaceId", err)
+	}
+	return &listWorkspacePermissionAssignmentsRequestWire{
+		AccountId:   v.AccountId,
+		WorkspaceId: workspaceIdWireValue,
+	}, nil
+}
+
+func listWorkspacePermissionAssignmentsRequestFromWire(w *listWorkspacePermissionAssignmentsRequestWire) (*ListWorkspacePermissionAssignmentsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	workspaceIdPublicValue, err := int64FromWire(w.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListWorkspacePermissionAssignmentsRequest.WorkspaceId", err)
+	}
+	return &ListWorkspacePermissionAssignmentsRequest{
+		AccountId:   w.AccountId,
+		WorkspaceId: workspaceIdPublicValue,
+	}, nil
+}
+
 type listWorkspacePermissionAssignmentsResponseWire struct {
 	PermissionAssignments []workspacePermissionAssignmentOutputWire `json:"permission_assignments,omitempty"`
+}
+
+func listWorkspacePermissionAssignmentsResponseToWire(v *ListWorkspacePermissionAssignmentsResponse) (*listWorkspacePermissionAssignmentsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	permissionAssignmentsWireValue, err := convertSlice(v.PermissionAssignments, workspacePermissionAssignmentOutputToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListWorkspacePermissionAssignmentsResponse.PermissionAssignments", err)
+	}
+	return &listWorkspacePermissionAssignmentsResponseWire{
+		PermissionAssignments: permissionAssignmentsWireValue,
+	}, nil
 }
 
 func listWorkspacePermissionAssignmentsResponseFromWire(w *listWorkspacePermissionAssignmentsResponseWire) (*ListWorkspacePermissionAssignmentsResponse, error) {
@@ -347,8 +685,54 @@ func listWorkspacePermissionAssignmentsResponseFromWire(w *listWorkspacePermissi
 	}, nil
 }
 
+type listWorkspacePermissionsRequestWire struct {
+	AccountId   *string    `json:"account_id,omitempty"`
+	WorkspaceId *wireInt64 `json:"workspace_id,omitempty"`
+}
+
+func listWorkspacePermissionsRequestToWire(v *ListWorkspacePermissionsRequest) (*listWorkspacePermissionsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	workspaceIdWireValue, err := int64ToWire(v.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListWorkspacePermissionsRequest.WorkspaceId", err)
+	}
+	return &listWorkspacePermissionsRequestWire{
+		AccountId:   v.AccountId,
+		WorkspaceId: workspaceIdWireValue,
+	}, nil
+}
+
+func listWorkspacePermissionsRequestFromWire(w *listWorkspacePermissionsRequestWire) (*ListWorkspacePermissionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	workspaceIdPublicValue, err := int64FromWire(w.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListWorkspacePermissionsRequest.WorkspaceId", err)
+	}
+	return &ListWorkspacePermissionsRequest{
+		AccountId:   w.AccountId,
+		WorkspaceId: workspaceIdPublicValue,
+	}, nil
+}
+
 type listWorkspacePermissionsResponseWire struct {
 	Permissions []permissionOutputWire `json:"permissions,omitempty"`
+}
+
+func listWorkspacePermissionsResponseToWire(v *ListWorkspacePermissionsResponse) (*listWorkspacePermissionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	permissionsWireValue, err := convertSlice(v.Permissions, permissionOutputToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListWorkspacePermissionsResponse.Permissions", err)
+	}
+	return &listWorkspacePermissionsResponseWire{
+		Permissions: permissionsWireValue,
+	}, nil
 }
 
 func listWorkspacePermissionsResponseFromWire(w *listWorkspacePermissionsResponseWire) (*ListWorkspacePermissionsResponse, error) {
@@ -387,8 +771,33 @@ func migratePermissionsRequestToWire(v *MigratePermissionsRequest) (*migratePerm
 	}, nil
 }
 
+func migratePermissionsRequestFromWire(w *migratePermissionsRequestWire) (*MigratePermissionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	workspaceIdPublicValue, err := int64FromWire(w.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MigratePermissionsRequest.WorkspaceId", err)
+	}
+	return &MigratePermissionsRequest{
+		WorkspaceId:            workspaceIdPublicValue,
+		FromWorkspaceGroupName: w.FromWorkspaceGroupName,
+		ToAccountGroupName:     w.ToAccountGroupName,
+		Size:                   w.Size,
+	}, nil
+}
+
 type migratePermissionsResponseWire struct {
 	PermissionsMigrated *int `json:"permissions_migrated,omitempty"`
+}
+
+func migratePermissionsResponseToWire(v *MigratePermissionsResponse) (*migratePermissionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &migratePermissionsResponseWire{
+		PermissionsMigrated: v.PermissionsMigrated,
+	}, nil
 }
 
 func migratePermissionsResponseFromWire(w *migratePermissionsResponseWire) (*MigratePermissionsResponse, error) {
@@ -404,6 +813,17 @@ type permissionWire struct {
 	PermissionLevel     PermissionLevel `json:"permission_level,omitempty"`
 	Inherited           *bool           `json:"inherited,omitempty"`
 	InheritedFromObject []string        `json:"inherited_from_object,omitempty"`
+}
+
+func permissionToWire(v *Permission) (*permissionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &permissionWire{
+		PermissionLevel:     v.PermissionLevel,
+		Inherited:           v.Inherited,
+		InheritedFromObject: v.InheritedFromObject,
+	}, nil
 }
 
 func permissionFromWire(w *permissionWire) (*Permission, error) {
@@ -422,6 +842,16 @@ type permissionOutputWire struct {
 	Description     *string             `json:"description,omitempty"`
 }
 
+func permissionOutputToWire(v *PermissionOutput) (*permissionOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &permissionOutputWire{
+		PermissionLevel: v.PermissionLevel,
+		Description:     v.Description,
+	}, nil
+}
+
 func permissionOutputFromWire(w *permissionOutputWire) (*PermissionOutput, error) {
 	if w == nil {
 		return nil, nil
@@ -435,6 +865,16 @@ func permissionOutputFromWire(w *permissionOutputWire) (*PermissionOutput, error
 type permissionsDescriptionWire struct {
 	PermissionLevel PermissionLevel `json:"permission_level,omitempty"`
 	Description     *string         `json:"description,omitempty"`
+}
+
+func permissionsDescriptionToWire(v *PermissionsDescription) (*permissionsDescriptionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &permissionsDescriptionWire{
+		PermissionLevel: v.PermissionLevel,
+		Description:     v.Description,
+	}, nil
 }
 
 func permissionsDescriptionFromWire(w *permissionsDescriptionWire) (*PermissionsDescription, error) {
@@ -451,6 +891,21 @@ type permissionsResponseWire struct {
 	ObjectId          *string                     `json:"object_id,omitempty"`
 	ObjectType        *string                     `json:"object_type,omitempty"`
 	AccessControlList []accessControlResponseWire `json:"access_control_list,omitempty"`
+}
+
+func permissionsResponseToWire(v *PermissionsResponse) (*permissionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	accessControlListWireValue, err := convertSlice(v.AccessControlList, accessControlResponseToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PermissionsResponse.AccessControlList", err)
+	}
+	return &permissionsResponseWire{
+		ObjectId:          v.ObjectId,
+		ObjectType:        v.ObjectType,
+		AccessControlList: accessControlListWireValue,
+	}, nil
 }
 
 func permissionsResponseFromWire(w *permissionsResponseWire) (*PermissionsResponse, error) {
@@ -474,6 +929,43 @@ type principalOutputWire struct {
 	ServicePrincipalName *string    `json:"service_principal_name,omitempty"`
 	PrincipalId          *wireInt64 `json:"principal_id,omitempty"`
 	DisplayName          *string    `json:"display_name,omitempty"`
+}
+
+func principalOutputToWire(v *PrincipalOutput) (*principalOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	principalIdWireValue, err := int64ToWire(v.PrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PrincipalOutput.PrincipalId", err)
+	}
+	var principalNameUserNameWire *string
+	var principalNameGroupNameWire *string
+	var principalNameServicePrincipalNameWire *string
+	switch value := v.PrincipalName.(type) {
+	case nil:
+	case *PrincipalOutput_PrincipalName_UserName:
+		if value != nil {
+			principalNameUserNameWire = new(value.UserName)
+		}
+	case *PrincipalOutput_PrincipalName_GroupName:
+		if value != nil {
+			principalNameGroupNameWire = new(value.GroupName)
+		}
+	case *PrincipalOutput_PrincipalName_ServicePrincipalName:
+		if value != nil {
+			principalNameServicePrincipalNameWire = new(value.ServicePrincipalName)
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "PrincipalOutput.PrincipalName", value)
+	}
+	return &principalOutputWire{
+		UserName:             principalNameUserNameWire,
+		GroupName:            principalNameGroupNameWire,
+		ServicePrincipalName: principalNameServicePrincipalNameWire,
+		PrincipalId:          principalIdWireValue,
+		DisplayName:          v.DisplayName,
+	}, nil
 }
 
 func principalOutputFromWire(w *principalOutputWire) (*PrincipalOutput, error) {
@@ -534,8 +1026,32 @@ func resourceInfoToWire(v *ResourceInfo) (*resourceInfoWire, error) {
 	}, nil
 }
 
+func resourceInfoFromWire(w *resourceInfoWire) (*ResourceInfo, error) {
+	if w == nil {
+		return nil, nil
+	}
+	parentResourceInfoPublicValue, err := resourceInfoFromWire(w.ParentResourceInfo)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ResourceInfo.ParentResourceInfo", err)
+	}
+	return &ResourceInfo{
+		Id:                 w.Id,
+		ParentResourceInfo: parentResourceInfoPublicValue,
+		LegacyAclPath:      w.LegacyAclPath,
+	}, nil
+}
+
 type roleWire struct {
 	Name *string `json:"name,omitempty"`
+}
+
+func roleToWire(v *Role) (*roleWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &roleWire{
+		Name: v.Name,
+	}, nil
 }
 
 func roleFromWire(w *roleWire) (*Role, error) {
@@ -551,6 +1067,21 @@ type ruleSetWire struct {
 	Name       *string         `json:"name,omitempty"`
 	Etag       *string         `json:"etag,omitempty"`
 	GrantRules []grantRuleWire `json:"grant_rules,omitempty"`
+}
+
+func ruleSetToWire(v *RuleSet) (*ruleSetWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	grantRulesWireValue, err := convertSlice(v.GrantRules, grantRuleToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RuleSet.GrantRules", err)
+	}
+	return &ruleSetWire{
+		Name:       v.Name,
+		Etag:       v.Etag,
+		GrantRules: grantRulesWireValue,
+	}, nil
 }
 
 func ruleSetFromWire(w *ruleSetWire) (*RuleSet, error) {
@@ -589,6 +1120,21 @@ func ruleSetUpdateRequestToWire(v *RuleSetUpdateRequest) (*ruleSetUpdateRequestW
 	}, nil
 }
 
+func ruleSetUpdateRequestFromWire(w *ruleSetUpdateRequestWire) (*RuleSetUpdateRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	grantRulesPublicValue, err := convertSlice(w.GrantRules, grantRuleFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RuleSetUpdateRequest.GrantRules", err)
+	}
+	return &RuleSetUpdateRequest{
+		Name:       w.Name,
+		Etag:       w.Etag,
+		GrantRules: grantRulesPublicValue,
+	}, nil
+}
+
 type setObjectPermissionsRequestWire struct {
 	RequestObjectType *string                    `json:"request_object_type,omitempty"`
 	RequestObjectId   *string                    `json:"request_object_id,omitempty"`
@@ -607,6 +1153,21 @@ func setObjectPermissionsRequestToWire(v *SetObjectPermissionsRequest) (*setObje
 		RequestObjectType: v.RequestObjectType,
 		RequestObjectId:   v.RequestObjectId,
 		AccessControlList: accessControlListWireValue,
+	}, nil
+}
+
+func setObjectPermissionsRequestFromWire(w *setObjectPermissionsRequestWire) (*SetObjectPermissionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	accessControlListPublicValue, err := convertSlice(w.AccessControlList, accessControlRequestFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SetObjectPermissionsRequest.AccessControlList", err)
+	}
+	return &SetObjectPermissionsRequest{
+		RequestObjectType: w.RequestObjectType,
+		RequestObjectId:   w.RequestObjectId,
+		AccessControlList: accessControlListPublicValue,
 	}, nil
 }
 
@@ -631,6 +1192,21 @@ func updateObjectPermissionsRequestToWire(v *UpdateObjectPermissionsRequest) (*u
 	}, nil
 }
 
+func updateObjectPermissionsRequestFromWire(w *updateObjectPermissionsRequestWire) (*UpdateObjectPermissionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	accessControlListPublicValue, err := convertSlice(w.AccessControlList, accessControlRequestFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateObjectPermissionsRequest.AccessControlList", err)
+	}
+	return &UpdateObjectPermissionsRequest{
+		RequestObjectType: w.RequestObjectType,
+		RequestObjectId:   w.RequestObjectId,
+		AccessControlList: accessControlListPublicValue,
+	}, nil
+}
+
 type updateRuleSetRequestWire struct {
 	AccountId *string                   `json:"account_id,omitempty"`
 	Name      *string                   `json:"name,omitempty"`
@@ -649,6 +1225,21 @@ func updateRuleSetRequestToWire(v *UpdateRuleSetRequest) (*updateRuleSetRequestW
 		AccountId: v.AccountId,
 		Name:      v.Name,
 		RuleSet:   ruleSetWireValue,
+	}, nil
+}
+
+func updateRuleSetRequestFromWire(w *updateRuleSetRequestWire) (*UpdateRuleSetRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	ruleSetPublicValue, err := ruleSetUpdateRequestFromWire(w.RuleSet)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateRuleSetRequest.RuleSet", err)
+	}
+	return &UpdateRuleSetRequest{
+		AccountId: w.AccountId,
+		Name:      w.Name,
+		RuleSet:   ruleSetPublicValue,
 	}, nil
 }
 
@@ -679,10 +1270,45 @@ func updateWorkspacePermissionAssignmentRequestToWire(v *UpdateWorkspacePermissi
 	}, nil
 }
 
+func updateWorkspacePermissionAssignmentRequestFromWire(w *updateWorkspacePermissionAssignmentRequestWire) (*UpdateWorkspacePermissionAssignmentRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	workspaceIdPublicValue, err := int64FromWire(w.WorkspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateWorkspacePermissionAssignmentRequest.WorkspaceId", err)
+	}
+	principalIdPublicValue, err := int64FromWire(w.PrincipalId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateWorkspacePermissionAssignmentRequest.PrincipalId", err)
+	}
+	return &UpdateWorkspacePermissionAssignmentRequest{
+		AccountId:   w.AccountId,
+		WorkspaceId: workspaceIdPublicValue,
+		PrincipalId: principalIdPublicValue,
+		Permissions: w.Permissions,
+	}, nil
+}
+
 type workspacePermissionAssignmentOutputWire struct {
 	Principal   *principalOutputWire  `json:"principal,omitempty"`
 	Permissions []WorkspacePermission `json:"permissions,omitempty"`
 	Error       *string               `json:"error,omitempty"`
+}
+
+func workspacePermissionAssignmentOutputToWire(v *WorkspacePermissionAssignmentOutput) (*workspacePermissionAssignmentOutputWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	principalWireValue, err := principalOutputToWire(v.Principal)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "WorkspacePermissionAssignmentOutput.Principal", err)
+	}
+	return &workspacePermissionAssignmentOutputWire{
+		Principal:   principalWireValue,
+		Permissions: v.Permissions,
+		Error:       v.Error,
+	}, nil
 }
 
 func workspacePermissionAssignmentOutputFromWire(w *workspacePermissionAssignmentOutputWire) (*WorkspacePermissionAssignmentOutput, error) {
