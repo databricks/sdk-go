@@ -74,6 +74,30 @@ func getCatalogWorkspaceBindingsRequestFromWire(w *getCatalogWorkspaceBindingsRe
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetCatalogWorkspaceBindingsRequest) MarshalJSON() ([]byte, error) {
+	w, err := getCatalogWorkspaceBindingsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetCatalogWorkspaceBindingsRequest) UnmarshalJSON(data []byte) error {
+	var w getCatalogWorkspaceBindingsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getCatalogWorkspaceBindingsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getCatalogWorkspaceBindingsResponseWire struct {
 	Workspaces []wireInt64 `json:"workspaces,omitempty"`
 }
@@ -102,6 +126,30 @@ func getCatalogWorkspaceBindingsResponseFromWire(w *getCatalogWorkspaceBindingsR
 	return &GetCatalogWorkspaceBindingsResponse{
 		Workspaces: workspacesPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetCatalogWorkspaceBindingsResponse) MarshalJSON() ([]byte, error) {
+	w, err := getCatalogWorkspaceBindingsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetCatalogWorkspaceBindingsResponse) UnmarshalJSON(data []byte) error {
+	var w getCatalogWorkspaceBindingsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getCatalogWorkspaceBindingsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type getWorkspaceBindingsRequestWire struct {
@@ -135,6 +183,30 @@ func getWorkspaceBindingsRequestFromWire(w *getWorkspaceBindingsRequestWire) (*G
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetWorkspaceBindingsRequest) MarshalJSON() ([]byte, error) {
+	w, err := getWorkspaceBindingsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetWorkspaceBindingsRequest) UnmarshalJSON(data []byte) error {
+	var w getWorkspaceBindingsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getWorkspaceBindingsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getWorkspaceBindingsResponseWire struct {
 	Bindings      []workspaceBindingInfoWire `json:"bindings,omitempty"`
 	NextPageToken *string                    `json:"next_page_token,omitempty"`
@@ -166,6 +238,30 @@ func getWorkspaceBindingsResponseFromWire(w *getWorkspaceBindingsResponseWire) (
 		Bindings:      bindingsPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetWorkspaceBindingsResponse) MarshalJSON() ([]byte, error) {
+	w, err := getWorkspaceBindingsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetWorkspaceBindingsResponse) UnmarshalJSON(data []byte) error {
+	var w getWorkspaceBindingsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getWorkspaceBindingsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateCatalogWorkspaceBindingsRequestWire struct {
@@ -212,6 +308,30 @@ func updateCatalogWorkspaceBindingsRequestFromWire(w *updateCatalogWorkspaceBind
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateCatalogWorkspaceBindingsRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateCatalogWorkspaceBindingsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateCatalogWorkspaceBindingsRequest) UnmarshalJSON(data []byte) error {
+	var w updateCatalogWorkspaceBindingsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateCatalogWorkspaceBindingsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateCatalogWorkspaceBindingsResponseWire struct {
 	Workspaces []wireInt64 `json:"workspaces,omitempty"`
 }
@@ -240,6 +360,30 @@ func updateCatalogWorkspaceBindingsResponseFromWire(w *updateCatalogWorkspaceBin
 	return &UpdateCatalogWorkspaceBindingsResponse{
 		Workspaces: workspacesPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateCatalogWorkspaceBindingsResponse) MarshalJSON() ([]byte, error) {
+	w, err := updateCatalogWorkspaceBindingsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateCatalogWorkspaceBindingsResponse) UnmarshalJSON(data []byte) error {
+	var w updateCatalogWorkspaceBindingsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateCatalogWorkspaceBindingsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateWorkspaceBindingsRequestWire struct {
@@ -289,6 +433,30 @@ func updateWorkspaceBindingsRequestFromWire(w *updateWorkspaceBindingsRequestWir
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateWorkspaceBindingsRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateWorkspaceBindingsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateWorkspaceBindingsRequest) UnmarshalJSON(data []byte) error {
+	var w updateWorkspaceBindingsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateWorkspaceBindingsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateWorkspaceBindingsResponseWire struct {
 	Bindings []workspaceBindingInfoWire `json:"bindings,omitempty"`
 }
@@ -317,6 +485,30 @@ func updateWorkspaceBindingsResponseFromWire(w *updateWorkspaceBindingsResponseW
 	return &UpdateWorkspaceBindingsResponse{
 		Bindings: bindingsPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateWorkspaceBindingsResponse) MarshalJSON() ([]byte, error) {
+	w, err := updateWorkspaceBindingsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateWorkspaceBindingsResponse) UnmarshalJSON(data []byte) error {
+	var w updateWorkspaceBindingsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateWorkspaceBindingsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type workspaceBindingInfoWire struct {
@@ -350,6 +542,30 @@ func workspaceBindingInfoFromWire(w *workspaceBindingInfoWire) (*WorkspaceBindin
 		WorkspaceId: workspaceIdPublicValue,
 		BindingType: w.BindingType,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v WorkspaceBindingInfo) MarshalJSON() ([]byte, error) {
+	w, err := workspaceBindingInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *WorkspaceBindingInfo) UnmarshalJSON(data []byte) error {
+	var w workspaceBindingInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := workspaceBindingInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

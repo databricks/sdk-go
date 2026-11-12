@@ -79,6 +79,30 @@ func columnRelationshipFromWire(w *columnRelationshipWire) (*ColumnRelationship,
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ColumnRelationship) MarshalJSON() ([]byte, error) {
+	w, err := columnRelationshipToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ColumnRelationship) UnmarshalJSON(data []byte) error {
+	var w columnRelationshipWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := columnRelationshipFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createExternalLineageRelationshipRequestWire struct {
 	ExternalLineageRelationship *createRequestExternalLineageWire `json:"external_lineage_relationship,omitempty"`
 }
@@ -107,6 +131,30 @@ func createExternalLineageRelationshipRequestFromWire(w *createExternalLineageRe
 	return &CreateExternalLineageRelationshipRequest{
 		ExternalLineageRelationship: externalLineageRelationshipPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateExternalLineageRelationshipRequest) MarshalJSON() ([]byte, error) {
+	w, err := createExternalLineageRelationshipRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateExternalLineageRelationshipRequest) UnmarshalJSON(data []byte) error {
+	var w createExternalLineageRelationshipRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createExternalLineageRelationshipRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createRequestExternalLineageWire struct {
@@ -167,6 +215,30 @@ func createRequestExternalLineageFromWire(w *createRequestExternalLineageWire) (
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateRequestExternalLineage) MarshalJSON() ([]byte, error) {
+	w, err := createRequestExternalLineageToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateRequestExternalLineage) UnmarshalJSON(data []byte) error {
+	var w createRequestExternalLineageWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createRequestExternalLineageFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteExternalLineageRelationshipRequestWire struct {
 	ExternalLineageRelationship *deleteRequestExternalLineageWire `json:"external_lineage_relationship,omitempty"`
 }
@@ -195,6 +267,30 @@ func deleteExternalLineageRelationshipRequestFromWire(w *deleteExternalLineageRe
 	return &DeleteExternalLineageRelationshipRequest{
 		ExternalLineageRelationship: externalLineageRelationshipPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteExternalLineageRelationshipRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteExternalLineageRelationshipRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteExternalLineageRelationshipRequest) UnmarshalJSON(data []byte) error {
+	var w deleteExternalLineageRelationshipRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteExternalLineageRelationshipRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type deleteRequestExternalLineageWire struct {
@@ -255,6 +351,30 @@ func deleteRequestExternalLineageFromWire(w *deleteRequestExternalLineageWire) (
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteRequestExternalLineage) MarshalJSON() ([]byte, error) {
+	w, err := deleteRequestExternalLineageToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteRequestExternalLineage) UnmarshalJSON(data []byte) error {
+	var w deleteRequestExternalLineageWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteRequestExternalLineageFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type directionWire struct {
 }
 
@@ -270,6 +390,30 @@ func directionFromWire(w *directionWire) (*Direction, error) {
 		return nil, nil
 	}
 	return &Direction{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Direction) MarshalJSON() ([]byte, error) {
+	w, err := directionToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Direction) UnmarshalJSON(data []byte) error {
+	var w directionWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := directionFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type externalLineageInfoWire struct {
@@ -346,6 +490,30 @@ func externalLineageInfoFromWire(w *externalLineageInfoWire) (*ExternalLineageIn
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExternalLineageInfo) MarshalJSON() ([]byte, error) {
+	w, err := externalLineageInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExternalLineageInfo) UnmarshalJSON(data []byte) error {
+	var w externalLineageInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := externalLineageInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type externalLineageRelationshipWire struct {
 	Id         *string                                `json:"id,omitempty"`
 	Source     *externalLineageRelationshipObjectWire `json:"source,omitempty"`
@@ -404,6 +572,30 @@ func externalLineageRelationshipFromWire(w *externalLineageRelationshipWire) (*E
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExternalLineageRelationship) MarshalJSON() ([]byte, error) {
+	w, err := externalLineageRelationshipToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExternalLineageRelationship) UnmarshalJSON(data []byte) error {
+	var w externalLineageRelationshipWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := externalLineageRelationshipFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type externalLineageRelationshipExternalMetadataWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -424,6 +616,30 @@ func externalLineageRelationshipExternalMetadataFromWire(w *externalLineageRelat
 	return &ExternalLineageRelationshipExternalMetadata{
 		Name: w.Name,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExternalLineageRelationshipExternalMetadata) MarshalJSON() ([]byte, error) {
+	w, err := externalLineageRelationshipExternalMetadataToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExternalLineageRelationshipExternalMetadata) UnmarshalJSON(data []byte) error {
+	var w externalLineageRelationshipExternalMetadataWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := externalLineageRelationshipExternalMetadataFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type externalLineageRelationshipModelVersionWire struct {
@@ -449,6 +665,30 @@ func externalLineageRelationshipModelVersionFromWire(w *externalLineageRelations
 		Name:    w.Name,
 		Version: w.Version,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExternalLineageRelationshipModelVersion) MarshalJSON() ([]byte, error) {
+	w, err := externalLineageRelationshipModelVersionToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExternalLineageRelationshipModelVersion) UnmarshalJSON(data []byte) error {
+	var w externalLineageRelationshipModelVersionWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := externalLineageRelationshipModelVersionFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type externalLineageRelationshipObjectWire struct {
@@ -563,6 +803,30 @@ func externalLineageRelationshipObjectFromWire(w *externalLineageRelationshipObj
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExternalLineageRelationshipObject) MarshalJSON() ([]byte, error) {
+	w, err := externalLineageRelationshipObjectToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExternalLineageRelationshipObject) UnmarshalJSON(data []byte) error {
+	var w externalLineageRelationshipObjectWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := externalLineageRelationshipObjectFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type externalLineageRelationshipPathWire struct {
 	Url *string `json:"url,omitempty"`
 }
@@ -585,6 +849,30 @@ func externalLineageRelationshipPathFromWire(w *externalLineageRelationshipPathW
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExternalLineageRelationshipPath) MarshalJSON() ([]byte, error) {
+	w, err := externalLineageRelationshipPathToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExternalLineageRelationshipPath) UnmarshalJSON(data []byte) error {
+	var w externalLineageRelationshipPathWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := externalLineageRelationshipPathFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type externalLineageRelationshipTableWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -605,6 +893,30 @@ func externalLineageRelationshipTableFromWire(w *externalLineageRelationshipTabl
 	return &ExternalLineageRelationshipTable{
 		Name: w.Name,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExternalLineageRelationshipTable) MarshalJSON() ([]byte, error) {
+	w, err := externalLineageRelationshipTableToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExternalLineageRelationshipTable) UnmarshalJSON(data []byte) error {
+	var w externalLineageRelationshipTableWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := externalLineageRelationshipTableFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type lineageExternalMetadataInfoWire struct {
@@ -636,6 +948,30 @@ func lineageExternalMetadataInfoFromWire(w *lineageExternalMetadataInfoWire) (*L
 		EntityType: w.EntityType,
 		EventTime:  w.EventTime,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v LineageExternalMetadataInfo) MarshalJSON() ([]byte, error) {
+	w, err := lineageExternalMetadataInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *LineageExternalMetadataInfo) UnmarshalJSON(data []byte) error {
+	var w lineageExternalMetadataInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := lineageExternalMetadataInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type lineageFileInfoWire struct {
@@ -670,6 +1006,30 @@ func lineageFileInfoFromWire(w *lineageFileInfoWire) (*LineageFileInfo, error) {
 		SecurableType:   w.SecurableType,
 		EventTime:       w.EventTime,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v LineageFileInfo) MarshalJSON() ([]byte, error) {
+	w, err := lineageFileInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *LineageFileInfo) UnmarshalJSON(data []byte) error {
+	var w lineageFileInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := lineageFileInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type lineageModelVersionInfoWire struct {
@@ -708,6 +1068,30 @@ func lineageModelVersionInfoFromWire(w *lineageModelVersionInfoWire) (*LineageMo
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v LineageModelVersionInfo) MarshalJSON() ([]byte, error) {
+	w, err := lineageModelVersionInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *LineageModelVersionInfo) UnmarshalJSON(data []byte) error {
+	var w lineageModelVersionInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := lineageModelVersionInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type lineageTableInfoWire struct {
 	Name        *string     `json:"name,omitempty"`
 	CatalogName *string     `json:"catalog_name,omitempty"`
@@ -737,6 +1121,30 @@ func lineageTableInfoFromWire(w *lineageTableInfoWire) (*LineageTableInfo, error
 		SchemaName:  w.SchemaName,
 		EventTime:   w.EventTime,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v LineageTableInfo) MarshalJSON() ([]byte, error) {
+	w, err := lineageTableInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *LineageTableInfo) UnmarshalJSON(data []byte) error {
+	var w lineageTableInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := lineageTableInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listExternalLineageRelationshipsRequestWire struct {
@@ -778,6 +1186,30 @@ func listExternalLineageRelationshipsRequestFromWire(w *listExternalLineageRelat
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListExternalLineageRelationshipsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listExternalLineageRelationshipsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListExternalLineageRelationshipsRequest) UnmarshalJSON(data []byte) error {
+	var w listExternalLineageRelationshipsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listExternalLineageRelationshipsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listExternalLineageRelationshipsResponseWire struct {
 	ExternalLineageRelationships []externalLineageInfoWire `json:"external_lineage_relationships,omitempty"`
 	NextPageToken                *string                   `json:"next_page_token,omitempty"`
@@ -811,6 +1243,30 @@ func listExternalLineageRelationshipsResponseFromWire(w *listExternalLineageRela
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListExternalLineageRelationshipsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listExternalLineageRelationshipsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListExternalLineageRelationshipsResponse) UnmarshalJSON(data []byte) error {
+	var w listExternalLineageRelationshipsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listExternalLineageRelationshipsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateExternalLineageRelationshipRequestWire struct {
 	ExternalLineageRelationship *updateRequestExternalLineageWire              `json:"external_lineage_relationship,omitempty"`
 	UpdateMask                  *types.FieldMask[UpdateRequestExternalLineage] `json:"update_mask,omitempty"`
@@ -842,6 +1298,30 @@ func updateExternalLineageRelationshipRequestFromWire(w *updateExternalLineageRe
 		ExternalLineageRelationship: externalLineageRelationshipPublicValue,
 		UpdateMask:                  w.UpdateMask,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateExternalLineageRelationshipRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateExternalLineageRelationshipRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateExternalLineageRelationshipRequest) UnmarshalJSON(data []byte) error {
+	var w updateExternalLineageRelationshipRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateExternalLineageRelationshipRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateRequestExternalLineageWire struct {
@@ -900,6 +1380,30 @@ func updateRequestExternalLineageFromWire(w *updateRequestExternalLineageWire) (
 		Columns:    columnsPublicValue,
 		Properties: w.Properties,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateRequestExternalLineage) MarshalJSON() ([]byte, error) {
+	w, err := updateRequestExternalLineageToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateRequestExternalLineage) UnmarshalJSON(data []byte) error {
+	var w updateRequestExternalLineageWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateRequestExternalLineageFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

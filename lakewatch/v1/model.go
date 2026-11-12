@@ -907,8 +907,9 @@ type Rule struct {
 	// Reference to the content pack this rule was originally installed from.
 	OriginalContentPack *ContentPackReference `fieldmask:"original_content_pack"`
 	// ID of the workspace whose compute runs this rule's jobs and owns its
-	// associated resources, such as the SQL warehouse a scheduled rule runs on.
-	// Server-assigned; a rule's warehouse can only be changed from this workspace.
+	// associated resources, such as the SQL warehouse a scheduled detection runs
+	// on. Server-assigned; a rule's warehouse can only be changed from this
+	// workspace.
 	ComputeWorkspaceId *string `fieldmask:"compute_workspace_id"`
 	// Immutable UUIDv4 identifying the authored content resource installed as this
 	// rule.
@@ -922,8 +923,8 @@ type Rule struct {
 	// Supports Markdown; analysts and the investigation agent follow it when
 	// triaging this rule's alerts.
 	Runbook *string `fieldmask:"runbook"`
-	// Time-range configuration for batch rules. If unset, the execution time range
-	// is extended by a fixed `15m` lookback.
+	// Time-range configuration for scheduled detections. If unset, the execution
+	// time range is extended by a fixed `15m` lookback.
 	Timerange *RuleTimeRange                 `fieldmask:"timerange"`
 	_         [0]ruleSourceFieldMaskMetadata `fieldmask_oneof:"Source"`
 }
@@ -933,7 +934,7 @@ type isRule_Source interface {
 }
 
 // Rule_Source_Batch selects Batch for Rule.Source.
-// Batch SQL rule input.
+// Scheduled detection (also known as batch detection) input.
 type Rule_Source_Batch struct {
 	Batch RuleInputBatch `fieldmask:"batch"`
 }
@@ -984,11 +985,12 @@ type RuleConfig struct {
 	EffectiveDefaultFolder *string `fieldmask:"effective_default_folder"`
 }
 
-// Batch input for a detection rule..
+// Input for a scheduled detection (also known as batch detection)..
 type RuleInputBatch struct {
-	// How the batch input is produced. Exactly one shape is required.
+	// How the scheduled detection's input is produced. Exactly one shape is
+	// required.
 	Shape isRuleInputBatch_Shape
-	// SQL warehouse used to run this batch rule.
+	// SQL warehouse that runs this scheduled detection.
 	WarehouseId *string                                 `fieldmask:"warehouse_id"`
 	_           [0]ruleInputBatchShapeFieldMaskMetadata `fieldmask_oneof:"Shape"`
 }
@@ -1018,7 +1020,7 @@ type ruleInputBatchShapeFieldMaskMetadata struct {
 	*RuleInputBatch_Shape_Custom
 }
 
-// Batch SQL input for a detection rule..
+// SQL query input for a scheduled detection..
 type RuleInputBatchSql struct {
 	// Default catalog used to resolve unqualified identifiers in `query`. If unset,
 	// the rule's `catalog_name` is used.
@@ -1030,7 +1032,7 @@ type RuleInputBatchSql struct {
 	Query *string `fieldmask:"query"`
 }
 
-// Reference to a custom-user-function notebook for stream or batch input..
+// Reference to a custom-user-function notebook for scheduled detection input..
 type RuleInputCustomNotebook struct {
 	// Fully-qualified notebook path, or a path relative to the configured base
 	// notebook directory.
@@ -1073,10 +1075,10 @@ type RuleOutput struct {
 
 // Defines when a detection rule executes.
 //
-// A batch rule sets exactly one of `at_least_every` or `cron_expression`. A
-// streaming rule runs continuously and sets no timing; it accepts only
-// `enabled`, and an omitted schedule means enabled. The server rejects any
-// other combination. `enabled` is orthogonal to the timing..
+// A scheduled detection sets exactly one of `at_least_every` or
+// `cron_expression`. A streaming rule runs continuously and sets no timing; it
+// accepts only `enabled`, and an omitted schedule means enabled. The server
+// rejects any other combination. `enabled` is orthogonal to the timing..
 type RuleSchedule struct {
 	Timing isRuleSchedule_Timing
 	// Sets whether the job is scheduled to run. Defaults to true.
@@ -1106,29 +1108,19 @@ type RuleSchedule_Timing_CronExpression struct {
 
 func (*RuleSchedule_Timing_CronExpression) isRuleSchedule_Timing() {}
 
-// RuleSchedule_Timing_Continuous selects Continuous for RuleSchedule.Timing.
-// Runs the rule continuously. Detection rules do not accept it: batch rules
-// reject it, and streaming rules run continuously without it.
-type RuleSchedule_Timing_Continuous struct {
-	Continuous bool `fieldmask:"continuous"`
-}
-
-func (*RuleSchedule_Timing_Continuous) isRuleSchedule_Timing() {}
-
 type ruleScheduleTimingFieldMaskMetadata struct {
 	*RuleSchedule_Timing_AtLeastEvery
 	*RuleSchedule_Timing_CronExpression
-	*RuleSchedule_Timing_Continuous
 }
 
-// Time-range configuration for a batch detection rule..
+// Time-range configuration for a scheduled detection..
 type RuleTimeRange struct {
 	// Extends the start of the execution time range by a compact duration with
 	// integer days, hours, minutes, and seconds in that order, such as `1h30m` or
 	// `15m`. Zero duration disables extension. Unset or empty uses a fixed `15m` at
 	// execution time. Only the start moves; the end is unchanged. Has no effect on
-	// batch SQL that does not use `IN_TIMERANGE`. Values must fit signed 64-bit
-	// microseconds.
+	// a detection query that does not use `IN_TIMERANGE`. Values must fit signed
+	// 64-bit microseconds.
 	ExtendLookback *string `fieldmask:"extend_lookback"`
 }
 

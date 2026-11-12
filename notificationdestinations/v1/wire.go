@@ -224,6 +224,30 @@ func configFromWire(w *configWire) (*Config, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Config) MarshalJSON() ([]byte, error) {
+	w, err := configToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Config) UnmarshalJSON(data []byte) error {
+	var w configWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := configFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createNotificationDestinationRequestWire struct {
 	DisplayName *string     `json:"display_name,omitempty"`
 	Config      *configWire `json:"config,omitempty"`
@@ -257,6 +281,30 @@ func createNotificationDestinationRequestFromWire(w *createNotificationDestinati
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateNotificationDestinationRequest) MarshalJSON() ([]byte, error) {
+	w, err := createNotificationDestinationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateNotificationDestinationRequest) UnmarshalJSON(data []byte) error {
+	var w createNotificationDestinationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createNotificationDestinationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type databricksAppSlackConfigWire struct {
 	TeamId       *string `json:"team_id,omitempty"`
 	TeamIdSet    *bool   `json:"team_id_set,omitempty"`
@@ -286,6 +334,30 @@ func databricksAppSlackConfigFromWire(w *databricksAppSlackConfigWire) (*Databri
 		ChannelId:    w.ChannelId,
 		ChannelIdSet: w.ChannelIdSet,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DatabricksAppSlackConfig) MarshalJSON() ([]byte, error) {
+	w, err := databricksAppSlackConfigToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DatabricksAppSlackConfig) UnmarshalJSON(data []byte) error {
+	var w databricksAppSlackConfigWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := databricksAppSlackConfigFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type databricksAppTeamsConfigWire struct {
@@ -325,6 +397,30 @@ func databricksAppTeamsConfigFromWire(w *databricksAppTeamsConfigWire) (*Databri
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DatabricksAppTeamsConfig) MarshalJSON() ([]byte, error) {
+	w, err := databricksAppTeamsConfigToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DatabricksAppTeamsConfig) UnmarshalJSON(data []byte) error {
+	var w databricksAppTeamsConfigWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := databricksAppTeamsConfigFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteNotificationDestinationRequestWire struct {
 	Id *string `json:"id,omitempty"`
 }
@@ -345,6 +441,30 @@ func deleteNotificationDestinationRequestFromWire(w *deleteNotificationDestinati
 	return &DeleteNotificationDestinationRequest{
 		Id: w.Id,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteNotificationDestinationRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteNotificationDestinationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteNotificationDestinationRequest) UnmarshalJSON(data []byte) error {
+	var w deleteNotificationDestinationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteNotificationDestinationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type emailConfigWire struct {
@@ -369,6 +489,30 @@ func emailConfigFromWire(w *emailConfigWire) (*EmailConfig, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v EmailConfig) MarshalJSON() ([]byte, error) {
+	w, err := emailConfigToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *EmailConfig) UnmarshalJSON(data []byte) error {
+	var w emailConfigWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := emailConfigFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type emptyWire struct {
 }
 
@@ -384,6 +528,30 @@ func emptyFromWire(w *emptyWire) (*Empty, error) {
 		return nil, nil
 	}
 	return &Empty{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Empty) MarshalJSON() ([]byte, error) {
+	w, err := emptyToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Empty) UnmarshalJSON(data []byte) error {
+	var w emptyWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := emptyFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genericWebhookConfigWire struct {
@@ -423,6 +591,30 @@ func genericWebhookConfigFromWire(w *genericWebhookConfigWire) (*GenericWebhookC
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenericWebhookConfig) MarshalJSON() ([]byte, error) {
+	w, err := genericWebhookConfigToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenericWebhookConfig) UnmarshalJSON(data []byte) error {
+	var w genericWebhookConfigWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genericWebhookConfigFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getNotificationDestinationRequestWire struct {
 	Id *string `json:"id,omitempty"`
 }
@@ -443,6 +635,30 @@ func getNotificationDestinationRequestFromWire(w *getNotificationDestinationRequ
 	return &GetNotificationDestinationRequest{
 		Id: w.Id,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetNotificationDestinationRequest) MarshalJSON() ([]byte, error) {
+	w, err := getNotificationDestinationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetNotificationDestinationRequest) UnmarshalJSON(data []byte) error {
+	var w getNotificationDestinationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getNotificationDestinationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listNotificationDestinationsRequestWire struct {
@@ -478,6 +694,30 @@ func listNotificationDestinationsRequestFromWire(w *listNotificationDestinations
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListNotificationDestinationsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listNotificationDestinationsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListNotificationDestinationsRequest) UnmarshalJSON(data []byte) error {
+	var w listNotificationDestinationsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listNotificationDestinationsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listNotificationDestinationsResponseWire struct {
 	Results       []listNotificationDestinationsResultWire `json:"results,omitempty"`
 	NextPageToken *string                                  `json:"next_page_token,omitempty"`
@@ -509,6 +749,30 @@ func listNotificationDestinationsResponseFromWire(w *listNotificationDestination
 		Results:       resultsPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListNotificationDestinationsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listNotificationDestinationsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListNotificationDestinationsResponse) UnmarshalJSON(data []byte) error {
+	var w listNotificationDestinationsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listNotificationDestinationsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listNotificationDestinationsResultWire struct {
@@ -548,6 +812,30 @@ func listNotificationDestinationsResultFromWire(w *listNotificationDestinationsR
 		DestinationType: w.DestinationType,
 		Config:          configPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListNotificationDestinationsResult) MarshalJSON() ([]byte, error) {
+	w, err := listNotificationDestinationsResultToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListNotificationDestinationsResult) UnmarshalJSON(data []byte) error {
+	var w listNotificationDestinationsResultWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listNotificationDestinationsResultFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type microsoftTeamsConfigWire struct {
@@ -599,6 +887,30 @@ func microsoftTeamsConfigFromWire(w *microsoftTeamsConfigWire) (*MicrosoftTeamsC
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v MicrosoftTeamsConfig) MarshalJSON() ([]byte, error) {
+	w, err := microsoftTeamsConfigToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *MicrosoftTeamsConfig) UnmarshalJSON(data []byte) error {
+	var w microsoftTeamsConfigWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := microsoftTeamsConfigFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type notificationDestinationWire struct {
 	Id              *string         `json:"id,omitempty"`
 	DisplayName     *string         `json:"display_name,omitempty"`
@@ -638,6 +950,30 @@ func notificationDestinationFromWire(w *notificationDestinationWire) (*Notificat
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v NotificationDestination) MarshalJSON() ([]byte, error) {
+	w, err := notificationDestinationToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *NotificationDestination) UnmarshalJSON(data []byte) error {
+	var w notificationDestinationWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := notificationDestinationFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type pagerdutyConfigWire struct {
 	IntegrationKey    *string `json:"integration_key,omitempty"`
 	IntegrationKeySet *bool   `json:"integration_key_set,omitempty"`
@@ -661,6 +997,30 @@ func pagerdutyConfigFromWire(w *pagerdutyConfigWire) (*PagerdutyConfig, error) {
 		IntegrationKey:    w.IntegrationKey,
 		IntegrationKeySet: w.IntegrationKeySet,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PagerdutyConfig) MarshalJSON() ([]byte, error) {
+	w, err := pagerdutyConfigToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PagerdutyConfig) UnmarshalJSON(data []byte) error {
+	var w pagerdutyConfigWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := pagerdutyConfigFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type slackConfigWire struct {
@@ -700,6 +1060,30 @@ func slackConfigFromWire(w *slackConfigWire) (*SlackConfig, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v SlackConfig) MarshalJSON() ([]byte, error) {
+	w, err := slackConfigToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *SlackConfig) UnmarshalJSON(data []byte) error {
+	var w slackConfigWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := slackConfigFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateNotificationDestinationRequestWire struct {
 	Id          *string     `json:"id,omitempty"`
 	DisplayName *string     `json:"display_name,omitempty"`
@@ -734,6 +1118,30 @@ func updateNotificationDestinationRequestFromWire(w *updateNotificationDestinati
 		DisplayName: w.DisplayName,
 		Config:      configPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateNotificationDestinationRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateNotificationDestinationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateNotificationDestinationRequest) UnmarshalJSON(data []byte) error {
+	var w updateNotificationDestinationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateNotificationDestinationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

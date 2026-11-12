@@ -77,7 +77,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	}, nil
 }
 
-// Create Alert
+// Creates an alert that runs `query_text` on the given schedule and evaluates
+// the result against the configured condition.
 func (c *internalClient) CreateAlert(ctx context.Context, req CreateAlertRequest, opts ...call.Option) (*Alert, error) {
 	wireReq, err := createAlertRequestToWire(&req)
 	if err != nil {
@@ -379,7 +380,8 @@ func (c *internalClient) TrashAlert(ctx context.Context, req TrashAlertRequest, 
 	return resp, nil
 }
 
-// Update alert
+// Updates an alert. Only the fields listed in `update_mask` are changed; all
+// other fields keep their current values.
 func (c *internalClient) UpdateAlert(ctx context.Context, req UpdateAlertRequest, opts ...call.Option) (*Alert, error) {
 	wireReq, err := updateAlertRequestToWire(&req)
 	if err != nil {

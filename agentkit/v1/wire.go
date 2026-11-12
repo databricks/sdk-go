@@ -87,6 +87,30 @@ func appendSessionItemsRequestFromWire(w *appendSessionItemsRequestWire) (*Appen
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AppendSessionItemsRequest) MarshalJSON() ([]byte, error) {
+	w, err := appendSessionItemsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AppendSessionItemsRequest) UnmarshalJSON(data []byte) error {
+	var w appendSessionItemsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := appendSessionItemsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type appendSessionItemsResponseWire struct {
 	SessionItems []sessionItemWire `json:"session_items,omitempty"`
 }
@@ -117,6 +141,30 @@ func appendSessionItemsResponseFromWire(w *appendSessionItemsResponseWire) (*App
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AppendSessionItemsResponse) MarshalJSON() ([]byte, error) {
+	w, err := appendSessionItemsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AppendSessionItemsResponse) UnmarshalJSON(data []byte) error {
+	var w appendSessionItemsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := appendSessionItemsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type clearSessionItemsRequestWire struct {
 	Parent *string `json:"parent,omitempty"`
 }
@@ -139,6 +187,30 @@ func clearSessionItemsRequestFromWire(w *clearSessionItemsRequestWire) (*ClearSe
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ClearSessionItemsRequest) MarshalJSON() ([]byte, error) {
+	w, err := clearSessionItemsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ClearSessionItemsRequest) UnmarshalJSON(data []byte) error {
+	var w clearSessionItemsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := clearSessionItemsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type clearSessionItemsResponseWire struct {
 }
 
@@ -154,6 +226,30 @@ func clearSessionItemsResponseFromWire(w *clearSessionItemsResponseWire) (*Clear
 		return nil, nil
 	}
 	return &ClearSessionItemsResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ClearSessionItemsResponse) MarshalJSON() ([]byte, error) {
+	w, err := clearSessionItemsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ClearSessionItemsResponse) UnmarshalJSON(data []byte) error {
+	var w clearSessionItemsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := clearSessionItemsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createManagedMemoryEntryRequestWire struct {
@@ -192,6 +288,30 @@ func createManagedMemoryEntryRequestFromWire(w *createManagedMemoryEntryRequestW
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateManagedMemoryEntryRequest) MarshalJSON() ([]byte, error) {
+	w, err := createManagedMemoryEntryRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateManagedMemoryEntryRequest) UnmarshalJSON(data []byte) error {
+	var w createManagedMemoryEntryRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createManagedMemoryEntryRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createManagedMemoryStoreRequestWire struct {
 	ManagedMemoryStore   *managedMemoryStoreWire `json:"managed_memory_store,omitempty"`
 	ManagedMemoryStoreId *string                 `json:"managed_memory_store_id,omitempty"`
@@ -223,6 +343,30 @@ func createManagedMemoryStoreRequestFromWire(w *createManagedMemoryStoreRequestW
 		ManagedMemoryStore:   managedMemoryStorePublicValue,
 		ManagedMemoryStoreId: w.ManagedMemoryStoreId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateManagedMemoryStoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := createManagedMemoryStoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateManagedMemoryStoreRequest) UnmarshalJSON(data []byte) error {
+	var w createManagedMemoryStoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createManagedMemoryStoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createSessionRequestWire struct {
@@ -261,6 +405,30 @@ func createSessionRequestFromWire(w *createSessionRequestWire) (*CreateSessionRe
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateSessionRequest) MarshalJSON() ([]byte, error) {
+	w, err := createSessionRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateSessionRequest) UnmarshalJSON(data []byte) error {
+	var w createSessionRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createSessionRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createSessionStoreRequestWire struct {
 	SessionStore   *sessionStoreWire `json:"session_store,omitempty"`
 	SessionStoreId *string           `json:"session_store_id,omitempty"`
@@ -294,6 +462,30 @@ func createSessionStoreRequestFromWire(w *createSessionStoreRequestWire) (*Creat
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateSessionStoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := createSessionStoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateSessionStoreRequest) UnmarshalJSON(data []byte) error {
+	var w createSessionStoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createSessionStoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteManagedMemoryEntryRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -314,6 +506,30 @@ func deleteManagedMemoryEntryRequestFromWire(w *deleteManagedMemoryEntryRequestW
 	return &DeleteManagedMemoryEntryRequest{
 		Name: w.Name,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteManagedMemoryEntryRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteManagedMemoryEntryRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteManagedMemoryEntryRequest) UnmarshalJSON(data []byte) error {
+	var w deleteManagedMemoryEntryRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteManagedMemoryEntryRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type deleteManagedMemoryStoreRequestWire struct {
@@ -338,6 +554,30 @@ func deleteManagedMemoryStoreRequestFromWire(w *deleteManagedMemoryStoreRequestW
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteManagedMemoryStoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteManagedMemoryStoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteManagedMemoryStoreRequest) UnmarshalJSON(data []byte) error {
+	var w deleteManagedMemoryStoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteManagedMemoryStoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteSessionRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -360,6 +600,30 @@ func deleteSessionRequestFromWire(w *deleteSessionRequestWire) (*DeleteSessionRe
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteSessionRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteSessionRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteSessionRequest) UnmarshalJSON(data []byte) error {
+	var w deleteSessionRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteSessionRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteSessionStoreRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -380,6 +644,30 @@ func deleteSessionStoreRequestFromWire(w *deleteSessionStoreRequestWire) (*Delet
 	return &DeleteSessionStoreRequest{
 		Name: w.Name,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteSessionStoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteSessionStoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteSessionStoreRequest) UnmarshalJSON(data []byte) error {
+	var w deleteSessionStoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteSessionStoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type extractMemoriesRequestWire struct {
@@ -416,6 +704,30 @@ func extractMemoriesRequestFromWire(w *extractMemoriesRequestWire) (*ExtractMemo
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExtractMemoriesRequest) MarshalJSON() ([]byte, error) {
+	w, err := extractMemoriesRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExtractMemoriesRequest) UnmarshalJSON(data []byte) error {
+	var w extractMemoriesRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := extractMemoriesRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type extractMemoriesResponseWire struct {
 	Name    *string                  `json:"name,omitempty"`
 	Entries []managedMemoryEntryWire `json:"entries,omitempty"`
@@ -447,6 +759,30 @@ func extractMemoriesResponseFromWire(w *extractMemoriesResponseWire) (*ExtractMe
 		Name:    w.Name,
 		Entries: entriesPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExtractMemoriesResponse) MarshalJSON() ([]byte, error) {
+	w, err := extractMemoriesResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExtractMemoriesResponse) UnmarshalJSON(data []byte) error {
+	var w extractMemoriesResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := extractMemoriesResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type forkSessionRequestWire struct {
@@ -486,6 +822,30 @@ func forkSessionRequestFromWire(w *forkSessionRequestWire) (*ForkSessionRequest,
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ForkSessionRequest) MarshalJSON() ([]byte, error) {
+	w, err := forkSessionRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ForkSessionRequest) UnmarshalJSON(data []byte) error {
+	var w forkSessionRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := forkSessionRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type forkSessionResponseWire struct {
 	Session *sessionWire `json:"session,omitempty"`
 }
@@ -516,6 +876,30 @@ func forkSessionResponseFromWire(w *forkSessionResponseWire) (*ForkSessionRespon
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ForkSessionResponse) MarshalJSON() ([]byte, error) {
+	w, err := forkSessionResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ForkSessionResponse) UnmarshalJSON(data []byte) error {
+	var w forkSessionResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := forkSessionResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getManagedMemoryEntryRequestWire struct {
 	Name *string                `json:"name,omitempty"`
 	View ManagedMemoryEntryView `json:"view,omitempty"`
@@ -541,6 +925,30 @@ func getManagedMemoryEntryRequestFromWire(w *getManagedMemoryEntryRequestWire) (
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetManagedMemoryEntryRequest) MarshalJSON() ([]byte, error) {
+	w, err := getManagedMemoryEntryRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetManagedMemoryEntryRequest) UnmarshalJSON(data []byte) error {
+	var w getManagedMemoryEntryRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getManagedMemoryEntryRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getManagedMemoryStoreRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -561,6 +969,30 @@ func getManagedMemoryStoreRequestFromWire(w *getManagedMemoryStoreRequestWire) (
 	return &GetManagedMemoryStoreRequest{
 		Name: w.Name,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetManagedMemoryStoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := getManagedMemoryStoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetManagedMemoryStoreRequest) UnmarshalJSON(data []byte) error {
+	var w getManagedMemoryStoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getManagedMemoryStoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type getMemoryStorePermissionRequestWire struct {
@@ -585,6 +1017,30 @@ func getMemoryStorePermissionRequestFromWire(w *getMemoryStorePermissionRequestW
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetMemoryStorePermissionRequest) MarshalJSON() ([]byte, error) {
+	w, err := getMemoryStorePermissionRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetMemoryStorePermissionRequest) UnmarshalJSON(data []byte) error {
+	var w getMemoryStorePermissionRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getMemoryStorePermissionRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getSessionRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -605,6 +1061,30 @@ func getSessionRequestFromWire(w *getSessionRequestWire) (*GetSessionRequest, er
 	return &GetSessionRequest{
 		Name: w.Name,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetSessionRequest) MarshalJSON() ([]byte, error) {
+	w, err := getSessionRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetSessionRequest) UnmarshalJSON(data []byte) error {
+	var w getSessionRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getSessionRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type getSessionStorePermissionRequestWire struct {
@@ -629,6 +1109,30 @@ func getSessionStorePermissionRequestFromWire(w *getSessionStorePermissionReques
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetSessionStorePermissionRequest) MarshalJSON() ([]byte, error) {
+	w, err := getSessionStorePermissionRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetSessionStorePermissionRequest) UnmarshalJSON(data []byte) error {
+	var w getSessionStorePermissionRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getSessionStorePermissionRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getSessionStoreRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -649,6 +1153,30 @@ func getSessionStoreRequestFromWire(w *getSessionStoreRequestWire) (*GetSessionS
 	return &GetSessionStoreRequest{
 		Name: w.Name,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetSessionStoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := getSessionStoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetSessionStoreRequest) UnmarshalJSON(data []byte) error {
+	var w getSessionStoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getSessionStoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type grantMemoryStorePermissionRequestWire struct {
@@ -687,6 +1215,30 @@ func grantMemoryStorePermissionRequestFromWire(w *grantMemoryStorePermissionRequ
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GrantMemoryStorePermissionRequest) MarshalJSON() ([]byte, error) {
+	w, err := grantMemoryStorePermissionRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GrantMemoryStorePermissionRequest) UnmarshalJSON(data []byte) error {
+	var w grantMemoryStorePermissionRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := grantMemoryStorePermissionRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type grantMemoryStorePermissionResponseWire struct {
 }
 
@@ -702,6 +1254,30 @@ func grantMemoryStorePermissionResponseFromWire(w *grantMemoryStorePermissionRes
 		return nil, nil
 	}
 	return &GrantMemoryStorePermissionResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GrantMemoryStorePermissionResponse) MarshalJSON() ([]byte, error) {
+	w, err := grantMemoryStorePermissionResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GrantMemoryStorePermissionResponse) UnmarshalJSON(data []byte) error {
+	var w grantMemoryStorePermissionResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := grantMemoryStorePermissionResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type grantSessionStorePermissionRequestWire struct {
@@ -740,6 +1316,30 @@ func grantSessionStorePermissionRequestFromWire(w *grantSessionStorePermissionRe
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GrantSessionStorePermissionRequest) MarshalJSON() ([]byte, error) {
+	w, err := grantSessionStorePermissionRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GrantSessionStorePermissionRequest) UnmarshalJSON(data []byte) error {
+	var w grantSessionStorePermissionRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := grantSessionStorePermissionRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type grantSessionStorePermissionResponseWire struct {
 }
 
@@ -755,6 +1355,30 @@ func grantSessionStorePermissionResponseFromWire(w *grantSessionStorePermissionR
 		return nil, nil
 	}
 	return &GrantSessionStorePermissionResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GrantSessionStorePermissionResponse) MarshalJSON() ([]byte, error) {
+	w, err := grantSessionStorePermissionResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GrantSessionStorePermissionResponse) UnmarshalJSON(data []byte) error {
+	var w grantSessionStorePermissionResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := grantSessionStorePermissionResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listManagedMemoryEntriesRequestWire struct {
@@ -797,6 +1421,30 @@ func listManagedMemoryEntriesRequestFromWire(w *listManagedMemoryEntriesRequestW
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListManagedMemoryEntriesRequest) MarshalJSON() ([]byte, error) {
+	w, err := listManagedMemoryEntriesRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListManagedMemoryEntriesRequest) UnmarshalJSON(data []byte) error {
+	var w listManagedMemoryEntriesRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listManagedMemoryEntriesRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listManagedMemoryEntriesResponseWire struct {
 	ManagedMemoryEntries []managedMemoryEntryWire `json:"managed_memory_entries,omitempty"`
 	NextPageToken        *string                  `json:"next_page_token,omitempty"`
@@ -830,6 +1478,30 @@ func listManagedMemoryEntriesResponseFromWire(w *listManagedMemoryEntriesRespons
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListManagedMemoryEntriesResponse) MarshalJSON() ([]byte, error) {
+	w, err := listManagedMemoryEntriesResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListManagedMemoryEntriesResponse) UnmarshalJSON(data []byte) error {
+	var w listManagedMemoryEntriesResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listManagedMemoryEntriesResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listManagedMemoryStoresRequestWire struct {
 	PageSize  *int    `json:"page_size,omitempty"`
 	PageToken *string `json:"page_token,omitempty"`
@@ -853,6 +1525,30 @@ func listManagedMemoryStoresRequestFromWire(w *listManagedMemoryStoresRequestWir
 		PageSize:  w.PageSize,
 		PageToken: w.PageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListManagedMemoryStoresRequest) MarshalJSON() ([]byte, error) {
+	w, err := listManagedMemoryStoresRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListManagedMemoryStoresRequest) UnmarshalJSON(data []byte) error {
+	var w listManagedMemoryStoresRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listManagedMemoryStoresRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listManagedMemoryStoresResponseWire struct {
@@ -888,6 +1584,30 @@ func listManagedMemoryStoresResponseFromWire(w *listManagedMemoryStoresResponseW
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListManagedMemoryStoresResponse) MarshalJSON() ([]byte, error) {
+	w, err := listManagedMemoryStoresResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListManagedMemoryStoresResponse) UnmarshalJSON(data []byte) error {
+	var w listManagedMemoryStoresResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listManagedMemoryStoresResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listMemoryStorePermissionsRequestWire struct {
 	Parent    *string `json:"parent,omitempty"`
 	PageSize  *int    `json:"page_size,omitempty"`
@@ -914,6 +1634,30 @@ func listMemoryStorePermissionsRequestFromWire(w *listMemoryStorePermissionsRequ
 		PageSize:  w.PageSize,
 		PageToken: w.PageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListMemoryStorePermissionsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listMemoryStorePermissionsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListMemoryStorePermissionsRequest) UnmarshalJSON(data []byte) error {
+	var w listMemoryStorePermissionsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listMemoryStorePermissionsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listMemoryStorePermissionsResponseWire struct {
@@ -949,6 +1693,30 @@ func listMemoryStorePermissionsResponseFromWire(w *listMemoryStorePermissionsRes
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListMemoryStorePermissionsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listMemoryStorePermissionsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListMemoryStorePermissionsResponse) UnmarshalJSON(data []byte) error {
+	var w listMemoryStorePermissionsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listMemoryStorePermissionsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listSessionItemsRequestWire struct {
 	PageSize  *int    `json:"page_size,omitempty"`
 	PageToken *string `json:"page_token,omitempty"`
@@ -978,6 +1746,30 @@ func listSessionItemsRequestFromWire(w *listSessionItemsRequestWire) (*ListSessi
 		OrderBy:   w.OrderBy,
 		Parent:    w.Parent,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListSessionItemsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listSessionItemsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListSessionItemsRequest) UnmarshalJSON(data []byte) error {
+	var w listSessionItemsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listSessionItemsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listSessionItemsResponseWire struct {
@@ -1013,6 +1805,30 @@ func listSessionItemsResponseFromWire(w *listSessionItemsResponseWire) (*ListSes
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListSessionItemsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listSessionItemsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListSessionItemsResponse) UnmarshalJSON(data []byte) error {
+	var w listSessionItemsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listSessionItemsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listSessionStorePermissionsRequestWire struct {
 	Parent    *string `json:"parent,omitempty"`
 	PageSize  *int    `json:"page_size,omitempty"`
@@ -1039,6 +1855,30 @@ func listSessionStorePermissionsRequestFromWire(w *listSessionStorePermissionsRe
 		PageSize:  w.PageSize,
 		PageToken: w.PageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListSessionStorePermissionsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listSessionStorePermissionsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListSessionStorePermissionsRequest) UnmarshalJSON(data []byte) error {
+	var w listSessionStorePermissionsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listSessionStorePermissionsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listSessionStorePermissionsResponseWire struct {
@@ -1074,6 +1914,30 @@ func listSessionStorePermissionsResponseFromWire(w *listSessionStorePermissionsR
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListSessionStorePermissionsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listSessionStorePermissionsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListSessionStorePermissionsResponse) UnmarshalJSON(data []byte) error {
+	var w listSessionStorePermissionsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listSessionStorePermissionsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listSessionStoresRequestWire struct {
 	PageSize  *int    `json:"page_size,omitempty"`
 	PageToken *string `json:"page_token,omitempty"`
@@ -1097,6 +1961,30 @@ func listSessionStoresRequestFromWire(w *listSessionStoresRequestWire) (*ListSes
 		PageSize:  w.PageSize,
 		PageToken: w.PageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListSessionStoresRequest) MarshalJSON() ([]byte, error) {
+	w, err := listSessionStoresRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListSessionStoresRequest) UnmarshalJSON(data []byte) error {
+	var w listSessionStoresRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listSessionStoresRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listSessionStoresResponseWire struct {
@@ -1130,6 +2018,30 @@ func listSessionStoresResponseFromWire(w *listSessionStoresResponseWire) (*ListS
 		SessionStores: sessionStoresPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListSessionStoresResponse) MarshalJSON() ([]byte, error) {
+	w, err := listSessionStoresResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListSessionStoresResponse) UnmarshalJSON(data []byte) error {
+	var w listSessionStoresResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listSessionStoresResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listSessionsRequestWire struct {
@@ -1166,6 +2078,30 @@ func listSessionsRequestFromWire(w *listSessionsRequestWire) (*ListSessionsReque
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListSessionsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listSessionsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListSessionsRequest) UnmarshalJSON(data []byte) error {
+	var w listSessionsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listSessionsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listSessionsResponseWire struct {
 	Sessions      []sessionWire `json:"sessions,omitempty"`
 	NextPageToken *string       `json:"next_page_token,omitempty"`
@@ -1197,6 +2133,30 @@ func listSessionsResponseFromWire(w *listSessionsResponseWire) (*ListSessionsRes
 		Sessions:      sessionsPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListSessionsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listSessionsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListSessionsResponse) UnmarshalJSON(data []byte) error {
+	var w listSessionsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listSessionsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type managedMemoryEntryWire struct {
@@ -1245,6 +2205,30 @@ func managedMemoryEntryFromWire(w *managedMemoryEntryWire) (*ManagedMemoryEntry,
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ManagedMemoryEntry) MarshalJSON() ([]byte, error) {
+	w, err := managedMemoryEntryToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ManagedMemoryEntry) UnmarshalJSON(data []byte) error {
+	var w managedMemoryEntryWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := managedMemoryEntryFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type managedMemoryEntrySearchResultWire struct {
 	ManagedMemoryEntry *managedMemoryEntryWire `json:"managed_memory_entry,omitempty"`
 	Score              *float64                `json:"score,omitempty"`
@@ -1276,6 +2260,30 @@ func managedMemoryEntrySearchResultFromWire(w *managedMemoryEntrySearchResultWir
 		ManagedMemoryEntry: managedMemoryEntryPublicValue,
 		Score:              w.Score,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ManagedMemoryEntrySearchResult) MarshalJSON() ([]byte, error) {
+	w, err := managedMemoryEntrySearchResultToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ManagedMemoryEntrySearchResult) UnmarshalJSON(data []byte) error {
+	var w managedMemoryEntrySearchResultWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := managedMemoryEntrySearchResultFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type managedMemoryStoreWire struct {
@@ -1340,6 +2348,30 @@ func managedMemoryStoreFromWire(w *managedMemoryStoreWire) (*ManagedMemoryStore,
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ManagedMemoryStore) MarshalJSON() ([]byte, error) {
+	w, err := managedMemoryStoreToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ManagedMemoryStore) UnmarshalJSON(data []byte) error {
+	var w managedMemoryStoreWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := managedMemoryStoreFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type memoryStorePermissionWire struct {
 	Principal  *storePrincipalWire `json:"principal,omitempty"`
 	Permission PermissionLevel     `json:"permission,omitempty"`
@@ -1373,6 +2405,30 @@ func memoryStorePermissionFromWire(w *memoryStorePermissionWire) (*MemoryStorePe
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v MemoryStorePermission) MarshalJSON() ([]byte, error) {
+	w, err := memoryStorePermissionToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *MemoryStorePermission) UnmarshalJSON(data []byte) error {
+	var w memoryStorePermissionWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := memoryStorePermissionFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type popSessionItemRequestWire struct {
 	Parent *string `json:"parent,omitempty"`
 }
@@ -1393,6 +2449,30 @@ func popSessionItemRequestFromWire(w *popSessionItemRequestWire) (*PopSessionIte
 	return &PopSessionItemRequest{
 		Parent: w.Parent,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PopSessionItemRequest) MarshalJSON() ([]byte, error) {
+	w, err := popSessionItemRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PopSessionItemRequest) UnmarshalJSON(data []byte) error {
+	var w popSessionItemRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := popSessionItemRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type popSessionItemResponseWire struct {
@@ -1423,6 +2503,30 @@ func popSessionItemResponseFromWire(w *popSessionItemResponseWire) (*PopSessionI
 	return &PopSessionItemResponse{
 		Item: itemPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PopSessionItemResponse) MarshalJSON() ([]byte, error) {
+	w, err := popSessionItemResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PopSessionItemResponse) UnmarshalJSON(data []byte) error {
+	var w popSessionItemResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := popSessionItemResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type revokeMemoryStorePermissionRequestWire struct {
@@ -1458,6 +2562,30 @@ func revokeMemoryStorePermissionRequestFromWire(w *revokeMemoryStorePermissionRe
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v RevokeMemoryStorePermissionRequest) MarshalJSON() ([]byte, error) {
+	w, err := revokeMemoryStorePermissionRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *RevokeMemoryStorePermissionRequest) UnmarshalJSON(data []byte) error {
+	var w revokeMemoryStorePermissionRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := revokeMemoryStorePermissionRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type revokeMemoryStorePermissionResponseWire struct {
 }
 
@@ -1473,6 +2601,30 @@ func revokeMemoryStorePermissionResponseFromWire(w *revokeMemoryStorePermissionR
 		return nil, nil
 	}
 	return &RevokeMemoryStorePermissionResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v RevokeMemoryStorePermissionResponse) MarshalJSON() ([]byte, error) {
+	w, err := revokeMemoryStorePermissionResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *RevokeMemoryStorePermissionResponse) UnmarshalJSON(data []byte) error {
+	var w revokeMemoryStorePermissionResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := revokeMemoryStorePermissionResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type revokeSessionStorePermissionRequestWire struct {
@@ -1508,6 +2660,30 @@ func revokeSessionStorePermissionRequestFromWire(w *revokeSessionStorePermission
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v RevokeSessionStorePermissionRequest) MarshalJSON() ([]byte, error) {
+	w, err := revokeSessionStorePermissionRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *RevokeSessionStorePermissionRequest) UnmarshalJSON(data []byte) error {
+	var w revokeSessionStorePermissionRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := revokeSessionStorePermissionRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type revokeSessionStorePermissionResponseWire struct {
 }
 
@@ -1523,6 +2699,30 @@ func revokeSessionStorePermissionResponseFromWire(w *revokeSessionStorePermissio
 		return nil, nil
 	}
 	return &RevokeSessionStorePermissionResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v RevokeSessionStorePermissionResponse) MarshalJSON() ([]byte, error) {
+	w, err := revokeSessionStorePermissionResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *RevokeSessionStorePermissionResponse) UnmarshalJSON(data []byte) error {
+	var w revokeSessionStorePermissionResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := revokeSessionStorePermissionResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type searchManagedMemoryEntriesRequestWire struct {
@@ -1571,6 +2771,30 @@ func searchManagedMemoryEntriesRequestFromWire(w *searchManagedMemoryEntriesRequ
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v SearchManagedMemoryEntriesRequest) MarshalJSON() ([]byte, error) {
+	w, err := searchManagedMemoryEntriesRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *SearchManagedMemoryEntriesRequest) UnmarshalJSON(data []byte) error {
+	var w searchManagedMemoryEntriesRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := searchManagedMemoryEntriesRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type searchManagedMemoryEntriesResponseWire struct {
 	ManagedMemoryEntries []managedMemoryEntryWire             `json:"managed_memory_entries,omitempty"`
 	NextPageToken        *string                              `json:"next_page_token,omitempty"`
@@ -1613,6 +2837,30 @@ func searchManagedMemoryEntriesResponseFromWire(w *searchManagedMemoryEntriesRes
 		NextPageToken:        w.NextPageToken,
 		Results:              resultsPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v SearchManagedMemoryEntriesResponse) MarshalJSON() ([]byte, error) {
+	w, err := searchManagedMemoryEntriesResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *SearchManagedMemoryEntriesResponse) UnmarshalJSON(data []byte) error {
+	var w searchManagedMemoryEntriesResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := searchManagedMemoryEntriesResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type sessionWire struct {
@@ -1661,6 +2909,30 @@ func sessionFromWire(w *sessionWire) (*Session, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Session) MarshalJSON() ([]byte, error) {
+	w, err := sessionToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Session) UnmarshalJSON(data []byte) error {
+	var w sessionWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := sessionFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type sessionItemWire struct {
 	ItemId     *string         `json:"item_id,omitempty"`
 	Data       json.RawMessage `json:"data,omitempty"`
@@ -1687,6 +2959,30 @@ func sessionItemFromWire(w *sessionItemWire) (*SessionItem, error) {
 		Data:       w.Data,
 		CreateTime: w.CreateTime,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v SessionItem) MarshalJSON() ([]byte, error) {
+	w, err := sessionItemToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *SessionItem) UnmarshalJSON(data []byte) error {
+	var w sessionItemWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := sessionItemFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type sessionStoreWire struct {
@@ -1726,6 +3022,30 @@ func sessionStoreFromWire(w *sessionStoreWire) (*SessionStore, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v SessionStore) MarshalJSON() ([]byte, error) {
+	w, err := sessionStoreToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *SessionStore) UnmarshalJSON(data []byte) error {
+	var w sessionStoreWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := sessionStoreFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type sessionStorePermissionWire struct {
 	Principal  *storePrincipalWire `json:"principal,omitempty"`
 	Permission PermissionLevel     `json:"permission,omitempty"`
@@ -1759,6 +3079,30 @@ func sessionStorePermissionFromWire(w *sessionStorePermissionWire) (*SessionStor
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v SessionStorePermission) MarshalJSON() ([]byte, error) {
+	w, err := sessionStorePermissionToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *SessionStorePermission) UnmarshalJSON(data []byte) error {
+	var w sessionStorePermissionWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := sessionStorePermissionFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type storageBackendWire struct {
 	BackendType StorageBackendType `json:"backend_type,omitempty"`
 	BackendId   *string            `json:"backend_id,omitempty"`
@@ -1784,6 +3128,30 @@ func storageBackendFromWire(w *storageBackendWire) (*StorageBackend, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v StorageBackend) MarshalJSON() ([]byte, error) {
+	w, err := storageBackendToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *StorageBackend) UnmarshalJSON(data []byte) error {
+	var w storageBackendWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := storageBackendFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type storePrincipalWire struct {
 	Name          *string       `json:"name,omitempty"`
 	PrincipalType PrincipalType `json:"principal_type,omitempty"`
@@ -1807,6 +3175,30 @@ func storePrincipalFromWire(w *storePrincipalWire) (*StorePrincipal, error) {
 		Name:          w.Name,
 		PrincipalType: w.PrincipalType,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v StorePrincipal) MarshalJSON() ([]byte, error) {
+	w, err := storePrincipalToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *StorePrincipal) UnmarshalJSON(data []byte) error {
+	var w storePrincipalWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := storePrincipalFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateManagedMemoryEntryRequestWire struct {
@@ -1842,6 +3234,30 @@ func updateManagedMemoryEntryRequestFromWire(w *updateManagedMemoryEntryRequestW
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateManagedMemoryEntryRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateManagedMemoryEntryRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateManagedMemoryEntryRequest) UnmarshalJSON(data []byte) error {
+	var w updateManagedMemoryEntryRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateManagedMemoryEntryRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateManagedMemoryStoreRequestWire struct {
 	ManagedMemoryStore *managedMemoryStoreWire              `json:"managed_memory_store,omitempty"`
 	UpdateMask         *types.FieldMask[ManagedMemoryStore] `json:"update_mask,omitempty"`
@@ -1873,6 +3289,30 @@ func updateManagedMemoryStoreRequestFromWire(w *updateManagedMemoryStoreRequestW
 		ManagedMemoryStore: managedMemoryStorePublicValue,
 		UpdateMask:         w.UpdateMask,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateManagedMemoryStoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateManagedMemoryStoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateManagedMemoryStoreRequest) UnmarshalJSON(data []byte) error {
+	var w updateManagedMemoryStoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateManagedMemoryStoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateSessionRequestWire struct {
@@ -1908,6 +3348,30 @@ func updateSessionRequestFromWire(w *updateSessionRequestWire) (*UpdateSessionRe
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateSessionRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateSessionRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateSessionRequest) UnmarshalJSON(data []byte) error {
+	var w updateSessionRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateSessionRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateSessionStoreRequestWire struct {
 	SessionStore *sessionStoreWire              `json:"session_store,omitempty"`
 	UpdateMask   *types.FieldMask[SessionStore] `json:"update_mask,omitempty"`
@@ -1939,6 +3403,30 @@ func updateSessionStoreRequestFromWire(w *updateSessionStoreRequestWire) (*Updat
 		SessionStore: sessionStorePublicValue,
 		UpdateMask:   w.UpdateMask,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateSessionStoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateSessionStoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateSessionStoreRequest) UnmarshalJSON(data []byte) error {
+	var w updateSessionStoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateSessionStoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

@@ -163,6 +163,30 @@ func createSchemaRequestFromWire(w *createSchemaRequestWire) (*CreateSchemaReque
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateSchemaRequest) MarshalJSON() ([]byte, error) {
+	w, err := createSchemaRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateSchemaRequest) UnmarshalJSON(data []byte) error {
+	var w createSchemaRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createSchemaRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteSchemaRequestWire struct {
 	FullNameArg *string `json:"full_name_arg,omitempty"`
 	Force       *bool   `json:"force,omitempty"`
@@ -188,6 +212,30 @@ func deleteSchemaRequestFromWire(w *deleteSchemaRequestWire) (*DeleteSchemaReque
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteSchemaRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteSchemaRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteSchemaRequest) UnmarshalJSON(data []byte) error {
+	var w deleteSchemaRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteSchemaRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteSchemaResponseWire struct {
 }
 
@@ -203,6 +251,30 @@ func deleteSchemaResponseFromWire(w *deleteSchemaResponseWire) (*DeleteSchemaRes
 		return nil, nil
 	}
 	return &DeleteSchemaResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteSchemaResponse) MarshalJSON() ([]byte, error) {
+	w, err := deleteSchemaResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteSchemaResponse) UnmarshalJSON(data []byte) error {
+	var w deleteSchemaResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteSchemaResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type effectivePredictiveOptimizationFlagWire struct {
@@ -233,6 +305,30 @@ func effectivePredictiveOptimizationFlagFromWire(w *effectivePredictiveOptimizat
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v EffectivePredictiveOptimizationFlag) MarshalJSON() ([]byte, error) {
+	w, err := effectivePredictiveOptimizationFlagToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *EffectivePredictiveOptimizationFlag) UnmarshalJSON(data []byte) error {
+	var w effectivePredictiveOptimizationFlagWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := effectivePredictiveOptimizationFlagFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getSchemaRequestWire struct {
 	FullNameArg   *string `json:"full_name_arg,omitempty"`
 	IncludeBrowse *bool   `json:"include_browse,omitempty"`
@@ -256,6 +352,30 @@ func getSchemaRequestFromWire(w *getSchemaRequestWire) (*GetSchemaRequest, error
 		FullNameArg:   w.FullNameArg,
 		IncludeBrowse: w.IncludeBrowse,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetSchemaRequest) MarshalJSON() ([]byte, error) {
+	w, err := getSchemaRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetSchemaRequest) UnmarshalJSON(data []byte) error {
+	var w getSchemaRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getSchemaRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listSchemasRequestWire struct {
@@ -289,6 +409,30 @@ func listSchemasRequestFromWire(w *listSchemasRequestWire) (*ListSchemasRequest,
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListSchemasRequest) MarshalJSON() ([]byte, error) {
+	w, err := listSchemasRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListSchemasRequest) UnmarshalJSON(data []byte) error {
+	var w listSchemasRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listSchemasRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listSchemasResponseWire struct {
 	Schemas       []schemaInfoWire `json:"schemas,omitempty"`
 	NextPageToken *string          `json:"next_page_token,omitempty"`
@@ -320,6 +464,30 @@ func listSchemasResponseFromWire(w *listSchemasResponseWire) (*ListSchemasRespon
 		Schemas:       schemasPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListSchemasResponse) MarshalJSON() ([]byte, error) {
+	w, err := listSchemasResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListSchemasResponse) UnmarshalJSON(data []byte) error {
+	var w listSchemasResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listSchemasResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type schemaInfoWire struct {
@@ -431,6 +599,30 @@ func schemaInfoFromWire(w *schemaInfoWire) (*SchemaInfo, error) {
 		Properties:                          w.Properties,
 		Options:                             w.Options,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v SchemaInfo) MarshalJSON() ([]byte, error) {
+	w, err := schemaInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *SchemaInfo) UnmarshalJSON(data []byte) error {
+	var w schemaInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := schemaInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateSchemaRequestWire struct {
@@ -548,6 +740,30 @@ func updateSchemaRequestFromWire(w *updateSchemaRequestWire) (*UpdateSchemaReque
 		Properties:                          w.Properties,
 		Options:                             w.Options,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateSchemaRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateSchemaRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateSchemaRequest) UnmarshalJSON(data []byte) error {
+	var w updateSchemaRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateSchemaRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

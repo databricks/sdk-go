@@ -91,6 +91,30 @@ func createBillingUsageDashboardRequestFromWire(w *createBillingUsageDashboardRe
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateBillingUsageDashboardRequest) MarshalJSON() ([]byte, error) {
+	w, err := createBillingUsageDashboardRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateBillingUsageDashboardRequest) UnmarshalJSON(data []byte) error {
+	var w createBillingUsageDashboardRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createBillingUsageDashboardRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createBillingUsageDashboardResponseWire struct {
 	DashboardId *string `json:"dashboard_id,omitempty"`
 }
@@ -111,6 +135,30 @@ func createBillingUsageDashboardResponseFromWire(w *createBillingUsageDashboardR
 	return &CreateBillingUsageDashboardResponse{
 		DashboardId: w.DashboardId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateBillingUsageDashboardResponse) MarshalJSON() ([]byte, error) {
+	w, err := createBillingUsageDashboardResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateBillingUsageDashboardResponse) UnmarshalJSON(data []byte) error {
+	var w createBillingUsageDashboardResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createBillingUsageDashboardResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type getBillingUsageDashboardRequestWire struct {
@@ -149,6 +197,30 @@ func getBillingUsageDashboardRequestFromWire(w *getBillingUsageDashboardRequestW
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetBillingUsageDashboardRequest) MarshalJSON() ([]byte, error) {
+	w, err := getBillingUsageDashboardRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetBillingUsageDashboardRequest) UnmarshalJSON(data []byte) error {
+	var w getBillingUsageDashboardRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getBillingUsageDashboardRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getBillingUsageDashboardResponseWire struct {
 	DashboardId  *string `json:"dashboard_id,omitempty"`
 	DashboardUrl *string `json:"dashboard_url,omitempty"`
@@ -172,4 +244,28 @@ func getBillingUsageDashboardResponseFromWire(w *getBillingUsageDashboardRespons
 		DashboardId:  w.DashboardId,
 		DashboardUrl: w.DashboardUrl,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetBillingUsageDashboardResponse) MarshalJSON() ([]byte, error) {
+	w, err := getBillingUsageDashboardResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetBillingUsageDashboardResponse) UnmarshalJSON(data []byte) error {
+	var w getBillingUsageDashboardResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getBillingUsageDashboardResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }

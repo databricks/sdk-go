@@ -3,6 +3,7 @@
 package externalmetadata
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/databricks/sdk-go/core/types"
@@ -38,6 +39,30 @@ func createExternalMetadataRequestFromWire(w *createExternalMetadataRequestWire)
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateExternalMetadataRequest) MarshalJSON() ([]byte, error) {
+	w, err := createExternalMetadataRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateExternalMetadataRequest) UnmarshalJSON(data []byte) error {
+	var w createExternalMetadataRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createExternalMetadataRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteExternalMetadataRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -58,6 +83,30 @@ func deleteExternalMetadataRequestFromWire(w *deleteExternalMetadataRequestWire)
 	return &DeleteExternalMetadataRequest{
 		Name: w.Name,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteExternalMetadataRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteExternalMetadataRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteExternalMetadataRequest) UnmarshalJSON(data []byte) error {
+	var w deleteExternalMetadataRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteExternalMetadataRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type externalMetadataWire struct {
@@ -121,6 +170,30 @@ func externalMetadataFromWire(w *externalMetadataWire) (*ExternalMetadata, error
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExternalMetadata) MarshalJSON() ([]byte, error) {
+	w, err := externalMetadataToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExternalMetadata) UnmarshalJSON(data []byte) error {
+	var w externalMetadataWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := externalMetadataFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getExternalMetadataRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -141,6 +214,30 @@ func getExternalMetadataRequestFromWire(w *getExternalMetadataRequestWire) (*Get
 	return &GetExternalMetadataRequest{
 		Name: w.Name,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetExternalMetadataRequest) MarshalJSON() ([]byte, error) {
+	w, err := getExternalMetadataRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetExternalMetadataRequest) UnmarshalJSON(data []byte) error {
+	var w getExternalMetadataRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getExternalMetadataRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listExternalMetadataRequestWire struct {
@@ -166,6 +263,30 @@ func listExternalMetadataRequestFromWire(w *listExternalMetadataRequestWire) (*L
 		PageSize:  w.PageSize,
 		PageToken: w.PageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListExternalMetadataRequest) MarshalJSON() ([]byte, error) {
+	w, err := listExternalMetadataRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListExternalMetadataRequest) UnmarshalJSON(data []byte) error {
+	var w listExternalMetadataRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listExternalMetadataRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listExternalMetadataResponseV2Wire struct {
@@ -201,6 +322,30 @@ func listExternalMetadataResponseV2FromWire(w *listExternalMetadataResponseV2Wir
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListExternalMetadataResponseV2) MarshalJSON() ([]byte, error) {
+	w, err := listExternalMetadataResponseV2ToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListExternalMetadataResponseV2) UnmarshalJSON(data []byte) error {
+	var w listExternalMetadataResponseV2Wire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listExternalMetadataResponseV2FromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateExternalMetadataRequestWire struct {
 	ExternalMetadata *externalMetadataWire              `json:"external_metadata,omitempty"`
 	UpdateMask       *types.FieldMask[ExternalMetadata] `json:"update_mask,omitempty"`
@@ -232,6 +377,30 @@ func updateExternalMetadataRequestFromWire(w *updateExternalMetadataRequestWire)
 		ExternalMetadata: externalMetadataPublicValue,
 		UpdateMask:       w.UpdateMask,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateExternalMetadataRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateExternalMetadataRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateExternalMetadataRequest) UnmarshalJSON(data []byte) error {
+	var w updateExternalMetadataRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateExternalMetadataRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

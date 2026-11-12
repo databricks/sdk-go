@@ -1,5 +1,13 @@
 # Version changelog
 
+## Release v0.11.0 (2026-11-12)
+
+### New Features and Improvements
+* Structs in this package implement `json.Marshaler` and `json.Unmarshaler`, so they can be stored as JSON and read back.
+
+### Breaking Changes
+* `json.Marshal` and `json.Unmarshal` on structs in this package use a different JSON format than before.
+
 ## Release v0.10.0 (2026-11-11)
 
 ## Release v0.9.0 (2026-11-10)

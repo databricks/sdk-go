@@ -6,6 +6,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
+	"iter"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -789,6 +791,301 @@ func (c *internalClient) UpdateRuleSetProxy(ctx context.Context, req UpdateRuleS
 		return nil, err
 	}
 	return resp, nil
+}
+
+// Adds a group to the workspace's restricted list. The workspace allows at most
+// 100 restricted sharing groups. Requires workspace admin.
+func (c *internalClient) CreateRestrictedSharingGroup(ctx context.Context, req CreateRestrictedSharingGroupRequest, opts ...call.Option) (*RestrictedSharingGroup, error) {
+	wireReq, err := createRestrictedSharingGroupRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq.RestrictedSharingGroup)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = "/api/2.0/access-control/restricted-sharing-groups"
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "restricted_sharing_group_id", wireReq.RestrictedSharingGroupId); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *RestrictedSharingGroup
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp restrictedSharingGroupWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = restrictedSharingGroupFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Removes a group from the workspace's restricted list. Requires workspace
+// admin.
+func (c *internalClient) DeleteRestrictedSharingGroup(ctx context.Context, req DeleteRestrictedSharingGroupRequest, opts ...call.Option) error {
+
+	headers := http.Header{}
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/access-control/")
+	if req.Name == nil {
+		return fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "DELETE",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		_ = respBody
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Gets a restricted sharing group in the workspace. Use it to check whether a
+// group is on the workspace's restricted list. Requires workspace admin.
+func (c *internalClient) GetRestrictedSharingGroup(ctx context.Context, req GetRestrictedSharingGroupRequest, opts ...call.Option) (*RestrictedSharingGroup, error) {
+
+	headers := http.Header{}
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/access-control/")
+	if req.Name == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *RestrictedSharingGroup
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp restrictedSharingGroupWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = restrictedSharingGroupFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Lists the restricted sharing groups in the workspace. Requires workspace
+// admin.
+func (c *internalClient) ListRestrictedSharingGroups(ctx context.Context, req ListRestrictedSharingGroupsRequest, opts ...call.Option) (*ListRestrictedSharingGroupsResponse, error) {
+	wireReq, err := listRestrictedSharingGroupsRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = "/api/2.0/access-control/restricted-sharing-groups"
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "page_size", wireReq.PageSize); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "page_token", wireReq.PageToken); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *ListRestrictedSharingGroupsResponse
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp listRestrictedSharingGroupsResponseWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = listRestrictedSharingGroupsResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// ListRestrictedSharingGroupsIter returns an iterator that iterates
+// over the results of ListRestrictedSharingGroups.
+//
+// For example:
+//
+//	for item, err := range c.ListRestrictedSharingGroupsIter(ctx, ListRestrictedSharingGroupsRequest{}) {
+//	  if err != nil {
+//	    return err
+//	  }
+//	  fmt.Println(item)
+//	}
+//
+// Options opts are passed to each ListRestrictedSharingGroups call
+// made by the iterator under the hood.
+//
+// Callers who need custom pagination logic should use
+// ListRestrictedSharingGroups directly.
+func (c *internalClient) ListRestrictedSharingGroupsIter(ctx context.Context, req ListRestrictedSharingGroupsRequest, opts ...call.Option) iter.Seq2[*RestrictedSharingGroup, error] {
+	return func(yield func(*RestrictedSharingGroup, error) bool) {
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
+		for {
+			resp, err := c.ListRestrictedSharingGroups(ctx, pageReq, opts...)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			for i := range resp.RestrictedSharingGroups {
+				if !yield(&resp.RestrictedSharingGroups[i], nil) {
+					return
+				}
+			}
+			if resp.NextPageToken == nil || *resp.NextPageToken == "" {
+				return
+			}
+			pageReq.PageToken = resp.NextPageToken
+		}
+	}
 }
 
 // Migrate Permissions.

@@ -83,6 +83,30 @@ func awsKeyInfoOutputFromWire(w *awsKeyInfoOutputWire) (*AwsKeyInfoOutput, error
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AwsKeyInfoOutput) MarshalJSON() ([]byte, error) {
+	w, err := awsKeyInfoOutputToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AwsKeyInfoOutput) UnmarshalJSON(data []byte) error {
+	var w awsKeyInfoOutputWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := awsKeyInfoOutputFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type azureKeyInfoWire struct {
 	KeyVaultUri            *string                     `json:"key_vault_uri,omitempty"`
 	KeyName                *string                     `json:"key_name,omitempty"`
@@ -128,6 +152,30 @@ func azureKeyInfoFromWire(w *azureKeyInfoWire) (*AzureKeyInfo, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AzureKeyInfo) MarshalJSON() ([]byte, error) {
+	w, err := azureKeyInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AzureKeyInfo) UnmarshalJSON(data []byte) error {
+	var w azureKeyInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := azureKeyInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createAwsKeyInfoWire struct {
 	KeyArn                    *string `json:"key_arn,omitempty"`
 	KeyAlias                  *string `json:"key_alias,omitempty"`
@@ -157,6 +205,30 @@ func createAwsKeyInfoFromWire(w *createAwsKeyInfoWire) (*CreateAwsKeyInfo, error
 		KeyRegion:                 w.KeyRegion,
 		ReuseKeyForClusterVolumes: w.ReuseKeyForClusterVolumes,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateAwsKeyInfo) MarshalJSON() ([]byte, error) {
+	w, err := createAwsKeyInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateAwsKeyInfo) UnmarshalJSON(data []byte) error {
+	var w createAwsKeyInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createAwsKeyInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createAzureKeyInfoWire struct {
@@ -202,6 +274,30 @@ func createAzureKeyInfoFromWire(w *createAzureKeyInfoWire) (*CreateAzureKeyInfo,
 		DiskEncryptionSetId:    w.DiskEncryptionSetId,
 		KeyAccessConfiguration: keyAccessConfigurationPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateAzureKeyInfo) MarshalJSON() ([]byte, error) {
+	w, err := createAzureKeyInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateAzureKeyInfo) UnmarshalJSON(data []byte) error {
+	var w createAzureKeyInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createAzureKeyInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createCustomerManagedKeyRequestWire struct {
@@ -302,6 +398,30 @@ func createCustomerManagedKeyRequestFromWire(w *createCustomerManagedKeyRequestW
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateCustomerManagedKeyRequest) MarshalJSON() ([]byte, error) {
+	w, err := createCustomerManagedKeyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateCustomerManagedKeyRequest) UnmarshalJSON(data []byte) error {
+	var w createCustomerManagedKeyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createCustomerManagedKeyRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createGcpKeyInfoWire struct {
 	KmsKeyId          *string                `json:"kms_key_id,omitempty"`
 	GcpServiceAccount *gcpServiceAccountWire `json:"gcp_service_account,omitempty"`
@@ -336,6 +456,30 @@ func createGcpKeyInfoFromWire(w *createGcpKeyInfoWire) (*CreateGcpKeyInfo, error
 		GcpServiceAccount: gcpServiceAccountPublicValue,
 		Manual:            w.Manual,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateGcpKeyInfo) MarshalJSON() ([]byte, error) {
+	w, err := createGcpKeyInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateGcpKeyInfo) UnmarshalJSON(data []byte) error {
+	var w createGcpKeyInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createGcpKeyInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type customerManagedKeyWire struct {
@@ -450,6 +594,30 @@ func customerManagedKeyFromWire(w *customerManagedKeyWire) (*CustomerManagedKey,
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CustomerManagedKey) MarshalJSON() ([]byte, error) {
+	w, err := customerManagedKeyToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CustomerManagedKey) UnmarshalJSON(data []byte) error {
+	var w customerManagedKeyWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := customerManagedKeyFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteCustomerManagedKeyRequestWire struct {
 	CustomerManagedKeyId *string `json:"customer_managed_key_id,omitempty"`
 	AccountId            *string `json:"account_id,omitempty"`
@@ -473,6 +641,30 @@ func deleteCustomerManagedKeyRequestFromWire(w *deleteCustomerManagedKeyRequestW
 		CustomerManagedKeyId: w.CustomerManagedKeyId,
 		AccountId:            w.AccountId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteCustomerManagedKeyRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteCustomerManagedKeyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteCustomerManagedKeyRequest) UnmarshalJSON(data []byte) error {
+	var w deleteCustomerManagedKeyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteCustomerManagedKeyRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type gcpKeyInfoWire struct {
@@ -511,6 +703,30 @@ func gcpKeyInfoFromWire(w *gcpKeyInfoWire) (*GcpKeyInfo, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GcpKeyInfo) MarshalJSON() ([]byte, error) {
+	w, err := gcpKeyInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GcpKeyInfo) UnmarshalJSON(data []byte) error {
+	var w gcpKeyInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := gcpKeyInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type gcpServiceAccountWire struct {
 	ServiceAccountEmail *string `json:"service_account_email,omitempty"`
 }
@@ -531,6 +747,30 @@ func gcpServiceAccountFromWire(w *gcpServiceAccountWire) (*GcpServiceAccount, er
 	return &GcpServiceAccount{
 		ServiceAccountEmail: w.ServiceAccountEmail,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GcpServiceAccount) MarshalJSON() ([]byte, error) {
+	w, err := gcpServiceAccountToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GcpServiceAccount) UnmarshalJSON(data []byte) error {
+	var w gcpServiceAccountWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := gcpServiceAccountFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type getCustomerManagedKeyRequestWire struct {
@@ -558,6 +798,30 @@ func getCustomerManagedKeyRequestFromWire(w *getCustomerManagedKeyRequestWire) (
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetCustomerManagedKeyRequest) MarshalJSON() ([]byte, error) {
+	w, err := getCustomerManagedKeyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetCustomerManagedKeyRequest) UnmarshalJSON(data []byte) error {
+	var w getCustomerManagedKeyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getCustomerManagedKeyRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type keyAccessConfigurationWire struct {
 	CredentialId *string `json:"credential_id,omitempty"`
 }
@@ -580,6 +844,30 @@ func keyAccessConfigurationFromWire(w *keyAccessConfigurationWire) (*KeyAccessCo
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v KeyAccessConfiguration) MarshalJSON() ([]byte, error) {
+	w, err := keyAccessConfigurationToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *KeyAccessConfiguration) UnmarshalJSON(data []byte) error {
+	var w keyAccessConfigurationWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := keyAccessConfigurationFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listCustomerManagedKeyRequestWire struct {
 	AccountId *string `json:"account_id,omitempty"`
 }
@@ -600,6 +888,30 @@ func listCustomerManagedKeyRequestFromWire(w *listCustomerManagedKeyRequestWire)
 	return &ListCustomerManagedKeyRequest{
 		AccountId: w.AccountId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCustomerManagedKeyRequest) MarshalJSON() ([]byte, error) {
+	w, err := listCustomerManagedKeyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCustomerManagedKeyRequest) UnmarshalJSON(data []byte) error {
+	var w listCustomerManagedKeyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCustomerManagedKeyRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listCustomerManagedKeyResponseWire struct {
@@ -630,6 +942,30 @@ func listCustomerManagedKeyResponseFromWire(w *listCustomerManagedKeyResponseWir
 	return &ListCustomerManagedKeyResponse{
 		CustomerManagedKeys: customerManagedKeysPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCustomerManagedKeyResponse) MarshalJSON() ([]byte, error) {
+	w, err := listCustomerManagedKeyResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCustomerManagedKeyResponse) UnmarshalJSON(data []byte) error {
+	var w listCustomerManagedKeyResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCustomerManagedKeyResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {
