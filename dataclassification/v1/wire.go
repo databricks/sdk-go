@@ -3,6 +3,7 @@
 package dataclassification
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/databricks/sdk-go/core/types"
@@ -31,6 +32,30 @@ func autoTaggingConfigFromWire(w *autoTaggingConfigWire) (*AutoTaggingConfig, er
 		ClassificationTag: w.ClassificationTag,
 		AutoTaggingMode:   w.AutoTaggingMode,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AutoTaggingConfig) MarshalJSON() ([]byte, error) {
+	w, err := autoTaggingConfigToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AutoTaggingConfig) UnmarshalJSON(data []byte) error {
+	var w autoTaggingConfigWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := autoTaggingConfigFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type catalogConfigWire struct {
@@ -119,6 +144,30 @@ func catalogConfigFromWire(w *catalogConfigWire) (*CatalogConfig, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CatalogConfig) MarshalJSON() ([]byte, error) {
+	w, err := catalogConfigToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CatalogConfig) UnmarshalJSON(data []byte) error {
+	var w catalogConfigWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := catalogConfigFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type catalogConfig_SchemaNamesWire struct {
 	Names []string `json:"names,omitempty"`
 }
@@ -139,6 +188,30 @@ func catalogConfig_SchemaNamesFromWire(w *catalogConfig_SchemaNamesWire) (*Catal
 	return &CatalogConfig_SchemaNames{
 		Names: w.Names,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CatalogConfig_SchemaNames) MarshalJSON() ([]byte, error) {
+	w, err := catalogConfig_SchemaNamesToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CatalogConfig_SchemaNames) UnmarshalJSON(data []byte) error {
+	var w catalogConfig_SchemaNamesWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := catalogConfig_SchemaNamesFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createCatalogConfigRequestWire struct {
@@ -174,6 +247,30 @@ func createCatalogConfigRequestFromWire(w *createCatalogConfigRequestWire) (*Cre
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateCatalogConfigRequest) MarshalJSON() ([]byte, error) {
+	w, err := createCatalogConfigRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateCatalogConfigRequest) UnmarshalJSON(data []byte) error {
+	var w createCatalogConfigRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createCatalogConfigRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteCatalogConfigRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -196,6 +293,30 @@ func deleteCatalogConfigRequestFromWire(w *deleteCatalogConfigRequestWire) (*Del
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteCatalogConfigRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteCatalogConfigRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteCatalogConfigRequest) UnmarshalJSON(data []byte) error {
+	var w deleteCatalogConfigRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteCatalogConfigRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getCatalogConfigRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -216,6 +337,30 @@ func getCatalogConfigRequestFromWire(w *getCatalogConfigRequestWire) (*GetCatalo
 	return &GetCatalogConfigRequest{
 		Name: w.Name,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetCatalogConfigRequest) MarshalJSON() ([]byte, error) {
+	w, err := getCatalogConfigRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetCatalogConfigRequest) UnmarshalJSON(data []byte) error {
+	var w getCatalogConfigRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getCatalogConfigRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateCatalogConfigRequestWire struct {
@@ -249,6 +394,30 @@ func updateCatalogConfigRequestFromWire(w *updateCatalogConfigRequestWire) (*Upd
 		CatalogConfig: catalogConfigPublicValue,
 		UpdateMask:    w.UpdateMask,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateCatalogConfigRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateCatalogConfigRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateCatalogConfigRequest) UnmarshalJSON(data []byte) error {
+	var w updateCatalogConfigRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateCatalogConfigRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

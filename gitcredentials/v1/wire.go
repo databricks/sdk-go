@@ -100,6 +100,30 @@ func createCredentialsRequestFromWire(w *createCredentialsRequestWire) (*CreateC
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateCredentialsRequest) MarshalJSON() ([]byte, error) {
+	w, err := createCredentialsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateCredentialsRequest) UnmarshalJSON(data []byte) error {
+	var w createCredentialsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createCredentialsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createCredentialsResponseWire struct {
 	CredentialId         *wireInt64 `json:"credential_id,omitempty"`
 	GitProvider          *string    `json:"git_provider,omitempty"`
@@ -143,6 +167,30 @@ func createCredentialsResponseFromWire(w *createCredentialsResponseWire) (*Creat
 		IsDefaultForProvider: w.IsDefaultForProvider,
 		GitEmail:             w.GitEmail,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateCredentialsResponse) MarshalJSON() ([]byte, error) {
+	w, err := createCredentialsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateCredentialsResponse) UnmarshalJSON(data []byte) error {
+	var w createCredentialsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createCredentialsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type credentialWire struct {
@@ -190,6 +238,30 @@ func credentialFromWire(w *credentialWire) (*Credential, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Credential) MarshalJSON() ([]byte, error) {
+	w, err := credentialToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Credential) UnmarshalJSON(data []byte) error {
+	var w credentialWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := credentialFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteCredentialsRequestWire struct {
 	Id          *wireInt64 `json:"id,omitempty"`
 	PrincipalId *wireInt64 `json:"principal_id,omitempty"`
@@ -231,6 +303,30 @@ func deleteCredentialsRequestFromWire(w *deleteCredentialsRequestWire) (*DeleteC
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteCredentialsRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteCredentialsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteCredentialsRequest) UnmarshalJSON(data []byte) error {
+	var w deleteCredentialsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteCredentialsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteCredentialsResponseWire struct {
 }
 
@@ -246,6 +342,30 @@ func deleteCredentialsResponseFromWire(w *deleteCredentialsResponseWire) (*Delet
 		return nil, nil
 	}
 	return &DeleteCredentialsResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteCredentialsResponse) MarshalJSON() ([]byte, error) {
+	w, err := deleteCredentialsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteCredentialsResponse) UnmarshalJSON(data []byte) error {
+	var w deleteCredentialsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteCredentialsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type getCredentialsRequestWire struct {
@@ -287,6 +407,30 @@ func getCredentialsRequestFromWire(w *getCredentialsRequestWire) (*GetCredential
 		Id:          idPublicValue,
 		PrincipalId: principalIdPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetCredentialsRequest) MarshalJSON() ([]byte, error) {
+	w, err := getCredentialsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetCredentialsRequest) UnmarshalJSON(data []byte) error {
+	var w getCredentialsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getCredentialsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type getCredentialsResponseWire struct {
@@ -334,6 +478,30 @@ func getCredentialsResponseFromWire(w *getCredentialsResponseWire) (*GetCredenti
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetCredentialsResponse) MarshalJSON() ([]byte, error) {
+	w, err := getCredentialsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetCredentialsResponse) UnmarshalJSON(data []byte) error {
+	var w getCredentialsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getCredentialsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listCredentialsRequestWire struct {
 	PrincipalId *wireInt64 `json:"principal_id,omitempty"`
 }
@@ -364,6 +532,30 @@ func listCredentialsRequestFromWire(w *listCredentialsRequestWire) (*ListCredent
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCredentialsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listCredentialsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCredentialsRequest) UnmarshalJSON(data []byte) error {
+	var w listCredentialsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCredentialsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listCredentialsResponseWire struct {
 	Credentials []credentialWire `json:"credentials,omitempty"`
 }
@@ -392,6 +584,30 @@ func listCredentialsResponseFromWire(w *listCredentialsResponseWire) (*ListCrede
 	return &ListCredentialsResponse{
 		Credentials: credentialsPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListCredentialsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listCredentialsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListCredentialsResponse) UnmarshalJSON(data []byte) error {
+	var w listCredentialsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listCredentialsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateCredentialsRequestWire struct {
@@ -453,6 +669,30 @@ func updateCredentialsRequestFromWire(w *updateCredentialsRequestWire) (*UpdateC
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateCredentialsRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateCredentialsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateCredentialsRequest) UnmarshalJSON(data []byte) error {
+	var w updateCredentialsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateCredentialsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateCredentialsResponseWire struct {
 }
 
@@ -468,6 +708,30 @@ func updateCredentialsResponseFromWire(w *updateCredentialsResponseWire) (*Updat
 		return nil, nil
 	}
 	return &UpdateCredentialsResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateCredentialsResponse) MarshalJSON() ([]byte, error) {
+	w, err := updateCredentialsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateCredentialsResponse) UnmarshalJSON(data []byte) error {
+	var w updateCredentialsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateCredentialsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

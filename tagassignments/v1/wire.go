@@ -3,6 +3,7 @@
 package tagassignments
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/databricks/sdk-go/core/types"
@@ -38,6 +39,30 @@ func createTagAssignmentRequestFromWire(w *createTagAssignmentRequestWire) (*Cre
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateTagAssignmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := createTagAssignmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateTagAssignmentRequest) UnmarshalJSON(data []byte) error {
+	var w createTagAssignmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createTagAssignmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteTagAssignmentRequestWire struct {
 	EntityType *string `json:"entity_type,omitempty"`
 	EntityId   *string `json:"entity_id,omitempty"`
@@ -66,6 +91,30 @@ func deleteTagAssignmentRequestFromWire(w *deleteTagAssignmentRequestWire) (*Del
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteTagAssignmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteTagAssignmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteTagAssignmentRequest) UnmarshalJSON(data []byte) error {
+	var w deleteTagAssignmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteTagAssignmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getTagAssignmentRequestWire struct {
 	EntityType *string `json:"entity_type,omitempty"`
 	EntityId   *string `json:"entity_id,omitempty"`
@@ -92,6 +141,30 @@ func getTagAssignmentRequestFromWire(w *getTagAssignmentRequestWire) (*GetTagAss
 		EntityId:   w.EntityId,
 		TagKey:     w.TagKey,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetTagAssignmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := getTagAssignmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetTagAssignmentRequest) UnmarshalJSON(data []byte) error {
+	var w getTagAssignmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getTagAssignmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listTagAssignmentsRequestWire struct {
@@ -123,6 +196,30 @@ func listTagAssignmentsRequestFromWire(w *listTagAssignmentsRequestWire) (*ListT
 		PageSize:   w.PageSize,
 		PageToken:  w.PageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListTagAssignmentsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listTagAssignmentsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListTagAssignmentsRequest) UnmarshalJSON(data []byte) error {
+	var w listTagAssignmentsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listTagAssignmentsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listTagAssignmentsResponseWire struct {
@@ -158,6 +255,30 @@ func listTagAssignmentsResponseFromWire(w *listTagAssignmentsResponseWire) (*Lis
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListTagAssignmentsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listTagAssignmentsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListTagAssignmentsResponse) UnmarshalJSON(data []byte) error {
+	var w listTagAssignmentsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listTagAssignmentsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type tagAssignmentWire struct {
 	EntityType *string `json:"entity_type,omitempty"`
 	EntityId   *string `json:"entity_id,omitempty"`
@@ -187,6 +308,30 @@ func tagAssignmentFromWire(w *tagAssignmentWire) (*TagAssignment, error) {
 		TagKey:     w.TagKey,
 		TagValue:   w.TagValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v TagAssignment) MarshalJSON() ([]byte, error) {
+	w, err := tagAssignmentToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *TagAssignment) UnmarshalJSON(data []byte) error {
+	var w tagAssignmentWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := tagAssignmentFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateTagAssignmentRequestWire struct {
@@ -220,6 +365,30 @@ func updateTagAssignmentRequestFromWire(w *updateTagAssignmentRequestWire) (*Upd
 		TagAssignment: tagAssignmentPublicValue,
 		UpdateMask:    w.UpdateMask,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateTagAssignmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateTagAssignmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateTagAssignmentRequest) UnmarshalJSON(data []byte) error {
+	var w updateTagAssignmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateTagAssignmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

@@ -83,6 +83,30 @@ func createGlobalInitScriptRequestFromWire(w *createGlobalInitScriptRequestWire)
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateGlobalInitScriptRequest) MarshalJSON() ([]byte, error) {
+	w, err := createGlobalInitScriptRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateGlobalInitScriptRequest) UnmarshalJSON(data []byte) error {
+	var w createGlobalInitScriptRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createGlobalInitScriptRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createGlobalInitScriptResponseWire struct {
 	ScriptId *string `json:"script_id,omitempty"`
 }
@@ -103,6 +127,30 @@ func createGlobalInitScriptResponseFromWire(w *createGlobalInitScriptResponseWir
 	return &CreateGlobalInitScriptResponse{
 		ScriptId: w.ScriptId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateGlobalInitScriptResponse) MarshalJSON() ([]byte, error) {
+	w, err := createGlobalInitScriptResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateGlobalInitScriptResponse) UnmarshalJSON(data []byte) error {
+	var w createGlobalInitScriptResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createGlobalInitScriptResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type deleteGlobalInitScriptRequestWire struct {
@@ -127,6 +175,30 @@ func deleteGlobalInitScriptRequestFromWire(w *deleteGlobalInitScriptRequestWire)
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteGlobalInitScriptRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteGlobalInitScriptRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteGlobalInitScriptRequest) UnmarshalJSON(data []byte) error {
+	var w deleteGlobalInitScriptRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteGlobalInitScriptRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteGlobalInitScriptResponseWire struct {
 }
 
@@ -142,6 +214,30 @@ func deleteGlobalInitScriptResponseFromWire(w *deleteGlobalInitScriptResponseWir
 		return nil, nil
 	}
 	return &DeleteGlobalInitScriptResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteGlobalInitScriptResponse) MarshalJSON() ([]byte, error) {
+	w, err := deleteGlobalInitScriptResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteGlobalInitScriptResponse) UnmarshalJSON(data []byte) error {
+	var w deleteGlobalInitScriptResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteGlobalInitScriptResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type getGlobalInitScriptRequestWire struct {
@@ -164,6 +260,30 @@ func getGlobalInitScriptRequestFromWire(w *getGlobalInitScriptRequestWire) (*Get
 	return &GetGlobalInitScriptRequest{
 		ScriptId: w.ScriptId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetGlobalInitScriptRequest) MarshalJSON() ([]byte, error) {
+	w, err := getGlobalInitScriptRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetGlobalInitScriptRequest) UnmarshalJSON(data []byte) error {
+	var w getGlobalInitScriptRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getGlobalInitScriptRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type globalInitScriptDetailsWire struct {
@@ -225,6 +345,30 @@ func globalInitScriptDetailsFromWire(w *globalInitScriptDetailsWire) (*GlobalIni
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GlobalInitScriptDetails) MarshalJSON() ([]byte, error) {
+	w, err := globalInitScriptDetailsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GlobalInitScriptDetails) UnmarshalJSON(data []byte) error {
+	var w globalInitScriptDetailsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := globalInitScriptDetailsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listGlobalInitScriptsRequestWire struct {
 }
 
@@ -240,6 +384,30 @@ func listGlobalInitScriptsRequestFromWire(w *listGlobalInitScriptsRequestWire) (
 		return nil, nil
 	}
 	return &ListGlobalInitScriptsRequest{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListGlobalInitScriptsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listGlobalInitScriptsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListGlobalInitScriptsRequest) UnmarshalJSON(data []byte) error {
+	var w listGlobalInitScriptsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listGlobalInitScriptsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listGlobalInitScriptsResponseWire struct {
@@ -270,6 +438,30 @@ func listGlobalInitScriptsResponseFromWire(w *listGlobalInitScriptsResponseWire)
 	return &ListGlobalInitScriptsResponse{
 		Scripts: scriptsPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListGlobalInitScriptsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listGlobalInitScriptsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListGlobalInitScriptsResponse) UnmarshalJSON(data []byte) error {
+	var w listGlobalInitScriptsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listGlobalInitScriptsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateGlobalInitScriptRequestWire struct {
@@ -306,6 +498,30 @@ func updateGlobalInitScriptRequestFromWire(w *updateGlobalInitScriptRequestWire)
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateGlobalInitScriptRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateGlobalInitScriptRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateGlobalInitScriptRequest) UnmarshalJSON(data []byte) error {
+	var w updateGlobalInitScriptRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateGlobalInitScriptRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateGlobalInitScriptResponseWire struct {
 }
 
@@ -321,6 +537,30 @@ func updateGlobalInitScriptResponseFromWire(w *updateGlobalInitScriptResponseWir
 		return nil, nil
 	}
 	return &UpdateGlobalInitScriptResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateGlobalInitScriptResponse) MarshalJSON() ([]byte, error) {
+	w, err := updateGlobalInitScriptResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateGlobalInitScriptResponse) UnmarshalJSON(data []byte) error {
+	var w updateGlobalInitScriptResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateGlobalInitScriptResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

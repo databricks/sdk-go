@@ -736,6 +736,9 @@ type App struct {
 	// Name of the space this app belongs to.
 	Space            *string `fieldmask:"space"`
 	DeploymentSource isApp_DeploymentSource
+	// Resources added to the app, plus the resources it inherits from its space.
+	// Empty for apps that are not in a space.
+	EffectiveResources []AppResource `fieldmask:"effective_resources"`
 	// Forward the user's access token to the app. Requires stopping and starting
 	// app compute to take effect.
 	ForwardUserAccessToken *bool                                   `fieldmask:"forward_user_access_token"`

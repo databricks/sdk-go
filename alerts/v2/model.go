@@ -76,6 +76,9 @@ const (
 	SchedulePauseStatus_Paused      SchedulePauseStatus = "PAUSED"
 )
 
+// A SQL alert. An alert runs a query on a schedule, evaluates the result
+// against a condition, and notifies users or notification destinations when the
+// condition is met..
 type Alert struct {
 	// The canonical identifier of the alert to retrieve information about.
 	Id *string `fieldmask:"id"`
@@ -95,21 +98,27 @@ type Alert struct {
 	QueryText *string `fieldmask:"query_text"`
 	// ID of the SQL warehouse attached to the alert.
 	WarehouseId *string `fieldmask:"warehouse_id"`
-	// The run as username or application ID of service principal. On Create and
-	// Update, this field can be set to application ID of an active service
-	// principal. Setting this field requires the servicePrincipal/user role.
 	// Deprecated: Use `run_as` field instead. This field will be removed in a
-	// future release.
-	RunAsUserName *string          `fieldmask:"run_as_user_name"`
-	Evaluation    *AlertEvaluation `fieldmask:"evaluation"`
-	Schedule      *CronSchedule    `fieldmask:"schedule"`
-	// Indicates whether the query is trashed.
+	// future release. The run as username or application ID of service principal.
+	// On Create and Update, this field can be set to application ID of an active
+	// service principal. Setting this field requires the servicePrincipal/user
+	// role.
+	RunAsUserName *string `fieldmask:"run_as_user_name"`
+	// Condition evaluated against the query result, and who is notified when it is
+	// met.
+	Evaluation *AlertEvaluation `fieldmask:"evaluation"`
+	// Schedule on which the alert runs its query and evaluates the condition.
+	Schedule *CronSchedule `fieldmask:"schedule"`
+	// Indicates whether the alert is active (`ACTIVE`) or has been moved to the
+	// trash (`DELETED`).
 	LifecycleState AlertLifecycleState `fieldmask:"lifecycle_state"`
-	// Custom summary for the alert. Interpreted according to
-	// `custom_template_format`.
+	// Custom summary for the alert, used as the notification subject. Interpreted
+	// according to `custom_template_format`.
 	CustomSummary *string `fieldmask:"custom_summary"`
-	// Custom description for the alert. Interpreted according to
-	// `custom_template_format`.
+	// Custom description for the alert, used as the notification body. Interpreted
+	// according to `custom_template_format`. The available template variables are
+	// listed at
+	// https://docs.databricks.com/aws/en/sql/user/alerts/create#notification-templates.
 	CustomDescription *string `fieldmask:"custom_description"`
 	// Specifies the identity that will be used to run the alert. This field allows
 	// you to configure alerts to run as a specific user or service principal. - For
@@ -157,22 +166,29 @@ type Alert struct {
 type AlertEvaluation struct {
 	// Source column from result to use to evaluate alert
 	Source *AlertOperandColumn `fieldmask:"source"`
-	// Operator used for comparison in alert evaluation.
+	// Operator used for comparison in alert evaluation. The alert is triggered when
+	// the comparison of the source value with the threshold is true. `IS_NULL` and
+	// `IS_NOT_NULL` take no threshold.
 	ComparisonOperator ComparisonOperator `fieldmask:"comparison_operator"`
-	// Threshold to user for alert evaluation, can be a column or a value.
+	// Threshold to compare the source column against, either another column or a
+	// fixed value. Not needed when `comparison_operator` is `IS_NULL` or
+	// `IS_NOT_NULL`.
 	Threshold *AlertOperand `fieldmask:"threshold"`
 	// User or Notification Destination to notify when alert is triggered.
 	Notification *AlertNotification `fieldmask:"notification"`
-	// Latest state of alert evaluation.
+	// Latest state of alert evaluation: `TRIGGERED` when the condition was met,
+	// `OK` when it was not, and `ERROR` when the evaluation failed.
 	State AlertEvaluationState `fieldmask:"state"`
 	// Timestamp of the last evaluation.
 	LastEvaluatedAt *types.Time `fieldmask:"last_evaluated_at"`
-	// Alert state if result is empty. Please avoid setting this field to be
-	// `UNKNOWN` because `UNKNOWN` state is planned to be deprecated.
+	// Alert state if result is empty. If not set, an empty result sets the state to
+	// `ERROR`. Please avoid setting this field to be `UNKNOWN` because `UNKNOWN`
+	// state is planned to be deprecated.
 	EmptyResultState AlertEvaluationState `fieldmask:"empty_result_state"`
 }
 
 type AlertNotification struct {
+	// Users and notification destinations that receive notifications.
 	Subscriptions []AlertSubscription `fieldmask:"subscriptions"`
 	// Number of seconds an alert waits after being triggered before it is allowed
 	// to send another notification. If set to 0 or omitted, the alert will not send
@@ -197,6 +213,7 @@ type isAlertOperand_Operand interface {
 }
 
 // AlertOperand_Operand_Column selects Column for AlertOperand.Operand.
+// Compare the source against another column of the query result.
 type AlertOperand_Operand_Column struct {
 	Column AlertOperandColumn `fieldmask:"column"`
 }
@@ -204,6 +221,7 @@ type AlertOperand_Operand_Column struct {
 func (*AlertOperand_Operand_Column) isAlertOperand_Operand() {}
 
 // AlertOperand_Operand_Value selects Value for AlertOperand.Operand.
+// Compare the source against a fixed value.
 type AlertOperand_Operand_Value struct {
 	Value AlertOperandValue `fieldmask:"value"`
 }
@@ -216,9 +234,14 @@ type alertOperandOperandFieldMaskMetadata struct {
 }
 
 type AlertOperandColumn struct {
-	Name    *string `fieldmask:"name"`
+	// Name of the column in the query result.
+	Name *string `fieldmask:"name"`
+	// Label for the column in notifications. Defaults to `name`.
 	Display *string `fieldmask:"display"`
-	// If not set, the behavior is equivalent to using `First row` in the UI.
+	// Aggregation applied to the column across all rows of the query result: `SUM`,
+	// `COUNT`, `COUNT_DISTINCT`, `AVG`, `MEDIAN`, `MIN`, `MAX` or `STDDEV`. If not
+	// set, the value in the first row is used, which is equivalent to using `First
+	// row` in the UI.
 	Aggregation Aggregation `fieldmask:"aggregation"`
 }
 
@@ -234,6 +257,7 @@ type isAlertOperandValue_Value interface {
 }
 
 // AlertOperandValue_Value_StringValue selects StringValue for AlertOperandValue.Value.
+// String threshold, for string or timestamp columns.
 type AlertOperandValue_Value_StringValue struct {
 	StringValue string `fieldmask:"string_value"`
 }
@@ -241,6 +265,7 @@ type AlertOperandValue_Value_StringValue struct {
 func (*AlertOperandValue_Value_StringValue) isAlertOperandValue_Value() {}
 
 // AlertOperandValue_Value_DoubleValue selects DoubleValue for AlertOperandValue.Value.
+// Numeric threshold, for numeric columns.
 type AlertOperandValue_Value_DoubleValue struct {
 	DoubleValue float64 `fieldmask:"double_value"`
 }
@@ -248,6 +273,7 @@ type AlertOperandValue_Value_DoubleValue struct {
 func (*AlertOperandValue_Value_DoubleValue) isAlertOperandValue_Value() {}
 
 // AlertOperandValue_Value_BoolValue selects BoolValue for AlertOperandValue.Value.
+// Boolean threshold, for boolean columns.
 type AlertOperandValue_Value_BoolValue struct {
 	BoolValue bool `fieldmask:"bool_value"`
 }
@@ -318,6 +344,7 @@ type isAlertSubscription_SubscriptionType interface {
 }
 
 // AlertSubscription_SubscriptionType_UserEmail selects UserEmail for AlertSubscription.SubscriptionType.
+// Email address of the workspace user to notify.
 type AlertSubscription_SubscriptionType_UserEmail struct {
 	UserEmail string
 }
@@ -325,6 +352,8 @@ type AlertSubscription_SubscriptionType_UserEmail struct {
 func (*AlertSubscription_SubscriptionType_UserEmail) isAlertSubscription_SubscriptionType() {}
 
 // AlertSubscription_SubscriptionType_DestinationId selects DestinationId for AlertSubscription.SubscriptionType.
+// ID of the notification destination to notify, as returned by the Notification
+// Destinations API.
 type AlertSubscription_SubscriptionType_DestinationId struct {
 	DestinationId string
 }
@@ -337,7 +366,7 @@ type CreateAlertRequest struct {
 
 type CronSchedule struct {
 	// A cron expression using quartz syntax that specifies the schedule for this
-	// pipeline. Should use the quartz format described here:
+	// alert. Should use the quartz format described here:
 	// http://www.quartz-scheduler.org/documentation/quartz-2.1.7/tutorials/tutorial-lesson-06.html
 	QuartzCronSchedule *string `fieldmask:"quartz_cron_schedule"`
 	// A Java timezone id. The schedule will be resolved using this timezone. This
@@ -345,7 +374,8 @@ type CronSchedule struct {
 	// https://docs.databricks.com/sql/language-manual/sql-ref-syntax-aux-conf-mgmt-set-timezone.html
 	// for details.
 	TimezoneId *string `fieldmask:"timezone_id"`
-	// Indicate whether this schedule is paused or not.
+	// Indicates whether this schedule is paused. While paused, the alert is not
+	// evaluated.
 	PauseStatus SchedulePauseStatus `fieldmask:"pause_status"`
 }
 
@@ -355,12 +385,17 @@ type Empty struct {
 }
 
 type GetAlertRequest struct {
+	// ID of the alert to retrieve, as returned in the alert's `id` field.
 	Id *string
 }
 
 type ListAlertsRequest struct {
+	// Page token returned as `next_page_token` by a previous call. Omit it to
+	// retrieve the first page.
 	PageToken *string
-	PageSize  *int
+	// Maximum number of alerts to return per page. Values above 100 are coerced to
+	// 100.
+	PageSize *int
 }
 
 type ListAlertsResponse struct {
@@ -369,6 +404,7 @@ type ListAlertsResponse struct {
 }
 
 type TrashAlertRequest struct {
+	// ID of the alert to move to the trash.
 	Id *string
 	// Whether to permanently delete the alert. If not set, the alert will only be
 	// soft deleted.
@@ -376,6 +412,10 @@ type TrashAlertRequest struct {
 }
 
 type UpdateAlertRequest struct {
-	Alert      *Alert
+	Alert *Alert
+	// Comma-separated list of the alert fields to update, for example
+	// `display_name,query_text` or `schedule.pause_status`. Only the listed fields
+	// are changed; all other fields keep their current values. `parent_path` cannot
+	// be updated.
 	UpdateMask *types.FieldMask[Alert]
 }

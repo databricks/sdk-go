@@ -79,6 +79,30 @@ func azureWorkspaceInfoFromWire(w *azureWorkspaceInfoWire) (*AzureWorkspaceInfo,
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AzureWorkspaceInfo) MarshalJSON() ([]byte, error) {
+	w, err := azureWorkspaceInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AzureWorkspaceInfo) UnmarshalJSON(data []byte) error {
+	var w azureWorkspaceInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := azureWorkspaceInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type cloudResourceContainerWire struct {
 	Gcp *gcpCloudResourceContainerWire `json:"gcp,omitempty"`
 }
@@ -129,6 +153,30 @@ func cloudResourceContainerFromWire(w *cloudResourceContainerWire) (*CloudResour
 	return &CloudResourceContainer{
 		CloudResourceContainer: cloudResourceContainerSelection,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CloudResourceContainer) MarshalJSON() ([]byte, error) {
+	w, err := cloudResourceContainerToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CloudResourceContainer) UnmarshalJSON(data []byte) error {
+	var w cloudResourceContainerWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cloudResourceContainerFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createWorkspaceRequestWire struct {
@@ -231,6 +279,30 @@ func createWorkspaceRequestFromWire(w *createWorkspaceRequestWire) (*CreateWorks
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateWorkspaceRequest) MarshalJSON() ([]byte, error) {
+	w, err := createWorkspaceRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateWorkspaceRequest) UnmarshalJSON(data []byte) error {
+	var w createWorkspaceRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createWorkspaceRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteWorkspaceRequestWire struct {
 	WorkspaceId *wireInt64 `json:"workspace_id,omitempty"`
 	AccountId   *string    `json:"account_id,omitempty"`
@@ -264,6 +336,30 @@ func deleteWorkspaceRequestFromWire(w *deleteWorkspaceRequestWire) (*DeleteWorks
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteWorkspaceRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteWorkspaceRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteWorkspaceRequest) UnmarshalJSON(data []byte) error {
+	var w deleteWorkspaceRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteWorkspaceRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type gcpCloudResourceContainerWire struct {
 	ProjectId *string `json:"project_id,omitempty"`
 }
@@ -284,6 +380,30 @@ func gcpCloudResourceContainerFromWire(w *gcpCloudResourceContainerWire) (*GcpCl
 	return &GcpCloudResourceContainer{
 		ProjectId: w.ProjectId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GcpCloudResourceContainer) MarshalJSON() ([]byte, error) {
+	w, err := gcpCloudResourceContainerToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GcpCloudResourceContainer) UnmarshalJSON(data []byte) error {
+	var w gcpCloudResourceContainerWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := gcpCloudResourceContainerFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type gcpCommonNetworkConfigWire struct {
@@ -309,6 +429,30 @@ func gcpCommonNetworkConfigFromWire(w *gcpCommonNetworkConfigWire) (*GcpCommonNe
 		GkeConnectivityType:     w.GkeConnectivityType,
 		GkeClusterMasterIpRange: w.GkeClusterMasterIpRange,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GcpCommonNetworkConfig) MarshalJSON() ([]byte, error) {
+	w, err := gcpCommonNetworkConfigToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GcpCommonNetworkConfig) UnmarshalJSON(data []byte) error {
+	var w gcpCommonNetworkConfigWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := gcpCommonNetworkConfigFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type gcpManagedNetworkConfigWire struct {
@@ -337,6 +481,30 @@ func gcpManagedNetworkConfigFromWire(w *gcpManagedNetworkConfigWire) (*GcpManage
 		GkeClusterPodIpRange:     w.GkeClusterPodIpRange,
 		GkeClusterServiceIpRange: w.GkeClusterServiceIpRange,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GcpManagedNetworkConfig) MarshalJSON() ([]byte, error) {
+	w, err := gcpManagedNetworkConfigToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GcpManagedNetworkConfig) UnmarshalJSON(data []byte) error {
+	var w gcpManagedNetworkConfigWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := gcpManagedNetworkConfigFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type getWorkspaceRequestWire struct {
@@ -372,6 +540,30 @@ func getWorkspaceRequestFromWire(w *getWorkspaceRequestWire) (*GetWorkspaceReque
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetWorkspaceRequest) MarshalJSON() ([]byte, error) {
+	w, err := getWorkspaceRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetWorkspaceRequest) UnmarshalJSON(data []byte) error {
+	var w getWorkspaceRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getWorkspaceRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type gkeConfigWire struct {
 	ConnectivityType GkeConnectivityType `json:"connectivity_type,omitempty"`
 	MasterIpRange    *string             `json:"master_ip_range,omitempty"`
@@ -397,6 +589,30 @@ func gkeConfigFromWire(w *gkeConfigWire) (*GkeConfig, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GkeConfig) MarshalJSON() ([]byte, error) {
+	w, err := gkeConfigToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GkeConfig) UnmarshalJSON(data []byte) error {
+	var w gkeConfigWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := gkeConfigFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listWorkspacesRequestWire struct {
 	AccountId *string `json:"account_id,omitempty"`
 }
@@ -417,6 +633,30 @@ func listWorkspacesRequestFromWire(w *listWorkspacesRequestWire) (*ListWorkspace
 	return &ListWorkspacesRequest{
 		AccountId: w.AccountId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListWorkspacesRequest) MarshalJSON() ([]byte, error) {
+	w, err := listWorkspacesRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListWorkspacesRequest) UnmarshalJSON(data []byte) error {
+	var w listWorkspacesRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listWorkspacesRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listWorkspacesResponseWire struct {
@@ -447,6 +687,30 @@ func listWorkspacesResponseFromWire(w *listWorkspacesResponseWire) (*ListWorkspa
 	return &ListWorkspacesResponse{
 		Workspaces: workspacesPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListWorkspacesResponse) MarshalJSON() ([]byte, error) {
+	w, err := listWorkspacesResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListWorkspacesResponse) UnmarshalJSON(data []byte) error {
+	var w listWorkspacesResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listWorkspacesResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateWorkspaceRequestWire struct {
@@ -480,6 +744,30 @@ func updateWorkspaceRequestFromWire(w *updateWorkspaceRequestWire) (*UpdateWorks
 		CustomerFacingWorkspace: customerFacingWorkspacePublicValue,
 		UpdateMask:              w.UpdateMask,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateWorkspaceRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateWorkspaceRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateWorkspaceRequest) UnmarshalJSON(data []byte) error {
+	var w updateWorkspaceRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateWorkspaceRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type workspaceWire struct {
@@ -669,6 +957,30 @@ func workspaceFromWire(w *workspaceWire) (*Workspace, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Workspace) MarshalJSON() ([]byte, error) {
+	w, err := workspaceToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Workspace) UnmarshalJSON(data []byte) error {
+	var w workspaceWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := workspaceFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type workspaceNetworkWire struct {
 	GcpManagedNetworkConfig *gcpManagedNetworkConfigWire `json:"gcp_managed_network_config,omitempty"`
 	NetworkId               *string                      `json:"network_id,omitempty"`
@@ -742,6 +1054,30 @@ func workspaceNetworkFromWire(w *workspaceNetworkWire) (*WorkspaceNetwork, error
 		GcpCommonNetworkConfig: gcpCommonNetworkConfigPublicValue,
 		Network:                networkSelection,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v WorkspaceNetwork) MarshalJSON() ([]byte, error) {
+	w, err := workspaceNetworkToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *WorkspaceNetwork) UnmarshalJSON(data []byte) error {
+	var w workspaceNetworkWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := workspaceNetworkFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

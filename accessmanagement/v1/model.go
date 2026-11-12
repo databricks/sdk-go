@@ -157,6 +157,23 @@ type ConsistencyToken struct {
 	Value *string
 }
 
+// Request to add a workspace group to the workspace's restricted list..
+type CreateRestrictedSharingGroupRequest struct {
+	// The id of the workspace group to restrict: the numeric id of an existing and
+	// non-system workspace group.
+	RestrictedSharingGroupId *string
+	// The restricted sharing group to create. It has no client-set fields; the
+	// group is identified by restricted_sharing_group_id.
+	RestrictedSharingGroup *RestrictedSharingGroup
+}
+
+// Request to remove a group from the workspace's restricted list..
+type DeleteRestrictedSharingGroupRequest struct {
+	// The name of the restricted sharing group to delete. Format:
+	// `restricted-sharing-groups/{restricted_sharing_group_id}`
+	Name *string
+}
+
 // Removes all permission assignments for a workspace given a principal..
 type DeleteWorkspacePermissionAssignmentRequest struct {
 	// The account ID.
@@ -180,6 +197,13 @@ type GetObjectPermissionsRequest struct {
 	RequestObjectType *string
 	// The id of the request object.
 	RequestObjectId *string
+}
+
+// Request to get a restricted sharing group in the caller's workspace..
+type GetRestrictedSharingGroupRequest struct {
+	// The name of the restricted sharing group to get. Format:
+	// `restricted-sharing-groups/{restricted_sharing_group_id}`
+	Name *string
 }
 
 type GetRuleSetRequest struct {
@@ -255,6 +279,26 @@ type ListPermissionLevelsRequest struct {
 type ListPermissionLevelsResponse struct {
 	// Specific permission levels
 	PermissionLevels []PermissionsDescription
+}
+
+// Request to list the restricted sharing groups in the caller's workspace..
+type ListRestrictedSharingGroupsRequest struct {
+	// The maximum number of groups to return. The service may return fewer. If
+	// unspecified or 0, at most 100 groups are returned. Values above 100 are
+	// coerced to 100. Negative values are rejected.
+	PageSize *int
+	// A page token from a previous ListRestrictedSharingGroups call. Provide this
+	// to retrieve the subsequent page.
+	PageToken *string
+}
+
+// A page of restricted sharing groups in the caller's workspace..
+type ListRestrictedSharingGroupsResponse struct {
+	// The restricted sharing groups in the workspace.
+	RestrictedSharingGroups []RestrictedSharingGroup
+	// A token that can be sent as page_token to retrieve the next page. If this
+	// field is omitted, there are no subsequent pages.
+	NextPageToken *string
 }
 
 // Gets all the permission assignments for a workspace, given an account and a
@@ -370,6 +414,21 @@ type ResourceInfo struct {
 	ParentResourceInfo *ResourceInfo
 	// The legacy acl path of the current resource.
 	LegacyAclPath *string
+}
+
+// A RestrictedSharingGroup is a workspace group whose members cannot grant or
+// revoke permissions on workspace assets while they have assumed the group or
+// one of its child groups. Users acting as themselves are not affected..
+type RestrictedSharingGroup struct {
+	// The resource name of the restricted sharing group. Format:
+	// `restricted-sharing-groups/{restricted_sharing_group_id}` Example:
+	// `restricted-sharing-groups/123`
+	Name *string
+	// The id of the restricted workspace group: the numeric id of an existing and
+	// non-system workspace group.
+	RestrictedSharingGroupId *string
+	// The display name of the restricted workspace group.
+	GroupDisplayName *string
 }
 
 type Role struct {

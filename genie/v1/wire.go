@@ -115,6 +115,30 @@ func chunkInfoFromWire(w *chunkInfoWire) (*ChunkInfo, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ChunkInfo) MarshalJSON() ([]byte, error) {
+	w, err := chunkInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ChunkInfo) UnmarshalJSON(data []byte) error {
+	var w chunkInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := chunkInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type columnInfoWire struct {
 	Name             *string         `json:"name,omitempty"`
 	TypeText         *string         `json:"type_text,omitempty"`
@@ -178,6 +202,30 @@ func columnInfoFromWire(w *columnInfoWire) (*ColumnInfo, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ColumnInfo) MarshalJSON() ([]byte, error) {
+	w, err := columnInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ColumnInfo) UnmarshalJSON(data []byte) error {
+	var w columnInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := columnInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type columnMaskWire struct {
 	FunctionName     *string                      `json:"function_name,omitempty"`
 	UsingColumnNames []string                     `json:"using_column_names,omitempty"`
@@ -214,6 +262,30 @@ func columnMaskFromWire(w *columnMaskWire) (*ColumnMask, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ColumnMask) MarshalJSON() ([]byte, error) {
+	w, err := columnMaskToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ColumnMask) UnmarshalJSON(data []byte) error {
+	var w columnMaskWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := columnMaskFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type databricksServiceExceptionProtoWire struct {
 	ErrorCode  ErrorCode `json:"error_code,omitempty"`
 	Message    *string   `json:"message,omitempty"`
@@ -242,6 +314,30 @@ func databricksServiceExceptionProtoFromWire(w *databricksServiceExceptionProtoW
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DatabricksServiceExceptionProto) MarshalJSON() ([]byte, error) {
+	w, err := databricksServiceExceptionProtoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DatabricksServiceExceptionProto) UnmarshalJSON(data []byte) error {
+	var w databricksServiceExceptionProtoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := databricksServiceExceptionProtoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type downloadMessageAttachmentVisualizationRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -262,6 +358,30 @@ func downloadMessageAttachmentVisualizationRequestFromWire(w *downloadMessageAtt
 	return &DownloadMessageAttachmentVisualizationRequest{
 		Name: w.Name,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DownloadMessageAttachmentVisualizationRequest) MarshalJSON() ([]byte, error) {
+	w, err := downloadMessageAttachmentVisualizationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DownloadMessageAttachmentVisualizationRequest) UnmarshalJSON(data []byte) error {
+	var w downloadMessageAttachmentVisualizationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := downloadMessageAttachmentVisualizationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type downloadMessageAttachmentVisualizationResponseWire struct {
@@ -349,6 +469,30 @@ func externalLinkFromWire(w *externalLinkWire) (*ExternalLink, error) {
 		NextChunkIndex:        w.NextChunkIndex,
 		NextChunkInternalLink: w.NextChunkInternalLink,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExternalLink) MarshalJSON() ([]byte, error) {
+	w, err := externalLinkToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExternalLink) UnmarshalJSON(data []byte) error {
+	var w externalLinkWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := externalLinkFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieAttachmentWire struct {
@@ -466,6 +610,30 @@ func genieAttachmentFromWire(w *genieAttachmentWire) (*GenieAttachment, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieAttachment) MarshalJSON() ([]byte, error) {
+	w, err := genieAttachmentToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieAttachment) UnmarshalJSON(data []byte) error {
+	var w genieAttachmentWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieAttachmentFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieCancelResponseRequestWire struct {
 	AgentId        *string `json:"agent_id,omitempty"`
 	ConversationId *string `json:"conversation_id,omitempty"`
@@ -492,6 +660,30 @@ func genieCancelResponseRequestFromWire(w *genieCancelResponseRequestWire) (*Gen
 		ConversationId: w.ConversationId,
 		ResponseId:     w.ResponseId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieCancelResponseRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieCancelResponseRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieCancelResponseRequest) UnmarshalJSON(data []byte) error {
+	var w genieCancelResponseRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieCancelResponseRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieConversationWire struct {
@@ -558,6 +750,30 @@ func genieConversationFromWire(w *genieConversationWire) (*GenieConversation, er
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieConversation) MarshalJSON() ([]byte, error) {
+	w, err := genieConversationToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieConversation) UnmarshalJSON(data []byte) error {
+	var w genieConversationWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieConversationFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieConversationSummaryWire struct {
 	ConversationId   *string               `json:"conversation_id,omitempty"`
 	Title            *string               `json:"title,omitempty"`
@@ -597,6 +813,30 @@ func genieConversationSummaryFromWire(w *genieConversationSummaryWire) (*GenieCo
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieConversationSummary) MarshalJSON() ([]byte, error) {
+	w, err := genieConversationSummaryToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieConversationSummary) UnmarshalJSON(data []byte) error {
+	var w genieConversationSummaryWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieConversationSummaryFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieCreateConversationMessageRequestWire struct {
 	SpaceId             *string `json:"space_id,omitempty"`
 	ConversationId      *string `json:"conversation_id,omitempty"`
@@ -628,6 +868,30 @@ func genieCreateConversationMessageRequestFromWire(w *genieCreateConversationMes
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieCreateConversationMessageRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieCreateConversationMessageRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieCreateConversationMessageRequest) UnmarshalJSON(data []byte) error {
+	var w genieCreateConversationMessageRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieCreateConversationMessageRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieCreateEvalRunRequestWire struct {
 	SpaceId              *string  `json:"space_id,omitempty"`
 	BenchmarkQuestionIds []string `json:"benchmark_question_ids,omitempty"`
@@ -651,6 +915,30 @@ func genieCreateEvalRunRequestFromWire(w *genieCreateEvalRunRequestWire) (*Genie
 		SpaceId:              w.SpaceId,
 		BenchmarkQuestionIds: w.BenchmarkQuestionIds,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieCreateEvalRunRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieCreateEvalRunRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieCreateEvalRunRequest) UnmarshalJSON(data []byte) error {
+	var w genieCreateEvalRunRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieCreateEvalRunRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieCreateMessageCommentRequestWire struct {
@@ -682,6 +970,30 @@ func genieCreateMessageCommentRequestFromWire(w *genieCreateMessageCommentReques
 		MessageId:      w.MessageId,
 		Content:        w.Content,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieCreateMessageCommentRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieCreateMessageCommentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieCreateMessageCommentRequest) UnmarshalJSON(data []byte) error {
+	var w genieCreateMessageCommentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieCreateMessageCommentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieCreateSpaceRequestWire struct {
@@ -718,6 +1030,30 @@ func genieCreateSpaceRequestFromWire(w *genieCreateSpaceRequestWire) (*GenieCrea
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieCreateSpaceRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieCreateSpaceRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieCreateSpaceRequest) UnmarshalJSON(data []byte) error {
+	var w genieCreateSpaceRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieCreateSpaceRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieDeleteConversationMessageRequestWire struct {
 	SpaceId        *string `json:"space_id,omitempty"`
 	ConversationId *string `json:"conversation_id,omitempty"`
@@ -746,6 +1082,30 @@ func genieDeleteConversationMessageRequestFromWire(w *genieDeleteConversationMes
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieDeleteConversationMessageRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieDeleteConversationMessageRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieDeleteConversationMessageRequest) UnmarshalJSON(data []byte) error {
+	var w genieDeleteConversationMessageRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieDeleteConversationMessageRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieDeleteConversationRequestWire struct {
 	SpaceId        *string `json:"space_id,omitempty"`
 	ConversationId *string `json:"conversation_id,omitempty"`
@@ -769,6 +1129,30 @@ func genieDeleteConversationRequestFromWire(w *genieDeleteConversationRequestWir
 		SpaceId:        w.SpaceId,
 		ConversationId: w.ConversationId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieDeleteConversationRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieDeleteConversationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieDeleteConversationRequest) UnmarshalJSON(data []byte) error {
+	var w genieDeleteConversationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieDeleteConversationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieEvalResponseWire struct {
@@ -805,6 +1189,30 @@ func genieEvalResponseFromWire(w *genieEvalResponseWire) (*GenieEvalResponse, er
 		SqlExecutionResult: sqlExecutionResultPublicValue,
 		ResponseType:       w.ResponseType,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieEvalResponse) MarshalJSON() ([]byte, error) {
+	w, err := genieEvalResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieEvalResponse) UnmarshalJSON(data []byte) error {
+	var w genieEvalResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieEvalResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieEvalResultWire struct {
@@ -853,6 +1261,30 @@ func genieEvalResultFromWire(w *genieEvalResultWire) (*GenieEvalResult, error) {
 		BenchmarkAnswer:     w.BenchmarkAnswer,
 		CreatedByUser:       createdByUserPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieEvalResult) MarshalJSON() ([]byte, error) {
+	w, err := genieEvalResultToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieEvalResult) UnmarshalJSON(data []byte) error {
+	var w genieEvalResultWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieEvalResultFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieEvalResultDetailsWire struct {
@@ -915,6 +1347,30 @@ func genieEvalResultDetailsFromWire(w *genieEvalResultDetailsWire) (*GenieEvalRe
 		ActualResponse:      actualResponsePublicValue,
 		ExpectedResponse:    expectedResponsePublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieEvalResultDetails) MarshalJSON() ([]byte, error) {
+	w, err := genieEvalResultDetailsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieEvalResultDetails) UnmarshalJSON(data []byte) error {
+	var w genieEvalResultDetailsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieEvalResultDetailsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieEvalRunResponseWire struct {
@@ -1019,6 +1475,30 @@ func genieEvalRunResponseFromWire(w *genieEvalRunResponseWire) (*GenieEvalRunRes
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieEvalRunResponse) MarshalJSON() ([]byte, error) {
+	w, err := genieEvalRunResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieEvalRunResponse) UnmarshalJSON(data []byte) error {
+	var w genieEvalRunResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieEvalRunResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieExecuteMessageAttachmentQueryRequestWire struct {
 	MessageId      *string `json:"message_id,omitempty"`
 	SpaceId        *string `json:"space_id,omitempty"`
@@ -1050,6 +1530,30 @@ func genieExecuteMessageAttachmentQueryRequestFromWire(w *genieExecuteMessageAtt
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieExecuteMessageAttachmentQueryRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieExecuteMessageAttachmentQueryRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieExecuteMessageAttachmentQueryRequest) UnmarshalJSON(data []byte) error {
+	var w genieExecuteMessageAttachmentQueryRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieExecuteMessageAttachmentQueryRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieExecuteMessageQueryRequestWire struct {
 	MessageId      *string `json:"message_id,omitempty"`
 	SpaceId        *string `json:"space_id,omitempty"`
@@ -1078,6 +1582,30 @@ func genieExecuteMessageQueryRequestFromWire(w *genieExecuteMessageQueryRequestW
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieExecuteMessageQueryRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieExecuteMessageQueryRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieExecuteMessageQueryRequest) UnmarshalJSON(data []byte) error {
+	var w genieExecuteMessageQueryRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieExecuteMessageQueryRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieFeedbackWire struct {
 	Rating  GenieFeedbackRating `json:"rating,omitempty"`
 	Comment *string             `json:"comment,omitempty"`
@@ -1101,6 +1629,30 @@ func genieFeedbackFromWire(w *genieFeedbackWire) (*GenieFeedback, error) {
 		Rating:  w.Rating,
 		Comment: w.Comment,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieFeedback) MarshalJSON() ([]byte, error) {
+	w, err := genieFeedbackToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieFeedback) UnmarshalJSON(data []byte) error {
+	var w genieFeedbackWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieFeedbackFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieGenerateDownloadFullQueryResultRequestWire struct {
@@ -1134,6 +1686,30 @@ func genieGenerateDownloadFullQueryResultRequestFromWire(w *genieGenerateDownloa
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieGenerateDownloadFullQueryResultRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieGenerateDownloadFullQueryResultRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieGenerateDownloadFullQueryResultRequest) UnmarshalJSON(data []byte) error {
+	var w genieGenerateDownloadFullQueryResultRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieGenerateDownloadFullQueryResultRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieGenerateDownloadFullQueryResultResponseWire struct {
 	DownloadId          *string `json:"download_id,omitempty"`
 	DownloadIdSignature *string `json:"download_id_signature,omitempty"`
@@ -1157,6 +1733,30 @@ func genieGenerateDownloadFullQueryResultResponseFromWire(w *genieGenerateDownlo
 		DownloadId:          w.DownloadId,
 		DownloadIdSignature: w.DownloadIdSignature,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieGenerateDownloadFullQueryResultResponse) MarshalJSON() ([]byte, error) {
+	w, err := genieGenerateDownloadFullQueryResultResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieGenerateDownloadFullQueryResultResponse) UnmarshalJSON(data []byte) error {
+	var w genieGenerateDownloadFullQueryResultResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieGenerateDownloadFullQueryResultResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieGetConversationMessageRequestWire struct {
@@ -1185,6 +1785,30 @@ func genieGetConversationMessageRequestFromWire(w *genieGetConversationMessageRe
 		ConversationId: w.ConversationId,
 		MessageId:      w.MessageId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieGetConversationMessageRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieGetConversationMessageRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieGetConversationMessageRequest) UnmarshalJSON(data []byte) error {
+	var w genieGetConversationMessageRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieGetConversationMessageRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieGetDownloadFullQueryResultRequestWire struct {
@@ -1224,6 +1848,30 @@ func genieGetDownloadFullQueryResultRequestFromWire(w *genieGetDownloadFullQuery
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieGetDownloadFullQueryResultRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieGetDownloadFullQueryResultRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieGetDownloadFullQueryResultRequest) UnmarshalJSON(data []byte) error {
+	var w genieGetDownloadFullQueryResultRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieGetDownloadFullQueryResultRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieGetDownloadFullQueryResultResponseWire struct {
 	StatementResponse *statementResponseWire `json:"statement_response,omitempty"`
 }
@@ -1254,6 +1902,30 @@ func genieGetDownloadFullQueryResultResponseFromWire(w *genieGetDownloadFullQuer
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieGetDownloadFullQueryResultResponse) MarshalJSON() ([]byte, error) {
+	w, err := genieGetDownloadFullQueryResultResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieGetDownloadFullQueryResultResponse) UnmarshalJSON(data []byte) error {
+	var w genieGetDownloadFullQueryResultResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieGetDownloadFullQueryResultResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieGetEvalResultDetailsRequestWire struct {
 	SpaceId   *string `json:"space_id,omitempty"`
 	EvalRunId *string `json:"eval_run_id,omitempty"`
@@ -1282,6 +1954,30 @@ func genieGetEvalResultDetailsRequestFromWire(w *genieGetEvalResultDetailsReques
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieGetEvalResultDetailsRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieGetEvalResultDetailsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieGetEvalResultDetailsRequest) UnmarshalJSON(data []byte) error {
+	var w genieGetEvalResultDetailsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieGetEvalResultDetailsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieGetEvalRunRequestWire struct {
 	SpaceId   *string `json:"space_id,omitempty"`
 	EvalRunId *string `json:"eval_run_id,omitempty"`
@@ -1305,6 +2001,30 @@ func genieGetEvalRunRequestFromWire(w *genieGetEvalRunRequestWire) (*GenieGetEva
 		SpaceId:   w.SpaceId,
 		EvalRunId: w.EvalRunId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieGetEvalRunRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieGetEvalRunRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieGetEvalRunRequest) UnmarshalJSON(data []byte) error {
+	var w genieGetEvalRunRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieGetEvalRunRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieGetMessageAttachmentQueryResultRequestWire struct {
@@ -1338,6 +2058,30 @@ func genieGetMessageAttachmentQueryResultRequestFromWire(w *genieGetMessageAttac
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieGetMessageAttachmentQueryResultRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieGetMessageAttachmentQueryResultRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieGetMessageAttachmentQueryResultRequest) UnmarshalJSON(data []byte) error {
+	var w genieGetMessageAttachmentQueryResultRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieGetMessageAttachmentQueryResultRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieGetMessageQueryResultRequestWire struct {
 	MessageId      *string `json:"message_id,omitempty"`
 	SpaceId        *string `json:"space_id,omitempty"`
@@ -1364,6 +2108,30 @@ func genieGetMessageQueryResultRequestFromWire(w *genieGetMessageQueryResultRequ
 		SpaceId:        w.SpaceId,
 		ConversationId: w.ConversationId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieGetMessageQueryResultRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieGetMessageQueryResultRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieGetMessageQueryResultRequest) UnmarshalJSON(data []byte) error {
+	var w genieGetMessageQueryResultRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieGetMessageQueryResultRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieGetMessageQueryResultResponseWire struct {
@@ -1394,6 +2162,30 @@ func genieGetMessageQueryResultResponseFromWire(w *genieGetMessageQueryResultRes
 	return &GenieGetMessageQueryResultResponse{
 		StatementResponse: statementResponsePublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieGetMessageQueryResultResponse) MarshalJSON() ([]byte, error) {
+	w, err := genieGetMessageQueryResultResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieGetMessageQueryResultResponse) UnmarshalJSON(data []byte) error {
+	var w genieGetMessageQueryResultResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieGetMessageQueryResultResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieGetQueryResultByAttachmentRequestWire struct {
@@ -1427,6 +2219,30 @@ func genieGetQueryResultByAttachmentRequestFromWire(w *genieGetQueryResultByAtta
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieGetQueryResultByAttachmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieGetQueryResultByAttachmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieGetQueryResultByAttachmentRequest) UnmarshalJSON(data []byte) error {
+	var w genieGetQueryResultByAttachmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieGetQueryResultByAttachmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieGetSpaceRequestWire struct {
 	SpaceId                *string `json:"space_id,omitempty"`
 	IncludeSerializedSpace *bool   `json:"include_serialized_space,omitempty"`
@@ -1450,6 +2266,30 @@ func genieGetSpaceRequestFromWire(w *genieGetSpaceRequestWire) (*GenieGetSpaceRe
 		SpaceId:                w.SpaceId,
 		IncludeSerializedSpace: w.IncludeSerializedSpace,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieGetSpaceRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieGetSpaceRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieGetSpaceRequest) UnmarshalJSON(data []byte) error {
+	var w genieGetSpaceRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieGetSpaceRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieListConversationCommentsRequestWire struct {
@@ -1481,6 +2321,30 @@ func genieListConversationCommentsRequestFromWire(w *genieListConversationCommen
 		PageSize:       w.PageSize,
 		PageToken:      w.PageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieListConversationCommentsRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieListConversationCommentsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieListConversationCommentsRequest) UnmarshalJSON(data []byte) error {
+	var w genieListConversationCommentsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieListConversationCommentsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieListConversationCommentsResponseWire struct {
@@ -1516,6 +2380,30 @@ func genieListConversationCommentsResponseFromWire(w *genieListConversationComme
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieListConversationCommentsResponse) MarshalJSON() ([]byte, error) {
+	w, err := genieListConversationCommentsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieListConversationCommentsResponse) UnmarshalJSON(data []byte) error {
+	var w genieListConversationCommentsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieListConversationCommentsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieListConversationMessagesRequestWire struct {
 	SpaceId        *string `json:"space_id,omitempty"`
 	ConversationId *string `json:"conversation_id,omitempty"`
@@ -1545,6 +2433,30 @@ func genieListConversationMessagesRequestFromWire(w *genieListConversationMessag
 		PageSize:       w.PageSize,
 		PageToken:      w.PageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieListConversationMessagesRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieListConversationMessagesRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieListConversationMessagesRequest) UnmarshalJSON(data []byte) error {
+	var w genieListConversationMessagesRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieListConversationMessagesRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieListConversationMessagesResponseWire struct {
@@ -1580,6 +2492,30 @@ func genieListConversationMessagesResponseFromWire(w *genieListConversationMessa
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieListConversationMessagesResponse) MarshalJSON() ([]byte, error) {
+	w, err := genieListConversationMessagesResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieListConversationMessagesResponse) UnmarshalJSON(data []byte) error {
+	var w genieListConversationMessagesResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieListConversationMessagesResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieListConversationsRequestWire struct {
 	SpaceId    *string `json:"space_id,omitempty"`
 	PageSize   *int    `json:"page_size,omitempty"`
@@ -1609,6 +2545,30 @@ func genieListConversationsRequestFromWire(w *genieListConversationsRequestWire)
 		PageToken:  w.PageToken,
 		IncludeAll: w.IncludeAll,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieListConversationsRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieListConversationsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieListConversationsRequest) UnmarshalJSON(data []byte) error {
+	var w genieListConversationsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieListConversationsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieListConversationsResponseWire struct {
@@ -1644,6 +2604,30 @@ func genieListConversationsResponseFromWire(w *genieListConversationsResponseWir
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieListConversationsResponse) MarshalJSON() ([]byte, error) {
+	w, err := genieListConversationsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieListConversationsResponse) UnmarshalJSON(data []byte) error {
+	var w genieListConversationsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieListConversationsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieListEvalResultsRequestWire struct {
 	SpaceId   *string `json:"space_id,omitempty"`
 	EvalRunId *string `json:"eval_run_id,omitempty"`
@@ -1673,6 +2657,30 @@ func genieListEvalResultsRequestFromWire(w *genieListEvalResultsRequestWire) (*G
 		PageSize:  w.PageSize,
 		PageToken: w.PageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieListEvalResultsRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieListEvalResultsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieListEvalResultsRequest) UnmarshalJSON(data []byte) error {
+	var w genieListEvalResultsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieListEvalResultsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieListEvalResultsResponseWire struct {
@@ -1708,6 +2716,30 @@ func genieListEvalResultsResponseFromWire(w *genieListEvalResultsResponseWire) (
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieListEvalResultsResponse) MarshalJSON() ([]byte, error) {
+	w, err := genieListEvalResultsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieListEvalResultsResponse) UnmarshalJSON(data []byte) error {
+	var w genieListEvalResultsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieListEvalResultsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieListEvalRunsRequestWire struct {
 	SpaceId   *string `json:"space_id,omitempty"`
 	PageSize  *int    `json:"page_size,omitempty"`
@@ -1734,6 +2766,30 @@ func genieListEvalRunsRequestFromWire(w *genieListEvalRunsRequestWire) (*GenieLi
 		PageSize:  w.PageSize,
 		PageToken: w.PageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieListEvalRunsRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieListEvalRunsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieListEvalRunsRequest) UnmarshalJSON(data []byte) error {
+	var w genieListEvalRunsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieListEvalRunsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieListEvalRunsResponseWire struct {
@@ -1767,6 +2823,30 @@ func genieListEvalRunsResponseFromWire(w *genieListEvalRunsResponseWire) (*Genie
 		EvalRuns:      evalRunsPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieListEvalRunsResponse) MarshalJSON() ([]byte, error) {
+	w, err := genieListEvalRunsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieListEvalRunsResponse) UnmarshalJSON(data []byte) error {
+	var w genieListEvalRunsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieListEvalRunsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieListMessageCommentsRequestWire struct {
@@ -1803,6 +2883,30 @@ func genieListMessageCommentsRequestFromWire(w *genieListMessageCommentsRequestW
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieListMessageCommentsRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieListMessageCommentsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieListMessageCommentsRequest) UnmarshalJSON(data []byte) error {
+	var w genieListMessageCommentsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieListMessageCommentsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieListMessageCommentsResponseWire struct {
 	Comments      []genieMessageCommentWire `json:"comments,omitempty"`
 	NextPageToken *string                   `json:"next_page_token,omitempty"`
@@ -1836,6 +2940,30 @@ func genieListMessageCommentsResponseFromWire(w *genieListMessageCommentsRespons
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieListMessageCommentsResponse) MarshalJSON() ([]byte, error) {
+	w, err := genieListMessageCommentsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieListMessageCommentsResponse) UnmarshalJSON(data []byte) error {
+	var w genieListMessageCommentsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieListMessageCommentsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieListSpacesRequestWire struct {
 	PageSize  *int    `json:"page_size,omitempty"`
 	PageToken *string `json:"page_token,omitempty"`
@@ -1859,6 +2987,30 @@ func genieListSpacesRequestFromWire(w *genieListSpacesRequestWire) (*GenieListSp
 		PageSize:  w.PageSize,
 		PageToken: w.PageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieListSpacesRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieListSpacesRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieListSpacesRequest) UnmarshalJSON(data []byte) error {
+	var w genieListSpacesRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieListSpacesRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieListSpacesResponseWire struct {
@@ -1892,6 +3044,30 @@ func genieListSpacesResponseFromWire(w *genieListSpacesResponseWire) (*GenieList
 		Spaces:        spacesPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieListSpacesResponse) MarshalJSON() ([]byte, error) {
+	w, err := genieListSpacesResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieListSpacesResponse) UnmarshalJSON(data []byte) error {
+	var w genieListSpacesResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieListSpacesResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieMessageWire struct {
@@ -2008,6 +3184,30 @@ func genieMessageFromWire(w *genieMessageWire) (*GenieMessage, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieMessage) MarshalJSON() ([]byte, error) {
+	w, err := genieMessageToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieMessage) UnmarshalJSON(data []byte) error {
+	var w genieMessageWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieMessageFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieMessageCommentWire struct {
 	SpaceId          *string    `json:"space_id,omitempty"`
 	ConversationId   *string    `json:"conversation_id,omitempty"`
@@ -2062,6 +3262,30 @@ func genieMessageCommentFromWire(w *genieMessageCommentWire) (*GenieMessageComme
 		Content:          w.Content,
 		CreatedTimestamp: createdTimestampPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieMessageComment) MarshalJSON() ([]byte, error) {
+	w, err := genieMessageCommentToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieMessageComment) UnmarshalJSON(data []byte) error {
+	var w genieMessageCommentWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieMessageCommentFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieQueryAttachmentWire struct {
@@ -2142,6 +3366,30 @@ func genieQueryAttachmentFromWire(w *genieQueryAttachmentWire) (*GenieQueryAttac
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieQueryAttachment) MarshalJSON() ([]byte, error) {
+	w, err := genieQueryAttachmentToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieQueryAttachment) UnmarshalJSON(data []byte) error {
+	var w genieQueryAttachmentWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieQueryAttachmentFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieResultMetadataWire struct {
 	RowCount    *wireInt64 `json:"row_count,omitempty"`
 	IsTruncated *bool      `json:"is_truncated,omitempty"`
@@ -2173,6 +3421,30 @@ func genieResultMetadataFromWire(w *genieResultMetadataWire) (*GenieResultMetada
 		RowCount:    rowCountPublicValue,
 		IsTruncated: w.IsTruncated,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieResultMetadata) MarshalJSON() ([]byte, error) {
+	w, err := genieResultMetadataToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieResultMetadata) UnmarshalJSON(data []byte) error {
+	var w genieResultMetadataWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieResultMetadataFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieSendMessageFeedbackRequestWire struct {
@@ -2207,6 +3479,30 @@ func genieSendMessageFeedbackRequestFromWire(w *genieSendMessageFeedbackRequestW
 		Rating:         w.Rating,
 		Comment:        w.Comment,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieSendMessageFeedbackRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieSendMessageFeedbackRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieSendMessageFeedbackRequest) UnmarshalJSON(data []byte) error {
+	var w genieSendMessageFeedbackRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieSendMessageFeedbackRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieSpaceWire struct {
@@ -2255,6 +3551,30 @@ func genieSpaceFromWire(w *genieSpaceWire) (*GenieSpace, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieSpace) MarshalJSON() ([]byte, error) {
+	w, err := genieSpaceToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieSpace) UnmarshalJSON(data []byte) error {
+	var w genieSpaceWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieSpaceFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieStartConversationRequestWire struct {
 	SpaceId             *string `json:"space_id,omitempty"`
 	Content             *string `json:"content,omitempty"`
@@ -2281,6 +3601,30 @@ func genieStartConversationRequestFromWire(w *genieStartConversationRequestWire)
 		Content:             w.Content,
 		EnableVisualization: w.EnableVisualization,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieStartConversationRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieStartConversationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieStartConversationRequest) UnmarshalJSON(data []byte) error {
+	var w genieStartConversationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieStartConversationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieStartConversationResponseWire struct {
@@ -2330,6 +3674,30 @@ func genieStartConversationResponseFromWire(w *genieStartConversationResponseWir
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieStartConversationResponse) MarshalJSON() ([]byte, error) {
+	w, err := genieStartConversationResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieStartConversationResponse) UnmarshalJSON(data []byte) error {
+	var w genieStartConversationResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieStartConversationResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieSuggestedQuestionsAttachmentWire struct {
 	Questions []string `json:"questions,omitempty"`
 }
@@ -2352,6 +3720,30 @@ func genieSuggestedQuestionsAttachmentFromWire(w *genieSuggestedQuestionsAttachm
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieSuggestedQuestionsAttachment) MarshalJSON() ([]byte, error) {
+	w, err := genieSuggestedQuestionsAttachmentToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieSuggestedQuestionsAttachment) UnmarshalJSON(data []byte) error {
+	var w genieSuggestedQuestionsAttachmentWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieSuggestedQuestionsAttachmentFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieTrashSpaceRequestWire struct {
 	SpaceId *string `json:"space_id,omitempty"`
 }
@@ -2372,6 +3764,30 @@ func genieTrashSpaceRequestFromWire(w *genieTrashSpaceRequestWire) (*GenieTrashS
 	return &GenieTrashSpaceRequest{
 		SpaceId: w.SpaceId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieTrashSpaceRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieTrashSpaceRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieTrashSpaceRequest) UnmarshalJSON(data []byte) error {
+	var w genieTrashSpaceRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieTrashSpaceRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type genieUpdateSpaceRequestWire struct {
@@ -2414,6 +3830,30 @@ func genieUpdateSpaceRequestFromWire(w *genieUpdateSpaceRequestWire) (*GenieUpda
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieUpdateSpaceRequest) MarshalJSON() ([]byte, error) {
+	w, err := genieUpdateSpaceRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieUpdateSpaceRequest) UnmarshalJSON(data []byte) error {
+	var w genieUpdateSpaceRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieUpdateSpaceRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type genieVizAttachmentWire struct {
 	Title             *string `json:"title,omitempty"`
 	QueryAttachmentId *string `json:"query_attachment_id,omitempty"`
@@ -2437,6 +3877,30 @@ func genieVizAttachmentFromWire(w *genieVizAttachmentWire) (*GenieVizAttachment,
 		Title:             w.Title,
 		QueryAttachmentId: w.QueryAttachmentId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieVizAttachment) MarshalJSON() ([]byte, error) {
+	w, err := genieVizAttachmentToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieVizAttachment) UnmarshalJSON(data []byte) error {
+	var w genieVizAttachmentWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieVizAttachmentFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type messageErrorWire struct {
@@ -2464,6 +3928,30 @@ func messageErrorFromWire(w *messageErrorWire) (*MessageError, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v MessageError) MarshalJSON() ([]byte, error) {
+	w, err := messageErrorToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *MessageError) UnmarshalJSON(data []byte) error {
+	var w messageErrorWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := messageErrorFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type messageStatusWire struct {
 }
 
@@ -2479,6 +3967,30 @@ func messageStatusFromWire(w *messageStatusWire) (*MessageStatus, error) {
 		return nil, nil
 	}
 	return &MessageStatus{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v MessageStatus) MarshalJSON() ([]byte, error) {
+	w, err := messageStatusToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *MessageStatus) UnmarshalJSON(data []byte) error {
+	var w messageStatusWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := messageStatusFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type policyFunctionArgumentWire struct {
@@ -2537,6 +4049,30 @@ func policyFunctionArgumentFromWire(w *policyFunctionArgumentWire) (*PolicyFunct
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PolicyFunctionArgument) MarshalJSON() ([]byte, error) {
+	w, err := policyFunctionArgumentToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PolicyFunctionArgument) UnmarshalJSON(data []byte) error {
+	var w policyFunctionArgumentWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := policyFunctionArgumentFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type queryAttachmentParameterWire struct {
 	Keyword *string `json:"keyword,omitempty"`
 	Value   *string `json:"value,omitempty"`
@@ -2563,6 +4099,30 @@ func queryAttachmentParameterFromWire(w *queryAttachmentParameterWire) (*QueryAt
 		Value:   w.Value,
 		SqlType: w.SqlType,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v QueryAttachmentParameter) MarshalJSON() ([]byte, error) {
+	w, err := queryAttachmentParameterToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *QueryAttachmentParameter) UnmarshalJSON(data []byte) error {
+	var w queryAttachmentParameterWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := queryAttachmentParameterFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type resultWire struct {
@@ -2602,6 +4162,30 @@ func resultFromWire(w *resultWire) (*Result, error) {
 		IsTruncated:          w.IsTruncated,
 		StatementIdSignature: w.StatementIdSignature,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Result) MarshalJSON() ([]byte, error) {
+	w, err := resultToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Result) UnmarshalJSON(data []byte) error {
+	var w resultWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := resultFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type resultDataWire struct {
@@ -2679,6 +4263,30 @@ func resultDataFromWire(w *resultDataWire) (*ResultData, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ResultData) MarshalJSON() ([]byte, error) {
+	w, err := resultDataToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ResultData) UnmarshalJSON(data []byte) error {
+	var w resultDataWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := resultDataFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type resultManifestWire struct {
 	Format          Format          `json:"format,omitempty"`
 	Schema          *schemaWire     `json:"schema,omitempty"`
@@ -2751,6 +4359,30 @@ func resultManifestFromWire(w *resultManifestWire) (*ResultManifest, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ResultManifest) MarshalJSON() ([]byte, error) {
+	w, err := resultManifestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ResultManifest) UnmarshalJSON(data []byte) error {
+	var w resultManifestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := resultManifestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type schemaWire struct {
 	ColumnCount *int             `json:"column_count,omitempty"`
 	Columns     []columnInfoWire `json:"columns,omitempty"`
@@ -2782,6 +4414,30 @@ func schemaFromWire(w *schemaWire) (*Schema, error) {
 		ColumnCount: w.ColumnCount,
 		Columns:     columnsPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Schema) MarshalJSON() ([]byte, error) {
+	w, err := schemaToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Schema) UnmarshalJSON(data []byte) error {
+	var w schemaWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := schemaFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type statementResponseWire struct {
@@ -2839,6 +4495,30 @@ func statementResponseFromWire(w *statementResponseWire) (*StatementResponse, er
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v StatementResponse) MarshalJSON() ([]byte, error) {
+	w, err := statementResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *StatementResponse) UnmarshalJSON(data []byte) error {
+	var w statementResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := statementResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type statementStatusWire struct {
 	State    StatementStatus_State                `json:"state,omitempty"`
 	Error    *databricksServiceExceptionProtoWire `json:"error,omitempty"`
@@ -2875,6 +4555,30 @@ func statementStatusFromWire(w *statementStatusWire) (*StatementStatus, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v StatementStatus) MarshalJSON() ([]byte, error) {
+	w, err := statementStatusToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *StatementStatus) UnmarshalJSON(data []byte) error {
+	var w statementStatusWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := statementStatusFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type textAttachmentWire struct {
 	Content *string               `json:"content,omitempty"`
 	Id      *string               `json:"id,omitempty"`
@@ -2903,6 +4607,30 @@ func textAttachmentFromWire(w *textAttachmentWire) (*TextAttachment, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v TextAttachment) MarshalJSON() ([]byte, error) {
+	w, err := textAttachmentToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *TextAttachment) UnmarshalJSON(data []byte) error {
+	var w textAttachmentWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := textAttachmentFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type thoughtWire struct {
 	ThoughtType ThoughtType `json:"thought_type,omitempty"`
 	Content     *string     `json:"content,omitempty"`
@@ -2926,6 +4654,30 @@ func thoughtFromWire(w *thoughtWire) (*Thought, error) {
 		ThoughtType: w.ThoughtType,
 		Content:     w.Content,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Thought) MarshalJSON() ([]byte, error) {
+	w, err := thoughtToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Thought) UnmarshalJSON(data []byte) error {
+	var w thoughtWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := thoughtFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

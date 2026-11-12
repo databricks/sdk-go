@@ -99,6 +99,30 @@ func accountsCreateMetastoreAssignmentRequestFromWire(w *accountsCreateMetastore
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsCreateMetastoreAssignmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := accountsCreateMetastoreAssignmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsCreateMetastoreAssignmentRequest) UnmarshalJSON(data []byte) error {
+	var w accountsCreateMetastoreAssignmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsCreateMetastoreAssignmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type accountsCreateMetastoreAssignmentResponseWire struct {
 }
 
@@ -114,6 +138,30 @@ func accountsCreateMetastoreAssignmentResponseFromWire(w *accountsCreateMetastor
 		return nil, nil
 	}
 	return &AccountsCreateMetastoreAssignmentResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsCreateMetastoreAssignmentResponse) MarshalJSON() ([]byte, error) {
+	w, err := accountsCreateMetastoreAssignmentResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsCreateMetastoreAssignmentResponse) UnmarshalJSON(data []byte) error {
+	var w accountsCreateMetastoreAssignmentResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsCreateMetastoreAssignmentResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type accountsCreateMetastoreRequestWire struct {
@@ -149,6 +197,30 @@ func accountsCreateMetastoreRequestFromWire(w *accountsCreateMetastoreRequestWir
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsCreateMetastoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := accountsCreateMetastoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsCreateMetastoreRequest) UnmarshalJSON(data []byte) error {
+	var w accountsCreateMetastoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsCreateMetastoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type accountsCreateMetastoreResponseWire struct {
 	MetastoreInfo *metastoreInfoWire `json:"metastore_info,omitempty"`
 }
@@ -177,6 +249,30 @@ func accountsCreateMetastoreResponseFromWire(w *accountsCreateMetastoreResponseW
 	return &AccountsCreateMetastoreResponse{
 		MetastoreInfo: metastoreInfoPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsCreateMetastoreResponse) MarshalJSON() ([]byte, error) {
+	w, err := accountsCreateMetastoreResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsCreateMetastoreResponse) UnmarshalJSON(data []byte) error {
+	var w accountsCreateMetastoreResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsCreateMetastoreResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type accountsDeleteMetastoreAssignmentRequestWire struct {
@@ -215,6 +311,30 @@ func accountsDeleteMetastoreAssignmentRequestFromWire(w *accountsDeleteMetastore
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsDeleteMetastoreAssignmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := accountsDeleteMetastoreAssignmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsDeleteMetastoreAssignmentRequest) UnmarshalJSON(data []byte) error {
+	var w accountsDeleteMetastoreAssignmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsDeleteMetastoreAssignmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type accountsDeleteMetastoreAssignmentResponseWire struct {
 }
 
@@ -230,6 +350,30 @@ func accountsDeleteMetastoreAssignmentResponseFromWire(w *accountsDeleteMetastor
 		return nil, nil
 	}
 	return &AccountsDeleteMetastoreAssignmentResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsDeleteMetastoreAssignmentResponse) MarshalJSON() ([]byte, error) {
+	w, err := accountsDeleteMetastoreAssignmentResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsDeleteMetastoreAssignmentResponse) UnmarshalJSON(data []byte) error {
+	var w accountsDeleteMetastoreAssignmentResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsDeleteMetastoreAssignmentResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type accountsDeleteMetastoreRequestWire struct {
@@ -260,6 +404,30 @@ func accountsDeleteMetastoreRequestFromWire(w *accountsDeleteMetastoreRequestWir
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsDeleteMetastoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := accountsDeleteMetastoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsDeleteMetastoreRequest) UnmarshalJSON(data []byte) error {
+	var w accountsDeleteMetastoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsDeleteMetastoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type accountsDeleteMetastoreResponseWire struct {
 }
 
@@ -275,6 +443,30 @@ func accountsDeleteMetastoreResponseFromWire(w *accountsDeleteMetastoreResponseW
 		return nil, nil
 	}
 	return &AccountsDeleteMetastoreResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsDeleteMetastoreResponse) MarshalJSON() ([]byte, error) {
+	w, err := accountsDeleteMetastoreResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsDeleteMetastoreResponse) UnmarshalJSON(data []byte) error {
+	var w accountsDeleteMetastoreResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsDeleteMetastoreResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type accountsGetMetastoreAssignmentRequestWire struct {
@@ -310,6 +502,30 @@ func accountsGetMetastoreAssignmentRequestFromWire(w *accountsGetMetastoreAssign
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsGetMetastoreAssignmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := accountsGetMetastoreAssignmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsGetMetastoreAssignmentRequest) UnmarshalJSON(data []byte) error {
+	var w accountsGetMetastoreAssignmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsGetMetastoreAssignmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type accountsGetMetastoreAssignmentResponseWire struct {
 	MetastoreAssignment *metastoreAssignmentWire `json:"metastore_assignment,omitempty"`
 }
@@ -340,6 +556,30 @@ func accountsGetMetastoreAssignmentResponseFromWire(w *accountsGetMetastoreAssig
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsGetMetastoreAssignmentResponse) MarshalJSON() ([]byte, error) {
+	w, err := accountsGetMetastoreAssignmentResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsGetMetastoreAssignmentResponse) UnmarshalJSON(data []byte) error {
+	var w accountsGetMetastoreAssignmentResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsGetMetastoreAssignmentResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type accountsGetMetastoreRequestWire struct {
 	AccountId   *string `json:"account_id,omitempty"`
 	MetastoreId *string `json:"metastore_id,omitempty"`
@@ -363,6 +603,30 @@ func accountsGetMetastoreRequestFromWire(w *accountsGetMetastoreRequestWire) (*A
 		AccountId:   w.AccountId,
 		MetastoreId: w.MetastoreId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsGetMetastoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := accountsGetMetastoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsGetMetastoreRequest) UnmarshalJSON(data []byte) error {
+	var w accountsGetMetastoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsGetMetastoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type accountsGetMetastoreResponseWire struct {
@@ -395,6 +659,30 @@ func accountsGetMetastoreResponseFromWire(w *accountsGetMetastoreResponseWire) (
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsGetMetastoreResponse) MarshalJSON() ([]byte, error) {
+	w, err := accountsGetMetastoreResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsGetMetastoreResponse) UnmarshalJSON(data []byte) error {
+	var w accountsGetMetastoreResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsGetMetastoreResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type accountsListMetastoresRequestWire struct {
 	AccountId *string `json:"account_id,omitempty"`
 }
@@ -415,6 +703,30 @@ func accountsListMetastoresRequestFromWire(w *accountsListMetastoresRequestWire)
 	return &AccountsListMetastoresRequest{
 		AccountId: w.AccountId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsListMetastoresRequest) MarshalJSON() ([]byte, error) {
+	w, err := accountsListMetastoresRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsListMetastoresRequest) UnmarshalJSON(data []byte) error {
+	var w accountsListMetastoresRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsListMetastoresRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type accountsListMetastoresResponseWire struct {
@@ -447,6 +759,30 @@ func accountsListMetastoresResponseFromWire(w *accountsListMetastoresResponseWir
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsListMetastoresResponse) MarshalJSON() ([]byte, error) {
+	w, err := accountsListMetastoresResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsListMetastoresResponse) UnmarshalJSON(data []byte) error {
+	var w accountsListMetastoresResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsListMetastoresResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type accountsListWorkspaceIdsForMetastoreRequestWire struct {
 	AccountId   *string `json:"account_id,omitempty"`
 	MetastoreId *string `json:"metastore_id,omitempty"`
@@ -470,6 +806,30 @@ func accountsListWorkspaceIdsForMetastoreRequestFromWire(w *accountsListWorkspac
 		AccountId:   w.AccountId,
 		MetastoreId: w.MetastoreId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsListWorkspaceIdsForMetastoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := accountsListWorkspaceIdsForMetastoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsListWorkspaceIdsForMetastoreRequest) UnmarshalJSON(data []byte) error {
+	var w accountsListWorkspaceIdsForMetastoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsListWorkspaceIdsForMetastoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type accountsListWorkspaceIdsForMetastoreResponseWire struct {
@@ -500,6 +860,30 @@ func accountsListWorkspaceIdsForMetastoreResponseFromWire(w *accountsListWorkspa
 	return &AccountsListWorkspaceIdsForMetastoreResponse{
 		WorkspaceIds: workspaceIdsPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsListWorkspaceIdsForMetastoreResponse) MarshalJSON() ([]byte, error) {
+	w, err := accountsListWorkspaceIdsForMetastoreResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsListWorkspaceIdsForMetastoreResponse) UnmarshalJSON(data []byte) error {
+	var w accountsListWorkspaceIdsForMetastoreResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsListWorkspaceIdsForMetastoreResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type accountsUpdateMetastoreAssignmentRequestWire struct {
@@ -549,6 +933,30 @@ func accountsUpdateMetastoreAssignmentRequestFromWire(w *accountsUpdateMetastore
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsUpdateMetastoreAssignmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := accountsUpdateMetastoreAssignmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsUpdateMetastoreAssignmentRequest) UnmarshalJSON(data []byte) error {
+	var w accountsUpdateMetastoreAssignmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsUpdateMetastoreAssignmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type accountsUpdateMetastoreAssignmentResponseWire struct {
 }
 
@@ -564,6 +972,30 @@ func accountsUpdateMetastoreAssignmentResponseFromWire(w *accountsUpdateMetastor
 		return nil, nil
 	}
 	return &AccountsUpdateMetastoreAssignmentResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsUpdateMetastoreAssignmentResponse) MarshalJSON() ([]byte, error) {
+	w, err := accountsUpdateMetastoreAssignmentResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsUpdateMetastoreAssignmentResponse) UnmarshalJSON(data []byte) error {
+	var w accountsUpdateMetastoreAssignmentResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsUpdateMetastoreAssignmentResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type accountsUpdateMetastoreRequestWire struct {
@@ -602,6 +1034,30 @@ func accountsUpdateMetastoreRequestFromWire(w *accountsUpdateMetastoreRequestWir
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsUpdateMetastoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := accountsUpdateMetastoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsUpdateMetastoreRequest) UnmarshalJSON(data []byte) error {
+	var w accountsUpdateMetastoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsUpdateMetastoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type accountsUpdateMetastoreResponseWire struct {
 	MetastoreInfo *metastoreInfoWire `json:"metastore_info,omitempty"`
 }
@@ -630,6 +1086,30 @@ func accountsUpdateMetastoreResponseFromWire(w *accountsUpdateMetastoreResponseW
 	return &AccountsUpdateMetastoreResponse{
 		MetastoreInfo: metastoreInfoPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AccountsUpdateMetastoreResponse) MarshalJSON() ([]byte, error) {
+	w, err := accountsUpdateMetastoreResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AccountsUpdateMetastoreResponse) UnmarshalJSON(data []byte) error {
+	var w accountsUpdateMetastoreResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := accountsUpdateMetastoreResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createAccountsMetastoreWire struct {
@@ -732,6 +1212,30 @@ func createAccountsMetastoreFromWire(w *createAccountsMetastoreWire) (*CreateAcc
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateAccountsMetastore) MarshalJSON() ([]byte, error) {
+	w, err := createAccountsMetastoreToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateAccountsMetastore) UnmarshalJSON(data []byte) error {
+	var w createAccountsMetastoreWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createAccountsMetastoreFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createMetastoreAssignmentRequestWire struct {
 	WorkspaceId        *wireInt64 `json:"workspace_id,omitempty"`
 	MetastoreId        *string    `json:"metastore_id,omitempty"`
@@ -768,6 +1272,30 @@ func createMetastoreAssignmentRequestFromWire(w *createMetastoreAssignmentReques
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateMetastoreAssignmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := createMetastoreAssignmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateMetastoreAssignmentRequest) UnmarshalJSON(data []byte) error {
+	var w createMetastoreAssignmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createMetastoreAssignmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createMetastoreAssignmentResponseWire struct {
 }
 
@@ -783,6 +1311,30 @@ func createMetastoreAssignmentResponseFromWire(w *createMetastoreAssignmentRespo
 		return nil, nil
 	}
 	return &CreateMetastoreAssignmentResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateMetastoreAssignmentResponse) MarshalJSON() ([]byte, error) {
+	w, err := createMetastoreAssignmentResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateMetastoreAssignmentResponse) UnmarshalJSON(data []byte) error {
+	var w createMetastoreAssignmentResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createMetastoreAssignmentResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createMetastoreRequestWire struct {
@@ -885,6 +1437,30 @@ func createMetastoreRequestFromWire(w *createMetastoreRequestWire) (*CreateMetas
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateMetastoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := createMetastoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateMetastoreRequest) UnmarshalJSON(data []byte) error {
+	var w createMetastoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createMetastoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteMetastoreAssignmentRequestWire struct {
 	WorkspaceId *wireInt64 `json:"workspace_id,omitempty"`
 	MetastoreId *string    `json:"metastore_id,omitempty"`
@@ -918,6 +1494,30 @@ func deleteMetastoreAssignmentRequestFromWire(w *deleteMetastoreAssignmentReques
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteMetastoreAssignmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteMetastoreAssignmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteMetastoreAssignmentRequest) UnmarshalJSON(data []byte) error {
+	var w deleteMetastoreAssignmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteMetastoreAssignmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteMetastoreAssignmentResponseWire struct {
 }
 
@@ -933,6 +1533,30 @@ func deleteMetastoreAssignmentResponseFromWire(w *deleteMetastoreAssignmentRespo
 		return nil, nil
 	}
 	return &DeleteMetastoreAssignmentResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteMetastoreAssignmentResponse) MarshalJSON() ([]byte, error) {
+	w, err := deleteMetastoreAssignmentResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteMetastoreAssignmentResponse) UnmarshalJSON(data []byte) error {
+	var w deleteMetastoreAssignmentResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteMetastoreAssignmentResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type deleteMetastoreRequestWire struct {
@@ -960,6 +1584,30 @@ func deleteMetastoreRequestFromWire(w *deleteMetastoreRequestWire) (*DeleteMetas
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteMetastoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteMetastoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteMetastoreRequest) UnmarshalJSON(data []byte) error {
+	var w deleteMetastoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteMetastoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteMetastoreResponseWire struct {
 }
 
@@ -975,6 +1623,30 @@ func deleteMetastoreResponseFromWire(w *deleteMetastoreResponseWire) (*DeleteMet
 		return nil, nil
 	}
 	return &DeleteMetastoreResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteMetastoreResponse) MarshalJSON() ([]byte, error) {
+	w, err := deleteMetastoreResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteMetastoreResponse) UnmarshalJSON(data []byte) error {
+	var w deleteMetastoreResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteMetastoreResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type deltaSharingScopeWire struct {
@@ -994,6 +1666,30 @@ func deltaSharingScopeFromWire(w *deltaSharingScopeWire) (*DeltaSharingScope, er
 	return &DeltaSharingScope{}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeltaSharingScope) MarshalJSON() ([]byte, error) {
+	w, err := deltaSharingScopeToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeltaSharingScope) UnmarshalJSON(data []byte) error {
+	var w deltaSharingScopeWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deltaSharingScopeFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getCurrentMetastoreAssignmentRequestWire struct {
 }
 
@@ -1009,6 +1705,30 @@ func getCurrentMetastoreAssignmentRequestFromWire(w *getCurrentMetastoreAssignme
 		return nil, nil
 	}
 	return &GetCurrentMetastoreAssignmentRequest{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetCurrentMetastoreAssignmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := getCurrentMetastoreAssignmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetCurrentMetastoreAssignmentRequest) UnmarshalJSON(data []byte) error {
+	var w getCurrentMetastoreAssignmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getCurrentMetastoreAssignmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type getMetastoreRequestWire struct {
@@ -1033,6 +1753,30 @@ func getMetastoreRequestFromWire(w *getMetastoreRequestWire) (*GetMetastoreReque
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetMetastoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := getMetastoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetMetastoreRequest) UnmarshalJSON(data []byte) error {
+	var w getMetastoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getMetastoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getMetastoreSummaryRequestWire struct {
 }
 
@@ -1048,6 +1792,30 @@ func getMetastoreSummaryRequestFromWire(w *getMetastoreSummaryRequestWire) (*Get
 		return nil, nil
 	}
 	return &GetMetastoreSummaryRequest{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetMetastoreSummaryRequest) MarshalJSON() ([]byte, error) {
+	w, err := getMetastoreSummaryRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetMetastoreSummaryRequest) UnmarshalJSON(data []byte) error {
+	var w getMetastoreSummaryRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getMetastoreSummaryRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type getMetastoreSummaryResponseWire struct {
@@ -1150,6 +1918,30 @@ func getMetastoreSummaryResponseFromWire(w *getMetastoreSummaryResponseWire) (*G
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetMetastoreSummaryResponse) MarshalJSON() ([]byte, error) {
+	w, err := getMetastoreSummaryResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetMetastoreSummaryResponse) UnmarshalJSON(data []byte) error {
+	var w getMetastoreSummaryResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getMetastoreSummaryResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listMetastoresRequestWire struct {
 	MaxResults *int    `json:"max_results,omitempty"`
 	PageToken  *string `json:"page_token,omitempty"`
@@ -1173,6 +1965,30 @@ func listMetastoresRequestFromWire(w *listMetastoresRequestWire) (*ListMetastore
 		MaxResults: w.MaxResults,
 		PageToken:  w.PageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListMetastoresRequest) MarshalJSON() ([]byte, error) {
+	w, err := listMetastoresRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListMetastoresRequest) UnmarshalJSON(data []byte) error {
+	var w listMetastoresRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listMetastoresRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listMetastoresResponseWire struct {
@@ -1206,6 +2022,30 @@ func listMetastoresResponseFromWire(w *listMetastoresResponseWire) (*ListMetasto
 		Metastores:    metastoresPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListMetastoresResponse) MarshalJSON() ([]byte, error) {
+	w, err := listMetastoresResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListMetastoresResponse) UnmarshalJSON(data []byte) error {
+	var w listMetastoresResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listMetastoresResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type metastoreAssignmentWire struct {
@@ -1242,6 +2082,30 @@ func metastoreAssignmentFromWire(w *metastoreAssignmentWire) (*MetastoreAssignme
 		MetastoreId:        w.MetastoreId,
 		DefaultCatalogName: w.DefaultCatalogName,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v MetastoreAssignment) MarshalJSON() ([]byte, error) {
+	w, err := metastoreAssignmentToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *MetastoreAssignment) UnmarshalJSON(data []byte) error {
+	var w metastoreAssignmentWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := metastoreAssignmentFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type metastoreInfoWire struct {
@@ -1344,6 +2208,30 @@ func metastoreInfoFromWire(w *metastoreInfoWire) (*MetastoreInfo, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v MetastoreInfo) MarshalJSON() ([]byte, error) {
+	w, err := metastoreInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *MetastoreInfo) UnmarshalJSON(data []byte) error {
+	var w metastoreInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := metastoreInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type undropMetastoreByIdRequestWire struct {
 	Id *string `json:"id,omitempty"`
 }
@@ -1364,6 +2252,30 @@ func undropMetastoreByIdRequestFromWire(w *undropMetastoreByIdRequestWire) (*Und
 	return &UndropMetastoreByIdRequest{
 		Id: w.Id,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UndropMetastoreByIdRequest) MarshalJSON() ([]byte, error) {
+	w, err := undropMetastoreByIdRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UndropMetastoreByIdRequest) UnmarshalJSON(data []byte) error {
+	var w undropMetastoreByIdRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := undropMetastoreByIdRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateAccountsMetastoreWire struct {
@@ -1466,6 +2378,30 @@ func updateAccountsMetastoreFromWire(w *updateAccountsMetastoreWire) (*UpdateAcc
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateAccountsMetastore) MarshalJSON() ([]byte, error) {
+	w, err := updateAccountsMetastoreToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateAccountsMetastore) UnmarshalJSON(data []byte) error {
+	var w updateAccountsMetastoreWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateAccountsMetastoreFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateMetastoreAssignmentRequestWire struct {
 	WorkspaceId        *wireInt64 `json:"workspace_id,omitempty"`
 	MetastoreId        *string    `json:"metastore_id,omitempty"`
@@ -1502,6 +2438,30 @@ func updateMetastoreAssignmentRequestFromWire(w *updateMetastoreAssignmentReques
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateMetastoreAssignmentRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateMetastoreAssignmentRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateMetastoreAssignmentRequest) UnmarshalJSON(data []byte) error {
+	var w updateMetastoreAssignmentRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateMetastoreAssignmentRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateMetastoreAssignmentResponseWire struct {
 }
 
@@ -1517,6 +2477,30 @@ func updateMetastoreAssignmentResponseFromWire(w *updateMetastoreAssignmentRespo
 		return nil, nil
 	}
 	return &UpdateMetastoreAssignmentResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateMetastoreAssignmentResponse) MarshalJSON() ([]byte, error) {
+	w, err := updateMetastoreAssignmentResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateMetastoreAssignmentResponse) UnmarshalJSON(data []byte) error {
+	var w updateMetastoreAssignmentResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateMetastoreAssignmentResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateMetastoreRequestWire struct {
@@ -1623,6 +2607,30 @@ func updateMetastoreRequestFromWire(w *updateMetastoreRequestWire) (*UpdateMetas
 		GlobalMetastoreId:                           w.GlobalMetastoreId,
 		ExternalAccessEnabled:                       w.ExternalAccessEnabled,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateMetastoreRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateMetastoreRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateMetastoreRequest) UnmarshalJSON(data []byte) error {
+	var w updateMetastoreRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateMetastoreRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

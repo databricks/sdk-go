@@ -145,6 +145,30 @@ func createLogDeliveryConfigurationParamsFromWire(w *createLogDeliveryConfigurat
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateLogDeliveryConfigurationParams) MarshalJSON() ([]byte, error) {
+	w, err := createLogDeliveryConfigurationParamsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateLogDeliveryConfigurationParams) UnmarshalJSON(data []byte) error {
+	var w createLogDeliveryConfigurationParamsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createLogDeliveryConfigurationParamsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createLogDeliveryConfigurationRequestWire struct {
 	LogDeliveryConfiguration *createLogDeliveryConfigurationParamsWire `json:"log_delivery_configuration,omitempty"`
 }
@@ -173,6 +197,30 @@ func createLogDeliveryConfigurationRequestFromWire(w *createLogDeliveryConfigura
 	return &CreateLogDeliveryConfigurationRequest{
 		LogDeliveryConfiguration: logDeliveryConfigurationPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateLogDeliveryConfigurationRequest) MarshalJSON() ([]byte, error) {
+	w, err := createLogDeliveryConfigurationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateLogDeliveryConfigurationRequest) UnmarshalJSON(data []byte) error {
+	var w createLogDeliveryConfigurationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createLogDeliveryConfigurationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createLogDeliveryConfigurationResponseWire struct {
@@ -205,6 +253,30 @@ func createLogDeliveryConfigurationResponseFromWire(w *createLogDeliveryConfigur
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateLogDeliveryConfigurationResponse) MarshalJSON() ([]byte, error) {
+	w, err := createLogDeliveryConfigurationResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateLogDeliveryConfigurationResponse) UnmarshalJSON(data []byte) error {
+	var w createLogDeliveryConfigurationResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createLogDeliveryConfigurationResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getLogDeliveryConfigurationRequestWire struct {
 	ConfigId  *string `json:"config_id,omitempty"`
 	AccountId *string `json:"account_id,omitempty"`
@@ -228,6 +300,30 @@ func getLogDeliveryConfigurationRequestFromWire(w *getLogDeliveryConfigurationRe
 		ConfigId:  w.ConfigId,
 		AccountId: w.AccountId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetLogDeliveryConfigurationRequest) MarshalJSON() ([]byte, error) {
+	w, err := getLogDeliveryConfigurationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetLogDeliveryConfigurationRequest) UnmarshalJSON(data []byte) error {
+	var w getLogDeliveryConfigurationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getLogDeliveryConfigurationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type getLogDeliveryConfigurationResponseWire struct {
@@ -258,6 +354,30 @@ func getLogDeliveryConfigurationResponseFromWire(w *getLogDeliveryConfigurationR
 	return &GetLogDeliveryConfigurationResponse{
 		LogDeliveryConfiguration: logDeliveryConfigurationPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetLogDeliveryConfigurationResponse) MarshalJSON() ([]byte, error) {
+	w, err := getLogDeliveryConfigurationResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetLogDeliveryConfigurationResponse) UnmarshalJSON(data []byte) error {
+	var w getLogDeliveryConfigurationResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getLogDeliveryConfigurationResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listLogDeliveryConfigurationRequestWire struct {
@@ -294,6 +414,30 @@ func listLogDeliveryConfigurationRequestFromWire(w *listLogDeliveryConfiguration
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListLogDeliveryConfigurationRequest) MarshalJSON() ([]byte, error) {
+	w, err := listLogDeliveryConfigurationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListLogDeliveryConfigurationRequest) UnmarshalJSON(data []byte) error {
+	var w listLogDeliveryConfigurationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listLogDeliveryConfigurationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listLogDeliveryConfigurationResponseWire struct {
 	LogDeliveryConfigurations []logDeliveryConfigurationWire `json:"log_delivery_configurations,omitempty"`
 	NextPageToken             *string                        `json:"next_page_token,omitempty"`
@@ -325,6 +469,30 @@ func listLogDeliveryConfigurationResponseFromWire(w *listLogDeliveryConfiguratio
 		LogDeliveryConfigurations: logDeliveryConfigurationsPublicValue,
 		NextPageToken:             w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListLogDeliveryConfigurationResponse) MarshalJSON() ([]byte, error) {
+	w, err := listLogDeliveryConfigurationResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListLogDeliveryConfigurationResponse) UnmarshalJSON(data []byte) error {
+	var w listLogDeliveryConfigurationResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listLogDeliveryConfigurationResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type logDeliveryConfigurationWire struct {
@@ -420,6 +588,30 @@ func logDeliveryConfigurationFromWire(w *logDeliveryConfigurationWire) (*LogDeli
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v LogDeliveryConfiguration) MarshalJSON() ([]byte, error) {
+	w, err := logDeliveryConfigurationToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *LogDeliveryConfiguration) UnmarshalJSON(data []byte) error {
+	var w logDeliveryConfigurationWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := logDeliveryConfigurationFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type logDeliveryStatusWire struct {
 	Status                    LogDeliveryStatusEnum `json:"status,omitempty"`
 	LastAttemptTime           *string               `json:"last_attempt_time,omitempty"`
@@ -451,6 +643,30 @@ func logDeliveryStatusFromWire(w *logDeliveryStatusWire) (*LogDeliveryStatus, er
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v LogDeliveryStatus) MarshalJSON() ([]byte, error) {
+	w, err := logDeliveryStatusToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *LogDeliveryStatus) UnmarshalJSON(data []byte) error {
+	var w logDeliveryStatusWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := logDeliveryStatusFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateLogDeliveryConfigurationRequestWire struct {
 	ConfigId  *string                 `json:"config_id,omitempty"`
 	AccountId *string                 `json:"account_id,omitempty"`
@@ -479,6 +695,30 @@ func updateLogDeliveryConfigurationRequestFromWire(w *updateLogDeliveryConfigura
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateLogDeliveryConfigurationRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateLogDeliveryConfigurationRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateLogDeliveryConfigurationRequest) UnmarshalJSON(data []byte) error {
+	var w updateLogDeliveryConfigurationRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateLogDeliveryConfigurationRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateLogDeliveryConfigurationResponseWire struct {
 }
 
@@ -494,6 +734,30 @@ func updateLogDeliveryConfigurationResponseFromWire(w *updateLogDeliveryConfigur
 		return nil, nil
 	}
 	return &UpdateLogDeliveryConfigurationResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateLogDeliveryConfigurationResponse) MarshalJSON() ([]byte, error) {
+	w, err := updateLogDeliveryConfigurationResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateLogDeliveryConfigurationResponse) UnmarshalJSON(data []byte) error {
+	var w updateLogDeliveryConfigurationResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateLogDeliveryConfigurationResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

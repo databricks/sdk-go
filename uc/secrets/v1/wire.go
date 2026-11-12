@@ -3,6 +3,7 @@
 package secrets
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/databricks/sdk-go/core/types"
@@ -38,6 +39,30 @@ func createSecretRequestFromWire(w *createSecretRequestWire) (*CreateSecretReque
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateSecretRequest) MarshalJSON() ([]byte, error) {
+	w, err := createSecretRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateSecretRequest) UnmarshalJSON(data []byte) error {
+	var w createSecretRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createSecretRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteSecretRequestWire struct {
 	FullName *string `json:"full_name,omitempty"`
 }
@@ -58,6 +83,30 @@ func deleteSecretRequestFromWire(w *deleteSecretRequestWire) (*DeleteSecretReque
 	return &DeleteSecretRequest{
 		FullName: w.FullName,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteSecretRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteSecretRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteSecretRequest) UnmarshalJSON(data []byte) error {
+	var w deleteSecretRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteSecretRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type getSecretRequestWire struct {
@@ -83,6 +132,30 @@ func getSecretRequestFromWire(w *getSecretRequestWire) (*GetSecretRequest, error
 		FullName:     w.FullName,
 		IncludeValue: w.IncludeValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetSecretRequest) MarshalJSON() ([]byte, error) {
+	w, err := getSecretRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetSecretRequest) UnmarshalJSON(data []byte) error {
+	var w getSecretRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getSecretRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listSecretsRequestWire struct {
@@ -116,6 +189,30 @@ func listSecretsRequestFromWire(w *listSecretsRequestWire) (*ListSecretsRequest,
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListSecretsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listSecretsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListSecretsRequest) UnmarshalJSON(data []byte) error {
+	var w listSecretsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listSecretsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listSecretsResponseWire struct {
 	Secrets       []secretWire `json:"secrets,omitempty"`
 	NextPageToken *string      `json:"next_page_token,omitempty"`
@@ -147,6 +244,30 @@ func listSecretsResponseFromWire(w *listSecretsResponseWire) (*ListSecretsRespon
 		Secrets:       secretsPublicValue,
 		NextPageToken: w.NextPageToken,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListSecretsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listSecretsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListSecretsResponse) UnmarshalJSON(data []byte) error {
+	var w listSecretsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listSecretsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type secretWire struct {
@@ -213,6 +334,30 @@ func secretFromWire(w *secretWire) (*Secret, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Secret) MarshalJSON() ([]byte, error) {
+	w, err := secretToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Secret) UnmarshalJSON(data []byte) error {
+	var w secretWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := secretFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateSecretRequestWire struct {
 	FullName   *string                  `json:"full_name,omitempty"`
 	Secret     *secretWire              `json:"secret,omitempty"`
@@ -247,6 +392,30 @@ func updateSecretRequestFromWire(w *updateSecretRequestWire) (*UpdateSecretReque
 		Secret:     secretPublicValue,
 		UpdateMask: w.UpdateMask,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateSecretRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateSecretRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateSecretRequest) UnmarshalJSON(data []byte) error {
+	var w updateSecretRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateSecretRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

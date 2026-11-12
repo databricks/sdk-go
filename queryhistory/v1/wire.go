@@ -77,6 +77,30 @@ func channelInfoFromWire(w *channelInfoWire) (*ChannelInfo, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ChannelInfo) MarshalJSON() ([]byte, error) {
+	w, err := channelInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ChannelInfo) UnmarshalJSON(data []byte) error {
+	var w channelInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := channelInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type externalQuerySourceWire struct {
 	DashboardId       *string                          `json:"dashboard_id,omitempty"`
 	LegacyDashboardId *string                          `json:"legacy_dashboard_id,omitempty"`
@@ -125,6 +149,30 @@ func externalQuerySourceFromWire(w *externalQuerySourceWire) (*ExternalQuerySour
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExternalQuerySource) MarshalJSON() ([]byte, error) {
+	w, err := externalQuerySourceToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExternalQuerySource) UnmarshalJSON(data []byte) error {
+	var w externalQuerySourceWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := externalQuerySourceFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type externalQuerySource_JobInfoWire struct {
 	JobId        *string `json:"job_id,omitempty"`
 	JobRunId     *string `json:"job_run_id,omitempty"`
@@ -151,6 +199,30 @@ func externalQuerySource_JobInfoFromWire(w *externalQuerySource_JobInfoWire) (*E
 		JobRunId:     w.JobRunId,
 		JobTaskRunId: w.JobTaskRunId,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ExternalQuerySource_JobInfo) MarshalJSON() ([]byte, error) {
+	w, err := externalQuerySource_JobInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ExternalQuerySource_JobInfo) UnmarshalJSON(data []byte) error {
+	var w externalQuerySource_JobInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := externalQuerySource_JobInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type listQueriesRequestWire struct {
@@ -192,6 +264,30 @@ func listQueriesRequestFromWire(w *listQueriesRequestWire) (*ListQueriesRequest,
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListQueriesRequest) MarshalJSON() ([]byte, error) {
+	w, err := listQueriesRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListQueriesRequest) UnmarshalJSON(data []byte) error {
+	var w listQueriesRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listQueriesRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listQueriesResponseWire struct {
 	NextPageToken *string         `json:"next_page_token,omitempty"`
 	HasNextPage   *bool           `json:"has_next_page,omitempty"`
@@ -226,6 +322,30 @@ func listQueriesResponseFromWire(w *listQueriesResponseWire) (*ListQueriesRespon
 		HasNextPage:   w.HasNextPage,
 		Res:           resPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListQueriesResponse) MarshalJSON() ([]byte, error) {
+	w, err := listQueriesResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListQueriesResponse) UnmarshalJSON(data []byte) error {
+	var w listQueriesResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listQueriesResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type queryFilterWire struct {
@@ -276,6 +396,30 @@ func queryFilterFromWire(w *queryFilterWire) (*QueryFilter, error) {
 		WarehouseIds:        w.WarehouseIds,
 		StatementIds:        w.StatementIds,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v QueryFilter) MarshalJSON() ([]byte, error) {
+	w, err := queryFilterToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *QueryFilter) UnmarshalJSON(data []byte) error {
+	var w queryFilterWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := queryFilterFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type queryInfoWire struct {
@@ -464,6 +608,30 @@ func queryInfoFromWire(w *queryInfoWire) (*QueryInfo, error) {
 		CacheQueryId:       w.CacheQueryId,
 		QueryTags:          queryTagsPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v QueryInfo) MarshalJSON() ([]byte, error) {
+	w, err := queryInfoToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *QueryInfo) UnmarshalJSON(data []byte) error {
+	var w queryInfoWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := queryInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type queryMetricsWire struct {
@@ -796,6 +964,30 @@ func queryMetricsFromWire(w *queryMetricsWire) (*QueryMetrics, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v QueryMetrics) MarshalJSON() ([]byte, error) {
+	w, err := queryMetricsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *QueryMetrics) UnmarshalJSON(data []byte) error {
+	var w queryMetricsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := queryMetricsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type queryTagWire struct {
 	Key   *string `json:"key,omitempty"`
 	Value *string `json:"value,omitempty"`
@@ -819,6 +1011,30 @@ func queryTagFromWire(w *queryTagWire) (*QueryTag, error) {
 		Key:   w.Key,
 		Value: w.Value,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v QueryTag) MarshalJSON() ([]byte, error) {
+	w, err := queryTagToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *QueryTag) UnmarshalJSON(data []byte) error {
+	var w queryTagWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := queryTagFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type taskTimeOverRangeWire struct {
@@ -862,6 +1078,30 @@ func taskTimeOverRangeFromWire(w *taskTimeOverRangeWire) (*TaskTimeOverRange, er
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v TaskTimeOverRange) MarshalJSON() ([]byte, error) {
+	w, err := taskTimeOverRangeToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *TaskTimeOverRange) UnmarshalJSON(data []byte) error {
+	var w taskTimeOverRangeWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := taskTimeOverRangeFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type taskTimeOverRangeEntryWire struct {
 	TaskCompletedTimeMs *wireInt64 `json:"task_completed_time_ms,omitempty"`
 }
@@ -890,6 +1130,30 @@ func taskTimeOverRangeEntryFromWire(w *taskTimeOverRangeEntryWire) (*TaskTimeOve
 	return &TaskTimeOverRangeEntry{
 		TaskCompletedTimeMs: taskCompletedTimeMsPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v TaskTimeOverRangeEntry) MarshalJSON() ([]byte, error) {
+	w, err := taskTimeOverRangeEntryToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *TaskTimeOverRangeEntry) UnmarshalJSON(data []byte) error {
+	var w taskTimeOverRangeEntryWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := taskTimeOverRangeEntryFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type timeRangeWire struct {
@@ -931,6 +1195,30 @@ func timeRangeFromWire(w *timeRangeWire) (*TimeRange, error) {
 		StartTimeMs: startTimeMsPublicValue,
 		EndTimeMs:   endTimeMsPublicValue,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v TimeRange) MarshalJSON() ([]byte, error) {
+	w, err := timeRangeToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *TimeRange) UnmarshalJSON(data []byte) error {
+	var w timeRangeWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := timeRangeFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

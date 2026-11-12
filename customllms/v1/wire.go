@@ -3,6 +3,7 @@
 package customllms
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/databricks/sdk-go/core/types"
@@ -28,6 +29,30 @@ func cancelCustomLlmOptimizationRunRequestFromWire(w *cancelCustomLlmOptimizatio
 	return &CancelCustomLlmOptimizationRunRequest{
 		Id: w.Id,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CancelCustomLlmOptimizationRunRequest) MarshalJSON() ([]byte, error) {
+	w, err := cancelCustomLlmOptimizationRunRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CancelCustomLlmOptimizationRunRequest) UnmarshalJSON(data []byte) error {
+	var w cancelCustomLlmOptimizationRunRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := cancelCustomLlmOptimizationRunRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type createCustomLlmRequestWire struct {
@@ -70,6 +95,30 @@ func createCustomLlmRequestFromWire(w *createCustomLlmRequestWire) (*CreateCusto
 		Guidelines:        w.Guidelines,
 		AgentArtifactPath: w.AgentArtifactPath,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateCustomLlmRequest) MarshalJSON() ([]byte, error) {
+	w, err := createCustomLlmRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateCustomLlmRequest) UnmarshalJSON(data []byte) error {
+	var w createCustomLlmRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createCustomLlmRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type customLlmWire struct {
@@ -129,6 +178,30 @@ func customLlmFromWire(w *customLlmWire) (*CustomLlm, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CustomLlm) MarshalJSON() ([]byte, error) {
+	w, err := customLlmToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CustomLlm) UnmarshalJSON(data []byte) error {
+	var w customLlmWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := customLlmFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type datasetWire struct {
 	Table *tableWire `json:"table,omitempty"`
 }
@@ -159,6 +232,30 @@ func datasetFromWire(w *datasetWire) (*Dataset, error) {
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Dataset) MarshalJSON() ([]byte, error) {
+	w, err := datasetToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Dataset) UnmarshalJSON(data []byte) error {
+	var w datasetWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := datasetFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteCustomLlmRequestWire struct {
 	Id *string `json:"id,omitempty"`
 }
@@ -179,6 +276,30 @@ func deleteCustomLlmRequestFromWire(w *deleteCustomLlmRequestWire) (*DeleteCusto
 	return &DeleteCustomLlmRequest{
 		Id: w.Id,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteCustomLlmRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteCustomLlmRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteCustomLlmRequest) UnmarshalJSON(data []byte) error {
+	var w deleteCustomLlmRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteCustomLlmRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type getCustomLlmRequestWire struct {
@@ -203,6 +324,30 @@ func getCustomLlmRequestFromWire(w *getCustomLlmRequestWire) (*GetCustomLlmReque
 	}, nil
 }
 
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetCustomLlmRequest) MarshalJSON() ([]byte, error) {
+	w, err := getCustomLlmRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetCustomLlmRequest) UnmarshalJSON(data []byte) error {
+	var w getCustomLlmRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getCustomLlmRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type startCustomLlmOptimizationRunRequestWire struct {
 	Id *string `json:"id,omitempty"`
 }
@@ -223,6 +368,30 @@ func startCustomLlmOptimizationRunRequestFromWire(w *startCustomLlmOptimizationR
 	return &StartCustomLlmOptimizationRunRequest{
 		Id: w.Id,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v StartCustomLlmOptimizationRunRequest) MarshalJSON() ([]byte, error) {
+	w, err := startCustomLlmOptimizationRunRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *StartCustomLlmOptimizationRunRequest) UnmarshalJSON(data []byte) error {
+	var w startCustomLlmOptimizationRunRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := startCustomLlmOptimizationRunRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type tableWire struct {
@@ -251,6 +420,30 @@ func tableFromWire(w *tableWire) (*Table, error) {
 		RequestCol:  w.RequestCol,
 		ResponseCol: w.ResponseCol,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Table) MarshalJSON() ([]byte, error) {
+	w, err := tableToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Table) UnmarshalJSON(data []byte) error {
+	var w tableWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := tableFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 type updateCustomLlmRequestWire struct {
@@ -287,6 +480,30 @@ func updateCustomLlmRequestFromWire(w *updateCustomLlmRequestWire) (*UpdateCusto
 		CustomLlm:  customLlmPublicValue,
 		UpdateMask: w.UpdateMask,
 	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateCustomLlmRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateCustomLlmRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateCustomLlmRequest) UnmarshalJSON(data []byte) error {
+	var w updateCustomLlmRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateCustomLlmRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
 }
 
 func convertSlice[T, W any](s []T, conv func(*T) (*W, error)) ([]W, error) {

@@ -15,6 +15,29 @@ const (
 	Behavior_Mask        Behavior = "MASK"
 )
 
+// The commitment term length for a Provisioned Throughput pool.
+type CommitmentTerm string
+
+const (
+	CommitmentTerm_Unspecified CommitmentTerm = ""
+	// A one-month commitment term.
+	CommitmentTerm_CommitmentTerm1Month CommitmentTerm = "COMMITMENT_TERM_1_MONTH"
+	// A three-month commitment term.
+	CommitmentTerm_CommitmentTerm3Months CommitmentTerm = "COMMITMENT_TERM_3_MONTHS"
+	// A one-hour commitment term.
+	CommitmentTerm_CommitmentTerm1Hour CommitmentTerm = "COMMITMENT_TERM_1_HOUR"
+	// A twelve-hour commitment term.
+	CommitmentTerm_CommitmentTerm12Hours CommitmentTerm = "COMMITMENT_TERM_12_HOURS"
+	// A one-day commitment term.
+	CommitmentTerm_CommitmentTerm1Day CommitmentTerm = "COMMITMENT_TERM_1_DAY"
+	// A one-week commitment term.
+	CommitmentTerm_CommitmentTerm1Week CommitmentTerm = "COMMITMENT_TERM_1_WEEK"
+	// A six-month commitment term.
+	CommitmentTerm_CommitmentTerm6Months CommitmentTerm = "COMMITMENT_TERM_6_MONTHS"
+	// A one-year commitment term.
+	CommitmentTerm_CommitmentTerm1Year CommitmentTerm = "COMMITMENT_TERM_1_YEAR"
+)
+
 type ServedModelDeploymentState string
 
 const (
@@ -232,12 +255,14 @@ type AutoCaptureConfig struct {
 	// The prefix of the table in Unity Catalog. NOTE: On update, you cannot change
 	// the prefix name if the inference table is already enabled.
 	TableNamePrefix *string
-	State           *AutoCaptureState
+	// The state of the inference table.
+	State *AutoCaptureState
 	// Indicates whether the inference table is enabled.
 	Enabled *bool
 }
 
 type AutoCaptureState struct {
+	// The payload table that stores the logged requests and responses.
 	PayloadTable *PayloadTable
 }
 
@@ -289,7 +314,8 @@ type CreateInferenceEndpointRequest struct {
 	BudgetPolicyId *string
 	// Email notification settings.
 	EmailNotifications *EmailNotifications
-	Description        *string
+	// The description of the serving endpoint.
+	Description *string
 	// Configuration for persisting endpoint telemetry (logs, traces, and metrics)
 	// to Unity Catalog tables.
 	TelemetryConfig *TelemetryConfig
@@ -354,6 +380,7 @@ type DatabricksModelServingConfig struct {
 }
 
 type DeleteInferenceEndpointRequest struct {
+	// The name of the serving endpoint to delete.
 	Name *string
 }
 
@@ -560,9 +587,13 @@ type FallbackConfig struct {
 // All fields are not sensitive as they are hard-coded in the system and made
 // available to customers..
 type FoundationModel struct {
-	Name        *string
+	// The name of the foundation model.
+	Name *string
+	// The human-readable display name of the foundation model.
 	DisplayName *string
-	Docs        *string
+	// The URL of the Databricks documentation page for the foundation model.
+	Docs *string
+	// A description of the foundation model.
 	Description *string
 }
 
@@ -652,9 +683,11 @@ type InferenceEndpoint struct {
 	Name *string
 	// The email of the user who created the serving endpoint.
 	Creator *string
-	// The timestamp when the endpoint was created in Unix time.
+	// The timestamp when the endpoint was created, in milliseconds since the Unix
+	// epoch.
 	CreationTimestamp *int64
-	// The timestamp when the endpoint was last updated by a user in Unix time.
+	// The timestamp when the endpoint was last updated by a user, in milliseconds
+	// since the Unix epoch.
 	LastUpdatedTimestamp *int64
 	// Information corresponding to the state of the serving endpoint.
 	State *InferenceEndpointState
@@ -687,9 +720,11 @@ type InferenceEndpointDetailed struct {
 	Name *string
 	// The email of the user who created the serving endpoint.
 	Creator *string
-	// The timestamp when the endpoint was created in Unix time.
+	// The timestamp when the endpoint was created, in milliseconds since the Unix
+	// epoch.
 	CreationTimestamp *int64
-	// The timestamp when the endpoint was last updated by a user in Unix time.
+	// The timestamp when the endpoint was last updated by a user, in milliseconds
+	// since the Unix epoch.
 	LastUpdatedTimestamp *int64
 	// Information corresponding to the state of the serving endpoint.
 	State *InferenceEndpointState
@@ -720,7 +755,7 @@ type InferenceEndpointDetailed struct {
 	BudgetPolicyId *string
 	// Email notification settings.
 	EmailNotifications *EmailNotifications
-	// Description of the serving model
+	// Description of the serving endpoint.
 	Description *string
 	// Telemetry configuration for the endpoint, including inference-table payload
 	// logging.
@@ -848,6 +883,7 @@ type PatchInferenceEndpointTagsRequest struct {
 }
 
 type PatchInferenceEndpointTagsResponse struct {
+	// The tags attached to the serving endpoint after the update.
 	Tags []EndpointTag
 }
 
@@ -865,8 +901,11 @@ type PatchInferenceEndpointTelemetryConfigRequest struct {
 }
 
 type PayloadTable struct {
-	Name          *string
-	Status        *string
+	// The name of the payload table within the configured catalog and schema.
+	Name *string
+	// The status of the payload table. One of PENDING, READY, FAILED or DISABLED.
+	Status *string
+	// More information about the status of the payload table, if available.
 	StatusMessage *string
 }
 
@@ -882,7 +921,8 @@ type PendingConfig struct {
 	TrafficConfig *TrafficConfig
 	// The config version that the serving endpoint is currently serving.
 	ConfigVersion *int
-	// The timestamp when the update to the pending config started.
+	// The timestamp when the update to the pending config started, in milliseconds
+	// since the Unix epoch.
 	StartTime *int64
 	// Configuration for legacy Inference Tables which automatically log requests
 	// and responses to Unity Catalog. Deprecated: please use AI Gateway inference
@@ -899,7 +939,8 @@ type PiiSettings struct {
 type PtEndpointCoreConfig struct {
 	// The list of served entities under the serving endpoint config.
 	ServedEntities []PtServedModel
-	TrafficConfig  *TrafficConfig
+	// The traffic configuration associated with the serving endpoint config.
+	TrafficConfig *TrafficConfig
 }
 
 type PtServedModel struct {
@@ -914,7 +955,8 @@ type PtServedModel struct {
 	// of type FEATURE_SPEC in the UC. If it is a UC object, the full name of the
 	// object should be given in the form of
 	// **catalog_name.schema_name.model_name**.
-	EntityName    *string
+	EntityName *string
+	// The version of the model in Unity Catalog to be served.
 	EntityVersion *string
 	// The number of model units to be provisioned. Dedicated inference requires
 	// positive fixed capacity and does not support scale-to-zero.
@@ -924,6 +966,10 @@ type PtServedModel struct {
 	// When disabled, the endpoint maintains fixed capacity at
 	// provisioned_model_units.
 	BurstScalingEnabled *bool
+	// Commitment term to purchase for this served entity; its presence marks the
+	// entity as reserved (vs on-demand) PT. Valid on create and on update
+	// (purchases a commitment for a scale-up).
+	PtTerm CommitmentTerm
 }
 
 type PutInferenceEndpointAiGatewayRequest struct {
@@ -1001,7 +1047,8 @@ type PutInferenceEndpointRateLimitsResponse struct {
 
 type PutPtEndpointConfigRequest struct {
 	// The name of the pt endpoint to update. This field is required.
-	Name   *string
+	Name *string
+	// The core config of the serving endpoint.
 	Config *PtEndpointCoreConfig
 }
 
@@ -1023,7 +1070,8 @@ type Route struct {
 	// The percentage of endpoint traffic to send to this route. It must be an
 	// integer between 0 and 100 inclusive.
 	TrafficPercentage *int
-	ServedEntityName  *string
+	// The name of the served entity this route configures traffic for.
+	ServedEntityName *string
 }
 
 type ServedModel struct {
@@ -1047,7 +1095,9 @@ type ServedModel struct {
 	// of type FEATURE_SPEC in the UC. If it is a UC object, the full name of the
 	// object should be given in the form of
 	// **catalog_name.schema_name.model_name**.
-	EntityName    *string
+	EntityName *string
+	// The version of the model in Databricks Model Registry or Unity Catalog to be
+	// served, or empty if the entity is a FEATURE_SPEC function.
 	EntityVersion *string
 	// The minimum tokens per second that the endpoint can scale down to.
 	MinProvisionedThroughput *int
@@ -1079,8 +1129,13 @@ type ServedModel struct {
 	// Whether the compute resources for the served entity should scale down to
 	// zero.
 	ScaleToZeroEnabled *bool
-	ModelName          *string
-	ModelVersion       *string
+	// The name of the model in Databricks Model Registry to be served or, if the
+	// model resides in Unity Catalog, the full name of the model in the form of
+	// **catalog_name.schema_name.model_name**.
+	ModelName *string
+	// The version of the model in Databricks Model Registry or Unity Catalog to be
+	// served.
+	ModelVersion *string
 	// An object containing a set of optional, user-specified environment variable
 	// key-value pairs used for serving this entity. Note: this is an experimental
 	// feature and subject to change. Example entity environment variables that
@@ -1091,26 +1146,61 @@ type ServedModel struct {
 	// ARN of the instance profile that the served entity uses to access AWS
 	// resources.
 	InstanceProfileArn *string
-	FoundationModel    *FoundationModel
-	State              *ServedModelState
-	Creator            *string
-	CreationTimestamp  *int64
+	// The foundation model that is served. Present for served entities that serve a
+	// Databricks-hosted foundation model.
+	FoundationModel *FoundationModel
+	// Information corresponding to the state of the served entity.
+	State *ServedModelState
+	// The email of the user who created the served entity.
+	Creator *string
+	// The timestamp when the served entity was created, in milliseconds since the
+	// Unix epoch.
+	CreationTimestamp *int64
 }
 
 type ServedModelLite struct {
+	// The name of the served entity.
 	Name *string
-	// Only one of model_name and entity_name should be populated
-	ModelName  *string
+	// The name of the model in Databricks Model Registry to be served or, if the
+	// model resides in Unity Catalog, the full name of the model in the form of
+	// **catalog_name.schema_name.model_name**.
+	ModelName *string
+	// The name of the entity to be served. The entity may be a model in the
+	// Databricks Model Registry, a model in the Unity Catalog (UC), or a function
+	// of type FEATURE_SPEC in the UC. If it is a UC object, the full name of the
+	// object is given in the form of **catalog_name.schema_name.model_name**.
 	EntityName *string
-	// Only one of model_version and entity_version should be populated
-	ModelVersion    *string
-	EntityVersion   *string
-	ExternalModel   *ExternalModel
+	// The version of the model in Databricks Model Registry or Unity Catalog to be
+	// served.
+	ModelVersion *string
+	// The version of the model in Databricks Model Registry or Unity Catalog to be
+	// served, or empty if the entity is a FEATURE_SPEC function.
+	EntityVersion *string
+	// The external model that is served. NOTE: Only one of external_model,
+	// foundation_model, and (entity_name, entity_version) is returned based on the
+	// endpoint type.
+	ExternalModel *ExternalModel
+	// The foundation model that is served. NOTE: Only one of foundation_model,
+	// external_model, and (entity_name, entity_version) is returned based on the
+	// endpoint type.
 	FoundationModel *FoundationModel
 }
 
 type ServedModelState struct {
-	Deployment             ServedModelDeploymentState
+	// The state of the deployment of the served entity. DEPLOYMENT_CREATING
+	// indicates that the served entity is not ready yet because the deployment is
+	// still being created (for example, the container image is building or the
+	// model server is starting for the first time). DEPLOYMENT_RECOVERING indicates
+	// that the served entity was previously ready but no longer is and is
+	// attempting to recover. DEPLOYMENT_READY indicates that the served entity is
+	// ready to receive traffic. DEPLOYMENT_FAILED indicates that there was an error
+	// bringing up the served entity (for example, the container image build failed
+	// or the model server failed to start due to a model loading error).
+	// DEPLOYMENT_ABORTED indicates that the deployment was terminated, likely due
+	// to a failure in bringing up another served entity under the same endpoint and
+	// config version.
+	Deployment ServedModelDeploymentState
+	// More information about the state of the served entity, if available.
 	DeploymentStateMessage *string
 }
 
@@ -1186,7 +1276,9 @@ type UpdateInferenceEndpointNotificationsRequest struct {
 }
 
 type UpdateInferenceEndpointNotificationsResponse struct {
-	Name               *string
+	// The name of the serving endpoint whose notification settings were updated.
+	Name *string
+	// The email notification settings now in effect for the serving endpoint.
 	EmailNotifications *EmailNotifications
 }
 
