@@ -295,7 +295,10 @@ func (c *internalClient) GenieCancelResponse(ctx context.Context, req GenieCance
 
 // Sends a new message in a chat-mode
 // [conversation](:method:genie/startconversation). The AI response uses all
-// previously created messages in the conversation to respond.
+// previously created messages in the conversation to respond. The message is
+// processed asynchronously. Poll [Get a conversation
+// message](:method:genie/getmessage) until its `status` is `COMPLETED`,
+// `FAILED`, or `CANCELLED`.
 func (c *internalClient) genieCreateConversationMessageBase(ctx context.Context, req GenieCreateConversationMessageRequest, opts ...call.Option) (*GenieMessage, error) {
 	wireReq, err := genieCreateConversationMessageRequestToWire(&req)
 	if err != nil {
@@ -375,7 +378,10 @@ func (c *internalClient) genieCreateConversationMessageBase(ctx context.Context,
 
 // Sends a new message in a chat-mode
 // [conversation](:method:genie/startconversation). The AI response uses all
-// previously created messages in the conversation to respond.
+// previously created messages in the conversation to respond. The message is
+// processed asynchronously. Poll [Get a conversation
+// message](:method:genie/getmessage) until its `status` is `COMPLETED`,
+// `FAILED`, or `CANCELLED`.
 func (c *internalClient) GenieCreateConversationMessage(ctx context.Context, req GenieCreateConversationMessageRequest, opts ...call.Option) (*GenieCreateConversationMessageWaiter, error) {
 	if req.ConversationId == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "ConversationId")
@@ -641,7 +647,9 @@ func (c *internalClient) GenieCreateMessageComment(ctx context.Context, req Geni
 	return resp, nil
 }
 
-// Delete a conversation.
+// Deletes a conversation and all of its messages. Users can delete their own
+// conversations. Deleting another user's conversation requires at least CAN
+// MANAGE permission on the space.
 func (c *internalClient) GenieDeleteConversation(ctx context.Context, req GenieDeleteConversationRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
@@ -1365,9 +1373,9 @@ func (c *internalClient) GenieGetEvalRun(ctx context.Context, req GenieGetEvalRu
 	return resp, nil
 }
 
-// Get the result of SQL query if the message has a query attachment. This is
-// only available if a message has a query attachment and the message status is
-// `EXECUTING_QUERY` OR `COMPLETED`.
+// Gets the result of the SQL query in a message's query attachment. The result
+// is available only while the message status is `EXECUTING_QUERY` or
+// `COMPLETED`.
 func (c *internalClient) GenieGetMessageAttachmentQueryResult(ctx context.Context, req GenieGetMessageAttachmentQueryResultRequest, opts ...call.Option) (*GenieGetMessageQueryResultResponse, error) {
 
 	headers := http.Header{}
@@ -1824,7 +1832,10 @@ func (c *internalClient) GenieListConversationMessages(ctx context.Context, req 
 	return resp, nil
 }
 
-// Get a list of conversations in a Genie Space.
+// Lists the conversations in a Genie space. By default the list contains only
+// the caller's own conversations, ordered by most recent activity. With
+// `include_all`, it contains every user's conversations in the space, ordered
+// by creation time with the newest first.
 func (c *internalClient) GenieListConversations(ctx context.Context, req GenieListConversationsRequest, opts ...call.Option) (*GenieListConversationsResponse, error) {
 	wireReq, err := genieListConversationsRequestToWire(&req)
 	if err != nil {
@@ -2134,7 +2145,8 @@ func (c *internalClient) GenieListMessageComments(ctx context.Context, req Genie
 	return resp, nil
 }
 
-// Get list of Genie Spaces.
+// Lists the Genie spaces that the caller can access, most recently updated
+// first.
 func (c *internalClient) GenieListSpaces(ctx context.Context, req GenieListSpacesRequest, opts ...call.Option) (*GenieListSpacesResponse, error) {
 	wireReq, err := genieListSpacesRequestToWire(&req)
 	if err != nil {
@@ -2274,7 +2286,10 @@ func (c *internalClient) GenieSendMessageFeedback(ctx context.Context, req Genie
 	return nil
 }
 
-// Starts a new chat-mode conversation and sends its first message.
+// Starts a new chat-mode conversation and sends its first message. The message
+// is processed asynchronously. Poll [Get a conversation
+// message](:method:genie/getmessage) until its `status` is `COMPLETED`,
+// `FAILED`, or `CANCELLED`.
 func (c *internalClient) genieStartConversationBase(ctx context.Context, req GenieStartConversationRequest, opts ...call.Option) (*GenieStartConversationResponse, error) {
 	wireReq, err := genieStartConversationRequestToWire(&req)
 	if err != nil {
@@ -2347,7 +2362,10 @@ func (c *internalClient) genieStartConversationBase(ctx context.Context, req Gen
 	return resp, nil
 }
 
-// Starts a new chat-mode conversation and sends its first message.
+// Starts a new chat-mode conversation and sends its first message. The message
+// is processed asynchronously. Poll [Get a conversation
+// message](:method:genie/getmessage) until its `status` is `COMPLETED`,
+// `FAILED`, or `CANCELLED`.
 func (c *internalClient) GenieStartConversation(ctx context.Context, req GenieStartConversationRequest, opts ...call.Option) (*GenieStartConversationWaiter, error) {
 	if req.SpaceId == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "SpaceId")
@@ -2508,7 +2526,9 @@ func (c *internalClient) GenieTrashSpace(ctx context.Context, req GenieTrashSpac
 	return nil
 }
 
-// Updates a Genie space with a serialized payload.
+// Updates a Genie space. Replaces the whole configuration when
+// `serialized_space` is set and changes the title, description, warehouse or
+// folder when those fields are set; omitted fields keep their current values.
 func (c *internalClient) UpdateSpace(ctx context.Context, req GenieUpdateSpaceRequest, opts ...call.Option) (*GenieSpace, error) {
 	wireReq, err := genieUpdateSpaceRequestToWire(&req)
 	if err != nil {

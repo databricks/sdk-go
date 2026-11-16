@@ -827,7 +827,9 @@ func (c *internalClient) ListVectorIndexIter(ctx context.Context, req ListVector
 	}
 }
 
-// Update an endpoint
+// Update the Target QPS of a STANDARD endpoint. The response is the updated
+// endpoint; its scaling_info shows whether the resulting scaling change is
+// applied or still in progress.
 func (c *internalClient) PatchEndpoint(ctx context.Context, req PatchEndpointRequest, opts ...call.Option) (*Endpoint, error) {
 	wireReq, err := patchEndpointRequestToWire(&req)
 	if err != nil {
@@ -899,7 +901,7 @@ func (c *internalClient) PatchEndpoint(ctx context.Context, req PatchEndpointReq
 	return resp, nil
 }
 
-// Update the budget policy of an endpoint
+// Update the budget policy that the endpoint's usage is attributed to.
 func (c *internalClient) PatchEndpointBudgetPolicy(ctx context.Context, req PatchEndpointBudgetPolicyRequest, opts ...call.Option) (*PatchEndpointBudgetPolicyResponse, error) {
 	wireReq, err := patchEndpointBudgetPolicyRequestToWire(&req)
 	if err != nil {

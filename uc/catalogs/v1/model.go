@@ -75,27 +75,52 @@ type AzureEncryptionSettings struct {
 	AzureCmkManagedIdentityId *string
 }
 
+// A catalog is the first layer of Unity Catalog's three-level namespace and
+// groups the schemas, tables, volumes, and other data assets under it. Catalogs
+// created through this API are standard catalogs, Delta Sharing catalogs
+// created from a share, or foreign catalogs that mirror a database behind a
+// connection to an external data source..
 type CatalogInfo struct {
-	// Name of catalog.
+	// The name of the catalog is stored in lowercase, can be at most 255 characters
+	// long, and cannot contain periods, spaces, forward slashes, or control
+	// characters.
 	Name *string
 	// Username of current owner of catalog.
 	Owner *string
 	// User-provided free-form text description.
 	Comment *string
-	// Storage root URL for managed tables within catalog.
+	// Managed tables and volumes in the catalog are stored under this storage root
+	// URL. The path must be inside an external location on which the caller has the
+	// CREATE MANAGED STORAGE privilege. If omitted, managed data is stored under
+	// the metastore's root storage location, which must then be configured. Delta
+	// Sharing catalogs cannot have a storage root.
 	StorageRoot *string
-	// Whether predictive optimization should be enabled for this object and objects
-	// under it.
+	// Whether predictive optimization is enabled for this catalog and the objects
+	// under it. Valid values are ENABLE, DISABLE, and INHERIT, where INHERIT
+	// applies the account-level setting. Standard catalogs start as INHERIT and
+	// other catalog types as DISABLE. It cannot be set when creating a catalog; use
+	// the update method instead.
 	EnablePredictiveOptimization *string
-	CatalogType                  CatalogType
-	// The name of delta sharing provider.
-	//
-	// A Delta Sharing catalog is a catalog that is based on a Delta share on a
-	// remote sharing server.
+	// The server sets the catalog type from the create request. Catalogs created
+	// through this API are MANAGED_CATALOG (standard catalogs),
+	// DELTASHARING_CATALOG when created from a share with provider_name and
+	// share_name, or FOREIGN_CATALOG when created from a connection with
+	// connection_name. The remaining types are provisioned by Databricks.
+	CatalogType CatalogType
+	// The Delta Sharing provider that owns the share must be named here, together
+	// with share_name, to create a Delta Sharing catalog that exposes the data of
+	// the share on a remote sharing server. The provider cannot be changed after
+	// creation.
 	ProviderName *string
-	// The name of the share under the share provider.
+	// The share under the Delta Sharing provider must be named here, together with
+	// provider_name, to create a Delta Sharing catalog. The share cannot be changed
+	// after creation.
 	ShareName *string
-	// The name of the connection to an external data source.
+	// Naming a connection to an external data source creates a foreign catalog that
+	// mirrors a database in that source, which requires ownership of or the CREATE
+	// FOREIGN CATALOG privilege on the connection. Connection-specific settings,
+	// such as the database to mirror, go in options. The connection cannot be
+	// changed after creation.
 	ConnectionName *string
 	// Unique identifier of parent metastore.
 	MetastoreId *string
@@ -107,23 +132,38 @@ type CatalogInfo struct {
 	UpdatedAt *int64
 	// Username of user who last modified catalog.
 	UpdatedBy *string
-	// Storage Location URL (full path) for managed tables within catalog.
+	// The server derives this full storage location URL for managed tables and
+	// volumes within the catalog from storage_root and the catalog ID.
 	StorageLocation *string
-	// Whether the current securable is accessible from all workspaces or a specific
-	// set of workspaces.
-	IsolationMode                       CatalogIsolationMode
+	// Whether the catalog is accessible from all workspaces attached to the
+	// metastore (OPEN) or only from the workspaces bound to it (ISOLATED). It
+	// cannot be set when creating a catalog; change it with the update method and
+	// manage the bound workspaces with the workspace bindings API. See
+	// [Workspace-catalog binding].
+	//
+	// [Workspace-catalog binding]: https://docs.databricks.com/aws/en/catalogs/binding
+	IsolationMode CatalogIsolationMode
+	// Indicates the predictive optimization setting that is in effect for the
+	// catalog once inherited values are resolved.
 	EffectivePredictiveOptimizationFlag *EffectivePredictiveOptimizationFlag
 	// Indicates whether the principal is limited to retrieving metadata for the
 	// associated object through the BROWSE privilege when include_browse is enabled
 	// in the request.
-	BrowseOnly       *bool
+	BrowseOnly *bool
+	// Indicates the provisioning status of the catalog. It is present only for
+	// catalogs that are provisioned asynchronously.
 	ProvisioningInfo *ProvisioningInfo
 	// The full name of the catalog. Corresponds with the name field.
-	FullName      *string
+	FullName *string
+	// The securable type is always CATALOG for a catalog.
 	SecurableType SecurableType
-	// Custom maximum retention period in hours for the catalog
+	// Dropped objects in the catalog remain recoverable for this number of hours
+	// before they are permanently purged. The value applies to standard catalogs
+	// only, must be 0 or within the range allowed for the metastore, and is
+	// inherited by schemas and tables that do not set their own value.
 	CustomMaxRetentionHours *int64
-	// Control CMK encryption for managed catalog data
+	// Customer-managed key (CMK) settings control the encryption at rest of the
+	// catalog's managed data.
 	ManagedEncryptionSettings *EncryptionSettings
 	// A map of key-value properties attached to the securable.
 	Properties map[string]string
@@ -132,26 +172,46 @@ type CatalogInfo struct {
 }
 
 type CreateCatalogRequest struct {
-	// Name of catalog.
+	// The name of the catalog is stored in lowercase, can be at most 255 characters
+	// long, and cannot contain periods, spaces, forward slashes, or control
+	// characters.
 	Name *string
 	// Username of current owner of catalog.
 	Owner *string
 	// User-provided free-form text description.
 	Comment *string
-	// Storage root URL for managed tables within catalog.
+	// Managed tables and volumes in the catalog are stored under this storage root
+	// URL. The path must be inside an external location on which the caller has the
+	// CREATE MANAGED STORAGE privilege. If omitted, managed data is stored under
+	// the metastore's root storage location, which must then be configured. Delta
+	// Sharing catalogs cannot have a storage root.
 	StorageRoot *string
-	// Whether predictive optimization should be enabled for this object and objects
-	// under it.
+	// Whether predictive optimization is enabled for this catalog and the objects
+	// under it. Valid values are ENABLE, DISABLE, and INHERIT, where INHERIT
+	// applies the account-level setting. Standard catalogs start as INHERIT and
+	// other catalog types as DISABLE. It cannot be set when creating a catalog; use
+	// the update method instead.
 	EnablePredictiveOptimization *string
-	CatalogType                  CatalogType
-	// The name of delta sharing provider.
-	//
-	// A Delta Sharing catalog is a catalog that is based on a Delta share on a
-	// remote sharing server.
+	// The server sets the catalog type from the create request. Catalogs created
+	// through this API are MANAGED_CATALOG (standard catalogs),
+	// DELTASHARING_CATALOG when created from a share with provider_name and
+	// share_name, or FOREIGN_CATALOG when created from a connection with
+	// connection_name. The remaining types are provisioned by Databricks.
+	CatalogType CatalogType
+	// The Delta Sharing provider that owns the share must be named here, together
+	// with share_name, to create a Delta Sharing catalog that exposes the data of
+	// the share on a remote sharing server. The provider cannot be changed after
+	// creation.
 	ProviderName *string
-	// The name of the share under the share provider.
+	// The share under the Delta Sharing provider must be named here, together with
+	// provider_name, to create a Delta Sharing catalog. The share cannot be changed
+	// after creation.
 	ShareName *string
-	// The name of the connection to an external data source.
+	// Naming a connection to an external data source creates a foreign catalog that
+	// mirrors a database in that source, which requires ownership of or the CREATE
+	// FOREIGN CATALOG privilege on the connection. Connection-specific settings,
+	// such as the database to mirror, go in options. The connection cannot be
+	// changed after creation.
 	ConnectionName *string
 	// Unique identifier of parent metastore.
 	MetastoreId *string
@@ -163,23 +223,38 @@ type CreateCatalogRequest struct {
 	UpdatedAt *int64
 	// Username of user who last modified catalog.
 	UpdatedBy *string
-	// Storage Location URL (full path) for managed tables within catalog.
+	// The server derives this full storage location URL for managed tables and
+	// volumes within the catalog from storage_root and the catalog ID.
 	StorageLocation *string
-	// Whether the current securable is accessible from all workspaces or a specific
-	// set of workspaces.
-	IsolationMode                       CatalogIsolationMode
+	// Whether the catalog is accessible from all workspaces attached to the
+	// metastore (OPEN) or only from the workspaces bound to it (ISOLATED). It
+	// cannot be set when creating a catalog; change it with the update method and
+	// manage the bound workspaces with the workspace bindings API. See
+	// [Workspace-catalog binding].
+	//
+	// [Workspace-catalog binding]: https://docs.databricks.com/aws/en/catalogs/binding
+	IsolationMode CatalogIsolationMode
+	// Indicates the predictive optimization setting that is in effect for the
+	// catalog once inherited values are resolved.
 	EffectivePredictiveOptimizationFlag *EffectivePredictiveOptimizationFlag
 	// Indicates whether the principal is limited to retrieving metadata for the
 	// associated object through the BROWSE privilege when include_browse is enabled
 	// in the request.
-	BrowseOnly       *bool
+	BrowseOnly *bool
+	// Indicates the provisioning status of the catalog. It is present only for
+	// catalogs that are provisioned asynchronously.
 	ProvisioningInfo *ProvisioningInfo
 	// The full name of the catalog. Corresponds with the name field.
-	FullName      *string
+	FullName *string
+	// The securable type is always CATALOG for a catalog.
 	SecurableType SecurableType
-	// Custom maximum retention period in hours for the catalog
+	// Dropped objects in the catalog remain recoverable for this number of hours
+	// before they are permanently purged. The value applies to standard catalogs
+	// only, must be 0 or within the range allowed for the metastore, and is
+	// inherited by schemas and tables that do not set their own value.
 	CustomMaxRetentionHours *int64
-	// Control CMK encryption for managed catalog data
+	// Customer-managed key (CMK) settings control the encryption at rest of the
+	// catalog's managed data.
 	ManagedEncryptionSettings *EncryptionSettings
 	// A map of key-value properties attached to the securable.
 	Properties map[string]string
@@ -224,14 +299,16 @@ type EncryptionSettings struct {
 type GetCatalogRequest struct {
 	// The name of the catalog.
 	NameArg *string
-	// Whether to include catalogs in the response for which the principal can only
-	// access selective metadata for
+	// Whether to return the catalog when the principal can only access selective
+	// metadata for it through the BROWSE privilege. The response then has
+	// browse_only set to true.
 	IncludeBrowse *bool
 }
 
 type ListCatalogsRequest struct {
-	// Whether to include catalogs in the response for which the principal can only
-	// access selective metadata for
+	// Whether to include catalogs for which the principal can only access selective
+	// metadata through the BROWSE privilege. Such catalogs are returned with
+	// browse_only set to true.
 	IncludeBrowse *bool
 	// Maximum number of catalogs to return. - when set to 0, the page length is set
 	// to a server configured value (recommended); - when set to a value greater
@@ -270,26 +347,46 @@ type UpdateCatalogRequest struct {
 	NameArg *string
 	// New name for the catalog.
 	NewName *string
-	// Name of catalog.
+	// The name of the catalog is stored in lowercase, can be at most 255 characters
+	// long, and cannot contain periods, spaces, forward slashes, or control
+	// characters.
 	Name *string
 	// Username of current owner of catalog.
 	Owner *string
 	// User-provided free-form text description.
 	Comment *string
-	// Storage root URL for managed tables within catalog.
+	// Managed tables and volumes in the catalog are stored under this storage root
+	// URL. The path must be inside an external location on which the caller has the
+	// CREATE MANAGED STORAGE privilege. If omitted, managed data is stored under
+	// the metastore's root storage location, which must then be configured. Delta
+	// Sharing catalogs cannot have a storage root.
 	StorageRoot *string
-	// Whether predictive optimization should be enabled for this object and objects
-	// under it.
+	// Whether predictive optimization is enabled for this catalog and the objects
+	// under it. Valid values are ENABLE, DISABLE, and INHERIT, where INHERIT
+	// applies the account-level setting. Standard catalogs start as INHERIT and
+	// other catalog types as DISABLE. It cannot be set when creating a catalog; use
+	// the update method instead.
 	EnablePredictiveOptimization *string
-	CatalogType                  CatalogType
-	// The name of delta sharing provider.
-	//
-	// A Delta Sharing catalog is a catalog that is based on a Delta share on a
-	// remote sharing server.
+	// The server sets the catalog type from the create request. Catalogs created
+	// through this API are MANAGED_CATALOG (standard catalogs),
+	// DELTASHARING_CATALOG when created from a share with provider_name and
+	// share_name, or FOREIGN_CATALOG when created from a connection with
+	// connection_name. The remaining types are provisioned by Databricks.
+	CatalogType CatalogType
+	// The Delta Sharing provider that owns the share must be named here, together
+	// with share_name, to create a Delta Sharing catalog that exposes the data of
+	// the share on a remote sharing server. The provider cannot be changed after
+	// creation.
 	ProviderName *string
-	// The name of the share under the share provider.
+	// The share under the Delta Sharing provider must be named here, together with
+	// provider_name, to create a Delta Sharing catalog. The share cannot be changed
+	// after creation.
 	ShareName *string
-	// The name of the connection to an external data source.
+	// Naming a connection to an external data source creates a foreign catalog that
+	// mirrors a database in that source, which requires ownership of or the CREATE
+	// FOREIGN CATALOG privilege on the connection. Connection-specific settings,
+	// such as the database to mirror, go in options. The connection cannot be
+	// changed after creation.
 	ConnectionName *string
 	// Unique identifier of parent metastore.
 	MetastoreId *string
@@ -301,23 +398,38 @@ type UpdateCatalogRequest struct {
 	UpdatedAt *int64
 	// Username of user who last modified catalog.
 	UpdatedBy *string
-	// Storage Location URL (full path) for managed tables within catalog.
+	// The server derives this full storage location URL for managed tables and
+	// volumes within the catalog from storage_root and the catalog ID.
 	StorageLocation *string
-	// Whether the current securable is accessible from all workspaces or a specific
-	// set of workspaces.
-	IsolationMode                       CatalogIsolationMode
+	// Whether the catalog is accessible from all workspaces attached to the
+	// metastore (OPEN) or only from the workspaces bound to it (ISOLATED). It
+	// cannot be set when creating a catalog; change it with the update method and
+	// manage the bound workspaces with the workspace bindings API. See
+	// [Workspace-catalog binding].
+	//
+	// [Workspace-catalog binding]: https://docs.databricks.com/aws/en/catalogs/binding
+	IsolationMode CatalogIsolationMode
+	// Indicates the predictive optimization setting that is in effect for the
+	// catalog once inherited values are resolved.
 	EffectivePredictiveOptimizationFlag *EffectivePredictiveOptimizationFlag
 	// Indicates whether the principal is limited to retrieving metadata for the
 	// associated object through the BROWSE privilege when include_browse is enabled
 	// in the request.
-	BrowseOnly       *bool
+	BrowseOnly *bool
+	// Indicates the provisioning status of the catalog. It is present only for
+	// catalogs that are provisioned asynchronously.
 	ProvisioningInfo *ProvisioningInfo
 	// The full name of the catalog. Corresponds with the name field.
-	FullName      *string
+	FullName *string
+	// The securable type is always CATALOG for a catalog.
 	SecurableType SecurableType
-	// Custom maximum retention period in hours for the catalog
+	// Dropped objects in the catalog remain recoverable for this number of hours
+	// before they are permanently purged. The value applies to standard catalogs
+	// only, must be 0 or within the range allowed for the metastore, and is
+	// inherited by schemas and tables that do not set their own value.
 	CustomMaxRetentionHours *int64
-	// Control CMK encryption for managed catalog data
+	// Customer-managed key (CMK) settings control the encryption at rest of the
+	// catalog's managed data.
 	ManagedEncryptionSettings *EncryptionSettings
 	// A map of key-value properties attached to the securable.
 	Properties map[string]string

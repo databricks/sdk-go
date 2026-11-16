@@ -47,8 +47,11 @@ const (
 )
 
 type CancelCommandRequest struct {
+	// ID of the cluster that hosts the execution context.
 	ClusterId *string
+	// ID of the command to cancel, as returned by __execute__.
 	CommandId *string
+	// ID of the execution context the command runs in.
 	ContextId *string
 }
 
@@ -56,17 +59,24 @@ type CancelResponse struct {
 }
 
 type CreateContextRequest struct {
-	// Running cluster id
+	// ID of the cluster to create the execution context on. The cluster must be
+	// running.
 	ClusterId *string
-	Language  Language
+	// Programming language of the execution context.
+	Language Language
 }
 
 type CreateResponse struct {
+	// ID of the new execution context when returned by __Create__, or of the
+	// submitted command when returned by __execute__. Pass it to the other methods
+	// of this API as `contextId` or `commandId`.
 	Id *string
 }
 
 type DestroyContextRequest struct {
+	// ID of the cluster that hosts the execution context.
 	ClusterId *string
+	// ID of the execution context to delete, as returned by __Create__.
 	ContextId *string
 }
 
@@ -74,43 +84,67 @@ type DestroyResponse struct {
 }
 
 type ExecuteCommandRequest struct {
-	// Running cluster id
+	// ID of the cluster that hosts the execution context.
 	ClusterId *string
-	// Running context id
+	// ID of the execution context to run the command in, as returned by __Create__.
 	ContextId *string
-	Language  Language
-	// Executable code
+	// Language the command is written in.
+	Language Language
+	// Code to run, written in the specified language.
 	Command *string
 }
 
 // Request to get the status of a previously submitted command..
 type GetCommandStatusRequest struct {
+	// ID of the cluster that hosts the execution context.
 	ClusterId *string
+	// ID of the execution context the command runs in.
 	ContextId *string
+	// ID of the command, as returned by __execute__.
 	CommandId *string
 }
 
 type GetCommandStatusResponse struct {
-	Id      *string
-	Status  CommandStatus
+	// ID of the command.
+	Id *string
+	// Current status of the command. `Queued` and `Running` mean the command has
+	// not completed yet, and `Cancelling` means a cancellation is in progress.
+	// `Finished`, `Error` and `Cancelled` are terminal: `Finished` means the
+	// command ran to completion, including when the code itself raised an error
+	// (reported in `results` with the `error` result type), while `Error` means the
+	// execution environment failed, for example because the driver or the context
+	// stopped.
+	Status CommandStatus
+	// Output of the command. It is populated only once the command has reached a
+	// terminal status, and its `resultType` tells which of its other fields are
+	// set.
 	Results *Results
 }
 
 // Request to retrieve the status of an execution context..
 type GetContextStatusRequest struct {
+	// ID of the cluster that hosts the execution context.
 	ClusterId *string
+	// ID of the execution context, as returned by __Create__.
 	ContextId *string
 }
 
 type GetContextStatusResponse struct {
-	Id     *string
+	// ID of the execution context.
+	Id *string
+	// Current status of the execution context. `Pending` means the context is still
+	// initializing and does not accept commands yet, `Running` means it is ready,
+	// and `Error` means it failed: running commands may not complete and new
+	// commands may be rejected, so create a new context.
 	Status ContextStatus
 }
 
 type Results struct {
-	// The cause of the error
+	// Details of an `error` result, usually the exception message or stack trace.
 	Cause *string
-	Data  json.RawMessage
+	// Output of a `text` result as a string, or the rows of a `table` result as an
+	// array of rows, each an array of column values in the order of `schema`.
+	Data json.RawMessage
 	// The image data in one of the following formats:
 	//
 	// 1. A Data URL with base64-encoded image data:
@@ -127,12 +161,19 @@ type Results struct {
 	// Hive type.
 	IsJsonSchema *bool
 	// internal field used by SDK
-	Pos        *int
+	Pos *int
+	// Type of the result, which determines which other fields are set: `text` puts
+	// the output in `data`, `table` fills `data`, `schema`, `truncated` and
+	// `isJsonSchema`, `image` and `images` fill `fileName` and `fileNames`
+	// respectively, and `error` fills `cause` and `summary`.
 	ResultType ResultType
-	// The table schema
+	// Columns of a `table` result, in the order of the values within each row of
+	// `data`. Each entry has a `name`, a `type` and a `metadata` key.
 	Schema []map[string]json.RawMessage
-	// The summary of the error
+	// Short description of an `error` result, such as the exception type and
+	// message, when available.
 	Summary *string
-	// true if partial results are returned.
+	// Whether a `table` result was cut off because the command output exceeded the
+	// row or byte limit.
 	Truncated *bool
 }

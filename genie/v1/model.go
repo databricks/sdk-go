@@ -801,10 +801,12 @@ type ExternalLink struct {
 	NextChunkInternalLink *string
 }
 
-// Genie AI Response.
+// One part of Genie's response to a message. Exactly one of the attachment
+// fields is set..
 type GenieAttachment struct {
 	Attachment isGenieAttachment_Attachment
-	// Attachment ID
+	// The ID of the attachment. The attachment query-result, execute-query,
+	// download, and visualization endpoints take this ID.
 	AttachmentId *string
 }
 
@@ -865,19 +867,26 @@ type GenieConversation struct {
 	SpaceId *string
 	// ID of the user who created the conversation
 	UserId *int64
-	// Timestamp when the message was created
+	// Time when the conversation was created, in milliseconds since the Unix epoch.
 	CreatedTimestamp *int64
-	// Timestamp when the message was last updated
+	// Time when the conversation was last updated, in milliseconds since the Unix
+	// epoch.
 	LastUpdatedTimestamp *int64
-	// Conversation title
+	// Title of the conversation. Genie sets it to the text of the first message,
+	// truncated to 255 characters.
 	Title *string
 	// Conversation ID
 	ConversationId *string
 }
 
+// A summary of a conversation, as returned when listing the conversations in a
+// space..
 type GenieConversationSummary struct {
-	ConversationId   *string
-	Title            *string
+	// The ID of the conversation.
+	ConversationId *string
+	// The title of the conversation.
+	Title *string
+	// Time when the conversation was created, in milliseconds since the Unix epoch.
 	CreatedTimestamp *int64
 	// Whether this is a classic chat or an agent-mode conversation. Allows callers
 	// to route message retrieval (chat vs. agent endpoint) without an extra lookup.
@@ -917,18 +926,19 @@ type GenieCreateMessageCommentRequest struct {
 }
 
 type GenieCreateSpaceRequest struct {
-	// Warehouse to associate with the new space
+	// ID of the SQL warehouse that runs the queries Genie generates for the space,
+	// as a 16-character hexadecimal string.
 	WarehouseId *string
-	// Parent folder path where the space will be registered
+	// Path of the workspace folder in which to create the space.
 	ParentPath *string
-	// The contents of the Genie Space in serialized string form. Use the [Get Genie
-	// Space](:method:genie/getspace) API to retrieve an example response, which
-	// includes the `serialized_space` field. This field provides the structure of
-	// the JSON string that represents the space's layout and components.
+	// Configuration of the new space as a JSON string. To copy an existing space,
+	// use the value that [Get Genie Space](:method:genie/getspace) returns when
+	// `include_serialized_space` is true. For the JSON format and its validation
+	// rules, see https://docs.databricks.com/aws/en/genie-agents/conversation-api.
 	SerializedSpace *string
-	// Optional title override
+	// Display name of the new space. A default name is assigned when omitted.
 	Title *string
-	// Optional description
+	// Description of the space, up to 16384 bytes.
 	Description *string
 }
 
@@ -1204,8 +1214,9 @@ type GenieGetQueryResultByAttachmentRequest struct {
 type GenieGetSpaceRequest struct {
 	// The ID associated with the Genie space
 	SpaceId *string
-	// Whether to include the serialized space export in the response. Requires at
-	// least CAN EDIT permission on the space.
+	// Whether to include the serialized space export in the response. When true,
+	// the response also carries the configuration `etag`. Requires at least CAN
+	// EDIT permission on the space.
 	IncludeSerializedSpace *bool
 }
 
@@ -1341,14 +1352,15 @@ type GenieMessage struct {
 	ConversationId *string
 	// ID of the user who created the message
 	UserId *int64
-	// Timestamp when the message was created
+	// Time when the message was created, in milliseconds since the Unix epoch.
 	CreatedTimestamp *int64
-	// Timestamp when the message was last updated
+	// Time when the message was last updated, in milliseconds since the Unix epoch.
 	LastUpdatedTimestamp *int64
 	Status               MessageStatus_MessageStatus
 	// User message content
 	Content *string
-	// AI-generated response to the message
+	// Genie's response to the message. Each attachment holds one part of the
+	// response, such as a text answer or a SQL query.
 	Attachments []GenieAttachment
 	// The result of SQL query if the message includes a query attachment.
 	// Deprecated. Use `query_result_metadata` in `GenieQueryAttachment` instead.
@@ -1388,8 +1400,9 @@ type GenieQueryAttachment struct {
 	Description *string
 	// Time when the user updated the query last
 	LastUpdatedTimestamp *int64
-	Parameters           []QueryAttachmentParameter
-	Id                   *string
+	// The parameters of the SQL query, when the query is parameterized.
+	Parameters []QueryAttachmentParameter
+	Id         *string
 	// Statement Execution API statement id. Use [Get status, manifest, and result
 	// first chunk](:method:statementexecution/getstatement) to get the full result
 	// data.
@@ -1420,6 +1433,10 @@ type GenieSendMessageFeedbackRequest struct {
 	Comment *string
 }
 
+// A Genie space that business users query in natural language. Its
+// configuration (data sources, instructions, sample questions and benchmarks)
+// travels as a JSON string in `serialized_space`; the other fields are metadata
+// about the space..
 type GenieSpace struct {
 	// Genie space ID
 	SpaceId *string
@@ -1427,15 +1444,15 @@ type GenieSpace struct {
 	Title *string
 	// Description of the Genie Space
 	Description *string
-	// Warehouse associated with the Genie Space
+	// ID of the SQL warehouse that runs the queries Genie generates for this space.
 	WarehouseId *string
-	// Parent folder path of the Genie Space
+	// Path of the workspace folder that contains the space.
 	ParentPath *string
-	// The contents of the Genie Space in serialized string form. This field is
-	// excluded in List Genie spaces responses. Use the [Get Genie
-	// Space](:method:genie/getspace) API to retrieve an example response, which
-	// includes the `serialized_space` field. This field provides the structure of
-	// the JSON string that represents the space's layout and components.
+	// Configuration of the space (data sources, instructions, sample questions and
+	// benchmarks) as a JSON string. [Get Genie Space](:method:genie/getspace)
+	// returns it only when `include_serialized_space` is true, and List Genie
+	// spaces never returns it. For the JSON format and its validation rules, see
+	// https://docs.databricks.com/aws/en/genie-agents/conversation-api.
 	SerializedSpace *string
 	// ETag for this space. Pass this value back in the update request to prevent
 	// overwriting concurrent changes.
@@ -1460,10 +1477,12 @@ type GenieStartConversationRequest struct {
 type GenieStartConversationResponse struct {
 	// Message ID
 	MessageId *string
-	Message   *GenieMessage
+	// The first message of the conversation, in its initial state.
+	Message *GenieMessage
 	// Conversation ID
 	ConversationId *string
-	Conversation   *GenieConversation
+	// The newly created conversation.
+	Conversation *GenieConversation
 }
 
 // Follow-up questions suggested by Genie.
@@ -1480,17 +1499,17 @@ type GenieTrashSpaceRequest struct {
 type GenieUpdateSpaceRequest struct {
 	// Genie space ID
 	SpaceId *string
-	// The contents of the Genie Space in serialized string form (full replacement).
-	// Use the [Get Genie Space](:method:genie/getspace) API to retrieve an example
-	// response, which includes the `serialized_space` field. This field provides
-	// the structure of the JSON string that represents the space's layout and
-	// components.
+	// New configuration of the space as a JSON string. It replaces the whole
+	// configuration; when omitted, the current configuration is kept. Start from
+	// the value that [Get Genie Space](:method:genie/getspace) returns when
+	// `include_serialized_space` is true. For the JSON format and its validation
+	// rules, see https://docs.databricks.com/aws/en/genie-agents/conversation-api.
 	SerializedSpace *string
-	// Optional title override
+	// New display name for the space. Cannot be empty or contain a slash.
 	Title *string
-	// Optional description
+	// New description for the space, up to 16384 bytes.
 	Description *string
-	// Optional warehouse override
+	// ID of the SQL warehouse that runs the queries Genie generates for the space.
 	WarehouseId *string
 	// ETag returned by a previous GET or UPDATE. When set, the update will fail if
 	// the space has been modified since. Omit to apply the update unconditionally.
@@ -1509,8 +1528,10 @@ type GenieVizAttachment struct {
 }
 
 type MessageError struct {
+	// A human-readable description of the error.
 	Error *string
-	Type  MessageError_Type
+	// The category of the error.
+	Type MessageError_Type
 }
 
 type MessageStatus struct {
@@ -1543,8 +1564,11 @@ type PolicyFunctionArgument_Arg_Constant struct {
 func (*PolicyFunctionArgument_Arg_Constant) isPolicyFunctionArgument_Arg() {}
 
 type QueryAttachmentParameter struct {
+	// The name of the parameter as referenced in the SQL query.
 	Keyword *string
-	Value   *string
+	// The value bound to the parameter.
+	Value *string
+	// The SQL type of the parameter value.
 	SqlType *string
 }
 
@@ -1614,6 +1638,10 @@ type Schema struct {
 	Columns     []ColumnInfo
 }
 
+// Statement Execution works with all SQL warehouse types, including
+// Lakehouse//RT. Statement Execution (Lakehouse//RT) is optimized for
+// Lakehouse//RT warehouses, with lower latency and higher concurrency, and
+// takes `warehouse_id` as a path parameter..
 type StatementResponse struct {
 	// The statement ID is returned upon successfully submitting a SQL statement,
 	// and is a required reference for all subsequent calls.

@@ -448,6 +448,7 @@ type ApiSourceConnectorOptions struct {
 }
 
 type ApplyEnvironmentRequest struct {
+	// The ID of the pipeline to apply the environment to.
 	PipelineId *string
 }
 
@@ -530,14 +531,17 @@ type ClonePipelineRequest struct {
 	Development *bool
 	// Whether Photon is enabled for this pipeline.
 	Photon *bool
-	// Pipeline product edition.
+	// Pipeline product edition: `CORE`, `PRO`, or `ADVANCED`. Serverless pipelines
+	// require `ADVANCED`.
 	Edition *string
-	// SDP Release Channel that specifies which version to use.
+	// Release channel that selects the pipeline runtime version: `CURRENT` (the
+	// default) or `PREVIEW`, which runs on the upcoming runtime release.
 	Channel *string
-	// A catalog in Unity Catalog to publish data from this pipeline to. If `target`
-	// is specified, tables in this pipeline are published to a `target` schema
-	// inside `catalog` (for example, `catalog`.`target`.`table`). If `target` is
-	// not specified, no data is published to Unity Catalog.
+	// A catalog in Unity Catalog to publish data from this pipeline to. Tables are
+	// published to the schema set in `schema` (or the legacy `target`) inside this
+	// catalog, for example `catalog`.`schema`.`table`; source code can also use
+	// fully qualified names to write to other schemas and catalogs. If `catalog` is
+	// not specified, the pipeline uses the legacy Hive metastore.
 	Catalog *string
 	// List of notification settings for this pipeline.
 	Notifications []Notifications
@@ -551,7 +555,8 @@ type ClonePipelineRequest struct {
 	Deployment *PipelineDeployment
 	// Restart window of this pipeline.
 	RestartWindow *RestartWindow
-	// Budget policy of this pipeline.
+	// ID (UUID) of the serverless budget policy applied to this pipeline. Only
+	// supported for serverless pipelines.
 	BudgetPolicyId *string
 	// A map of tags associated with the pipeline. These are forwarded to the
 	// cluster as cluster tags, and are therefore subject to the same limitations. A
@@ -573,6 +578,8 @@ type ClonePipelineRequest struct {
 	UsagePolicyId *string
 	// Serverless compute ID specified by the user for serverless pipelines.
 	ServerlessComputeId *string
+	// Test configuration for this pipeline. Used only by test-only updates.
+	Testing *PipelineTesting
 	// The type of clone to perform. Currently, only deep copies are supported
 	CloneMode CloneMode
 }
@@ -737,8 +744,12 @@ type CreatePipelineRequest struct {
 	// If false, deployment will fail if name conflicts with that of another
 	// pipeline.
 	AllowDuplicateNames *bool
-	DryRun              *bool
-	RunAs               *PipelinesJobRunAs
+	// If true, no pipeline is created. The response contains the settings that
+	// would be applied, with server defaults filled in, instead of a pipeline ID.
+	DryRun *bool
+	// The user or service principal that the pipeline runs as. If not specified,
+	// the pipeline runs as the user who created the pipeline.
+	RunAs *PipelinesJobRunAs
 	// Key/value map of default parameters to use for pipeline execution. Maximum
 	// total size: 10k characters (JSON format)
 	Parameters map[string]string
@@ -784,14 +795,17 @@ type CreatePipelineRequest struct {
 	Development *bool
 	// Whether Photon is enabled for this pipeline.
 	Photon *bool
-	// Pipeline product edition.
+	// Pipeline product edition: `CORE`, `PRO`, or `ADVANCED`. Serverless pipelines
+	// require `ADVANCED`.
 	Edition *string
-	// SDP Release Channel that specifies which version to use.
+	// Release channel that selects the pipeline runtime version: `CURRENT` (the
+	// default) or `PREVIEW`, which runs on the upcoming runtime release.
 	Channel *string
-	// A catalog in Unity Catalog to publish data from this pipeline to. If `target`
-	// is specified, tables in this pipeline are published to a `target` schema
-	// inside `catalog` (for example, `catalog`.`target`.`table`). If `target` is
-	// not specified, no data is published to Unity Catalog.
+	// A catalog in Unity Catalog to publish data from this pipeline to. Tables are
+	// published to the schema set in `schema` (or the legacy `target`) inside this
+	// catalog, for example `catalog`.`schema`.`table`; source code can also use
+	// fully qualified names to write to other schemas and catalogs. If `catalog` is
+	// not specified, the pipeline uses the legacy Hive metastore.
 	Catalog *string
 	// List of notification settings for this pipeline.
 	Notifications []Notifications
@@ -805,7 +819,8 @@ type CreatePipelineRequest struct {
 	Deployment *PipelineDeployment
 	// Restart window of this pipeline.
 	RestartWindow *RestartWindow
-	// Budget policy of this pipeline.
+	// ID (UUID) of the serverless budget policy applied to this pipeline. Only
+	// supported for serverless pipelines.
 	BudgetPolicyId *string
 	// A map of tags associated with the pipeline. These are forwarded to the
 	// cluster as cluster tags, and are therefore subject to the same limitations. A
@@ -827,6 +842,8 @@ type CreatePipelineRequest struct {
 	UsagePolicyId *string
 	// Serverless compute ID specified by the user for serverless pipelines.
 	ServerlessComputeId *string
+	// Test configuration for this pipeline. Used only by test-only updates.
+	Testing *PipelineTesting
 }
 
 type CreatePipelineResponse struct {
@@ -867,6 +884,7 @@ type DataStagingOptions struct {
 }
 
 type DeletePipelineRequest struct {
+	// The ID of the pipeline to delete.
 	PipelineId *string
 	// If true, deletion will proceed even if resource cleanup fails. By default,
 	// deletion will fail if resources cleanup is required but fails.
@@ -890,7 +908,8 @@ type EditPipelineRequest struct {
 	// If the settings were modified after that time, then the request will fail
 	// with a conflict.
 	ExpectedLastModified *int64
-	RunAs                *PipelinesJobRunAs
+	// The user or service principal that the pipeline runs as.
+	RunAs *PipelinesJobRunAs
 	// Key/value map of default parameters to use for pipeline execution. Maximum
 	// total size: 10k characters (JSON format)
 	Parameters map[string]string
@@ -936,14 +955,17 @@ type EditPipelineRequest struct {
 	Development *bool
 	// Whether Photon is enabled for this pipeline.
 	Photon *bool
-	// Pipeline product edition.
+	// Pipeline product edition: `CORE`, `PRO`, or `ADVANCED`. Serverless pipelines
+	// require `ADVANCED`.
 	Edition *string
-	// SDP Release Channel that specifies which version to use.
+	// Release channel that selects the pipeline runtime version: `CURRENT` (the
+	// default) or `PREVIEW`, which runs on the upcoming runtime release.
 	Channel *string
-	// A catalog in Unity Catalog to publish data from this pipeline to. If `target`
-	// is specified, tables in this pipeline are published to a `target` schema
-	// inside `catalog` (for example, `catalog`.`target`.`table`). If `target` is
-	// not specified, no data is published to Unity Catalog.
+	// A catalog in Unity Catalog to publish data from this pipeline to. Tables are
+	// published to the schema set in `schema` (or the legacy `target`) inside this
+	// catalog, for example `catalog`.`schema`.`table`; source code can also use
+	// fully qualified names to write to other schemas and catalogs. If `catalog` is
+	// not specified, the pipeline uses the legacy Hive metastore.
 	Catalog *string
 	// List of notification settings for this pipeline.
 	Notifications []Notifications
@@ -957,7 +979,8 @@ type EditPipelineRequest struct {
 	Deployment *PipelineDeployment
 	// Restart window of this pipeline.
 	RestartWindow *RestartWindow
-	// Budget policy of this pipeline.
+	// ID (UUID) of the serverless budget policy applied to this pipeline. Only
+	// supported for serverless pipelines.
 	BudgetPolicyId *string
 	// A map of tags associated with the pipeline. These are forwarded to the
 	// cluster as cluster tags, and are therefore subject to the same limitations. A
@@ -979,6 +1002,8 @@ type EditPipelineRequest struct {
 	UsagePolicyId *string
 	// Serverless compute ID specified by the user for serverless pipelines.
 	ServerlessComputeId *string
+	// Test configuration for this pipeline. Used only by test-only updates.
+	Testing *PipelineTesting
 }
 
 type EditPipelineResponse struct {
@@ -1068,6 +1093,7 @@ type Filters struct {
 }
 
 type GetPipelineRequest struct {
+	// The ID of the pipeline.
 	PipelineId *string
 }
 
@@ -1697,6 +1723,7 @@ type ListUpdatesRequest struct {
 }
 
 type ListUpdatesResponse struct {
+	// The updates for the pipeline, ordered with the newest update first.
 	Updates []UpdateInfo
 	// If present, then there are more results, and this a token to be used in a
 	// subsequent request to fetch the next page.
@@ -2170,14 +2197,17 @@ type PipelineSpec struct {
 	Development *bool
 	// Whether Photon is enabled for this pipeline.
 	Photon *bool
-	// Pipeline product edition.
+	// Pipeline product edition: `CORE`, `PRO`, or `ADVANCED`. Serverless pipelines
+	// require `ADVANCED`.
 	Edition *string
-	// SDP Release Channel that specifies which version to use.
+	// Release channel that selects the pipeline runtime version: `CURRENT` (the
+	// default) or `PREVIEW`, which runs on the upcoming runtime release.
 	Channel *string
-	// A catalog in Unity Catalog to publish data from this pipeline to. If `target`
-	// is specified, tables in this pipeline are published to a `target` schema
-	// inside `catalog` (for example, `catalog`.`target`.`table`). If `target` is
-	// not specified, no data is published to Unity Catalog.
+	// A catalog in Unity Catalog to publish data from this pipeline to. Tables are
+	// published to the schema set in `schema` (or the legacy `target`) inside this
+	// catalog, for example `catalog`.`schema`.`table`; source code can also use
+	// fully qualified names to write to other schemas and catalogs. If `catalog` is
+	// not specified, the pipeline uses the legacy Hive metastore.
 	Catalog *string
 	// List of notification settings for this pipeline.
 	Notifications []Notifications
@@ -2191,7 +2221,8 @@ type PipelineSpec struct {
 	Deployment *PipelineDeployment
 	// Restart window of this pipeline.
 	RestartWindow *RestartWindow
-	// Budget policy of this pipeline.
+	// ID (UUID) of the serverless budget policy applied to this pipeline. Only
+	// supported for serverless pipelines.
 	BudgetPolicyId *string
 	// A map of tags associated with the pipeline. These are forwarded to the
 	// cluster as cluster tags, and are therefore subject to the same limitations. A
@@ -2213,6 +2244,8 @@ type PipelineSpec struct {
 	UsagePolicyId *string
 	// Serverless compute ID specified by the user for serverless pipelines.
 	ServerlessComputeId *string
+	// Test configuration for this pipeline. Used only by test-only updates.
+	Testing *PipelineTesting
 }
 
 type PipelineState struct {
@@ -2221,7 +2254,8 @@ type PipelineState struct {
 type PipelineStateInfo struct {
 	// The unique identifier of the pipeline.
 	PipelineId *string
-	State      PipelineState_PipelineState
+	// The current state of the pipeline.
+	State PipelineState_PipelineState
 	// The unique identifier of the cluster running the pipeline.
 	ClusterId *string
 	// The user-friendly name of the pipeline.
@@ -2236,6 +2270,58 @@ type PipelineStateInfo struct {
 	RunAsUserName *string
 	// The health of a pipeline.
 	Health PipelineHealthStatus
+}
+
+// The packages that a pipeline's tests need in addition to the pipeline's
+// environment..
+type PipelineTestEnvironment struct {
+	// A list of files that declare the packages the tests need: a project folder, a
+	// requirements file, or a wheel, in the workspace or a UC volume. A project
+	// folder can take `--editable` and an extra, for example `--editable
+	// /Workspace/Users/someone@example.com/orders[test]`. Package names, such as
+	// `faker==33.0`, and URLs are rejected.
+	Dependencies []string
+}
+
+// Options for selecting the tests that a test-only update runs..
+type PipelineTestOptions struct {
+	// A list of test files or folders to run, as absolute workspace paths inside
+	// the pipeline's test sources. A path outside the test sources is rejected. To
+	// run one test, append `::` and the test name to a file path, for example
+	// `/Workspace/orders/tests/test_orders.py::test_backfill`. When empty, every
+	// test in the test sources runs.
+	TestSelection []string
+	// A list of arguments to pass to pytest, for example `["-m", "slow"]`. Only
+	// `-k` and `-m` are accepted, each followed by its value. Other arguments are
+	// rejected.
+	PytestArgs []string
+}
+
+// A workspace location that holds pipeline tests..
+type PipelineTestSource struct {
+	Source isPipelineTestSource_Source
+}
+
+type isPipelineTestSource_Source interface {
+	isPipelineTestSource_Source()
+}
+
+// PipelineTestSource_Source_Glob selects Glob for PipelineTestSource.Source.
+// An absolute workspace path to a test file, or to a folder followed by `/**`.
+type PipelineTestSource_Source_Glob struct {
+	Glob PathPattern
+}
+
+func (*PipelineTestSource_Source_Glob) isPipelineTestSource_Source() {}
+
+// Test configuration for a pipeline..
+type PipelineTesting struct {
+	// The workspace files and folders that hold the pipeline's tests. They must not
+	// overlap the pipeline's `libraries`.
+	Sources []PipelineTestSource
+	// Packages that only the tests need. Test-only updates install them in addition
+	// to the pipeline's `environment`. Other updates do not.
+	Environment *PipelineTestEnvironment
 }
 
 type PipelineTrigger struct {
@@ -2804,10 +2890,13 @@ type StackFrame struct {
 }
 
 type StartUpdateRequest struct {
+	// The ID of the pipeline to start an update for.
 	PipelineId *string
 	// If true, this update will reset all tables before running.
 	FullRefresh *bool
-	Cause       UpdateCause
+	// What triggered this update, as recorded in the update's `cause`. Defaults to
+	// `API_CALL`.
+	Cause UpdateCause
 	// A list of tables to update without fullRefresh. If both refresh_selection and
 	// full_refresh_selection are empty, this is a full graph update. Full Refresh
 	// on a table means that the states of the table will be reset before the
@@ -2829,6 +2918,16 @@ type StartUpdateRequest struct {
 	// If true, this update only validates the correctness of pipeline source code
 	// but does not materialize or publish any datasets.
 	ValidateOnly *bool
+	// If true, this is a test-only update: it runs the pipeline's tests and does
+	// not update the pipeline's datasets. A failing test does not stop the other
+	// tests. The update is `COMPLETED` if at least one test runs and no test fails
+	// or errors. Otherwise the update is `FAILED`, including when no tests are
+	// found. Cannot be combined with `validate_only`, `explore_only`, or
+	// `rewind_spec`.
+	TestOnly *bool
+	// Options for selecting the tests that this test-only update runs. Requires
+	// `test_only`. When absent, every test in the pipeline's test sources runs.
+	TestOptions *PipelineTestOptions
 	// Whether the update is started in the development mode. This is recommended
 	// for interactive development and testing. Reuses compute for faster iteration
 	// and disables automatic retries. Not recommended for production.
@@ -2845,10 +2944,12 @@ type StartUpdateRequest struct {
 }
 
 type StartUpdateResponse struct {
+	// The ID of the update that was started.
 	UpdateId *string
 }
 
 type StopPipelineRequest struct {
+	// The ID of the pipeline to stop.
 	PipelineId *string
 }
 
@@ -2998,11 +3099,16 @@ type UpdateInfo struct {
 	Mode UpdateMode
 	// Key/value map of parameters used to initiate the update
 	Parameters map[string]string
+	// If true, this update is a test-only update. Absent for other updates.
+	TestOnly *bool
 }
 
 type UpdateStateInfo struct {
-	UpdateId     *string
-	State        UpdateState
+	// The ID of the update.
+	UpdateId *string
+	// The state of the update.
+	State UpdateState
+	// The time when the update was created, in ISO 8601 format.
 	CreationTime *string
 }
 

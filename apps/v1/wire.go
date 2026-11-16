@@ -383,18 +383,21 @@ func (v *App) UnmarshalJSON(data []byte) error {
 }
 
 type appDeploymentWire struct {
-	DeploymentId        *string                     `json:"deployment_id,omitempty"`
-	SourceCodePath      *string                     `json:"source_code_path,omitempty"`
-	GitSource           *gitSourceWire              `json:"git_source,omitempty"`
-	Mode                AppDeployment_Mode          `json:"mode,omitempty"`
-	DeploymentArtifacts *appDeploymentArtifactsWire `json:"deployment_artifacts,omitempty"`
-	Status              *appDeploymentStatusWire    `json:"status,omitempty"`
-	CreateTime          *types.Time                 `json:"create_time,omitempty"`
-	Creator             *string                     `json:"creator,omitempty"`
-	UpdateTime          *types.Time                 `json:"update_time,omitempty"`
-	Command             []string                    `json:"command,omitempty"`
-	EnvVars             []envVarWire                `json:"env_vars,omitempty"`
-	HealthCheck         *appHealthCheckWire         `json:"health_check,omitempty"`
+	DeploymentId                 *string                     `json:"deployment_id,omitempty"`
+	SourceCodePath               *string                     `json:"source_code_path,omitempty"`
+	GitSource                    *gitSourceWire              `json:"git_source,omitempty"`
+	Mode                         AppDeployment_Mode          `json:"mode,omitempty"`
+	DeploymentArtifacts          *appDeploymentArtifactsWire `json:"deployment_artifacts,omitempty"`
+	Status                       *appDeploymentStatusWire    `json:"status,omitempty"`
+	CreateTime                   *types.Time                 `json:"create_time,omitempty"`
+	Creator                      *string                     `json:"creator,omitempty"`
+	UpdateTime                   *types.Time                 `json:"update_time,omitempty"`
+	Command                      []string                    `json:"command,omitempty"`
+	EnvVars                      []envVarWire                `json:"env_vars,omitempty"`
+	HealthCheck                  *appHealthCheckWire         `json:"health_check,omitempty"`
+	ScanStatus                   AppDeploymentScanStatus     `json:"scan_status,omitempty"`
+	ScanOmittedFindingsCount     *int                        `json:"scan_omitted_findings_count,omitempty"`
+	ScanOmittedCountIsLowerBound *bool                       `json:"scan_omitted_count_is_lower_bound,omitempty"`
 }
 
 func appDeploymentToWire(v *AppDeployment) (*appDeploymentWire, error) {
@@ -422,18 +425,21 @@ func appDeploymentToWire(v *AppDeployment) (*appDeploymentWire, error) {
 		return nil, fmt.Errorf("%s: %w", "AppDeployment.HealthCheck", err)
 	}
 	return &appDeploymentWire{
-		DeploymentId:        v.DeploymentId,
-		SourceCodePath:      v.SourceCodePath,
-		GitSource:           gitSourceWireValue,
-		Mode:                v.Mode,
-		DeploymentArtifacts: deploymentArtifactsWireValue,
-		Status:              statusWireValue,
-		CreateTime:          v.CreateTime,
-		Creator:             v.Creator,
-		UpdateTime:          v.UpdateTime,
-		Command:             v.Command,
-		EnvVars:             envVarsWireValue,
-		HealthCheck:         healthCheckWireValue,
+		DeploymentId:                 v.DeploymentId,
+		SourceCodePath:               v.SourceCodePath,
+		GitSource:                    gitSourceWireValue,
+		Mode:                         v.Mode,
+		DeploymentArtifacts:          deploymentArtifactsWireValue,
+		Status:                       statusWireValue,
+		CreateTime:                   v.CreateTime,
+		Creator:                      v.Creator,
+		UpdateTime:                   v.UpdateTime,
+		Command:                      v.Command,
+		EnvVars:                      envVarsWireValue,
+		HealthCheck:                  healthCheckWireValue,
+		ScanStatus:                   v.ScanStatus,
+		ScanOmittedFindingsCount:     v.ScanOmittedFindingsCount,
+		ScanOmittedCountIsLowerBound: v.ScanOmittedCountIsLowerBound,
 	}, nil
 }
 
@@ -462,18 +468,21 @@ func appDeploymentFromWire(w *appDeploymentWire) (*AppDeployment, error) {
 		return nil, fmt.Errorf("%s: %w", "AppDeployment.HealthCheck", err)
 	}
 	return &AppDeployment{
-		DeploymentId:        w.DeploymentId,
-		SourceCodePath:      w.SourceCodePath,
-		GitSource:           gitSourcePublicValue,
-		Mode:                w.Mode,
-		DeploymentArtifacts: deploymentArtifactsPublicValue,
-		Status:              statusPublicValue,
-		CreateTime:          w.CreateTime,
-		Creator:             w.Creator,
-		UpdateTime:          w.UpdateTime,
-		Command:             w.Command,
-		EnvVars:             envVarsPublicValue,
-		HealthCheck:         healthCheckPublicValue,
+		DeploymentId:                 w.DeploymentId,
+		SourceCodePath:               w.SourceCodePath,
+		GitSource:                    gitSourcePublicValue,
+		Mode:                         w.Mode,
+		DeploymentArtifacts:          deploymentArtifactsPublicValue,
+		Status:                       statusPublicValue,
+		CreateTime:                   w.CreateTime,
+		Creator:                      w.Creator,
+		UpdateTime:                   w.UpdateTime,
+		Command:                      w.Command,
+		EnvVars:                      envVarsPublicValue,
+		HealthCheck:                  healthCheckPublicValue,
+		ScanStatus:                   w.ScanStatus,
+		ScanOmittedFindingsCount:     w.ScanOmittedFindingsCount,
+		ScanOmittedCountIsLowerBound: w.ScanOmittedCountIsLowerBound,
 	}, nil
 }
 
@@ -540,6 +549,76 @@ func (v *AppDeploymentArtifacts) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := appDeploymentArtifactsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type appDeploymentScanFindingWire struct {
+	Name        *string                `json:"name,omitempty"`
+	Status      ScanFindingStatus      `json:"status,omitempty"`
+	FindingId   *string                `json:"finding_id,omitempty"`
+	RuleId      *string                `json:"rule_id,omitempty"`
+	FilePath    *string                `json:"file_path,omitempty"`
+	Line        *int                   `json:"line,omitempty"`
+	Message     *string                `json:"message,omitempty"`
+	Severity    ScanFindingSeverity    `json:"severity,omitempty"`
+	ScannerType ScanFindingScannerType `json:"scanner_type,omitempty"`
+}
+
+func appDeploymentScanFindingToWire(v *AppDeploymentScanFinding) (*appDeploymentScanFindingWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &appDeploymentScanFindingWire{
+		Name:        v.Name,
+		Status:      v.Status,
+		FindingId:   v.FindingId,
+		RuleId:      v.RuleId,
+		FilePath:    v.FilePath,
+		Line:        v.Line,
+		Message:     v.Message,
+		Severity:    v.Severity,
+		ScannerType: v.ScannerType,
+	}, nil
+}
+
+func appDeploymentScanFindingFromWire(w *appDeploymentScanFindingWire) (*AppDeploymentScanFinding, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &AppDeploymentScanFinding{
+		Name:        w.Name,
+		Status:      w.Status,
+		FindingId:   w.FindingId,
+		RuleId:      w.RuleId,
+		FilePath:    w.FilePath,
+		Line:        w.Line,
+		Message:     w.Message,
+		Severity:    w.Severity,
+		ScannerType: w.ScannerType,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v AppDeploymentScanFinding) MarshalJSON() ([]byte, error) {
+	w, err := appDeploymentScanFindingToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *AppDeploymentScanFinding) UnmarshalJSON(data []byte) error {
+	var w appDeploymentScanFindingWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := appDeploymentScanFindingFromWire(&w)
 	if err != nil {
 		return err
 	}
@@ -2919,6 +2998,52 @@ func (v *GetAppDeploymentRequest) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type getAppDeploymentScanFindingRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getAppDeploymentScanFindingRequestToWire(v *GetAppDeploymentScanFindingRequest) (*getAppDeploymentScanFindingRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getAppDeploymentScanFindingRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getAppDeploymentScanFindingRequestFromWire(w *getAppDeploymentScanFindingRequestWire) (*GetAppDeploymentScanFindingRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetAppDeploymentScanFindingRequest{
+		Name: w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetAppDeploymentScanFindingRequest) MarshalJSON() ([]byte, error) {
+	w, err := getAppDeploymentScanFindingRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetAppDeploymentScanFindingRequest) UnmarshalJSON(data []byte) error {
+	var w getAppDeploymentScanFindingRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getAppDeploymentScanFindingRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getAppRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -3314,6 +3439,115 @@ func (v *GitSource) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := gitSourceFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type listAppDeploymentScanFindingsRequestWire struct {
+	Parent    *string `json:"parent,omitempty"`
+	PageSize  *int    `json:"page_size,omitempty"`
+	PageToken *string `json:"page_token,omitempty"`
+}
+
+func listAppDeploymentScanFindingsRequestToWire(v *ListAppDeploymentScanFindingsRequest) (*listAppDeploymentScanFindingsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listAppDeploymentScanFindingsRequestWire{
+		Parent:    v.Parent,
+		PageSize:  v.PageSize,
+		PageToken: v.PageToken,
+	}, nil
+}
+
+func listAppDeploymentScanFindingsRequestFromWire(w *listAppDeploymentScanFindingsRequestWire) (*ListAppDeploymentScanFindingsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListAppDeploymentScanFindingsRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListAppDeploymentScanFindingsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listAppDeploymentScanFindingsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListAppDeploymentScanFindingsRequest) UnmarshalJSON(data []byte) error {
+	var w listAppDeploymentScanFindingsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listAppDeploymentScanFindingsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type listAppDeploymentScanFindingsResponseWire struct {
+	AppDeploymentScanFindings []appDeploymentScanFindingWire `json:"app_deployment_scan_findings,omitempty"`
+	NextPageToken             *string                        `json:"next_page_token,omitempty"`
+}
+
+func listAppDeploymentScanFindingsResponseToWire(v *ListAppDeploymentScanFindingsResponse) (*listAppDeploymentScanFindingsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	appDeploymentScanFindingsWireValue, err := convertSlice(v.AppDeploymentScanFindings, appDeploymentScanFindingToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAppDeploymentScanFindingsResponse.AppDeploymentScanFindings", err)
+	}
+	return &listAppDeploymentScanFindingsResponseWire{
+		AppDeploymentScanFindings: appDeploymentScanFindingsWireValue,
+		NextPageToken:             v.NextPageToken,
+	}, nil
+}
+
+func listAppDeploymentScanFindingsResponseFromWire(w *listAppDeploymentScanFindingsResponseWire) (*ListAppDeploymentScanFindingsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	appDeploymentScanFindingsPublicValue, err := convertSlice(w.AppDeploymentScanFindings, appDeploymentScanFindingFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListAppDeploymentScanFindingsResponse.AppDeploymentScanFindings", err)
+	}
+	return &ListAppDeploymentScanFindingsResponse{
+		AppDeploymentScanFindings: appDeploymentScanFindingsPublicValue,
+		NextPageToken:             w.NextPageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListAppDeploymentScanFindingsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listAppDeploymentScanFindingsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListAppDeploymentScanFindingsResponse) UnmarshalJSON(data []byte) error {
+	var w listAppDeploymentScanFindingsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listAppDeploymentScanFindingsResponseFromWire(&w)
 	if err != nil {
 		return err
 	}
@@ -4351,6 +4585,63 @@ func (v *UnityCatalog) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := unityCatalogFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type updateAppDeploymentScanFindingRequestWire struct {
+	AppDeploymentScanFinding *appDeploymentScanFindingWire              `json:"app_deployment_scan_finding,omitempty"`
+	UpdateMask               *types.FieldMask[AppDeploymentScanFinding] `json:"update_mask,omitempty"`
+}
+
+func updateAppDeploymentScanFindingRequestToWire(v *UpdateAppDeploymentScanFindingRequest) (*updateAppDeploymentScanFindingRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	appDeploymentScanFindingWireValue, err := appDeploymentScanFindingToWire(v.AppDeploymentScanFinding)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAppDeploymentScanFindingRequest.AppDeploymentScanFinding", err)
+	}
+	return &updateAppDeploymentScanFindingRequestWire{
+		AppDeploymentScanFinding: appDeploymentScanFindingWireValue,
+		UpdateMask:               v.UpdateMask,
+	}, nil
+}
+
+func updateAppDeploymentScanFindingRequestFromWire(w *updateAppDeploymentScanFindingRequestWire) (*UpdateAppDeploymentScanFindingRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	appDeploymentScanFindingPublicValue, err := appDeploymentScanFindingFromWire(w.AppDeploymentScanFinding)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateAppDeploymentScanFindingRequest.AppDeploymentScanFinding", err)
+	}
+	return &UpdateAppDeploymentScanFindingRequest{
+		AppDeploymentScanFinding: appDeploymentScanFindingPublicValue,
+		UpdateMask:               w.UpdateMask,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateAppDeploymentScanFindingRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateAppDeploymentScanFindingRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateAppDeploymentScanFindingRequest) UnmarshalJSON(data []byte) error {
+	var w updateAppDeploymentScanFindingRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateAppDeploymentScanFindingRequestFromWire(&w)
 	if err != nil {
 		return err
 	}

@@ -216,11 +216,9 @@ type CreateIndexRequest struct {
 	// desired configuration; `index.name` is server-assigned from `parent` and
 	// `index_id`.
 	Index *Index
-	// The user-supplied Unity Catalog table name for the Index, per AIP-133. The
-	// server composes the full `Index.name` as `{parent}/indexes/{index_id}`.
-	// AIP-133 does not list `index_id` as a fields-may-be-required entry, so we
-	// annotate it OPTIONAL on the wire; the server still rejects empty values with
-	// INVALID_PARAMETER_VALUE.
+	// Three-level Unity Catalog table name for the new index, in the form
+	// `catalog.schema.name`. The server composes the full `Index.name` as
+	// `{parent}/indexes/{index_id}` and rejects an empty value.
 	IndexId *string
 }
 
@@ -258,47 +256,55 @@ type DeleteIndexRequest struct {
 // Specification for a Delta Sync index — the index is kept in sync with a
 // source Delta table..
 type DeltaSyncIndexSpec struct {
-	// The full name of the source Delta table.
+	// Three-level Unity Catalog name of the source Delta table, in the form
+	// `catalog.schema.table`.
 	SourceTable *string
-	// The columns that contain the embedding source.
+	// Columns whose text Databricks embeds during sync, using the model endpoint
+	// named on each column. Set either this field or `embedding_vector_columns`,
+	// not both.
 	EmbeddingSourceColumns []EmbeddingSourceColumn
-	// The columns that contain the embedding vectors.
+	// Columns of the source table that already hold precomputed embedding vectors.
+	// Set either this field or `embedding_source_columns`, not both.
 	EmbeddingVectorColumns []EmbeddingVectorColumn
-	// [Optional] Name of the Delta table to sync the index contents and computed
-	// embeddings to.
+	// Three-level name of a Delta table to write the synced rows and computed
+	// embeddings to. It applies only when embeddings are computed from
+	// `embedding_source_columns`, and the table must not already exist.
 	EmbeddingWritebackTable *string
-	// [Optional] Select the columns to sync with the index. If left blank, all
-	// columns from the source table are synced. The primary key column and
-	// embedding source or vector column are always synced.
+	// Columns of the source table to include in the index. When empty, all columns
+	// are synced. The primary key and the embedding source or vector column are
+	// always synced. Only synced columns can be returned in query results or used
+	// in filters.
 	ColumnsToSync []string
 	// The ID of the pipeline that is used to sync the index.
 	PipelineId *string
-	// Pipeline execution mode. Required on create — the backend rejects an unset
-	// value. Storage Optimized endpoints accept only `TRIGGERED`; Standard
-	// endpoints accept both. No explicit `stage` — a REQUIRED field staged below
-	// its service would be dropped from combined specs while remaining in
-	// `required`, tripping the OpenAPI required-vs-properties consistency check.
-	// The field inherits the service's launch stage.
+	// Sync mode of the pipeline that keeps the index up to date. `TRIGGERED` syncs
+	// at creation and then each time SyncIndex is called; `CONTINUOUS` processes
+	// source changes as they arrive. Storage Optimized endpoints accept only
+	// `TRIGGERED`, and an unset value is rejected.
 	PipelineType PipelineType
 }
 
 // Specification for a Direct Access index — the customer manages vectors and
 // metadata directly..
 type DirectAccessIndexSpec struct {
-	// The columns that contain the embedding vectors.
+	// Columns that hold precomputed embedding vectors. A single vector column is
+	// supported, and it cannot be the primary key.
 	EmbeddingVectorColumns []EmbeddingVectorColumn
-	// The schema of the index in JSON format. Supported types are `integer`,
-	// `long`, `float`, `double`, `boolean`, `string`, `date`, `timestamp`.
-	// Supported types for vector columns: `array<float>`, `array<double>`.
+	// The schema of the index in JSON format, mapping each column name to its type.
+	// Supported types are `integer`, `long`, `float`, `double`, `boolean`,
+	// `string`, `date`, `timestamp`. Supported types for vector columns:
+	// `array<float>`, `array<double>`. The schema must include the primary key
+	// column and the embedding vector column.
 	SchemaJson *string
-	// The columns that contain the embedding source.
+	// Columns that contain the text to embed, each with the model endpoint that
+	// computes its embeddings.
 	EmbeddingSourceColumns []EmbeddingSourceColumn
 }
 
 // Name of an embedding source column and its associated embedding model
 // endpoint..
 type EmbeddingSourceColumn struct {
-	// Name of the source column.
+	// Name of the column whose text is embedded.
 	Name *string
 	// Name of the embedding model endpoint, used by default for both ingestion and
 	// querying.
@@ -310,9 +316,9 @@ type EmbeddingSourceColumn struct {
 
 // Name and dimension of an embedding vector column..
 type EmbeddingVectorColumn struct {
-	// Name of the column.
+	// Name of the column that holds the precomputed embedding vectors.
 	Name *string
-	// Dimension of the embedding vector.
+	// Number of elements in each embedding vector. It must be positive.
 	EmbeddingDimension *int
 }
 
@@ -461,9 +467,14 @@ type Index struct {
 	// Name of the endpoint associated with the index. Ignored on create — the
 	// endpoint is taken from `CreateIndexRequest.parent`; populated only on output.
 	Endpoint *string
-	// Primary key of the index. Set on create and immutable thereafter.
+	// Name of the column that uniquely identifies each row. It must exist in the
+	// source table (Delta Sync) or in `schema_json` (Direct Access) and cannot be
+	// the embedding source or vector column. Set on create and immutable
+	// thereafter.
 	PrimaryKey *string
-	// Type of index. Required on create and immutable thereafter.
+	// Type of index. A `DELTA_SYNC` index is kept in sync with a source Delta
+	// table; a `DIRECT_ACCESS` index holds rows that you write through UpsertData
+	// and RemoveData. Set on create and immutable thereafter.
 	IndexType IndexType
 	// Configuration of the index, dependent on `index_type`. Set on create and
 	// immutable thereafter.
@@ -472,7 +483,9 @@ type Index struct {
 	Status *IndexStatus
 	// Creator of the index.
 	Creator *string
-	// The subtype of the index. Set on create and immutable thereafter.
+	// Subtype of the index. Use `HYBRID` for vector and hybrid search, or
+	// `FULL_TEXT` for keyword-only search without embeddings; `VECTOR` is not a
+	// supported create value. Set on create and immutable thereafter.
 	IndexSubtype IndexSubtype
 }
 
@@ -504,7 +517,8 @@ type IndexStatus struct {
 	Message *string
 	// Number of rows indexed.
 	IndexedRowCount *int64
-	// Whether the index is ready for search.
+	// Whether the index is ready to serve queries. After CreateIndex, poll GetIndex
+	// until this is true; `message` describes the current state in the meantime.
 	Ready *bool
 	// Index API URL used to perform operations on the index.
 	IndexUrl *string
@@ -539,10 +553,8 @@ type ListIndexesRequest struct {
 	// The Endpoint that owns this collection of indexes. Format:
 	// `workspaces/{workspace_id}/endpoints/{endpoint_id}`
 	Parent *string
-	// Best-effort upper bound on the number of results to return. Honored as an
-	// upper bound by the shim: `page_size` only narrows the legacy backend's
-	// response, never widens it, so the practical cap is `min(page_size,
-	// legacy_fixed_page_size)`.
+	// Maximum number of indexes to return. When unset, every index on the endpoint
+	// is returned.
 	PageSize *int
 	// Page token from a previous response. If not provided, returns the first page.
 	PageToken *string
@@ -569,23 +581,34 @@ type QueryIndexRequest struct {
 	// Full resource name of the index to query. Format:
 	// `workspaces/{workspace_id}/endpoints/{endpoint_id}/indexes/{index_id}`
 	Name *string
-	// Column names to include in each result row.
+	// Columns to include in each result row. Only columns that are part of the
+	// index can be returned.
 	Columns []string
 	// Query vector. Required for Direct Access indexes and Delta Sync indexes with
 	// self-managed vectors.
 	QueryVector []float32
 	// Query text. Required for Delta Sync indexes that compute embeddings from a
-	// model endpoint.
+	// model endpoint, and for `HYBRID` and `FULL_TEXT` queries.
 	QueryText *string
-	// JSON string describing query filters (e.g. `{"id >": 5}`).
+	// JSON object of filters to apply, serialized as a string. Each key is a column
+	// name with an optional operator suffix such as `<`, `>=`, `NOT`, or `OR`, and
+	// each value is the value to compare against. Only columns that are part of the
+	// index can be filtered. See
+	// https://docs.databricks.com/aws/en/ai-search/query-ai-search#filters for the
+	// supported operators.
 	FiltersJson *string
-	// Score threshold for the approximate nearest-neighbor search. Defaults to 0.0.
+	// Score threshold for the approximate nearest-neighbor search; results that
+	// score below it are not returned. Defaults to 0.0.
 	ScoreThreshold *float32
-	// Query type: `ANN`, `HYBRID`, or `FULL_TEXT`. Defaults to `ANN`.
+	// Query type: `ANN` for vector similarity search, `HYBRID` for combined vector
+	// and keyword search, or `FULL_TEXT` for keyword search without embeddings.
+	// Defaults to `ANN`.
 	QueryType *string
 	// Columns whose values are sent to the reranker.
 	ColumnsToRerank []string
-	// If set, results are reranked before being returned.
+	// If set, results are reranked before being returned. See
+	// https://docs.databricks.com/aws/en/ai-search/query-ai-search#rerank for
+	// details.
 	Reranker *RerankerConfig
 	// Text columns to search for `query_text`. When empty, all text columns are
 	// searched.
@@ -595,8 +618,8 @@ type QueryIndexRequest struct {
 	SortColumns []string
 	// Facets to compute over the matched results (e.g. `"category TOP 5"`).
 	Facets []string
-	// Maximum number of results to return (the legacy `num_results`). Defaults to
-	// 10. Prefer `page_size`; when both are set, `page_size` takes precedence.
+	// Maximum number of results to return. Defaults to 10. It corresponds to
+	// `num_results` in the Vector Search API.
 	MaxResults *int
 }
 
@@ -624,7 +647,9 @@ type RemoveDataRequest struct {
 
 // Response for RemoveData..
 type RemoveDataResponse struct {
-	// Overall status of the delete.
+	// Overall status of the delete: `SUCCESS` when every row was removed,
+	// `PARTIAL_SUCCESS` when some rows failed (see `result.failed_primary_keys`),
+	// or `FAILURE` when the operation failed.
 	Status DataModificationStatus
 	// Per-row outcome of the delete.
 	Result *DataModificationResult
@@ -675,7 +700,7 @@ type ScanIndexRequest struct {
 	// Full resource name of the index to scan. Format:
 	// `workspaces/{workspace_id}/endpoints/{endpoint_id}/indexes/{index_id}`
 	Name *string
-	// Maximum number of rows to return in this page.
+	// Maximum number of rows to return in this page. Defaults to 10.
 	PageSize *int
 	// Page token from a previous response; if unset, scanning starts from the
 	// beginning.
@@ -685,7 +710,8 @@ type ScanIndexRequest struct {
 // Response for ScanIndex carrying a page of rows and an optional continuation
 // token..
 type ScanIndexResponse struct {
-	// The rows in this page, each a struct of column name to value.
+	// Rows in this page, ordered by primary key. Each row is a JSON object that
+	// maps column names to values.
 	Data []map[string]json.RawMessage
 	// Token for the next page; empty when the scan is exhausted.
 	NextPageToken *string
@@ -727,13 +753,18 @@ type UpsertDataRequest struct {
 	// Full resource name of the index. Must be a Direct Access index. Format:
 	// `workspaces/{workspace_id}/endpoints/{endpoint_id}/indexes/{index_id}`
 	Name *string
-	// JSON document describing the rows to upsert.
+	// JSON array of the rows to insert or update, serialized as a string. Each
+	// element is an object that maps column names to values and must include the
+	// primary key column; vector columns are given as arrays of numbers. A row
+	// whose primary key already exists is overwritten. The array must not be empty.
 	InputsJson *string
 }
 
 // Response for UpsertData..
 type UpsertDataResponse struct {
-	// Overall status of the upsert.
+	// Overall status of the upsert: `SUCCESS` when every row was written,
+	// `PARTIAL_SUCCESS` when some rows failed (see `result.failed_primary_keys`),
+	// or `FAILURE` when the operation failed.
 	Status DataModificationStatus
 	// Per-row outcome of the upsert.
 	Result *DataModificationResult

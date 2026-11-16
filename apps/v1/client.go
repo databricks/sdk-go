@@ -821,7 +821,7 @@ func (o *CreateSpaceOperation) Wait(ctx context.Context, opts ...lro.Option) (*S
 	return result, nil
 }
 
-// Deletes an app.
+// Deletes an app and the dedicated service principal created for it.
 func (c *internalClient) DeleteApp(ctx context.Context, req DeleteAppRequest, opts ...call.Option) (*App, error) {
 
 	headers := http.Header{}
@@ -1286,6 +1286,68 @@ func (c *internalClient) GetAppDeployment(ctx context.Context, req GetAppDeploym
 	return resp, nil
 }
 
+// Retrieves a single security scan finding for an app deployment.
+func (c *internalClient) GetAppDeploymentScanFinding(ctx context.Context, req GetAppDeploymentScanFindingRequest, opts ...call.Option) (*AppDeploymentScanFinding, error) {
+
+	headers := http.Header{}
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/")
+	if req.Name == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *AppDeploymentScanFinding
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp appDeploymentScanFindingWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = appDeploymentScanFindingFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Gets the status of an app update.
 func (c *internalClient) GetAppUpdate(ctx context.Context, req GetAppUpdateRequest, opts ...call.Option) (*AppUpdate, error) {
 
@@ -1537,6 +1599,120 @@ func (c *internalClient) getSpaceOperation(ctx context.Context, req GetOperation
 		return nil, err
 	}
 	return resp, nil
+}
+
+// Lists the security scan findings for an app deployment.
+func (c *internalClient) ListAppDeploymentScanFindings(ctx context.Context, req ListAppDeploymentScanFindingsRequest, opts ...call.Option) (*ListAppDeploymentScanFindingsResponse, error) {
+	wireReq, err := listAppDeploymentScanFindingsRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/")
+	if req.Parent == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
+	}
+	pb.singleSegment(*req.Parent)
+	pb.literal("/scanFindings")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "page_size", wireReq.PageSize); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "page_token", wireReq.PageToken); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *ListAppDeploymentScanFindingsResponse
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp listAppDeploymentScanFindingsResponseWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = listAppDeploymentScanFindingsResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// ListAppDeploymentScanFindingsIter returns an iterator that iterates
+// over the results of ListAppDeploymentScanFindings.
+//
+// For example:
+//
+//	for item, err := range c.ListAppDeploymentScanFindingsIter(ctx, ListAppDeploymentScanFindingsRequest{}) {
+//	  if err != nil {
+//	    return err
+//	  }
+//	  fmt.Println(item)
+//	}
+//
+// Options opts are passed to each ListAppDeploymentScanFindings call
+// made by the iterator under the hood.
+//
+// Callers who need custom pagination logic should use
+// ListAppDeploymentScanFindings directly.
+func (c *internalClient) ListAppDeploymentScanFindingsIter(ctx context.Context, req ListAppDeploymentScanFindingsRequest, opts ...call.Option) iter.Seq2[*AppDeploymentScanFinding, error] {
+	return func(yield func(*AppDeploymentScanFinding, error) bool) {
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
+		for {
+			resp, err := c.ListAppDeploymentScanFindings(ctx, pageReq, opts...)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			for i := range resp.AppDeploymentScanFindings {
+				if !yield(&resp.AppDeploymentScanFindings[i], nil) {
+					return
+				}
+			}
+			if resp.NextPageToken == nil || *resp.NextPageToken == "" {
+				return
+			}
+			pageReq.PageToken = resp.NextPageToken
+		}
+	}
 }
 
 // Lists all app deployments for the app with the supplied name.
@@ -2373,6 +2549,82 @@ func (c *internalClient) UpdateApp(ctx context.Context, req UpdateAppRequest, op
 			return err
 		}
 		resp, err = appFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Updates the triage status (resolved / ignored / in-progress) of a single scan
+// finding.
+func (c *internalClient) UpdateAppDeploymentScanFinding(ctx context.Context, req UpdateAppDeploymentScanFindingRequest, opts ...call.Option) (*AppDeploymentScanFinding, error) {
+	wireReq, err := updateAppDeploymentScanFindingRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq.AppDeploymentScanFinding)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/")
+	if req.AppDeploymentScanFinding == nil || req.AppDeploymentScanFinding.Name == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.AppDeploymentScanFinding.Name)
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "update_mask", wireReq.UpdateMask); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *AppDeploymentScanFinding
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "PATCH",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp appDeploymentScanFindingWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = appDeploymentScanFindingFromWire(&wireResp)
 		if err != nil {
 			return err
 		}

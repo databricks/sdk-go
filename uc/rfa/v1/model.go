@@ -76,6 +76,10 @@ const (
 	SpecialDestination_SpecialDestinationRegisteredModelOwner  SpecialDestination = "SPECIAL_DESTINATION_REGISTERED_MODEL_OWNER"
 )
 
+// The notification destinations that receive access requests for a Unity
+// Catalog securable. A securable without destinations of its own uses its
+// owner's email when default owner email destinations are on; otherwise it
+// inherits the destinations of its nearest parent that has any..
 type AccessRequestDestinations struct {
 	// The access request destinations for the securable.
 	Destinations []NotificationDestination `fieldmask:"destinations"`
@@ -90,11 +94,9 @@ type AccessRequestDestinations struct {
 	// same value as securable (if destination is set directly on the securable) or
 	// the nearest parent securable with destinations set.
 	DestinationSourceSecurable *Securable `fieldmask:"destination_source_securable"`
-	// The type of the securable. Redundant with the type in the securable object,
-	// but necessary for Terraform integration
+	// The type of the securable, repeated from **securable** as a plain string.
 	SecurableType *string `fieldmask:"securable_type"`
-	// The full name of the securable. Redundant with the name in the securable
-	// object, but necessary for Terraform integration
+	// The full name of the securable, repeated from **securable**.
 	FullName *string `fieldmask:"full_name"`
 }
 
@@ -107,6 +109,8 @@ type BatchCreateAccessRequestsRequest struct {
 	Requests []CreateAccessRequest
 }
 
+// The access request destinations resolved for each principal and securable in
+// the batch..
 type BatchCreateAccessRequestsResponse struct {
 	// The access request destinations for each securable object the principal
 	// requested.
@@ -140,9 +144,11 @@ type CreateAccessRequestResponse struct {
 }
 
 type GetAccessRequestDestinationsRequest struct {
-	// The type of the securable.
+	// The type of the securable. Matching is case-insensitive, and hyphens may
+	// replace underscores in multi-word types.
 	SecurableType *string
-	// The full name of the securable.
+	// The full name of the securable: the names of its parents followed by its own
+	// name, separated by dots, for example `main.sales.orders` for a table.
 	FullName *string
 }
 
@@ -164,7 +170,9 @@ type NotificationDestination struct {
 
 type Principal struct {
 	// <Databricks> user, group or service principal ID.
-	Id            *string
+	Id *string
+	// The type of principal that **id** identifies: a user, a group, or a service
+	// principal.
 	PrincipalType PrincipalType
 }
 
@@ -183,7 +191,7 @@ type Securable struct {
 }
 
 type SecurablePermissions struct {
-	// The securable for which the access request destinations are being requested.
+	// The securable on which the permissions are requested.
 	Securable *Securable
 	// List of requested Unity Catalog permissions.
 	Permissions []string
@@ -193,5 +201,7 @@ type UpdateAccessRequestDestinationsRequest struct {
 	// The access request destinations to assign to the securable. For each
 	// destination, a **destination_id** and **destination_type** must be defined.
 	AccessRequestDestinations *AccessRequestDestinations
-	UpdateMask                *types.FieldMask[AccessRequestDestinations]
+	// The paths of the field mask are not evaluated, because an update always
+	// replaces the full list of destinations.
+	UpdateMask *types.FieldMask[AccessRequestDestinations]
 }

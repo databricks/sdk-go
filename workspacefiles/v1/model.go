@@ -59,9 +59,9 @@ type DeleteRequest struct {
 	// The absolute path of the notebook or directory.
 	Path *string
 	// The flag that specifies whether to delete the object recursively. It is
-	// `false` by default. Please note this deleting directory is not atomic. If it
-	// fails in the middle, some of objects under this directory may be deleted and
-	// cannot be undone.
+	// `false` by default. Deleting a directory recursively is not atomic. If the
+	// call fails part way, some objects under the directory may already be deleted
+	// and cannot be restored.
 	Recursive *bool
 }
 
@@ -110,10 +110,14 @@ type ExportRequest struct {
 // The request field `direct_download` determines whether a JSON response or
 // binary contents are returned by this endpoint..
 type ExportResponse struct {
-	// The base64-encoded content. If the limit (10MB) is exceeded, exception with
-	// error code **MAX_NOTEBOOK_SIZE_EXCEEDED** is thrown.
+	// The base64-encoded content of the exported object. If the content exceeds the
+	// size limit (10 MB), the call fails with error code
+	// `MAX_NOTEBOOK_SIZE_EXCEEDED`.
 	Content []byte
-	// The file type of the exported file.
+	// The file extension that matches the exported content, for example `py` for a
+	// Python notebook exported as `SOURCE`, `ipynb` for `JUPYTER`, `html` for
+	// `HTML`, `dbc` for `DBC`, and `zip` for a directory exported as `SOURCE` or
+	// `AUTO`. It is empty for workspace files.
 	FileType *string
 }
 
@@ -139,16 +143,18 @@ type ImportRequest struct {
 	// <Databricks> archive format. Required for directories. - `R_MARKDOWN`: The
 	// notebook is imported from R Markdown format.
 	Format ExportFormat
-	// The language of the object. This value is set only if the object type is
-	// `NOTEBOOK`.
+	// The language of the notebook. It applies only to the `SOURCE` format: set it
+	// to import a single notebook, or leave it unset to import a directory.
 	Language Language
-	// The base64-encoded content. This has a limit of 10 MB. If the limit (10MB) is
-	// exceeded, exception with error code **MAX_NOTEBOOK_SIZE_EXCEEDED** is thrown.
-	// This parameter might be absent, and instead a posted file is used.
+	// The base64-encoded content to import. The content is limited to 10 MB. If the
+	// limit is exceeded, the call fails with error code
+	// `MAX_NOTEBOOK_SIZE_EXCEEDED`. This parameter might be absent, and instead a
+	// posted file is used.
 	Content []byte
 	// The flag that specifies whether to overwrite existing object. It is `false`
 	// by default. For `DBC` format, `overwrite` is not supported since it may
-	// contain a directory.
+	// contain a directory. Importing a directory in `SOURCE` format does not
+	// support `overwrite` either.
 	Overwrite *bool
 }
 
@@ -158,7 +164,9 @@ type ImportResponse struct {
 type ListRequest struct {
 	// The absolute path of the notebook or directory.
 	Path *string
-	// UTC timestamp in milliseconds
+	// A UTC timestamp in milliseconds since the epoch. When it is set and `path` is
+	// a directory, the response includes only the notebooks that were modified
+	// after this time. Objects that are not notebooks are always included.
 	NotebooksModifiedAfter *int64
 }
 
@@ -191,13 +199,16 @@ type ObjectInfo struct {
 	// The language of the object. This value is set only if the object type is
 	// ``NOTEBOOK``. For Jupyter (.ipynb) notebooks, this is always ``PYTHON``.
 	Language Language
-	// Only applicable to files. The creation UTC timestamp.
+	// The time the object was created, as a UTC timestamp in milliseconds since the
+	// epoch. It is returned for notebooks and files.
 	CreatedAt *int64
-	// Only applicable to files, the last modified UTC timestamp.
+	// The time the object was last modified, as a UTC timestamp in milliseconds
+	// since the epoch. It is returned for notebooks and files.
 	ModifiedAt *int64
 	// Unique identifier for the object.
 	ObjectId *int64
-	// Only applicable to files. The file size in bytes can be returned.
+	// The size of the file in bytes. It is returned only for objects of type
+	// ``FILE``.
 	Size *int64
 	// A unique identifier for the object that is consistent across all Databricks
 	// APIs.

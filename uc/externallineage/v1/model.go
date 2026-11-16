@@ -43,8 +43,11 @@ const (
 	Direction_LineageDirection_Downstream  Direction_LineageDirection = "DOWNSTREAM"
 )
 
+// Mapping from a column of the source object to a column of the target object..
 type ColumnRelationship struct {
+	// Name of the column in the source object.
 	Source *string
+	// Name of the column in the target object.
 	Target *string
 }
 
@@ -52,6 +55,12 @@ type CreateExternalLineageRelationshipRequest struct {
 	ExternalLineageRelationship *CreateRequestExternalLineage
 }
 
+// A lineage relationship between a source object and a target object, where at
+// least one of the two is an external metadata object. The other object can be
+// a Unity Catalog table, a cloud storage path, a model version, or another
+// external metadata object. A relationship is identified by its source and
+// target; optional column mappings and key-value properties describe the data
+// flow between them..
 type CreateRequestExternalLineage struct {
 	// Unique identifier of the external lineage relationship.
 	Id *string
@@ -59,16 +68,27 @@ type CreateRequestExternalLineage struct {
 	Source *ExternalLineageRelationshipObject
 	// Target object of the external lineage relationship.
 	Target *ExternalLineageRelationshipObject
-	// List of column relationships between source and target objects.
+	// List of column relationships between source and target objects. The combined
+	// size of all source and target column names is limited.
 	Columns []ColumnRelationship
-	// Key-value properties associated with the external lineage relationship.
+	// Key-value properties associated with the external lineage relationship. The
+	// combined length of all keys and values must not exceed 5000 characters.
 	Properties map[string]string
 }
 
 type DeleteExternalLineageRelationshipRequest struct {
+	// The relationship to delete, identified by its `source` and `target` objects.
+	// Since this field is a query parameter, flatten the nested fields, for example
+	// `external_lineage_relationship.source.table.name=main.sales.orders`.
 	ExternalLineageRelationship *DeleteRequestExternalLineage
 }
 
+// A lineage relationship between a source object and a target object, where at
+// least one of the two is an external metadata object. The other object can be
+// a Unity Catalog table, a cloud storage path, a model version, or another
+// external metadata object. A relationship is identified by its source and
+// target; optional column mappings and key-value properties describe the data
+// flow between them..
 type DeleteRequestExternalLineage struct {
 	// Unique identifier of the external lineage relationship.
 	Id *string
@@ -76,9 +96,11 @@ type DeleteRequestExternalLineage struct {
 	Source *ExternalLineageRelationshipObject
 	// Target object of the external lineage relationship.
 	Target *ExternalLineageRelationshipObject
-	// List of column relationships between source and target objects.
+	// List of column relationships between source and target objects. The combined
+	// size of all source and target column names is limited.
 	Columns []ColumnRelationship
-	// Key-value properties associated with the external lineage relationship.
+	// Key-value properties associated with the external lineage relationship. The
+	// combined length of all keys and values must not exceed 5000 characters.
 	Properties map[string]string
 }
 
@@ -100,6 +122,12 @@ type ExternalLineageInfo struct {
 	ExternalLineageInfo *ExternalLineageRelationship
 }
 
+// A lineage relationship between a source object and a target object, where at
+// least one of the two is an external metadata object. The other object can be
+// a Unity Catalog table, a cloud storage path, a model version, or another
+// external metadata object. A relationship is identified by its source and
+// target; optional column mappings and key-value properties describe the data
+// flow between them..
 type ExternalLineageRelationship struct {
 	// Unique identifier of the external lineage relationship.
 	Id *string
@@ -107,21 +135,31 @@ type ExternalLineageRelationship struct {
 	Source *ExternalLineageRelationshipObject
 	// Target object of the external lineage relationship.
 	Target *ExternalLineageRelationshipObject
-	// List of column relationships between source and target objects.
+	// List of column relationships between source and target objects. The combined
+	// size of all source and target column names is limited.
 	Columns []ColumnRelationship
-	// Key-value properties associated with the external lineage relationship.
+	// Key-value properties associated with the external lineage relationship. The
+	// combined length of all keys and values must not exceed 5000 characters.
 	Properties map[string]string
 }
 
+// An external metadata object at one end of an external lineage relationship..
 type ExternalLineageRelationshipExternalMetadata struct {
+	// Name of the external metadata object.
 	Name *string `fieldmask:"name"`
 }
 
+// A version of a Unity Catalog registered model at one end of an external
+// lineage relationship..
 type ExternalLineageRelationshipModelVersion struct {
-	Name    *string `fieldmask:"name"`
+	// Full name of the registered model, in the form `catalog.schema.model`.
+	Name *string `fieldmask:"name"`
+	// Version number of the model, as a string.
 	Version *string `fieldmask:"version"`
 }
 
+// An object at one end of an external lineage relationship. Exactly one of the
+// fields is set..
 type ExternalLineageRelationshipObject struct {
 	Tpe isExternalLineageRelationshipObject_Tpe
 	_   [0]externalLineageRelationshipObjectTpeFieldMaskMetadata `fieldmask_oneof:"Tpe"`
@@ -132,6 +170,7 @@ type isExternalLineageRelationshipObject_Tpe interface {
 }
 
 // ExternalLineageRelationshipObject_Tpe_Table selects Table for ExternalLineageRelationshipObject.Tpe.
+// A Unity Catalog table.
 type ExternalLineageRelationshipObject_Tpe_Table struct {
 	Table ExternalLineageRelationshipTable `fieldmask:"table"`
 }
@@ -139,6 +178,8 @@ type ExternalLineageRelationshipObject_Tpe_Table struct {
 func (*ExternalLineageRelationshipObject_Tpe_Table) isExternalLineageRelationshipObject_Tpe() {}
 
 // ExternalLineageRelationshipObject_Tpe_Path selects Path for ExternalLineageRelationshipObject.Tpe.
+// A cloud storage path registered in Unity Catalog, i.e. under a table, volume,
+// or external location.
 type ExternalLineageRelationshipObject_Tpe_Path struct {
 	Path ExternalLineageRelationshipPath `fieldmask:"path"`
 }
@@ -146,6 +187,7 @@ type ExternalLineageRelationshipObject_Tpe_Path struct {
 func (*ExternalLineageRelationshipObject_Tpe_Path) isExternalLineageRelationshipObject_Tpe() {}
 
 // ExternalLineageRelationshipObject_Tpe_ModelVersion selects ModelVersion for ExternalLineageRelationshipObject.Tpe.
+// A version of a Unity Catalog registered model.
 type ExternalLineageRelationshipObject_Tpe_ModelVersion struct {
 	ModelVersion ExternalLineageRelationshipModelVersion `fieldmask:"model_version"`
 }
@@ -154,6 +196,7 @@ func (*ExternalLineageRelationshipObject_Tpe_ModelVersion) isExternalLineageRela
 }
 
 // ExternalLineageRelationshipObject_Tpe_ExternalMetadata selects ExternalMetadata for ExternalLineageRelationshipObject.Tpe.
+// An external metadata object registered in Unity Catalog.
 type ExternalLineageRelationshipObject_Tpe_ExternalMetadata struct {
 	ExternalMetadata ExternalLineageRelationshipExternalMetadata `fieldmask:"external_metadata"`
 }
@@ -168,11 +211,16 @@ type externalLineageRelationshipObjectTpeFieldMaskMetadata struct {
 	*ExternalLineageRelationshipObject_Tpe_ExternalMetadata
 }
 
+// A cloud storage path at one end of an external lineage relationship..
 type ExternalLineageRelationshipPath struct {
+	// URL of the cloud storage path. The path must be registered in Unity Catalog,
+	// i.e. under a table, volume, or external location.
 	Url *string `fieldmask:"url"`
 }
 
+// A Unity Catalog table at one end of an external lineage relationship..
 type ExternalLineageRelationshipTable struct {
+	// Full name of the table, in the form `catalog.schema.table`.
 	Name *string `fieldmask:"name"`
 }
 
@@ -230,7 +278,10 @@ type ListExternalLineageRelationshipsRequest struct {
 	// is a table, the query parameter should look like:
 	// `object_info.table.name=main.sales.customers`
 	ObjectInfo *ExternalLineageRelationshipObject
-	// The lineage direction to filter on.
+	// Direction of the relationships to return, relative to `object_info`.
+	// `UPSTREAM` returns the relationships in which the object is the target, so
+	// each result describes a source; `DOWNSTREAM` returns the relationships in
+	// which the object is the source, so each result describes a target.
 	LineageDirection Direction_LineageDirection
 	// Specifies the maximum number of external lineage relationships to return in a
 	// single response. The value must be less than or equal to 1000.
@@ -240,15 +291,31 @@ type ListExternalLineageRelationshipsRequest struct {
 }
 
 type ListExternalLineageRelationshipsResponse struct {
+	// Relationships that match the query. Each entry describes the object at the
+	// other end of the relationship in one of `table_info`, `file_info`,
+	// `model_info`, or `external_metadata_info`, together with the relationship
+	// itself in `external_lineage_info`.
 	ExternalLineageRelationships []ExternalLineageInfo
-	NextPageToken                *string
+	// Opaque token to retrieve the next page of results. Omitted when there are no
+	// more results.
+	NextPageToken *string
 }
 
 type UpdateExternalLineageRelationshipRequest struct {
 	ExternalLineageRelationship *UpdateRequestExternalLineage
-	UpdateMask                  *types.FieldMask[UpdateRequestExternalLineage]
+	// The fields of the relationship to update. The field mask must be a single
+	// string, with multiple fields separated by commas (no spaces), for example
+	// `columns,properties`. The `source` and `target` identify the relationship and
+	// cannot be changed.
+	UpdateMask *types.FieldMask[UpdateRequestExternalLineage]
 }
 
+// A lineage relationship between a source object and a target object, where at
+// least one of the two is an external metadata object. The other object can be
+// a Unity Catalog table, a cloud storage path, a model version, or another
+// external metadata object. A relationship is identified by its source and
+// target; optional column mappings and key-value properties describe the data
+// flow between them..
 type UpdateRequestExternalLineage struct {
 	// Unique identifier of the external lineage relationship.
 	Id *string `fieldmask:"id"`
@@ -256,8 +323,10 @@ type UpdateRequestExternalLineage struct {
 	Source *ExternalLineageRelationshipObject `fieldmask:"source"`
 	// Target object of the external lineage relationship.
 	Target *ExternalLineageRelationshipObject `fieldmask:"target"`
-	// List of column relationships between source and target objects.
+	// List of column relationships between source and target objects. The combined
+	// size of all source and target column names is limited.
 	Columns []ColumnRelationship `fieldmask:"columns"`
-	// Key-value properties associated with the external lineage relationship.
+	// Key-value properties associated with the external lineage relationship. The
+	// combined length of all keys and values must not exceed 5000 characters.
 	Properties map[string]string `fieldmask:"properties"`
 }

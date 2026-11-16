@@ -93,7 +93,10 @@ type CronSchedule struct {
 type Dashboard struct {
 	// UUID identifying the dashboard.
 	DashboardId *string
-	// The display name of the dashboard.
+	// The display name of the dashboard. It is also the file name of the dashboard
+	// asset in the workspace, so it must be unique within the parent folder, cannot
+	// contain `/`, and cannot end with `.json`, `.lvdash` or `.yml`. The display
+	// name must not exceed 500 characters.
 	DisplayName *string
 	// The workspace path of the dashboard asset, including the file name. Exported
 	// dashboards always have the file extension `.lvdash.json`. This field is
@@ -110,26 +113,31 @@ type Dashboard struct {
 	// that the dashboard has not been modified since the last read. This field is
 	// excluded in List Dashboards responses.
 	Etag *string
-	// The contents of the dashboard in serialized string form. This field is
-	// excluded in List Dashboards responses. Use the [get dashboard API] to
-	// retrieve an example response, which includes the `serialized_dashboard`
-	// field. This field provides the structure of the JSON string that represents
-	// the dashboard's layout and components.
+	// The dashboard definition (datasets, pages and widgets) as a JSON string, in
+	// the same format as a dashboard file exported from the workspace
+	// (`.lvdash.json`). When omitted on create, an empty dashboard is created; when
+	// omitted on update, the existing definition is kept and only the other fields
+	// change. Use the [get dashboard API] on an existing dashboard to see a
+	// complete example. This field is excluded in List Dashboards responses.
 	//
 	// [get dashboard API]: https://docs.databricks.com/api/workspace/lakeview/get
 	SerializedDashboard *string
 	// The state of the dashboard resource. Used for tracking trashed status.
 	LifecycleState LifecycleState
 	// The workspace path of the folder containing the dashboard. Includes leading
-	// slash and no trailing slash. This field is excluded in List Dashboards
-	// responses.
+	// slash and no trailing slash. The folder must already exist; when omitted on
+	// create, the dashboard is created in the caller's home folder. This field is
+	// excluded in List Dashboards responses.
 	ParentPath *string
 }
 
 type DashboardCreate struct {
 	// UUID identifying the dashboard.
 	DashboardId *string
-	// The display name of the dashboard.
+	// The display name of the dashboard. It is also the file name of the dashboard
+	// asset in the workspace, so it must be unique within the parent folder, cannot
+	// contain `/`, and cannot end with `.json`, `.lvdash` or `.yml`. The display
+	// name must not exceed 500 characters.
 	DisplayName *string
 	// The workspace path of the dashboard asset, including the file name. Exported
 	// dashboards always have the file extension `.lvdash.json`. This field is
@@ -142,19 +150,21 @@ type DashboardCreate struct {
 	UpdateTime *types.Time
 	// The warehouse ID used to run the dashboard.
 	WarehouseId *string
-	// The contents of the dashboard in serialized string form. This field is
-	// excluded in List Dashboards responses. Use the [get dashboard API] to
-	// retrieve an example response, which includes the `serialized_dashboard`
-	// field. This field provides the structure of the JSON string that represents
-	// the dashboard's layout and components.
+	// The dashboard definition (datasets, pages and widgets) as a JSON string, in
+	// the same format as a dashboard file exported from the workspace
+	// (`.lvdash.json`). When omitted on create, an empty dashboard is created; when
+	// omitted on update, the existing definition is kept and only the other fields
+	// change. Use the [get dashboard API] on an existing dashboard to see a
+	// complete example. This field is excluded in List Dashboards responses.
 	//
 	// [get dashboard API]: https://docs.databricks.com/api/workspace/lakeview/get
 	SerializedDashboard *string
 	// The state of the dashboard resource. Used for tracking trashed status.
 	LifecycleState LifecycleState
 	// The workspace path of the folder containing the dashboard. Includes leading
-	// slash and no trailing slash. This field is excluded in List Dashboards
-	// responses.
+	// slash and no trailing slash. The folder must already exist; when omitted on
+	// create, the dashboard is created in the caller's home folder. This field is
+	// excluded in List Dashboards responses.
 	ParentPath *string
 }
 

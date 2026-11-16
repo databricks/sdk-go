@@ -92,9 +92,13 @@ const (
 type EndpointType string
 
 const (
-	EndpointType_Unspecified           EndpointType = ""
+	EndpointType_Unspecified EndpointType = ""
+	// The branch's primary compute. It accepts reads and writes, and each branch
+	// has exactly one.
 	EndpointType_EndpointTypeReadWrite EndpointType = "ENDPOINT_TYPE_READ_WRITE"
-	EndpointType_EndpointTypeReadOnly  EndpointType = "ENDPOINT_TYPE_READ_ONLY"
+	// A read replica. It serves read-only queries against the branch's data, and a
+	// branch can have several.
+	EndpointType_EndpointTypeReadOnly EndpointType = "ENDPOINT_TYPE_READ_ONLY"
 )
 
 // Error codes returned by Databricks APIs to indicate specific failure
@@ -628,10 +632,16 @@ type EndpointStatus_State string
 
 const (
 	EndpointStatus_State_Unspecified EndpointStatus_State = ""
-	EndpointStatus_State_Init        EndpointStatus_State = "INIT"
-	EndpointStatus_State_Active      EndpointStatus_State = "ACTIVE"
-	EndpointStatus_State_Idle        EndpointStatus_State = "IDLE"
-	EndpointStatus_State_Degraded    EndpointStatus_State = "DEGRADED"
+	// The compute is being provisioned or started.
+	EndpointStatus_State_Init EndpointStatus_State = "INIT"
+	// The compute is running and accepts connections.
+	EndpointStatus_State_Active EndpointStatus_State = "ACTIVE"
+	// The compute is suspended. Unless the endpoint is disabled, the next
+	// connection attempt restarts it.
+	EndpointStatus_State_Idle EndpointStatus_State = "IDLE"
+	// The endpoint's compute instances are not all in the same state, for example
+	// during a failover.
+	EndpointStatus_State_Degraded EndpointStatus_State = "DEGRADED"
 )
 
 // Release channel of the underlying pipeline's runtime. PREVIEW provides early
@@ -861,6 +871,10 @@ type Branch struct {
 	// A timestamp indicating when the branch was last updated.
 	UpdateTime *types.Time `fieldmask:"update_time"`
 	// The spec contains the branch configuration.
+	//
+	// Read the resource's current values from `status`, rather than `spec`. `spec`
+	// tracks field ownership for infrastructure-as-code tools and may omit
+	// unmanaged fields.
 	Spec *BranchSpec `fieldmask:"spec"`
 	// The current status of a Branch.
 	Status *BranchStatus `fieldmask:"status"`
@@ -978,9 +992,11 @@ type Catalog struct {
 	//
 	// Format: "catalogs/{catalog_id}".
 	Name *string
-	// System-generated unique identifier for the catalog.
+	// The immutable UUID that identifies the catalog, assigned when the catalog is
+	// created.
 	Uid *string
-	// The desired state of the Catalog.
+	// The desired state of the Catalog. The catalog has no update method, so the
+	// spec is fixed when the catalog is created.
 	Spec *Catalog_CatalogSpec
 	// The observed state of the Catalog.
 	Status *Catalog_CatalogStatus
@@ -988,7 +1004,8 @@ type Catalog struct {
 	CreateTime *types.Time
 	// A timestamp indicating when the catalog was last updated.
 	UpdateTime *types.Time
-	// The part of the name, chosen by the user when the resource was created.
+	// The ID chosen when the catalog was created, which is also its name in Unity
+	// Catalog. It is the last segment of the name field.
 	CatalogId *string
 }
 
@@ -996,7 +1013,9 @@ type Catalog struct {
 type Catalog_CatalogSpec struct {
 	// The name of the Postgres database inside the specified Lakebase project and
 	// branch to be associated with the UC catalog. This database must already
-	// exist, unless create_database_if_missing is set to true on creation.
+	// exist, unless create_database_if_missing is set to true on creation. The
+	// system databases postgres, databricks_system, template0 and template1 cannot
+	// be registered.
 	//
 	// A database can only be registered with one UC catalog at a time. To
 	// re-register a database with a different catalog, the existing catalog must be
@@ -1019,7 +1038,8 @@ type Catalog_CatalogSpec struct {
 	// Defaults to false, meaning that the request fails if the specified
 	// postgres_database does not already exist.
 	CreateDatabaseIfMissing *bool
-	// The resource path of the branch associated with the catalog.
+	// The resource path of the branch that holds the Postgres database. The branch
+	// must have a read-write compute endpoint.
 	//
 	// Format: projects/{project_id}/branches/{branch_id}.
 	Branch *string
@@ -1117,8 +1137,9 @@ type CreateBranchRequest struct {
 }
 
 type CreateCatalogRequest struct {
-	// The ID in the Unity Catalog. It becomes the full resource name, for example
-	// "my_catalog" becomes "catalogs/my_catalog".
+	// The ID of the catalog to create, which is also its name in Unity Catalog. It
+	// becomes the last segment of the catalog's resource name,
+	// catalogs/{catalog_id}.
 	CatalogId *string
 	Catalog   *Catalog
 }
@@ -1171,16 +1192,20 @@ type CreateEndpointRequest struct {
 	// The Branch where this Endpoint will be created. Format:
 	// projects/{project_id}/branches/{branch_id}
 	Parent *string
-	// The ID to use for the Endpoint. This becomes the final component of the
-	// endpoint's resource name. The ID is required and must be 1-63 characters
-	// long, start with a lowercase letter, and contain only lowercase letters,
-	// numbers, and hyphens. For example, `primary` becomes
-	// `projects/my-app/branches/development/endpoints/primary`.
+	// The ID to use for the endpoint. It becomes the final segment of the
+	// endpoint's resource name,
+	// `projects/{project_id}/branches/{branch_id}/endpoints/{endpoint_id}`. The ID
+	// must be 3 to 63 characters long, start with a lowercase letter, end with a
+	// lowercase letter or digit, and contain only lowercase letters, digits, and
+	// hyphens.
 	EndpointId *string
-	// The Endpoint to create.
+	// The endpoint to create. Only `spec` is read from this message; the system
+	// sets the other fields.
 	Endpoint *Endpoint
 	// If true, update the endpoint if it already exists instead of returning an
-	// error.
+	// error. The request's `spec.endpoint_type` must match the existing endpoint's
+	// type, and the other `spec` fields are applied as an update. Use this to
+	// configure the read-write endpoint that was created together with the branch.
 	ReplaceExisting *bool
 }
 
@@ -1195,10 +1220,12 @@ type CreateMigrationRequest struct {
 }
 
 type CreateProjectRequest struct {
-	// The ID to use for the Project. This becomes the final component of the
-	// project's resource name. The ID is required and must be 1-63 characters long,
-	// start with a lowercase letter, and contain only lowercase letters, numbers,
-	// and hyphens. For example, `my-app` becomes `projects/my-app`.
+	// The ID to use for the project. It becomes the final segment of the project's
+	// resource name, `projects/{project_id}`. The ID must be 3 to 63 characters
+	// long, start with a lowercase letter, end with a lowercase letter or digit,
+	// and contain only lowercase letters, digits, and hyphens. The ID of a
+	// soft-deleted project stays reserved until that project is permanently
+	// deleted.
 	ProjectId *string
 	// The Project to create.
 	Project *Project
@@ -1360,6 +1387,10 @@ type Database struct {
 	// A timestamp indicating when the database was last updated.
 	UpdateTime *types.Time `fieldmask:"update_time"`
 	// The desired state of the Database.
+	//
+	// Read the resource's current values from `status`, rather than `spec`. `spec`
+	// tracks field ownership for infrastructure-as-code tools and may omit
+	// unmanaged fields.
 	Spec *Database_DatabaseSpec `fieldmask:"spec"`
 	// The observed state of the Database.
 	Status *Database_DatabaseStatus `fieldmask:"status"`
@@ -1466,10 +1497,6 @@ type DeleteDatabaseRequest struct {
 type DeleteEndpointRequest struct {
 	// The full resource path of the endpoint to delete. Format:
 	// projects/{project_id}/branches/{branch_id}/endpoints/{endpoint_id}
-	//
-	// Read-write endpoints currently cannot be deleted directly. Their deletion is
-	// managed by the parent branch. To avoid compute costs, set `disabled` to
-	// `true` on the endpoint.
 	Name *string
 }
 
@@ -1484,8 +1511,12 @@ type DeleteProjectRequest struct {
 	// The full resource path of the project to delete. Format:
 	// projects/{project_id}
 	Name *string
-	// If true, permanently deletes the project (hard delete). If false or unset,
-	// performs a soft delete.
+	// If true, permanently deletes the project and all of its data immediately. If
+	// false or unset, the project is soft-deleted: it stops accepting connections
+	// and is retained for 7 days, during which it can be restored with Undelete,
+	// and is then permanently deleted. Deleting an already soft-deleted project
+	// with `purge` set to true removes it immediately. See
+	// https://docs.databricks.com/aws/en/oltp/projects/manage-projects for details.
 	Purge *bool
 }
 
@@ -1523,11 +1554,17 @@ type DeltaTableSyncInfo struct {
 	DeltaCommitTime *types.Time
 }
 
+// A compute endpoint of a Lakebase Postgres branch. An endpoint provides the
+// compute that runs Postgres for the branch's data and the hostnames that
+// clients connect to. Each branch has one read-write endpoint, created together
+// with the branch, and can have additional read-only endpoints (read replicas)..
 type Endpoint struct {
 	// Output only. The full resource path of the endpoint. Format:
 	// projects/{project_id}/branches/{branch_id}/endpoints/{endpoint_id}
 	Name *string `fieldmask:"name"`
-	// System-generated unique ID for the endpoint.
+	// A system-generated ID that identifies the endpoint. Unlike `name`, it is not
+	// derived from the user-chosen endpoint ID. The endpoint's connection hostnames
+	// are based on this ID.
 	Uid *string `fieldmask:"uid"`
 	// The branch containing this endpoint (API resource hierarchy). Format:
 	// projects/{project_id}/branches/{branch_id}
@@ -1536,12 +1573,19 @@ type Endpoint struct {
 	CreateTime *types.Time `fieldmask:"create_time"`
 	// A timestamp indicating when the compute endpoint was last updated.
 	UpdateTime *types.Time `fieldmask:"update_time"`
-	// The spec contains the compute endpoint configuration, including autoscaling
-	// limits, suspend timeout, and disabled state.
+	// The desired configuration of the endpoint. Every field under `spec` except
+	// `endpoint_type` can be changed after creation. See `status` for the
+	// configuration that is currently in effect.
+	//
+	// Read the resource's current values from `status`, rather than `spec`. `spec`
+	// tracks field ownership for infrastructure-as-code tools and may omit
+	// unmanaged fields.
 	Spec *EndpointSpec `fieldmask:"spec"`
-	// Current operational status of the compute endpoint.
+	// The configuration and state of the endpoint that are currently in effect, as
+	// reported by the system, including the hostnames to connect to.
 	Status *EndpointStatus `fieldmask:"status"`
-	// The part of the name, chosen by the user when the resource was created.
+	// The endpoint ID chosen when the endpoint was created. It is the final segment
+	// of `name`.
 	EndpointId *string `fieldmask:"endpoint_id"`
 }
 
@@ -1555,7 +1599,8 @@ type EndpointGroupSpec struct {
 	// the EndpointSpec.
 	Max *int `fieldmask:"max"`
 	// Whether to allow read-only connections to read-write endpoints. Only relevant
-	// for read-write endpoints where size.max > 1.
+	// for read-write endpoints where `max` is greater than 1. When enabled, the
+	// endpoint also reports a read-only host in `status.hosts`.
 	EnableReadableSecondaries *bool `fieldmask:"enable_readable_secondaries"`
 }
 
@@ -1569,7 +1614,7 @@ type EndpointGroupStatus struct {
 	// the EndpointSpec.
 	Max *int `fieldmask:"max"`
 	// Whether read-only connections to read-write endpoints are allowed. Only
-	// relevant if read replicas are configured by specifying size.max > 1.
+	// relevant if the endpoint has more than one compute (`max` greater than 1).
 	EnableReadableSecondaries *bool `fieldmask:"enable_readable_secondaries"`
 }
 
@@ -1599,31 +1644,41 @@ type EndpointOperationMetadata struct {
 
 // A collection of settings for a compute endpoint..
 type EndpointSettings struct {
-	// A raw representation of Postgres settings.
+	// Postgres server parameters to set on the compute endpoint, keyed by parameter
+	// name. Each value is given as a string.
 	PgSettings map[string]string `fieldmask:"pg_settings"`
 }
 
 type EndpointSpec struct {
 	// The endpoint type. A branch can only have one READ_WRITE endpoint.
 	EndpointType EndpointType `fieldmask:"endpoint_type"`
-	// The minimum number of Compute Units. Minimum value is 0.5.
+	// The minimum number of Compute Units. Minimum value is 0.5, and it must not
+	// exceed `autoscaling_limit_max_cu`. When omitted at creation, the project's
+	// default endpoint settings apply.
 	AutoscalingLimitMinCu *float64 `fieldmask:"autoscaling_limit_min_cu"`
 	// The maximum number of Compute Units. The maximum value is 64. The difference
 	// between the minimum and maximum Compute Units (max - min) must not exceed 16.
+	// Set it equal to `autoscaling_limit_min_cu` for a fixed-size compute. When
+	// omitted at creation, the project's default endpoint settings apply.
 	AutoscalingLimitMaxCu *float64 `fieldmask:"autoscaling_limit_max_cu"`
 	// Whether to restrict connections to the compute endpoint. Enabling this option
 	// schedules a suspend compute operation. A disabled compute endpoint cannot be
-	// enabled by a connection or console action.
+	// enabled by a connection or console action. To accept connections again, set
+	// this field back to false.
 	Disabled *bool `fieldmask:"disabled"`
 	// Duration of inactivity after which the compute endpoint is automatically
 	// suspended. One of suspend_timeout_duration or no_suspension can be provided.
 	// When not specified default suspension behavior will be used (consult with
 	// documentation).
 	Suspension isEndpointSpec_Suspension
-	Settings   *EndpointSettings `fieldmask:"settings"`
+	// Postgres server parameters for the compute endpoint. On update, an empty
+	// `pg_settings` map leaves the current parameters unchanged.
+	Settings *EndpointSettings `fieldmask:"settings"`
 	// Settings for optional HA configuration of the endpoint. If unspecified, the
 	// endpoint defaults to non HA settings, with a single compute backing the
-	// endpoint (and no readable secondaries for Read/Write endpoints).
+	// endpoint (and no readable secondaries for Read/Write endpoints). Automatic
+	// suspension is not available for an endpoint with more than one compute, so
+	// set `no_suspension` to true when configuring one.
 	Group *EndpointGroupSpec                         `fieldmask:"group"`
 	_     [0]endpointSpecSuspensionFieldMaskMetadata `fieldmask_oneof:"Suspension"`
 }
@@ -1634,8 +1689,11 @@ type isEndpointSpec_Suspension interface {
 
 // EndpointSpec_Suspension_SuspendTimeoutDuration selects SuspendTimeoutDuration for EndpointSpec.Suspension.
 // Duration of inactivity after which the compute endpoint is automatically
-// suspended. If specified should be between 60s and 604800s (1 minute to 1
-// week). Mutually exclusive with `no_suspension`.
+// suspended. If specified, the value must be between 60s and 604800s (1 minute
+// to 1 week). A suspended endpoint keeps its hostnames and configuration, and
+// the next connection attempt restarts it. When neither this field nor
+// `no_suspension` is set at creation, the project's default endpoint settings
+// apply. Mutually exclusive with `no_suspension`.
 type EndpointSpec_Suspension_SuspendTimeoutDuration struct {
 	SuspendTimeoutDuration types.Duration `fieldmask:"suspend_timeout_duration"`
 }
@@ -1644,7 +1702,7 @@ func (*EndpointSpec_Suspension_SuspendTimeoutDuration) isEndpointSpec_Suspension
 
 // EndpointSpec_Suspension_NoSuspension selects NoSuspension for EndpointSpec.Suspension.
 // When set to true, explicitly disables automatic suspension (never suspend).
-// Should be set to true when provided. Mutually exclusive with
+// The value must be true when provided. Mutually exclusive with
 // `suspend_timeout_duration`.
 type EndpointSpec_Suspension_NoSuspension struct {
 	NoSuspension bool `fieldmask:"no_suspension"`
@@ -1668,20 +1726,24 @@ type EndpointStatus struct {
 	AutoscalingLimitMinCu *float64 `fieldmask:"autoscaling_limit_min_cu"`
 	// The maximum number of Compute Units. The maximum value is 64. The difference
 	// between the minimum and maximum Compute Units (max - min) must not exceed 16.
-	AutoscalingLimitMaxCu *float64             `fieldmask:"autoscaling_limit_max_cu"`
-	CurrentState          EndpointStatus_State `fieldmask:"current_state"`
-	PendingState          EndpointStatus_State `fieldmask:"pending_state"`
+	AutoscalingLimitMaxCu *float64 `fieldmask:"autoscaling_limit_max_cu"`
+	// The state the compute endpoint is in now.
+	CurrentState EndpointStatus_State `fieldmask:"current_state"`
+	// The state the compute endpoint is transitioning to, if a transition is in
+	// progress.
+	PendingState EndpointStatus_State `fieldmask:"pending_state"`
 	// Whether to restrict connections to the compute endpoint. Enabling this option
 	// schedules a suspend compute operation. A disabled compute endpoint cannot be
 	// enabled by a connection or console action.
 	Disabled *bool `fieldmask:"disabled"`
 	// Duration of inactivity after which the compute endpoint is automatically
-	// suspended.
-	SuspendTimeoutDuration *types.Duration   `fieldmask:"suspend_timeout_duration"`
-	Settings               *EndpointSettings `fieldmask:"settings"`
+	// suspended. Absent when automatic suspension is disabled.
+	SuspendTimeoutDuration *types.Duration `fieldmask:"suspend_timeout_duration"`
+	// The Postgres server parameters currently set on the compute endpoint.
+	Settings *EndpointSettings `fieldmask:"settings"`
 	// Details on the HA configuration of the endpoint.
 	Group *EndpointGroupStatus `fieldmask:"group"`
-	// Part of the resource name.
+	// The endpoint ID, which is the final segment of the endpoint's resource name.
 	EndpointId *string `fieldmask:"endpoint_id"`
 }
 
@@ -1836,9 +1898,11 @@ type InitialBranchSpec struct {
 type InitialEndpointSpec struct {
 	// Settings for HA configuration of the endpoint.
 	Group *EndpointGroupSpec `fieldmask:"group"`
-	// The minimum number of Compute Units for the initial endpoint.
+	// The minimum number of Compute Units for the initial endpoint. Minimum value
+	// is 0.5, and it must not exceed autoscaling_limit_max_cu.
 	AutoscalingLimitMinCu *float64 `fieldmask:"autoscaling_limit_min_cu"`
-	// The maximum number of Compute Units for the initial endpoint.
+	// The maximum number of Compute Units for the initial endpoint. Minimum value
+	// is 0.5.
 	AutoscalingLimitMaxCu *float64 `fieldmask:"autoscaling_limit_max_cu"`
 	Suspension            isInitialEndpointSpec_Suspension
 	_                     [0]initialEndpointSpecSuspensionFieldMaskMetadata `fieldmask_oneof:"Suspension"`
@@ -1983,7 +2047,8 @@ type ListEndpointsRequest struct {
 	Parent *string
 	// Page token from a previous response. If not provided, returns the first page.
 	PageToken *string
-	// Upper bound for items returned. Cannot be negative.
+	// Upper bound for the number of endpoints returned. If set, the value must be
+	// at least 10.
 	PageSize *int
 }
 
@@ -2017,7 +2082,8 @@ type ListMigrationsResponse struct {
 type ListProjectsRequest struct {
 	// Page token from a previous response. If not provided, returns the first page.
 	PageToken *string
-	// Upper bound for items returned. Cannot be negative. The maximum value is 100.
+	// Upper bound for the number of projects returned. Cannot be negative. Values
+	// above the maximum page size are reduced to that maximum.
 	PageSize *int
 	// Whether to include soft-deleted projects in the response. When true,
 	// soft-deleted projects are included alongside active projects. Hard-deleted
@@ -2190,17 +2256,24 @@ type Project struct {
 	// Output only. The full resource path of the project. Format:
 	// projects/{project_id}
 	Name *string `fieldmask:"name"`
-	// System-generated unique ID for the project.
+	// A system-generated UUID that identifies the project. Unlike `name`, it is not
+	// derived from the user-chosen project ID.
 	Uid *string `fieldmask:"uid"`
 	// A timestamp indicating when the project was created.
 	CreateTime *types.Time `fieldmask:"create_time"`
 	// A timestamp indicating when the project was last updated.
 	UpdateTime *types.Time `fieldmask:"update_time"`
-	// The spec contains the project configuration, including display_name,
-	// pg_version (Postgres version), history_retention_duration, and
-	// default_endpoint_settings.
+	// The desired configuration of the project. The fields under `spec` are the
+	// ones that can be changed after creation, except `pg_version`, which is fixed
+	// when the project is created. See `status` for the configuration that is
+	// currently in effect.
+	//
+	// Read the resource's current values from `status`, rather than `spec`. `spec`
+	// tracks field ownership for infrastructure-as-code tools and may omit
+	// unmanaged fields.
 	Spec *ProjectSpec `fieldmask:"spec"`
-	// The current status of a Project.
+	// The configuration and state of the project that are currently in effect, as
+	// reported by the system.
 	Status *ProjectStatus `fieldmask:"status"`
 	// Configuration settings for the initial Read/Write endpoint created inside the
 	// initial branch for a newly created project. If omitted, the initial endpoint
@@ -2220,7 +2293,8 @@ type Project struct {
 	// creation. Allows overriding branch protection. These settings only apply at
 	// creation time and do not affect resources created after project creation.
 	InitialBranchSpec *InitialBranchSpec `fieldmask:"initial_branch_spec"`
-	// The part of the name, chosen by the user when the resource was created.
+	// The project ID chosen when the project was created. It is the final segment
+	// of `name`.
 	ProjectId *string `fieldmask:"project_id"`
 }
 
@@ -2280,20 +2354,23 @@ type ProjectOperationMetadata struct {
 type ProjectSpec struct {
 	// Human-readable project name. Length should be between 1 and 256 characters.
 	DisplayName *string `fieldmask:"display_name"`
-	// The major Postgres version number. The set of supported versions may vary;
-	// consult the API documentation for currently accepted values.
+	// The major Postgres version number. Defaults to 17 when omitted. The set of
+	// versions that new projects can use may change over time.
 	PgVersion *int `fieldmask:"pg_version"`
 	// The number of seconds to retain the shared history for point in time recovery
 	// for all branches in this project. Value should be between 172800s (2 days)
-	// and 3024000s (35 days).
-	HistoryRetentionDuration *types.Duration                 `fieldmask:"history_retention_duration"`
-	DefaultEndpointSettings  *ProjectDefaultEndpointSettings `fieldmask:"default_endpoint_settings"`
+	// and 3024000s (35 days). Defaults to 604800s (7 days) when omitted.
+	HistoryRetentionDuration *types.Duration `fieldmask:"history_retention_duration"`
+	// Settings applied by default to compute endpoints created in this project. The
+	// initial endpoint also takes these values for any setting that
+	// initial_endpoint_spec does not provide.
+	DefaultEndpointSettings *ProjectDefaultEndpointSettings `fieldmask:"default_endpoint_settings"`
 	// The desired budget policy to associate with the project. See
 	// status.budget_policy_id for the policy that is actually applied to the
 	// project.
 	BudgetPolicyId *string `fieldmask:"budget_policy_id"`
-	// Custom tags to associate with the project. Forwarded to LBM for billing and
-	// cost tracking. To update tags, provide the new tag list and include
+	// Custom tags to associate with the project, used for billing and cost
+	// tracking. To update tags, provide the new tag list and include
 	// "spec.custom_tags" in the update_mask. To clear all tags, provide an empty
 	// list and include "spec.custom_tags" in the update_mask. To preserve existing
 	// tags, omit this field from the update_mask (or use wildcard "*" which
@@ -2302,8 +2379,11 @@ type ProjectSpec struct {
 	// Whether to enable PG native password login on all endpoints in this project.
 	// Defaults to false.
 	EnablePgNativeLogin *bool `fieldmask:"enable_pg_native_login"`
-	// The full resource path for the default branch of the project Format:
-	// projects/{project_id}/branches/{branch_id}
+	// The full resource path of the default branch of the project. Format:
+	// projects/{project_id}/branches/{branch_id} At creation time, the branch ID in
+	// this path names the initial branch, which is called `production` when the
+	// field is omitted. On update, the path must name an existing branch of this
+	// project, which then becomes the default branch.
 	DefaultBranch *string `fieldmask:"default_branch"`
 }
 
@@ -2331,9 +2411,9 @@ type ProjectStatus struct {
 	Owner *string `fieldmask:"owner"`
 	// Whether to enable PG native password login on all endpoints in this project.
 	EnablePgNativeLogin *bool `fieldmask:"enable_pg_native_login"`
-	// The full resource path of the default branch of the project
+	// The full resource path of the default branch of the project.
 	DefaultBranch *string `fieldmask:"default_branch"`
-	// Part of the resource name.
+	// The project ID, which is the final segment of the project's resource name.
 	ProjectId *string `fieldmask:"project_id"`
 }
 
@@ -2388,6 +2468,10 @@ type Role struct {
 	UpdateTime *types.Time `fieldmask:"update_time"`
 	// The spec contains the role configuration, including identity type,
 	// authentication method, and role attributes.
+	//
+	// Read the resource's current values from `status`, rather than `spec`. `spec`
+	// tracks field ownership for infrastructure-as-code tools and may omit
+	// unmanaged fields.
 	Spec *Role_RoleSpec `fieldmask:"spec"`
 	// Current status of the role, including its identity type, authentication
 	// method, and role attributes.
@@ -2909,7 +2993,11 @@ type UpdateEndpointRequest struct {
 	// The endpoint's `name` field is used to identify the endpoint to update.
 	// Format: projects/{project_id}/branches/{branch_id}/endpoints/{endpoint_id}
 	Endpoint *Endpoint
-	// The list of fields to update.
+	// The fields to update, as paths relative to the endpoint, for example
+	// `spec.autoscaling_limit_max_cu`. Pass `spec` to update every field that is
+	// set in `spec`. Only fields under `spec` can be updated. To change the
+	// suspension setting, include `spec.suspension` or the specific suspension
+	// field.
 	UpdateMask *types.FieldMask[Endpoint]
 }
 
@@ -2927,7 +3015,9 @@ type UpdateProjectRequest struct {
 	// The project's `name` field is used to identify the project to update. Format:
 	// projects/{project_id}
 	Project *Project
-	// The list of fields to update.
+	// The fields to update, as paths relative to the project, for example
+	// `spec.display_name`. Pass `*` to update every field that is set in the
+	// request. Only fields under `spec` can be updated.
 	UpdateMask *types.FieldMask[Project]
 }
 

@@ -19,8 +19,8 @@ const (
 )
 
 type AwsSqsQueue struct {
-	// The AQS queue url in the format https://sqs.{region}.amazonaws.com/{account
-	// id}/{queue name}. Only required for provided_sqs.
+	// The SQS queue URL in the format `https://sqs.{region}.amazonaws.com/{account
+	// id}/{queue name}`. Only required for provided_sqs.
 	QueueUrl *string
 	// Unique identifier included in the name of file events managed cloud
 	// resources.
@@ -28,8 +28,9 @@ type AwsSqsQueue struct {
 }
 
 type AzureQueueStorage struct {
-	// The AQS queue url in the format https://{storage
-	// account}.queue.core.windows.net/{queue name} Only required for provided_aqs.
+	// The AQS queue URL in the format `https://{storage
+	// account}.queue.core.windows.net/{queue name}`. Only required for
+	// provided_aqs.
 	QueueUrl *string
 	// Optional subscription id for the queue, event grid subscription, and external
 	// location storage account. Required for locations with a service principal
@@ -50,7 +51,8 @@ type CreateExternalLocationRequest struct {
 	SkipValidation *bool
 	// Name of the external location.
 	Name *string
-	// Path URL of the external location.
+	// URL of the cloud storage path that the external location points to, including
+	// the scheme (for example `s3://`, `abfss://`, or `gs://`).
 	Url *string
 	// Name of the storage credential used with this location.
 	CredentialName *string
@@ -58,16 +60,18 @@ type CreateExternalLocationRequest struct {
 	ReadOnly *bool
 	// User-provided free-form text description.
 	Comment *string
-	// Whether to enable file events on this external location. Default to `true`.
+	// Whether to enable file events on this external location. Defaults to `true`.
 	// Set to `false` to disable file events. The actual applied value may differ
 	// due to server-side defaults; check `effective_enable_file_events` for the
 	// effective state.
 	EnableFileEvents *bool
-	// File event queue settings. If `enable_file_events` is not `false`, must be
-	// defined and have exactly one of the documented properties.
+	// File event queue settings. When `enable_file_events` is `true`, exactly one
+	// of the queue options must be set. Must be omitted when `enable_file_events`
+	// is `false`.
 	FileEventQueue *FileEventQueue
 	// The owner of the external location.
-	Owner             *string
+	Owner *string
+	// Encryption options that apply to clients connecting to cloud storage.
 	EncryptionDetails *EncryptionDetails
 	// Unique identifier of metastore hosting the external location.
 	MetastoreId *string
@@ -77,7 +81,7 @@ type CreateExternalLocationRequest struct {
 	CreatedAt *int64
 	// Username of external location creator.
 	CreatedBy *string
-	// Time at which external location this was last modified, in epoch
+	// Time at which this external location was last modified, in epoch
 	// milliseconds.
 	UpdatedAt *int64
 	// Username of user who last modified the external location.
@@ -85,7 +89,9 @@ type CreateExternalLocationRequest struct {
 	// Indicates whether the principal is limited to retrieving metadata for the
 	// associated object through the BROWSE privilege when include_browse is enabled
 	// in the request.
-	BrowseOnly    *bool
+	BrowseOnly *bool
+	// Whether the current securable is accessible from all workspaces or a specific
+	// set of workspaces. Cannot be set when creating an external location.
 	IsolationMode IsolationMode
 	// Indicates whether fallback mode is enabled for this external location. When
 	// fallback mode is enabled, the access to the location falls back to cluster
@@ -129,10 +135,16 @@ type EncryptionDetails_EncryptionDetailsType_SseEncryptionDetails struct {
 func (*EncryptionDetails_EncryptionDetailsType_SseEncryptionDetails) isEncryptionDetails_EncryptionDetailsType() {
 }
 
+// An external location combines a cloud storage path with a storage credential
+// that authorizes access to that path. Privileges granted on the external
+// location control which users and groups can access the cloud storage path,
+// for example to create external tables, external volumes, or managed storage
+// locations under it..
 type ExternalLocationInfo struct {
 	// Name of the external location.
 	Name *string
-	// Path URL of the external location.
+	// URL of the cloud storage path that the external location points to, including
+	// the scheme (for example `s3://`, `abfss://`, or `gs://`).
 	Url *string
 	// Name of the storage credential used with this location.
 	CredentialName *string
@@ -140,16 +152,18 @@ type ExternalLocationInfo struct {
 	ReadOnly *bool
 	// User-provided free-form text description.
 	Comment *string
-	// Whether to enable file events on this external location. Default to `true`.
+	// Whether to enable file events on this external location. Defaults to `true`.
 	// Set to `false` to disable file events. The actual applied value may differ
 	// due to server-side defaults; check `effective_enable_file_events` for the
 	// effective state.
 	EnableFileEvents *bool
-	// File event queue settings. If `enable_file_events` is not `false`, must be
-	// defined and have exactly one of the documented properties.
+	// File event queue settings. When `enable_file_events` is `true`, exactly one
+	// of the queue options must be set. Must be omitted when `enable_file_events`
+	// is `false`.
 	FileEventQueue *FileEventQueue
 	// The owner of the external location.
-	Owner             *string
+	Owner *string
+	// Encryption options that apply to clients connecting to cloud storage.
 	EncryptionDetails *EncryptionDetails
 	// Unique identifier of metastore hosting the external location.
 	MetastoreId *string
@@ -159,7 +173,7 @@ type ExternalLocationInfo struct {
 	CreatedAt *int64
 	// Username of external location creator.
 	CreatedBy *string
-	// Time at which external location this was last modified, in epoch
+	// Time at which this external location was last modified, in epoch
 	// milliseconds.
 	UpdatedAt *int64
 	// Username of user who last modified the external location.
@@ -167,7 +181,9 @@ type ExternalLocationInfo struct {
 	// Indicates whether the principal is limited to retrieving metadata for the
 	// associated object through the BROWSE privilege when include_browse is enabled
 	// in the request.
-	BrowseOnly    *bool
+	BrowseOnly *bool
+	// Whether the current securable is accessible from all workspaces or a specific
+	// set of workspaces. Cannot be set when creating an external location.
 	IsolationMode IsolationMode
 	// Indicates whether fallback mode is enabled for this external location. When
 	// fallback mode is enabled, the access to the location falls back to cluster
@@ -240,7 +256,7 @@ func (*FileEventQueue_Managed_ManagedPubsub) isFileEventQueue_Managed() {}
 
 type GcpPubsub struct {
 	// The Pub/Sub subscription name in the format
-	// projects/{project}/subscriptions/{subscription name}. Only required for
+	// `projects/{project}/subscriptions/{subscription name}`. Only required for
 	// provided_pubsub.
 	SubscriptionName *string
 	// Unique identifier included in the name of file events managed cloud
@@ -252,13 +268,13 @@ type GetExternalLocationRequest struct {
 	// Name of the external location.
 	NameArg *string
 	// Whether to include external locations in the response for which the principal
-	// can only access selective metadata for
+	// can only access selective metadata.
 	IncludeBrowse *bool
 }
 
 type ListExternalLocationsRequest struct {
 	// Whether to include external locations in the response for which the principal
-	// can only access selective metadata for
+	// can only access selective metadata.
 	IncludeBrowse *bool
 	// Maximum number of external locations to return. If not set, all the external
 	// locations are returned (not recommended). - when set to a value greater than
@@ -306,7 +322,8 @@ type UpdateExternalLocationRequest struct {
 	SkipValidation *bool
 	// Name of the external location.
 	Name *string
-	// Path URL of the external location.
+	// URL of the cloud storage path that the external location points to, including
+	// the scheme (for example `s3://`, `abfss://`, or `gs://`).
 	Url *string
 	// Name of the storage credential used with this location.
 	CredentialName *string
@@ -314,16 +331,18 @@ type UpdateExternalLocationRequest struct {
 	ReadOnly *bool
 	// User-provided free-form text description.
 	Comment *string
-	// Whether to enable file events on this external location. Default to `true`.
+	// Whether to enable file events on this external location. Defaults to `true`.
 	// Set to `false` to disable file events. The actual applied value may differ
 	// due to server-side defaults; check `effective_enable_file_events` for the
 	// effective state.
 	EnableFileEvents *bool
-	// File event queue settings. If `enable_file_events` is not `false`, must be
-	// defined and have exactly one of the documented properties.
+	// File event queue settings. When `enable_file_events` is `true`, exactly one
+	// of the queue options must be set. Must be omitted when `enable_file_events`
+	// is `false`.
 	FileEventQueue *FileEventQueue
 	// The owner of the external location.
-	Owner             *string
+	Owner *string
+	// Encryption options that apply to clients connecting to cloud storage.
 	EncryptionDetails *EncryptionDetails
 	// Unique identifier of metastore hosting the external location.
 	MetastoreId *string
@@ -333,7 +352,7 @@ type UpdateExternalLocationRequest struct {
 	CreatedAt *int64
 	// Username of external location creator.
 	CreatedBy *string
-	// Time at which external location this was last modified, in epoch
+	// Time at which this external location was last modified, in epoch
 	// milliseconds.
 	UpdatedAt *int64
 	// Username of user who last modified the external location.
@@ -341,7 +360,9 @@ type UpdateExternalLocationRequest struct {
 	// Indicates whether the principal is limited to retrieving metadata for the
 	// associated object through the BROWSE privilege when include_browse is enabled
 	// in the request.
-	BrowseOnly    *bool
+	BrowseOnly *bool
+	// Whether the current securable is accessible from all workspaces or a specific
+	// set of workspaces. Cannot be set when creating an external location.
 	IsolationMode IsolationMode
 	// Indicates whether fallback mode is enabled for this external location. When
 	// fallback mode is enabled, the access to the location falls back to cluster

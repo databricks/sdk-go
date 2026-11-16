@@ -1133,6 +1133,14 @@ type DataSource_DataSource_SdpSource struct {
 
 func (*DataSource_DataSource_SdpSource) isDataSource_DataSource() {}
 
+// DataSource_DataSource_IcebergTableSource selects IcebergTableSource for DataSource.DataSource.
+// A Unity Catalog managed or foreign Iceberg table source.
+type DataSource_DataSource_IcebergTableSource struct {
+	IcebergTableSource IcebergTableSource `fieldmask:"iceberg_table_source"`
+}
+
+func (*DataSource_DataSource_IcebergTableSource) isDataSource_DataSource() {}
+
 type dataSourceDataSourceFieldMaskMetadata struct {
 	*DataSource_DataSource_DeltaTableSource
 	*DataSource_DataSource_KafkaSource
@@ -1140,6 +1148,7 @@ type dataSourceDataSourceFieldMaskMetadata struct {
 	*DataSource_DataSource_StreamSource
 	*DataSource_DataSource_FeatureViewSource
 	*DataSource_DataSource_SdpSource
+	*DataSource_DataSource_IcebergTableSource
 }
 
 // A reference to a Feature..
@@ -1560,6 +1569,28 @@ type GetOperationRequest struct {
 type GetStreamRequest struct {
 	// Full three-part name (catalog.schema.stream) of the Stream to get.
 	Name *string
+}
+
+// A Unity Catalog managed or foreign Iceberg table, in Iceberg v2 or v3 format.
+// Table identity, format, schema, and permissions are resolved through Unity
+// Catalog..
+type IcebergTableSource struct {
+	// Full three-part name of the source table. May be omitted on reads when
+	// inaccessible.
+	FullName *string `fieldmask:"full_name"`
+	// A single WHERE clause to filter the Iceberg table before applying
+	// transformations. The predicate is evaluated for each row.
+	FilterCondition *string `fieldmask:"filter_condition"`
+	// A single SQL SELECT expression applied after filter_condition. The expression
+	// must contain all required columns (e.g., "*, col_a + col_b AS col_c"). If
+	// transformation_sql is not provided, all columns of the Iceberg table are
+	// present in the DataSource dataframe.
+	TransformationSql *string `fieldmask:"transformation_sql"`
+	// Schema of the resulting dataframe after transformations, in Spark StructType
+	// JSON format (from df.schema.json()). Required if transformation_sql is
+	// specified. Example:
+	// {"type":"struct","fields":[{"name":"col_a","type":"integer","nullable":true,"metadata":{}},{"name":"col_c","type":"integer","nullable":true,"metadata":{}}]}
+	DataframeSchema *string `fieldmask:"dataframe_schema"`
 }
 
 // Configuration for the <Databricks>-managed ingestion pipeline. Groups the

@@ -146,7 +146,8 @@ type CreateExperimentResponse struct {
 
 // Request for CreateIssue..
 type CreateIssueRequest struct {
-	// experiments/{experiment}
+	// The experiment to create the Issue in, as `experiments/{experiment}`, where
+	// `{experiment}` is the experiment ID. For example, `experiments/1234567890`.
 	Parent *string
 	// Output-only fields are ignored.
 	Issue *Issue
@@ -391,7 +392,10 @@ type GetExperimentResponse struct {
 
 // Request for GetIssue..
 type GetIssueRequest struct {
-	// experiments/{experiment}/issues/{issue}
+	// The Issue to get, as `experiments/{experiment}/issues/{issue}`, where
+	// `{experiment}` is the experiment ID and `{issue}` is the Issue ID: `iss-`
+	// followed by 32 lowercase hex digits. For example,
+	// `experiments/1234567890/issues/iss-0123456789abcdef0123456789abcdef`.
 	Name *string
 }
 
@@ -439,7 +443,10 @@ type InputTag struct {
 
 // A quality or operational problem found in an experiment's traces..
 type Issue struct {
-	// experiments/{experiment}/issues/{issue}
+	// The Issue's resource name, as `experiments/{experiment}/issues/{issue}`,
+	// where `{experiment}` is the experiment ID and `{issue}` is the Issue ID:
+	// `iss-` followed by 32 lowercase hex digits. For example,
+	// `experiments/1234567890/issues/iss-0123456789abcdef0123456789abcdef`.
 	Name *string `fieldmask:"name"`
 	// The last segment of `name`. Issue assessments on traces reference the Issue
 	// by this ID.
@@ -893,7 +900,8 @@ type SearchExperimentsResponse struct {
 
 // Request for SearchIssues..
 type SearchIssuesRequest struct {
-	// experiments/{experiment}
+	// The experiment to search, as `experiments/{experiment}`, where `{experiment}`
+	// is the experiment ID. For example, `experiments/1234567890`.
 	Parent *string
 	// Case-insensitive substring match on title.
 	Query *string

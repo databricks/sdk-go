@@ -62,6 +62,14 @@ func WithLogger(logger *slog.Logger) Option {
 	}
 }
 
+// WithBackoff sets the backoff between the retries of [Client.Send]. The zero
+// policy uses the [ops.BackoffPolicy] defaults, as when it is not set.
+func WithBackoff(bp ops.BackoffPolicy) Option {
+	return func(c *Client) {
+		c.retrier = func() ops.Retrier { return &retrier{maxRetries: maxRetries, backoff: bp} }
+	}
+}
+
 // New returns a Client that sends over the given HTTP client. The caller owns
 // the client's transport, timeouts, and connection-pool sizing; it must not
 // attach Databricks credentials, and should not set a whole-request

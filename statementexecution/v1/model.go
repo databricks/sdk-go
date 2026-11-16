@@ -99,8 +99,9 @@ type CancelStatementRequest struct {
 	// The statement ID is returned upon successfully submitting a SQL statement,
 	// and is a required reference for all subsequent calls.
 	StatementId *string
-	// For warehouse statement URLs, this field contains the warehouse_id path
-	// parameter.
+	// The ID of the warehouse that ran the statement. The Statement Execution
+	// (Lakehouse//RT) API takes it as a path parameter. The Statement Execution API
+	// doesn't use it.
 	WarehouseId *string
 }
 
@@ -346,8 +347,9 @@ type GetResultDataRequest struct {
 	// and is a required reference for all subsequent calls.
 	StatementId *string
 	ChunkIndex  *int
-	// For warehouse statement URLs, this field contains the warehouse_id path
-	// parameter.
+	// The ID of the warehouse that ran the statement. The Statement Execution
+	// (Lakehouse//RT) API takes it as a path parameter. The Statement Execution API
+	// doesn't use it.
 	WarehouseId *string
 }
 
@@ -355,8 +357,9 @@ type GetStatementResultRequest struct {
 	// The statement ID is returned upon successfully submitting a SQL statement,
 	// and is a required reference for all subsequent calls.
 	StatementId *string
-	// For warehouse statement URLs, this field contains the warehouse_id path
-	// parameter.
+	// The ID of the warehouse that ran the statement. The Statement Execution
+	// (Lakehouse//RT) API takes it as a path parameter. The Statement Execution API
+	// doesn't use it.
 	WarehouseId *string
 }
 
@@ -443,6 +446,10 @@ type StatementParameter struct {
 	Type *string
 }
 
+// Statement Execution works with all SQL warehouse types, including
+// Lakehouse//RT. Statement Execution (Lakehouse//RT) is optimized for
+// Lakehouse//RT warehouses, with lower latency and higher concurrency, and
+// takes `warehouse_id` as a path parameter..
 type StatementResponse struct {
 	// The statement ID is returned upon successfully submitting a SQL statement,
 	// and is a required reference for all subsequent calls.

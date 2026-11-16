@@ -77,7 +77,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	}, nil
 }
 
-// Creates a query.
+// Creates a query. The caller becomes the owner of the new query.
 func (c *internalClient) CreateQuery(ctx context.Context, req CreateQueryRequest, opts ...call.Option) (*Query, error) {
 	wireReq, err := createQueryRequestToWire(&req)
 	if err != nil {
@@ -490,7 +490,10 @@ func (c *internalClient) TrashQuery(ctx context.Context, req TrashQueryRequest, 
 	return resp, nil
 }
 
-// Updates a query.
+// Updates the fields of a query named in `update_mask`. Changing
+// `owner_user_name` requires workspace admin privileges. Changing `run_as_mode`
+// requires CAN MANAGE permission on the query, and only the query owner can
+// switch it to `OWNER`.
 func (c *internalClient) UpdateQuery(ctx context.Context, req UpdateQueryRequest, opts ...call.Option) (*Query, error) {
 	wireReq, err := updateQueryRequestToWire(&req)
 	if err != nil {
