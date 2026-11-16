@@ -2,19 +2,31 @@
 
 package notificationdestinations
 
+// The kind of destination that notifications are sent to.
 type DestinationType string
 
 const (
-	DestinationType_Unspecified        DestinationType = ""
-	DestinationType_Slack              DestinationType = "SLACK"
-	DestinationType_Email              DestinationType = "EMAIL"
-	DestinationType_Webhook            DestinationType = "WEBHOOK"
-	DestinationType_Pagerduty          DestinationType = "PAGERDUTY"
-	DestinationType_MicrosoftTeams     DestinationType = "MICROSOFT_TEAMS"
+	DestinationType_Unspecified DestinationType = ""
+	// Notifications are sent to a Slack incoming webhook.
+	DestinationType_Slack DestinationType = "SLACK"
+	// Notifications are sent to email addresses.
+	DestinationType_Email DestinationType = "EMAIL"
+	// Notifications are sent to a generic HTTPS webhook.
+	DestinationType_Webhook DestinationType = "WEBHOOK"
+	// Notifications are sent to a PagerDuty service.
+	DestinationType_Pagerduty DestinationType = "PAGERDUTY"
+	// Notifications are sent to a Microsoft Teams incoming webhook.
+	DestinationType_MicrosoftTeams DestinationType = "MICROSOFT_TEAMS"
+	// Notifications are sent to a Slack channel through the Databricks Genie app
+	// for Slack.
 	DestinationType_DatabricksAppSlack DestinationType = "DATABRICKS_APP_SLACK"
+	// Notifications are sent to a Microsoft Teams channel through the Databricks
+	// Genie app for Microsoft Teams.
 	DestinationType_DatabricksAppTeams DestinationType = "DATABRICKS_APP_TEAMS"
 )
 
+// Holds the destination-specific configuration. Exactly one of the nested
+// configs is set..
 type Config struct {
 	Config isConfig_Config
 }
@@ -24,6 +36,7 @@ type isConfig_Config interface {
 }
 
 // Config_Config_Slack selects Slack for Config.Config.
+// Configures a Slack incoming webhook destination.
 type Config_Config_Slack struct {
 	Slack SlackConfig
 }
@@ -31,6 +44,7 @@ type Config_Config_Slack struct {
 func (*Config_Config_Slack) isConfig_Config() {}
 
 // Config_Config_Email selects Email for Config.Config.
+// Configures an email destination.
 type Config_Config_Email struct {
 	Email EmailConfig
 }
@@ -38,6 +52,7 @@ type Config_Config_Email struct {
 func (*Config_Config_Email) isConfig_Config() {}
 
 // Config_Config_GenericWebhook selects GenericWebhook for Config.Config.
+// Configures a generic HTTPS webhook destination.
 type Config_Config_GenericWebhook struct {
 	GenericWebhook GenericWebhookConfig
 }
@@ -45,6 +60,7 @@ type Config_Config_GenericWebhook struct {
 func (*Config_Config_GenericWebhook) isConfig_Config() {}
 
 // Config_Config_Pagerduty selects Pagerduty for Config.Config.
+// Configures a PagerDuty destination.
 type Config_Config_Pagerduty struct {
 	Pagerduty PagerdutyConfig
 }
@@ -52,6 +68,7 @@ type Config_Config_Pagerduty struct {
 func (*Config_Config_Pagerduty) isConfig_Config() {}
 
 // Config_Config_MicrosoftTeams selects MicrosoftTeams for Config.Config.
+// Configures a Microsoft Teams incoming webhook destination.
 type Config_Config_MicrosoftTeams struct {
 	MicrosoftTeams MicrosoftTeamsConfig
 }
@@ -59,6 +76,8 @@ type Config_Config_MicrosoftTeams struct {
 func (*Config_Config_MicrosoftTeams) isConfig_Config() {}
 
 // Config_Config_DatabricksAppSlack selects DatabricksAppSlack for Config.Config.
+// Configures a Slack channel reached through the Databricks Genie app for
+// Slack.
 type Config_Config_DatabricksAppSlack struct {
 	DatabricksAppSlack DatabricksAppSlackConfig
 }
@@ -66,6 +85,8 @@ type Config_Config_DatabricksAppSlack struct {
 func (*Config_Config_DatabricksAppSlack) isConfig_Config() {}
 
 // Config_Config_DatabricksAppTeams selects DatabricksAppTeams for Config.Config.
+// Configures a Microsoft Teams channel reached through the Databricks Genie app
+// for Microsoft Teams.
 type Config_Config_DatabricksAppTeams struct {
 	DatabricksAppTeams DatabricksAppTeamsConfig
 }
@@ -113,120 +134,171 @@ type DatabricksAppTeamsConfig struct {
 }
 
 type DeleteNotificationDestinationRequest struct {
+	// A UUID identifying the notification destination.
 	Id *string
 }
 
+// Configures an email destination..
 type EmailConfig struct {
-	// Email addresses to notify.
+	// Email addresses to notify. At least one address is required.
 	Addresses []string
 }
 
 type Empty struct {
 }
 
+// Configures a generic webhook destination. Notifications are delivered as
+// HTTPS POST requests to url, optionally authenticated with HTTP Basic
+// authentication..
 type GenericWebhookConfig struct {
-	// [Input-Only] URL for webhook.
+	// [Input-Only] HTTPS URL that notifications are posted to.
 	Url *string
 	// [Output-Only] Whether URL is set.
 	UrlSet *bool
-	// [Input-Only][Optional] Username for webhook.
+	// [Input-Only][Optional] Username for HTTP Basic authentication. Set it
+	// together with password.
 	Username *string
 	// [Output-Only] Whether username is set.
 	UsernameSet *bool
-	// [Input-Only][Optional] Password for webhook.
+	// [Input-Only][Optional] Password for HTTP Basic authentication. Set it
+	// together with username.
 	Password *string
 	// [Output-Only] Whether password is set.
 	PasswordSet *bool
 }
 
 type GetNotificationDestinationRequest struct {
+	// A UUID identifying the notification destination.
 	Id *string
 }
 
 type ListNotificationDestinationsRequest struct {
+	// Opaque token returned as next_page_token by a previous call. Omit it to
+	// request the first page.
 	PageToken *string
-	PageSize  *int64
+	// Maximum number of notification destinations to return per page. Defaults to
+	// 20.
+	PageSize *int64
 }
 
 type ListNotificationDestinationsResponse struct {
+	// Notification destinations in the current page.
 	Results []ListNotificationDestinationsResult
-	// Page token for next of results.
+	// Token to pass as page_token to fetch the next page of results. Absent when
+	// there are no more results.
 	NextPageToken *string
 }
 
+// A reusable definition of where a workspace sends notifications, such as a
+// Slack channel, a set of email addresses, a PagerDuty service, a Microsoft
+// Teams channel or a generic webhook. Job notifications, SQL alerts and other
+// workspace features reference a destination by its id. Only workspace admins
+// can create, update and delete destinations; once created, a destination is
+// available to all users in the workspace. Secret values such as webhook URLs
+// and tokens are write-only: responses report whether each one is set, never
+// its value..
 type ListNotificationDestinationsResult struct {
-	// UUID identifying notification destination.
+	// A UUID identifying the notification destination.
 	Id *string
 	// The display name for the notification destination.
 	DisplayName *string
-	// [Output-only] The type of the notification destination. The type can not be
-	// changed once set.
+	// [Output-only] The type of the notification destination, determined by which
+	// nested config was provided on creation. The type can not be changed once set.
 	DestinationType DestinationType
 	// The configuration for the notification destination. Will be exactly one of
-	// the nested configs. Only returns for users with workspace admin permissions.
+	// the nested configs. Only returned to users with workspace admin permissions.
 	Config *Config
 }
 
+// Configures a Microsoft Teams destination. Notifications are posted to the
+// incoming webhook url, which is required. The app_id, auth_secret, channel_url
+// and tenant_id fields can optionally be set together to post through a
+// Microsoft Teams app..
 type MicrosoftTeamsConfig struct {
-	// [Input-Only] URL for Microsoft Teams webhook.
+	// [Input-Only] Microsoft Teams incoming webhook URL that notifications are
+	// posted to. Must be an HTTPS URL. The URL is required even when the app fields
+	// are set.
 	Url *string
 	// [Output-Only] Whether URL is set.
 	UrlSet *bool
-	// [Input-Only] App ID for Microsoft Teams App.
+	// [Input-Only] Application (client) ID of the Microsoft Teams app, as a UUID.
+	// Optional; set it together with auth_secret, channel_url and tenant_id.
 	AppId *string
 	// [Output-Only] Whether App ID is set.
 	AppIdSet *bool
-	// [Input-Only] Secret for Microsoft Teams App authentication.
+	// [Input-Only] Client secret of the Microsoft Teams app. Optional; set it
+	// together with app_id, channel_url and tenant_id.
 	AuthSecret *string
 	// [Output-Only] Whether secret is set.
 	AuthSecretSet *bool
-	// [Input-Only] Channel URL for Microsoft Teams App.
+	// [Input-Only] URL of the Microsoft Teams channel that the app posts to.
+	// Optional; set it together with app_id, auth_secret and tenant_id.
 	ChannelUrl *string
 	// [Output-Only] Whether Channel URL is set.
 	ChannelUrlSet *bool
-	// [Input-Only] Tenant ID for Microsoft Teams App.
+	// [Input-Only] Microsoft Entra tenant ID of the Microsoft Teams app, as a UUID.
+	// Optional; set it together with app_id, auth_secret and channel_url.
 	TenantId *string
 	// [Output-Only] Whether Tenant ID is set.
 	TenantIdSet *bool
 }
 
+// A reusable definition of where a workspace sends notifications, such as a
+// Slack channel, a set of email addresses, a PagerDuty service, a Microsoft
+// Teams channel or a generic webhook. Job notifications, SQL alerts and other
+// workspace features reference a destination by its id. Only workspace admins
+// can create, update and delete destinations; once created, a destination is
+// available to all users in the workspace. Secret values such as webhook URLs
+// and tokens are write-only: responses report whether each one is set, never
+// its value..
 type NotificationDestination struct {
-	// UUID identifying notification destination.
+	// A UUID identifying the notification destination.
 	Id *string
 	// The display name for the notification destination.
 	DisplayName *string
-	// [Output-only] The type of the notification destination. The type can not be
-	// changed once set.
+	// [Output-only] The type of the notification destination, determined by which
+	// nested config was provided on creation. The type can not be changed once set.
 	DestinationType DestinationType
 	// The configuration for the notification destination. Will be exactly one of
-	// the nested configs. Only returns for users with workspace admin permissions.
+	// the nested configs. Only returned to users with workspace admin permissions.
 	Config *Config
 }
 
+// Configures a PagerDuty destination. Notifications are sent as events to the
+// PagerDuty Events API v2..
 type PagerdutyConfig struct {
-	// [Input-Only] Integration key for PagerDuty.
+	// [Input-Only] Integration key from an Events API v2 integration on the
+	// PagerDuty service that receives the notifications.
 	IntegrationKey *string
 	// [Output-Only] Whether integration key is set.
 	IntegrationKeySet *bool
 }
 
+// Configures a Slack destination. Notifications are posted to the incoming
+// webhook url, which is required. A bot oauth_token and channel_id can
+// optionally be set together to post to the channel through the Slack API..
 type SlackConfig struct {
-	// [Input-Only] URL for Slack destination.
+	// [Input-Only] Slack incoming webhook URL that notifications are posted to.
+	// Must be an HTTPS URL. The URL is required even when oauth_token and
+	// channel_id are set.
 	Url *string
 	// [Output-Only] Whether URL is set.
 	UrlSet *bool
-	// [Input-Only] OAuth token for Slack authentication.
+	// [Input-Only] Slack bot OAuth token (xoxb-...). Optional; when set together
+	// with channel_id, notifications are posted to that channel through the Slack
+	// API.
 	OauthToken *string
 	// [Output-Only] Whether OAuth token is set.
 	OauthTokenSet *bool
-	// [Input-Only] Slack channel ID for notifications.
+	// [Input-Only] ID of the Slack channel that notifications are posted to through
+	// the Slack API. Optional; set it together with oauth_token.
 	ChannelId *string
 	// [Output-Only] Whether channel ID is set.
 	ChannelIdSet *bool
 }
 
 type UpdateNotificationDestinationRequest struct {
-	// UUID identifying notification destination.
+	// A UUID identifying the notification destination.
 	Id *string
 	// The display name for the notification destination.
 	DisplayName *string

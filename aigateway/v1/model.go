@@ -179,7 +179,9 @@ type CreateModelServiceRequest struct {
 	// Name of the parent schema. Format: `schemas/{catalog}.{schema}`. Each `{...}`
 	// component is capped at 255 characters individually.
 	Parent *string
-	// Name for the model service, e.g. "my_model_service".
+	// Name of the model service within the parent schema. The name must not contain
+	// periods, spaces, forward slashes, percent signs, or control characters, and
+	// it is stored in lowercase.
 	ModelServiceId *string
 	// The model service to create. Do not set `name`; the server derives it from
 	// `parent` and `model_service_id`.
@@ -322,8 +324,8 @@ type InferenceTableConfig struct {
 	// `table` from the response for the resulting resource name. After the
 	// inference table is created, this field cannot be changed.
 	TableNamePrefix *string `fieldmask:"table_name_prefix"`
-	// Resolved UC table for payload logs. Format:
-	// `tables/{catalog}.{schema}.{table}`.
+	// Resource name of the Unity Catalog table that receives the payload logs.
+	// Format: `tables/{catalog}.{schema}.{table}`.
 	Table *string `fieldmask:"table"`
 	// Whether the referenced inference table has been deleted. The configuration
 	// remains visible so you can identify the broken dependency. Payload logging
@@ -1434,26 +1436,27 @@ type ModelProviderServiceConfig_ServiceCredential struct {
 }
 
 // A governed AI Gateway endpoint in Unity Catalog that routes inference
-// requests to one or more destinations, such as a <Databricks> foundation model
+// requests to one or more destinations, such as a Databricks foundation model
 // or an external model reached through a model provider service. Applies
 // centralized access control, rate limits, and auditing to its traffic..
 type ModelService struct {
 	// Resource name of the model service. Format:
 	// `model-services/{catalog}.{schema}.{model_service}`. Each `{...}` component
-	// is capped at 255 characters individually. Server-derived on Create from
-	// `parent` + `model_service_id`; required and immutable on Update/Get/Delete.
+	// is capped at 255 characters individually. The server derives the name on
+	// Create from `parent` and `model_service_id`; it is required and immutable on
+	// Update, Get, and Delete.
 	Name *string `fieldmask:"name"`
-	// Owner of the model service.
+	// Username or group name of the model service owner.
 	EffectiveOwner *string `fieldmask:"effective_owner"`
-	// Metastore hosting the model service.
+	// Unique identifier of the metastore that contains the model service.
 	MetastoreId *string `fieldmask:"metastore_id"`
 	// Time the model service was created.
 	CreateTime *types.Time `fieldmask:"create_time"`
-	// Creator identity.
+	// Username of the user who created the model service.
 	CreatedBy *string `fieldmask:"created_by"`
 	// Time the model service was last modified.
 	UpdateTime *types.Time `fieldmask:"update_time"`
-	// Identity of the last updater.
+	// Username of the user who last updated the model service.
 	UpdatedBy *string `fieldmask:"updated_by"`
 	// User-provided description.
 	Comment *string `fieldmask:"comment"`
@@ -1475,11 +1478,13 @@ type ModelService struct {
 
 // Operational configuration wrapped around the ModelService resource..
 type ModelServiceConfig struct {
-	// Routing configuration: destinations and fallback.
+	// Routing configuration: the primary destinations that receive traffic and the
+	// fallback destinations tried when a primary destination fails.
 	Routing *ModelServiceConfig_RoutingConfig `fieldmask:"routing"`
 	// Rate limits applied to requests routed through this model service.
 	RateLimits []RateLimit `fieldmask:"rate_limits"`
-	// Inference table configuration for payload logging.
+	// Configuration for logging request and response payloads to a Unity Catalog
+	// inference table. Omit this field to leave payload logging off.
 	InferenceTable *InferenceTableConfig `fieldmask:"inference_table"`
 }
 
@@ -1487,7 +1492,9 @@ type ModelServiceConfig struct {
 // per-type configs inside `type_config` must be set, and it must match
 // `destination_type`..
 type ModelServiceConfig_DestinationConfig struct {
-	// User-facing label for this destination, used in routing references.
+	// Label that identifies this destination. Names are compared case-insensitively
+	// and must be unique within the primary destinations and within the fallback
+	// destinations.
 	Name *string
 	// Backing-model category. Provide the matching type-specific configuration and
 	// leave the other type-specific configurations unset.
@@ -1511,7 +1518,7 @@ type isModelServiceConfig_DestinationConfig_TypeConfig interface {
 }
 
 // ModelServiceConfig_DestinationConfig_TypeConfig_PayPerTokenConfig selects PayPerTokenConfig for ModelServiceConfig_DestinationConfig.TypeConfig.
-// Configuration for a pay-per-token <Databricks> foundation model.
+// Configuration for a pay-per-token Databricks foundation model.
 type ModelServiceConfig_DestinationConfig_TypeConfig_PayPerTokenConfig struct {
 	PayPerTokenConfig ModelServiceConfig_PayPerTokenConfig
 }
@@ -1520,7 +1527,7 @@ func (*ModelServiceConfig_DestinationConfig_TypeConfig_PayPerTokenConfig) isMode
 }
 
 // ModelServiceConfig_DestinationConfig_TypeConfig_ProvisionedThroughputConfig selects ProvisionedThroughputConfig for ModelServiceConfig_DestinationConfig.TypeConfig.
-// Configuration for a provisioned-throughput <Databricks> foundation model.
+// Configuration for a provisioned-throughput Databricks foundation model.
 type ModelServiceConfig_DestinationConfig_TypeConfig_ProvisionedThroughputConfig struct {
 	ProvisionedThroughputConfig ModelServiceConfig_ProvisionedThroughputConfig
 }
@@ -1564,8 +1571,9 @@ type ModelServiceConfig_FallbackConfig struct {
 // the foundation model by its UC resource name; the platform resolves it to a
 // Model Serving endpoint at request time..
 type ModelServiceConfig_PayPerTokenConfig struct {
-	// Resource name of the Unity Catalog model. Format:
-	// `models/{catalog}.{schema}.{model}`.
+	// Resource name of the Unity Catalog foundation model. Pay-per-token foundation
+	// models live in the `system.ai` schema, so the name has the form
+	// `models/system.ai.{model}`.
 	Model *string
 }
 
@@ -1581,9 +1589,9 @@ type ModelServiceConfig_ProvisionedThroughputConfig struct {
 	// endpoint to which this destination routes. The endpoint must exist at create
 	// time.
 	ModelServingEndpoint *string
-	// UC model FQN of the model served by the backing endpoint (e.g.,
-	// `system.ai.databricks-claude-opus-4-6`). Resolved from Model Serving at
-	// Create/Update time.
+	// Resource name of the Unity Catalog model served by the backing endpoint, in
+	// the form `models/{catalog}.{schema}.{model}`. Resolved from Model Serving
+	// when the model service is created or updated.
 	Model *string
 }
 
@@ -1614,7 +1622,7 @@ type RateLimit struct {
 	// Scope of the rate limit. Depending on this value, the limit applies to a
 	// principal, the service as a whole, or each user by default.
 	Key RateLimit_RateLimitKey
-	// Renewal period.
+	// Interval after which the request and token counters reset.
 	RenewalPeriod RateLimit_RateLimitRenewalPeriod
 	// Principal this limit applies to: user email, group name, or service principal
 	// application ID. Required when `key` applies to a user, group, or service

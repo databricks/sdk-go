@@ -85,14 +85,14 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // managed volume will be located in the default location which is specified by
 // the parent schema, or the parent catalog, or the Metastore.
 //
-// For the volume creation to succeed, the user must satisfy following
+// For the volume creation to succeed, the user must satisfy the following
 // conditions: - The caller must be a metastore admin, or be the owner of the
 // parent catalog and schema, or have the **USE_CATALOG** privilege on the
 // parent catalog and the **USE_SCHEMA** privilege on the parent schema. - The
 // caller must have **CREATE VOLUME** privilege on the parent schema.
 //
-// For an external volume, following conditions also need to satisfy - The
-// caller must have **CREATE EXTERNAL VOLUME** privilege on the external
+// For an external volume, the following conditions must also be satisfied: -
+// The caller must have **CREATE EXTERNAL VOLUME** privilege on the external
 // location. - There are no other tables, nor volumes existing in the specified
 // storage location. - The specified storage location is not under the location
 // of other tables, nor volumes, or catalogs or schemas.
@@ -434,7 +434,7 @@ func (c *internalClient) ListVolumesIter(ctx context.Context, req ListVolumesReq
 // privilege on the parent catalog and the **USE_SCHEMA** privilege on the
 // parent schema.
 //
-// Currently only the name, the owner or the comment of the volume could be
+// Currently only the name, the owner, or the comment of the volume can be
 // updated.
 func (c *internalClient) UpdateVolume(ctx context.Context, req UpdateVolumeRequest, opts ...call.Option) (*VolumeInfo, error) {
 	wireReq, err := updateVolumeRequestToWire(&req)

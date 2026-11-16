@@ -132,17 +132,24 @@ type ColumnInfo struct {
 }
 
 type CreateEndpointRequest struct {
-	// Name of the AI Search endpoint
+	// Name of the AI Search endpoint. The name must be unique within the workspace,
+	// have at most 50 characters, contain only lowercase letters, digits, hyphens,
+	// underscores and periods, and start and end with a letter or digit.
 	Name *string
-	// Type of endpoint
+	// Type of endpoint to create. STANDARD endpoints are optimized for low-latency
+	// queries and support Target QPS scaling. STORAGE_OPTIMIZED endpoints hold much
+	// larger indexes and index faster, with higher query latency. See
+	// https://docs.databricks.com/aws/en/ai-search/ai-search#endpoint-options.
 	EndpointType EndpointType
-	// The budget policy id to be applied
+	// Budget policy to attribute the endpoint's usage to. If omitted, the default
+	// budget policy applies.
 	BudgetPolicyId *string
 	// The usage policy id to be applied once we've migrated to usage policies
 	UsagePolicyId *string
-	// Target QPS for the endpoint. Mutually exclusive with num_replicas. The actual
-	// replica count is calculated at index creation/sync time based on this value.
-	// Best-effort target; the system does not guarantee this QPS will be achieved.
+	// Target queries per second (QPS) for the endpoint. Supported for STANDARD
+	// endpoints only. The actual replica count is calculated at index creation/sync
+	// time based on this value. Best-effort target; the system does not guarantee
+	// this QPS will be achieved.
 	TargetQps *int64
 }
 
@@ -333,15 +340,20 @@ type EmbeddingVectorColumn struct {
 type Endpoint struct {
 	// Name of the AI Search endpoint
 	Name *string
-	// Creator of the endpoint
+	// User or service principal that created the endpoint. Users are identified by
+	// username and service principals by application ID.
 	Creator *string
-	// Timestamp of endpoint creation
+	// Time at which the endpoint was created, in milliseconds since the Unix epoch.
 	CreationTimestamp *int64
-	// Timestamp of last update to the endpoint
+	// Time at which the endpoint was last updated, in milliseconds since the Unix
+	// epoch.
 	LastUpdatedTimestamp *int64
-	// Type of endpoint
+	// Type of the endpoint. See
+	// https://docs.databricks.com/aws/en/ai-search/ai-search#endpoint-options for
+	// how the types differ.
 	EndpointType EndpointType
-	// User who last updated the endpoint
+	// User or service principal that last updated the endpoint, in the same form as
+	// creator.
 	LastUpdatedUser *string
 	// Unique identifier of the endpoint
 	Id *string
@@ -351,11 +363,13 @@ type Endpoint struct {
 	NumIndexes *int
 	// The user-selected budget policy id for the endpoint.
 	BudgetPolicyId *string
-	// The budget policy id applied to the endpoint
+	// Budget policy ID in effect for the endpoint. This is the policy set on the
+	// endpoint when one was set, and otherwise the default budget policy.
 	EffectiveBudgetPolicyId *string
 	// The custom tags assigned to the endpoint
 	CustomTags []CustomTag
-	// Scaling information for the endpoint
+	// Scaling information for the endpoint. Present only for STANDARD endpoints
+	// that have a Target QPS set.
 	ScalingInfo *EndpointScalingInfo
 }
 
@@ -394,7 +408,8 @@ type EndpointScalingInfo struct {
 type EndpointStatus struct {
 	// Current state of the endpoint
 	State EndpointStatus_State
-	// Additional status message
+	// Additional detail about the state, such as the reason the endpoint is
+	// OFFLINE. Absent when there is nothing to report.
 	Message *string
 }
 
@@ -539,6 +554,8 @@ type PatchEndpointBudgetPolicyRequest struct {
 }
 
 type PatchEndpointBudgetPolicyResponse struct {
+	// The requested budget policy ID, returned when the endpoint was already using
+	// it.
 	BudgetPolicyId *string
 	// The budget policy applied to the AI Search endpoint.
 	EffectiveBudgetPolicyId *string
@@ -548,7 +565,8 @@ type PatchEndpointRequest struct {
 	// Name of the AI Search endpoint
 	Name *string
 	// Target QPS for the endpoint. Best-effort; the system does not guarantee this
-	// QPS will be achieved.
+	// QPS will be achieved. Set to -1 to clear the Target QPS, as if it had never
+	// been set.
 	TargetQps *int64
 }
 

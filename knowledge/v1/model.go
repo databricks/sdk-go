@@ -174,9 +174,8 @@ type Page struct {
 	// update. Get and Delete also address pages by this full resource name.
 	Name *string `fieldmask:"name"`
 	// Resource name of the domain this page belongs to; format
-	// `domains/{domain_id}`. Required on create. Use the full resource name rather
-	// than a bare domain ID. The domain is fixed after creation; updating it is not
-	// supported.
+	// `domains/{domain_id}`. Required on create and when selected by `update_mask`.
+	// Use the full resource name rather than a bare domain ID.
 	Domain *string `fieldmask:"domain"`
 	// Human-readable title, 1 to 200 characters. Required on create and when
 	// selected by `update_mask`. Published titles must be unique within the domain.
@@ -213,9 +212,9 @@ type UpdatePageRequest struct {
 	// The page to update. `name` is required in the form `pages/{page_id}`. Only
 	// fields selected by `update_mask` are written.
 	Page *Page
-	// Nonempty set of Page fields to update. Supported paths are `display_name`,
-	// `body`, `synonyms`, `description`, `state`, and `owner_ids`, without a
-	// `page.` prefix. Wildcards, `domain`, and server-assigned fields are not
+	// Nonempty set of Page fields to update. Supported paths are `domain`,
+	// `display_name`, `body`, `synonyms`, `description`, `state`, and `owner_ids`,
+	// without a `page.` prefix. Wildcards and server-assigned fields are not
 	// supported. In REST requests, pass a comma-separated query parameter, for
 	// example `update_mask=display_name,body`. There is no implicit update of all
 	// fields.

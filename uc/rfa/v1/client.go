@@ -232,7 +232,9 @@ func (c *internalClient) GetAccessRequestDestinations(ctx context.Context, req G
 // maximum of 5 emails and 5 external notification destinations (Slack,
 // Microsoft Teams, Generic Webhook, Databricks App Slack/Teams, Asana,
 // ServiceNow, and EventBridge destinations) can be assigned to a securable. If
-// a URL destination is assigned, no other destinations can be set.
+// a URL destination is assigned, no other destinations can be set. An update
+// replaces every destination assigned directly to the securable in this
+// workspace. An empty list removes them all.
 //
 // The supported securable types are: "metastore", "catalog", "schema", "table",
 // "external_location", "connection", "credential", "function",

@@ -118,6 +118,10 @@ type tunables struct {
 	// retries.
 	cpBackoff ops.BackoffPolicy
 
+	// cloudBackoff is the backoff between the retries of a cloud-storage
+	// request. The zero policy uses the ops defaults.
+	cloudBackoff ops.BackoffPolicy
+
 	// cpRetryTimeout bounds the total time spent retrying a single control-plane
 	// call. Without it, a persistently failing endpoint would be retried until the
 	// caller's context expires (and forever if it has no deadline).

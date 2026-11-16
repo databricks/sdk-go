@@ -146,7 +146,8 @@ func (c *internalClient) CreateRepo(ctx context.Context, req CreateRepoRequest, 
 	return resp, nil
 }
 
-// Deletes the specified repo.
+// Deletes the Git folder (repo) and its contents from the workspace. The remote
+// Git repository is not affected.
 func (c *internalClient) DeleteRepo(ctx context.Context, req DeleteRepoRequest, opts ...call.Option) (*DeleteRepoResponse, error) {
 
 	headers := http.Header{}
@@ -378,7 +379,8 @@ func (c *internalClient) ListReposIter(ctx context.Context, req ListReposRequest
 }
 
 // Updates the repo to a different branch or tag, or updates the repo to the
-// latest commit on the same branch.
+// latest commit on the same branch. Exactly one of `branch` or `tag` must be
+// specified.
 func (c *internalClient) UpdateRepo(ctx context.Context, req UpdateRepoRequest, opts ...call.Option) (*UpdateRepoResponse, error) {
 	wireReq, err := updateRepoRequestToWire(&req)
 	if err != nil {

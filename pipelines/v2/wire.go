@@ -377,6 +377,7 @@ type clonePipelineRequestWire struct {
 	ParentPath           *string                                 `json:"parent_path,omitempty"`
 	UsagePolicyId        *string                                 `json:"usage_policy_id,omitempty"`
 	ServerlessComputeId  *string                                 `json:"serverless_compute_id,omitempty"`
+	Testing              *pipelineTestingWire                    `json:"testing,omitempty"`
 	CloneMode            CloneMode                               `json:"clone_mode,omitempty"`
 }
 
@@ -432,6 +433,10 @@ func clonePipelineRequestToWire(v *ClonePipelineRequest) (*clonePipelineRequestW
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ClonePipelineRequest.Environment", err)
 	}
+	testingWireValue, err := pipelineTestingToWire(v.Testing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClonePipelineRequest.Testing", err)
+	}
 	return &clonePipelineRequestWire{
 		PipelineId:           v.PipelineId,
 		ExpectedLastModified: expectedLastModifiedWireValue,
@@ -466,6 +471,7 @@ func clonePipelineRequestToWire(v *ClonePipelineRequest) (*clonePipelineRequestW
 		ParentPath:           v.ParentPath,
 		UsagePolicyId:        v.UsagePolicyId,
 		ServerlessComputeId:  v.ServerlessComputeId,
+		Testing:              testingWireValue,
 		CloneMode:            v.CloneMode,
 	}, nil
 }
@@ -522,6 +528,10 @@ func clonePipelineRequestFromWire(w *clonePipelineRequestWire) (*ClonePipelineRe
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ClonePipelineRequest.Environment", err)
 	}
+	testingPublicValue, err := pipelineTestingFromWire(w.Testing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ClonePipelineRequest.Testing", err)
+	}
 	return &ClonePipelineRequest{
 		PipelineId:           w.PipelineId,
 		ExpectedLastModified: expectedLastModifiedPublicValue,
@@ -556,6 +566,7 @@ func clonePipelineRequestFromWire(w *clonePipelineRequestWire) (*ClonePipelineRe
 		ParentPath:           w.ParentPath,
 		UsagePolicyId:        w.UsagePolicyId,
 		ServerlessComputeId:  w.ServerlessComputeId,
+		Testing:              testingPublicValue,
 		CloneMode:            w.CloneMode,
 	}, nil
 }
@@ -1199,6 +1210,7 @@ type createPipelineRequestWire struct {
 	ParentPath          *string                                 `json:"parent_path,omitempty"`
 	UsagePolicyId       *string                                 `json:"usage_policy_id,omitempty"`
 	ServerlessComputeId *string                                 `json:"serverless_compute_id,omitempty"`
+	Testing             *pipelineTestingWire                    `json:"testing,omitempty"`
 }
 
 func createPipelineRequestToWire(v *CreatePipelineRequest) (*createPipelineRequestWire, error) {
@@ -1253,6 +1265,10 @@ func createPipelineRequestToWire(v *CreatePipelineRequest) (*createPipelineReque
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreatePipelineRequest.Environment", err)
 	}
+	testingWireValue, err := pipelineTestingToWire(v.Testing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePipelineRequest.Testing", err)
+	}
 	return &createPipelineRequestWire{
 		AllowDuplicateNames: v.AllowDuplicateNames,
 		DryRun:              v.DryRun,
@@ -1288,6 +1304,7 @@ func createPipelineRequestToWire(v *CreatePipelineRequest) (*createPipelineReque
 		ParentPath:          v.ParentPath,
 		UsagePolicyId:       v.UsagePolicyId,
 		ServerlessComputeId: v.ServerlessComputeId,
+		Testing:             testingWireValue,
 	}, nil
 }
 
@@ -1343,6 +1360,10 @@ func createPipelineRequestFromWire(w *createPipelineRequestWire) (*CreatePipelin
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "CreatePipelineRequest.Environment", err)
 	}
+	testingPublicValue, err := pipelineTestingFromWire(w.Testing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreatePipelineRequest.Testing", err)
+	}
 	return &CreatePipelineRequest{
 		AllowDuplicateNames: w.AllowDuplicateNames,
 		DryRun:              w.DryRun,
@@ -1378,6 +1399,7 @@ func createPipelineRequestFromWire(w *createPipelineRequestWire) (*CreatePipelin
 		ParentPath:          w.ParentPath,
 		UsagePolicyId:       w.UsagePolicyId,
 		ServerlessComputeId: w.ServerlessComputeId,
+		Testing:             testingPublicValue,
 	}, nil
 }
 
@@ -1749,6 +1771,7 @@ type editPipelineRequestWire struct {
 	ParentPath           *string                                 `json:"parent_path,omitempty"`
 	UsagePolicyId        *string                                 `json:"usage_policy_id,omitempty"`
 	ServerlessComputeId  *string                                 `json:"serverless_compute_id,omitempty"`
+	Testing              *pipelineTestingWire                    `json:"testing,omitempty"`
 }
 
 func editPipelineRequestToWire(v *EditPipelineRequest) (*editPipelineRequestWire, error) {
@@ -1807,6 +1830,10 @@ func editPipelineRequestToWire(v *EditPipelineRequest) (*editPipelineRequestWire
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "EditPipelineRequest.Environment", err)
 	}
+	testingWireValue, err := pipelineTestingToWire(v.Testing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditPipelineRequest.Testing", err)
+	}
 	return &editPipelineRequestWire{
 		PipelineId:           v.PipelineId,
 		AllowDuplicateNames:  v.AllowDuplicateNames,
@@ -1843,6 +1870,7 @@ func editPipelineRequestToWire(v *EditPipelineRequest) (*editPipelineRequestWire
 		ParentPath:           v.ParentPath,
 		UsagePolicyId:        v.UsagePolicyId,
 		ServerlessComputeId:  v.ServerlessComputeId,
+		Testing:              testingWireValue,
 	}, nil
 }
 
@@ -1902,6 +1930,10 @@ func editPipelineRequestFromWire(w *editPipelineRequestWire) (*EditPipelineReque
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "EditPipelineRequest.Environment", err)
 	}
+	testingPublicValue, err := pipelineTestingFromWire(w.Testing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EditPipelineRequest.Testing", err)
+	}
 	return &EditPipelineRequest{
 		PipelineId:           w.PipelineId,
 		AllowDuplicateNames:  w.AllowDuplicateNames,
@@ -1938,6 +1970,7 @@ func editPipelineRequestFromWire(w *editPipelineRequestWire) (*EditPipelineReque
 		ParentPath:           w.ParentPath,
 		UsagePolicyId:        w.UsagePolicyId,
 		ServerlessComputeId:  w.ServerlessComputeId,
+		Testing:              testingPublicValue,
 	}, nil
 }
 
@@ -5608,6 +5641,7 @@ type pipelineSpecWire struct {
 	ParentPath          *string                                 `json:"parent_path,omitempty"`
 	UsagePolicyId       *string                                 `json:"usage_policy_id,omitempty"`
 	ServerlessComputeId *string                                 `json:"serverless_compute_id,omitempty"`
+	Testing             *pipelineTestingWire                    `json:"testing,omitempty"`
 }
 
 func pipelineSpecToWire(v *PipelineSpec) (*pipelineSpecWire, error) {
@@ -5658,6 +5692,10 @@ func pipelineSpecToWire(v *PipelineSpec) (*pipelineSpecWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "PipelineSpec.Environment", err)
 	}
+	testingWireValue, err := pipelineTestingToWire(v.Testing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineSpec.Testing", err)
+	}
 	return &pipelineSpecWire{
 		Id:                  v.Id,
 		Name:                v.Name,
@@ -5689,6 +5727,7 @@ func pipelineSpecToWire(v *PipelineSpec) (*pipelineSpecWire, error) {
 		ParentPath:          v.ParentPath,
 		UsagePolicyId:       v.UsagePolicyId,
 		ServerlessComputeId: v.ServerlessComputeId,
+		Testing:             testingWireValue,
 	}, nil
 }
 
@@ -5740,6 +5779,10 @@ func pipelineSpecFromWire(w *pipelineSpecWire) (*PipelineSpec, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "PipelineSpec.Environment", err)
 	}
+	testingPublicValue, err := pipelineTestingFromWire(w.Testing)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineSpec.Testing", err)
+	}
 	return &PipelineSpec{
 		Id:                  w.Id,
 		Name:                w.Name,
@@ -5771,6 +5814,7 @@ func pipelineSpecFromWire(w *pipelineSpecWire) (*PipelineSpec, error) {
 		ParentPath:          w.ParentPath,
 		UsagePolicyId:       w.UsagePolicyId,
 		ServerlessComputeId: w.ServerlessComputeId,
+		Testing:             testingPublicValue,
 	}, nil
 }
 
@@ -5907,6 +5951,242 @@ func (v *PipelineStateInfo) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := pipelineStateInfoFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type pipelineTestEnvironmentWire struct {
+	Dependencies []string `json:"dependencies,omitempty"`
+}
+
+func pipelineTestEnvironmentToWire(v *PipelineTestEnvironment) (*pipelineTestEnvironmentWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &pipelineTestEnvironmentWire{
+		Dependencies: v.Dependencies,
+	}, nil
+}
+
+func pipelineTestEnvironmentFromWire(w *pipelineTestEnvironmentWire) (*PipelineTestEnvironment, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PipelineTestEnvironment{
+		Dependencies: w.Dependencies,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PipelineTestEnvironment) MarshalJSON() ([]byte, error) {
+	w, err := pipelineTestEnvironmentToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PipelineTestEnvironment) UnmarshalJSON(data []byte) error {
+	var w pipelineTestEnvironmentWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := pipelineTestEnvironmentFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type pipelineTestOptionsWire struct {
+	TestSelection []string `json:"test_selection,omitempty"`
+	PytestArgs    []string `json:"pytest_args,omitempty"`
+}
+
+func pipelineTestOptionsToWire(v *PipelineTestOptions) (*pipelineTestOptionsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &pipelineTestOptionsWire{
+		TestSelection: v.TestSelection,
+		PytestArgs:    v.PytestArgs,
+	}, nil
+}
+
+func pipelineTestOptionsFromWire(w *pipelineTestOptionsWire) (*PipelineTestOptions, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &PipelineTestOptions{
+		TestSelection: w.TestSelection,
+		PytestArgs:    w.PytestArgs,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PipelineTestOptions) MarshalJSON() ([]byte, error) {
+	w, err := pipelineTestOptionsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PipelineTestOptions) UnmarshalJSON(data []byte) error {
+	var w pipelineTestOptionsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := pipelineTestOptionsFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type pipelineTestSourceWire struct {
+	Glob *pathPatternWire `json:"glob,omitempty"`
+}
+
+func pipelineTestSourceToWire(v *PipelineTestSource) (*pipelineTestSourceWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var sourceGlobWire *pathPatternWire
+	switch value := v.Source.(type) {
+	case nil:
+	case *PipelineTestSource_Source_Glob:
+		if value != nil {
+			sourceGlobConverted, err := pathPatternToWire(&value.Glob)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "PipelineTestSource.Source.Glob", err)
+			}
+			sourceGlobWire = sourceGlobConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "PipelineTestSource.Source", value)
+	}
+	return &pipelineTestSourceWire{
+		Glob: sourceGlobWire,
+	}, nil
+}
+
+func pipelineTestSourceFromWire(w *pipelineTestSourceWire) (*PipelineTestSource, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sourceMembers := 0
+	if w.Glob != nil {
+		sourceMembers++
+	}
+	if sourceMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "PipelineTestSource.Source")
+	}
+	var sourceSelection isPipelineTestSource_Source
+	switch {
+	case w.Glob != nil:
+		sourceGlobConverted, err := pathPatternFromWire(w.Glob)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "PipelineTestSource.Source.Glob", err)
+		}
+		sourceSelection = &PipelineTestSource_Source_Glob{Glob: *sourceGlobConverted}
+	}
+	return &PipelineTestSource{
+		Source: sourceSelection,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PipelineTestSource) MarshalJSON() ([]byte, error) {
+	w, err := pipelineTestSourceToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PipelineTestSource) UnmarshalJSON(data []byte) error {
+	var w pipelineTestSourceWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := pipelineTestSourceFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type pipelineTestingWire struct {
+	Sources     []pipelineTestSourceWire     `json:"sources,omitempty"`
+	Environment *pipelineTestEnvironmentWire `json:"environment,omitempty"`
+}
+
+func pipelineTestingToWire(v *PipelineTesting) (*pipelineTestingWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sourcesWireValue, err := convertSlice(v.Sources, pipelineTestSourceToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineTesting.Sources", err)
+	}
+	environmentWireValue, err := pipelineTestEnvironmentToWire(v.Environment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineTesting.Environment", err)
+	}
+	return &pipelineTestingWire{
+		Sources:     sourcesWireValue,
+		Environment: environmentWireValue,
+	}, nil
+}
+
+func pipelineTestingFromWire(w *pipelineTestingWire) (*PipelineTesting, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sourcesPublicValue, err := convertSlice(w.Sources, pipelineTestSourceFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineTesting.Sources", err)
+	}
+	environmentPublicValue, err := pipelineTestEnvironmentFromWire(w.Environment)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "PipelineTesting.Environment", err)
+	}
+	return &PipelineTesting{
+		Sources:     sourcesPublicValue,
+		Environment: environmentPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v PipelineTesting) MarshalJSON() ([]byte, error) {
+	w, err := pipelineTestingToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *PipelineTesting) UnmarshalJSON(data []byte) error {
+	var w pipelineTestingWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := pipelineTestingFromWire(&w)
 	if err != nil {
 		return err
 	}
@@ -7840,6 +8120,8 @@ type startUpdateRequestWire struct {
 	FullRefreshSelectionByPath []string                   `json:"full_refresh_selection_by_path,omitempty"`
 	ResetCheckpointSelection   []string                   `json:"reset_checkpoint_selection,omitempty"`
 	ValidateOnly               *bool                      `json:"validate_only,omitempty"`
+	TestOnly                   *bool                      `json:"test_only,omitempty"`
+	TestOptions                *pipelineTestOptionsWire   `json:"test_options,omitempty"`
 	Development                *bool                      `json:"development,omitempty"`
 	RewindSpec                 *rewindSpecWire            `json:"rewind_spec,omitempty"`
 	Parameters                 map[string]string          `json:"parameters,omitempty"`
@@ -7849,6 +8131,10 @@ type startUpdateRequestWire struct {
 func startUpdateRequestToWire(v *StartUpdateRequest) (*startUpdateRequestWire, error) {
 	if v == nil {
 		return nil, nil
+	}
+	testOptionsWireValue, err := pipelineTestOptionsToWire(v.TestOptions)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "StartUpdateRequest.TestOptions", err)
 	}
 	rewindSpecWireValue, err := rewindSpecToWire(v.RewindSpec)
 	if err != nil {
@@ -7868,6 +8154,8 @@ func startUpdateRequestToWire(v *StartUpdateRequest) (*startUpdateRequestWire, e
 		FullRefreshSelectionByPath: v.FullRefreshSelectionByPath,
 		ResetCheckpointSelection:   v.ResetCheckpointSelection,
 		ValidateOnly:               v.ValidateOnly,
+		TestOnly:                   v.TestOnly,
+		TestOptions:                testOptionsWireValue,
 		Development:                v.Development,
 		RewindSpec:                 rewindSpecWireValue,
 		Parameters:                 v.Parameters,
@@ -7878,6 +8166,10 @@ func startUpdateRequestToWire(v *StartUpdateRequest) (*startUpdateRequestWire, e
 func startUpdateRequestFromWire(w *startUpdateRequestWire) (*StartUpdateRequest, error) {
 	if w == nil {
 		return nil, nil
+	}
+	testOptionsPublicValue, err := pipelineTestOptionsFromWire(w.TestOptions)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "StartUpdateRequest.TestOptions", err)
 	}
 	rewindSpecPublicValue, err := rewindSpecFromWire(w.RewindSpec)
 	if err != nil {
@@ -7897,6 +8189,8 @@ func startUpdateRequestFromWire(w *startUpdateRequestWire) (*StartUpdateRequest,
 		FullRefreshSelectionByPath: w.FullRefreshSelectionByPath,
 		ResetCheckpointSelection:   w.ResetCheckpointSelection,
 		ValidateOnly:               w.ValidateOnly,
+		TestOnly:                   w.TestOnly,
+		TestOptions:                testOptionsPublicValue,
 		Development:                w.Development,
 		RewindSpec:                 rewindSpecPublicValue,
 		Parameters:                 w.Parameters,
@@ -8435,6 +8729,7 @@ type updateInfoWire struct {
 	ValidateOnly               *bool             `json:"validate_only,omitempty"`
 	Mode                       UpdateMode        `json:"mode,omitempty"`
 	Parameters                 map[string]string `json:"parameters,omitempty"`
+	TestOnly                   *bool             `json:"test_only,omitempty"`
 }
 
 func updateInfoToWire(v *UpdateInfo) (*updateInfoWire, error) {
@@ -8465,6 +8760,7 @@ func updateInfoToWire(v *UpdateInfo) (*updateInfoWire, error) {
 		ValidateOnly:               v.ValidateOnly,
 		Mode:                       v.Mode,
 		Parameters:                 v.Parameters,
+		TestOnly:                   v.TestOnly,
 	}, nil
 }
 
@@ -8496,6 +8792,7 @@ func updateInfoFromWire(w *updateInfoWire) (*UpdateInfo, error) {
 		ValidateOnly:               w.ValidateOnly,
 		Mode:                       w.Mode,
 		Parameters:                 w.Parameters,
+		TestOnly:                   w.TestOnly,
 	}, nil
 }
 

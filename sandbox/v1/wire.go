@@ -1755,8 +1755,9 @@ func (v *UpdateSandboxRequest) UnmarshalJSON(data []byte) error {
 }
 
 type uploadFileRequestWire struct {
-	Parent *string `json:"parent,omitempty"`
-	Path   *string `json:"path,omitempty"`
+	Parent    *string `json:"parent,omitempty"`
+	Path      *string `json:"path,omitempty"`
+	Overwrite *bool   `json:"overwrite,omitempty"`
 }
 
 func uploadFileRequestToWire(v *UploadFileRequest) (*uploadFileRequestWire, error) {
@@ -1764,8 +1765,9 @@ func uploadFileRequestToWire(v *UploadFileRequest) (*uploadFileRequestWire, erro
 		return nil, nil
 	}
 	return &uploadFileRequestWire{
-		Parent: v.Parent,
-		Path:   v.Path,
+		Parent:    v.Parent,
+		Path:      v.Path,
+		Overwrite: v.Overwrite,
 	}, nil
 }
 
@@ -1774,8 +1776,9 @@ func uploadFileRequestFromWire(w *uploadFileRequestWire) (*UploadFileRequest, er
 		return nil, nil
 	}
 	return &UploadFileRequest{
-		Parent: w.Parent,
-		Path:   w.Path,
+		Parent:    w.Parent,
+		Path:      w.Path,
+		Overwrite: w.Overwrite,
 	}, nil
 }
 

@@ -9,6 +9,24 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
+// The security scan outcome for an app deployment, mirrored from the durable
+// scan record.
+type AppDeploymentScanStatus string
+
+const (
+	AppDeploymentScanStatus_Unspecified AppDeploymentScanStatus = ""
+	// The scan completed and found nothing.
+	AppDeploymentScanStatus_AppDeploymentScanStatusClean AppDeploymentScanStatus = "APP_DEPLOYMENT_SCAN_STATUS_CLEAN"
+	// The scan completed and reported findings.
+	AppDeploymentScanStatus_AppDeploymentScanStatusFindings AppDeploymentScanStatus = "APP_DEPLOYMENT_SCAN_STATUS_FINDINGS"
+	// The scan ran but only covered part of the source.
+	AppDeploymentScanStatus_AppDeploymentScanStatusPartial AppDeploymentScanStatus = "APP_DEPLOYMENT_SCAN_STATUS_PARTIAL"
+	// The scan did not produce a usable result. Redeploy to scan again.
+	AppDeploymentScanStatus_AppDeploymentScanStatusUnavailable AppDeploymentScanStatus = "APP_DEPLOYMENT_SCAN_STATUS_UNAVAILABLE"
+	// The deployment was never scanned (e.g. no source change, so no scan ran).
+	AppDeploymentScanStatus_AppDeploymentScanStatusNotScanned AppDeploymentScanStatus = "APP_DEPLOYMENT_SCAN_STATUS_NOT_SCANNED"
+)
+
 type ComputeSize string
 
 const (
@@ -414,6 +432,42 @@ const (
 	ErrorCode_ProviderShareNotAccessible ErrorCode = "PROVIDER_SHARE_NOT_ACCESSIBLE"
 )
 
+// The scanner that produced a finding.
+type ScanFindingScannerType string
+
+const (
+	ScanFindingScannerType_Unspecified ScanFindingScannerType = ""
+	// The finding was produced by the Semgrep static analysis scanner.
+	ScanFindingScannerType_ScanFindingScannerTypeSemgrep ScanFindingScannerType = "SCAN_FINDING_SCANNER_TYPE_SEMGREP"
+)
+
+// Severity of a scan finding, as reported by the scanner.
+type ScanFindingSeverity string
+
+const (
+	ScanFindingSeverity_Unspecified ScanFindingSeverity = ""
+	// Informational finding that does not indicate a likely vulnerability.
+	ScanFindingSeverity_ScanFindingSeverityInfo ScanFindingSeverity = "SCAN_FINDING_SEVERITY_INFO"
+	// Potential security issue that should be reviewed.
+	ScanFindingSeverity_ScanFindingSeverityWarning ScanFindingSeverity = "SCAN_FINDING_SEVERITY_WARNING"
+	// High-confidence security issue that should be fixed.
+	ScanFindingSeverity_ScanFindingSeverityError ScanFindingSeverity = "SCAN_FINDING_SEVERITY_ERROR"
+)
+
+// User triage state for a single scan finding.
+type ScanFindingStatus string
+
+const (
+	ScanFindingStatus_Unspecified ScanFindingStatus = ""
+	// The finding is open: new findings start here until they are resolved or
+	// ignored.
+	ScanFindingStatus_ScanFindingStatusInProgress ScanFindingStatus = "SCAN_FINDING_STATUS_IN_PROGRESS"
+	// The finding was fixed or otherwise addressed.
+	ScanFindingStatus_ScanFindingStatusResolved ScanFindingStatus = "SCAN_FINDING_STATUS_RESOLVED"
+	// The finding was reviewed and deliberately ignored.
+	ScanFindingStatus_ScanFindingStatusIgnored ScanFindingStatus = "SCAN_FINDING_STATUS_IGNORED"
+)
+
 type SpaceUpdateState string
 
 const (
@@ -670,34 +724,46 @@ type ApiError struct {
 	Details    []json.RawMessage
 }
 
+// An app that runs on Databricks Apps. The app runs on managed compute in the
+// workspace and is deployed from a workspace folder or a Git repository. Each
+// app acts as its own dedicated service principal..
 type App struct {
 	// The name of the app. The name must contain only lowercase alphanumeric
 	// characters and hyphens. It must be unique within the workspace.
 	Name *string `fieldmask:"name"`
 	// The description of the app.
-	Description   *string            `fieldmask:"description"`
-	ComputeStatus *ComputeStatus     `fieldmask:"compute_status"`
-	AppStatus     *ApplicationStatus `fieldmask:"app_status"`
+	Description *string `fieldmask:"description"`
+	// Status of the compute that runs the app.
+	ComputeStatus *ComputeStatus `fieldmask:"compute_status"`
+	// Status of the application process on the app compute, as reported by the app
+	// runtime.
+	AppStatus *ApplicationStatus `fieldmask:"app_status"`
 	// The URL of the app once it is deployed.
 	Url *string `fieldmask:"url"`
 	// The active deployment of the app. A deployment is considered active when it
 	// has been deployed to the app compute.
 	ActiveDeployment *AppDeployment `fieldmask:"active_deployment"`
-	// The creation time of the app. Formatted timestamp in ISO 6801.
+	// The creation time of the app. Formatted timestamp in ISO 8601.
 	CreateTime *types.Time `fieldmask:"create_time"`
 	// The email of the user that created the app.
 	Creator *string `fieldmask:"creator"`
-	// The update time of the app. Formatted timestamp in ISO 6801.
+	// The update time of the app. Formatted timestamp in ISO 8601.
 	UpdateTime *types.Time `fieldmask:"update_time"`
 	// The email of the user that last updated the app.
 	Updater *string `fieldmask:"updater"`
 	// The pending deployment of the app. A deployment is considered pending when it
 	// is being prepared for deployment to the app compute.
 	PendingDeployment *AppDeployment `fieldmask:"pending_deployment"`
-	// Resources for the app.
-	Resources            []AppResource `fieldmask:"resources"`
-	ServicePrincipalId   *int64        `fieldmask:"service_principal_id"`
-	ServicePrincipalName *string       `fieldmask:"service_principal_name"`
+	// Databricks resources the app depends on. Each entry grants the app's service
+	// principal the listed permission on one resource and makes that resource
+	// available to the app under the entry's name.
+	Resources []AppResource `fieldmask:"resources"`
+	// Numeric ID of the service principal the app runs as. Databricks creates a
+	// dedicated service principal for each app and deletes it with the app. Apps in
+	// some older spaces run as the space's shared service principal instead.
+	ServicePrincipalId *int64 `fieldmask:"service_principal_id"`
+	// Display name of the app's service principal.
+	ServicePrincipalName *string `fieldmask:"service_principal_name"`
 	// The default workspace file system path of the source code from which app
 	// deployment are created. This field tracks the workspace source code path of
 	// the last active deployment.
@@ -706,20 +772,43 @@ type App struct {
 	// repository configuration and the resolved reference. Populated by the system
 	// after a Git-based deployment and used as the default reference when automatic
 	// deployments are enabled.
-	DefaultGitSource         *GitSource `fieldmask:"default_git_source"`
-	BudgetPolicyId           *string    `fieldmask:"budget_policy_id"`
-	EffectiveBudgetPolicyId  *string    `fieldmask:"effective_budget_policy_id"`
-	ServicePrincipalClientId *string    `fieldmask:"service_principal_client_id"`
-	UserApiScopes            []string   `fieldmask:"user_api_scopes"`
+	DefaultGitSource *GitSource `fieldmask:"default_git_source"`
+	// ID of the serverless budget policy that the app's compute usage is attributed
+	// to. Budget policies and usage policies are alternatives: set at most one of
+	// `budget_policy_id` and `usage_policy_id`.
+	BudgetPolicyId *string `fieldmask:"budget_policy_id"`
+	// ID of the budget policy in effect for the app, after Databricks applies any
+	// defaults.
+	EffectiveBudgetPolicyId *string `fieldmask:"effective_budget_policy_id"`
+	// OAuth client ID of the app's service principal. The app runtime exposes it to
+	// the app as the DATABRICKS_CLIENT_ID environment variable.
+	ServicePrincipalClientId *string `fieldmask:"service_principal_client_id"`
+	// API scopes the app requests for user authorization. The user access token
+	// that Databricks forwards to the app is limited to these scopes plus the
+	// default identity scopes, so the app can act on the user's behalf only within
+	// them. Workspace admins can restrict which scopes apps in the workspace may
+	// request. See
+	// https://docs.databricks.com/aws/en/dev-tools/databricks-apps/auth.
+	UserApiScopes []string `fieldmask:"user_api_scopes"`
 	// The unique identifier of the app.
 	Id *string `fieldmask:"id"`
 	// The effective api scopes granted to the user access token.
-	EffectiveUserApiScopes []string    `fieldmask:"effective_user_api_scopes"`
-	Oauth2AppIntegrationId *string     `fieldmask:"oauth2_app_integration_id"`
-	Oauth2AppClientId      *string     `fieldmask:"oauth2_app_client_id"`
-	ComputeSize            ComputeSize `fieldmask:"compute_size"`
-	UsagePolicyId          *string     `fieldmask:"usage_policy_id"`
-	EffectiveUsagePolicyId *string     `fieldmask:"effective_usage_policy_id"`
+	EffectiveUserApiScopes []string `fieldmask:"effective_user_api_scopes"`
+	// ID of the OAuth app integration that Databricks creates for the app to sign
+	// in its users.
+	Oauth2AppIntegrationId *string `fieldmask:"oauth2_app_integration_id"`
+	// OAuth client ID of the app integration that signs in the app's users.
+	Oauth2AppClientId *string `fieldmask:"oauth2_app_client_id"`
+	// Size of the compute instances the app runs on. Defaults to MEDIUM. Larger
+	// sizes provide more CPU and memory at a higher hourly cost. See
+	// https://docs.databricks.com/aws/en/dev-tools/databricks-apps/compute-size.
+	ComputeSize ComputeSize `fieldmask:"compute_size"`
+	// ID of the usage policy that the app's compute usage is attributed to.
+	// Alternative to `budget_policy_id`.
+	UsagePolicyId *string `fieldmask:"usage_policy_id"`
+	// ID of the usage policy in effect for the app, after Databricks applies any
+	// defaults.
+	EffectiveUsagePolicyId *string `fieldmask:"effective_usage_policy_id"`
 	// Minimum number of app instances the app is configured to run. Must be set
 	// together with `compute_max_instances`.
 	ComputeMinInstances *int `fieldmask:"compute_min_instances"`
@@ -729,7 +818,9 @@ type App struct {
 	// Git repository configuration for app deployments. When specified, deployments
 	// can reference code from this repository by providing only the git reference
 	// (branch, tag, or commit).
-	GitRepository               *GitRepository               `fieldmask:"git_repository"`
+	GitRepository *GitRepository `fieldmask:"git_repository"`
+	// Destinations that receive the app's OpenTelemetry logs, metrics and traces.
+	// Changes take effect when the app is next deployed.
 	TelemetryExportDestinations []TelemetryExportDestination `fieldmask:"telemetry_export_destinations"`
 	// The URL of the thumbnail image for the app.
 	ThumbnailUrl *string `fieldmask:"thumbnail_url"`
@@ -750,6 +841,8 @@ type isApp_DeploymentSource interface {
 }
 
 // App_DeploymentSource_SourceCodePath selects SourceCodePath for App.DeploymentSource.
+// Workspace file system path of the app source code. On create, the app is
+// deployed from this path. Alternative to `git_source`.
 type App_DeploymentSource_SourceCodePath struct {
 	SourceCodePath string `fieldmask:"source_code_path"`
 }
@@ -804,12 +897,52 @@ type AppDeployment struct {
 	// Deploy-time health check for the app. Verifies the app is responding to HTTP
 	// requests before considering the deployment successful.
 	HealthCheck *AppHealthCheck `fieldmask:"health_check"`
+	// The security scan outcome for this deployment. UNSPECIFIED means no scan
+	// result has been recorded: the scan may still be in flight, or it ended
+	// without recording one, so don't wait indefinitely for it to change. The other
+	// values are terminal.
+	ScanStatus AppDeploymentScanStatus `fieldmask:"scan_status"`
+	// The number of findings the scan reported but did not store, because the
+	// deployment hit the per-deployment findings cap. Non-zero means the listed
+	// findings are incomplete.
+	ScanOmittedFindingsCount *int `fieldmask:"scan_omitted_findings_count"`
+	// Whether `scan_omitted_findings_count` is a lower bound rather than an exact
+	// count, because the scanner itself stopped counting.
+	ScanOmittedCountIsLowerBound *bool `fieldmask:"scan_omitted_count_is_lower_bound"`
 }
 
 type AppDeploymentArtifacts struct {
 	// The snapshotted workspace file system path of the source code loaded by the
 	// deployed app.
 	SourceCodePath *string `fieldmask:"source_code_path"`
+}
+
+// A single security scan finding for an app deployment. Findings are produced
+// when a deployment's source code is scanned, and their triage `status` is
+// preserved across re-scans of the same deployment..
+type AppDeploymentScanFinding struct {
+	// The resource name of the finding, in the form
+	// `apps/{app}/deployments/{deployment}/scanFindings/{finding_id}`.
+	Name *string `fieldmask:"name"`
+	// The triage status of the finding. This is the only client-writable field; set
+	// it to resolve or ignore a finding.
+	Status ScanFindingStatus `fieldmask:"status"`
+	// The stable id of the finding (the last segment of `name`), derived from the
+	// rule, file, and line so the same issue keeps its triage status across
+	// re-scans.
+	FindingId *string `fieldmask:"finding_id"`
+	// The scanner rule that produced the finding.
+	RuleId *string `fieldmask:"rule_id"`
+	// The app-relative path of the file the finding was reported in.
+	FilePath *string `fieldmask:"file_path"`
+	// The line number the finding was reported at.
+	Line *int `fieldmask:"line"`
+	// A human-readable description of the finding.
+	Message *string `fieldmask:"message"`
+	// The severity reported by the scanner.
+	Severity ScanFindingSeverity `fieldmask:"severity"`
+	// The scanner that produced the finding.
+	ScannerType ScanFindingScannerType `fieldmask:"scanner_type"`
 }
 
 type AppDeploymentStatus struct {
@@ -933,7 +1066,8 @@ type AppManifest_AppResourceUcSecurableSpec struct {
 }
 
 type AppResource struct {
-	// Name of the App Resource.
+	// Key that identifies the resource within the app. The app configuration
+	// (app.yaml) references the resource by this key.
 	Name *string
 	// Description of the App Resource.
 	Description *string
@@ -945,6 +1079,7 @@ type isAppResource_Resource interface {
 }
 
 // AppResource_Resource_Secret selects Secret for AppResource.Resource.
+// Secret the app is granted access to.
 type AppResource_Resource_Secret struct {
 	Secret AppResourceSecret
 }
@@ -952,6 +1087,7 @@ type AppResource_Resource_Secret struct {
 func (*AppResource_Resource_Secret) isAppResource_Resource() {}
 
 // AppResource_Resource_SqlWarehouse selects SqlWarehouse for AppResource.Resource.
+// SQL warehouse the app is granted access to.
 type AppResource_Resource_SqlWarehouse struct {
 	SqlWarehouse AppResourceSqlWarehouse
 }
@@ -959,6 +1095,7 @@ type AppResource_Resource_SqlWarehouse struct {
 func (*AppResource_Resource_SqlWarehouse) isAppResource_Resource() {}
 
 // AppResource_Resource_ServingEndpoint selects ServingEndpoint for AppResource.Resource.
+// Model serving endpoint the app is granted access to.
 type AppResource_Resource_ServingEndpoint struct {
 	ServingEndpoint AppResourceServingEndpoint
 }
@@ -966,6 +1103,7 @@ type AppResource_Resource_ServingEndpoint struct {
 func (*AppResource_Resource_ServingEndpoint) isAppResource_Resource() {}
 
 // AppResource_Resource_Job selects Job for AppResource.Resource.
+// Lakeflow job the app is granted access to.
 type AppResource_Resource_Job struct {
 	Job AppResourceJob
 }
@@ -973,6 +1111,8 @@ type AppResource_Resource_Job struct {
 func (*AppResource_Resource_Job) isAppResource_Resource() {}
 
 // AppResource_Resource_UcSecurable selects UcSecurable for AppResource.Resource.
+// Unity Catalog securable (volume, table, function, connection or model
+// service) the app is granted a privilege on.
 type AppResource_Resource_UcSecurable struct {
 	UcSecurable AppResourceUcSecurable
 }
@@ -980,6 +1120,7 @@ type AppResource_Resource_UcSecurable struct {
 func (*AppResource_Resource_UcSecurable) isAppResource_Resource() {}
 
 // AppResource_Resource_Database selects Database for AppResource.Resource.
+// Lakebase Provisioned database the app is granted access to.
 type AppResource_Resource_Database struct {
 	Database AppResourceDatabase
 }
@@ -987,6 +1128,7 @@ type AppResource_Resource_Database struct {
 func (*AppResource_Resource_Database) isAppResource_Resource() {}
 
 // AppResource_Resource_GenieSpace selects GenieSpace for AppResource.Resource.
+// Genie space the app is granted access to.
 type AppResource_Resource_GenieSpace struct {
 	GenieSpace AppResourceGenieSpace
 }
@@ -994,6 +1136,7 @@ type AppResource_Resource_GenieSpace struct {
 func (*AppResource_Resource_GenieSpace) isAppResource_Resource() {}
 
 // AppResource_Resource_Experiment selects Experiment for AppResource.Resource.
+// MLflow experiment the app is granted access to.
 type AppResource_Resource_Experiment struct {
 	Experiment AppResourceExperiment
 }
@@ -1001,6 +1144,7 @@ type AppResource_Resource_Experiment struct {
 func (*AppResource_Resource_Experiment) isAppResource_Resource() {}
 
 // AppResource_Resource_App selects App for AppResource.Resource.
+// Another app in the workspace that this app is granted access to.
 type AppResource_Resource_App struct {
 	App AppResourceApp
 }
@@ -1008,6 +1152,7 @@ type AppResource_Resource_App struct {
 func (*AppResource_Resource_App) isAppResource_Resource() {}
 
 // AppResource_Resource_Postgres selects Postgres for AppResource.Resource.
+// Lakebase Autoscaling Postgres database the app is granted access to.
 type AppResource_Resource_Postgres struct {
 	Postgres AppResourcePostgres
 }
@@ -1015,24 +1160,33 @@ type AppResource_Resource_Postgres struct {
 func (*AppResource_Resource_Postgres) isAppResource_Resource() {}
 
 type AppResourceApp struct {
-	Name       *string
+	// Name of the app to grant access to.
+	Name *string
+	// Permission to grant on that app.
 	Permission AppResourceApp_AppPermission
 }
 
 type AppResourceDatabase struct {
+	// Name of the Lakebase database instance.
 	InstanceName *string
+	// Name of the database within the instance.
 	DatabaseName *string
-	Permission   AppResourceDatabase_DatabasePermission
+	// Permission to grant the app on the database.
+	Permission AppResourceDatabase_DatabasePermission
 }
 
 type AppResourceExperiment struct {
+	// ID of the MLflow experiment.
 	ExperimentId *string
-	Permission   AppResourceExperiment_ExperimentPermission
+	// Permission to grant the app on the experiment.
+	Permission AppResourceExperiment_ExperimentPermission
 }
 
 type AppResourceGenieSpace struct {
-	Name       *string
-	SpaceId    *string
+	Name *string
+	// ID of the Genie space.
+	SpaceId *string
+	// Permission to grant the app on the Genie space.
 	Permission AppResourceGenieSpace_GenieSpacePermission
 }
 
@@ -1045,8 +1199,13 @@ type AppResourceJob struct {
 }
 
 type AppResourcePostgres struct {
-	Branch     *string
-	Database   *string
+	// Resource name of the Lakebase Autoscaling branch, in the form
+	// `projects/{project}/branches/{branch}`.
+	Branch *string
+	// Resource name of the database within the branch, in the form
+	// `projects/{project}/branches/{branch}/databases/{database}`.
+	Database *string
+	// Permission to grant the app on the database.
 	Permission AppResourcePostgres_PostgresPermission
 }
 
@@ -1077,9 +1236,14 @@ type AppResourceSqlWarehouse struct {
 }
 
 type AppResourceUcSecurable struct {
+	// Full name of the Unity Catalog securable. For volumes, tables and functions
+	// this is the three-level catalog.schema.object name.
 	SecurableFullName *string
-	SecurableType     AppResourceUcSecurable_UcSecurableType
-	Permission        AppResourceUcSecurable_UcSecurablePermission
+	// Kind of Unity Catalog securable that `securable_full_name` refers to.
+	SecurableType AppResourceUcSecurable_UcSecurableType
+	// Privilege to grant the app on the securable. The privilege must be valid for
+	// the securable type, such as READ_VOLUME for a volume or SELECT for a table.
+	Permission AppResourceUcSecurable_UcSecurablePermission
 	// The securable kind from Unity Catalog. See
 	// https://docs.databricks.com/api/workspace/tables/get#securable_kind_manifest-securable_kind.
 	SecurableKind *string
@@ -1091,21 +1255,32 @@ type AppThumbnail struct {
 	Thumbnail []byte
 }
 
+// Progress of an app update started by AsyncUpdateApp, together with the values
+// the update requested..
 type AppUpdate struct {
-	Status         *AppUpdate_UpdateStatus
-	Description    *string
+	// Progress of the update.
+	Status *AppUpdate_UpdateStatus
+	// Description requested by the update.
+	Description *string
+	// Budget policy ID requested by the update.
 	BudgetPolicyId *string
-	Resources      []AppResource
-	UserApiScopes  []string
-	ComputeSize    ComputeSize
-	UsagePolicyId  *string
+	// Resources requested by the update.
+	Resources []AppResource
+	// User API scopes requested by the update.
+	UserApiScopes []string
+	// Compute size requested by the update.
+	ComputeSize ComputeSize
+	// Usage policy ID requested by the update.
+	UsagePolicyId *string
 	// Minimum number of app instances the app is configured to run. Must be set
 	// together with `compute_max_instances`.
 	ComputeMinInstances *int
 	// Maximum number of app instances the app is configured to run. Must be set
 	// together with `compute_min_instances`.
-	ComputeMaxInstances         *int
-	GitRepository               *GitRepository
+	ComputeMaxInstances *int
+	// Git repository configuration requested by the update.
+	GitRepository *GitRepository
+	// Telemetry export destinations requested by the update.
 	TelemetryExportDestinations []TelemetryExportDestination
 	// Forward the user's access token to the app. Requires stopping and starting
 	// app compute to take effect.
@@ -1113,29 +1288,37 @@ type AppUpdate struct {
 }
 
 type AppUpdate_UpdateStatus struct {
-	State   AppUpdate_UpdateStatus_UpdateState
+	// State of the update.
+	State AppUpdate_UpdateStatus_UpdateState
+	// Human-readable detail about the update state.
 	Message *string
 }
 
 type ApplicationStatus struct {
 	// State of the application.
 	State ApplicationStatus_ApplicationState `fieldmask:"state"`
-	// Application status message
+	// Human-readable detail about the application state.
 	Message *string `fieldmask:"message"`
 	// The number of app instances whose application process is running.
 	RunningInstances *int `fieldmask:"running_instances"`
 }
 
 type AsyncUpdateAppRequest struct {
-	App        *App
+	// The new values for the app. Only the fields named in `update_mask` are
+	// applied; the others must still be valid.
+	App *App
+	// Comma-separated names of the `app` fields to update, such as `description` or
+	// `resources`. A field named in the mask but absent from `app` is cleared,
+	// except `compute_size`, which resets to `MEDIUM`.
 	UpdateMask *types.FieldMask[App]
-	AppName    *string
+	// The name of the app to update.
+	AppName *string
 }
 
 type ComputeStatus struct {
 	// State of the app compute.
 	State ComputeStatus_ComputeState `fieldmask:"state"`
-	// Compute status message
+	// Human-readable detail about the compute state.
 	Message *string `fieldmask:"message"`
 	// The number of active compute instances currently used and billed for this
 	// application.
@@ -1236,6 +1419,13 @@ type GetAppDeploymentRequest struct {
 	DeploymentId *string
 }
 
+// Request message for GetAppDeploymentScanFinding..
+type GetAppDeploymentScanFindingRequest struct {
+	// The resource name of the finding, in the form
+	// `apps/{app}/deployments/{deployment}/scanFindings/{finding_id}`.
+	Name *string
+}
+
 type GetAppRequest struct {
 	// The name of the app.
 	Name *string
@@ -1330,6 +1520,25 @@ type gitSourceReferenceFieldMaskMetadata struct {
 	*GitSource_Reference_Branch
 	*GitSource_Reference_Tag
 	*GitSource_Reference_Commit
+}
+
+// Request message for ListAppDeploymentScanFindings..
+type ListAppDeploymentScanFindingsRequest struct {
+	// The parent deployment whose findings to list, in the form
+	// `apps/{app}/deployments/{deployment}`.
+	Parent *string
+	// Upper bound for the number of findings returned.
+	PageSize *int
+	// Pagination token to request the next page. Requests the first page if absent.
+	PageToken *string
+}
+
+// Response message for ListAppDeploymentScanFindings..
+type ListAppDeploymentScanFindingsResponse struct {
+	// The scan findings for the deployment.
+	AppDeploymentScanFindings []AppDeploymentScanFinding
+	// Pagination token to request the next page of findings.
+	NextPageToken *string
 }
 
 type ListAppDeploymentsRequest struct {
@@ -1521,6 +1730,7 @@ type isTelemetryExportDestination_Destination interface {
 }
 
 // TelemetryExportDestination_Destination_UnityCatalog selects UnityCatalog for TelemetryExportDestination.Destination.
+// Unity Catalog tables that receive the telemetry.
 type TelemetryExportDestination_Destination_UnityCatalog struct {
 	UnityCatalog UnityCatalog
 }
@@ -1530,12 +1740,25 @@ func (*TelemetryExportDestination_Destination_UnityCatalog) isTelemetryExportDes
 
 // Unity Catalog Destinations for OTEL telemetry export..
 type UnityCatalog struct {
-	// Unity Catalog table for OTEL logs.
+	// Three-level name of the Unity Catalog table that receives OpenTelemetry logs.
+	// The table is created if it does not exist.
 	LogsTable *string
-	// Unity Catalog table for OTEL metrics.
+	// Three-level name of the Unity Catalog table that receives OpenTelemetry
+	// metrics. The table is created if it does not exist.
 	MetricsTable *string
-	// Unity Catalog table for OTEL traces (spans).
+	// Three-level name of the Unity Catalog table that receives OpenTelemetry
+	// traces (spans). The table is created if it does not exist.
 	TracesTable *string
+}
+
+// Request message for UpdateAppDeploymentScanFinding..
+type UpdateAppDeploymentScanFindingRequest struct {
+	// The finding to update. `name` identifies the finding and `status` is the new
+	// triage status.
+	AppDeploymentScanFinding *AppDeploymentScanFinding
+	// The fields to update. Must be exactly `status`, the only updatable field on a
+	// scan finding.
+	UpdateMask *types.FieldMask[AppDeploymentScanFinding]
 }
 
 type UpdateAppRequest struct {

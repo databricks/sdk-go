@@ -225,7 +225,7 @@ func (e *engine) newUploadContext(cfg *uploadConfig, targetPath, sourcePath stri
 		sourcePath:    sourcePath,
 		parallel:      parallelism > 1,
 		parallelism:   parallelism,
-		cloud:         cloudstorage.New(cfg.resolveCloudClient(parallelism, e.tun), cloudstorage.WithLogger(e.c.logger)),
+		cloud:         cloudstorage.New(cfg.resolveCloudClient(parallelism, e.tun), cloudstorage.WithLogger(e.c.logger), cloudstorage.WithBackoff(e.tun.cloudBackoff)),
 		progress:      newProgressReporter(cfg.progress, contentLength),
 		slowGuard:     &slowAttemptGuard{tun: e.tun},
 		limiter:       limiter,

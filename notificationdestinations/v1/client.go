@@ -200,7 +200,8 @@ func (c *internalClient) DeleteNotificationDestination(ctx context.Context, req 
 	return resp, nil
 }
 
-// Gets a notification destination.
+// Gets a notification destination by ID. Workspace admins also receive its
+// config.
 func (c *internalClient) GetNotificationDestination(ctx context.Context, req GetNotificationDestinationRequest, opts ...call.Option) (*NotificationDestination, error) {
 
 	headers := http.Header{}
@@ -263,7 +264,8 @@ func (c *internalClient) GetNotificationDestination(ctx context.Context, req Get
 	return resp, nil
 }
 
-// Lists notification destinations.
+// Lists the notification destinations in the workspace. Results never include a
+// destination's config; workspace admins can retrieve it with Get.
 func (c *internalClient) ListNotificationDestinations(ctx context.Context, req ListNotificationDestinationsRequest, opts ...call.Option) (*ListNotificationDestinationsResponse, error) {
 	wireReq, err := listNotificationDestinationsRequestToWire(&req)
 	if err != nil {
@@ -371,7 +373,8 @@ func (c *internalClient) ListNotificationDestinationsIter(ctx context.Context, r
 }
 
 // Updates a notification destination. Requires workspace admin permissions. At
-// least one field is required in the request body.
+// least one field is required in the request body. A config provided in the
+// request replaces the existing one.
 func (c *internalClient) UpdateNotificationDestination(ctx context.Context, req UpdateNotificationDestinationRequest, opts ...call.Option) (*NotificationDestination, error) {
 	wireReq, err := updateNotificationDestinationRequestToWire(&req)
 	if err != nil {

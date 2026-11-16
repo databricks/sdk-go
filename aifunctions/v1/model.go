@@ -352,7 +352,9 @@ type AiParseDocumentResponseMetadata struct {
 }
 
 // The AI Functions Asynchronous API lets you process large volumes of requests
-// as a batch in a single call..
+// as a batch in a single call. It is in Beta: a workspace admin must turn on
+// the **AI Functions Asynchronous API** preview on the workspace Previews page
+// before you can call it..
 type Batch struct {
 	// Output only. Identifier. Resource name of the batch, returned by create.
 	// Format: `batch_<id>`.
@@ -369,7 +371,10 @@ type Batch struct {
 	// function, see [AI Functions](/large-language-models/ai-functions).
 	Params map[string]json.RawMessage
 	// Unity Catalog volume path to write the JSONL output file to. If the path is a
-	// directory, the file is `<path>/<name>_output.jsonl`.
+	// directory, the file is `<path>/<name>_output.jsonl`. Each line is the result
+	// of one request, in the form `{"custom_id": ..., "response": ...}`, or
+	// `{"custom_id": ..., "error": {"type": ..., "message": ...}}` for a request
+	// that failed.
 	OutputRef *string
 	// Output only. The status of the batch.
 	Status BatchStatus

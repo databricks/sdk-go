@@ -81,6 +81,11 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // Cancels a currently running command within an execution context.
 //
 // The command ID is obtained from a prior successful call to __execute__.
+// Cancellation is asynchronous: this method returns once the request is
+// accepted, and the command moves through the `Cancelling` status before
+// reaching a terminal one. Poll __commandStatus__ to observe the outcome; a
+// cancelled command ends in the `Finished` status with an `error` result that
+// describes the cancellation.
 func (c *internalClient) cancelBase(ctx context.Context, req CancelCommandRequest, opts ...call.Option) (*CancelResponse, error) {
 	wireReq, err := cancelCommandRequestToWire(&req)
 	if err != nil {
@@ -143,6 +148,11 @@ func (c *internalClient) cancelBase(ctx context.Context, req CancelCommandReques
 // Cancels a currently running command within an execution context.
 //
 // The command ID is obtained from a prior successful call to __execute__.
+// Cancellation is asynchronous: this method returns once the request is
+// accepted, and the command moves through the `Cancelling` status before
+// reaching a terminal one. Poll __commandStatus__ to observe the outcome; a
+// cancelled command ends in the `Finished` status with an `error` result that
+// describes the cancellation.
 func (c *internalClient) Cancel(ctx context.Context, req CancelCommandRequest, opts ...call.Option) (*CancelWaiter, error) {
 	if req.ClusterId == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "ClusterId")
@@ -257,7 +267,11 @@ func (w *CancelWaiter) Wait(ctx context.Context, opts ...lro.Option) (*GetComman
 
 // Creates an execution context for running cluster commands.
 //
-// If successful, this method returns the ID of the new execution context.
+// If successful, this method returns the ID of the new execution context. The
+// context may still be initializing when this method returns, so poll
+// __contextStatus__ until the status is `Running` before running commands in
+// it. This method and the other methods of this API require the CAN ATTACH TO
+// permission on the cluster.
 func (c *internalClient) createBase(ctx context.Context, req CreateContextRequest, opts ...call.Option) (*CreateResponse, error) {
 	wireReq, err := createContextRequestToWire(&req)
 	if err != nil {
@@ -325,7 +339,11 @@ func (c *internalClient) createBase(ctx context.Context, req CreateContextReques
 
 // Creates an execution context for running cluster commands.
 //
-// If successful, this method returns the ID of the new execution context.
+// If successful, this method returns the ID of the new execution context. The
+// context may still be initializing when this method returns, so poll
+// __contextStatus__ until the status is `Running` before running commands in
+// it. This method and the other methods of this API require the CAN ATTACH TO
+// permission on the cluster.
 func (c *internalClient) Create(ctx context.Context, req CreateContextRequest, opts ...call.Option) (*CreateWaiter, error) {
 	if req.ClusterId == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "ClusterId")
@@ -422,6 +440,10 @@ func (w *CreateWaiter) Wait(ctx context.Context, opts ...lro.Option) (*GetContex
 }
 
 // Deletes an execution context.
+//
+// Delete contexts you no longer need, because a cluster can host only a limited
+// number of execution contexts at a time. Deleting a context that no longer
+// exists succeeds, so the call is safe to retry.
 func (c *internalClient) Destroy(ctx context.Context, req DestroyContextRequest, opts ...call.Option) (*DestroyResponse, error) {
 	wireReq, err := destroyContextRequestToWire(&req)
 	if err != nil {
@@ -485,7 +507,9 @@ func (c *internalClient) Destroy(ctx context.Context, req DestroyContextRequest,
 // language.
 //
 // If successful, it returns an ID for tracking the status of the command's
-// execution.
+// execution. This method returns as soon as the command is accepted, so poll
+// __commandStatus__ with the returned ID to wait for the command to finish and
+// to read its results.
 func (c *internalClient) executeBase(ctx context.Context, req ExecuteCommandRequest, opts ...call.Option) (*CreateResponse, error) {
 	wireReq, err := executeCommandRequestToWire(&req)
 	if err != nil {
@@ -555,7 +579,9 @@ func (c *internalClient) executeBase(ctx context.Context, req ExecuteCommandRequ
 // language.
 //
 // If successful, it returns an ID for tracking the status of the command's
-// execution.
+// execution. This method returns as soon as the command is accepted, so poll
+// __commandStatus__ with the returned ID to wait for the command to finish and
+// to read its results.
 func (c *internalClient) Execute(ctx context.Context, req ExecuteCommandRequest, opts ...call.Option) (*ExecuteWaiter, error) {
 	if req.ClusterId == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "ClusterId")
@@ -667,7 +693,10 @@ func (w *ExecuteWaiter) Wait(ctx context.Context, opts ...lro.Option) (*GetComma
 // Gets the status of and, if available, the results from a currently executing
 // command.
 //
-// The command ID is obtained from a prior successful call to __execute__.
+// The command ID is obtained from a prior successful call to __execute__. Poll
+// this method until the status is one of the terminal values `Finished`,
+// `Error` or `Cancelled`; the `results` field is populated only once the
+// command has reached a terminal status.
 func (c *internalClient) GetCommandStatus(ctx context.Context, req GetCommandStatusRequest, opts ...call.Option) (*GetCommandStatusResponse, error) {
 	wireReq, err := getCommandStatusRequestToWire(&req)
 	if err != nil {
@@ -737,6 +766,10 @@ func (c *internalClient) GetCommandStatus(ctx context.Context, req GetCommandSta
 }
 
 // Gets the status for an execution context.
+//
+// After __Create__, poll this method until the status is `Running` or `Error`.
+// Requests for a context that has been deleted fail with an error instead of
+// returning a status.
 func (c *internalClient) GetContextStatus(ctx context.Context, req GetContextStatusRequest, opts ...call.Option) (*GetContextStatusResponse, error) {
 	wireReq, err := getContextStatusRequestToWire(&req)
 	if err != nil {

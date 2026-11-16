@@ -24,24 +24,24 @@ const (
 	PolicySortColumn_PolicyName PolicySortColumn = "POLICY_NAME"
 )
 
-// T-shirt size for per-workload Spark executor limits.
+// T-shirt size for Spark executor limits.
 type TshirtSize string
 
 const (
 	TshirtSize_Unspecified TshirtSize = ""
-	// Small per-workload Spark executor limit.
+	// Small Spark executor limit.
 	TshirtSize_TShirtSizeSmall TshirtSize = "T_SHIRT_SIZE_SMALL"
-	// Medium per-workload Spark executor limit.
+	// Medium Spark executor limit.
 	TshirtSize_TShirtSizeMedium TshirtSize = "T_SHIRT_SIZE_MEDIUM"
-	// Large per-workload Spark executor limit.
+	// Large Spark executor limit.
 	TshirtSize_TShirtSizeLarge TshirtSize = "T_SHIRT_SIZE_LARGE"
-	// Extra-large per-workload Spark executor limit.
+	// Extra-large Spark executor limit.
 	TshirtSize_TShirtSizeXLarge TshirtSize = "T_SHIRT_SIZE_X_LARGE"
-	// Double extra-large per-workload Spark executor limit.
+	// Double extra-large Spark executor limit.
 	TshirtSize_TShirtSize2xLarge TshirtSize = "T_SHIRT_SIZE_2X_LARGE"
-	// Triple extra-large per-workload Spark executor limit.
+	// Triple extra-large Spark executor limit.
 	TshirtSize_TShirtSize3xLarge TshirtSize = "T_SHIRT_SIZE_3X_LARGE"
-	// Quadruple extra-large per-workload Spark executor limit.
+	// Quadruple extra-large Spark executor limit.
 	TshirtSize_TShirtSize4xLarge TshirtSize = "T_SHIRT_SIZE_4X_LARGE"
 )
 

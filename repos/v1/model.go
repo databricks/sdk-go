@@ -3,7 +3,7 @@
 package repos
 
 type CreateRepoRequest struct {
-	// URL of the Git repository to be linked.
+	// HTTPS URL of the Git repository to be linked. SSH URLs are not supported.
 	Url *string
 	// Git provider. This field is case-insensitive. The available Git providers are
 	// `gitHub`, `bitbucketCloud`, `gitLab`, `azureDevOpsServices` (Azure DevOps
@@ -13,7 +13,10 @@ type CreateRepoRequest struct {
 	Provider *string
 	// Desired path for the repo in the workspace. Almost any path in the workspace
 	// can be chosen. If repo is created in `/Repos`, path must be in the format
-	// `/Repos/{folder}/{repo-name}`.
+	// `/Repos/{folder}/{repo-name}`. If omitted, the repo is created in the calling
+	// user's home folder (`/Users/{user}`, or `/Repos/{user}` in workspaces without
+	// workspace files). The repo name is the last path segment of `url`, for
+	// example `cli.git`.
 	Path *string
 	// If specified, the repo will be created with sparse checkout enabled. You
 	// cannot enable/disable sparse checkout after the repo is created.
@@ -30,21 +33,23 @@ type CreateRepoResponse struct {
 	Path *string
 	// URL of the linked Git repository.
 	Url *string
-	// Git provider of the linked Git repository, e.g. `gitHub`,
-	// `azureDevOpsServices`, `bitbucketServer` (Bitbucket Data Center),
-	// `gitLabEnterpriseEdition` (GitLab Self-Managed), or `awsCodeCommit`.
+	// Git provider of the linked Git repository. Supported providers are `gitHub`,
+	// `bitbucketCloud`, `gitLab`, `azureDevOpsServices`, `gitHubEnterprise`,
+	// `bitbucketServer` (Bitbucket Data Center), `gitLabEnterpriseEdition` (GitLab
+	// Self-Managed), and `awsCodeCommit`.
 	Provider *string
 	// Branch that the Git folder (repo) is checked out to.
 	Branch *string
 	// SHA-1 hash representing the commit ID of the current HEAD of the Git folder
 	// (repo).
 	HeadCommitId *string
-	// Sparse checkout settings for the Git folder (repo).
+	// Sparse checkout settings for the Git folder (repo). Only present when sparse
+	// checkout is enabled for the Git folder.
 	SparseCheckout *SparseCheckout
 }
 
 type DeleteRepoRequest struct {
-	// The ID for the corresponding repo to delete.
+	// ID of the Git folder (repo) to delete.
 	Id *int64
 }
 
@@ -63,15 +68,19 @@ type GetRepoResponse struct {
 	Path *string
 	// URL of the linked Git repository.
 	Url *string
-	// Git provider of the linked Git repository, e.g. `gitHub`,
-	// `azureDevOpsServices`, `bitbucketServer` (Bitbucket Data Center),
-	// `gitLabEnterpriseEdition` (GitLab Self-Managed), or `awsCodeCommit`.
+	// Git provider of the linked Git repository. Supported providers are `gitHub`,
+	// `bitbucketCloud`, `gitLab`, `azureDevOpsServices`, `gitHubEnterprise`,
+	// `bitbucketServer` (Bitbucket Data Center), `gitLabEnterpriseEdition` (GitLab
+	// Self-Managed), and `awsCodeCommit`.
 	Provider *string
-	// Branch that the local version of the repo is checked out to.
+	// Branch that the local version of the repo is checked out to. Omitted when the
+	// Git folder (repo) is in a detached HEAD state, for example after checking out
+	// a tag.
 	Branch *string
 	// SHA-1 hash representing the commit ID of the current HEAD of the repo.
 	HeadCommitId *string
-	// Sparse checkout settings for the Git folder (repo).
+	// Sparse checkout settings for the Git folder (repo). Only present when sparse
+	// checkout is enabled for the Git folder.
 	SparseCheckout *SparseCheckout
 	// Whether the Git CLI is enabled for this Git folder (repo). When true, Git
 	// commands can be run directly against this Git folder using the Git CLI.
@@ -96,23 +105,30 @@ type ListReposResponse struct {
 	NextPageToken *string
 }
 
-// Git folder (repo) information..
+// Git folder (repo) information. A Git folder is a workspace folder that is
+// linked to a remote Git repository and tracks the branch or commit that is
+// checked out..
 type RepoInfo struct {
-	// Id of the git folder (repo) in the Workspace.
+	// ID of the Git folder (repo) object in the workspace.
 	Id *int64
 	// Root path of the git folder (repo) in the Workspace.
 	Path *string
-	// URL of the remote git repository.
+	// HTTPS URL of the remote Git repository.
 	Url *string
-	// Git provider of the remote git repository, e.g. `gitHub`,
-	// `azureDevOpsServices`, `bitbucketServer` (Bitbucket Data Center),
-	// `gitLabEnterpriseEdition` (GitLab Self-Managed), or `awsCodeCommit`.
+	// Git provider of the remote Git repository. Supported providers are `gitHub`,
+	// `bitbucketCloud`, `gitLab`, `azureDevOpsServices`, `gitHubEnterprise`,
+	// `bitbucketServer` (Bitbucket Data Center), `gitLabEnterpriseEdition` (GitLab
+	// Self-Managed), and `awsCodeCommit`.
 	Provider *string
-	// Name of the current git branch of the git folder (repo).
+	// Name of the branch that the Git folder (repo) is checked out to. Omitted when
+	// the Git folder is in a detached HEAD state, for example after checking out a
+	// tag.
 	Branch *string
-	// Current git commit id of the git folder (repo).
+	// SHA-1 hash of the commit that the Git folder (repo) is currently checked out
+	// to.
 	HeadCommitId *string
-	// Sparse checkout config for the git folder (repo).
+	// Sparse checkout configuration of the Git folder (repo). Only present when
+	// sparse checkout is enabled for the Git folder.
 	SparseCheckout *SparseCheckout
 }
 
@@ -135,14 +151,17 @@ type SparseCheckoutUpdate struct {
 type UpdateRepoRequest struct {
 	// ID of the Git folder (repo) object in the workspace.
 	Id *int64
-	// Branch that the local version of the repo is checked out to.
+	// Branch to check out. The Git folder (repo) is then updated to the latest
+	// commit of the branch. Mutually exclusive with `tag`.
 	Branch *string
 	// Tag that the local version of the repo is checked out to. Updating the repo
 	// to a tag puts the repo in a detached HEAD state. Before committing new
 	// changes, you must update the repo to a branch instead of the detached HEAD.
+	// Mutually exclusive with `branch`.
 	Tag *string
 	// If specified, update the sparse checkout settings. The update will fail if
-	// sparse checkout is not enabled for the repo.
+	// sparse checkout is not enabled for the repo. Must be sent together with
+	// `branch` or `tag`.
 	SparseCheckout *SparseCheckoutUpdate
 	// WARNING: DESTRUCTIVE AND IRREVERSIBLE. If true, permanently deletes ALL
 	// uncommitted changes in the Git folder — staged, unstaged, and untracked

@@ -685,11 +685,12 @@ type RowFilter struct {
 	InputArguments []PolicyFunctionArgument
 }
 
-// Manifest of a specific securable kind..
+// Manifest of a specific securable kind, or of an Atlas-native securable type,
+// which has no kinds..
 type SecurableKindManifest struct {
 	// Securable Type of the kind.
 	SecurableType SecurableType
-	// Securable kind to get manifest of.
+	// Securable kind to get manifest of. Unset for Atlas-native securable types.
 	SecurableKind SecurableKind
 	// Privileges that can be assigned to the securable.
 	AssignablePrivileges []string

@@ -80,7 +80,12 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	}, nil
 }
 
-// Creates a new Sandbox.
+// Creates a sandbox with the given `sandbox_id` and starts provisioning it.
+// Provisioning is asynchronous: the response usually shows the sandbox in
+// `SANDBOX_STATE_PENDING`, so poll GetSandbox until the state is
+// `SANDBOX_STATE_RUNNING` before running commands in it. A sandbox that fails
+// to provision ends in `SANDBOX_STATE_STOPPED`. Returns ALREADY_EXISTS if a
+// sandbox with the same ID already exists in the workspace.
 func (c *internalClient) CreateSandbox(ctx context.Context, req CreateSandboxRequest, opts ...call.Option) (*Sandbox, error) {
 	wireReq, err := createSandboxRequestToWire(&req)
 	if err != nil {
@@ -149,7 +154,10 @@ func (c *internalClient) CreateSandbox(ctx context.Context, req CreateSandboxReq
 	return resp, nil
 }
 
-// Deletes a Sandbox.
+// Deletes a sandbox, including the data in its home directory. A pending or
+// running sandbox is stopped first and is removed once the teardown completes,
+// after which GetSandbox returns NOT_FOUND. Deleting a sandbox that is already
+// being deleted succeeds.
 func (c *internalClient) DeleteSandbox(ctx context.Context, req DeleteSandboxRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
@@ -264,7 +272,9 @@ func (c *internalClient) GetSandbox(ctx context.Context, req GetSandboxRequest, 
 	return resp, nil
 }
 
-// Lists all Sandboxes.
+// Lists the sandboxes in the workspace that are visible to the caller,
+// including stopped sandboxes. Sandboxes that are being deleted are not
+// returned.
 func (c *internalClient) ListSandboxes(ctx context.Context, req ListSandboxesRequest, opts ...call.Option) (*ListSandboxesResponse, error) {
 	wireReq, err := listSandboxesRequestToWire(&req)
 	if err != nil {
@@ -371,8 +381,12 @@ func (c *internalClient) ListSandboxesIter(ctx context.Context, req ListSandboxe
 	}
 }
 
-// Starts a previously stopped Sandbox under the same sandbox name. Returns
-// NOT_FOUND if there is no stopped sandbox to start for the given name.
+// Starts a previously stopped sandbox under the same sandbox name, with the
+// data in its home directory intact. Starting is asynchronous: the response
+// usually shows the sandbox in `SANDBOX_STATE_PENDING`, so poll GetSandbox
+// until the state is `SANDBOX_STATE_RUNNING`. Returns NOT_FOUND if the sandbox
+// does not exist, FAILED_PRECONDITION if it is pending or running, and ABORTED
+// while it is still stopping.
 func (c *internalClient) StartSandbox(ctx context.Context, req StartSandboxRequest, opts ...call.Option) (*Sandbox, error) {
 	wireReq, err := startSandboxRequestToWire(&req)
 	if err != nil {
@@ -445,8 +459,12 @@ func (c *internalClient) StartSandbox(ctx context.Context, req StartSandboxReque
 	return resp, nil
 }
 
-// Stops a running Sandbox, preserving it so it can later be restarted with a
-// Start request.
+// Stops a running sandbox, preserving it so it can later be restarted with a
+// Start request. Stopping is asynchronous: the response usually shows the
+// sandbox in `SANDBOX_STATE_STOPPING`, and it settles to
+// `SANDBOX_STATE_STOPPED` once the shutdown completes. The data in the home
+// directory is kept; other local changes are discarded. Stopping a sandbox that
+// is already stopped or stopping succeeds without changes.
 func (c *internalClient) StopSandbox(ctx context.Context, req StopSandboxRequest, opts ...call.Option) (*Sandbox, error) {
 	wireReq, err := stopSandboxRequestToWire(&req)
 	if err != nil {
@@ -1168,6 +1186,9 @@ func (c *internalClient) UploadFile(ctx context.Context, req UploadFileRequest, 
 	baseURL.Path, baseURL.RawPath = pb.build()
 	queryParams := url.Values{}
 	if err := addQueryValue(queryParams, "path", wireReq.Path); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "overwrite", wireReq.Overwrite); err != nil {
 		return nil, err
 	}
 	baseURL.RawQuery = queryParams.Encode()

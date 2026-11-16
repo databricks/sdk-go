@@ -63,6 +63,7 @@ const (
 )
 
 type CreateQueryRequest struct {
+	// The query to create. A display name and query text are required.
 	Query *CreateQueryRequestQuery
 	// If true, automatically resolve query display name conflicts. Otherwise, fail
 	// the request if the query's display name conflicts with an existing query's
@@ -70,6 +71,9 @@ type CreateQueryRequest struct {
 	AutoResolveDisplayName *bool
 }
 
+// A saved Databricks SQL query. A query stores the SQL text, the SQL warehouse
+// it runs on, its parameters, and metadata such as the display name,
+// description, owner, and tags..
 type CreateQueryRequestQuery struct {
 	// Display name of the query that appears in list views, widget headings, and on
 	// the query page.
@@ -81,11 +85,17 @@ type CreateQueryRequestQuery struct {
 	WarehouseId *string
 	// Text of the query to be run.
 	QueryText *string
-	// Sets the "Run as" role for the object.
+	// Whose credentials the query runs with when it is shared. `VIEWER` uses the
+	// credentials of the user running the query. `OWNER` uses the owner's
+	// credentials where the product supports that, such as for legacy alerts and
+	// jobs. When omitted on create, the workspace default applies. A workspace
+	// admin can disallow `OWNER`.
 	RunAsMode RunAsMode
 	// Workspace path of the workspace folder containing the object.
 	ParentPath *string
-	Tags       []string
+	// Tags attached to the query. Tags appear in the query list and can be used to
+	// filter it.
+	Tags []string
 	// List of query parameter definitions.
 	Parameters []QueryParameter
 	// Whether to apply a 1000 row limit to the query result.
@@ -97,15 +107,20 @@ type CreateQueryRequestQuery struct {
 }
 
 type DateRange struct {
+	// Start of the range in the format `yyyy-MM-dd`, optionally followed by a time
+	// as ` HH:mm` or ` HH:mm:ss`.
 	Start *string
-	End   *string
+	// End of the range, in the same format as `start`.
+	End *string
 }
 
 type DateRangeValue struct {
 	Value isDateRangeValue_Value
 	// Date-time precision to format the value into when the query is run. Defaults
 	// to DAY_PRECISION (YYYY-MM-DD).
-	Precision      DatePrecision
+	Precision DatePrecision
+	// Day the week starts on for week-based dynamic ranges such as `THIS_WEEK` and
+	// `LAST_WEEK`, from 0 (Sunday) to 6 (Saturday). Defaults to 0.
 	StartDayOfWeek *int
 }
 
@@ -149,7 +164,8 @@ type DateValue_Value_DynamicDateValue struct {
 func (*DateValue_Value_DynamicDateValue) isDateValue_Value() {}
 
 // DateValue_Value_DateValue selects DateValue for DateValue.Value.
-// Manually specified date-time value.
+// Manually specified date-time value in the format `yyyy-MM-dd`, optionally
+// followed by a time as ` HH:mm` or ` HH:mm:ss`.
 type DateValue_Value_DateValue struct {
 	DateValue string
 }
@@ -171,19 +187,30 @@ type EnumValue struct {
 }
 
 type GetQueryRequest struct {
+	// UUID of the query to fetch.
 	Id *string
 }
 
 type ListQueriesRequest struct {
+	// Token from the `next_page_token` of a previous response. Omit it to fetch the
+	// first page.
 	PageToken *string
-	PageSize  *int
+	// Maximum number of queries to return per page. Values above 100 are coerced to
+	// 100.
+	PageSize *int
 }
 
 type ListQueriesResponse struct {
-	Results       []ListQueryObjectsResponseQuery
+	// Queries on this page.
+	Results []ListQueryObjectsResponseQuery
+	// Token to pass as `page_token` to fetch the next page. Omitted when there are
+	// no more pages.
 	NextPageToken *string
 }
 
+// A saved Databricks SQL query. A query stores the SQL text, the SQL warehouse
+// it runs on, its parameters, and metadata such as the display name,
+// description, owner, and tags..
 type ListQueryObjectsResponseQuery struct {
 	// UUID identifying the query.
 	Id *string
@@ -199,13 +226,19 @@ type ListQueryObjectsResponseQuery struct {
 	WarehouseId *string
 	// Text of the query to be run.
 	QueryText *string
-	// Sets the "Run as" role for the object.
+	// Whose credentials the query runs with when it is shared. `VIEWER` uses the
+	// credentials of the user running the query. `OWNER` uses the owner's
+	// credentials where the product supports that, such as for legacy alerts and
+	// jobs. When omitted on create, the workspace default applies. A workspace
+	// admin can disallow `OWNER`.
 	RunAsMode RunAsMode
 	// Indicates whether the query is trashed.
 	LifecycleState LifecycleState
 	// Username of the user who last saved changes to this query.
 	LastModifierUserName *string
-	Tags                 []string
+	// Tags attached to the query. Tags appear in the query list and can be used to
+	// filter it.
+	Tags []string
 	// Timestamp when this query was created.
 	CreateTime *types.Time
 	// Timestamp when this query was last updated.
@@ -241,9 +274,13 @@ type MultiValuesOptions struct {
 }
 
 type NumericValue struct {
+	// Number substituted for the parameter marker when the query runs.
 	Value *float64
 }
 
+// A saved Databricks SQL query. A query stores the SQL text, the SQL warehouse
+// it runs on, its parameters, and metadata such as the display name,
+// description, owner, and tags..
 type Query struct {
 	// UUID identifying the query.
 	Id *string
@@ -259,7 +296,11 @@ type Query struct {
 	WarehouseId *string
 	// Text of the query to be run.
 	QueryText *string
-	// Sets the "Run as" role for the object.
+	// Whose credentials the query runs with when it is shared. `VIEWER` uses the
+	// credentials of the user running the query. `OWNER` uses the owner's
+	// credentials where the product supports that, such as for legacy alerts and
+	// jobs. When omitted on create, the workspace default applies. A workspace
+	// admin can disallow `OWNER`.
 	RunAsMode RunAsMode
 	// Indicates whether the query is trashed.
 	LifecycleState LifecycleState
@@ -267,7 +308,9 @@ type Query struct {
 	LastModifierUserName *string
 	// Workspace path of the workspace folder containing the object.
 	ParentPath *string
-	Tags       []string
+	// Tags attached to the query. Tags appear in the query list and can be used to
+	// filter it.
+	Tags []string
 	// Timestamp when this query was created.
 	CreateTime *types.Time
 	// Timestamp when this query was last updated.
@@ -357,23 +400,33 @@ type QueryParameter_ParameterValue_QueryBackedValue struct {
 func (*QueryParameter_ParameterValue_QueryBackedValue) isQueryParameter_ParameterValue() {}
 
 type TextValue struct {
+	// Text substituted for the parameter marker when the query runs. Quotation
+	// marks are added around the value automatically.
 	Value *string
 }
 
 type TrashQueryRequest struct {
+	// UUID of the query to move to the trash.
 	Id *string
 }
 
 type UpdateQueryRequest struct {
-	Query      *UpdateQueryRequestQuery
+	// Query fields to update. Only the fields named in `update_mask` are changed.
+	Query *UpdateQueryRequestQuery
+	// Comma-separated list of the query fields to update, such as the display name
+	// or query text. Fields not listed keep their current values.
 	UpdateMask *types.FieldMask[UpdateQueryRequestQuery]
-	Id         *string
-	// If true, automatically resolve alert display name conflicts. Otherwise, fail
-	// the request if the alert's display name conflicts with an existing alert's
+	// UUID of the query to update.
+	Id *string
+	// If true, automatically resolve query display name conflicts. Otherwise, fail
+	// the request if the query's display name conflicts with an existing query's
 	// display name.
 	AutoResolveDisplayName *bool
 }
 
+// A saved Databricks SQL query. A query stores the SQL text, the SQL warehouse
+// it runs on, its parameters, and metadata such as the display name,
+// description, owner, and tags..
 type UpdateQueryRequestQuery struct {
 	// Display name of the query that appears in list views, widget headings, and on
 	// the query page.
@@ -387,9 +440,15 @@ type UpdateQueryRequestQuery struct {
 	WarehouseId *string `fieldmask:"warehouse_id"`
 	// Text of the query to be run.
 	QueryText *string `fieldmask:"query_text"`
-	// Sets the "Run as" role for the object.
+	// Whose credentials the query runs with when it is shared. `VIEWER` uses the
+	// credentials of the user running the query. `OWNER` uses the owner's
+	// credentials where the product supports that, such as for legacy alerts and
+	// jobs. When omitted on create, the workspace default applies. A workspace
+	// admin can disallow `OWNER`.
 	RunAsMode RunAsMode `fieldmask:"run_as_mode"`
-	Tags      []string  `fieldmask:"tags"`
+	// Tags attached to the query. Tags appear in the query list and can be used to
+	// filter it.
+	Tags []string `fieldmask:"tags"`
 	// List of query parameter definitions.
 	Parameters []QueryParameter `fieldmask:"parameters"`
 	// Whether to apply a 1000 row limit to the query result.

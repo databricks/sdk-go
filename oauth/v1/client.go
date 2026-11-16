@@ -571,7 +571,8 @@ func (c *internalClient) GetPublishedOAuthAppIntegration(ctx context.Context, re
 	return resp, nil
 }
 
-// Get the list of custom OAuth app integrations for the specified <Account>
+// Get the list of custom OAuth app integrations for the specified <Databricks>
+// account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
 func (c *internalClient) ListCustomOAuthAppIntegrations(ctx context.Context, req ListCustomOAuthAppIntegrationsRequest, opts ...call.Option) (*ListCustomOAuthAppIntegrationsResponse, error) {
 	wireReq, err := listCustomOAuthAppIntegrationsRequestToWire(&req)

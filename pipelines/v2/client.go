@@ -546,7 +546,8 @@ func (c *internalClient) EventsIter(ctx context.Context, req ListPipelineEventsR
 	}
 }
 
-// Get a pipeline.
+// Returns the details of a pipeline, including its settings, current state, and
+// the status of its most recent updates.
 func (c *internalClient) Get(ctx context.Context, req GetPipelineRequest, opts ...call.Option) (*GetPipelineResponse, error) {
 
 	headers := http.Header{}

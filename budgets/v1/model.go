@@ -36,6 +36,9 @@ type AlertConfigurationTimePeriod string
 const (
 	AlertConfigurationTimePeriod_Unspecified AlertConfigurationTimePeriod = ""
 	AlertConfigurationTimePeriod_Month       AlertConfigurationTimePeriod = "MONTH"
+	// UTC calendar day. Only supported on per-user alerts (`scope_type` set to
+	// `ALERT_CONFIGURATION_SCOPE_TYPE_PER_USER`) of Unity Gateway budgets.
+	AlertConfigurationTimePeriod_Day AlertConfigurationTimePeriod = "DAY"
 )
 
 type AlertConfigurationTriggerType string

@@ -1194,7 +1194,7 @@ type AiRuntimeTask struct {
 	// for each experiment.
 	MlflowArtifactLocation *string
 	// Scheduling priority class for the workload. May only be set together with a
-	// pre-provisioned capacity reservation (a deployment's
+	// GPU Pool (a deployment's `compute.accelerator_pool_id` or legacy
 	// `compute.provisioned_capacity_id`); it is rejected on a workload that runs on
 	// on-demand capacity.
 	PriorityClass AiRuntimeTask_PriorityClass
@@ -1961,10 +1961,8 @@ type ComputeSpec struct {
 	// `GPU_8xH100` with `accelerator_count: 16` allocates 2 nodes (8 GPUs per
 	// node).
 	AcceleratorCount *int
-	// Optional ID of a pre-provisioned accelerator capacity reservation to run this
-	// AI Runtime workload on. When set, the workload is scheduled onto the
-	// referenced reserved capacity instead of the on-demand capacity shared among
-	// all <Databricks> customers.
+	// Legacy alias for `accelerator_pool_id`. Use `accelerator_pool_id` for new
+	// configurations. If both fields are set, they must contain the same ID.
 	ProvisionedCapacityId *string
 }
 
@@ -2551,6 +2549,11 @@ type Environment struct {
 	// dependency fields, or any other environment-source fields. Set the
 	// environment version and dependencies in `pyproject.toml` instead.
 	ProjectEnvironment *string
+	// Customer-provided container image to use as the whole environment for this
+	// workload, stored in Databricks Artifact Registry and named by its Unity
+	// Catalog name and tag, as `catalog.schema.artifact:tag`. Cannot be combined
+	// with `environment_version` or `base_environment`.
+	ImageUri *string
 }
 
 // Retrieves the export of a job run task..

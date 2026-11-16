@@ -250,6 +250,11 @@ type CloudflareApiToken struct {
 	AccountId *string
 }
 
+// A storage credential represents an authentication and authorization mechanism
+// for accessing data stored on your cloud tenant. It holds exactly one cloud
+// credential, for example an AWS IAM role, an Azure managed identity or service
+// principal, or a GCP service account. Only the field for the selected
+// credential type is set in requests and responses..
 type CreateAccountsStorageCredential struct {
 	// The credential name. The name must be unique among storage and service
 	// credentials within the metastore.
@@ -308,6 +313,7 @@ func (*CreateAccountsStorageCredential_Credential_AzureServicePrincipal) isCreat
 }
 
 // CreateAccountsStorageCredential_Credential_GcpServiceAccountKey selects GcpServiceAccountKey for CreateAccountsStorageCredential.Credential.
+// The GCP service account key configuration.
 type CreateAccountsStorageCredential_Credential_GcpServiceAccountKey struct {
 	GcpServiceAccountKey GcpServiceAccountKey
 }
@@ -417,6 +423,7 @@ func (*CreateCredentialRequest_Credential_AzureServicePrincipal) isCreateCredent
 }
 
 // CreateCredentialRequest_Credential_GcpServiceAccountKey selects GcpServiceAccountKey for CreateCredentialRequest.Credential.
+// The GCP service account key configuration.
 type CreateCredentialRequest_Credential_GcpServiceAccountKey struct {
 	GcpServiceAccountKey GcpServiceAccountKey
 }
@@ -532,6 +539,7 @@ func (*CreateStorageCredentialRequest_Credential_AzureServicePrincipal) isCreate
 }
 
 // CreateStorageCredentialRequest_Credential_GcpServiceAccountKey selects GcpServiceAccountKey for CreateStorageCredentialRequest.Credential.
+// The GCP service account key configuration.
 type CreateStorageCredentialRequest_Credential_GcpServiceAccountKey struct {
 	GcpServiceAccountKey GcpServiceAccountKey
 }
@@ -566,6 +574,11 @@ type CreateStorageCredentialRequest_Credential_CloudflareApiToken struct {
 func (*CreateStorageCredentialRequest_Credential_CloudflareApiToken) isCreateStorageCredentialRequest_Credential() {
 }
 
+// A storage credential represents an authentication and authorization mechanism
+// for accessing data stored on your cloud tenant. It holds exactly one cloud
+// credential, for example an AWS IAM role, an Azure managed identity or service
+// principal, or a GCP service account. Only the field for the selected
+// credential type is set in requests and responses..
 type CredentialInfo struct {
 	// The credential name. The name must be unique among storage and service
 	// credentials within the metastore.
@@ -622,6 +635,7 @@ type CredentialInfo_Credential_AzureServicePrincipal struct {
 func (*CredentialInfo_Credential_AzureServicePrincipal) isCredentialInfo_Credential() {}
 
 // CredentialInfo_Credential_GcpServiceAccountKey selects GcpServiceAccountKey for CredentialInfo.Credential.
+// The GCP service account key configuration.
 type CredentialInfo_Credential_GcpServiceAccountKey struct {
 	GcpServiceAccountKey GcpServiceAccountKey
 }
@@ -691,7 +705,7 @@ type DatabricksGcpServiceAccount struct {
 type DeleteCredentialRequest struct {
 	// Name of the credential.
 	NameArg *string
-	// Force an update even if there are dependent services (when purpose is
+	// Force deletion even if there are dependent services (when purpose is
 	// **SERVICE**) or dependent external locations and external tables (when
 	// purpose is **STORAGE**).
 	Force *bool
@@ -709,9 +723,8 @@ type DeleteCredentialsRequest struct {
 type DeleteStorageCredentialRequest struct {
 	// Name of the storage credential.
 	NameArg *string
-	// Force an update even if there are dependent external locations or external
-	// tables (when purpose is **STORAGE**) or dependent services (when purpose is
-	// **SERVICE**).
+	// Force deletion even if there are dependent external locations or external
+	// tables.
 	Force *bool
 }
 
@@ -1059,6 +1072,11 @@ type R2Credentials struct {
 	SessionToken *string
 }
 
+// A storage credential represents an authentication and authorization mechanism
+// for accessing data stored on your cloud tenant. It holds exactly one cloud
+// credential, for example an AWS IAM role, an Azure managed identity or service
+// principal, or a GCP service account. Only the field for the selected
+// credential type is set in requests and responses..
 type StorageCredentialInfo struct {
 	// The credential name. The name must be unique among storage and service
 	// credentials within the metastore.
@@ -1115,6 +1133,7 @@ type StorageCredentialInfo_Credential_AzureServicePrincipal struct {
 func (*StorageCredentialInfo_Credential_AzureServicePrincipal) isStorageCredentialInfo_Credential() {}
 
 // StorageCredentialInfo_Credential_GcpServiceAccountKey selects GcpServiceAccountKey for StorageCredentialInfo.Credential.
+// The GCP service account key configuration.
 type StorageCredentialInfo_Credential_GcpServiceAccountKey struct {
 	GcpServiceAccountKey GcpServiceAccountKey
 }
@@ -1210,6 +1229,11 @@ type TemporaryCredentials_Credentials_R2TempCredentials struct {
 
 func (*TemporaryCredentials_Credentials_R2TempCredentials) isTemporaryCredentials_Credentials() {}
 
+// A storage credential represents an authentication and authorization mechanism
+// for accessing data stored on your cloud tenant. It holds exactly one cloud
+// credential, for example an AWS IAM role, an Azure managed identity or service
+// principal, or a GCP service account. Only the field for the selected
+// credential type is set in requests and responses..
 type UpdateAccountsStorageCredential struct {
 	// The credential name. The name must be unique among storage and service
 	// credentials within the metastore.
@@ -1268,6 +1292,7 @@ func (*UpdateAccountsStorageCredential_Credential_AzureServicePrincipal) isUpdat
 }
 
 // UpdateAccountsStorageCredential_Credential_GcpServiceAccountKey selects GcpServiceAccountKey for UpdateAccountsStorageCredential.Credential.
+// The GCP service account key configuration.
 type UpdateAccountsStorageCredential_Credential_GcpServiceAccountKey struct {
 	GcpServiceAccountKey GcpServiceAccountKey
 }
@@ -1369,6 +1394,7 @@ func (*UpdateCredentialRequest_Credential_AzureServicePrincipal) isUpdateCredent
 }
 
 // UpdateCredentialRequest_Credential_GcpServiceAccountKey selects GcpServiceAccountKey for UpdateCredentialRequest.Credential.
+// The GCP service account key configuration.
 type UpdateCredentialRequest_Credential_GcpServiceAccountKey struct {
 	GcpServiceAccountKey GcpServiceAccountKey
 }
@@ -1470,6 +1496,7 @@ func (*UpdateStorageCredentialRequest_Credential_AzureServicePrincipal) isUpdate
 }
 
 // UpdateStorageCredentialRequest_Credential_GcpServiceAccountKey selects GcpServiceAccountKey for UpdateStorageCredentialRequest.Credential.
+// The GCP service account key configuration.
 type UpdateStorageCredentialRequest_Credential_GcpServiceAccountKey struct {
 	GcpServiceAccountKey GcpServiceAccountKey
 }

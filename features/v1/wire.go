@@ -1850,13 +1850,14 @@ func (v *CustomUdf) UnmarshalJSON(data []byte) error {
 }
 
 type dataSourceWire struct {
-	DeltaTableSource  *deltaTableSourceWire  `json:"delta_table_source,omitempty"`
-	KafkaSource       *kafkaSourceWire       `json:"kafka_source,omitempty"`
-	RequestSource     *requestSourceWire     `json:"request_source,omitempty"`
-	StreamSource      *streamSourceWire      `json:"stream_source,omitempty"`
-	FeatureViewSource *featureViewSourceWire `json:"feature_view_source,omitempty"`
-	SdpSource         *sdpSourceWire         `json:"sdp_source,omitempty"`
-	Lateness          *sourceLatenessWire    `json:"lateness,omitempty"`
+	DeltaTableSource   *deltaTableSourceWire   `json:"delta_table_source,omitempty"`
+	KafkaSource        *kafkaSourceWire        `json:"kafka_source,omitempty"`
+	RequestSource      *requestSourceWire      `json:"request_source,omitempty"`
+	StreamSource       *streamSourceWire       `json:"stream_source,omitempty"`
+	FeatureViewSource  *featureViewSourceWire  `json:"feature_view_source,omitempty"`
+	SdpSource          *sdpSourceWire          `json:"sdp_source,omitempty"`
+	IcebergTableSource *icebergTableSourceWire `json:"iceberg_table_source,omitempty"`
+	Lateness           *sourceLatenessWire     `json:"lateness,omitempty"`
 }
 
 func dataSourceToWire(v *DataSource) (*dataSourceWire, error) {
@@ -1873,6 +1874,7 @@ func dataSourceToWire(v *DataSource) (*dataSourceWire, error) {
 	var dataSourceStreamSourceWire *streamSourceWire
 	var dataSourceFeatureViewSourceWire *featureViewSourceWire
 	var dataSourceSdpSourceWire *sdpSourceWire
+	var dataSourceIcebergTableSourceWire *icebergTableSourceWire
 	switch value := v.DataSource.(type) {
 	case nil:
 	case *DataSource_DataSource_DeltaTableSource:
@@ -1923,17 +1925,26 @@ func dataSourceToWire(v *DataSource) (*dataSourceWire, error) {
 			}
 			dataSourceSdpSourceWire = dataSourceSdpSourceConverted
 		}
+	case *DataSource_DataSource_IcebergTableSource:
+		if value != nil {
+			dataSourceIcebergTableSourceConverted, err := icebergTableSourceToWire(&value.IcebergTableSource)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "DataSource.DataSource.IcebergTableSource", err)
+			}
+			dataSourceIcebergTableSourceWire = dataSourceIcebergTableSourceConverted
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "DataSource.DataSource", value)
 	}
 	return &dataSourceWire{
-		DeltaTableSource:  dataSourceDeltaTableSourceWire,
-		KafkaSource:       dataSourceKafkaSourceWire,
-		RequestSource:     dataSourceRequestSourceWire,
-		StreamSource:      dataSourceStreamSourceWire,
-		FeatureViewSource: dataSourceFeatureViewSourceWire,
-		SdpSource:         dataSourceSdpSourceWire,
-		Lateness:          latenessWireValue,
+		DeltaTableSource:   dataSourceDeltaTableSourceWire,
+		KafkaSource:        dataSourceKafkaSourceWire,
+		RequestSource:      dataSourceRequestSourceWire,
+		StreamSource:       dataSourceStreamSourceWire,
+		FeatureViewSource:  dataSourceFeatureViewSourceWire,
+		SdpSource:          dataSourceSdpSourceWire,
+		IcebergTableSource: dataSourceIcebergTableSourceWire,
+		Lateness:           latenessWireValue,
 	}, nil
 }
 
@@ -1958,6 +1969,9 @@ func dataSourceFromWire(w *dataSourceWire) (*DataSource, error) {
 		dataSourceMembers++
 	}
 	if w.SdpSource != nil {
+		dataSourceMembers++
+	}
+	if w.IcebergTableSource != nil {
 		dataSourceMembers++
 	}
 	if dataSourceMembers > 1 {
@@ -2005,6 +2019,12 @@ func dataSourceFromWire(w *dataSourceWire) (*DataSource, error) {
 			return nil, fmt.Errorf("%s: %w", "DataSource.DataSource.SdpSource", err)
 		}
 		dataSourceSelection = &DataSource_DataSource_SdpSource{SdpSource: *dataSourceSdpSourceConverted}
+	case w.IcebergTableSource != nil:
+		dataSourceIcebergTableSourceConverted, err := icebergTableSourceFromWire(w.IcebergTableSource)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "DataSource.DataSource.IcebergTableSource", err)
+		}
+		dataSourceSelection = &DataSource_DataSource_IcebergTableSource{IcebergTableSource: *dataSourceIcebergTableSourceConverted}
 	}
 	return &DataSource{
 		Lateness:   latenessPublicValue,
@@ -4099,6 +4119,61 @@ func (v *GetStreamRequest) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := getStreamRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type icebergTableSourceWire struct {
+	FullName          *string `json:"full_name,omitempty"`
+	FilterCondition   *string `json:"filter_condition,omitempty"`
+	TransformationSql *string `json:"transformation_sql,omitempty"`
+	DataframeSchema   *string `json:"dataframe_schema,omitempty"`
+}
+
+func icebergTableSourceToWire(v *IcebergTableSource) (*icebergTableSourceWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &icebergTableSourceWire{
+		FullName:          v.FullName,
+		FilterCondition:   v.FilterCondition,
+		TransformationSql: v.TransformationSql,
+		DataframeSchema:   v.DataframeSchema,
+	}, nil
+}
+
+func icebergTableSourceFromWire(w *icebergTableSourceWire) (*IcebergTableSource, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &IcebergTableSource{
+		FullName:          w.FullName,
+		FilterCondition:   w.FilterCondition,
+		TransformationSql: w.TransformationSql,
+		DataframeSchema:   w.DataframeSchema,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v IcebergTableSource) MarshalJSON() ([]byte, error) {
+	w, err := icebergTableSourceToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *IcebergTableSource) UnmarshalJSON(data []byte) error {
+	var w icebergTableSourceWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := icebergTableSourceFromWire(&w)
 	if err != nil {
 		return err
 	}

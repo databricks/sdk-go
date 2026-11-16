@@ -32,25 +32,34 @@ type CreateVolumeRequest struct {
 	//
 	// [Learn more]: https://docs.databricks.com/aws/en/volumes/managed-vs-external
 	VolumeType VolumeType
-	// The storage location on the cloud
+	// The cloud storage URL where the files of the volume are stored. For an
+	// external volume, it must be set on creation to a path within an existing
+	// external location. For a managed volume, it must be omitted on creation; the
+	// volume is placed under the managed storage location of the parent schema,
+	// catalog, or metastore, and the assigned path is returned in this field.
 	StorageLocation *string
-	// The identifier of the user who owns the volume
+	// The user or group that owns the volume. The user who creates a volume becomes
+	// its owner; the owner can be changed afterwards with an update.
 	Owner *string
 	// The comment attached to the volume
 	Comment *string
-	// The three-level (fully qualified) name of the volume
+	// The three-level (fully qualified) name of the volume, in the form
+	// catalog_name.schema_name.name.
 	FullName *string
 	// The unique identifier of the volume
 	VolumeId *string
 	// The unique identifier of the metastore
 	MetastoreId *string
-	CreatedAt   *int64
+	// Time at which the volume was created, in epoch milliseconds.
+	CreatedAt *int64
 	// The identifier of the user who created the volume
 	CreatedBy *string
+	// Time at which the volume was last updated, in epoch milliseconds.
 	UpdatedAt *int64
 	// The identifier of the user who updated the volume last time
 	UpdatedBy *string
-	// The AWS access point to use when accesing s3 for this external location.
+	// The AWS access point to use when accessing S3 for the storage location of
+	// this volume.
 	AccessPoint       *string
 	EncryptionDetails *EncryptionDetails
 	// Indicates whether the principal is limited to retrieving metadata for the
@@ -88,18 +97,18 @@ func (*EncryptionDetails_EncryptionDetailsType_SseEncryptionDetails) isEncryptio
 type GetVolumeRequest struct {
 	// The fully qualified name of the volume.
 	FullNameArg *string
-	// Whether to include volumes in the response for which the principal can only
-	// access selective metadata for
+	// Whether to include volumes for which the principal can only access selective
+	// metadata through the BROWSE privilege.
 	IncludeBrowse *bool
 }
 
 type ListVolumesRequest struct {
-	// The identifier of the catalog
+	// The name of the catalog that contains the schema.
 	CatalogName *string
-	// The identifier of the schema
+	// The name of the schema whose volumes are listed.
 	SchemaName *string
-	// Whether to include volumes in the response for which the principal can only
-	// access selective metadata for
+	// Whether to include volumes for which the principal can only access selective
+	// metadata through the BROWSE privilege.
 	IncludeBrowse *bool
 	// Maximum number of volumes to return (page length).
 	//
@@ -140,7 +149,7 @@ type SseEncryptionDetails struct {
 type UpdateVolumeRequest struct {
 	// The three-level (fully qualified) name of the volume
 	FullNameArg *string
-	// New name for the volume.
+	// The new name for the volume. Set it to rename the volume.
 	NewName *string
 	// The name of the volume
 	Name *string
@@ -155,25 +164,34 @@ type UpdateVolumeRequest struct {
 	//
 	// [Learn more]: https://docs.databricks.com/aws/en/volumes/managed-vs-external
 	VolumeType VolumeType
-	// The storage location on the cloud
+	// The cloud storage URL where the files of the volume are stored. For an
+	// external volume, it must be set on creation to a path within an existing
+	// external location. For a managed volume, it must be omitted on creation; the
+	// volume is placed under the managed storage location of the parent schema,
+	// catalog, or metastore, and the assigned path is returned in this field.
 	StorageLocation *string
-	// The identifier of the user who owns the volume
+	// The user or group that owns the volume. The user who creates a volume becomes
+	// its owner; the owner can be changed afterwards with an update.
 	Owner *string
 	// The comment attached to the volume
 	Comment *string
-	// The three-level (fully qualified) name of the volume
+	// The three-level (fully qualified) name of the volume, in the form
+	// catalog_name.schema_name.name.
 	FullName *string
 	// The unique identifier of the volume
 	VolumeId *string
 	// The unique identifier of the metastore
 	MetastoreId *string
-	CreatedAt   *int64
+	// Time at which the volume was created, in epoch milliseconds.
+	CreatedAt *int64
 	// The identifier of the user who created the volume
 	CreatedBy *string
+	// Time at which the volume was last updated, in epoch milliseconds.
 	UpdatedAt *int64
 	// The identifier of the user who updated the volume last time
 	UpdatedBy *string
-	// The AWS access point to use when accesing s3 for this external location.
+	// The AWS access point to use when accessing S3 for the storage location of
+	// this volume.
 	AccessPoint       *string
 	EncryptionDetails *EncryptionDetails
 	// Indicates whether the principal is limited to retrieving metadata for the
@@ -196,25 +214,34 @@ type VolumeInfo struct {
 	//
 	// [Learn more]: https://docs.databricks.com/aws/en/volumes/managed-vs-external
 	VolumeType VolumeType
-	// The storage location on the cloud
+	// The cloud storage URL where the files of the volume are stored. For an
+	// external volume, it must be set on creation to a path within an existing
+	// external location. For a managed volume, it must be omitted on creation; the
+	// volume is placed under the managed storage location of the parent schema,
+	// catalog, or metastore, and the assigned path is returned in this field.
 	StorageLocation *string
-	// The identifier of the user who owns the volume
+	// The user or group that owns the volume. The user who creates a volume becomes
+	// its owner; the owner can be changed afterwards with an update.
 	Owner *string
 	// The comment attached to the volume
 	Comment *string
-	// The three-level (fully qualified) name of the volume
+	// The three-level (fully qualified) name of the volume, in the form
+	// catalog_name.schema_name.name.
 	FullName *string
 	// The unique identifier of the volume
 	VolumeId *string
 	// The unique identifier of the metastore
 	MetastoreId *string
-	CreatedAt   *int64
+	// Time at which the volume was created, in epoch milliseconds.
+	CreatedAt *int64
 	// The identifier of the user who created the volume
 	CreatedBy *string
+	// Time at which the volume was last updated, in epoch milliseconds.
 	UpdatedAt *int64
 	// The identifier of the user who updated the volume last time
 	UpdatedBy *string
-	// The AWS access point to use when accesing s3 for this external location.
+	// The AWS access point to use when accessing S3 for the storage location of
+	// this volume.
 	AccessPoint       *string
 	EncryptionDetails *EncryptionDetails
 	// Indicates whether the principal is limited to retrieving metadata for the
