@@ -299,7 +299,8 @@ func (c *internalClient) CreateMemory(ctx context.Context, req CreateManagedMemo
 	return resp, nil
 }
 
-// Creates a memory store in the caller's workspace.
+// Creates a memory store in the caller's workspace. Returns `ALREADY_EXISTS`
+// when a store with the requested ID already exists.
 func (c *internalClient) CreateMemoryStore(ctx context.Context, req CreateManagedMemoryStoreRequest, opts ...call.Option) (*ManagedMemoryStore, error) {
 	wireReq, err := createManagedMemoryStoreRequestToWire(&req)
 	if err != nil {
@@ -567,8 +568,9 @@ func (c *internalClient) DeleteMemory(ctx context.Context, req DeleteManagedMemo
 	return nil
 }
 
-// Deletes a memory store by resource name. Returns `NOT_FOUND` when the store
-// does not exist in the caller's workspace.
+// Deletes a memory store by resource name. Deleting a store also deletes all of
+// its memory entries, and its ID becomes available for reuse. Returns
+// `NOT_FOUND` when the store does not exist in the caller's workspace.
 func (c *internalClient) DeleteMemoryStore(ctx context.Context, req DeleteManagedMemoryStoreRequest, opts ...call.Option) error {
 
 	headers := http.Header{}

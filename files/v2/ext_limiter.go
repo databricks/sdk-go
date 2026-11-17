@@ -3,10 +3,10 @@ package files
 import "context"
 
 // Limiter bounds the number of concurrent cloud-leg transfers an upload may run.
-// The engine acquires one unit before each transfer (every multipart part PUT,
-// the single-shot PUT, and every resumable chunk) and releases it when that
-// transfer returns. Pass the same Limiter to multiple Upload calls -- for example
-// when copying many files at once -- to cap their combined concurrency.
+// The engine acquires one unit before each transfer (every multipart part PUT
+// and the single-shot PUT) and releases it when that transfer returns. Pass the
+// same Limiter to multiple Upload calls -- for example when copying many files
+// at once -- to cap their combined concurrency.
 // Implementations must be safe for concurrent use.
 type Limiter interface {
 	// Acquire blocks until a slot is free or ctx is cancelled; on cancellation it

@@ -78,6 +78,356 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	}, nil
 }
 
+// Returns a built-in parser's identity and latest-version pointer. Does not
+// return the spec.
+func (c *internalClient) GetBuiltinParser(ctx context.Context, req GetBuiltinParserRequest, opts ...call.Option) (*BuiltinParser, error) {
+
+	headers := http.Header{}
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/lakewatch/")
+	if req.Name == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *BuiltinParser
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp builtinParserWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = builtinParserFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Returns one version of a built-in parser, including its spec.
+func (c *internalClient) GetBuiltinParserVersion(ctx context.Context, req GetBuiltinParserVersionRequest, opts ...call.Option) (*BuiltinParserVersion, error) {
+
+	headers := http.Header{}
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/lakewatch/")
+	if req.Name == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *BuiltinParserVersion
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp builtinParserVersionWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = builtinParserVersionFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Lists a built-in parser's published versions, oldest first (ascending
+// 1..resource_revision), without their specs.
+func (c *internalClient) ListBuiltinParserVersions(ctx context.Context, req ListBuiltinParserVersionsRequest, opts ...call.Option) (*ListBuiltinParserVersionsResponse, error) {
+	wireReq, err := listBuiltinParserVersionsRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/lakewatch/")
+	if req.Parent == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
+	}
+	pb.singleSegment(*req.Parent)
+	pb.literal("/versions")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "page_size", wireReq.PageSize); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "page_token", wireReq.PageToken); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *ListBuiltinParserVersionsResponse
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp listBuiltinParserVersionsResponseWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = listBuiltinParserVersionsResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// ListBuiltinParserVersionsIter returns an iterator that iterates
+// over the results of ListBuiltinParserVersions.
+//
+// For example:
+//
+//	for item, err := range c.ListBuiltinParserVersionsIter(ctx, ListBuiltinParserVersionsRequest{}) {
+//	  if err != nil {
+//	    return err
+//	  }
+//	  fmt.Println(item)
+//	}
+//
+// Options opts are passed to each ListBuiltinParserVersions call
+// made by the iterator under the hood.
+//
+// Callers who need custom pagination logic should use
+// ListBuiltinParserVersions directly.
+func (c *internalClient) ListBuiltinParserVersionsIter(ctx context.Context, req ListBuiltinParserVersionsRequest, opts ...call.Option) iter.Seq2[*BuiltinParserVersion, error] {
+	return func(yield func(*BuiltinParserVersion, error) bool) {
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
+		for {
+			resp, err := c.ListBuiltinParserVersions(ctx, pageReq, opts...)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			for i := range resp.BuiltinParserVersions {
+				if !yield(&resp.BuiltinParserVersions[i], nil) {
+					return
+				}
+			}
+			if resp.NextPageToken == nil || *resp.NextPageToken == "" {
+				return
+			}
+			pageReq.PageToken = resp.NextPageToken
+		}
+	}
+}
+
+// Lists the built-in parsers Databricks publishes, without their specs.
+func (c *internalClient) ListBuiltinParsers(ctx context.Context, req ListBuiltinParsersRequest, opts ...call.Option) (*ListBuiltinParsersResponse, error) {
+	wireReq, err := listBuiltinParsersRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = "/api/2.0/lakewatch/builtin-parsers"
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "page_size", wireReq.PageSize); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "page_token", wireReq.PageToken); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "filter", wireReq.Filter); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *ListBuiltinParsersResponse
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp listBuiltinParsersResponseWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = listBuiltinParsersResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// ListBuiltinParsersIter returns an iterator that iterates
+// over the results of ListBuiltinParsers.
+//
+// For example:
+//
+//	for item, err := range c.ListBuiltinParsersIter(ctx, ListBuiltinParsersRequest{}) {
+//	  if err != nil {
+//	    return err
+//	  }
+//	  fmt.Println(item)
+//	}
+//
+// Options opts are passed to each ListBuiltinParsers call
+// made by the iterator under the hood.
+//
+// Callers who need custom pagination logic should use
+// ListBuiltinParsers directly.
+func (c *internalClient) ListBuiltinParsersIter(ctx context.Context, req ListBuiltinParsersRequest, opts ...call.Option) iter.Seq2[*BuiltinParser, error] {
+	return func(yield func(*BuiltinParser, error) bool) {
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
+		for {
+			resp, err := c.ListBuiltinParsers(ctx, pageReq, opts...)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			for i := range resp.BuiltinParsers {
+				if !yield(&resp.BuiltinParsers[i], nil) {
+					return
+				}
+			}
+			if resp.NextPageToken == nil || *resp.NextPageToken == "" {
+				return
+			}
+			pageReq.PageToken = resp.NextPageToken
+		}
+	}
+}
+
 // Returns the alert delivery configuration for a catalog.
 func (c *internalClient) GetAlertConfig(ctx context.Context, req GetAlertConfigRequest, opts ...call.Option) (*AlertConfig, error) {
 
@@ -1023,6 +1373,611 @@ func (c *internalClient) UpdateDatasource(ctx context.Context, req UpdateDatasou
 		return nil, err
 	}
 	return resp, nil
+}
+
+// Creates a parser and its first version in one call.
+func (c *internalClient) CreateParser(ctx context.Context, req CreateParserRequest, opts ...call.Option) (*Parser, error) {
+	wireReq, err := createParserRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq.Parser)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = "/api/2.0/lakewatch/parsers"
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Parser
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp parserWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = parserFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Appends a new immutable version, advancing the parser's latest-version
+// pointer. This is how a parser is edited; versions are never changed in place.
+func (c *internalClient) CreateParserVersion(ctx context.Context, req CreateParserVersionRequest, opts ...call.Option) (*ParserVersion, error) {
+	wireReq, err := createParserVersionRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq.ParserVersion)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/lakewatch/")
+	if req.Parent == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
+	}
+	pb.singleSegment(*req.Parent)
+	pb.literal("/versions")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *ParserVersion
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp parserVersionWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = parserVersionFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Deletes a parser and all of its versions. Refused while any data source
+// references it.
+func (c *internalClient) DeleteParser(ctx context.Context, req DeleteParserRequest, opts ...call.Option) error {
+
+	headers := http.Header{}
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/lakewatch/")
+	if req.Name == nil {
+		return fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "DELETE",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		_ = respBody
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Deletes one version of a parser. Returns NOT_FOUND when the parser or the
+// version does not exist, and a conflict (HTTP 409) only while a data source
+// references the version. Deleting the last version leaves the parser in place
+// with no versions.
+func (c *internalClient) DeleteParserVersion(ctx context.Context, req DeleteParserVersionRequest, opts ...call.Option) error {
+
+	headers := http.Header{}
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/lakewatch/")
+	if req.Name == nil {
+		return fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "DELETE",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		_ = respBody
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Returns a parser's identity and latest-version pointer. Does not return the
+// spec; read a spec with GetParserVersion.
+func (c *internalClient) GetParser(ctx context.Context, req GetParserRequest, opts ...call.Option) (*Parser, error) {
+
+	headers := http.Header{}
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/lakewatch/")
+	if req.Name == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *Parser
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp parserWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = parserFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Returns one version of a parser, including its spec.
+func (c *internalClient) GetParserVersion(ctx context.Context, req GetParserVersionRequest, opts ...call.Option) (*ParserVersion, error) {
+
+	headers := http.Header{}
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/lakewatch/")
+	if req.Name == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *ParserVersion
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp parserVersionWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = parserVersionFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Lists a parser's versions, oldest first, without their specs.
+func (c *internalClient) ListParserVersions(ctx context.Context, req ListParserVersionsRequest, opts ...call.Option) (*ListParserVersionsResponse, error) {
+	wireReq, err := listParserVersionsRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/2.0/lakewatch/")
+	if req.Parent == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "parent")
+	}
+	pb.singleSegment(*req.Parent)
+	pb.literal("/versions")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "page_size", wireReq.PageSize); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "page_token", wireReq.PageToken); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *ListParserVersionsResponse
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp listParserVersionsResponseWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = listParserVersionsResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// ListParserVersionsIter returns an iterator that iterates
+// over the results of ListParserVersions.
+//
+// For example:
+//
+//	for item, err := range c.ListParserVersionsIter(ctx, ListParserVersionsRequest{}) {
+//	  if err != nil {
+//	    return err
+//	  }
+//	  fmt.Println(item)
+//	}
+//
+// Options opts are passed to each ListParserVersions call
+// made by the iterator under the hood.
+//
+// Callers who need custom pagination logic should use
+// ListParserVersions directly.
+func (c *internalClient) ListParserVersionsIter(ctx context.Context, req ListParserVersionsRequest, opts ...call.Option) iter.Seq2[*ParserVersion, error] {
+	return func(yield func(*ParserVersion, error) bool) {
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
+		for {
+			resp, err := c.ListParserVersions(ctx, pageReq, opts...)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			for i := range resp.ParserVersions {
+				if !yield(&resp.ParserVersions[i], nil) {
+					return
+				}
+			}
+			if resp.NextPageToken == nil || *resp.NextPageToken == "" {
+				return
+			}
+			pageReq.PageToken = resp.NextPageToken
+		}
+	}
+}
+
+// Lists parsers in a catalog, without their specs.
+func (c *internalClient) ListParsers(ctx context.Context, req ListParsersRequest, opts ...call.Option) (*ListParsersResponse, error) {
+	wireReq, err := listParsersRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.Path = "/api/2.0/lakewatch/parsers"
+	queryParams := url.Values{}
+	if err := addQueryValue(queryParams, "page_size", wireReq.PageSize); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "page_token", wireReq.PageToken); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "filter", wireReq.Filter); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "catalog_name", wireReq.CatalogName); err != nil {
+		return nil, err
+	}
+	if err := addQueryValue(queryParams, "schema_name", wireReq.SchemaName); err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *ListParsersResponse
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "GET",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		var wireResp listParsersResponseWire
+		if err := json.Unmarshal(respBody, &wireResp); err != nil {
+			return err
+		}
+		resp, err = listParsersResponseFromWire(&wireResp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// ListParsersIter returns an iterator that iterates
+// over the results of ListParsers.
+//
+// For example:
+//
+//	for item, err := range c.ListParsersIter(ctx, ListParsersRequest{}) {
+//	  if err != nil {
+//	    return err
+//	  }
+//	  fmt.Println(item)
+//	}
+//
+// Options opts are passed to each ListParsers call
+// made by the iterator under the hood.
+//
+// Callers who need custom pagination logic should use
+// ListParsers directly.
+func (c *internalClient) ListParsersIter(ctx context.Context, req ListParsersRequest, opts ...call.Option) iter.Seq2[*Parser, error] {
+	return func(yield func(*Parser, error) bool) {
+		// Keep pagination state local to this traversal so reusing the iterator starts
+		// from the original request. Reference-bearing fields remain shared and read-only.
+		pageReq := req
+		for {
+			resp, err := c.ListParsers(ctx, pageReq, opts...)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			for i := range resp.Parsers {
+				if !yield(&resp.Parsers[i], nil) {
+					return
+				}
+			}
+			if resp.NextPageToken == nil || *resp.NextPageToken == "" {
+				return
+			}
+			pageReq.PageToken = resp.NextPageToken
+		}
+	}
 }
 
 // Creates a new rule.

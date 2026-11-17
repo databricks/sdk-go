@@ -3,7 +3,7 @@
 package systemschemas
 
 type DisableSystemSchemaRequest struct {
-	// Full name of the system schema.
+	// Name of the system schema, without the catalog prefix.
 	Schema *string
 	// The metastore ID under which the system schema lives.
 	MetastoreId *string
@@ -13,11 +13,13 @@ type DisableSystemSchemaResponse struct {
 }
 
 type EnableSystemSchemaRequest struct {
-	// Full name of the system schema.
+	// Name of the system schema, without the catalog prefix.
 	Schema *string
 	// The metastore ID under which the system schema lives.
 	MetastoreId *string
-	// the catalog for which the system schema is to enabled in
+	// Name of the catalog in which to enable the system schema. The supported
+	// values are `system` and `samples`. If not set, the system schema is enabled
+	// in the `system` catalog.
 	CatalogName *string
 }
 
@@ -46,12 +48,19 @@ type ListSystemSchemasResponse struct {
 	NextPageToken *string
 }
 
+// A system schema of a metastore, with its current enablement state. System
+// schemas hold Databricks-provided system tables, such as audit logs and
+// billing usage. They live in the `system` catalog unless they are enabled in
+// another supported catalog. See
+// https://docs.databricks.com/aws/en/admin/system-tables/..
 type SystemSchemaInfo struct {
-	// Name of the system schema.
+	// Name of the system schema, without the catalog prefix.
 	Schema *string
-	// The current state of enablement for the system schema. An empty string means
-	// the system schema is available and ready for opt-in. Possible values:
-	// AVAILABLE | ENABLE_INITIALIZED | ENABLE_COMPLETED | DISABLE_INITIALIZED |
-	// UNAVAILABLE | MANAGED
+	// The current enablement state of the system schema. Possible values are
+	// `AVAILABLE` (the schema can be enabled), `ENABLE_INITIALIZED` (enablement is
+	// in progress), `ENABLE_COMPLETED` (the schema is enabled),
+	// `DISABLE_INITIALIZED` (disablement is in progress), `UNAVAILABLE` (the schema
+	// cannot be enabled at the moment) and `MANAGED` (Databricks enables the schema
+	// automatically).
 	State *string
 }

@@ -150,7 +150,8 @@ func (c *internalClient) CreateDashboard(ctx context.Context, req CreateDashboar
 	return resp, nil
 }
 
-// Create dashboard schedule.
+// Creates a schedule for a dashboard. The dashboard must be published before a
+// schedule can be created for it.
 //
 // Requires the [Databricks SQL access] entitlement. Grant Databricks SQL access
 // in addition to Workspace access.
@@ -229,7 +230,13 @@ func (c *internalClient) CreateSchedule(ctx context.Context, req CreateScheduleR
 	return resp, nil
 }
 
-// Create schedule subscription.
+// Create schedule subscription. Subscribes a workspace user or a notification
+// destination to the schedule, so that it receives a snapshot of the dashboard
+// each time the schedule runs. Subscribing yourself requires CAN VIEW
+// permission on the dashboard; subscribing another user or a notification
+// destination requires CAN EDIT. On dashboards published without embedded
+// credentials, you can only subscribe yourself. If the subscriber is already
+// subscribed to the schedule, the existing subscription is returned.
 //
 // The caller must be a workspace user with one of the following [entitlements]:
 // Workspace access, Databricks SQL access, or Consumer access.
@@ -317,7 +324,7 @@ func (c *internalClient) CreateSubscription(ctx context.Context, req CreateSubsc
 	return resp, nil
 }
 
-// Delete dashboard schedule.
+// Deletes a schedule together with all of its subscriptions.
 //
 // Requires the [Databricks SQL access] entitlement. Grant Databricks SQL access
 // in addition to Workspace access.
@@ -387,7 +394,10 @@ func (c *internalClient) DeleteSchedule(ctx context.Context, req DeleteScheduleR
 	return nil
 }
 
-// Delete schedule subscription.
+// Delete schedule subscription. The subscriber receives no further snapshots
+// from the schedule. Deleting your own subscription requires CAN VIEW
+// permission on the dashboard; deleting another user's or a notification
+// destination's subscription requires CAN EDIT.
 //
 // The caller must be a workspace user with one of the following [entitlements]:
 // Workspace access, Databricks SQL access, or Consumer access.
@@ -527,7 +537,8 @@ func (c *internalClient) GetDashboard(ctx context.Context, req GetDashboardReque
 	return resp, nil
 }
 
-// Get the current published dashboard.
+// Get the current published dashboard. The request fails with NOT_FOUND if the
+// dashboard has never been published or has been unpublished.
 //
 // The caller must be a workspace user with one of the following entitlements:
 // Workspace access, Databricks SQL access, or Consumer access.
@@ -596,14 +607,20 @@ func (c *internalClient) GetPublishedDashboard(ctx context.Context, req GetPubli
 	return resp, nil
 }
 
-// Get a required authorization details and scopes of a published dashboard to
-// mint an OAuth token.
+// Get the OAuth scope and authorization details needed to mint a token that is
+// scoped to viewing the published dashboard, for example to embed it in an
+// external application. Pass the response fields, with `authorization_details`
+// serialized as a JSON string, to the workspace OAuth token endpoint with the
+// `client_credentials` grant to mint the token. See [Embedding for external
+// users].
 //
 // The caller must be a workspace user with one of the following entitlements:
 // Workspace access, Databricks SQL access, or Consumer access.
 //
 // Account-level users who are not members of the workspace cannot call this
 // endpoint, even if the dashboard has been shared with them.
+//
+// [Embedding for external users]: https://docs.databricks.com/dashboards/share/embedding/external-embed
 func (c *internalClient) GetPublishedDashboardTokenInfo(ctx context.Context, req GetPublishedDashboardTokenInfoRequest, opts ...call.Option) (*GetPublishedDashboardTokenInfoResponse, error) {
 	wireReq, err := getPublishedDashboardTokenInfoRequestToWire(&req)
 	if err != nil {
@@ -1337,6 +1354,10 @@ func (c *internalClient) PublishDashboard(ctx context.Context, req PublishDashbo
 }
 
 // Revert a dashboard's definition in draft mode to the last published version.
+// The draft's datasets, pages and widgets are replaced with those of the
+// current published version, and the updated draft is returned. The dashboard
+// must have been published at least once; the published version itself is not
+// changed.
 func (c *internalClient) RevertDashboard(ctx context.Context, req RevertDashboardRequest, opts ...call.Option) (*RevertDashboardResponse, error) {
 	wireReq, err := revertDashboardRequestToWire(&req)
 	if err != nil {
@@ -1465,7 +1486,9 @@ func (c *internalClient) TrashDashboard(ctx context.Context, req TrashDashboardR
 	return resp, nil
 }
 
-// Unpublish the dashboard.
+// Unpublish the dashboard. This deletes the published version, so viewers can
+// no longer open it, and pauses the dashboard's schedules. The draft is not
+// changed; publish it again to make the dashboard available to viewers.
 func (c *internalClient) UnpublishDashboard(ctx context.Context, req UnpublishDashboardRequest, opts ...call.Option) (*UnpublishDashboardResponse, error) {
 
 	headers := http.Header{}
@@ -1601,7 +1624,8 @@ func (c *internalClient) UpdateDashboard(ctx context.Context, req UpdateDashboar
 	return resp, nil
 }
 
-// Update dashboard schedule.
+// Updates a schedule. The request body replaces the stored schedule, so fields
+// omitted from the body are reset to their defaults.
 //
 // Requires the [Databricks SQL access] entitlement. Grant Databricks SQL access
 // in addition to Workspace access.

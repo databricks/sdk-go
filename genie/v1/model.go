@@ -709,6 +709,9 @@ type ColumnInfo struct {
 	Name *string
 	// Full data type specification as SQL/catalogString text.
 	TypeText *string
+	// The name of the column's data type, for example STRING, DECIMAL or STRUCT.
+	// The complete type, including parameters such as the precision of a decimal or
+	// the element type of an array, is in type_text.
 	TypeName ColumnTypeName
 	// Ordinal position of column (starting at position 0).
 	Position *int
@@ -726,7 +729,11 @@ type ColumnInfo struct {
 	Nullable *bool
 	// Partition index for column.
 	PartitionIndex *int
-	Mask           *ColumnMask
+	// The column mask function applied to this column, if any. A column mask is a
+	// SQL user-defined function that transforms the values a query returns for the
+	// column. See https://docs.databricks.com/aws/en/tables/row-and-column-filters
+	// for details.
+	Mask *ColumnMask
 }
 
 type ColumnMask struct {

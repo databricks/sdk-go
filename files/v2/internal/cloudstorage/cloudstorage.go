@@ -44,7 +44,7 @@ type Response struct {
 // only an *http.Client: no Databricks credentials, no config.
 type Client struct {
 	http        *http.Client
-	retrier     func() ops.Retrier
+	backoff     ops.BackoffPolicy
 	idleTimeout time.Duration
 	logger      *slog.Logger
 }
@@ -66,7 +66,7 @@ func WithLogger(logger *slog.Logger) Option {
 // policy uses the [ops.BackoffPolicy] defaults, as when it is not set.
 func WithBackoff(bp ops.BackoffPolicy) Option {
 	return func(c *Client) {
-		c.retrier = func() ops.Retrier { return &retrier{maxRetries: maxRetries, backoff: bp} }
+		c.backoff = bp
 	}
 }
 
@@ -78,7 +78,6 @@ func WithBackoff(bp ops.BackoffPolicy) Option {
 func New(httpClient *http.Client, opts ...Option) *Client {
 	c := &Client{
 		http:        httpClient,
-		retrier:     newRetrier,
 		idleTimeout: defaultIdleTimeout,
 		logger:      slog.New(slog.DiscardHandler),
 	}
@@ -166,12 +165,13 @@ func (c *Client) Attempt(ctx context.Context, method, url string, headers map[st
 	return &Response{StatusCode: resp.StatusCode, Header: resp.Header, Body: respBody}, nil
 }
 
-// Send performs Attempt with capped retries: transient network errors, the
-// retryable statuses in retryStatusCodes (honoring Retry-After), and stalled
-// attempts are retried with exponential backoff. A fresh request and body reader
+// Send performs Attempt and retries it up to retries times: transient network
+// errors, the retryable statuses in retryStatusCodes (honoring Retry-After), and
+// stalled attempts are retried with exponential backoff. The caller sets the
+// count, as it depends on where the transfer stands. A fresh request and body reader
 // are built per attempt, so no explicit rewind is needed. Exhausting retries on
 // a retryable status returns that status as an error.
-func (c *Client) Send(ctx context.Context, method, url string, headers map[string]string, body Body) (*Response, error) {
+func (c *Client) Send(ctx context.Context, method, url string, headers map[string]string, body Body, retries int) (*Response, error) {
 	var result *Response
 	op := func(ctx context.Context) error {
 		resp, err := c.Attempt(ctx, method, url, headers, body)
@@ -191,7 +191,8 @@ func (c *Client) Send(ctx context.Context, method, url string, headers map[strin
 		result = resp
 		return nil
 	}
-	if err := ops.Execute(ctx, op, ops.WithRetrier(c.retrier)); err != nil {
+	newRetrier := func() ops.Retrier { return &retrier{maxRetries: retries, backoff: c.backoff} }
+	if err := ops.Execute(ctx, op, ops.WithRetrier(newRetrier)); err != nil {
 		return nil, err
 	}
 	return result, nil

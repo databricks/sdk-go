@@ -105,7 +105,8 @@ type CreateManagedMemoryStoreRequest struct {
 	ManagedMemoryStore *ManagedMemoryStore
 	// Caller-provided, workspace-unique memory store ID. It must be 3-56
 	// characters, begin with a lowercase letter, contain only lowercase letters,
-	// digits, and hyphens, and end with a letter or digit.
+	// digits, and hyphens, and end with a letter or digit. It becomes the last
+	// segment of the store's `name` and cannot be changed after creation.
 	ManagedMemoryStoreId *string
 }
 
@@ -260,7 +261,9 @@ type GrantMemoryStorePermissionRequest struct {
 	Name *string
 	// Principal to grant the permission to.
 	Principal *StorePrincipal
-	// Permission level to grant.
+	// Permission level to grant. `WRITE` includes `READ`. Grants are additive:
+	// granting `READ` to a principal that already holds `WRITE` does not lower its
+	// access. To downgrade a principal, revoke its grants and grant again.
 	Permission PermissionLevel
 }
 
@@ -321,7 +324,8 @@ type ListManagedMemoryStoresRequest struct {
 	// Maximum number of stores to return. The service may return fewer stores than
 	// requested. Defaults to 10; must be between 1 and 100.
 	PageSize *int
-	// Opaque pagination token from a previous ListManagedMemoryStores response.
+	// Opaque pagination token, taken from the `next_page_token` of a previous
+	// response.
 	PageToken *string
 }
 
@@ -466,9 +470,7 @@ type ManagedMemoryEntry struct {
 	// Human-readable description of the memory entry.
 	Description *string `fieldmask:"description"`
 	// Which writer created this entry. Caller sets this on Create; immutable after
-	// creation. While the workspace's default-source-type rollout flag is on,
-	// omitted or UNSPECIFIED is stored as AGENT. While it is off, omitted is stored
-	// unset and UNSPECIFIED as UNSPECIFIED.
+	// creation. The server may store an omitted or UNSPECIFIED value as AGENT.
 	SourceType ManagedMemoryEntrySourceType `fieldmask:"source_type"`
 	// Time when the entry was created.
 	CreateTime *types.Time `fieldmask:"create_time"`
@@ -484,7 +486,11 @@ type ManagedMemoryEntrySearchResult struct {
 	Score *float64
 }
 
-// A workspace-scoped memory store backed by service-managed storage..
+// A workspace-scoped memory store backed by service-managed storage. A store is
+// the container for an agent's memory entries and the boundary at which access
+// is granted; creating one provisions its Lakebase storage automatically. See
+// https://docs.databricks.com/aws/en/agents/agent-memory/managed-memory for an
+// overview..
 type ManagedMemoryStore struct {
 	// Resource name in the form `memory-stores/{managed_memory_store_id}`.
 	Name *string `fieldmask:"name"`
@@ -682,7 +688,9 @@ type SessionStorePermission struct {
 type StorageBackend struct {
 	// Type of the storage backend.
 	BackendType StorageBackendType `fieldmask:"backend_type"`
-	// Backend-specific identifier. For Lakebase, this is the project ID.
+	// Backend-specific identifier. For Lakebase, this is the resource name of the
+	// database that holds the store's entries, in the form
+	// `projects/{project_id}/branches/{branch_id}/databases/{database_id}`.
 	BackendId *string `fieldmask:"backend_id"`
 }
 
@@ -690,8 +698,11 @@ type StorageBackend struct {
 // Lakebase identifier: a user's email or a service principal's application
 // (client) id..
 type StorePrincipal struct {
+	// Identifier of the principal: the email address of a user, or the application
+	// (client) ID of a service principal. Groups are not supported.
 	Name *string
-	// The kind of principal. Required unless the deprecated type alias is supplied.
+	// The kind of principal, which determines how `name` is interpreted. A
+	// principal without a type is rejected.
 	PrincipalType PrincipalType
 }
 
@@ -707,8 +718,9 @@ type UpdateManagedMemoryEntryRequest struct {
 type UpdateManagedMemoryStoreRequest struct {
 	// The memory store to update. `name` is taken from the URL.
 	ManagedMemoryStore *ManagedMemoryStore
-	// Only `description` and `metadata` may be updated. Selecting `metadata`
-	// replaces the entire map.
+	// Only `description` and `metadata` may be updated. Selecting `description`
+	// while leaving it unset clears it. Selecting `metadata` replaces the entire
+	// map.
 	UpdateMask *types.FieldMask[ManagedMemoryStore]
 }
 

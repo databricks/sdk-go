@@ -108,29 +108,48 @@ const (
 )
 
 type AccountComplexValue struct {
+	// Provides a human-readable name for the value, such as the display name of a
+	// group member.
 	Display *string
+	// Indicates whether this is the primary or preferred value of a multi-valued
+	// attribute. At most one value can be primary.
 	Primary *bool
-	Ref     *string
-	Type    *string
-	Value   *string
+	// References the resource that the value refers to by its URI, such as the
+	// user, service principal or group entry of a group member.
+	Ref *string
+	// Indicates the function or kind of the value within a multi-valued attribute.
+	Type *string
+	// Holds the value of the attribute. For references to other resources, such as
+	// group members, this is the ID of the referenced resource.
+	Value *string
 }
 
 type AccountGetSortOrder struct {
 }
 
+// Represents a group of users, service principals and other groups in the
+// Databricks account. Members inherit the permissions that are granted to the
+// group..
 type AccountGroup struct {
-	// String that represents a human-readable group name
+	// Identifies the group by a human-readable name. The name must be unique within
+	// the account and must not exceed 255 characters.
 	DisplayName *string
-	// external_id should be unique for identifying groups
+	// Identifies the group in an external identity provider. Identity providers use
+	// it to match the groups they manage to Databricks groups, so it should be
+	// unique among the groups in the account.
 	ExternalId *string
-	// <Databricks> group ID
-	Id      *string
+	// Identifies the group within Databricks. Databricks generates the ID when the
+	// group is created.
+	Id *string
+	// Lists the members of the group. Each entry identifies a user, service
+	// principal or group in the account by its ID in the value sub-attribute.
 	Members []AccountComplexValue
 	// Container for the group identifier. Workspace local versus account.
 	Meta *AccountResourceMeta
-	// Indicates if the group has the admin role.
+	// Lists the account roles that are assigned to the group. The only supported
+	// role value is `account_admin`.
 	Roles []AccountComplexValue
-	// <Databricks> account ID
+	// Identifies the Databricks account that the group belongs to.
 	AccountId *string
 }
 
@@ -149,9 +168,15 @@ type AccountName struct {
 type AccountPatch struct {
 	// Type of patch operation.
 	Op AccountPatchOp_PatchOp
-	// Selection of patch operation
+	// Specifies the attribute that the operation targets, optionally with a filter
+	// that selects one value of a multi-valued attribute. The path is required for
+	// remove operations. When it is omitted, the operation applies to the resource
+	// itself and the value holds the attributes to add or replace.
 	Path *string
-	// Value to modify
+	// Holds the value that the operation adds or sets. Depending on the target, it
+	// is a single value, a list of entries for a multi-valued attribute, or an
+	// object with the attributes to change when the path is omitted. Remove
+	// operations do not need a value.
 	Value json.RawMessage
 }
 
@@ -167,19 +192,31 @@ type AccountResourceMeta struct {
 	ResourceType *string
 }
 
+// Represents a service principal in the Databricks account. Service principals
+// are identities for jobs, automated tools and systems such as scripts, apps
+// and CI/CD platforms..
 type AccountServicePrincipal struct {
-	// If this user is active
+	// Indicates whether the service principal is active. A deactivated service
+	// principal cannot authenticate or access Databricks APIs, but it keeps its
+	// permissions.
 	Active *bool
-	// UUID relating to the service principal
+	// Identifies the service principal when it authenticates to Databricks.
+	// Databricks generates the application ID, except on Azure, where it can be the
+	// application ID of a Microsoft Entra ID service principal.
 	ApplicationId *string
-	// String that represents a concatenation of given and family names.
+	// Identifies the service principal by a human-readable name.
 	DisplayName *string
-	ExternalId  *string
-	// <Databricks> service principal ID.
+	// Identifies the service principal in an external identity provider. Identity
+	// providers use it to match the service principals they manage to Databricks
+	// service principals.
+	ExternalId *string
+	// Identifies the service principal within Databricks. Databricks generates the
+	// ID when the service principal is created.
 	Id *string
-	// Indicates if the group has the admin role.
+	// Lists the account roles that are assigned to the service principal. The only
+	// supported role value is `account_admin`.
 	Roles []AccountComplexValue
-	// <Databricks> account ID
+	// Identifies the Databricks account that the service principal belongs to.
 	AccountId *string
 }
 
@@ -216,33 +253,46 @@ type ComplexValue struct {
 }
 
 type CreateAccountGroupRequest struct {
-	// String that represents a human-readable group name
+	// Sets the human-readable name of the group. The name must be unique within the
+	// account and must not exceed 255 characters.
 	DisplayName *string
-	ExternalId  *string
-	// <Databricks> group ID
-	Id      *string
+	// Sets the identifier of the group in an external identity provider.
+	ExternalId *string
+	// Identifies the group within Databricks.
+	Id *string
+	// Lists the members of the group. Each entry identifies a user, service
+	// principal or group in the account by its ID in the value sub-attribute.
 	Members []AccountComplexValue
 	// Container for the group identifier. Workspace local versus account.
 	Meta *AccountResourceMeta
-	// Indicates if the group has the admin role.
+	// Lists the account roles that are assigned to the group. The only supported
+	// role value is `account_admin`.
 	Roles []AccountComplexValue
-	// <Databricks> account ID
+	// Identifies the Databricks account.
 	AccountId *string
 }
 
 type CreateAccountServicePrincipalRequest struct {
-	// If this user is active
+	// Indicates whether the service principal is active. A deactivated service
+	// principal cannot authenticate or access Databricks APIs, but it keeps its
+	// permissions.
 	Active *bool
-	// UUID relating to the service principal
+	// Sets the application ID of a Microsoft Entra ID service principal. Only Azure
+	// accepts this field. On AWS and GCP, Databricks generates the application ID
+	// and rejects requests that set it.
 	ApplicationId *string
-	// String that represents a concatenation of given and family names.
+	// Sets the human-readable name of the service principal. The name is required
+	// unless the request sets `applicationId`.
 	DisplayName *string
-	ExternalId  *string
-	// <Databricks> service principal ID.
+	// Sets the identifier of the service principal in an external identity
+	// provider.
+	ExternalId *string
+	// Identifies the service principal within Databricks.
 	Id *string
-	// Indicates if the group has the admin role.
+	// Lists the account roles that are assigned to the service principal. The only
+	// supported role value is `account_admin`.
 	Roles []AccountComplexValue
-	// <Databricks> account ID
+	// Identifies the Databricks account.
 	AccountId *string
 }
 
@@ -343,9 +393,9 @@ type CreateUserRequest struct {
 
 // Delete a group.
 type DeleteAccountGroupRequest struct {
-	// Unique ID for a group in the <Databricks> account.
+	// Unique ID for a group in the Databricks account.
 	Id *string
-	// <Databricks> account ID
+	// Identifies the Databricks account.
 	AccountId *string
 }
 
@@ -353,7 +403,7 @@ type DeleteAccountGroupRequest struct {
 type DeleteAccountServicePrincipalRequest struct {
 	// Unique ID for a service principal in the <Databricks> account.
 	Id *string
-	// <Databricks> account ID
+	// Identifies the Databricks account.
 	AccountId *string
 }
 
@@ -385,9 +435,9 @@ type DeleteUserRequest struct {
 
 // Get group details.
 type GetAccountGroupRequest struct {
-	// Unique ID for a group in the <Databricks> account.
+	// Unique ID for a group in the Databricks account.
 	Id *string
-	// <Databricks> account ID
+	// Identifies the Databricks account.
 	AccountId *string
 }
 
@@ -395,7 +445,7 @@ type GetAccountGroupRequest struct {
 type GetAccountServicePrincipalRequest struct {
 	// Unique ID for a service principal in the <Databricks> account.
 	Id *string
-	// <Databricks> account ID
+	// Identifies the Databricks account.
 	AccountId *string
 }
 
@@ -503,7 +553,7 @@ type Group struct {
 
 // List group details.
 type ListAccountGroupsRequest struct {
-	// <Databricks> account ID
+	// Identifies the Databricks account.
 	AccountId *string
 	// Query by which the results have to be filtered. Supported operators are
 	// equals(`eq`), contains(`co`), starts with(`sw`) and not equals(`ne`).
@@ -519,7 +569,8 @@ type ListAccountGroupsRequest struct {
 	ExcludedAttributes *string
 	// Specifies the index of the first result. First item is number 1.
 	StartIndex *int64
-	// Desired number of results per page. Default is 10000.
+	// Specifies the number of results per page. When omitted, the server uses its
+	// default page size.
 	Count *int64
 	// Attribute to sort the results.
 	SortBy *string
@@ -530,7 +581,7 @@ type ListAccountGroupsRequest struct {
 type ListAccountGroupsResponse struct {
 	// Total results returned in the response.
 	ItemsPerPage *int
-	// User objects returned in the response.
+	// Group objects returned in the response.
 	Resources []AccountGroup
 	// Starting index of all the results that matched the request filters. First
 	// item is number 1.
@@ -561,14 +612,14 @@ type ListAccountServicePrincipalsRequest struct {
 	SortOrder AccountListSort_Order
 	// Specifies the index of the first result. First item is number 1.
 	StartIndex *int64
-	// <Databricks> account ID
+	// Identifies the Databricks account.
 	AccountId *string
 }
 
 type ListAccountServicePrincipalsResponse struct {
 	// Total results returned in the response.
 	ItemsPerPage *int
-	// User objects returned in the response.
+	// Lists the service principals that are returned in the response.
 	Resources []AccountServicePrincipal
 	// Starting index of all the results that matched the request filters. First
 	// item is number 1.
@@ -807,24 +858,26 @@ type Patch struct {
 }
 
 type PatchAccountGroupRequest struct {
-	// Unique ID in the <Databricks> workspace.
-	Id         *string
+	// Unique ID for a group in the Databricks account.
+	Id *string
+	// Lists the patch operations to apply to the group.
 	Operations []AccountPatch
 	// The schema of the patch request. Must be
 	// ["urn:ietf:params:scim:api:messages:2.0:PatchOp"].
 	Schemas []AccountPatchSchema_PatchSchema
-	// <Databricks> account ID
+	// Identifies the Databricks account.
 	AccountId *string
 }
 
 type PatchAccountServicePrincipalRequest struct {
-	// Unique ID in the <Databricks> workspace.
-	Id         *string
+	// Unique ID for a service principal in the Databricks account.
+	Id *string
+	// Lists the patch operations to apply to the service principal.
 	Operations []AccountPatch
 	// The schema of the patch request. Must be
 	// ["urn:ietf:params:scim:api:messages:2.0:PatchOp"].
 	Schemas []AccountPatchSchema_PatchSchema
-	// <Databricks> account ID
+	// Identifies the Databricks account.
 	AccountId *string
 }
 
@@ -895,33 +948,46 @@ type ServicePrincipal struct {
 }
 
 type UpdateAccountGroupRequest struct {
-	// String that represents a human-readable group name
+	// Sets the human-readable name of the group. The name must be unique within the
+	// account and must not exceed 255 characters.
 	DisplayName *string
-	ExternalId  *string
-	// <Databricks> group ID
-	Id      *string
+	// Sets the identifier of the group in an external identity provider.
+	ExternalId *string
+	// Identifies the group within Databricks.
+	Id *string
+	// Lists the members of the group. Each entry identifies a user, service
+	// principal or group in the account by its ID in the value sub-attribute.
 	Members []AccountComplexValue
 	// Container for the group identifier. Workspace local versus account.
 	Meta *AccountResourceMeta
-	// Indicates if the group has the admin role.
+	// Lists the account roles that are assigned to the group. The only supported
+	// role value is `account_admin`.
 	Roles []AccountComplexValue
-	// <Databricks> account ID
+	// Identifies the Databricks account.
 	AccountId *string
 }
 
 type UpdateAccountServicePrincipalRequest struct {
-	// If this user is active
+	// Indicates whether the service principal is active. A deactivated service
+	// principal cannot authenticate or access Databricks APIs, but it keeps its
+	// permissions.
 	Active *bool
-	// UUID relating to the service principal
+	// Sets the application ID of a Microsoft Entra ID service principal. Only Azure
+	// accepts this field. On AWS and GCP, Databricks generates the application ID
+	// and rejects requests that set it.
 	ApplicationId *string
-	// String that represents a concatenation of given and family names.
+	// Sets the human-readable name of the service principal. The name is required
+	// unless the request sets `applicationId`.
 	DisplayName *string
-	ExternalId  *string
-	// <Databricks> service principal ID.
+	// Sets the identifier of the service principal in an external identity
+	// provider.
+	ExternalId *string
+	// Identifies the service principal within Databricks.
 	Id *string
-	// Indicates if the group has the admin role.
+	// Lists the account roles that are assigned to the service principal. The only
+	// supported role value is `account_admin`.
 	Roles []AccountComplexValue
-	// <Databricks> account ID
+	// Identifies the Databricks account.
 	AccountId *string
 }
 

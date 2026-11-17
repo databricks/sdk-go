@@ -1051,11 +1051,10 @@ func (c *internalClient) ListEndpointsIter(ctx context.Context, req ListEndpoint
 	}
 }
 
-// Update an existing AI Search endpoint. Multi-bucket masks are supported and
-// dispatched in deterministic bucket order: budget policy, custom tags,
-// throughput, scaling/replicas, then metrics export. Per-bucket dispatch is not
-// atomic across buckets — if a later bucket fails, earlier buckets may
-// already have been applied.
+// Update an existing AI Search endpoint. Only the fields named in `update_mask`
+// change. The server applies a mask that spans several settings, such as
+// `budget_policy_id` and `custom_tags`, one setting at a time, so if a later
+// setting fails, the earlier ones may already have been applied.
 func (c *internalClient) UpdateEndpoint(ctx context.Context, req UpdateEndpointRequest, opts ...call.Option) (*Endpoint, error) {
 	wireReq, err := updateEndpointRequestToWire(&req)
 	if err != nil {

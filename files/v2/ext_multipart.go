@@ -8,14 +8,12 @@ package files
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"maps"
 	"net/http"
 	"sync"
 	"time"
 
-	"github.com/databricks/sdk-go/core/apierr"
 	"github.com/databricks/sdk-go/files/v2/internal/cloudstorage"
 )
 
@@ -31,25 +29,15 @@ type uploadPart struct {
 	headers    map[string]string // PUT headers accompanying url
 }
 
-// isCloudStatus reports whether err is a cloud-storage HTTP status error (an
-// *apierr.APIError returned by Send) rather than a transport failure. A status
-// rejection before any part has landed triggers the single-shot fallback; a
-// transport failure does not.
-func isCloudStatus(err error) bool {
-	_, ok := errors.AsType[*apierr.APIError](err)
-	return ok
-}
-
 // performMultipartUpload uploads a stream in parts on a single goroutine using
 // presigned URLs (AWS/Azure).
-func (e *engine) performMultipartUpload(ctx context.Context, uc *uploadContext, token string, r io.Reader, preRead []byte) error {
+func (e *engine) performMultipartUpload(ctx context.Context, uc *uploadContext, token string, r io.Reader) error {
 	currentPart := 1
 	etags := map[int]string{}
 	chunkOffset := int64(0)
 	// AWS and Azure require each part size up front, so we buffer a part before
-	// uploading it; this also lets us replay a part on retry. The buffer starts
-	// with the bytes already read while deciding single-shot vs multipart.
-	buffer := preRead
+	// uploading it; this also lets us replay a part on retry.
+	var buffer []byte
 	retryCount := 0
 	eof := false
 
@@ -62,11 +50,8 @@ func (e *engine) performMultipartUpload(ctx context.Context, uc *uploadContext, 
 			break
 		}
 
-		urls, err := e.createPartURLs(ctx, uc.targetPath, token, currentPart, uc.batchSize)
+		urls, err := e.createPartURLs(ctx, uc, token, currentPart, uc.batchSize)
 		if err != nil {
-			if chunkOffset == 0 {
-				return &fallbackToFilesAPI{buffer: buffer, reason: fmt.Sprintf("failed to obtain upload URLs: %v", err)}
-			}
 			return err
 		}
 
@@ -85,10 +70,11 @@ func (e *engine) performMultipartUpload(ctx context.Context, uc *uploadContext, 
 			if err := uc.limiter.Acquire(ctx); err != nil {
 				return err
 			}
-			resp, rerr := uc.cloud.Send(ctx, http.MethodPut, purl.URL, headers, cloudstorage.BytesBody(buffer[:chunkLen]))
+			resp, rerr := uc.partClient().Send(ctx, http.MethodPut, purl.URL, headers, cloudstorage.BytesBody(buffer[:chunkLen]), uc.partRetries())
 			uc.limiter.Release()
 			switch {
 			case rerr == nil:
+				uc.commit()
 				chunkOffset += chunkLen
 				etags[currentPart] = resp.Header.Get("ETag")
 				buffer = buffer[chunkLen:]
@@ -104,10 +90,6 @@ func (e *engine) performMultipartUpload(ctx context.Context, uc *uploadContext, 
 				retryCount++
 				// Preserve the buffer: the same bytes are uploaded under the next
 				// part number using a fresh URL.
-			case chunkOffset == 0 && isCloudStatus(rerr):
-				// The cloud rejected the first chunk (e.g. a firewall 403); fall back
-				// to a single-shot upload through the Files API.
-				return &fallbackToFilesAPI{buffer: buffer, reason: fmt.Sprintf("first chunk upload failed: %v", rerr)}
 			default:
 				return rerr
 			}
@@ -115,30 +97,23 @@ func (e *engine) performMultipartUpload(ctx context.Context, uc *uploadContext, 
 		}
 	}
 
-	return e.completeMultipart(ctx, uc.targetPath, token, etags)
+	return e.completeMultipart(ctx, uc, token, etags)
 }
 
 // doUploadOnePart uploads a single part. It uses part.url when the caller
 // pre-minted one (the file path mints in batches); otherwise, and whenever a URL
-// expires or a slow attempt is re-issued, it mints a fresh one (count=1). While no
-// part has completed yet, it converts a cloud rejection or URL-mint failure into a
-// fallback signal so the caller can retry the whole upload through a single-shot
-// Files API PUT (the firewall/auth case); once any part has landed, the storage
-// endpoint is known good and such a failure is returned as a real error.
+// expires or a slow attempt is re-issued, it mints a fresh one (count=1).
 //
 // isFirstPart marks the stream path's synchronous, uncontended first part, which
-// gets its own tight soft deadline; it does not affect the fallback gating above.
+// gets its own tight soft deadline.
 func (e *engine) doUploadOnePart(ctx context.Context, uc *uploadContext, part uploadPart, token string, isFirstPart bool) (string, error) {
 	start := time.Now()
 	urlRetries, slowRetries := 0, 0
 	url, headers := part.url, part.headers
 	for {
 		if url == "" {
-			urls, err := e.createPartURLs(ctx, uc.targetPath, token, part.partNumber, 1)
+			urls, err := e.createPartURLs(ctx, uc, token, part.partNumber, 1)
 			if err != nil {
-				if !uc.completed.Load() {
-					return "", &fallbackToFilesAPI{reason: fmt.Sprintf("failed to obtain upload URL for part %d: %v", part.partNumber, err)}
-				}
 				return "", err
 			}
 			url, headers = urls[0].URL, octetStreamHeaders(urls[0].Headers)
@@ -150,7 +125,7 @@ func (e *engine) doUploadOnePart(ctx context.Context, uc *uploadContext, part up
 		})
 		switch {
 		case rerr == nil:
-			uc.completed.Store(true)
+			uc.commit()
 			uc.slowGuard.record(time.Since(attemptStart))
 			uc.progress.add(part.body.Size())
 			e.c.logger.DebugContext(ctx, "part uploaded",
@@ -171,11 +146,6 @@ func (e *engine) doUploadOnePart(ctx context.Context, uc *uploadContext, part up
 			}
 			urlRetries++
 			url = "" // re-mint the expired URL
-		case isCloudStatus(rerr) && !uc.completed.Load():
-			// The cloud rejected this part before any part has landed (e.g. a firewall
-			// 403 on the storage host); fall back to a single-shot upload through the
-			// Files API.
-			return "", &fallbackToFilesAPI{reason: fmt.Sprintf("part %d upload failed before any part completed: %v", part.partNumber, rerr)}
 		default:
 			return "", rerr
 		}
@@ -220,7 +190,7 @@ func (e *engine) sendPart(ctx context.Context, uc *uploadContext, url string, he
 		}
 	}()
 
-	resp, err = uc.cloud.Send(attemptCtx, http.MethodPut, url, headers, body)
+	resp, err = uc.partClient().Send(attemptCtx, http.MethodPut, url, headers, body, uc.partRetries())
 	slow = ctx.Err() == nil && errors.Is(context.Cause(attemptCtx), errSlowAttempt)
 	return resp, slow, err
 }
@@ -261,26 +231,24 @@ func (e *engine) startPartWorkers(pctx context.Context, cancel context.CancelFun
 }
 
 // parallelMultipartFromStream uploads a non-seekable stream in parts using a
-// bounded producer/consumer. The first part is uploaded synchronously so an
-// auth/firewall rejection surfaces before workers spin up and can fall back.
+// bounded producer/consumer. The first part is uploaded synchronously, so a
+// rejection surfaces before workers spin up, and a stream keeps no more than the
+// read-ahead and that part for the walk to send again.
 func (e *engine) parallelMultipartFromStream(ctx context.Context, uc *uploadContext, token string, r io.Reader) error {
 	first, err := readUpTo(r, uc.partSize)
 	if err != nil {
 		return err
 	}
 	if len(first) == 0 {
-		return &fallbackToFilesAPI{buffer: nil, reason: "empty input stream"}
+		// planUpload sends empty data in a single shot.
+		return errors.New("a multipart upload was planned for empty data")
 	}
 	etag1, err := e.doUploadOnePart(ctx, uc, uploadPart{partNumber: 1, body: cloudstorage.BytesBody(first)}, token, true)
 	if err != nil {
-		if fb, ok := errors.AsType[*fallbackToFilesAPI](err); ok {
-			fb.buffer = first
-			return fb
-		}
 		return err
 	}
 	if int64(len(first)) < uc.partSize {
-		return e.completeMultipart(ctx, uc.targetPath, token, map[int]string{1: etag1})
+		return e.completeMultipart(ctx, uc, token, map[int]string{1: etag1})
 	}
 
 	pctx, cancel := context.WithCancel(ctx)
@@ -333,7 +301,7 @@ func (e *engine) parallelMultipartFromStream(ctx context.Context, uc *uploadCont
 	if err != nil {
 		return err
 	}
-	return e.completeMultipart(ctx, uc.targetPath, token, etags)
+	return e.completeMultipart(ctx, uc, token, etags)
 }
 
 // parallelMultipartFromReaderAt uploads a known-size, randomly-readable source in
@@ -344,10 +312,9 @@ func (e *engine) parallelMultipartFromStream(ctx context.Context, uc *uploadCont
 // first).
 //
 // Unlike the stream path, the first part is not uploaded synchronously: a
-// randomly-readable source lets the single-shot fallback re-read from the start,
-// so part 1 is just another worker task rather than a canary that blocks the
-// whole upload at 0%. The fallback is instead gated on no part having completed
-// (see doUploadOnePart).
+// randomly-readable source can be sent again from the start to the next
+// endpoint, so part 1 is just another worker task rather than a canary that
+// blocks the whole upload at 0%.
 func (e *engine) parallelMultipartFromReaderAt(ctx context.Context, uc *uploadContext, token string, ra io.ReaderAt) error {
 	fileSize := uc.contentLength
 	partSize := uc.partSize
@@ -375,16 +342,12 @@ func (e *engine) parallelMultipartFromReaderAt(ctx context.Context, uc *uploadCo
 				return
 			}
 			count := min(uc.batchSize, numParts-next+1)
-			urls, err := e.createPartURLs(pctx, uc.targetPath, token, next, count)
+			urls, err := e.createPartURLs(pctx, uc, token, next, count)
 			if err != nil {
 				if pctx.Err() != nil {
 					return // cancelled by a worker failure; that error wins
 				}
-				if uc.completed.Load() {
-					producerErr = err
-				} else {
-					producerErr = &fallbackToFilesAPI{reason: fmt.Sprintf("failed to obtain upload URLs at part %d: %v", next, err)}
-				}
+				producerErr = err
 				cancel()
 				return
 			}
@@ -406,12 +369,9 @@ func (e *engine) parallelMultipartFromReaderAt(ctx context.Context, uc *uploadCo
 		err = producerErr // a producer failure wins over a worker's observed cancellation
 	}
 	if err != nil {
-		if fb, ok := errors.AsType[*fallbackToFilesAPI](err); ok {
-			return fb // the fallback re-reads the source, so no buffer is needed
-		}
 		return err
 	}
-	return e.completeMultipart(ctx, uc.targetPath, token, etags)
+	return e.completeMultipart(ctx, uc, token, etags)
 }
 
 // uploadResults collects part ETags from workers and records the first error.

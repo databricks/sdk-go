@@ -1254,10 +1254,11 @@ func (v *Index) UnmarshalJSON(data []byte) error {
 }
 
 type indexStatusWire struct {
-	Message         *string    `json:"message,omitempty"`
-	IndexedRowCount *wireInt64 `json:"indexed_row_count,omitempty"`
-	Ready           *bool      `json:"ready,omitempty"`
-	IndexUrl        *string    `json:"index_url,omitempty"`
+	DetailedState   IndexStatus_State `json:"detailed_state,omitempty"`
+	Message         *string           `json:"message,omitempty"`
+	IndexedRowCount *wireInt64        `json:"indexed_row_count,omitempty"`
+	Ready           *bool             `json:"ready,omitempty"`
+	IndexUrl        *string           `json:"index_url,omitempty"`
 }
 
 func indexStatusToWire(v *IndexStatus) (*indexStatusWire, error) {
@@ -1269,6 +1270,7 @@ func indexStatusToWire(v *IndexStatus) (*indexStatusWire, error) {
 		return nil, fmt.Errorf("%s: %w", "IndexStatus.IndexedRowCount", err)
 	}
 	return &indexStatusWire{
+		DetailedState:   v.DetailedState,
 		Message:         v.Message,
 		IndexedRowCount: indexedRowCountWireValue,
 		Ready:           v.Ready,
@@ -1285,6 +1287,7 @@ func indexStatusFromWire(w *indexStatusWire) (*IndexStatus, error) {
 		return nil, fmt.Errorf("%s: %w", "IndexStatus.IndexedRowCount", err)
 	}
 	return &IndexStatus{
+		DetailedState:   w.DetailedState,
 		Message:         w.Message,
 		IndexedRowCount: indexedRowCountPublicValue,
 		Ready:           w.Ready,

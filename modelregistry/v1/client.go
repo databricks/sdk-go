@@ -2204,7 +2204,7 @@ func (c *internalClient) SetRegisteredModelTag(ctx context.Context, req SetRegis
 	return resp, nil
 }
 
-// Updates the model version.
+// Updates the description of a model version.
 func (c *internalClient) UpdateModelVersion(ctx context.Context, req UpdateModelVersionRequest, opts ...call.Option) (*UpdateModelVersionResponse, error) {
 	wireReq, err := updateModelVersionRequestToWire(&req)
 	if err != nil {

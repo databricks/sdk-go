@@ -296,6 +296,157 @@ func (v *AutoLoader) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type builtinParserWire struct {
+	Name          *string         `json:"name,omitempty"`
+	ParserId      *string         `json:"parser_id,omitempty"`
+	ParserName    *string         `json:"parser_name,omitempty"`
+	Tags          []parserTagWire `json:"tags,omitempty"`
+	LatestVersion *wireInt64      `json:"latest_version,omitempty"`
+}
+
+func builtinParserToWire(v *BuiltinParser) (*builtinParserWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tagsWireValue, err := convertSlice(v.Tags, parserTagToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BuiltinParser.Tags", err)
+	}
+	latestVersionWireValue, err := int64ToWire(v.LatestVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BuiltinParser.LatestVersion", err)
+	}
+	return &builtinParserWire{
+		Name:          v.Name,
+		ParserId:      v.ParserId,
+		ParserName:    v.ParserName,
+		Tags:          tagsWireValue,
+		LatestVersion: latestVersionWireValue,
+	}, nil
+}
+
+func builtinParserFromWire(w *builtinParserWire) (*BuiltinParser, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tagsPublicValue, err := convertSlice(w.Tags, parserTagFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BuiltinParser.Tags", err)
+	}
+	latestVersionPublicValue, err := int64FromWire(w.LatestVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BuiltinParser.LatestVersion", err)
+	}
+	return &BuiltinParser{
+		Name:          w.Name,
+		ParserId:      w.ParserId,
+		ParserName:    w.ParserName,
+		Tags:          tagsPublicValue,
+		LatestVersion: latestVersionPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v BuiltinParser) MarshalJSON() ([]byte, error) {
+	w, err := builtinParserToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *BuiltinParser) UnmarshalJSON(data []byte) error {
+	var w builtinParserWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := builtinParserFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type builtinParserVersionWire struct {
+	Name        *string         `json:"name,omitempty"`
+	Version     *wireInt64      `json:"version,omitempty"`
+	Spec        *string         `json:"spec,omitempty"`
+	ParserName  *string         `json:"parser_name,omitempty"`
+	Tags        []parserTagWire `json:"tags,omitempty"`
+	Description *string         `json:"description,omitempty"`
+}
+
+func builtinParserVersionToWire(v *BuiltinParserVersion) (*builtinParserVersionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	versionWireValue, err := int64ToWire(v.Version)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BuiltinParserVersion.Version", err)
+	}
+	tagsWireValue, err := convertSlice(v.Tags, parserTagToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BuiltinParserVersion.Tags", err)
+	}
+	return &builtinParserVersionWire{
+		Name:        v.Name,
+		Version:     versionWireValue,
+		Spec:        v.Spec,
+		ParserName:  v.ParserName,
+		Tags:        tagsWireValue,
+		Description: v.Description,
+	}, nil
+}
+
+func builtinParserVersionFromWire(w *builtinParserVersionWire) (*BuiltinParserVersion, error) {
+	if w == nil {
+		return nil, nil
+	}
+	versionPublicValue, err := int64FromWire(w.Version)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BuiltinParserVersion.Version", err)
+	}
+	tagsPublicValue, err := convertSlice(w.Tags, parserTagFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "BuiltinParserVersion.Tags", err)
+	}
+	return &BuiltinParserVersion{
+		Name:        w.Name,
+		Version:     versionPublicValue,
+		Spec:        w.Spec,
+		ParserName:  w.ParserName,
+		Tags:        tagsPublicValue,
+		Description: w.Description,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v BuiltinParserVersion) MarshalJSON() ([]byte, error) {
+	w, err := builtinParserVersionToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *BuiltinParserVersion) UnmarshalJSON(data []byte) error {
+	var w builtinParserVersionWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := builtinParserVersionFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type cloudWatchLogsEnvelopeWire struct {
 	HeaderRetention *bool `json:"header_retention,omitempty"`
 }
@@ -515,6 +666,117 @@ func (v *CreateDatasourceRequest) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := createDatasourceRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type createParserRequestWire struct {
+	Parser *parserWire `json:"parser,omitempty"`
+}
+
+func createParserRequestToWire(v *CreateParserRequest) (*createParserRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	parserWireValue, err := parserToWire(v.Parser)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateParserRequest.Parser", err)
+	}
+	return &createParserRequestWire{
+		Parser: parserWireValue,
+	}, nil
+}
+
+func createParserRequestFromWire(w *createParserRequestWire) (*CreateParserRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	parserPublicValue, err := parserFromWire(w.Parser)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateParserRequest.Parser", err)
+	}
+	return &CreateParserRequest{
+		Parser: parserPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateParserRequest) MarshalJSON() ([]byte, error) {
+	w, err := createParserRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateParserRequest) UnmarshalJSON(data []byte) error {
+	var w createParserRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createParserRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type createParserVersionRequestWire struct {
+	Parent        *string            `json:"parent,omitempty"`
+	ParserVersion *parserVersionWire `json:"parser_version,omitempty"`
+}
+
+func createParserVersionRequestToWire(v *CreateParserVersionRequest) (*createParserVersionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	parserVersionWireValue, err := parserVersionToWire(v.ParserVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateParserVersionRequest.ParserVersion", err)
+	}
+	return &createParserVersionRequestWire{
+		Parent:        v.Parent,
+		ParserVersion: parserVersionWireValue,
+	}, nil
+}
+
+func createParserVersionRequestFromWire(w *createParserVersionRequestWire) (*CreateParserVersionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	parserVersionPublicValue, err := parserVersionFromWire(w.ParserVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateParserVersionRequest.ParserVersion", err)
+	}
+	return &CreateParserVersionRequest{
+		Parent:        w.Parent,
+		ParserVersion: parserVersionPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateParserVersionRequest) MarshalJSON() ([]byte, error) {
+	w, err := createParserVersionRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateParserVersionRequest) UnmarshalJSON(data []byte) error {
+	var w createParserVersionRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createParserVersionRequestFromWire(&w)
 	if err != nil {
 		return err
 	}
@@ -1017,6 +1279,98 @@ func (v *DeleteDatasourceRequest) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type deleteParserRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteParserRequestToWire(v *DeleteParserRequest) (*deleteParserRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteParserRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteParserRequestFromWire(w *deleteParserRequestWire) (*DeleteParserRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteParserRequest{
+		Name: w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteParserRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteParserRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteParserRequest) UnmarshalJSON(data []byte) error {
+	var w deleteParserRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteParserRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteParserVersionRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteParserVersionRequestToWire(v *DeleteParserVersionRequest) (*deleteParserVersionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteParserVersionRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteParserVersionRequestFromWire(w *deleteParserVersionRequestWire) (*DeleteParserVersionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteParserVersionRequest{
+		Name: w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteParserVersionRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteParserVersionRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteParserVersionRequest) UnmarshalJSON(data []byte) error {
+	var w deleteParserVersionRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteParserVersionRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type deleteRuleRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -1431,6 +1785,98 @@ func (v *GetAlertConfigRequest) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type getBuiltinParserRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getBuiltinParserRequestToWire(v *GetBuiltinParserRequest) (*getBuiltinParserRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getBuiltinParserRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getBuiltinParserRequestFromWire(w *getBuiltinParserRequestWire) (*GetBuiltinParserRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetBuiltinParserRequest{
+		Name: w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetBuiltinParserRequest) MarshalJSON() ([]byte, error) {
+	w, err := getBuiltinParserRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetBuiltinParserRequest) UnmarshalJSON(data []byte) error {
+	var w getBuiltinParserRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getBuiltinParserRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getBuiltinParserVersionRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getBuiltinParserVersionRequestToWire(v *GetBuiltinParserVersionRequest) (*getBuiltinParserVersionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getBuiltinParserVersionRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getBuiltinParserVersionRequestFromWire(w *getBuiltinParserVersionRequestWire) (*GetBuiltinParserVersionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetBuiltinParserVersionRequest{
+		Name: w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetBuiltinParserVersionRequest) MarshalJSON() ([]byte, error) {
+	w, err := getBuiltinParserVersionRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetBuiltinParserVersionRequest) UnmarshalJSON(data []byte) error {
+	var w getBuiltinParserVersionRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getBuiltinParserVersionRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getCommonConfigRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -1562,6 +2008,98 @@ func (v *GetDatasourceRequest) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := getDatasourceRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getParserRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getParserRequestToWire(v *GetParserRequest) (*getParserRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getParserRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getParserRequestFromWire(w *getParserRequestWire) (*GetParserRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetParserRequest{
+		Name: w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetParserRequest) MarshalJSON() ([]byte, error) {
+	w, err := getParserRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetParserRequest) UnmarshalJSON(data []byte) error {
+	var w getParserRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getParserRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getParserVersionRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func getParserVersionRequestToWire(v *GetParserVersionRequest) (*getParserVersionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getParserVersionRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func getParserVersionRequestFromWire(w *getParserVersionRequestWire) (*GetParserVersionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetParserVersionRequest{
+		Name: w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetParserVersionRequest) MarshalJSON() ([]byte, error) {
+	w, err := getParserVersionRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetParserVersionRequest) UnmarshalJSON(data []byte) error {
+	var w getParserVersionRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getParserVersionRequestFromWire(&w)
 	if err != nil {
 		return err
 	}
@@ -1765,6 +2303,224 @@ func (v *JsonArrayEnvelope) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type listBuiltinParserVersionsRequestWire struct {
+	Parent    *string `json:"parent,omitempty"`
+	PageSize  *int    `json:"page_size,omitempty"`
+	PageToken *string `json:"page_token,omitempty"`
+}
+
+func listBuiltinParserVersionsRequestToWire(v *ListBuiltinParserVersionsRequest) (*listBuiltinParserVersionsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listBuiltinParserVersionsRequestWire{
+		Parent:    v.Parent,
+		PageSize:  v.PageSize,
+		PageToken: v.PageToken,
+	}, nil
+}
+
+func listBuiltinParserVersionsRequestFromWire(w *listBuiltinParserVersionsRequestWire) (*ListBuiltinParserVersionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListBuiltinParserVersionsRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListBuiltinParserVersionsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listBuiltinParserVersionsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListBuiltinParserVersionsRequest) UnmarshalJSON(data []byte) error {
+	var w listBuiltinParserVersionsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listBuiltinParserVersionsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type listBuiltinParserVersionsResponseWire struct {
+	BuiltinParserVersions []builtinParserVersionWire `json:"builtin_parser_versions,omitempty"`
+	NextPageToken         *string                    `json:"next_page_token,omitempty"`
+}
+
+func listBuiltinParserVersionsResponseToWire(v *ListBuiltinParserVersionsResponse) (*listBuiltinParserVersionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	builtinParserVersionsWireValue, err := convertSlice(v.BuiltinParserVersions, builtinParserVersionToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListBuiltinParserVersionsResponse.BuiltinParserVersions", err)
+	}
+	return &listBuiltinParserVersionsResponseWire{
+		BuiltinParserVersions: builtinParserVersionsWireValue,
+		NextPageToken:         v.NextPageToken,
+	}, nil
+}
+
+func listBuiltinParserVersionsResponseFromWire(w *listBuiltinParserVersionsResponseWire) (*ListBuiltinParserVersionsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	builtinParserVersionsPublicValue, err := convertSlice(w.BuiltinParserVersions, builtinParserVersionFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListBuiltinParserVersionsResponse.BuiltinParserVersions", err)
+	}
+	return &ListBuiltinParserVersionsResponse{
+		BuiltinParserVersions: builtinParserVersionsPublicValue,
+		NextPageToken:         w.NextPageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListBuiltinParserVersionsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listBuiltinParserVersionsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListBuiltinParserVersionsResponse) UnmarshalJSON(data []byte) error {
+	var w listBuiltinParserVersionsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listBuiltinParserVersionsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type listBuiltinParsersRequestWire struct {
+	PageSize  *int    `json:"page_size,omitempty"`
+	PageToken *string `json:"page_token,omitempty"`
+	Filter    *string `json:"filter,omitempty"`
+}
+
+func listBuiltinParsersRequestToWire(v *ListBuiltinParsersRequest) (*listBuiltinParsersRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listBuiltinParsersRequestWire{
+		PageSize:  v.PageSize,
+		PageToken: v.PageToken,
+		Filter:    v.Filter,
+	}, nil
+}
+
+func listBuiltinParsersRequestFromWire(w *listBuiltinParsersRequestWire) (*ListBuiltinParsersRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListBuiltinParsersRequest{
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+		Filter:    w.Filter,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListBuiltinParsersRequest) MarshalJSON() ([]byte, error) {
+	w, err := listBuiltinParsersRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListBuiltinParsersRequest) UnmarshalJSON(data []byte) error {
+	var w listBuiltinParsersRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listBuiltinParsersRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type listBuiltinParsersResponseWire struct {
+	BuiltinParsers []builtinParserWire `json:"builtin_parsers,omitempty"`
+	NextPageToken  *string             `json:"next_page_token,omitempty"`
+}
+
+func listBuiltinParsersResponseToWire(v *ListBuiltinParsersResponse) (*listBuiltinParsersResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	builtinParsersWireValue, err := convertSlice(v.BuiltinParsers, builtinParserToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListBuiltinParsersResponse.BuiltinParsers", err)
+	}
+	return &listBuiltinParsersResponseWire{
+		BuiltinParsers: builtinParsersWireValue,
+		NextPageToken:  v.NextPageToken,
+	}, nil
+}
+
+func listBuiltinParsersResponseFromWire(w *listBuiltinParsersResponseWire) (*ListBuiltinParsersResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	builtinParsersPublicValue, err := convertSlice(w.BuiltinParsers, builtinParserFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListBuiltinParsersResponse.BuiltinParsers", err)
+	}
+	return &ListBuiltinParsersResponse{
+		BuiltinParsers: builtinParsersPublicValue,
+		NextPageToken:  w.NextPageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListBuiltinParsersResponse) MarshalJSON() ([]byte, error) {
+	w, err := listBuiltinParsersResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListBuiltinParsersResponse) UnmarshalJSON(data []byte) error {
+	var w listBuiltinParsersResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listBuiltinParsersResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type listDatasourcesRequestWire struct {
 	PageSize    *int           `json:"page_size,omitempty"`
 	PageToken   *string        `json:"page_token,omitempty"`
@@ -1876,6 +2632,230 @@ func (v *ListDatasourcesResponse) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := listDatasourcesResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type listParserVersionsRequestWire struct {
+	Parent    *string `json:"parent,omitempty"`
+	PageSize  *int    `json:"page_size,omitempty"`
+	PageToken *string `json:"page_token,omitempty"`
+}
+
+func listParserVersionsRequestToWire(v *ListParserVersionsRequest) (*listParserVersionsRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listParserVersionsRequestWire{
+		Parent:    v.Parent,
+		PageSize:  v.PageSize,
+		PageToken: v.PageToken,
+	}, nil
+}
+
+func listParserVersionsRequestFromWire(w *listParserVersionsRequestWire) (*ListParserVersionsRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListParserVersionsRequest{
+		Parent:    w.Parent,
+		PageSize:  w.PageSize,
+		PageToken: w.PageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListParserVersionsRequest) MarshalJSON() ([]byte, error) {
+	w, err := listParserVersionsRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListParserVersionsRequest) UnmarshalJSON(data []byte) error {
+	var w listParserVersionsRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listParserVersionsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type listParserVersionsResponseWire struct {
+	ParserVersions []parserVersionWire `json:"parser_versions,omitempty"`
+	NextPageToken  *string             `json:"next_page_token,omitempty"`
+}
+
+func listParserVersionsResponseToWire(v *ListParserVersionsResponse) (*listParserVersionsResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	parserVersionsWireValue, err := convertSlice(v.ParserVersions, parserVersionToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListParserVersionsResponse.ParserVersions", err)
+	}
+	return &listParserVersionsResponseWire{
+		ParserVersions: parserVersionsWireValue,
+		NextPageToken:  v.NextPageToken,
+	}, nil
+}
+
+func listParserVersionsResponseFromWire(w *listParserVersionsResponseWire) (*ListParserVersionsResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	parserVersionsPublicValue, err := convertSlice(w.ParserVersions, parserVersionFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListParserVersionsResponse.ParserVersions", err)
+	}
+	return &ListParserVersionsResponse{
+		ParserVersions: parserVersionsPublicValue,
+		NextPageToken:  w.NextPageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListParserVersionsResponse) MarshalJSON() ([]byte, error) {
+	w, err := listParserVersionsResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListParserVersionsResponse) UnmarshalJSON(data []byte) error {
+	var w listParserVersionsResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listParserVersionsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type listParsersRequestWire struct {
+	PageSize    *int    `json:"page_size,omitempty"`
+	PageToken   *string `json:"page_token,omitempty"`
+	Filter      *string `json:"filter,omitempty"`
+	CatalogName *string `json:"catalog_name,omitempty"`
+	SchemaName  *string `json:"schema_name,omitempty"`
+}
+
+func listParsersRequestToWire(v *ListParsersRequest) (*listParsersRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &listParsersRequestWire{
+		PageSize:    v.PageSize,
+		PageToken:   v.PageToken,
+		Filter:      v.Filter,
+		CatalogName: v.CatalogName,
+		SchemaName:  v.SchemaName,
+	}, nil
+}
+
+func listParsersRequestFromWire(w *listParsersRequestWire) (*ListParsersRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ListParsersRequest{
+		PageSize:    w.PageSize,
+		PageToken:   w.PageToken,
+		Filter:      w.Filter,
+		CatalogName: w.CatalogName,
+		SchemaName:  w.SchemaName,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListParsersRequest) MarshalJSON() ([]byte, error) {
+	w, err := listParsersRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListParsersRequest) UnmarshalJSON(data []byte) error {
+	var w listParsersRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listParsersRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type listParsersResponseWire struct {
+	Parsers       []parserWire `json:"parsers,omitempty"`
+	NextPageToken *string      `json:"next_page_token,omitempty"`
+}
+
+func listParsersResponseToWire(v *ListParsersResponse) (*listParsersResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	parsersWireValue, err := convertSlice(v.Parsers, parserToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListParsersResponse.Parsers", err)
+	}
+	return &listParsersResponseWire{
+		Parsers:       parsersWireValue,
+		NextPageToken: v.NextPageToken,
+	}, nil
+}
+
+func listParsersResponseFromWire(w *listParsersResponseWire) (*ListParsersResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	parsersPublicValue, err := convertSlice(w.Parsers, parserFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListParsersResponse.Parsers", err)
+	}
+	return &ListParsersResponse{
+		Parsers:       parsersPublicValue,
+		NextPageToken: w.NextPageToken,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ListParsersResponse) MarshalJSON() ([]byte, error) {
+	w, err := listParsersResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ListParsersResponse) UnmarshalJSON(data []byte) error {
+	var w listParsersResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := listParsersResponseFromWire(&w)
 	if err != nil {
 		return err
 	}
@@ -2001,6 +2981,112 @@ func (v *ListRulesResponse) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type parserWire struct {
+	Name                 *string        `json:"name,omitempty"`
+	ParserId             *string        `json:"parser_id,omitempty"`
+	CatalogName          *string        `json:"catalog_name,omitempty"`
+	SchemaName           *string        `json:"schema_name,omitempty"`
+	ParserName           *string        `json:"parser_name,omitempty"`
+	LatestVersion        *wireInt64     `json:"latest_version,omitempty"`
+	CreateTime           *types.Time    `json:"create_time,omitempty"`
+	CreatedBy            *principalWire `json:"created_by,omitempty"`
+	Owner                *principalWire `json:"owner,omitempty"`
+	EffectiveCatalogName *string        `json:"effective_catalog_name,omitempty"`
+	EffectiveSchemaName  *string        `json:"effective_schema_name,omitempty"`
+	Spec                 *string        `json:"spec,omitempty"`
+	Description          *string        `json:"description,omitempty"`
+}
+
+func parserToWire(v *Parser) (*parserWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	latestVersionWireValue, err := int64ToWire(v.LatestVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Parser.LatestVersion", err)
+	}
+	createdByWireValue, err := principalToWire(v.CreatedBy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Parser.CreatedBy", err)
+	}
+	ownerWireValue, err := principalToWire(v.Owner)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Parser.Owner", err)
+	}
+	return &parserWire{
+		Name:                 v.Name,
+		ParserId:             v.ParserId,
+		CatalogName:          v.CatalogName,
+		SchemaName:           v.SchemaName,
+		ParserName:           v.ParserName,
+		LatestVersion:        latestVersionWireValue,
+		CreateTime:           v.CreateTime,
+		CreatedBy:            createdByWireValue,
+		Owner:                ownerWireValue,
+		EffectiveCatalogName: v.EffectiveCatalogName,
+		EffectiveSchemaName:  v.EffectiveSchemaName,
+		Spec:                 v.Spec,
+		Description:          v.Description,
+	}, nil
+}
+
+func parserFromWire(w *parserWire) (*Parser, error) {
+	if w == nil {
+		return nil, nil
+	}
+	latestVersionPublicValue, err := int64FromWire(w.LatestVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Parser.LatestVersion", err)
+	}
+	createdByPublicValue, err := principalFromWire(w.CreatedBy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Parser.CreatedBy", err)
+	}
+	ownerPublicValue, err := principalFromWire(w.Owner)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Parser.Owner", err)
+	}
+	return &Parser{
+		Name:                 w.Name,
+		ParserId:             w.ParserId,
+		CatalogName:          w.CatalogName,
+		SchemaName:           w.SchemaName,
+		ParserName:           w.ParserName,
+		LatestVersion:        latestVersionPublicValue,
+		CreateTime:           w.CreateTime,
+		CreatedBy:            createdByPublicValue,
+		Owner:                ownerPublicValue,
+		EffectiveCatalogName: w.EffectiveCatalogName,
+		EffectiveSchemaName:  w.EffectiveSchemaName,
+		Spec:                 w.Spec,
+		Description:          w.Description,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Parser) MarshalJSON() ([]byte, error) {
+	w, err := parserToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Parser) UnmarshalJSON(data []byte) error {
+	var w parserWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := parserFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type parserRefWire struct {
 	Id                   *string        `json:"id,omitempty"`
 	Version              *string        `json:"version,omitempty"`
@@ -2065,6 +3151,135 @@ func (v *ParserRef) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := parserRefFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type parserTagWire struct {
+	Key   *string `json:"key,omitempty"`
+	Value *string `json:"value,omitempty"`
+}
+
+func parserTagToWire(v *ParserTag) (*parserTagWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &parserTagWire{
+		Key:   v.Key,
+		Value: v.Value,
+	}, nil
+}
+
+func parserTagFromWire(w *parserTagWire) (*ParserTag, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ParserTag{
+		Key:   w.Key,
+		Value: w.Value,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ParserTag) MarshalJSON() ([]byte, error) {
+	w, err := parserTagToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ParserTag) UnmarshalJSON(data []byte) error {
+	var w parserTagWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := parserTagFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type parserVersionWire struct {
+	Name        *string        `json:"name,omitempty"`
+	Version     *wireInt64     `json:"version,omitempty"`
+	Spec        *string        `json:"spec,omitempty"`
+	CreateTime  *types.Time    `json:"create_time,omitempty"`
+	CreatedBy   *principalWire `json:"created_by,omitempty"`
+	Description *string        `json:"description,omitempty"`
+	ParserName  *string        `json:"parser_name,omitempty"`
+}
+
+func parserVersionToWire(v *ParserVersion) (*parserVersionWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	versionWireValue, err := int64ToWire(v.Version)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ParserVersion.Version", err)
+	}
+	createdByWireValue, err := principalToWire(v.CreatedBy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ParserVersion.CreatedBy", err)
+	}
+	return &parserVersionWire{
+		Name:        v.Name,
+		Version:     versionWireValue,
+		Spec:        v.Spec,
+		CreateTime:  v.CreateTime,
+		CreatedBy:   createdByWireValue,
+		Description: v.Description,
+		ParserName:  v.ParserName,
+	}, nil
+}
+
+func parserVersionFromWire(w *parserVersionWire) (*ParserVersion, error) {
+	if w == nil {
+		return nil, nil
+	}
+	versionPublicValue, err := int64FromWire(w.Version)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ParserVersion.Version", err)
+	}
+	createdByPublicValue, err := principalFromWire(w.CreatedBy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ParserVersion.CreatedBy", err)
+	}
+	return &ParserVersion{
+		Name:        w.Name,
+		Version:     versionPublicValue,
+		Spec:        w.Spec,
+		CreateTime:  w.CreateTime,
+		CreatedBy:   createdByPublicValue,
+		Description: w.Description,
+		ParserName:  w.ParserName,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ParserVersion) MarshalJSON() ([]byte, error) {
+	w, err := parserVersionToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ParserVersion) UnmarshalJSON(data []byte) error {
+	var w parserVersionWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := parserVersionFromWire(&w)
 	if err != nil {
 		return err
 	}

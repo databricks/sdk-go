@@ -78,7 +78,10 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	}, nil
 }
 
-// Create a new failover group.
+// Create a failover group. The group starts in the CREATING state and moves to
+// INITIAL_REPLICATION while the first replication cycle copies all in-scope
+// data to the secondary region; failover becomes available once the group is
+// ACTIVE. Set validate_only to check the request without creating anything.
 func (c *internalClient) CreateFailoverGroup(ctx context.Context, req CreateFailoverGroupRequest, opts ...call.Option) (*FailoverGroup, error) {
 	wireReq, err := createFailoverGroupRequestToWire(&req)
 	if err != nil {
@@ -236,7 +239,8 @@ func (c *internalClient) CreateStableUrl(ctx context.Context, req CreateStableUr
 	return resp, nil
 }
 
-// Delete a failover group.
+// Delete a failover group. Deleting stops replication for the group; stable
+// URLs linked to it are detached but not deleted.
 func (c *internalClient) DeleteFailoverGroup(ctx context.Context, req DeleteFailoverGroupRequest, opts ...call.Option) error {
 	wireReq, err := deleteFailoverGroupRequestToWire(&req)
 	if err != nil {
@@ -349,7 +353,15 @@ func (c *internalClient) DeleteStableUrl(ctx context.Context, req DeleteStableUr
 	return nil
 }
 
-// Initiate a failover to a new primary region.
+// Initiate a failover that makes target_primary_region the primary region.
+// Stable URLs linked to the group are pointed at the new primary workspace,
+// replication is reversed so that the former primary becomes the secondary, and
+// the group moves through FAILING_OVER to INITIAL_REPLICATION until it has a
+// replication point in the new direction. The group must be ACTIVE; repeating
+// the request while it is FAILING_OVER is accepted. To fail back, repeat the
+// request with the former primary region as the target once the group is ACTIVE
+// again. In an unplanned failover, data written after the replication point can
+// be lost.
 func (c *internalClient) FailoverFailoverGroup(ctx context.Context, req FailoverFailoverGroupRequest, opts ...call.Option) (*FailoverGroup, error) {
 	wireReq, err := failoverFailoverGroupRequestToWire(&req)
 	if err != nil {
@@ -422,7 +434,7 @@ func (c *internalClient) FailoverFailoverGroup(ctx context.Context, req Failover
 	return resp, nil
 }
 
-// Get a failover group.
+// Get a failover group, including its current state and replication point.
 func (c *internalClient) GetFailoverGroup(ctx context.Context, req GetFailoverGroupRequest, opts ...call.Option) (*FailoverGroup, error) {
 
 	headers := http.Header{}
@@ -546,10 +558,11 @@ func (c *internalClient) GetStableUrl(ctx context.Context, req GetStableUrlReque
 	return resp, nil
 }
 
-// List failover groups.
+// List the failover groups in an account.
 //
-// List entries are abbreviated: `state` and `replication_point` are not
-// populated. Call GetFailoverGroup to retrieve the full resource.
+// List entries are abbreviated: `state`, `replication_point` and
+// `unity_catalog_assets.location_mappings` are not populated. Call
+// GetFailoverGroup to retrieve the full resource.
 func (c *internalClient) ListFailoverGroups(ctx context.Context, req ListFailoverGroupsRequest, opts ...call.Option) (*ListFailoverGroupsResponse, error) {
 	wireReq, err := listFailoverGroupsRequestToWire(&req)
 	if err != nil {
@@ -777,7 +790,12 @@ func (c *internalClient) ListStableUrlsIter(ctx context.Context, req ListStableU
 	}
 }
 
-// Update a failover group.
+// Update a failover group. Only the fields named in update_mask change. You can
+// turn workspace asset replication on or off, attach or detach a stable URL,
+// and change the Unity Catalog catalogs and location mappings; the regions, the
+// workspace set name and the workspace IDs cannot be changed. Updates are
+// rejected while a create, failover or delete is in progress, and after a
+// create or delete has failed.
 func (c *internalClient) UpdateFailoverGroup(ctx context.Context, req UpdateFailoverGroupRequest, opts ...call.Option) (*FailoverGroup, error) {
 	wireReq, err := updateFailoverGroupRequestToWire(&req)
 	if err != nil {

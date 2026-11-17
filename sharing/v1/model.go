@@ -483,6 +483,8 @@ type ListProviderShareAssetsRequest struct {
 	VolumeMaxResults *int
 	// Maximum number of notebooks to return.
 	NotebookMaxResults *int
+	// Maximum number of skills to return.
+	SkillMaxResults *int
 }
 
 // Response to ListProviderShareAssets, which contains the list of assets of a
@@ -496,6 +498,8 @@ type ListProviderShareAssetsResponse struct {
 	Notebooks []NotebookFile
 	// The list of volumes in the share.
 	Volumes []Volume
+	// The list of skills in the share.
+	Skills []Skill
 	// The metadata of the share.
 	Share *Share
 }
@@ -1022,6 +1026,30 @@ type SharedDataObject_HistoryDataSharingStatus struct {
 
 // Note: This is scoped to prevent future enum name conflicts..
 type SharedDataObject_Status struct {
+}
+
+// An agent skill shared through a Delta Sharing share, as served to a
+// recipient..
+type Skill struct {
+	// The name of the skill.
+	Name *string
+	// The shared-object ID that recipients match replicas on. For a skill shared
+	// through its schema, which has no shared-object row, this is derived from the
+	// shared schema and the skill.
+	Id *string
+	// The name of the schema that the skill belongs to.
+	Schema *string
+	// The name of the share that the skill belongs to.
+	Share *string
+	// The id of the share that the skill belongs to.
+	ShareId *string
+	// The comment of the skill.
+	Comment *string
+	// The bundle description parsed from the skill bundle's SKILL.md frontmatter.
+	Description *string
+	// The name from the skill bundle frontmatter, which may differ from the
+	// resource name.
+	BundleName *string
 }
 
 type Table struct {

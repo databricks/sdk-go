@@ -1091,6 +1091,9 @@ func (c *internalClient) ListProviderShareAssets(ctx context.Context, req ListPr
 	if err := addQueryValue(queryParams, "notebook_max_results", wireReq.NotebookMaxResults); err != nil {
 		return nil, err
 	}
+	if err := addQueryValue(queryParams, "skill_max_results", wireReq.SkillMaxResults); err != nil {
+		return nil, err
+	}
 	baseURL.RawQuery = queryParams.Encode()
 	urlStr := baseURL.String()
 

@@ -1175,8 +1175,9 @@ type CreateDatabaseRequest struct {
 	// The ID used to identify and manage the Database resource through the API. The
 	// Postgres database name is specified in `spec.postgres_database`.
 	//
-	// This value should be 4-63 characters, and only use characters available in
-	// DNS names, as defined by RFC-1123
+	// This value should be 3-63 characters, start with a lowercase letter, end with
+	// a lowercase letter or digit, and contain only lowercase letters, digits, and
+	// hyphens.
 	//
 	// If database_id is not specified in the request, it is generated
 	// automatically.
@@ -1184,7 +1185,9 @@ type CreateDatabaseRequest struct {
 	// The desired specification of a Database.
 	Database *Database
 	// If true, update the database if it already exists instead of returning an
-	// error.
+	// error. This requires `database_id` to be set. Without `database_id`, the
+	// request follows the normal create path and fails if the database name already
+	// exists.
 	ReplaceExisting *bool
 }
 
@@ -1265,10 +1268,13 @@ type CreateRoleRequest struct {
 type CreateSnapshotRequest struct {
 	// The project in which to create the snapshot. Format: projects/{project_id}
 	Parent *string
-	// The snapshot to create.
+	// The snapshot to create. Only `spec` is read from this message; the system
+	// sets the other fields.
 	Snapshot *Snapshot
 	// Client-chosen ID for the snapshot. It becomes the final segment of the
-	// snapshot resource name and cannot be changed after creation.
+	// snapshot resource name and cannot be changed after creation. The ID must be 3
+	// to 63 characters long, start with a lowercase letter, end with a lowercase
+	// letter or digit, and contain only lowercase letters, digits, and hyphens.
 	SnapshotId *string
 }
 
@@ -1402,7 +1408,8 @@ type Database_DatabaseSpec struct {
 	// The name of the role that owns the database. Format:
 	// projects/{project_id}/branches/{branch_id}/roles/{role_id}
 	//
-	// To change the owner, pass valid existing Role name when updating the Database
+	// The role must be in the same branch as the database. To change the owner,
+	// pass valid existing Role name when updating the Database
 	//
 	// Required when creating the Database.
 	Role *string `fieldmask:"role"`
@@ -2604,7 +2611,10 @@ type ScheduleCadence_Schedule_MonthlySchedule struct {
 func (*ScheduleCadence_Schedule_MonthlySchedule) isScheduleCadence_Schedule() {}
 
 // An immutable, point-in-time copy of a branch's data within a project. It
-// remains available after the source branch is deleted..
+// remains available after the source branch is deleted. To restore a snapshot,
+// create a new branch with `spec.source_snapshot` set to the snapshot's
+// resource name. For an overview, see
+// https://docs.databricks.com/aws/en/oltp/projects/snapshots..
 type Snapshot struct {
 	// The resource name of the snapshot. Format:
 	// projects/{project_id}/snapshots/{snapshot_id}
@@ -2613,7 +2623,8 @@ type Snapshot struct {
 	Uid *string
 	// When the snapshot was created.
 	CreateTime *types.Time
-	// Client-provided configuration of the snapshot.
+	// Client-provided configuration of the snapshot. When you create a snapshot,
+	// set exactly one of `expire_time`, `ttl`, or `no_expiry`.
 	Spec *SnapshotSpec
 	// Server-observed state of the snapshot.
 	Status *SnapshotStatus
@@ -2646,8 +2657,8 @@ type SnapshotScheduleOperationMetadata struct {
 
 // Client-provided configuration of the snapshot..
 type SnapshotSpec struct {
-	// The source branch to snapshot. Format:
-	// projects/{project_id}/branches/{branch_id}
+	// The source branch to snapshot. The branch must belong to the same project as
+	// the snapshot. Format: projects/{project_id}/branches/{branch_id}
 	SourceBranch *string
 	// The point in time to snapshot from. If unset, the current head of the source
 	// branch is used. The chosen LSN or timestamp must fall within the project's
@@ -2663,8 +2674,10 @@ type isSnapshotSpec_PointInTime interface {
 }
 
 // SnapshotSpec_PointInTime_SourceBranchLsn selects SourceBranchLsn for SnapshotSpec.PointInTime.
-// LSN to snapshot from, e.g. `16/B374D848`. Mutually exclusive with
-// `source_branch_time`.
+// Postgres log sequence number (LSN) to snapshot from. It must fall within the
+// project's history retention window. If neither this field nor
+// `source_branch_time` is set, the snapshot captures the current head of the
+// source branch. Mutually exclusive with `source_branch_time`.
 type SnapshotSpec_PointInTime_SourceBranchLsn struct {
 	SourceBranchLsn string
 }
@@ -2672,7 +2685,8 @@ type SnapshotSpec_PointInTime_SourceBranchLsn struct {
 func (*SnapshotSpec_PointInTime_SourceBranchLsn) isSnapshotSpec_PointInTime() {}
 
 // SnapshotSpec_PointInTime_SourceBranchTime selects SourceBranchTime for SnapshotSpec.PointInTime.
-// Timestamp to snapshot from. Mutually exclusive with `source_branch_lsn`.
+// Timestamp to snapshot from. It must fall within the project's history
+// retention window. Mutually exclusive with `source_branch_lsn`.
 type SnapshotSpec_PointInTime_SourceBranchTime struct {
 	SourceBranchTime types.Time
 }
@@ -2684,8 +2698,8 @@ type isSnapshotSpec_Expiration interface {
 }
 
 // SnapshotSpec_Expiration_ExpireTime selects ExpireTime for SnapshotSpec.Expiration.
-// Absolute time at which the snapshot is deleted. Mutually exclusive with `ttl`
-// and `no_expiry`.
+// Absolute time at which the snapshot is deleted. It must not be in the past.
+// Mutually exclusive with `ttl` and `no_expiry`.
 type SnapshotSpec_Expiration_ExpireTime struct {
 	ExpireTime types.Time
 }
@@ -2693,9 +2707,10 @@ type SnapshotSpec_Expiration_ExpireTime struct {
 func (*SnapshotSpec_Expiration_ExpireTime) isSnapshotSpec_Expiration() {}
 
 // SnapshotSpec_Expiration_Ttl selects Ttl for SnapshotSpec.Expiration.
-// Time-to-live. The snapshot expires this long after it is created. Mutually
-// exclusive with `expire_time` and `no_expiry`. Reads report the resolved
-// absolute `expire_time` instead.
+// Time-to-live, as a positive duration in seconds with an `s` suffix. The
+// snapshot expires this long after it is created. Mutually exclusive with
+// `expire_time` and `no_expiry`. Reads report the resolved absolute
+// `expire_time` instead.
 type SnapshotSpec_Expiration_Ttl struct {
 	Ttl types.Duration
 }
@@ -2703,7 +2718,8 @@ type SnapshotSpec_Expiration_Ttl struct {
 func (*SnapshotSpec_Expiration_Ttl) isSnapshotSpec_Expiration() {}
 
 // SnapshotSpec_Expiration_NoExpiry selects NoExpiry for SnapshotSpec.Expiration.
-// If true, the snapshot never expires. Mutually exclusive with `ttl` and
+// If true, the snapshot never expires. The value `false` is rejected; set
+// `expire_time` or `ttl` instead. Mutually exclusive with `ttl` and
 // `expire_time`.
 type SnapshotSpec_Expiration_NoExpiry struct {
 	NoExpiry bool
@@ -2983,7 +2999,8 @@ type UpdateDatabaseRequest struct {
 	// The database's `name` field is used to identify the database to update.
 	// Format: projects/{project_id}/branches/{branch_id}/databases/{database_id}
 	Database *Database
-	// The list of fields to update.
+	// The list of fields to update. The updatable fields are `spec.role` and
+	// `spec.postgres_database`.
 	UpdateMask *types.FieldMask[Database]
 }
 

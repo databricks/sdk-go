@@ -17,6 +17,44 @@ const (
 	EndpointType_Standard         EndpointType = "STANDARD"
 )
 
+// Lifecycle and ingestion state of an index.
+type IndexStatus string
+
+const (
+	IndexStatus_Unspecified IndexStatus = ""
+	// Provisioning the serving endpoint.
+	IndexStatus_ProvisioningEndpoint IndexStatus = "PROVISIONING_ENDPOINT"
+	// Setting up a direct access index.
+	IndexStatus_ProvisioningIndex IndexStatus = "PROVISIONING_INDEX"
+	// Acquiring compute resources for the ingestion pipeline.
+	IndexStatus_ProvisioningPipelineResources IndexStatus = "PROVISIONING_PIPELINE_RESOURCES"
+	// Syncing the initial snapshot of the source Delta table.
+	IndexStatus_ProvisioningInitialSnapshot IndexStatus = "PROVISIONING_INITIAL_SNAPSHOT"
+	// The index can serve queries; more specific ingestion status is unavailable.
+	IndexStatus_Online IndexStatus = "ONLINE"
+	// The index can serve queries while the continuous pipeline processes updates.
+	IndexStatus_OnlineContinuousUpdate IndexStatus = "ONLINE_CONTINUOUS_UPDATE"
+	// The index can serve queries while a triggered update is in progress.
+	IndexStatus_OnlineTriggeredUpdate IndexStatus = "ONLINE_TRIGGERED_UPDATE"
+	// The index can serve queries and no triggered update is currently reported as
+	// active.
+	IndexStatus_OnlineNoPendingUpdate IndexStatus = "ONLINE_NO_PENDING_UPDATE"
+	// The direct access index can serve queries.
+	IndexStatus_OnlineDirectAccess IndexStatus = "ONLINE_DIRECT_ACCESS"
+	// The index cannot currently serve queries.
+	IndexStatus_Offline IndexStatus = "OFFLINE"
+	// The index cannot serve queries because of a failure.
+	IndexStatus_OfflineFailed IndexStatus = "OFFLINE_FAILED"
+	// The latest pipeline update failed, but the index can still serve previously
+	// indexed data.
+	IndexStatus_OnlinePipelineFailed IndexStatus = "ONLINE_PIPELINE_FAILED"
+	// The index can serve queries while its pipeline restarts and acquires compute
+	// resources.
+	IndexStatus_OnlineUpdatingPipelineResources IndexStatus = "ONLINE_UPDATING_PIPELINE_RESOURCES"
+	// Downloading index data onto serving compute.
+	IndexStatus_Downloading IndexStatus = "DOWNLOADING"
+)
+
 // The subtype of the AI Search index, determining the indexing and retrieval
 // strategy. - `VECTOR`: Not supported. Use `HYBRID` instead. - `FULL_TEXT`: An
 // index that uses full-text search without vector embeddings. - `HYBRID`: An
@@ -419,6 +457,21 @@ type FacetResultData struct {
 	FacetRowCount *int
 	// Facet rows. Each row is `[facet_column_name, value_or_range, count]`.
 	FacetArray [][]json.RawMessage
+}
+
+// Failure details for an index or its latest ingestion update..
+type FailedStatus struct {
+	// Error message, when available.
+	ErrorMessage *string
+	// Last source Delta table version fully processed while the index is still
+	// queryable.
+	LastProcessedCommitVersion *int64
+	// [Standard endpoint] timestamp when the last processed commit was committed to
+	// the source table. [Storage Optimized endpoint] timestamp when the last
+	// processed commit was processed by the pipeline.
+	LastProcessedCommitTimestamp *types.Time
+	// Error code associated with the error message, when available.
+	ErrorCode *string
 }
 
 type GetEndpointRequest struct {
@@ -861,12 +914,31 @@ type VectorIndex_IndexSpec_DeltaSyncIndexSpec struct {
 func (*VectorIndex_IndexSpec_DeltaSyncIndexSpec) isVectorIndex_IndexSpec() {}
 
 type VectorIndexStatus struct {
+	// Lifecycle and ingestion state. An online index can still have a failed
+	// update.
+	DetailedState IndexStatus
 	// Message associated with the index status
 	Message *string
 	// Number of rows indexed
 	IndexedRowCount *int64
-	// Whether the index is ready for search
+	DetailedStatus  isVectorIndexStatus_DetailedStatus
+	// Whether the index can serve queries. This does not mean the latest update
+	// succeeded or that all source-table changes have been indexed; check
+	// detailed_state for update failures.
 	Ready *bool
 	// Index API Url to be used to perform operations on the index
 	IndexUrl *string
 }
+
+type isVectorIndexStatus_DetailedStatus interface {
+	isVectorIndexStatus_DetailedStatus()
+}
+
+// VectorIndexStatus_DetailedStatus_FailedStatus selects FailedStatus for VectorIndexStatus.DetailedStatus.
+// Failure details, when available, for OFFLINE_FAILED or
+// ONLINE_PIPELINE_FAILED.
+type VectorIndexStatus_DetailedStatus_FailedStatus struct {
+	FailedStatus FailedStatus
+}
+
+func (*VectorIndexStatus_DetailedStatus_FailedStatus) isVectorIndexStatus_DetailedStatus() {}

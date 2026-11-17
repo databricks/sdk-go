@@ -1,18 +1,16 @@
 package files
 
 // Large-file upload engine for Databricks Unity Catalog Volumes. It chooses a
-// single-shot, multipart (AWS/Azure), or resumable (GCP) protocol based on the
-// stream size and the protocol the workspace's Files API selects.
+// single-shot or multipart protocol based on the stream size.
 //
 // The engine is pure orchestration over two transports: this client's own
 // authenticated Files API calls (the control plane; see upload_control.go),
-// which handle the single-shot upload and the multipart/resumable coordination,
+// which handle the single-shot upload and the multipart coordination,
 // and the unauthenticated cloud-storage client (the cloudstorage subpackage),
-// which transfers parts and chunks directly to object storage over the presigned
+// which transfers parts directly to object storage over the presigned
 // URLs the control plane mints.
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -30,19 +28,6 @@ import (
 // across re-mint retries. An already-exists condition is surfaced as the
 // [ErrAlreadyExists] sentinel; a malformed server response is an internal error.
 var errUploadURLExpired = errors.New("upload URL expired after retries")
-
-// fallbackToFilesAPI signals that a multipart or resumable upload failed in a
-// way that warrants retrying through a single-shot Files API PUT (for example,
-// a cloud firewall rejecting the first part). It carries the bytes already
-// buffered but not yet uploaded so they can be replayed.
-type fallbackToFilesAPI struct {
-	buffer []byte
-	reason string
-}
-
-func (e *fallbackToFilesAPI) Error() string {
-	return "falling back to single-shot upload: " + e.reason
-}
 
 // UploadResult holds the result of an upload. It is currently empty and exists
 // for forward compatibility.
@@ -163,11 +148,17 @@ func (cfg *uploadConfig) resolvedParallelism(buffered bool, partSize int64, tun 
 // context instead. Callers who need to supply their own client use
 // WithTransferClient.
 func newTransferClient(n int, tun tunables) *http.Client {
-	transport := http.DefaultTransport.(*http.Transport).Clone()
-	transport.ResponseHeaderTimeout = tun.responseHeaderTimeout
-	transport.MaxIdleConnsPerHost = n
-	transport.MaxIdleConns = max(transport.MaxIdleConns, n)
-	return &http.Client{Transport: transport}
+	return &http.Client{Transport: sizedForTransfers(http.DefaultTransport.(*http.Transport), n, tun)}
+}
+
+// sizedForTransfers returns a copy of t that bounds the response phase of a
+// transfer and keeps up to n idle connections to a host.
+func sizedForTransfers(t *http.Transport, n int, tun tunables) *http.Transport {
+	t = t.Clone()
+	t.ResponseHeaderTimeout = tun.responseHeaderTimeout
+	t.MaxIdleConnsPerHost = n
+	t.MaxIdleConns = max(t.MaxIdleConns, n)
+	return t
 }
 
 // resolveCloudClient returns the caller-supplied transfer client when set, and
@@ -186,29 +177,86 @@ type uploadContext struct {
 	tun           tunables
 	targetPath    string
 	overwrite     *bool
-	partSize      int64
+	partSize      int64 // of the current endpoint: basePartSize, capped by the endpoint
+	basePartSize  int64
 	batchSize     int
 	contentLength int64 // -1 when unknown (non-seekable stream)
-	sourcePath    string
 	parallel      bool
 	parallelism   int
-	cloud         *cloudstorage.Client
-	progress      *progressReporter
-	slowGuard     *slowAttemptGuard
-	limiter       Limiter // bounds concurrent transfers; never nil (unlimited by default)
+	cloud         *cloudstorage.Client // presigned URLs: no credentials
+	// files sends parts to a Files API host with the client's credentials. It is
+	// built only if the walk reaches such an endpoint.
+	files     func() *cloudstorage.Client
+	progress  *progressReporter
+	slowGuard *slowAttemptGuard
+	limiter   Limiter // bounds concurrent transfers; never nil (unlimited by default)
 
-	// completed records whether any part has finished uploading. The single-shot
-	// fallback is taken only while no part has landed; once a part succeeds, a
-	// later cloud rejection is a real error rather than a blanket-block signal.
+	// data is the upload's source; the walk sends it to each endpoint it tries.
+	data *uploadData
+
+	// ep is the endpoint the walk is trying, and lastEndpoint whether no
+	// endpoint is left after it. They change only between endpoints, while no
+	// request is in flight.
+	ep           endpoint
+	lastEndpoint bool
+
+	// completed records whether any part has landed on the current endpoint.
+	// The walk moves on only while none has; once one has, the upload is
+	// committed to the endpoint and a later failure is returned.
 	completed atomic.Bool
 }
 
+// startEndpoint sets the endpoint the walk tries next.
+func (uc *uploadContext) startEndpoint(ep endpoint, last bool) {
+	uc.ep, uc.lastEndpoint = ep, last
+	uc.partSize = uc.basePartSize
+	if limit := ep.maxPartSize(); limit >= 0 {
+		uc.partSize = min(uc.partSize, limit)
+	}
+}
+
+// commit records that a part landed, the first time on any goroutine.
+func (uc *uploadContext) commit() {
+	if !uc.completed.Swap(true) && uc.data != nil {
+		uc.data.commit()
+	}
+}
+
+func (uc *uploadContext) committed() bool { return uc.completed.Load() }
+
+// retries is how often a request to the current endpoint may be retried, or -1
+// for no cap but the retry timeout. Before any part lands, with an endpoint left
+// to move on to, a failing request gets a single retry: moving on is cheaper than
+// waiting out a host that may be unreachable from here. Otherwise the workspace
+// host keeps the API client's retries, and other hosts get cloudRetries.
+func (uc *uploadContext) retries(onWorkspace bool) int {
+	switch {
+	case !uc.completed.Load() && !uc.lastEndpoint:
+		return uc.tun.cloudRetriesBeforeCommit
+	case onWorkspace:
+		return -1
+	}
+	return uc.tun.cloudRetries
+}
+
+// partRetries is how often a part PUT is retried. Parts never go to the
+// workspace host.
+func (uc *uploadContext) partRetries() int { return uc.retries(false) }
+
+// partClient sends the current endpoint's part PUTs.
+func (uc *uploadContext) partClient() *cloudstorage.Client {
+	if uc.ep.kind == presignedEndpoint {
+		return uc.cloud
+	}
+	return uc.files()
+}
+
 // newUploadContext resolves the per-upload state shared by Upload and UploadFrom.
-// contentLength is -1 for a non-seekable stream; sourcePath is "" unless the
-// source is a local file (UploadFrom). buffered reports whether the upload path
-// holds parts in memory (a non-seekable stream) rather than streaming them from
-// positioned reads, which sets the default worker count.
-func (e *engine) newUploadContext(cfg *uploadConfig, targetPath, sourcePath string, contentLength int64, buffered bool) *uploadContext {
+// contentLength is -1 for a non-seekable stream. buffered reports whether the
+// upload holds parts in memory (a non-seekable stream) rather than streaming
+// them from positioned reads, which sets the default worker count.
+func (e *engine) newUploadContext(cfg *uploadConfig, targetPath string, data *uploadData, buffered bool) *uploadContext {
+	contentLength := data.size()
 	partSize, batchSize := optimizeParams(contentLength, cfg.partSize, e.tun)
 	parallelism := cfg.resolvedParallelism(buffered, partSize, e.tun)
 	limiter := cfg.limiter
@@ -220,15 +268,19 @@ func (e *engine) newUploadContext(cfg *uploadConfig, targetPath, sourcePath stri
 		targetPath:    targetPath,
 		overwrite:     cfg.overwrite,
 		partSize:      partSize,
+		basePartSize:  partSize,
 		batchSize:     batchSize,
 		contentLength: contentLength,
-		sourcePath:    sourcePath,
+		data:          data,
 		parallel:      parallelism > 1,
 		parallelism:   parallelism,
 		cloud:         cloudstorage.New(cfg.resolveCloudClient(parallelism, e.tun), cloudstorage.WithLogger(e.c.logger), cloudstorage.WithBackoff(e.tun.cloudBackoff)),
-		progress:      newProgressReporter(cfg.progress, contentLength),
-		slowGuard:     &slowAttemptGuard{tun: e.tun},
-		limiter:       limiter,
+		files: sync.OnceValue(func() *cloudstorage.Client {
+			return cloudstorage.New(e.authenticatedHTTPClient(parallelism), cloudstorage.WithLogger(e.c.logger), cloudstorage.WithBackoff(e.tun.cloudBackoff))
+		}),
+		progress:  newProgressReporter(cfg.progress, contentLength),
+		slowGuard: &slowAttemptGuard{tun: e.tun},
+		limiter:   limiter,
 	}
 }
 
@@ -306,8 +358,8 @@ func withProgress(r io.Reader, p *progressReporter) io.Reader {
 
 // Upload uploads contents to the remote file at filePath, which must be an
 // absolute path such as "/Volumes/catalog/schema/volume/file". It chooses a
-// single-shot, multipart, or resumable upload based on the stream size (when
-// the reader is seekable) and the protocol the workspace's Files API selects.
+// single-shot or multipart upload based on the stream size (when the reader is
+// seekable).
 //
 // When contents implements io.ReaderAt (for example an *os.File or a
 // *bytes.Reader), parts are read from it with concurrent positioned reads rather
@@ -360,25 +412,14 @@ func (e *engine) upload(ctx context.Context, filePath string, contents io.Reader
 	// parts from positioned reads; any other source buffers each in-flight part.
 	_, isReaderAt := contents.(io.ReaderAt)
 	buffered := !isReaderAt || contentLength < e.tun.minStreamSize
-	uc := e.newUploadContext(cfg, filePath, "", contentLength, buffered)
-
-	switch {
-	case uc.parallel && contentLength < 0:
-		// Non-seekable stream of unknown size: parts are buffered as they are read.
-		return &UploadResult{}, e.parallelUploadFromStream(ctx, uc, contents)
-	case uc.parallel && contentLength >= e.tun.minStreamSize:
-		// Known-size large upload. A reader supporting concurrent positioned reads
-		// (io.ReaderAt) is streamed in sections without buffering; anything else
-		// buffers parts.
-		if ra, ok := contents.(io.ReaderAt); ok {
-			return &UploadResult{}, e.parallelUploadFromReaderAt(ctx, uc, ra)
-		}
-		return &UploadResult{}, e.parallelUploadFromStream(ctx, uc, contents)
-	case contentLength >= 0:
-		return &UploadResult{}, e.uploadSingleThreadKnownSize(ctx, uc, contents)
-	default:
-		return &UploadResult{}, e.singleThreadMultipart(ctx, uc, contents)
+	var data *uploadData
+	if contentLength >= 0 {
+		data = newSeekableData(contents.(io.ReadSeeker), contentLength)
+	} else {
+		data = newStreamData(contents)
 	}
+	uc := e.newUploadContext(cfg, filePath, data, buffered)
+	return &UploadResult{}, e.walkUpload(ctx, uc, data)
 }
 
 func (e *engine) uploadFrom(ctx context.Context, filePath, sourcePath string, opts ...UploadOption) (*UploadResult, error) {
@@ -390,21 +431,17 @@ func (e *engine) uploadFrom(ctx context.Context, filePath, sourcePath string, op
 	if err != nil {
 		return nil, err
 	}
-	size := info.Size()
-
-	// A local file is randomly readable, so the parallel path streams parts from
-	// positioned reads and never buffers them: buffered is false.
-	uc := e.newUploadContext(cfg, filePath, sourcePath, size, false)
-
-	if uc.parallel && size >= e.tun.minStreamSize {
-		return &UploadResult{}, e.parallelUploadFromFile(ctx, uc)
-	}
 	f, err := os.Open(sourcePath)
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
-	return &UploadResult{}, e.uploadSingleThreadKnownSize(ctx, uc, f)
+
+	// A local file is randomly readable, so the parallel path streams parts from
+	// positioned reads and never buffers them: buffered is false.
+	data := newSeekableData(f, info.Size())
+	uc := e.newUploadContext(cfg, filePath, data, false)
+	return &UploadResult{}, e.walkUpload(ctx, uc, data)
 }
 
 // optimizeParams picks a part size and a presigned-URL batch size. contentLength
@@ -435,134 +472,25 @@ func optimizeParams(contentLength, override int64, tun tunables) (partSize int64
 	return partSize, batchSize
 }
 
-func (e *engine) uploadSingleThreadKnownSize(ctx context.Context, uc *uploadContext, r io.Reader) error {
-	if uc.contentLength < e.tun.minStreamSize {
-		return e.singleShotUpload(ctx, uc, r)
-	}
-	return e.singleThreadMultipart(ctx, uc, r)
-}
-
-// singleThreadMultipart pre-reads up to the single-shot threshold to handle
-// small (or non-seekable but actually small) streams without a multipart
-// round trip, then initiates the upload.
-func (e *engine) singleThreadMultipart(ctx context.Context, uc *uploadContext, r io.Reader) error {
-	preRead, err := readUpTo(r, e.tun.minStreamSize)
+// initiateMultipart opens a multipart upload session on the current endpoint
+// and returns its token. Only multipart sessions are supported; any other
+// initiate response is an unexpected one.
+func (e *engine) initiateMultipart(ctx context.Context, uc *uploadContext) (string, error) {
+	resp, err := e.initiateUpload(ctx, uc)
 	if err != nil {
-		return err
+		return "", err
 	}
-	if int64(len(preRead)) < e.tun.minStreamSize {
-		return e.singleShotUpload(ctx, uc, bytes.NewReader(preRead))
+	if uc.ep.kind == filesAPIv3Endpoint {
+		if resp.UploadID == "" {
+			return "", fmt.Errorf("%w: missing upload_id", errUnexpectedServerResponse)
+		}
+		return resp.UploadID, nil
 	}
-	return e.initiateAndUpload(ctx, uc, false,
-		func(token string) error { return e.performMultipartUpload(ctx, uc, token, r, preRead) },
-		func(token string) error { return e.performResumableUpload(ctx, uc, token, r, preRead) },
-		func(buffered []byte) error {
-			return e.singleShotUpload(ctx, uc, io.MultiReader(bytes.NewReader(buffered), r))
-		},
-	)
-}
-
-func (e *engine) parallelUploadFromStream(ctx context.Context, uc *uploadContext, r io.Reader) error {
-	return e.initiateAndUpload(ctx, uc, true,
-		func(token string) error { return e.parallelMultipartFromStream(ctx, uc, token, r) },
-		func(token string) error { return e.performResumableUpload(ctx, uc, token, r, nil) },
-		func(buffered []byte) error {
-			return e.singleShotUpload(ctx, uc, io.MultiReader(bytes.NewReader(buffered), r))
-		},
-	)
-}
-
-func (e *engine) parallelUploadFromFile(ctx context.Context, uc *uploadContext) error {
-	// Each branch opens its own handle: only one runs per upload, and the multipart
-	// driver keeps its handle open until all its workers finish (wait()).
-	withFile := func(use func(*os.File) error) error {
-		f, err := os.Open(uc.sourcePath)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-		return use(f)
+	if resp.MultipartUpload == nil {
+		return "", fmt.Errorf("%w: no multipart upload session offered", errUnexpectedServerResponse)
 	}
-	return e.initiateAndUpload(ctx, uc, true,
-		func(token string) error {
-			return withFile(func(f *os.File) error { return e.parallelMultipartFromReaderAt(ctx, uc, token, f) })
-		},
-		func(token string) error {
-			return withFile(func(f *os.File) error { return e.performResumableUpload(ctx, uc, token, f, nil) })
-		},
-		func(buffered []byte) error {
-			return withFile(func(f *os.File) error { return e.singleShotUpload(ctx, uc, f) })
-		},
-	)
-}
-
-// parallelUploadFromReaderAt uploads a known-size, randomly-readable source
-// (an *os.File or *bytes.Reader passed to Upload) by streaming sections of it
-// concurrently, without buffering whole parts. The resumable and fallback paths
-// re-read it through fresh section readers.
-func (e *engine) parallelUploadFromReaderAt(ctx context.Context, uc *uploadContext, ra io.ReaderAt) error {
-	return e.initiateAndUpload(ctx, uc, true,
-		func(token string) error { return e.parallelMultipartFromReaderAt(ctx, uc, token, ra) },
-		func(token string) error {
-			return e.performResumableUpload(ctx, uc, token, io.NewSectionReader(ra, 0, uc.contentLength), nil)
-		},
-		func(buffered []byte) error {
-			return e.singleShotUpload(ctx, uc, io.NewSectionReader(ra, 0, uc.contentLength))
-		},
-	)
-}
-
-// initiateAndUpload initiates the server-coordinated upload, dispatches to the
-// multipart or resumable path the server selected (multipart on AWS/Azure,
-// resumable on GCP), and applies the shared abort-and-fallback handling.
-func (e *engine) initiateAndUpload(
-	ctx context.Context,
-	uc *uploadContext,
-	parallel bool,
-	performMultipart func(token string) error,
-	performResumable func(token string) error,
-	fallbackSingleShot func(buffered []byte) error,
-) error {
-	resp, err := e.initiateUpload(ctx, uc.targetPath, uc.overwrite)
-	if err != nil {
-		return err
+	if resp.MultipartUpload.SessionToken == "" {
+		return "", fmt.Errorf("%w: missing multipart session token", errUnexpectedServerResponse)
 	}
-
-	switch {
-	case resp.MultipartUpload != nil:
-		token := resp.MultipartUpload.SessionToken
-		if token == "" {
-			return fmt.Errorf("%w: missing multipart session token", errUnexpectedServerResponse)
-		}
-		uerr := performMultipart(token)
-		if uerr == nil {
-			return nil
-		}
-		// Abort is best-effort in both the fallback and the hard-error case.
-		e.abortMultipartBestEffort(ctx, uc, token)
-		if fb, ok := errors.AsType[*fallbackToFilesAPI](uerr); ok {
-			e.c.logger.InfoContext(ctx, "using single-shot fallback", "reason", fb.reason)
-			return fallbackSingleShot(fb.buffer)
-		}
-		return uerr
-
-	case resp.ResumableUpload != nil:
-		token := resp.ResumableUpload.SessionToken
-		if token == "" {
-			return fmt.Errorf("%w: missing resumable session token", errUnexpectedServerResponse)
-		}
-		if parallel {
-			e.c.logger.WarnContext(ctx, "GCP does not support parallel resumable uploads; using single-threaded upload")
-		}
-		// The resumable path aborts itself on error, so no abort here.
-		uerr := performResumable(token)
-		if fb, ok := errors.AsType[*fallbackToFilesAPI](uerr); ok {
-			e.c.logger.InfoContext(ctx, "using single-shot fallback", "reason", fb.reason)
-			return fallbackSingleShot(fb.buffer)
-		}
-		return uerr
-
-	default:
-		return fmt.Errorf("%w: neither multipart nor resumable upload offered", errUnexpectedServerResponse)
-	}
+	return resp.MultipartUpload.SessionToken, nil
 }

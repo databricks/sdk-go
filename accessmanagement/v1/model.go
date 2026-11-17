@@ -409,8 +409,8 @@ func (*PrincipalOutput_PrincipalName_ServicePrincipalName) isPrincipalOutput_Pri
 type ResourceInfo struct {
 	// Id of the current resource.
 	Id *string
-	// Parent resource info for the current resource. The parent may have another
-	// parent.
+	// Deprecated: use `contributing_resources`. Parent resource info for the
+	// current resource. The parent may have another parent.
 	ParentResourceInfo *ResourceInfo
 	// The legacy acl path of the current resource.
 	LegacyAclPath *string

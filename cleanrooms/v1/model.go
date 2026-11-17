@@ -278,6 +278,12 @@ const (
 	PartitionSpecification_Partition_PartitionValue_PartitionValueOp_Like        PartitionSpecification_Partition_PartitionValue_PartitionValueOp = "LIKE"
 )
 
+// A clean room is a secure, Databricks-managed environment where collaborators
+// from one or more Unity Catalog metastores share tables, views, volumes and
+// notebooks and run approved analyses without seeing each other's data. Each
+// collaborator sees the clean room as a securable in their own metastore, while
+// the analyses run in a central clean room in the cloud and region chosen at
+// creation..
 type CleanRoom struct {
 	// The name of the clean room. It should follow [UC securable naming
 	// requirements].
@@ -289,8 +295,11 @@ type CleanRoom struct {
 	// not be filled in the ListCleanRooms call.
 	RemoteDetailedInfo *CleanRoomRemoteDetail
 	// This is the <Databricks> username of the owner of the local clean room
-	// securable for permission management.
-	Owner   *string
+	// securable for permission management. When creating a clean room, leave it
+	// empty or set it to the caller.
+	Owner *string
+	// Free-form description of the clean room. Comments are local to the caller's
+	// metastore and are not shared with the other collaborators.
 	Comment *string
 	// When the clean room was created, in epoch milliseconds.
 	CreatedAt *int64
@@ -673,6 +682,7 @@ type CleanRoomNotebookTaskRun struct {
 }
 
 type CleanRoomOutputCatalog struct {
+	// Status of the output catalog for the calling collaborator.
 	Status CleanRoomOutputCatalog_OutputCatalogStatus
 	// The name of the output catalog in UC. It should follow [UC securable naming
 	// requirements]. The field will always exist if status is CREATED.
@@ -689,7 +699,7 @@ type CleanRoomRemoteDetail struct {
 	CloudVendor *string
 	// Region of the central clean room.
 	Region *string
-	// Collaborators in the central clean room. There should one and only one
+	// Collaborators in the central clean room. There should be one and only one
 	// collaborator in the list that satisfies the owner condition:
 	//
 	// 1. It has the creator's global_metastore_id (determined by caller of
@@ -699,8 +709,14 @@ type CleanRoomRemoteDetail struct {
 	Collaborators []CleanRoomCollaborator
 	// Collaborator who creates the clean room.
 	Creator *CleanRoomCollaborator
-	// Egress network policy to apply to the central clean room workspace.
-	EgressNetworkPolicy       *EgressNetworkPolicy
+	// Egress network policy to apply to the central clean room workspace. Only
+	// internet_access.restriction_mode (FULL_ACCESS or RESTRICTED_ACCESS) and
+	// internet_access.allowed_internet_destinations can be set. When omitted,
+	// internet access is restricted with no allowed destinations.
+	EgressNetworkPolicy *EgressNetworkPolicy
+	// Compliance security profile of the central clean room. It is taken from the
+	// creator's workspace when the clean room is created; a collaborator whose
+	// workspace profile differs sees access_restricted set to CSP_MISMATCH.
 	ComplianceSecurityProfile *ComplianceSecurityProfile
 	// Whether to enable shared output for the central clean room. When enabled,
 	// clean room task runs can write to the run-scoped shared output schema which
@@ -785,6 +801,9 @@ type ColumnInfo struct {
 	Name *string
 	// Full data type specification as SQL/catalogString text.
 	TypeText *string
+	// The name of the column's data type, for example STRING, DECIMAL or STRUCT.
+	// The complete type, including parameters such as the precision of a decimal or
+	// the element type of an array, is in type_text.
 	TypeName ColumnTypeName
 	// Ordinal position of column (starting at position 0).
 	Position *int
@@ -802,7 +821,11 @@ type ColumnInfo struct {
 	Nullable *bool
 	// Partition index for column.
 	PartitionIndex *int
-	Mask           *ColumnMask
+	// The column mask function applied to this column, if any. A column mask is a
+	// SQL user-defined function that transforms the values a query returns for the
+	// column. See https://docs.databricks.com/aws/en/tables/row-and-column-filters
+	// for details.
+	Mask *ColumnMask
 }
 
 type ColumnMask struct {
@@ -904,6 +927,7 @@ type CreateCleanRoomOutputCatalogRequest struct {
 }
 
 type CreateCleanRoomOutputCatalogResponse struct {
+	// The output catalog that was created.
 	OutputCatalog *CleanRoomOutputCatalog
 }
 
@@ -1007,6 +1031,7 @@ type GetCleanRoomAutoApprovalRuleRequest struct {
 }
 
 type GetCleanRoomRequest struct {
+	// Name of the clean room.
 	Name *string
 }
 
@@ -1209,6 +1234,9 @@ type UpdateCleanRoomAutoApprovalRuleRequest struct {
 
 type UpdateCleanRoomRequest struct {
 	// Name of the clean room.
-	Name      *string
+	Name *string
+	// Clean room fields to update. Only mutable fields such as owner, comment and
+	// enable_shared_output can be changed; remote_detailed_info, status, created_at
+	// and updated_at must be omitted.
 	CleanRoom *CleanRoom
 }

@@ -979,8 +979,13 @@ type AwsAttributes struct {
 	// remainder will be placed on `availability` instances. Note that this value
 	// does not affect cluster size and cannot currently be mutated over the
 	// lifetime of a cluster.
-	FirstOnDemand *int            `fieldmask:"first_on_demand"`
-	Availability  AwsAvailability `fieldmask:"availability"`
+	FirstOnDemand *int `fieldmask:"first_on_demand"`
+	// Availability type used for all subsequent nodes past the `first_on_demand`
+	// ones.
+	//
+	// Note: If `first_on_demand` is zero, this availability type will be used for
+	// the entire cluster.
+	Availability AwsAvailability `fieldmask:"availability"`
 	// Identifier for the availability zone/datacenter in which the cluster resides.
 	// This string will be of a form like "us-west-2a". The provided availability
 	// zone must be in the same region as the <Databricks> deployment. For example,
@@ -1043,7 +1048,9 @@ type AwsAttributes struct {
 
 // Attributes set during cluster creation which are related to Microsoft Azure..
 type AzureAttributes struct {
-	// Defines values necessary to configure and run Azure Log Analytics agent
+	// Defines values necessary to configure and run Azure Log Analytics agent. Both
+	// `log_analytics_workspace_id` and `log_analytics_primary_key` must be set, or
+	// neither.
 	LogAnalyticsInfo *LogAnalyticsInfo `fieldmask:"log_analytics_info"`
 	// The first `first_on_demand` nodes of the cluster will be placed on on-demand
 	// instances. This value should be greater than 0, to make sure the cluster
@@ -1097,6 +1104,7 @@ type CancelPendingClusterEnforcementResponse struct {
 }
 
 type ChangeClusterOwnerRequest struct {
+	// The ID of the cluster whose owner is changed.
 	ClusterId *string
 	// New owner of the cluster_id after this RPC.
 	OwnerUsername *string
@@ -1206,7 +1214,10 @@ type ClusterAttributes struct {
 	// `cluster_log_conf` is specified, init script logs are sent to
 	// `<destination>/<cluster-ID>/init_scripts`.
 	InitScripts []InitScriptInfo
-	// Custom docker image BYOC
+	// Custom Docker image for the cluster's nodes, used with [Databricks Container
+	// Services].
+	//
+	// [Databricks Container Services]: https://docs.databricks.com/compute/custom-containers.html
 	DockerImage *DockerImage
 	// The optional ID of the instance pool to which the cluster belongs.
 	InstancePoolId *string
@@ -1220,8 +1231,39 @@ type ClusterAttributes struct {
 	// The pool cluster uses the instance pool with id (instance_pool_id) if the
 	// driver pool is not assigned.
 	DriverInstancePoolId *string
-	WorkloadType         *WorkloadType
-	DataSecurityMode     DataSecurityMode
+	// Types of workloads that can use the cluster, such as notebooks or jobs. If
+	// omitted, the cluster can be used for both notebooks and jobs.
+	WorkloadType *WorkloadType
+	// Data security mode decides what data governance model to use when accessing
+	// data from a cluster.
+	//
+	// * `DATA_SECURITY_MODE_AUTO`: <Databricks> will choose the most appropriate
+	// access mode depending on your compute configuration. *
+	// `DATA_SECURITY_MODE_STANDARD`: A secure cluster that can be shared by
+	// multiple users. Cluster users are fully isolated so that they cannot see each
+	// other's data and credentials. Most data governance features are supported in
+	// this mode. But programming languages and cluster features might be limited. *
+	// `DATA_SECURITY_MODE_DEDICATED`: A secure cluster that can only be exclusively
+	// used by a single user specified in `single_user_name`. Most programming
+	// languages, cluster features and data governance features are available in
+	// this mode. * `NONE`: No security isolation for multiple users sharing the
+	// cluster. Data governance features are not available in this mode.
+	//
+	// The following modes are legacy aliases for the above modes:
+	//
+	// * `USER_ISOLATION`: Legacy alias for `DATA_SECURITY_MODE_STANDARD`. *
+	// `SINGLE_USER`: Legacy alias for `DATA_SECURITY_MODE_DEDICATED`.
+	//
+	// The following modes are deprecated starting with Databricks Runtime 15.0 and
+	// will be removed for future Databricks Runtime versions:
+	//
+	// * `LEGACY_TABLE_ACL`: This mode is for users migrating from legacy Table ACL
+	// clusters. * `LEGACY_PASSTHROUGH`: This mode is for users migrating from
+	// legacy Passthrough on high concurrency clusters. * `LEGACY_SINGLE_USER`: This
+	// mode is for users migrating from legacy Passthrough on standard clusters. *
+	// `LEGACY_SINGLE_USER_STANDARD`: This mode provides a way that doesn't have UC
+	// or passthrough enabled.
+	DataSecurityMode DataSecurityMode
 	// Determines the cluster's runtime engine, either standard or Photon.
 	//
 	// This field is not compatible with legacy `spark_version` values that contain
@@ -1231,7 +1273,22 @@ type ClusterAttributes struct {
 	// If left unspecified, the runtime engine defaults to standard unless the
 	// spark_version contains -photon-, in which case Photon will be used.
 	RuntimeEngine RuntimeEngine
-	Kind          ComputeKind
+	// The kind of compute described by this compute specification.
+	//
+	// Depending on `kind`, different validations and default values will be
+	// applied.
+	//
+	// Clusters with `kind = CLASSIC_PREVIEW` support the following fields, whereas
+	// clusters with no specified `kind` do not. * [is_single_node] *
+	// [use_ml_runtime]
+	//
+	// By using the [simple form], your clusters are automatically using `kind =
+	// CLASSIC_PREVIEW`.
+	//
+	// [is_single_node]: https://docs.databricks.com/api/workspace/clusters/create#is_single_node
+	// [simple form]: https://docs.databricks.com/compute/simple-form.html
+	// [use_ml_runtime]: https://docs.databricks.com/api/workspace/clusters/create#use_ml_runtime
+	Kind ComputeKind
 	// This field can only be used when `kind = CLASSIC_PREVIEW`.
 	//
 	// `effective_spark_version` is determined by `spark_version` (DBR release),
@@ -1268,12 +1325,16 @@ type ClusterCompliance struct {
 }
 
 type ClusterEvent struct {
+	// The ID of the cluster the event belongs to.
 	ClusterId *string
 	// The timestamp when the event occurred, stored as the number of milliseconds
 	// since the Unix epoch. If not provided, this will be assigned by the Timeline
 	// service.
-	Timestamp             *int64
-	Type                  ClusterEventType_ClusterEventType
+	Timestamp *int64
+	// The type of event, which determines which `details` fields are populated.
+	Type ClusterEventType_ClusterEventType
+	// Details about the event. Which fields are populated depends on the event
+	// `type`.
 	Details               *EventDetails
 	DataPlaneEventDetails *DataPlaneEventDetails
 }
@@ -1332,8 +1393,8 @@ type ClusterInfo struct {
 	// driver restarts. The pair `(cluster_id, spark_context_id)` is a globally
 	// unique identifier over all Spark contexts.
 	SparkContextId *int64
-	// Port on which Spark JDBC server is listening, in the driver nod. No service
-	// will be listeningon on this port in executor nodes.
+	// Port on which Spark JDBC server is listening in the driver node. No service
+	// will be listening on this port in executor nodes.
 	JdbcPort *int
 	// Cluster name requested by the user. This doesn't have to be unique. If not
 	// specified at creation, the cluster name will be an empty string. For job
@@ -1423,7 +1484,10 @@ type ClusterInfo struct {
 	// `cluster_log_conf` is specified, init script logs are sent to
 	// `<destination>/<cluster-ID>/init_scripts`.
 	InitScripts []InitScriptInfo
-	// Custom docker image BYOC
+	// Custom Docker image for the cluster's nodes, used with [Databricks Container
+	// Services].
+	//
+	// [Databricks Container Services]: https://docs.databricks.com/compute/custom-containers.html
 	DockerImage *DockerImage
 	// The optional ID of the instance pool to which the cluster belongs.
 	InstancePoolId *string
@@ -1437,8 +1501,39 @@ type ClusterInfo struct {
 	// The pool cluster uses the instance pool with id (instance_pool_id) if the
 	// driver pool is not assigned.
 	DriverInstancePoolId *string
-	WorkloadType         *WorkloadType
-	DataSecurityMode     DataSecurityMode
+	// Types of workloads that can use the cluster, such as notebooks or jobs. If
+	// omitted, the cluster can be used for both notebooks and jobs.
+	WorkloadType *WorkloadType
+	// Data security mode decides what data governance model to use when accessing
+	// data from a cluster.
+	//
+	// * `DATA_SECURITY_MODE_AUTO`: <Databricks> will choose the most appropriate
+	// access mode depending on your compute configuration. *
+	// `DATA_SECURITY_MODE_STANDARD`: A secure cluster that can be shared by
+	// multiple users. Cluster users are fully isolated so that they cannot see each
+	// other's data and credentials. Most data governance features are supported in
+	// this mode. But programming languages and cluster features might be limited. *
+	// `DATA_SECURITY_MODE_DEDICATED`: A secure cluster that can only be exclusively
+	// used by a single user specified in `single_user_name`. Most programming
+	// languages, cluster features and data governance features are available in
+	// this mode. * `NONE`: No security isolation for multiple users sharing the
+	// cluster. Data governance features are not available in this mode.
+	//
+	// The following modes are legacy aliases for the above modes:
+	//
+	// * `USER_ISOLATION`: Legacy alias for `DATA_SECURITY_MODE_STANDARD`. *
+	// `SINGLE_USER`: Legacy alias for `DATA_SECURITY_MODE_DEDICATED`.
+	//
+	// The following modes are deprecated starting with Databricks Runtime 15.0 and
+	// will be removed for future Databricks Runtime versions:
+	//
+	// * `LEGACY_TABLE_ACL`: This mode is for users migrating from legacy Table ACL
+	// clusters. * `LEGACY_PASSTHROUGH`: This mode is for users migrating from
+	// legacy Passthrough on high concurrency clusters. * `LEGACY_SINGLE_USER`: This
+	// mode is for users migrating from legacy Passthrough on standard clusters. *
+	// `LEGACY_SINGLE_USER_STANDARD`: This mode provides a way that doesn't have UC
+	// or passthrough enabled.
+	DataSecurityMode DataSecurityMode
 	// Determines the cluster's runtime engine, either standard or Photon.
 	//
 	// This field is not compatible with legacy `spark_version` values that contain
@@ -1448,7 +1543,22 @@ type ClusterInfo struct {
 	// If left unspecified, the runtime engine defaults to standard unless the
 	// spark_version contains -photon-, in which case Photon will be used.
 	RuntimeEngine RuntimeEngine
-	Kind          ComputeKind
+	// The kind of compute described by this compute specification.
+	//
+	// Depending on `kind`, different validations and default values will be
+	// applied.
+	//
+	// Clusters with `kind = CLASSIC_PREVIEW` support the following fields, whereas
+	// clusters with no specified `kind` do not. * [is_single_node] *
+	// [use_ml_runtime]
+	//
+	// By using the [simple form], your clusters are automatically using `kind =
+	// CLASSIC_PREVIEW`.
+	//
+	// [is_single_node]: https://docs.databricks.com/api/workspace/clusters/create#is_single_node
+	// [simple form]: https://docs.databricks.com/compute/simple-form.html
+	// [use_ml_runtime]: https://docs.databricks.com/api/workspace/clusters/create#use_ml_runtime
+	Kind ComputeKind
 	// This field can only be used when `kind = CLASSIC_PREVIEW`.
 	//
 	// `effective_spark_version` is determined by `spark_version` (DBR release),
@@ -1475,7 +1585,7 @@ type ClusterInfo struct {
 	// Time when the cluster driver last lost its state (due to a restart or driver
 	// failure).
 	LastStateLossTime *int64
-	// the timestamp that the cluster was started/restarted
+	// Time (in epoch milliseconds) when the cluster was last started or restarted.
 	LastRestartedTime *int64
 	Size              isClusterInfo_Size
 }
@@ -1605,7 +1715,10 @@ type ClusterInfo_ComputeSpec struct {
 	// `cluster_log_conf` is specified, init script logs are sent to
 	// `<destination>/<cluster-ID>/init_scripts`.
 	InitScripts []InitScriptInfo
-	// Custom docker image BYOC
+	// Custom Docker image for the cluster's nodes, used with [Databricks Container
+	// Services].
+	//
+	// [Databricks Container Services]: https://docs.databricks.com/compute/custom-containers.html
 	DockerImage *DockerImage
 	// The optional ID of the instance pool to which the cluster belongs.
 	InstancePoolId *string
@@ -1619,8 +1732,39 @@ type ClusterInfo_ComputeSpec struct {
 	// The pool cluster uses the instance pool with id (instance_pool_id) if the
 	// driver pool is not assigned.
 	DriverInstancePoolId *string
-	WorkloadType         *WorkloadType
-	DataSecurityMode     DataSecurityMode
+	// Types of workloads that can use the cluster, such as notebooks or jobs. If
+	// omitted, the cluster can be used for both notebooks and jobs.
+	WorkloadType *WorkloadType
+	// Data security mode decides what data governance model to use when accessing
+	// data from a cluster.
+	//
+	// * `DATA_SECURITY_MODE_AUTO`: <Databricks> will choose the most appropriate
+	// access mode depending on your compute configuration. *
+	// `DATA_SECURITY_MODE_STANDARD`: A secure cluster that can be shared by
+	// multiple users. Cluster users are fully isolated so that they cannot see each
+	// other's data and credentials. Most data governance features are supported in
+	// this mode. But programming languages and cluster features might be limited. *
+	// `DATA_SECURITY_MODE_DEDICATED`: A secure cluster that can only be exclusively
+	// used by a single user specified in `single_user_name`. Most programming
+	// languages, cluster features and data governance features are available in
+	// this mode. * `NONE`: No security isolation for multiple users sharing the
+	// cluster. Data governance features are not available in this mode.
+	//
+	// The following modes are legacy aliases for the above modes:
+	//
+	// * `USER_ISOLATION`: Legacy alias for `DATA_SECURITY_MODE_STANDARD`. *
+	// `SINGLE_USER`: Legacy alias for `DATA_SECURITY_MODE_DEDICATED`.
+	//
+	// The following modes are deprecated starting with Databricks Runtime 15.0 and
+	// will be removed for future Databricks Runtime versions:
+	//
+	// * `LEGACY_TABLE_ACL`: This mode is for users migrating from legacy Table ACL
+	// clusters. * `LEGACY_PASSTHROUGH`: This mode is for users migrating from
+	// legacy Passthrough on high concurrency clusters. * `LEGACY_SINGLE_USER`: This
+	// mode is for users migrating from legacy Passthrough on standard clusters. *
+	// `LEGACY_SINGLE_USER_STANDARD`: This mode provides a way that doesn't have UC
+	// or passthrough enabled.
+	DataSecurityMode DataSecurityMode
 	// Determines the cluster's runtime engine, either standard or Photon.
 	//
 	// This field is not compatible with legacy `spark_version` values that contain
@@ -1630,7 +1774,22 @@ type ClusterInfo_ComputeSpec struct {
 	// If left unspecified, the runtime engine defaults to standard unless the
 	// spark_version contains -photon-, in which case Photon will be used.
 	RuntimeEngine RuntimeEngine
-	Kind          ComputeKind
+	// The kind of compute described by this compute specification.
+	//
+	// Depending on `kind`, different validations and default values will be
+	// applied.
+	//
+	// Clusters with `kind = CLASSIC_PREVIEW` support the following fields, whereas
+	// clusters with no specified `kind` do not. * [is_single_node] *
+	// [use_ml_runtime]
+	//
+	// By using the [simple form], your clusters are automatically using `kind =
+	// CLASSIC_PREVIEW`.
+	//
+	// [is_single_node]: https://docs.databricks.com/api/workspace/clusters/create#is_single_node
+	// [simple form]: https://docs.databricks.com/compute/simple-form.html
+	// [use_ml_runtime]: https://docs.databricks.com/api/workspace/clusters/create#use_ml_runtime
+	Kind ComputeKind
 	// This field can only be used when `kind = CLASSIC_PREVIEW`.
 	//
 	// `effective_spark_version` is determined by `spark_version` (DBR release),
@@ -1862,7 +2021,10 @@ type CreateClusterRequest struct {
 	// `cluster_log_conf` is specified, init script logs are sent to
 	// `<destination>/<cluster-ID>/init_scripts`.
 	InitScripts []InitScriptInfo
-	// Custom docker image BYOC
+	// Custom Docker image for the cluster's nodes, used with [Databricks Container
+	// Services].
+	//
+	// [Databricks Container Services]: https://docs.databricks.com/compute/custom-containers.html
 	DockerImage *DockerImage
 	// The optional ID of the instance pool to which the cluster belongs.
 	InstancePoolId *string
@@ -1876,8 +2038,39 @@ type CreateClusterRequest struct {
 	// The pool cluster uses the instance pool with id (instance_pool_id) if the
 	// driver pool is not assigned.
 	DriverInstancePoolId *string
-	WorkloadType         *WorkloadType
-	DataSecurityMode     DataSecurityMode
+	// Types of workloads that can use the cluster, such as notebooks or jobs. If
+	// omitted, the cluster can be used for both notebooks and jobs.
+	WorkloadType *WorkloadType
+	// Data security mode decides what data governance model to use when accessing
+	// data from a cluster.
+	//
+	// * `DATA_SECURITY_MODE_AUTO`: <Databricks> will choose the most appropriate
+	// access mode depending on your compute configuration. *
+	// `DATA_SECURITY_MODE_STANDARD`: A secure cluster that can be shared by
+	// multiple users. Cluster users are fully isolated so that they cannot see each
+	// other's data and credentials. Most data governance features are supported in
+	// this mode. But programming languages and cluster features might be limited. *
+	// `DATA_SECURITY_MODE_DEDICATED`: A secure cluster that can only be exclusively
+	// used by a single user specified in `single_user_name`. Most programming
+	// languages, cluster features and data governance features are available in
+	// this mode. * `NONE`: No security isolation for multiple users sharing the
+	// cluster. Data governance features are not available in this mode.
+	//
+	// The following modes are legacy aliases for the above modes:
+	//
+	// * `USER_ISOLATION`: Legacy alias for `DATA_SECURITY_MODE_STANDARD`. *
+	// `SINGLE_USER`: Legacy alias for `DATA_SECURITY_MODE_DEDICATED`.
+	//
+	// The following modes are deprecated starting with Databricks Runtime 15.0 and
+	// will be removed for future Databricks Runtime versions:
+	//
+	// * `LEGACY_TABLE_ACL`: This mode is for users migrating from legacy Table ACL
+	// clusters. * `LEGACY_PASSTHROUGH`: This mode is for users migrating from
+	// legacy Passthrough on high concurrency clusters. * `LEGACY_SINGLE_USER`: This
+	// mode is for users migrating from legacy Passthrough on standard clusters. *
+	// `LEGACY_SINGLE_USER_STANDARD`: This mode provides a way that doesn't have UC
+	// or passthrough enabled.
+	DataSecurityMode DataSecurityMode
 	// Determines the cluster's runtime engine, either standard or Photon.
 	//
 	// This field is not compatible with legacy `spark_version` values that contain
@@ -1887,7 +2080,22 @@ type CreateClusterRequest struct {
 	// If left unspecified, the runtime engine defaults to standard unless the
 	// spark_version contains -photon-, in which case Photon will be used.
 	RuntimeEngine RuntimeEngine
-	Kind          ComputeKind
+	// The kind of compute described by this compute specification.
+	//
+	// Depending on `kind`, different validations and default values will be
+	// applied.
+	//
+	// Clusters with `kind = CLASSIC_PREVIEW` support the following fields, whereas
+	// clusters with no specified `kind` do not. * [is_single_node] *
+	// [use_ml_runtime]
+	//
+	// By using the [simple form], your clusters are automatically using `kind =
+	// CLASSIC_PREVIEW`.
+	//
+	// [is_single_node]: https://docs.databricks.com/api/workspace/clusters/create#is_single_node
+	// [simple form]: https://docs.databricks.com/compute/simple-form.html
+	// [use_ml_runtime]: https://docs.databricks.com/api/workspace/clusters/create#use_ml_runtime
+	Kind ComputeKind
 	// This field can only be used when `kind = CLASSIC_PREVIEW`.
 	//
 	// `effective_spark_version` is determined by `spark_version` (DBR release),
@@ -1964,9 +2172,9 @@ type DeleteClusterResponse struct {
 }
 
 type DockerBasicAuth struct {
-	// Name of the user
+	// User name for authenticating to the Docker registry that hosts the image.
 	Username *string `fieldmask:"username"`
-	// Password of the user
+	// Password for authenticating to the Docker registry that hosts the image.
 	Password *string `fieldmask:"password"`
 }
 
@@ -2089,7 +2297,10 @@ type EditClusterRequest struct {
 	// `cluster_log_conf` is specified, init script logs are sent to
 	// `<destination>/<cluster-ID>/init_scripts`.
 	InitScripts []InitScriptInfo
-	// Custom docker image BYOC
+	// Custom Docker image for the cluster's nodes, used with [Databricks Container
+	// Services].
+	//
+	// [Databricks Container Services]: https://docs.databricks.com/compute/custom-containers.html
 	DockerImage *DockerImage
 	// The optional ID of the instance pool to which the cluster belongs.
 	InstancePoolId *string
@@ -2103,8 +2314,39 @@ type EditClusterRequest struct {
 	// The pool cluster uses the instance pool with id (instance_pool_id) if the
 	// driver pool is not assigned.
 	DriverInstancePoolId *string
-	WorkloadType         *WorkloadType
-	DataSecurityMode     DataSecurityMode
+	// Types of workloads that can use the cluster, such as notebooks or jobs. If
+	// omitted, the cluster can be used for both notebooks and jobs.
+	WorkloadType *WorkloadType
+	// Data security mode decides what data governance model to use when accessing
+	// data from a cluster.
+	//
+	// * `DATA_SECURITY_MODE_AUTO`: <Databricks> will choose the most appropriate
+	// access mode depending on your compute configuration. *
+	// `DATA_SECURITY_MODE_STANDARD`: A secure cluster that can be shared by
+	// multiple users. Cluster users are fully isolated so that they cannot see each
+	// other's data and credentials. Most data governance features are supported in
+	// this mode. But programming languages and cluster features might be limited. *
+	// `DATA_SECURITY_MODE_DEDICATED`: A secure cluster that can only be exclusively
+	// used by a single user specified in `single_user_name`. Most programming
+	// languages, cluster features and data governance features are available in
+	// this mode. * `NONE`: No security isolation for multiple users sharing the
+	// cluster. Data governance features are not available in this mode.
+	//
+	// The following modes are legacy aliases for the above modes:
+	//
+	// * `USER_ISOLATION`: Legacy alias for `DATA_SECURITY_MODE_STANDARD`. *
+	// `SINGLE_USER`: Legacy alias for `DATA_SECURITY_MODE_DEDICATED`.
+	//
+	// The following modes are deprecated starting with Databricks Runtime 15.0 and
+	// will be removed for future Databricks Runtime versions:
+	//
+	// * `LEGACY_TABLE_ACL`: This mode is for users migrating from legacy Table ACL
+	// clusters. * `LEGACY_PASSTHROUGH`: This mode is for users migrating from
+	// legacy Passthrough on high concurrency clusters. * `LEGACY_SINGLE_USER`: This
+	// mode is for users migrating from legacy Passthrough on standard clusters. *
+	// `LEGACY_SINGLE_USER_STANDARD`: This mode provides a way that doesn't have UC
+	// or passthrough enabled.
+	DataSecurityMode DataSecurityMode
 	// Determines the cluster's runtime engine, either standard or Photon.
 	//
 	// This field is not compatible with legacy `spark_version` values that contain
@@ -2114,7 +2356,22 @@ type EditClusterRequest struct {
 	// If left unspecified, the runtime engine defaults to standard unless the
 	// spark_version contains -photon-, in which case Photon will be used.
 	RuntimeEngine RuntimeEngine
-	Kind          ComputeKind
+	// The kind of compute described by this compute specification.
+	//
+	// Depending on `kind`, different validations and default values will be
+	// applied.
+	//
+	// Clusters with `kind = CLASSIC_PREVIEW` support the following fields, whereas
+	// clusters with no specified `kind` do not. * [is_single_node] *
+	// [use_ml_runtime]
+	//
+	// By using the [simple form], your clusters are automatically using `kind =
+	// CLASSIC_PREVIEW`.
+	//
+	// [is_single_node]: https://docs.databricks.com/api/workspace/clusters/create#is_single_node
+	// [simple form]: https://docs.databricks.com/compute/simple-form.html
+	// [use_ml_runtime]: https://docs.databricks.com/api/workspace/clusters/create#use_ml_runtime
+	Kind ComputeKind
 	// This field can only be used when `kind = CLASSIC_PREVIEW`.
 	//
 	// `effective_spark_version` is determined by `spark_version` (DBR release),
@@ -2290,7 +2547,10 @@ type EnforcePolicyComplianceForClusterResponse_ClusterSettings struct {
 	// `cluster_log_conf` is specified, init script logs are sent to
 	// `<destination>/<cluster-ID>/init_scripts`.
 	InitScripts []InitScriptInfo
-	// Custom docker image BYOC
+	// Custom Docker image for the cluster's nodes, used with [Databricks Container
+	// Services].
+	//
+	// [Databricks Container Services]: https://docs.databricks.com/compute/custom-containers.html
 	DockerImage *DockerImage
 	// The optional ID of the instance pool to which the cluster belongs.
 	InstancePoolId *string
@@ -2304,8 +2564,39 @@ type EnforcePolicyComplianceForClusterResponse_ClusterSettings struct {
 	// The pool cluster uses the instance pool with id (instance_pool_id) if the
 	// driver pool is not assigned.
 	DriverInstancePoolId *string
-	WorkloadType         *WorkloadType
-	DataSecurityMode     DataSecurityMode
+	// Types of workloads that can use the cluster, such as notebooks or jobs. If
+	// omitted, the cluster can be used for both notebooks and jobs.
+	WorkloadType *WorkloadType
+	// Data security mode decides what data governance model to use when accessing
+	// data from a cluster.
+	//
+	// * `DATA_SECURITY_MODE_AUTO`: <Databricks> will choose the most appropriate
+	// access mode depending on your compute configuration. *
+	// `DATA_SECURITY_MODE_STANDARD`: A secure cluster that can be shared by
+	// multiple users. Cluster users are fully isolated so that they cannot see each
+	// other's data and credentials. Most data governance features are supported in
+	// this mode. But programming languages and cluster features might be limited. *
+	// `DATA_SECURITY_MODE_DEDICATED`: A secure cluster that can only be exclusively
+	// used by a single user specified in `single_user_name`. Most programming
+	// languages, cluster features and data governance features are available in
+	// this mode. * `NONE`: No security isolation for multiple users sharing the
+	// cluster. Data governance features are not available in this mode.
+	//
+	// The following modes are legacy aliases for the above modes:
+	//
+	// * `USER_ISOLATION`: Legacy alias for `DATA_SECURITY_MODE_STANDARD`. *
+	// `SINGLE_USER`: Legacy alias for `DATA_SECURITY_MODE_DEDICATED`.
+	//
+	// The following modes are deprecated starting with Databricks Runtime 15.0 and
+	// will be removed for future Databricks Runtime versions:
+	//
+	// * `LEGACY_TABLE_ACL`: This mode is for users migrating from legacy Table ACL
+	// clusters. * `LEGACY_PASSTHROUGH`: This mode is for users migrating from
+	// legacy Passthrough on high concurrency clusters. * `LEGACY_SINGLE_USER`: This
+	// mode is for users migrating from legacy Passthrough on standard clusters. *
+	// `LEGACY_SINGLE_USER_STANDARD`: This mode provides a way that doesn't have UC
+	// or passthrough enabled.
+	DataSecurityMode DataSecurityMode
 	// Determines the cluster's runtime engine, either standard or Photon.
 	//
 	// This field is not compatible with legacy `spark_version` values that contain
@@ -2315,7 +2606,22 @@ type EnforcePolicyComplianceForClusterResponse_ClusterSettings struct {
 	// If left unspecified, the runtime engine defaults to standard unless the
 	// spark_version contains -photon-, in which case Photon will be used.
 	RuntimeEngine RuntimeEngine
-	Kind          ComputeKind
+	// The kind of compute described by this compute specification.
+	//
+	// Depending on `kind`, different validations and default values will be
+	// applied.
+	//
+	// Clusters with `kind = CLASSIC_PREVIEW` support the following fields, whereas
+	// clusters with no specified `kind` do not. * [is_single_node] *
+	// [use_ml_runtime]
+	//
+	// By using the [simple form], your clusters are automatically using `kind =
+	// CLASSIC_PREVIEW`.
+	//
+	// [is_single_node]: https://docs.databricks.com/api/workspace/clusters/create#is_single_node
+	// [simple form]: https://docs.databricks.com/compute/simple-form.html
+	// [use_ml_runtime]: https://docs.databricks.com/api/workspace/clusters/create#use_ml_runtime
+	Kind ComputeKind
 	// This field can only be used when `kind = CLASSIC_PREVIEW`.
 	//
 	// `effective_spark_version` is determined by `spark_version` (DBR release),
@@ -2412,10 +2718,14 @@ type EventDetails struct {
 	// Previous disk size in bytes
 	PreviousDiskSize *int64
 	// Current disk size in bytes
-	DiskSize  *int64
+	DiskSize *int64
+	// Free disk space in bytes. Included in disk expansion events such as
+	// `EXPANDED_DISK` and `DID_NOT_EXPAND_DISK`.
 	FreeSpace *int64
 	// Instance Id where the event originated from
-	InstanceId         *string
+	InstanceId *string
+	// The reason the disk was not expanded. Included in `DID_NOT_EXPAND_DISK` and
+	// `FAILED_TO_EXPAND_DISK` events.
 	DidNotExpandReason *string
 	// More details about the change in driver's state
 	DriverStateMessage *string
@@ -2492,6 +2802,7 @@ type GetClusterRequest struct {
 }
 
 type GetEventsResponse struct {
+	// The events matching the request, in the requested `order`.
 	Events []ClusterEvent
 	// Deprecated: use next_page_token or prev_page_token instead.
 	//
@@ -2830,8 +3141,12 @@ type LocalFileInfo struct {
 }
 
 type LogAnalyticsInfo struct {
+	// ID of the Azure Log Analytics workspace that the Log Analytics agent on the
+	// cluster's nodes reports to.
 	LogAnalyticsWorkspaceId *string `fieldmask:"log_analytics_workspace_id"`
-	LogAnalyticsPrimaryKey  *string `fieldmask:"log_analytics_primary_key"`
+	// Primary key of the Azure Log Analytics workspace. The agent uses it to
+	// authenticate when reporting to the workspace.
+	LogAnalyticsPrimaryKey *string `fieldmask:"log_analytics_primary_key"`
 }
 
 // The log delivery status.
@@ -3004,7 +3319,10 @@ type ResizeClusterResponse struct {
 
 type RestartClusterRequest struct {
 	// The cluster to be started.
-	ClusterId   *string
+	ClusterId *string
+	// User name recorded in the `RESTARTING` cluster event as the user who
+	// restarted the cluster. If omitted, the name of the user making the request is
+	// recorded.
 	RestartUser *string
 }
 
@@ -3211,7 +3529,10 @@ type UpdateClusterRequest_UpdateClusterResource struct {
 	// `cluster_log_conf` is specified, init script logs are sent to
 	// `<destination>/<cluster-ID>/init_scripts`.
 	InitScripts []InitScriptInfo `fieldmask:"init_scripts"`
-	// Custom docker image BYOC
+	// Custom Docker image for the cluster's nodes, used with [Databricks Container
+	// Services].
+	//
+	// [Databricks Container Services]: https://docs.databricks.com/compute/custom-containers.html
 	DockerImage *DockerImage `fieldmask:"docker_image"`
 	// The optional ID of the instance pool to which the cluster belongs.
 	InstancePoolId *string `fieldmask:"instance_pool_id"`
@@ -3224,9 +3545,40 @@ type UpdateClusterRequest_UpdateClusterResource struct {
 	// The optional ID of the instance pool for the driver of the cluster belongs.
 	// The pool cluster uses the instance pool with id (instance_pool_id) if the
 	// driver pool is not assigned.
-	DriverInstancePoolId *string          `fieldmask:"driver_instance_pool_id"`
-	WorkloadType         *WorkloadType    `fieldmask:"workload_type"`
-	DataSecurityMode     DataSecurityMode `fieldmask:"data_security_mode"`
+	DriverInstancePoolId *string `fieldmask:"driver_instance_pool_id"`
+	// Types of workloads that can use the cluster, such as notebooks or jobs. If
+	// omitted, the cluster can be used for both notebooks and jobs.
+	WorkloadType *WorkloadType `fieldmask:"workload_type"`
+	// Data security mode decides what data governance model to use when accessing
+	// data from a cluster.
+	//
+	// * `DATA_SECURITY_MODE_AUTO`: <Databricks> will choose the most appropriate
+	// access mode depending on your compute configuration. *
+	// `DATA_SECURITY_MODE_STANDARD`: A secure cluster that can be shared by
+	// multiple users. Cluster users are fully isolated so that they cannot see each
+	// other's data and credentials. Most data governance features are supported in
+	// this mode. But programming languages and cluster features might be limited. *
+	// `DATA_SECURITY_MODE_DEDICATED`: A secure cluster that can only be exclusively
+	// used by a single user specified in `single_user_name`. Most programming
+	// languages, cluster features and data governance features are available in
+	// this mode. * `NONE`: No security isolation for multiple users sharing the
+	// cluster. Data governance features are not available in this mode.
+	//
+	// The following modes are legacy aliases for the above modes:
+	//
+	// * `USER_ISOLATION`: Legacy alias for `DATA_SECURITY_MODE_STANDARD`. *
+	// `SINGLE_USER`: Legacy alias for `DATA_SECURITY_MODE_DEDICATED`.
+	//
+	// The following modes are deprecated starting with Databricks Runtime 15.0 and
+	// will be removed for future Databricks Runtime versions:
+	//
+	// * `LEGACY_TABLE_ACL`: This mode is for users migrating from legacy Table ACL
+	// clusters. * `LEGACY_PASSTHROUGH`: This mode is for users migrating from
+	// legacy Passthrough on high concurrency clusters. * `LEGACY_SINGLE_USER`: This
+	// mode is for users migrating from legacy Passthrough on standard clusters. *
+	// `LEGACY_SINGLE_USER_STANDARD`: This mode provides a way that doesn't have UC
+	// or passthrough enabled.
+	DataSecurityMode DataSecurityMode `fieldmask:"data_security_mode"`
 	// Determines the cluster's runtime engine, either standard or Photon.
 	//
 	// This field is not compatible with legacy `spark_version` values that contain
@@ -3236,7 +3588,22 @@ type UpdateClusterRequest_UpdateClusterResource struct {
 	// If left unspecified, the runtime engine defaults to standard unless the
 	// spark_version contains -photon-, in which case Photon will be used.
 	RuntimeEngine RuntimeEngine `fieldmask:"runtime_engine"`
-	Kind          ComputeKind   `fieldmask:"kind"`
+	// The kind of compute described by this compute specification.
+	//
+	// Depending on `kind`, different validations and default values will be
+	// applied.
+	//
+	// Clusters with `kind = CLASSIC_PREVIEW` support the following fields, whereas
+	// clusters with no specified `kind` do not. * [is_single_node] *
+	// [use_ml_runtime]
+	//
+	// By using the [simple form], your clusters are automatically using `kind =
+	// CLASSIC_PREVIEW`.
+	//
+	// [is_single_node]: https://docs.databricks.com/api/workspace/clusters/create#is_single_node
+	// [simple form]: https://docs.databricks.com/compute/simple-form.html
+	// [use_ml_runtime]: https://docs.databricks.com/api/workspace/clusters/create#use_ml_runtime
+	Kind ComputeKind `fieldmask:"kind"`
 	// This field can only be used when `kind = CLASSIC_PREVIEW`.
 	//
 	// `effective_spark_version` is determined by `spark_version` (DBR release),

@@ -258,6 +258,9 @@ type ColumnInfo struct {
 	Name *string
 	// Full data type specification as SQL/catalogString text.
 	TypeText *string
+	// The name of the column's data type, for example STRING, DECIMAL or STRUCT.
+	// The complete type, including parameters such as the precision of a decimal or
+	// the element type of an array, is in type_text.
 	TypeName ColumnTypeName
 	// Ordinal position of column (starting at position 0).
 	Position *int
@@ -275,7 +278,11 @@ type ColumnInfo struct {
 	Nullable *bool
 	// Partition index for column.
 	PartitionIndex *int
-	Mask           *ColumnMask
+	// The column mask function applied to this column, if any. A column mask is a
+	// SQL user-defined function that transforms the values a query returns for the
+	// column. See https://docs.databricks.com/aws/en/tables/row-and-column-filters
+	// for details.
+	Mask *ColumnMask
 }
 
 type ColumnMask struct {
@@ -310,10 +317,24 @@ type CreateTableRequest struct {
 	// Name of parent catalog.
 	CatalogName *string
 	// Name of parent schema relative to its parent catalog.
-	SchemaName       *string
-	TableType        TableType
+	SchemaName *string
+	// The type of the table. MANAGED tables store their data in storage that Unity
+	// Catalog manages, EXTERNAL tables store it in a registered external location,
+	// FOREIGN tables mirror objects of an external database through a connection,
+	// and the shallow clone types reference the data files of a base table. VIEW,
+	// MATERIALIZED_VIEW, STREAMING_TABLE and METRIC_VIEW are defined by a view
+	// definition. See https://docs.databricks.com/aws/en/tables/ for an overview of
+	// the table types.
+	TableType TableType
+	// The format of the data that backs the table, such as DELTA, PARQUET, CSV or
+	// JSON. Foreign tables report the external system that holds them, for example
+	// SNOWFLAKE_FORMAT or MYSQL_FORMAT.
 	DataSourceFormat DataSourceFormat
-	// Storage root URL for table (for **MANAGED**, **EXTERNAL** tables).
+	// The cloud storage URL under which the data files of the table are stored. For
+	// an EXTERNAL table, it must be set on creation to a path within an existing
+	// external location. For a MANAGED table, the server assigns a path under the
+	// managed storage location of the parent schema, catalog or metastore and
+	// returns it in this field. Views have no storage location.
 	StorageLocation *string
 	// View definition SQL (when __table_type__ is **VIEW**, **MATERIALIZED_VIEW**,
 	// or **STREAMING_TABLE**)
@@ -327,7 +348,8 @@ type CreateTableRequest struct {
 	ViewDependencies *DependencyList
 	// List of schemes whose objects can be referenced without qualification.
 	SqlPath *string
-	// Username of current owner of table.
+	// The user or group that owns the table. The principal that creates the table
+	// becomes its owner.
 	Owner *string
 	// User-provided free-form text description.
 	Comment *string
@@ -337,10 +359,18 @@ type CreateTableRequest struct {
 	// List of table constraints. Note: this field is not set in the output of the
 	// __listTables__ API.
 	TableConstraints []TableConstraint
-	RowFilter        *RowFilter
+	// The row filter function applied to the table, if any. A row filter is a SQL
+	// user-defined function that decides which rows a query returns. See
+	// https://docs.databricks.com/aws/en/tables/row-and-column-filters for details.
+	RowFilter *RowFilter
 	// The pipeline ID of the table. Applicable for tables created by pipelines
 	// (Materialized View, Streaming Table, etc.).
-	PipelineId                   *string
+	PipelineId *string
+	// Whether predictive optimization is enabled for this table. Valid values are
+	// ENABLE, DISABLE and INHERIT, where INHERIT applies the setting of the parent
+	// schema. It is ignored when creating a table. See
+	// https://docs.databricks.com/aws/en/optimizations/predictive-optimization for
+	// details.
 	EnablePredictiveOptimization *string
 	// Unique identifier of parent metastore.
 	MetastoreId *string
@@ -363,9 +393,12 @@ type CreateTableRequest struct {
 	DeltaRuntimePropertiesKvpairs *DeltaRuntimePropertiesKvPairs
 	// Time at which this table was deleted, in epoch milliseconds. Field is omitted
 	// if table is not deleted.
-	DeletedAt                           *int64
+	DeletedAt *int64
+	// The predictive optimization setting that is in effect for the table once
+	// inherited values are resolved.
 	EffectivePredictiveOptimizationFlag *EffectivePredictiveOptimizationFlag
-	// The AWS access point to use when accesing s3 for this external location.
+	// The AWS access point to use when accessing S3 for the storage location of
+	// this table.
 	AccessPoint *string
 	// Indicates whether the principal is limited to retrieving metadata for the
 	// associated object through the BROWSE privilege when include_browse is enabled
@@ -759,16 +792,34 @@ type TableExistsResponse struct {
 	TableExists *bool
 }
 
+// A table resides in the third layer of Unity Catalog's three-level namespace
+// and holds rows of data organized in columns. Besides managed and external
+// tables, it covers views, materialized views, streaming tables, metric views,
+// foreign tables and shallow clones, which table_type distinguishes..
 type TableInfo struct {
 	// Name of table, relative to parent schema.
 	Name *string
 	// Name of parent catalog.
 	CatalogName *string
 	// Name of parent schema relative to its parent catalog.
-	SchemaName       *string
-	TableType        TableType
+	SchemaName *string
+	// The type of the table. MANAGED tables store their data in storage that Unity
+	// Catalog manages, EXTERNAL tables store it in a registered external location,
+	// FOREIGN tables mirror objects of an external database through a connection,
+	// and the shallow clone types reference the data files of a base table. VIEW,
+	// MATERIALIZED_VIEW, STREAMING_TABLE and METRIC_VIEW are defined by a view
+	// definition. See https://docs.databricks.com/aws/en/tables/ for an overview of
+	// the table types.
+	TableType TableType
+	// The format of the data that backs the table, such as DELTA, PARQUET, CSV or
+	// JSON. Foreign tables report the external system that holds them, for example
+	// SNOWFLAKE_FORMAT or MYSQL_FORMAT.
 	DataSourceFormat DataSourceFormat
-	// Storage root URL for table (for **MANAGED**, **EXTERNAL** tables).
+	// The cloud storage URL under which the data files of the table are stored. For
+	// an EXTERNAL table, it must be set on creation to a path within an existing
+	// external location. For a MANAGED table, the server assigns a path under the
+	// managed storage location of the parent schema, catalog or metastore and
+	// returns it in this field. Views have no storage location.
 	StorageLocation *string
 	// View definition SQL (when __table_type__ is **VIEW**, **MATERIALIZED_VIEW**,
 	// or **STREAMING_TABLE**)
@@ -782,7 +833,8 @@ type TableInfo struct {
 	ViewDependencies *DependencyList
 	// List of schemes whose objects can be referenced without qualification.
 	SqlPath *string
-	// Username of current owner of table.
+	// The user or group that owns the table. The principal that creates the table
+	// becomes its owner.
 	Owner *string
 	// User-provided free-form text description.
 	Comment *string
@@ -792,10 +844,18 @@ type TableInfo struct {
 	// List of table constraints. Note: this field is not set in the output of the
 	// __listTables__ API.
 	TableConstraints []TableConstraint
-	RowFilter        *RowFilter
+	// The row filter function applied to the table, if any. A row filter is a SQL
+	// user-defined function that decides which rows a query returns. See
+	// https://docs.databricks.com/aws/en/tables/row-and-column-filters for details.
+	RowFilter *RowFilter
 	// The pipeline ID of the table. Applicable for tables created by pipelines
 	// (Materialized View, Streaming Table, etc.).
-	PipelineId                   *string
+	PipelineId *string
+	// Whether predictive optimization is enabled for this table. Valid values are
+	// ENABLE, DISABLE and INHERIT, where INHERIT applies the setting of the parent
+	// schema. It is ignored when creating a table. See
+	// https://docs.databricks.com/aws/en/optimizations/predictive-optimization for
+	// details.
 	EnablePredictiveOptimization *string
 	// Unique identifier of parent metastore.
 	MetastoreId *string
@@ -818,9 +878,12 @@ type TableInfo struct {
 	DeltaRuntimePropertiesKvpairs *DeltaRuntimePropertiesKvPairs
 	// Time at which this table was deleted, in epoch milliseconds. Field is omitted
 	// if table is not deleted.
-	DeletedAt                           *int64
+	DeletedAt *int64
+	// The predictive optimization setting that is in effect for the table once
+	// inherited values are resolved.
 	EffectivePredictiveOptimizationFlag *EffectivePredictiveOptimizationFlag
-	// The AWS access point to use when accesing s3 for this external location.
+	// The AWS access point to use when accessing S3 for the storage location of
+	// this table.
 	AccessPoint *string
 	// Indicates whether the principal is limited to retrieving metadata for the
 	// associated object through the BROWSE privilege when include_browse is enabled
@@ -837,7 +900,8 @@ type TableInfo struct {
 
 type TableSummary struct {
 	// The full name of the table.
-	FullName  *string
+	FullName *string
+	// The type of the table, with the same meaning as table_type on TableInfo.
 	TableType TableType
 	// SecurableKindManifest of table, including capabilities the table has.
 	SecurableKindManifest *SecurableKindManifest
@@ -851,10 +915,24 @@ type UpdateTableRequest struct {
 	// Name of parent catalog.
 	CatalogName *string
 	// Name of parent schema relative to its parent catalog.
-	SchemaName       *string
-	TableType        TableType
+	SchemaName *string
+	// The type of the table. MANAGED tables store their data in storage that Unity
+	// Catalog manages, EXTERNAL tables store it in a registered external location,
+	// FOREIGN tables mirror objects of an external database through a connection,
+	// and the shallow clone types reference the data files of a base table. VIEW,
+	// MATERIALIZED_VIEW, STREAMING_TABLE and METRIC_VIEW are defined by a view
+	// definition. See https://docs.databricks.com/aws/en/tables/ for an overview of
+	// the table types.
+	TableType TableType
+	// The format of the data that backs the table, such as DELTA, PARQUET, CSV or
+	// JSON. Foreign tables report the external system that holds them, for example
+	// SNOWFLAKE_FORMAT or MYSQL_FORMAT.
 	DataSourceFormat DataSourceFormat
-	// Storage root URL for table (for **MANAGED**, **EXTERNAL** tables).
+	// The cloud storage URL under which the data files of the table are stored. For
+	// an EXTERNAL table, it must be set on creation to a path within an existing
+	// external location. For a MANAGED table, the server assigns a path under the
+	// managed storage location of the parent schema, catalog or metastore and
+	// returns it in this field. Views have no storage location.
 	StorageLocation *string
 	// View definition SQL (when __table_type__ is **VIEW**, **MATERIALIZED_VIEW**,
 	// or **STREAMING_TABLE**)
@@ -868,7 +946,8 @@ type UpdateTableRequest struct {
 	ViewDependencies *DependencyList
 	// List of schemes whose objects can be referenced without qualification.
 	SqlPath *string
-	// Username of current owner of table.
+	// The user or group that owns the table. The principal that creates the table
+	// becomes its owner.
 	Owner *string
 	// User-provided free-form text description.
 	Comment *string
@@ -878,10 +957,18 @@ type UpdateTableRequest struct {
 	// List of table constraints. Note: this field is not set in the output of the
 	// __listTables__ API.
 	TableConstraints []TableConstraint
-	RowFilter        *RowFilter
+	// The row filter function applied to the table, if any. A row filter is a SQL
+	// user-defined function that decides which rows a query returns. See
+	// https://docs.databricks.com/aws/en/tables/row-and-column-filters for details.
+	RowFilter *RowFilter
 	// The pipeline ID of the table. Applicable for tables created by pipelines
 	// (Materialized View, Streaming Table, etc.).
-	PipelineId                   *string
+	PipelineId *string
+	// Whether predictive optimization is enabled for this table. Valid values are
+	// ENABLE, DISABLE and INHERIT, where INHERIT applies the setting of the parent
+	// schema. It is ignored when creating a table. See
+	// https://docs.databricks.com/aws/en/optimizations/predictive-optimization for
+	// details.
 	EnablePredictiveOptimization *string
 	// Unique identifier of parent metastore.
 	MetastoreId *string
@@ -904,9 +991,12 @@ type UpdateTableRequest struct {
 	DeltaRuntimePropertiesKvpairs *DeltaRuntimePropertiesKvPairs
 	// Time at which this table was deleted, in epoch milliseconds. Field is omitted
 	// if table is not deleted.
-	DeletedAt                           *int64
+	DeletedAt *int64
+	// The predictive optimization setting that is in effect for the table once
+	// inherited values are resolved.
 	EffectivePredictiveOptimizationFlag *EffectivePredictiveOptimizationFlag
-	// The AWS access point to use when accesing s3 for this external location.
+	// The AWS access point to use when accessing S3 for the storage location of
+	// this table.
 	AccessPoint *string
 	// Indicates whether the principal is limited to retrieving metadata for the
 	// associated object through the BROWSE privilege when include_browse is enabled

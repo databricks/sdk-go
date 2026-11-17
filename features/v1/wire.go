@@ -6186,6 +6186,7 @@ type materializedFeatureWire struct {
 	JobId                   *wireInt64                                `json:"job_id,omitempty"`
 	Notifications           *materializationNotificationsWire         `json:"notifications,omitempty"`
 	MaterializationSetId    *string                                   `json:"materialization_set_id,omitempty"`
+	Operations              *materializedFeatureOperationsWire        `json:"operations,omitempty"`
 }
 
 func materializedFeatureToWire(v *MaterializedFeature) (*materializedFeatureWire, error) {
@@ -6199,6 +6200,10 @@ func materializedFeatureToWire(v *MaterializedFeature) (*materializedFeatureWire
 	notificationsWireValue, err := materializationNotificationsToWire(v.Notifications)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "MaterializedFeature.Notifications", err)
+	}
+	operationsWireValue, err := materializedFeatureOperationsToWire(v.Operations)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializedFeature.Operations", err)
 	}
 	var destinationOfflineStoreConfigWire *offlineStoreConfigWire
 	var destinationOnlineStoreConfigWire *onlineStoreConfigWire
@@ -6285,6 +6290,7 @@ func materializedFeatureToWire(v *MaterializedFeature) (*materializedFeatureWire
 		JobId:                   jobIdWireValue,
 		Notifications:           notificationsWireValue,
 		MaterializationSetId:    v.MaterializationSetId,
+		Operations:              operationsWireValue,
 	}, nil
 }
 
@@ -6325,6 +6331,10 @@ func materializedFeatureFromWire(w *materializedFeatureWire) (*MaterializedFeatu
 	notificationsPublicValue, err := materializationNotificationsFromWire(w.Notifications)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "MaterializedFeature.Notifications", err)
+	}
+	operationsPublicValue, err := materializedFeatureOperationsFromWire(w.Operations)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "MaterializedFeature.Operations", err)
 	}
 	var destinationSelection isMaterializedFeature_Destination
 	switch {
@@ -6383,6 +6393,7 @@ func materializedFeatureFromWire(w *materializedFeatureWire) (*MaterializedFeatu
 		JobId:                   jobIdPublicValue,
 		Notifications:           notificationsPublicValue,
 		MaterializationSetId:    w.MaterializationSetId,
+		Operations:              operationsPublicValue,
 		Destination:             destinationSelection,
 		Trigger:                 triggerSelection,
 	}, nil
@@ -6457,6 +6468,52 @@ func (v *MaterializedFeatureChangeFailure) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := materializedFeatureChangeFailureFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type materializedFeatureOperationsWire struct {
+	LatestEntityPurgeOperation *string `json:"latest_entity_purge_operation,omitempty"`
+}
+
+func materializedFeatureOperationsToWire(v *MaterializedFeatureOperations) (*materializedFeatureOperationsWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &materializedFeatureOperationsWire{
+		LatestEntityPurgeOperation: v.LatestEntityPurgeOperation,
+	}, nil
+}
+
+func materializedFeatureOperationsFromWire(w *materializedFeatureOperationsWire) (*MaterializedFeatureOperations, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &MaterializedFeatureOperations{
+		LatestEntityPurgeOperation: w.LatestEntityPurgeOperation,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v MaterializedFeatureOperations) MarshalJSON() ([]byte, error) {
+	w, err := materializedFeatureOperationsToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *MaterializedFeatureOperations) UnmarshalJSON(data []byte) error {
+	var w materializedFeatureOperationsWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := materializedFeatureOperationsFromWire(&w)
 	if err != nil {
 		return err
 	}

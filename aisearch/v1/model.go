@@ -164,6 +164,44 @@ const (
 	EndpointStatus_State_Starting EndpointStatus_State = "STARTING"
 )
 
+// Detailed lifecycle state of the index.
+type IndexStatus_State string
+
+const (
+	IndexStatus_State_Unspecified IndexStatus_State = ""
+	// Provisioning the serving endpoint.
+	IndexStatus_State_ProvisioningEndpoint IndexStatus_State = "PROVISIONING_ENDPOINT"
+	// Setting up a direct access index.
+	IndexStatus_State_ProvisioningIndex IndexStatus_State = "PROVISIONING_INDEX"
+	// Setting up the Spark cluster for the sync pipeline.
+	IndexStatus_State_ProvisioningPipelineResources IndexStatus_State = "PROVISIONING_PIPELINE_RESOURCES"
+	// Syncing the initial snapshot of a Delta Sync source table.
+	IndexStatus_State_ProvisioningInitialSnapshot IndexStatus_State = "PROVISIONING_INITIAL_SNAPSHOT"
+	// Default Online state, if a more detailed state cannot be determined.
+	IndexStatus_State_Online IndexStatus_State = "ONLINE"
+	// Index is ready and the sync pipeline is running in continuous mode.
+	IndexStatus_State_OnlineContinuousUpdate IndexStatus_State = "ONLINE_CONTINUOUS_UPDATE"
+	// Index is ready and the sync pipeline is running in triggered mode with an
+	// active update.
+	IndexStatus_State_OnlineTriggeredUpdate IndexStatus_State = "ONLINE_TRIGGERED_UPDATE"
+	// Index is ready and the sync pipeline is running in triggered mode with no
+	// active update.
+	IndexStatus_State_OnlineNoPendingUpdate IndexStatus_State = "ONLINE_NO_PENDING_UPDATE"
+	// Index is ready for direct access; no sync pipeline status details are needed.
+	IndexStatus_State_OnlineDirectAccess IndexStatus_State = "ONLINE_DIRECT_ACCESS"
+	// Index is offline.
+	IndexStatus_State_Offline IndexStatus_State = "OFFLINE"
+	// Index is offline because of a failure.
+	IndexStatus_State_OfflineFailed IndexStatus_State = "OFFLINE_FAILED"
+	// The latest pipeline update failed, but the index can still serve previously
+	// indexed data.
+	IndexStatus_State_OnlinePipelineFailed IndexStatus_State = "ONLINE_PIPELINE_FAILED"
+	// Index is online, but the pipeline is restarting and acquiring resources.
+	IndexStatus_State_OnlineUpdatingPipelineResources IndexStatus_State = "ONLINE_UPDATING_PIPELINE_RESOURCES"
+	// Downloading index data onto serving compute.
+	IndexStatus_State_Downloading IndexStatus_State = "DOWNLOADING"
+)
+
 // How the `model` field is interpreted.
 type RerankerConfig_ModelType string
 
@@ -196,11 +234,10 @@ type CreateEndpointRequest struct {
 	// desired configuration; `endpoint.name` is server-assigned from `parent` and
 	// `endpoint_id`.
 	Endpoint *Endpoint
-	// The user-supplied short name for the Endpoint, per AIP-133. The server
-	// composes the full `Endpoint.name` as `{parent}/endpoints/{endpoint_id}`.
-	// AIP-133 does not list `endpoint_id` as a fields-may-be-required entry, so we
-	// annotate it OPTIONAL on the wire; the server still rejects empty values with
-	// INVALID_PARAMETER_VALUE.
+	// Short name of the endpoint, which becomes the last segment of `name`. The
+	// server rejects a request without it. The name can have at most 50 characters,
+	// can contain only lowercase letters, digits, hyphens, periods, and
+	// underscores, and must start and end with a letter or digit.
 	EndpointId *string
 }
 
@@ -326,12 +363,14 @@ type EmbeddingVectorColumn struct {
 // and serves queries against them. Customers create, query, and delete
 // endpoints; the system manages provisioning, scaling, and health status..
 type Endpoint struct {
-	// Name of the AI Search endpoint. Server-assigned full resource path
-	// (`workspaces/{workspace}/endpoints/{endpoint}`) on output. On create, the
-	// user-supplied short name is conveyed via `CreateEndpointRequest.endpoint_id`;
-	// the server composes the full `name` and returns it on the response.
+	// Full resource name of the endpoint, in the form
+	// `workspaces/{workspace_id}/endpoints/{endpoint_id}`. On create, the server
+	// composes it from `parent` and `endpoint_id` and ignores any value supplied in
+	// the request body.
 	Name *string `fieldmask:"name"`
-	// Creator of the endpoint
+	// User name of the principal that created the endpoint. For a user, it is the
+	// user's email address; for any other principal, it is the principal's unique
+	// name.
 	Creator *string `fieldmask:"creator"`
 	// Time the endpoint was created.
 	CreateTime *types.Time `fieldmask:"create_time"`
@@ -339,31 +378,39 @@ type Endpoint struct {
 	UpdateTime *types.Time `fieldmask:"update_time"`
 	// Type of endpoint. Required on create and immutable thereafter.
 	EndpointType EndpointType `fieldmask:"endpoint_type"`
-	// User who last updated the endpoint
+	// User name of the principal that last updated the endpoint, in the same format
+	// as `creator`.
 	LastUpdatedUser *string `fieldmask:"last_updated_user"`
-	// Unique identifier of the endpoint
+	// System-generated UUID that uniquely identifies the endpoint.
 	Id *string `fieldmask:"id"`
-	// Current status of the endpoint
+	// Current lifecycle state of the endpoint, with an optional message that
+	// explains it.
 	EndpointStatus *EndpointStatus `fieldmask:"endpoint_status"`
 	// Number of indexes on the endpoint
 	IndexCount *int `fieldmask:"index_count"`
-	// The user-selected budget policy id for the endpoint.
+	// ID of the serverless budget policy to apply to the endpoint. The caller must
+	// have permission to use the policy. Set either this field or
+	// `usage_policy_id`, not both. Responses do not echo this field; they report
+	// the applied policy in `effective_budget_policy_id`.
 	BudgetPolicyId *string `fieldmask:"budget_policy_id"`
-	// The budget policy id applied to the endpoint
+	// ID of the budget policy that is currently applied to the endpoint.
 	EffectiveBudgetPolicyId *string `fieldmask:"effective_budget_policy_id"`
-	// The custom tags assigned to the endpoint
+	// Custom tags assigned to the endpoint. On update, the list replaces all of the
+	// endpoint's existing tags.
 	CustomTags []CustomTag `fieldmask:"custom_tags"`
 	// Throughput information for the endpoint
 	ThroughputInfo *EndpointThroughputInfo `fieldmask:"throughput_info"`
 	// Scaling information for the endpoint
 	ScalingInfo *EndpointScalingInfo `fieldmask:"scaling_info"`
-	// The usage policy id applied to the endpoint.
+	// ID of the usage policy to apply to the endpoint. The server treats it as the
+	// same setting as `budget_policy_id`, so set only one of the two.
 	UsagePolicyId *string `fieldmask:"usage_policy_id"`
 	// The client-supplied desired number of replicas for the endpoint, applied at
 	// create/update time. Mutually exclusive with `target_qps`.
 	ReplicaCount *int `fieldmask:"replica_count"`
 	// Target QPS for the endpoint. Mutually exclusive with `replica_count`.
 	// Best-effort; the system does not guarantee this QPS will be achieved.
+	// Responses report the requested value in `scaling_info.requested_target_qps`.
 	TargetQps *int `fieldmask:"target_qps"`
 }
 
@@ -513,12 +560,16 @@ func (*Index_IndexSpec_DeltaSyncIndexSpec) isIndex_IndexSpec() {}
 // Lifecycle and health state of an AI Search index, along with human-readable
 // detail about that state and basic indexing progress..
 type IndexStatus struct {
+	// Lifecycle and ingestion state. An online index can still have a failed
+	// update.
+	DetailedState IndexStatus_State
 	// Human-readable detail about the index's current state.
 	Message *string
 	// Number of rows indexed.
 	IndexedRowCount *int64
-	// Whether the index is ready to serve queries. After CreateIndex, poll GetIndex
-	// until this is true; `message` describes the current state in the meantime.
+	// Whether the index can serve queries. After CreateIndex, poll GetIndex until
+	// true; message describes progress. This does not guarantee freshness or update
+	// success; check detailed_state for update failures.
 	Ready *bool
 	// Index API URL used to perform operations on the index.
 	IndexUrl *string
@@ -529,10 +580,9 @@ type ListEndpointsRequest struct {
 	// The Workspace that owns this collection of endpoints. Format:
 	// `workspaces/{workspace_id}`
 	Parent *string
-	// Best-effort upper bound on the number of results to return. Honored as an
-	// upper bound by the shim: `page_size` only narrows the legacy backend's
-	// response, never widens it, so the practical cap is `min(page_size,
-	// legacy_fixed_page_size)`.
+	// Maximum number of endpoints to return in one page. The server applies its own
+	// page size limit, so a page can hold fewer endpoints than `page_size` even
+	// when more remain.
 	PageSize *int
 	// Page token from a previous response. If not provided, returns the first page.
 	PageToken *string
@@ -744,7 +794,9 @@ type UpdateEndpointRequest struct {
 	// The Endpoint resource to update. `endpoint.name` carries the full resource
 	// path.
 	Endpoint *Endpoint
-	// The list of fields to update.
+	// Comma-separated list of `Endpoint` fields to update. The updatable fields are
+	// `budget_policy_id`, `usage_policy_id`, `custom_tags`, `replica_count`, and
+	// `target_qps`. The server rejects nested paths and unknown fields.
 	UpdateMask *types.FieldMask[Endpoint]
 }
 

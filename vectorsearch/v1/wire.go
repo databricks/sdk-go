@@ -1274,6 +1274,69 @@ func (v *FacetResultData) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type failedStatusWire struct {
+	ErrorMessage                 *string     `json:"error_message,omitempty"`
+	LastProcessedCommitVersion   *wireInt64  `json:"last_processed_commit_version,omitempty"`
+	LastProcessedCommitTimestamp *types.Time `json:"last_processed_commit_timestamp,omitempty"`
+	ErrorCode                    *string     `json:"error_code,omitempty"`
+}
+
+func failedStatusToWire(v *FailedStatus) (*failedStatusWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	lastProcessedCommitVersionWireValue, err := int64ToWire(v.LastProcessedCommitVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FailedStatus.LastProcessedCommitVersion", err)
+	}
+	return &failedStatusWire{
+		ErrorMessage:                 v.ErrorMessage,
+		LastProcessedCommitVersion:   lastProcessedCommitVersionWireValue,
+		LastProcessedCommitTimestamp: v.LastProcessedCommitTimestamp,
+		ErrorCode:                    v.ErrorCode,
+	}, nil
+}
+
+func failedStatusFromWire(w *failedStatusWire) (*FailedStatus, error) {
+	if w == nil {
+		return nil, nil
+	}
+	lastProcessedCommitVersionPublicValue, err := int64FromWire(w.LastProcessedCommitVersion)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "FailedStatus.LastProcessedCommitVersion", err)
+	}
+	return &FailedStatus{
+		ErrorMessage:                 w.ErrorMessage,
+		LastProcessedCommitVersion:   lastProcessedCommitVersionPublicValue,
+		LastProcessedCommitTimestamp: w.LastProcessedCommitTimestamp,
+		ErrorCode:                    w.ErrorCode,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v FailedStatus) MarshalJSON() ([]byte, error) {
+	w, err := failedStatusToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *FailedStatus) UnmarshalJSON(data []byte) error {
+	var w failedStatusWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := failedStatusFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getEndpointRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -3653,10 +3716,12 @@ func (v *VectorIndex) UnmarshalJSON(data []byte) error {
 }
 
 type vectorIndexStatusWire struct {
-	Message         *string    `json:"message,omitempty"`
-	IndexedRowCount *wireInt64 `json:"indexed_row_count,omitempty"`
-	Ready           *bool      `json:"ready,omitempty"`
-	IndexUrl        *string    `json:"index_url,omitempty"`
+	DetailedState   IndexStatus       `json:"detailed_state,omitempty"`
+	Message         *string           `json:"message,omitempty"`
+	IndexedRowCount *wireInt64        `json:"indexed_row_count,omitempty"`
+	FailedStatus    *failedStatusWire `json:"failed_status,omitempty"`
+	Ready           *bool             `json:"ready,omitempty"`
+	IndexUrl        *string           `json:"index_url,omitempty"`
 }
 
 func vectorIndexStatusToWire(v *VectorIndexStatus) (*vectorIndexStatusWire, error) {
@@ -3667,9 +3732,25 @@ func vectorIndexStatusToWire(v *VectorIndexStatus) (*vectorIndexStatusWire, erro
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "VectorIndexStatus.IndexedRowCount", err)
 	}
+	var detailedStatusFailedStatusWire *failedStatusWire
+	switch value := v.DetailedStatus.(type) {
+	case nil:
+	case *VectorIndexStatus_DetailedStatus_FailedStatus:
+		if value != nil {
+			detailedStatusFailedStatusConverted, err := failedStatusToWire(&value.FailedStatus)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "VectorIndexStatus.DetailedStatus.FailedStatus", err)
+			}
+			detailedStatusFailedStatusWire = detailedStatusFailedStatusConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "VectorIndexStatus.DetailedStatus", value)
+	}
 	return &vectorIndexStatusWire{
+		DetailedState:   v.DetailedState,
 		Message:         v.Message,
 		IndexedRowCount: indexedRowCountWireValue,
+		FailedStatus:    detailedStatusFailedStatusWire,
 		Ready:           v.Ready,
 		IndexUrl:        v.IndexUrl,
 	}, nil
@@ -3679,15 +3760,33 @@ func vectorIndexStatusFromWire(w *vectorIndexStatusWire) (*VectorIndexStatus, er
 	if w == nil {
 		return nil, nil
 	}
+	detailedStatusMembers := 0
+	if w.FailedStatus != nil {
+		detailedStatusMembers++
+	}
+	if detailedStatusMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "VectorIndexStatus.DetailedStatus")
+	}
 	indexedRowCountPublicValue, err := int64FromWire(w.IndexedRowCount)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "VectorIndexStatus.IndexedRowCount", err)
 	}
+	var detailedStatusSelection isVectorIndexStatus_DetailedStatus
+	switch {
+	case w.FailedStatus != nil:
+		detailedStatusFailedStatusConverted, err := failedStatusFromWire(w.FailedStatus)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "VectorIndexStatus.DetailedStatus.FailedStatus", err)
+		}
+		detailedStatusSelection = &VectorIndexStatus_DetailedStatus_FailedStatus{FailedStatus: *detailedStatusFailedStatusConverted}
+	}
 	return &VectorIndexStatus{
+		DetailedState:   w.DetailedState,
 		Message:         w.Message,
 		IndexedRowCount: indexedRowCountPublicValue,
 		Ready:           w.Ready,
 		IndexUrl:        w.IndexUrl,
+		DetailedStatus:  detailedStatusSelection,
 	}, nil
 }
 

@@ -420,7 +420,9 @@ type GetStatementResultRequest struct {
 // users to attribute the executions by key and optional value to filter by.
 // QueryTag is the user-facing representation..
 type QueryTag struct {
-	Key   *string
+	// The key of the tag.
+	Key *string
+	// The value of the tag. Key-only tags have no value.
 	Value *string
 }
 

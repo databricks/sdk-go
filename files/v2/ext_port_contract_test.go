@@ -39,6 +39,7 @@ import (
 	"github.com/databricks/sdk-go/core/apierr"
 	"github.com/databricks/sdk-go/core/apierr/codes"
 	"github.com/databricks/sdk-go/core/ops"
+	"github.com/databricks/sdk-go/files/v2/internal/cloudstorage"
 	"github.com/databricks/sdk-go/options/call"
 )
 
@@ -181,6 +182,7 @@ func runScenario(t *testing.T, h contractHeader, s contractScenario, wantOutcome
 	srv := newPortFake(cfg)
 	e := newEngine(buildUploadClient(t, "http://"+k.WorkspaceHost, srv.Client(), ""))
 	e.tun = contractTunables(e.tun, k.PartSize)
+	e.tun.endpointsAPI = h.EndpointLists[s.EndpointList].EndpointsAPI != nil
 
 	ctx, cancel := context.WithTimeoutCause(t.Context(), 30*time.Second, errScenarioHung)
 	defer cancel()
@@ -195,7 +197,7 @@ func runScenario(t *testing.T, h contractHeader, s contractScenario, wantOutcome
 		return hung, hung
 	}
 
-	if got := contractOutcome(err); got != wantOutcome {
+	if got := contractOutcome(err); got != wantOutcome && !retriesRanOut(wantOutcome, err) {
 		mismatches = append(mismatches, fmt.Sprintf("outcome = %s (%v), want %s", got, err, wantOutcome))
 	}
 	if got := srv.EndpointsTouched(); !slices.Equal(got, s.Expect.EndpointsUsed) {
@@ -319,6 +321,13 @@ func contractOutcome(err error) string {
 		return "UNEXPECTED_RESPONSE"
 	}
 	return "UNCLASSIFIED"
+}
+
+// retriesRanOut reports whether err is how Go reports the contract's
+// RETRY_ATTEMPTS_EXHAUSTED: with the last failure, as ops.Execute returns it,
+// which is one the retrier retries. The request counts show the retries.
+func retriesRanOut(wantOutcome string, err error) bool {
+	return wantOutcome == "RETRY_ATTEMPTS_EXHAUSTED" && cloudstorage.IsRetriable(err)
 }
 
 // contractPayload returns size bytes that are the same on every run.

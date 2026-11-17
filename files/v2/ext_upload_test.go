@@ -5,11 +5,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -18,6 +21,8 @@ import (
 	"time"
 
 	"github.com/databricks/sdk-go/auth"
+	"github.com/databricks/sdk-go/core/apierr"
+	"github.com/databricks/sdk-go/core/apierr/codes"
 	"github.com/databricks/sdk-go/core/ops"
 	"github.com/databricks/sdk-go/options/client"
 )
@@ -70,14 +75,27 @@ type fakeServer struct {
 	srv *httptest.Server
 
 	mu          sync.Mutex
-	mode        string // "multipart" or "resumable"
+	mode        string // "multipart", or "resumable" to offer a resumable session
 	parts       map[int][]byte
 	completed   []completePart
 	singleBody  []byte
-	resumable   []byte
 	overwriteQ  []string      // overwrite query values seen on initiate + single-shot
 	partHeaders []http.Header // headers seen on cloud part PUTs
 	partURLReqs []int         // Count of each create-upload-part-urls request
+	aborts      []string      // session_token of each abort-upload request
+
+	// abortStatus, when non-zero, is returned by abort-upload.
+	abortStatus int
+
+	// initiateStatus and initiateBody, when the status is non-zero, answer
+	// initiate-upload.
+	initiateStatus int
+	initiateBody   string
+
+	// partURLsStatus and partURLsBody, when the status is non-zero, answer
+	// create-upload-part-urls.
+	partURLsStatus int
+	partURLsBody   string
 
 	// partHook injects faults. It returns (statusCode, etag, body); a zero
 	// statusCode means "use the default 200 + store".
@@ -93,18 +111,6 @@ type fakeServer struct {
 	// the default 200 + store". singleTry counts single-shot PUTs seen.
 	singleShotHook func(attempt int) int
 	singleTry      int
-
-	// stuckResumable makes a resumable chunk PUT confirm no new bytes, modeling a
-	// server/proxy wedged at a fixed offset.
-	stuckResumable bool
-
-	// resumableChunkHook injects per-chunk faults on the resumable data PUT. For a
-	// non-zero returned status the chunk's bytes are still committed (so the
-	// client's status query reveals forward progress), but the response is that
-	// status -- modeling a spurious transient failure on a chunk that did land.
-	// resumableTry counts data-chunk PUTs (not status queries).
-	resumableChunkHook func(attempt int) int
-	resumableTry       int
 }
 
 func newFakeServer(t *testing.T, mode string) *fakeServer {
@@ -144,16 +150,8 @@ func (f *fakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.Method == http.MethodPost && strings.HasSuffix(path, "/create-upload-part-urls"):
 		f.handleCreatePartURLs(w, r)
-	case r.Method == http.MethodPost && strings.HasSuffix(path, "/create-resumable-upload-url"):
-		writeJSON(w, resumableURLResponse{ResumableUploadURL: &urlWithHeaders{URL: f.base() + "/cloud/resumable"}})
-	case r.Method == http.MethodPost && strings.HasSuffix(path, "/create-abort-upload-url"):
-		writeJSON(w, abortURLResponse{AbortUploadURL: &urlWithHeaders{URL: f.base() + "/cloud/abort"}})
 	case r.Method == http.MethodPut && strings.HasPrefix(path, "/cloud/part/"):
 		f.handlePartPut(w, r)
-	case r.Method == http.MethodPut && path == "/cloud/resumable":
-		f.handleResumablePut(w, r)
-	case r.Method == http.MethodDelete && (path == "/cloud/abort" || path == "/cloud/resumable"):
-		w.WriteHeader(http.StatusOK)
 	case strings.Contains(path, "/api/2.0/fs/files/"):
 		f.handleFiles(w, r)
 	default:
@@ -168,11 +166,31 @@ func (f *fakeServer) handleFiles(w http.ResponseWriter, r *http.Request) {
 		f.mu.Lock()
 		f.overwriteQ = append(f.overwriteQ, r.URL.Query().Get("overwrite"))
 		f.mu.Unlock()
+		if f.initiateStatus != 0 {
+			w.WriteHeader(f.initiateStatus)
+			_, _ = io.WriteString(w, f.initiateBody)
+			return
+		}
 		if f.mode == "resumable" {
-			writeJSON(w, initiateResult{ResumableUpload: &uploadSession{SessionToken: "tok"}})
+			// A resumable session, which this package does not support.
+			writeJSON(w, map[string]any{"resumable_upload": map[string]any{"session_token": "tok"}})
 		} else {
 			writeJSON(w, initiateResult{MultipartUpload: &uploadSession{SessionToken: "tok"}})
 		}
+	case r.Method == http.MethodPost && action == "abort-upload":
+		if q := r.URL.Query(); q.Get("upload_type") != "multipart" {
+			http.Error(w, "abort-upload without upload_type=multipart", http.StatusBadRequest)
+			return
+		}
+		f.mu.Lock()
+		f.aborts = append(f.aborts, r.URL.Query().Get("session_token"))
+		status := f.abortStatus
+		f.mu.Unlock()
+		if status != 0 {
+			w.WriteHeader(status)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
 	case r.Method == http.MethodPost && action == "complete-upload":
 		var req completeRequest
 		_ = json.NewDecoder(r.Body).Decode(&req)
@@ -213,6 +231,11 @@ func (f *fakeServer) handleCreatePartURLs(w http.ResponseWriter, r *http.Request
 	f.mu.Lock()
 	f.partURLReqs = append(f.partURLReqs, req.Count)
 	f.mu.Unlock()
+	if f.partURLsStatus != 0 {
+		w.WriteHeader(f.partURLsStatus)
+		_, _ = io.WriteString(w, f.partURLsBody)
+		return
+	}
 	var out createPartURLsResponse
 	for i := range req.Count {
 		n := req.StartPartNumber + i
@@ -254,55 +277,11 @@ func (f *fakeServer) handlePartPut(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (f *fakeServer) handleResumablePut(w http.ResponseWriter, r *http.Request) {
-	body, _ := io.ReadAll(r.Body)
-	cr := r.Header.Get("Content-Range")
-	// Status query: "bytes */*" -> report current confirmed offset.
-	if cr == "bytes */*" {
-		f.mu.Lock()
-		n := len(f.resumable)
-		f.mu.Unlock()
-		if n == 0 {
-			w.WriteHeader(http.StatusPermanentRedirect)
-			return
-		}
-		w.Header().Set("Range", "bytes=0-"+strconv.Itoa(n-1))
-		w.WriteHeader(http.StatusPermanentRedirect)
-		return
-	}
-
-	// A wedged server: accept a non-final chunk but confirm no new bytes (no Range
-	// header), so the client sees a zero-progress 308 and must bound its retries.
-	if f.stuckResumable && strings.HasSuffix(cr, "/*") {
-		w.WriteHeader(http.StatusPermanentRedirect)
-		return
-	}
-
+// abortsSeen returns the session_token of each abort-upload request.
+func (f *fakeServer) abortsSeen() []string {
 	f.mu.Lock()
-	f.resumable = append(f.resumable, body...)
-	total := len(f.resumable)
-	f.resumableTry++
-	hook, attempt := f.resumableChunkHook, f.resumableTry
-	f.mu.Unlock()
-
-	// The chunk's bytes are committed above; a hooked transient status models a
-	// blip on a chunk that actually landed, so the client's follow-up status
-	// query sees forward progress.
-	if hook != nil {
-		if s := hook(attempt); s != 0 {
-			w.WriteHeader(s)
-			return
-		}
-	}
-
-	// Content-Range: bytes {start}-{end}/{total|*}
-	final := !strings.HasSuffix(cr, "/*")
-	if final {
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-	w.Header().Set("Range", "bytes=0-"+strconv.Itoa(total-1))
-	w.WriteHeader(http.StatusPermanentRedirect)
+	defer f.mu.Unlock()
+	return slices.Clone(f.aborts)
 }
 
 // assembled returns the bytes the server reconstructed for the upload.
@@ -311,9 +290,6 @@ func (f *fakeServer) assembled() []byte {
 	defer f.mu.Unlock()
 	if f.singleBody != nil {
 		return f.singleBody
-	}
-	if f.mode == "resumable" {
-		return f.resumable
 	}
 	var out []byte
 	for _, p := range f.completed {
@@ -564,6 +540,10 @@ func TestCloudRejectsAllPartsFallsBackToSingleShot(t *testing.T) {
 	noErr(t, err)
 	// The fallback single-shot PUT carries the whole object.
 	eqBytes(t, f.assembled(), in)
+	// The abandoned multipart session is aborted before falling back.
+	if got, want := f.abortsSeen(), []string{"tok"}; !slices.Equal(got, want) {
+		t.Errorf("aborts = %v, want %v", got, want)
+	}
 }
 
 func TestUploadAlreadyExists(t *testing.T) {
@@ -633,6 +613,251 @@ func TestSingleShotRetriesWithProgress(t *testing.T) {
 	}
 }
 
+func TestSingleShotRetriesAFileBody(t *testing.T) {
+	// An *os.File body is an io.Closer, which net/http closes after each attempt.
+	// The retry must still rewind it, and the caller's file must stay open.
+	in := data(500) // below the 1024 single-shot threshold
+	src := filepath.Join(t.TempDir(), "src.bin")
+	if err := os.WriteFile(src, in, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	upload := map[string]func(*engine) error{
+		"UploadFrom": func(e *engine) error {
+			_, err := e.uploadFrom(t.Context(), "/Volumes/c/s/v/p.bin", src)
+			return err
+		},
+		"Upload with the caller's file": func(e *engine) error {
+			f, err := os.Open(src)
+			if err != nil {
+				return err
+			}
+			defer f.Close()
+			if _, err := e.upload(t.Context(), "/Volumes/c/s/v/p.bin", f); err != nil {
+				return err
+			}
+			if _, err := f.Seek(0, io.SeekStart); err != nil {
+				return fmt.Errorf("the caller's file was closed: %w", err)
+			}
+			return nil
+		},
+	}
+	for name, run := range upload {
+		t.Run(name, func(t *testing.T) {
+			f := newFakeServer(t, "multipart")
+			f.singleShotHook = func(attempt int) int {
+				if attempt == 1 {
+					return http.StatusServiceUnavailable
+				}
+				return 0
+			}
+			e := shrunkEngine(t, f)
+			e.tun.cpBackoff = ops.BackoffPolicy{Initial: time.Millisecond, Maximum: time.Millisecond, Factor: 1}
+
+			noErr(t, run(e))
+			eqBytes(t, f.assembled(), in)
+			if f.singleTry != 2 {
+				t.Errorf("single-shot attempts = %d, want 2 (one retry after the 503)", f.singleTry)
+			}
+		})
+	}
+}
+
+func TestSingleShotRetryIsNotCutShortByALateRead(t *testing.T) {
+	// net/http may still read a request body after the attempt returns, until
+	// it closes it. This transport answers the first attempt with a 503 at once
+	// and keeps reading that attempt's body while the retry runs, as a write
+	// loop still sending it would. The retry must still send every byte.
+	in := data(500) // below the 1024 single-shot threshold
+	src := filepath.Join(t.TempDir(), "src.bin")
+	noErr(t, os.WriteFile(src, in, 0o600))
+	uploads := map[string]struct {
+		upload func(*engine) error
+		// randomAccess is whether net/http can also send the body again itself.
+		randomAccess bool
+	}{
+		"a file": {func(e *engine) error {
+			_, err := e.uploadFrom(t.Context(), "/Volumes/c/s/v/p.bin", src)
+			return err
+		}, true},
+		"a reader without random access": {func(e *engine) error {
+			_, err := e.upload(t.Context(), "/Volumes/c/s/v/p.bin", struct{ io.ReadSeeker }{bytes.NewReader(in)})
+			return err
+		}, false},
+	}
+	for name, tc := range uploads {
+		t.Run(name, func(t *testing.T) {
+			retrying, lateReadDone := make(chan struct{}), make(chan struct{})
+			var attempts int
+			var sent, resent []byte
+			var sentLength int64
+			rt := roundTripFunc(func(r *http.Request) (*http.Response, error) {
+				attempts++
+				if attempts == 1 {
+					go func() {
+						// Wait for the retry, but not forever: a retry that
+						// waits for this attempt's body to close never starts.
+						select {
+						case <-retrying:
+						case <-time.After(100 * time.Millisecond):
+						}
+						_, _ = io.CopyN(io.Discard, r.Body, 100)
+						_ = r.Body.Close()
+						close(lateReadDone)
+					}()
+					return cannedResponse(r, http.StatusServiceUnavailable, `{"error_code":"TEMPORARILY_UNAVAILABLE","message":"busy"}`), nil
+				}
+				if attempts == 2 {
+					close(retrying)
+				}
+				<-lateReadDone
+				var err error
+				sent, err = io.ReadAll(r.Body)
+				_ = r.Body.Close()
+				sentLength = r.ContentLength
+				if err != nil {
+					return nil, err
+				}
+				if r.GetBody != nil {
+					again, err := r.GetBody()
+					if err != nil {
+						return nil, err
+					}
+					resent, _ = io.ReadAll(again)
+				}
+				return cannedResponse(r, http.StatusNoContent, ""), nil
+			})
+			e := newEngine(buildUploadClient(t, "https://ws.example.com", &http.Client{Transport: rt}, ""))
+			e.tun.minStreamSize = 1024
+			e.tun.cpBackoff = ops.BackoffPolicy{Initial: time.Millisecond, Maximum: time.Millisecond, Factor: 1}
+
+			noErr(t, tc.upload(e))
+			if attempts != 2 {
+				t.Errorf("attempts = %d, want 2 (one retry after the 503)", attempts)
+			}
+			eqBytes(t, sent, in)
+			if sentLength != int64(len(in)) {
+				t.Errorf("Content-Length = %d, want %d", sentLength, len(in))
+			}
+			if tc.randomAccess {
+				eqBytes(t, resent, in)
+			} else if resent != nil {
+				t.Errorf("GetBody sent %d bytes, want no GetBody: the body cannot be read twice at once", len(resent))
+			}
+		})
+	}
+}
+
+func TestSingleShotRetryWaitingForTheLastBodyStopsWhenCancelled(t *testing.T) {
+	// A retry of data without random access waits for net/http to close the
+	// last attempt's body. This transport never closes it, so only the
+	// caller's cancellation can end the wait.
+	var attempts atomic.Int32
+	rt := roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		attempts.Add(1)
+		return cannedResponse(r, http.StatusServiceUnavailable, `{"error_code":"TEMPORARILY_UNAVAILABLE","message":"busy"}`), nil
+	})
+	e := newEngine(buildUploadClient(t, "https://ws.example.com", &http.Client{Transport: rt}, ""))
+	e.tun.minStreamSize = 1024
+	e.tun.cpBackoff = ops.BackoffPolicy{Initial: time.Millisecond, Maximum: time.Millisecond, Factor: 1}
+
+	stop := errors.New("the caller gave up")
+	ctx, cancel := context.WithCancelCause(t.Context())
+	time.AfterFunc(50*time.Millisecond, func() { cancel(stop) })
+	done := make(chan error, 1)
+	go func() {
+		_, err := e.upload(ctx, "/Volumes/c/s/v/p.bin", struct{ io.ReadSeeker }{bytes.NewReader(data(500))})
+		done <- err
+	}()
+	select {
+	case err := <-done:
+		if !errors.Is(err, stop) {
+			t.Errorf("err = %v, want the cancellation cause %v", err, stop)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("the upload still waits for a body that is never closed after its context was cancelled")
+	}
+	if got := attempts.Load(); got != 1 {
+		t.Errorf("attempts = %d, want 1: the retry waits for the first attempt's body", got)
+	}
+}
+
+// closeRecorder is a one-pass body that records whether it was closed.
+type closeRecorder struct {
+	io.Reader
+	closed atomic.Bool
+}
+
+func (r *closeRecorder) Close() error {
+	r.closed.Store(true)
+	return nil
+}
+
+func TestSingleShotDoesNotCloseANonSeekableBody(t *testing.T) {
+	// net/http closes a request body that is an io.Closer. A body without Seek
+	// is sent once and stays the caller's, so the PUT must not close it.
+	var got []byte
+	e := newControlEngine(t, func(w http.ResponseWriter, r *http.Request) {
+		got, _ = io.ReadAll(r.Body)
+		w.WriteHeader(http.StatusOK)
+	})
+	body := &closeRecorder{Reader: strings.NewReader("hello")}
+	noErr(t, e.uploadSingleShot(t.Context(), controlContext(e, nil), body, -1))
+	if string(got) != "hello" {
+		t.Errorf("sent %q, want %q", got, "hello")
+	}
+	if body.closed.Load() {
+		t.Error("the PUT closed the caller's body")
+	}
+}
+
+func TestSingleShotSendsContentLength(t *testing.T) {
+	// Hosts require a Content-Length, which net/http can't tell for a file or
+	// for the body of an attempt; the single shot sets it from the body's size.
+	src := filepath.Join(t.TempDir(), "f.bin")
+	noErr(t, os.WriteFile(src, []byte("hello"), 0o600))
+	cases := map[string]struct {
+		upload func(*engine) error
+		size   int64
+	}{
+		"a file": {func(e *engine) error {
+			_, err := e.uploadFrom(t.Context(), "/Volumes/c/s/v/f.bin", src)
+			return err
+		}, 5},
+		"an empty body": {func(e *engine) error {
+			_, err := e.upload(t.Context(), "/Volumes/c/s/v/f.bin", bytes.NewReader(nil))
+			return err
+		}, 0},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			var gotLength int64
+			var gotEncoding []string
+			e := newControlEngine(t, func(w http.ResponseWriter, r *http.Request) {
+				gotLength, gotEncoding = r.ContentLength, r.TransferEncoding
+				_, _ = io.Copy(io.Discard, r.Body)
+				w.WriteHeader(http.StatusOK)
+			})
+			noErr(t, tc.upload(e))
+			if gotLength != tc.size || len(gotEncoding) != 0 {
+				t.Errorf("Content-Length = %d, Transfer-Encoding = %v, want %d and none", gotLength, gotEncoding, tc.size)
+			}
+		})
+	}
+}
+
+func cannedResponse(r *http.Request, status int, body string) *http.Response {
+	return &http.Response{
+		Status:     http.StatusText(status),
+		StatusCode: status,
+		Proto:      "HTTP/1.1",
+		ProtoMajor: 1,
+		ProtoMinor: 1,
+		Header:     http.Header{"Content-Type": {"application/json"}},
+		Body:       io.NopCloser(strings.NewReader(body)),
+		Request:    r,
+	}
+}
+
 type roundTripFunc func(*http.Request) (*http.Response, error)
 
 func (f roundTripFunc) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
@@ -657,53 +882,6 @@ func TestUploadWithTransferClient(t *testing.T) {
 	}
 }
 
-func TestUploadResumableHappyPath(t *testing.T) {
-	f := newFakeServer(t, "resumable")
-	e := shrunkEngine(t, f)
-
-	in := data(5000)
-	// Parallelism > 1 still uses single-threaded resumable; bytes must match.
-	_, err := e.uploadFrom(t.Context(), "/Volumes/c/s/v/gcp.bin", writeTemp(t, in), WithParallelism(4))
-	noErr(t, err)
-	eqBytes(t, f.assembled(), in)
-}
-
-func TestUploadResumableNoProgressBounded(t *testing.T) {
-	f := newFakeServer(t, "resumable")
-	f.stuckResumable = true
-	e := shrunkEngine(t, f)
-
-	// The server confirms no new bytes on every chunk; the resumable loop must
-	// error rather than spin forever (fs cp sets no context deadline).
-	_, err := e.upload(t.Context(), "/Volumes/c/s/v/gcp.bin", bytes.NewReader(data(5000)))
-	if err == nil {
-		t.Fatal("expected an error when the resumable server makes no progress")
-	}
-}
-
-// TestUploadResumableTransientRetryBudgetIsPerChunk guards against the retry
-// budget being a global cap rather than per-progress: every chunk PUT returns a
-// transient 503 (but commits its bytes, so the status query shows forward
-// progress). With more chunks than maxRetries, a global budget would fail the
-// upload after maxRetries total blips even though it keeps advancing; the budget
-// must reset on each confirmed advance so a steadily-progressing flaky upload
-// completes.
-func TestUploadResumableTransientRetryBudgetIsPerChunk(t *testing.T) {
-	f := newFakeServer(t, "resumable")
-	e := shrunkEngine(t, f) // 1024-byte parts
-	// Every data-chunk PUT reports a retryable 503 after committing; with a
-	// 5000-byte input at 1024-byte chunks that is ~5 chunks, well over maxRetries.
-	f.resumableChunkHook = func(attempt int) int { return http.StatusServiceUnavailable }
-
-	in := data(5000)
-	_, err := e.upload(t.Context(), "/Volumes/c/s/v/flaky.bin", bytes.NewReader(in))
-	noErr(t, err)
-	eqBytes(t, f.assembled(), in)
-	if f.resumableTry <= e.tun.maxRetries {
-		t.Errorf("test did not exceed the retry budget: %d chunk PUTs, want > maxRetries (%d)", f.resumableTry, e.tun.maxRetries)
-	}
-}
-
 func TestUploadPresignedURLExpiryRetried(t *testing.T) {
 	f := newFakeServer(t, "multipart")
 	// Every part's first presigned URL is reported expired; the second succeeds.
@@ -724,6 +902,302 @@ func TestUploadPresignedURLExpiryRetried(t *testing.T) {
 
 // Retry-timing coverage (retryable-status retried/exhausted, with shrunk backoff)
 // lives in the cloudstorage package, where Send's retry policy is defined.
+
+// walkEngine is a shrunkEngine whose retries back off in milliseconds.
+func walkEngine(t *testing.T, f *fakeServer) *engine {
+	t.Helper()
+	e := shrunkEngine(t, f)
+	fast := ops.BackoffPolicy{Initial: time.Millisecond, Maximum: time.Millisecond, Factor: 1}
+	e.tun.cpBackoff, e.tun.cloudBackoff = fast, fast
+	return e
+}
+
+func TestFailureBeforeAnyPartLandsFallsBackToSingleShot(t *testing.T) {
+	// Before any part lands, a part that keeps failing gets one retry, and then
+	// the whole upload is sent in a single shot; a transient failure is no
+	// different from a cloud rejection.
+	for _, parallelism := range []int{1, 4} {
+		t.Run(strconv.Itoa(parallelism), func(t *testing.T) {
+			f := newFakeServer(t, "multipart")
+			f.partHook = func(n, attempt int) (int, string, []byte) {
+				return http.StatusServiceUnavailable, "", nil
+			}
+			e := walkEngine(t, f)
+
+			in := data(5000)
+			_, err := e.uploadFrom(t.Context(), "/Volumes/c/s/v/fb.bin", writeTemp(t, in), WithParallelism(parallelism))
+			noErr(t, err)
+			eqBytes(t, f.assembled(), in)
+			f.mu.Lock()
+			defer f.mu.Unlock()
+			for n, tries := range f.partTry {
+				if tries > 2 {
+					t.Errorf("part %d was attempted %d times, want at most 2", n, tries)
+				}
+			}
+			if f.singleTry != 1 {
+				t.Errorf("single-shot PUTs = %d, want 1", f.singleTry)
+			}
+		})
+	}
+}
+
+func TestFailureAfterAPartLandsIsRetriedThenReturned(t *testing.T) {
+	f := newFakeServer(t, "multipart")
+	f.partHook = func(n, attempt int) (int, string, []byte) {
+		if n == 1 {
+			return 0, "", nil
+		}
+		return http.StatusServiceUnavailable, "", nil
+	}
+	e := walkEngine(t, f)
+
+	_, err := e.uploadFrom(t.Context(), "/Volumes/c/s/v/c.bin", writeTemp(t, data(5000)), WithParallelism(1))
+	if aerr, ok := errors.AsType[*apierr.APIError](err); !ok || aerr.HTTPStatusCode() != http.StatusServiceUnavailable {
+		t.Fatalf("err = %v, want the last failure, a 503", err)
+	}
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if got, want := f.partTry[2], e.tun.cloudRetries+1; got != want {
+		t.Errorf("part 2 attempts = %d, want %d", got, want)
+	}
+	if f.singleTry != 0 {
+		t.Errorf("single-shot PUTs = %d, want none once a part has landed", f.singleTry)
+	}
+}
+
+func TestFailureThatTheSingleShotWouldHitTooIsReturned(t *testing.T) {
+	cases := []struct {
+		name  string
+		setup func(*fakeServer)
+		check func(*testing.T, error)
+	}{
+		{
+			name: "a part fails its precondition",
+			setup: func(f *fakeServer) {
+				f.partHook = func(n, attempt int) (int, string, []byte) {
+					return http.StatusPreconditionFailed, "", nil
+				}
+			},
+			check: func(t *testing.T, err error) {
+				if aerr, ok := errors.AsType[*apierr.APIError](err); !ok || aerr.HTTPStatusCode() != http.StatusPreconditionFailed {
+					t.Errorf("err = %v, want a 412", err)
+				}
+			},
+		},
+		{
+			name: "initiate finds the file exists",
+			setup: func(f *fakeServer) {
+				f.initiateStatus = http.StatusConflict
+				f.initiateBody = `{"error_code":"ALREADY_EXISTS","message":"exists"}`
+			},
+			check: func(t *testing.T, err error) {
+				if !errors.Is(err, ErrAlreadyExists) {
+					t.Errorf("err = %v, want ErrAlreadyExists", err)
+				}
+			},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			f := newFakeServer(t, "multipart")
+			tc.setup(f)
+			e := walkEngine(t, f)
+			_, err := e.uploadFrom(t.Context(), "/Volumes/c/s/v/x.bin", writeTemp(t, data(5000)), WithParallelism(1))
+			tc.check(t, err)
+			if f.singleTry != 0 {
+				t.Errorf("single-shot PUTs = %d, want none", f.singleTry)
+			}
+		})
+	}
+}
+
+func TestFailedInitiateFallsBackToSingleShot(t *testing.T) {
+	sources := map[string]func([]byte) io.Reader{
+		"seekable":     func(b []byte) io.Reader { return bytes.NewReader(b) },
+		"non-seekable": func(b []byte) io.Reader { return io.MultiReader(bytes.NewReader(b)) },
+	}
+	for name, source := range sources {
+		t.Run(name, func(t *testing.T) {
+			f := newFakeServer(t, "multipart")
+			f.initiateStatus = http.StatusInternalServerError
+			f.initiateBody = `{"error_code":"INTERNAL_ERROR","message":"boom"}`
+			e := walkEngine(t, f)
+
+			// Larger than the single-shot threshold, so the read-ahead of the
+			// non-seekable stream is followed by the rest of it.
+			in := data(5000)
+			_, err := e.upload(t.Context(), "/Volumes/c/s/v/i.bin", source(in), WithParallelism(1))
+			noErr(t, err)
+			eqBytes(t, f.assembled(), in)
+		})
+	}
+}
+
+func TestFailedPartURLMintFallsBackToSingleShot(t *testing.T) {
+	// Each driver mints URLs its own way: the sequential loop per batch, the file
+	// producer ahead of its workers, and the stream's workers on demand.
+	uploads := map[string]func(*engine, []byte) error{
+		"sequential": func(e *engine, in []byte) error {
+			_, err := e.uploadFrom(t.Context(), "/Volumes/c/s/v/m.bin", writeTemp(t, in), WithParallelism(1))
+			return err
+		},
+		"parallel file": func(e *engine, in []byte) error {
+			_, err := e.uploadFrom(t.Context(), "/Volumes/c/s/v/m.bin", writeTemp(t, in), WithParallelism(4))
+			return err
+		},
+		"parallel stream": func(e *engine, in []byte) error {
+			_, err := e.upload(t.Context(), "/Volumes/c/s/v/m.bin", io.MultiReader(bytes.NewReader(in)), WithParallelism(4))
+			return err
+		},
+	}
+	for name, upload := range uploads {
+		t.Run(name, func(t *testing.T) {
+			f := newFakeServer(t, "multipart")
+			f.partURLsStatus = http.StatusInternalServerError
+			f.partURLsBody = `{"error_code":"INTERNAL_ERROR","message":"boom"}`
+			e := walkEngine(t, f)
+
+			in := data(5000)
+			noErr(t, upload(e, in))
+			eqBytes(t, f.assembled(), in)
+			if f.singleTry != 1 {
+				t.Errorf("single-shot PUTs = %d, want 1", f.singleTry)
+			}
+		})
+	}
+
+	t.Run("the file exists", func(t *testing.T) {
+		f := newFakeServer(t, "multipart")
+		f.partURLsStatus = http.StatusConflict
+		f.partURLsBody = `{"error_code":"ALREADY_EXISTS","message":"exists"}`
+		e := walkEngine(t, f)
+
+		_, err := e.uploadFrom(t.Context(), "/Volumes/c/s/v/m.bin", writeTemp(t, data(5000)), WithParallelism(1))
+		if apierr.Code(err) != codes.AlreadyExists {
+			t.Errorf("err = %v, want ALREADY_EXISTS", err)
+		}
+		if f.singleTry != 0 {
+			t.Errorf("single-shot PUTs = %d, want none", f.singleTry)
+		}
+	})
+}
+
+func TestControlPlaneFailureMovesOnAfterOneRetry(t *testing.T) {
+	// Before any part lands, a control-plane call that keeps failing gets one
+	// retry, and then the upload moves on to the single-shot PUT: as on any host,
+	// moving on is cheaper than waiting out the retry timeout.
+	cases := map[string]struct {
+		fault    func(*fakeServer)
+		requests func(*fakeServer) int
+	}{
+		"initiate": {
+			fault:    func(f *fakeServer) { f.initiateStatus = http.StatusServiceUnavailable },
+			requests: func(f *fakeServer) int { return len(f.overwriteQ) - f.singleTry },
+		},
+		"part URLs": {
+			fault:    func(f *fakeServer) { f.partURLsStatus = http.StatusServiceUnavailable },
+			requests: func(f *fakeServer) int { return len(f.partURLReqs) },
+		},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			f := newFakeServer(t, "multipart")
+			tc.fault(f)
+			e := walkEngine(t, f)
+
+			in := data(5000)
+			_, err := e.uploadFrom(t.Context(), "/Volumes/c/s/v/cp.bin", writeTemp(t, in), WithParallelism(1))
+			noErr(t, err)
+			eqBytes(t, f.assembled(), in)
+			f.mu.Lock()
+			defer f.mu.Unlock()
+			if got := tc.requests(f); got != 2 {
+				t.Errorf("%s requests = %d, want 2", name, got)
+			}
+		})
+	}
+}
+
+func TestStorageTimeoutFallsBackToSingleShot(t *testing.T) {
+	// A blackholed storage host times out rather than refusing the connection;
+	// that is the case the fallback exists for, so a deadline error from a part
+	// PUT falls back like any other failure.
+	f := newFakeServer(t, "multipart")
+	e := walkEngine(t, f)
+	blackholed := &http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+		return nil, fmt.Errorf("blackholed: %w", context.DeadlineExceeded)
+	})}
+
+	in := data(5000)
+	_, err := e.uploadFrom(t.Context(), "/Volumes/c/s/v/t.bin", writeTemp(t, in), WithParallelism(1), WithTransferClient(blackholed))
+	noErr(t, err)
+	eqBytes(t, f.assembled(), in)
+}
+
+func TestSingleShotFallbackOfAPipe(t *testing.T) {
+	// A pipe is an *os.File, so it has Seek, but Seek fails: the fallback sends
+	// the bytes read so far and then the rest of the pipe.
+	f := newFakeServer(t, "multipart")
+	f.partHook = func(n, attempt int) (int, string, []byte) {
+		return http.StatusForbidden, "", []byte("blocked")
+	}
+	e := walkEngine(t, f)
+
+	in := data(5000)
+	pr, pw, err := os.Pipe()
+	noErr(t, err)
+	t.Cleanup(func() { _ = pr.Close() })
+	go func() {
+		_, _ = pw.Write(in)
+		_ = pw.Close()
+	}()
+	_, err = e.upload(t.Context(), "/Volumes/c/s/v/p.bin", pr, WithParallelism(1))
+	noErr(t, err)
+	eqBytes(t, f.assembled(), in)
+}
+
+func TestSingleShotFallbackRetriesOnlyASeekableSource(t *testing.T) {
+	// The fallback rewinds a seekable source and sends it itself, so the PUT is
+	// retried; a one-pass stream has been read past the bytes it holds, so the
+	// PUT is sent once.
+	cases := []struct {
+		name       string
+		source     func([]byte) io.Reader
+		wantTries  int
+		wantFailed bool
+	}{
+		{"seekable", func(b []byte) io.Reader { return bytes.NewReader(b) }, 2, false},
+		{"non-seekable", func(b []byte) io.Reader { return io.MultiReader(bytes.NewReader(b)) }, 1, true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			f := newFakeServer(t, "multipart")
+			f.partHook = func(n, attempt int) (int, string, []byte) {
+				return http.StatusForbidden, "", []byte("blocked")
+			}
+			f.singleShotHook = func(attempt int) int {
+				if attempt == 1 {
+					return http.StatusServiceUnavailable
+				}
+				return 0
+			}
+			e := walkEngine(t, f)
+
+			in := data(5000)
+			_, err := e.upload(t.Context(), "/Volumes/c/s/v/s.bin", tc.source(in), WithParallelism(1))
+			if tc.wantFailed != (err != nil) {
+				t.Fatalf("err = %v, want failed = %v", err, tc.wantFailed)
+			}
+			if !tc.wantFailed {
+				eqBytes(t, f.assembled(), in)
+			}
+			if f.singleTry != tc.wantTries {
+				t.Errorf("single-shot PUTs = %d, want %d", f.singleTry, tc.wantTries)
+			}
+		})
+	}
+}
 
 func TestResolvedParallelism(t *testing.T) {
 	n := func(v int) *int { return &v }
@@ -750,5 +1224,136 @@ func TestResolvedParallelism(t *testing.T) {
 				t.Errorf("resolvedParallelism(%v, %d) = %d, want %d", tc.buffered, tc.partSize, got, tc.want)
 			}
 		})
+	}
+}
+
+func TestUploadRejectsResumableSession(t *testing.T) {
+	// Only multipart sessions are supported. An initiate response with a
+	// resumable session and no multipart one is unexpected: no data goes to the
+	// session, and the upload moves on to the single-shot PUT, as for any other
+	// failure before a part lands.
+	f := newFakeServer(t, "resumable")
+	e := shrunkEngine(t, f)
+	if _, err := e.initiateMultipart(t.Context(), controlContext(e, nil)); !errors.Is(err, errUnexpectedServerResponse) {
+		t.Fatalf("initiateMultipart err = %v, want errUnexpectedServerResponse", err)
+	}
+
+	in := data(4 * 1024)
+	_, err := e.upload(t.Context(), "/Volumes/c/s/v/r.bin", bytes.NewReader(in))
+	noErr(t, err)
+	eqBytes(t, f.assembled(), in)
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if len(f.partTry) != 0 {
+		t.Errorf("parts sent = %v, want none", f.partTry)
+	}
+}
+
+func TestFailedMultipartUploadIsAbortedOnce(t *testing.T) {
+	// A part fails with a status that isn't retried after another part has
+	// landed, so the upload fails. Its session is aborted once, and a failing
+	// abort is not retried and does not replace the upload's own error.
+	f := newFakeServer(t, "multipart")
+	f.partHook = func(n, attempt int) (int, string, []byte) {
+		if n == 1 {
+			return 0, "", nil
+		}
+		return http.StatusInternalServerError, "", []byte("boom")
+	}
+	f.abortStatus = http.StatusServiceUnavailable
+	e := shrunkEngine(t, f)
+
+	_, err := e.uploadFrom(t.Context(), "/Volumes/c/s/v/fail.bin", writeTemp(t, data(5000)), WithParallelism(1))
+	if err == nil {
+		t.Fatal("expected the upload to fail")
+	}
+	if apierr.Code(err) != codes.Internal {
+		t.Errorf("err = %v, want the part's 500", err)
+	}
+	if got, want := f.abortsSeen(), []string{"tok"}; !slices.Equal(got, want) {
+		t.Errorf("aborts = %v, want %v", got, want)
+	}
+}
+
+func TestParallelShortStreamIsSentInASingleShot(t *testing.T) {
+	// A stream of unknown size that turns out shorter than the single-shot
+	// threshold is sent in one PUT, without opening a multipart session, even
+	// when the upload is parallel.
+	for _, size := range []int{0, 100} {
+		f := newFakeServer(t, "multipart")
+		e := shrunkEngine(t, f)
+		in := data(size)
+		_, err := e.upload(t.Context(), "/Volumes/c/s/v/short.bin", struct{ io.Reader }{bytes.NewReader(in)}, WithParallelism(4))
+		noErr(t, err)
+		eqBytes(t, f.assembled(), in)
+		f.mu.Lock()
+		singleShots, initiates := f.singleTry, len(f.overwriteQ)-f.singleTry
+		f.mu.Unlock()
+		if singleShots != 1 || initiates != 0 {
+			t.Errorf("size %d: %d single shots and %d initiates, want 1 and 0", size, singleShots, initiates)
+		}
+	}
+}
+
+func TestParallelStreamAroundTheSingleShotThreshold(t *testing.T) {
+	// The read-ahead decides between one PUT and a multipart session at exactly
+	// the threshold (1024 in the shrunk engine). With a part size that doesn't
+	// divide it, a part also straddles the end of the read-ahead, so the stream
+	// must be reassembled without losing or repeating its bytes.
+	for _, tc := range []struct {
+		size      int
+		multipart bool
+	}{
+		{1023, false},
+		{1024, true},
+		{1025, true},
+		{5000, true},
+	} {
+		f := newFakeServer(t, "multipart")
+		e := shrunkEngine(t, f)
+		in := data(tc.size)
+		_, err := e.upload(t.Context(), "/Volumes/c/s/v/edge.bin", struct{ io.Reader }{bytes.NewReader(in)},
+			WithParallelism(4), WithPartSize(700))
+		noErr(t, err)
+		eqBytes(t, f.assembled(), in)
+		f.mu.Lock()
+		singleShots, initiates := f.singleTry, len(f.overwriteQ)-f.singleTry
+		f.mu.Unlock()
+		if gotMultipart := initiates == 1 && singleShots == 0; gotMultipart != tc.multipart {
+			t.Errorf("size %d: %d initiates and %d single shots, want multipart=%v", tc.size, initiates, singleShots, tc.multipart)
+		}
+	}
+}
+
+// failingAfterReader returns n bytes and then err.
+type failingAfterReader struct {
+	n   int
+	err error
+}
+
+func (r *failingAfterReader) Read(p []byte) (int, error) {
+	if r.n == 0 {
+		return 0, r.err
+	}
+	k := min(len(p), r.n)
+	r.n -= k
+	return k, nil
+}
+
+func TestParallelStreamReadErrorDuringReadAhead(t *testing.T) {
+	// A read error before the threshold is reached fails the upload before any
+	// request, so there is no session to abort.
+	f := newFakeServer(t, "multipart")
+	e := shrunkEngine(t, f)
+	readErr := errors.New("disk on fire")
+	_, err := e.upload(t.Context(), "/Volumes/c/s/v/err.bin", &failingAfterReader{n: 500, err: readErr}, WithParallelism(4))
+	if !errors.Is(err, readErr) {
+		t.Fatalf("err = %v, want the read error", err)
+	}
+	f.mu.Lock()
+	requests := len(f.overwriteQ) + len(f.aborts)
+	f.mu.Unlock()
+	if requests != 0 {
+		t.Errorf("%d initiate, single-shot or abort requests, want none", requests)
 	}
 }

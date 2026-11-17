@@ -146,7 +146,9 @@ type CreateMcpServiceRequest struct {
 	// Name of the parent schema. Format: `schemas/{catalog}.{schema}`. Each `{...}`
 	// component is capped at 255 characters individually.
 	Parent *string
-	// Name for the MCP service, e.g. "my_mcp_service".
+	// Name of the MCP service within the parent schema. The name must not contain
+	// periods, spaces, forward slashes, percent signs, or control characters, and
+	// it is stored in lowercase.
 	McpServiceId *string
 	// The MCP service to create. Do not set `name`; the server derives it from
 	// `parent` and `mcp_service_id`. `source_connection` is required.
@@ -167,7 +169,10 @@ type CreateModelProviderServiceRequest struct {
 	// Name of the parent schema. Format: `schemas/{catalog}.{schema}`. Each `{...}`
 	// component is capped at 255 characters individually.
 	Parent *string
-	// Name for the model provider service, e.g. "openai_prod".
+	// Name of the model provider service within the parent schema. The name must
+	// not contain periods, spaces, forward slashes, percent signs, or control
+	// characters, must not end in `_DO_NOT_MODIFY`, and must not exceed 241
+	// characters. It is stored in lowercase.
 	ModelProviderServiceId *string
 	// The model provider service to create. Do not set `name`; the server derives
 	// it from `parent` and `model_provider_service_id`.
@@ -442,20 +447,24 @@ type ListSkillsResponse struct {
 type McpService struct {
 	// Resource name of the MCP service. Format:
 	// `mcp-services/{catalog}.{schema}.{mcp_service}`. Each `{...}` component is
-	// capped at 255 characters individually. Server-derived on Create from `parent`
-	// + `mcp_service_id`; required and immutable on Update/Get/Delete.
+	// capped at 255 characters individually. The server derives the name on Create
+	// from `parent` and `mcp_service_id`; it is required and immutable on Update,
+	// Get, and Delete.
 	Name *string `fieldmask:"name"`
-	// Owner of the MCP service.
+	// Username, group name, or service principal application ID of the MCP service
+	// owner.
 	EffectiveOwner *string `fieldmask:"effective_owner"`
-	// Metastore hosting the MCP service.
+	// Unique identifier of the metastore that contains the MCP service.
 	MetastoreId *string `fieldmask:"metastore_id"`
 	// Time the MCP service was created.
 	CreateTime *types.Time `fieldmask:"create_time"`
-	// Creator identity.
+	// Username or service principal application ID of the principal that created
+	// the MCP service.
 	CreatedBy *string `fieldmask:"created_by"`
 	// Time the MCP service was last modified.
 	UpdateTime *types.Time `fieldmask:"update_time"`
-	// Identity of the last updater.
+	// Username or service principal application ID of the principal that last
+	// updated the MCP service.
 	UpdatedBy *string `fieldmask:"updated_by"`
 	// User-provided description.
 	Comment *string `fieldmask:"comment"`
@@ -569,21 +578,21 @@ type McpServiceUserMappedCredentialLogin struct {
 type ModelProviderService struct {
 	// Resource name of the provider service. Format:
 	// `model-provider-services/{catalog}.{schema}.{model_provider_service}`. Each
-	// `{...}` component is capped at 255 characters individually. Server-derived on
-	// Create from `parent` + `model_provider_service_id`; required and immutable on
-	// Update/Get/Delete.
+	// `{...}` component is capped at 255 characters individually. The server
+	// derives the name on Create from `parent` and `model_provider_service_id`; it
+	// is required and immutable on Update, Get, and Delete.
 	Name *string `fieldmask:"name"`
-	// Owner of the model provider service.
+	// Username or group name of the model provider service owner.
 	EffectiveOwner *string `fieldmask:"effective_owner"`
-	// Metastore hosting the provider service.
+	// Unique identifier of the metastore that contains the model provider service.
 	MetastoreId *string `fieldmask:"metastore_id"`
 	// Time the provider service was created.
 	CreateTime *types.Time `fieldmask:"create_time"`
-	// Creator identity.
+	// Username of the user who created the model provider service.
 	CreatedBy *string `fieldmask:"created_by"`
 	// Time the provider service was last modified.
 	UpdateTime *types.Time `fieldmask:"update_time"`
-	// Identity of the last updater.
+	// Username of the user who last updated the model provider service.
 	UpdatedBy *string `fieldmask:"updated_by"`
 	// User-provided description.
 	Comment *string `fieldmask:"comment"`
@@ -679,6 +688,8 @@ type isModelProviderServiceConfig_Provider interface {
 }
 
 // ModelProviderServiceConfig_Provider_Openai selects Openai for ModelProviderServiceConfig.Provider.
+// Configuration for OpenAI. Set this field when `provider_type` is
+// `EXTERNAL_MODEL_PROVIDER_TYPE_OPENAI`.
 type ModelProviderServiceConfig_Provider_Openai struct {
 	Openai ModelProviderServiceConfig_OpenAiProviderConfig `fieldmask:"openai"`
 }
@@ -686,6 +697,8 @@ type ModelProviderServiceConfig_Provider_Openai struct {
 func (*ModelProviderServiceConfig_Provider_Openai) isModelProviderServiceConfig_Provider() {}
 
 // ModelProviderServiceConfig_Provider_AzureOpenai selects AzureOpenai for ModelProviderServiceConfig.Provider.
+// Configuration for Azure OpenAI. Set this field when `provider_type` is
+// `EXTERNAL_MODEL_PROVIDER_TYPE_AZURE_OPENAI`.
 type ModelProviderServiceConfig_Provider_AzureOpenai struct {
 	AzureOpenai ModelProviderServiceConfig_AzureOpenAiProviderConfig `fieldmask:"azure_openai"`
 }
@@ -693,6 +706,8 @@ type ModelProviderServiceConfig_Provider_AzureOpenai struct {
 func (*ModelProviderServiceConfig_Provider_AzureOpenai) isModelProviderServiceConfig_Provider() {}
 
 // ModelProviderServiceConfig_Provider_Anthropic selects Anthropic for ModelProviderServiceConfig.Provider.
+// Configuration for Anthropic. Set this field when `provider_type` is
+// `EXTERNAL_MODEL_PROVIDER_TYPE_ANTHROPIC`.
 type ModelProviderServiceConfig_Provider_Anthropic struct {
 	Anthropic ModelProviderServiceConfig_AnthropicProviderConfig `fieldmask:"anthropic"`
 }
@@ -700,6 +715,8 @@ type ModelProviderServiceConfig_Provider_Anthropic struct {
 func (*ModelProviderServiceConfig_Provider_Anthropic) isModelProviderServiceConfig_Provider() {}
 
 // ModelProviderServiceConfig_Provider_AmazonBedrock selects AmazonBedrock for ModelProviderServiceConfig.Provider.
+// Configuration for Amazon Bedrock. Set this field when `provider_type` is
+// `EXTERNAL_MODEL_PROVIDER_TYPE_AMAZON_BEDROCK`.
 type ModelProviderServiceConfig_Provider_AmazonBedrock struct {
 	AmazonBedrock ModelProviderServiceConfig_AmazonBedrockProviderConfig `fieldmask:"amazon_bedrock"`
 }
@@ -707,6 +724,8 @@ type ModelProviderServiceConfig_Provider_AmazonBedrock struct {
 func (*ModelProviderServiceConfig_Provider_AmazonBedrock) isModelProviderServiceConfig_Provider() {}
 
 // ModelProviderServiceConfig_Provider_Custom selects Custom for ModelProviderServiceConfig.Provider.
+// Configuration for a custom OpenAI-compatible provider. Set this field when
+// `provider_type` is `EXTERNAL_MODEL_PROVIDER_TYPE_CUSTOM`.
 type ModelProviderServiceConfig_Provider_Custom struct {
 	Custom ModelProviderServiceConfig_CustomProviderConfig `fieldmask:"custom"`
 }
@@ -714,6 +733,8 @@ type ModelProviderServiceConfig_Provider_Custom struct {
 func (*ModelProviderServiceConfig_Provider_Custom) isModelProviderServiceConfig_Provider() {}
 
 // ModelProviderServiceConfig_Provider_MicrosoftFoundry selects MicrosoftFoundry for ModelProviderServiceConfig.Provider.
+// Configuration for Microsoft Foundry. Set this field when `provider_type` is
+// `EXTERNAL_MODEL_PROVIDER_TYPE_MICROSOFT_FOUNDRY`.
 type ModelProviderServiceConfig_Provider_MicrosoftFoundry struct {
 	MicrosoftFoundry ModelProviderServiceConfig_MicrosoftFoundryProviderConfig `fieldmask:"microsoft_foundry"`
 }
@@ -722,6 +743,8 @@ func (*ModelProviderServiceConfig_Provider_MicrosoftFoundry) isModelProviderServ
 }
 
 // ModelProviderServiceConfig_Provider_GeminiEnterprise selects GeminiEnterprise for ModelProviderServiceConfig.Provider.
+// Configuration for Google Gemini Enterprise. Set this field when
+// `provider_type` is `EXTERNAL_MODEL_PROVIDER_TYPE_GEMINI_ENTERPRISE`.
 type ModelProviderServiceConfig_Provider_GeminiEnterprise struct {
 	GeminiEnterprise ModelProviderServiceConfig_GeminiEnterpriseProviderConfig `fieldmask:"gemini_enterprise"`
 }
@@ -730,6 +753,9 @@ func (*ModelProviderServiceConfig_Provider_GeminiEnterprise) isModelProviderServ
 }
 
 // ModelProviderServiceConfig_Provider_BedrockMantle selects BedrockMantle for ModelProviderServiceConfig.Provider.
+// Configuration for Amazon Bedrock Mantle, with the same fields as
+// `amazon_bedrock`. Set this field when `provider_type` is
+// `EXTERNAL_MODEL_PROVIDER_TYPE_BEDROCK_MANTLE`.
 type ModelProviderServiceConfig_Provider_BedrockMantle struct {
 	BedrockMantle ModelProviderServiceConfig_AmazonBedrockProviderConfig `fieldmask:"bedrock_mantle"`
 }
@@ -1009,7 +1035,7 @@ type ModelProviderServiceConfig_CustomProviderApiKeyHeaderAuth struct {
 	// supplied via `api_key_value`.
 	ApiKeyName *string `fieldmask:"api_key_name"`
 	// Secret value forwarded under the `api_key_name` header on outbound requests.
-	// Supplied as inline plaintext via `ProviderSecret.plaintext`.
+	// Supply the value in `api_key_value.plaintext`.
 	ApiKeyValue *ModelProviderServiceConfig_ProviderSecret `fieldmask:"api_key_value"`
 }
 
@@ -1389,7 +1415,7 @@ type isModelProviderServiceConfig_ProviderSecret_Value interface {
 }
 
 // ModelProviderServiceConfig_ProviderSecret_Value_Plaintext selects Plaintext for ModelProviderServiceConfig_ProviderSecret.Value.
-// Inline plaintext credential. INPUT_ONLY: the value never round-trips on
+// Inline plaintext credential. The value is write-only and never round-trips on
 // reads. Get and List responses omit `plaintext`; the enclosing secret object
 // remains present to indicate that a secret is configured.
 type ModelProviderServiceConfig_ProviderSecret_Value_Plaintext struct {

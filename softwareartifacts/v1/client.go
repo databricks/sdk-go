@@ -78,7 +78,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	}, nil
 }
 
-// Gets a software artifact.
+// Gets a software artifact by its resource name. Returns `NOT_FOUND` if the
+// artifact does not exist.
 func (c *internalClient) GetSoftwareArtifact(ctx context.Context, req GetSoftwareArtifactRequest, opts ...call.Option) (*SoftwareArtifact, error) {
 
 	headers := http.Header{}
@@ -140,7 +141,8 @@ func (c *internalClient) GetSoftwareArtifact(ctx context.Context, req GetSoftwar
 	return resp, nil
 }
 
-// Gets a software artifact version.
+// Gets a software artifact version by its resource name. Returns `NOT_FOUND` if
+// the version does not exist.
 func (c *internalClient) GetSoftwareArtifactVersion(ctx context.Context, req GetSoftwareArtifactVersionRequest, opts ...call.Option) (*SoftwareArtifactVersion, error) {
 
 	headers := http.Header{}
@@ -426,7 +428,8 @@ func (c *internalClient) ListSoftwareArtifactsIter(ctx context.Context, req List
 	}
 }
 
-// Resolves a software artifact version from its tag alias.
+// Resolves a software artifact version from its tag alias. Returns `NOT_FOUND`
+// if the artifact or the alias does not exist.
 func (c *internalClient) ResolveSoftwareArtifactVersion(ctx context.Context, req ResolveSoftwareArtifactVersionRequest, opts ...call.Option) (*ResolveSoftwareArtifactVersionResponse, error) {
 	wireReq, err := resolveSoftwareArtifactVersionRequestToWire(&req)
 	if err != nil {

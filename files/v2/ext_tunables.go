@@ -45,17 +45,21 @@ type tunables struct {
 	// stream) holds in memory, where each worker keeps one partSize buffer for its
 	// in-flight part. The default stream worker count is this budget divided by
 	// the part size, so a larger part size lowers the worker count instead of
-	// growing memory. At the 16 MiB default part size this is 16 workers.
+	// growing memory. At the 16 MiB default part size this is 16 workers. A
+	// stream of unknown size also holds up to minStreamSize of read-ahead until
+	// its first parts are cut from it.
 	streamMemoryBudget int64
 
-	// readAheadBytes is how far past a chunk the resumable upload reads to detect
-	// end-of-stream (a resumable chunk cannot be empty, so the last chunk must be
-	// marked with the real total size).
-	readAheadBytes int64
-
 	// maxRetries caps how many times a single part is retried after a presigned
-	// URL expires (multipart) or a chunk must be resumed (resumable).
+	// URL expires.
 	maxRetries int
+
+	// cloudRetries caps how many times a part PUT is retried once a part of the
+	// upload has landed. cloudRetriesBeforeCommit applies before then: the
+	// workspace is still left to fall back to, so failing over is cheaper than
+	// waiting out retries on a storage host that may be blocked.
+	cloudRetries             int
+	cloudRetriesBeforeCommit int
 
 	// maxUploadParts is the provider's maximum number of parts per multipart
 	// upload (S3's 10,000 is the common floor). The default part size is grown for
@@ -127,6 +131,12 @@ type tunables struct {
 	// caller's context expires (and forever if it has no deadline).
 	cpRetryTimeout time.Duration
 
+	// endpointsAPI is whether a transfer asks the workspace which endpoints to
+	// use (GET /api/2.0/fs/endpoints). Off by default until the port is done,
+	// though the Python SDK now turns it on; without it a transfer walks the
+	// built-in order.
+	endpointsAPI bool
+
 	// urlExpiry is how long requested presigned URLs are valid.
 	urlExpiry time.Duration
 }
@@ -134,28 +144,31 @@ type tunables struct {
 // defaultTunables returns the production policy values.
 func defaultTunables() tunables {
 	return tunables{
-		minStreamSize:         50 * 1024 * 1024,
-		defaultPartSize:       16 << 20, // 16 MiB
-		maxPartSize:           4 << 30,
-		batchURLCount:         1,
-		fileParallelism:       128,
-		streamMemoryBudget:    256 << 20,
-		readAheadBytes:        1,
-		maxRetries:            3,
-		maxUploadParts:        10_000,
-		responseHeaderTimeout: 60 * time.Second,
-		cleanupTimeout:        30 * time.Second,
-		slowFactor:            3,
-		slowWarmup:            32,
-		slowWindow:            128,
-		slowMinDeadline:       5 * time.Second,
-		slowColdDeadline:      30 * time.Second,
-		slowFirstPartDeadline: 10 * time.Second,
-		slowCheckInterval:     1 * time.Second,
-		slowMaxReissue:        2,
-		cpBackoff:             ops.BackoffPolicy{},
-		cpRetryTimeout:        5 * time.Minute,
-		urlExpiry:             time.Hour,
+		minStreamSize:      50 * 1024 * 1024,
+		defaultPartSize:    16 << 20, // 16 MiB
+		maxPartSize:        4 << 30,
+		batchURLCount:      1,
+		fileParallelism:    128,
+		streamMemoryBudget: 256 << 20,
+		maxRetries:         3,
+		// Python's experimental_files_ext_cloud_api_max_retries is 3 attempts in
+		// all, and its _UPLOAD_RETRIES_BEFORE_COMMIT is 1 retry.
+		cloudRetries:             2,
+		cloudRetriesBeforeCommit: 1,
+		maxUploadParts:           10_000,
+		responseHeaderTimeout:    60 * time.Second,
+		cleanupTimeout:           30 * time.Second,
+		slowFactor:               3,
+		slowWarmup:               32,
+		slowWindow:               128,
+		slowMinDeadline:          5 * time.Second,
+		slowColdDeadline:         30 * time.Second,
+		slowFirstPartDeadline:    10 * time.Second,
+		slowCheckInterval:        1 * time.Second,
+		slowMaxReissue:           2,
+		cpBackoff:                ops.BackoffPolicy{},
+		cpRetryTimeout:           5 * time.Minute,
+		urlExpiry:                time.Hour,
 	}
 }
 

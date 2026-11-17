@@ -53,6 +53,8 @@ type InstallLibrariesRequest struct {
 type InstallLibrariesResponse struct {
 }
 
+// A library to install on a cluster. Exactly one of the library-type fields
+// must be set..
 type Library struct {
 	Lib isLibrary_Lib
 }
@@ -76,8 +78,9 @@ type Library_Lib_Jar struct {
 func (*Library_Lib_Jar) isLibrary_Lib() {}
 
 // Library_Lib_Egg selects Egg for Library.Lib.
-// Deprecated. URI of the egg library to install. Installing Python egg files is
-// deprecated and is not supported in Databricks Runtime 14.0 and above.
+// Deprecated: Installing Python egg files is not supported in Databricks
+// Runtime 14.0 and above. Use a wheel (`whl`) or a PyPI package (`pypi`)
+// instead. The value is the URI of the egg file to install.
 type Library_Lib_Egg struct {
 	Egg string
 }
@@ -85,7 +88,7 @@ type Library_Lib_Egg struct {
 func (*Library_Lib_Egg) isLibrary_Lib() {}
 
 // Library_Lib_Pypi selects Pypi for Library.Lib.
-// Specification of a PyPi library to be installed. For example: `{ "package":
+// Specification of a PyPI library to be installed. For example: `{ "package":
 // "simplejson" }`
 type Library_Lib_Pypi struct {
 	Pypi PythonPyPiLibrary
@@ -103,7 +106,7 @@ type Library_Lib_Maven struct {
 func (*Library_Lib_Maven) isLibrary_Lib() {}
 
 // Library_Lib_Cran selects Cran for Library.Lib.
-// Specification of a CRAN library to be installed as part of the library
+// Specification of a CRAN library to be installed.
 type Library_Lib_Cran struct {
 	Cran RCranLibrary
 }
@@ -128,7 +131,8 @@ func (*Library_Lib_Whl) isLibrary_Lib() {}
 // URI of the requirements.txt file to install. Only Workspace paths and Unity
 // Catalog Volumes paths are supported. For example: `{ "requirements":
 // "/Workspace/path/to/requirements.txt" }` or `{ "requirements" :
-// "/Volumes/path/to/requirements.txt" }`
+// "/Volumes/path/to/requirements.txt" }`. Installing a requirements file
+// requires Databricks Runtime 15.0 or above.
 type Library_Lib_Requirements struct {
 	Requirements string
 }
@@ -137,9 +141,13 @@ func (*Library_Lib_Requirements) isLibrary_Lib() {}
 
 // The status of the library on a specific cluster..
 type LibraryFullStatus struct {
-	// Unique identifier for the library.
+	// The library whose status is reported.
 	Library *Library
-	// Status of installing the library on the cluster.
+	// Status of installing the library on the cluster. The status starts at PENDING
+	// and ends at INSTALLED, FAILED or SKIPPED. Intermediate states are not always
+	// reported. A library stays UNINSTALL_ON_RESTART after an uninstall request
+	// until the cluster restarts. While the cluster is not running, libraries are
+	// reported as PENDING, and libraries marked for uninstall are omitted.
 	Status LibraryInstallStatus
 	// All the info and warning messages that have occurred so far for this library.
 	Messages []string
@@ -162,7 +170,7 @@ type MavenLibrary struct {
 	// Maven repo to install the Maven package from. If omitted, both Maven Central
 	// Repository and Spark Packages are searched.
 	Repo *string
-	// List of dependences to exclude. For example: `["slf4j:slf4j",
+	// List of dependencies to exclude. For example: `["slf4j:slf4j",
 	// "*:hadoop-client"]`.
 	//
 	// Maven dependency exclusions:
@@ -171,7 +179,7 @@ type MavenLibrary struct {
 }
 
 type PythonPyPiLibrary struct {
-	// The name of the pypi package to install. An optional exact version
+	// The name of the PyPI package to install. An optional exact version
 	// specification is also supported. Examples: "simplejson" and
 	// "simplejson==3.8.0".
 	Package *string

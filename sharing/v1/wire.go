@@ -1877,6 +1877,7 @@ type listProviderShareAssetsRequestWire struct {
 	FunctionMaxResults *int    `json:"function_max_results,omitempty"`
 	VolumeMaxResults   *int    `json:"volume_max_results,omitempty"`
 	NotebookMaxResults *int    `json:"notebook_max_results,omitempty"`
+	SkillMaxResults    *int    `json:"skill_max_results,omitempty"`
 }
 
 func listProviderShareAssetsRequestToWire(v *ListProviderShareAssetsRequest) (*listProviderShareAssetsRequestWire, error) {
@@ -1890,6 +1891,7 @@ func listProviderShareAssetsRequestToWire(v *ListProviderShareAssetsRequest) (*l
 		FunctionMaxResults: v.FunctionMaxResults,
 		VolumeMaxResults:   v.VolumeMaxResults,
 		NotebookMaxResults: v.NotebookMaxResults,
+		SkillMaxResults:    v.SkillMaxResults,
 	}, nil
 }
 
@@ -1904,6 +1906,7 @@ func listProviderShareAssetsRequestFromWire(w *listProviderShareAssetsRequestWir
 		FunctionMaxResults: w.FunctionMaxResults,
 		VolumeMaxResults:   w.VolumeMaxResults,
 		NotebookMaxResults: w.NotebookMaxResults,
+		SkillMaxResults:    w.SkillMaxResults,
 	}, nil
 }
 
@@ -1936,6 +1939,7 @@ type listProviderShareAssetsResponseWire struct {
 	Functions []functionWire     `json:"functions,omitempty"`
 	Notebooks []notebookFileWire `json:"notebooks,omitempty"`
 	Volumes   []volumeWire       `json:"volumes,omitempty"`
+	Skills    []skillWire        `json:"skills,omitempty"`
 	Share     *shareWire         `json:"share,omitempty"`
 }
 
@@ -1959,6 +1963,10 @@ func listProviderShareAssetsResponseToWire(v *ListProviderShareAssetsResponse) (
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ListProviderShareAssetsResponse.Volumes", err)
 	}
+	skillsWireValue, err := convertSlice(v.Skills, skillToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListProviderShareAssetsResponse.Skills", err)
+	}
 	shareWireValue, err := shareToWire(v.Share)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ListProviderShareAssetsResponse.Share", err)
@@ -1968,6 +1976,7 @@ func listProviderShareAssetsResponseToWire(v *ListProviderShareAssetsResponse) (
 		Functions: functionsWireValue,
 		Notebooks: notebooksWireValue,
 		Volumes:   volumesWireValue,
+		Skills:    skillsWireValue,
 		Share:     shareWireValue,
 	}, nil
 }
@@ -1992,6 +2001,10 @@ func listProviderShareAssetsResponseFromWire(w *listProviderShareAssetsResponseW
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ListProviderShareAssetsResponse.Volumes", err)
 	}
+	skillsPublicValue, err := convertSlice(w.Skills, skillFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ListProviderShareAssetsResponse.Skills", err)
+	}
 	sharePublicValue, err := shareFromWire(w.Share)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ListProviderShareAssetsResponse.Share", err)
@@ -2001,6 +2014,7 @@ func listProviderShareAssetsResponseFromWire(w *listProviderShareAssetsResponseW
 		Functions: functionsPublicValue,
 		Notebooks: notebooksPublicValue,
 		Volumes:   volumesPublicValue,
+		Skills:    skillsPublicValue,
 		Share:     sharePublicValue,
 	}, nil
 }
@@ -4032,6 +4046,73 @@ func (v *SharedDataObject_Status) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := sharedDataObject_StatusFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type skillWire struct {
+	Name        *string `json:"name,omitempty"`
+	Id          *string `json:"id,omitempty"`
+	Schema      *string `json:"schema,omitempty"`
+	Share       *string `json:"share,omitempty"`
+	ShareId     *string `json:"share_id,omitempty"`
+	Comment     *string `json:"comment,omitempty"`
+	Description *string `json:"description,omitempty"`
+	BundleName  *string `json:"bundle_name,omitempty"`
+}
+
+func skillToWire(v *Skill) (*skillWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &skillWire{
+		Name:        v.Name,
+		Id:          v.Id,
+		Schema:      v.Schema,
+		Share:       v.Share,
+		ShareId:     v.ShareId,
+		Comment:     v.Comment,
+		Description: v.Description,
+		BundleName:  v.BundleName,
+	}, nil
+}
+
+func skillFromWire(w *skillWire) (*Skill, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &Skill{
+		Name:        w.Name,
+		Id:          w.Id,
+		Schema:      w.Schema,
+		Share:       w.Share,
+		ShareId:     w.ShareId,
+		Comment:     w.Comment,
+		Description: w.Description,
+		BundleName:  w.BundleName,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Skill) MarshalJSON() ([]byte, error) {
+	w, err := skillToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Skill) UnmarshalJSON(data []byte) error {
+	var w skillWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := skillFromWire(&w)
 	if err != nil {
 		return err
 	}

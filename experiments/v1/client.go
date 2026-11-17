@@ -616,7 +616,8 @@ func (c *internalClient) CreateRun(ctx context.Context, req CreateRunRequest, op
 
 // Marks an experiment and associated metadata, runs, metrics, params, and tags
 // for deletion. If the experiment uses FileStore, artifacts associated with the
-// experiment are also deleted.
+// experiment are also deleted. Only workspace experiments can be deleted
+// through this method.
 func (c *internalClient) DeleteExperiment(ctx context.Context, req DeleteExperimentRequest, opts ...call.Option) (*DeleteExperimentResponse, error) {
 	wireReq, err := deleteExperimentRequestToWire(&req)
 	if err != nil {
@@ -1439,7 +1440,8 @@ func (c *internalClient) ListArtifactsIter(ctx context.Context, req ListArtifact
 	}
 }
 
-// Gets a list of all experiments.
+// Gets a list of all experiments, ordered by creation time with the newest
+// first.
 func (c *internalClient) ListExperiments(ctx context.Context, req ListExperimentsRequest, opts ...call.Option) (*ListExperimentsResponse, error) {
 	wireReq, err := listExperimentsRequestToWire(&req)
 	if err != nil {
@@ -2152,6 +2154,8 @@ func (c *internalClient) LogParam(ctx context.Context, req LogParamRequest, opts
 // metadata, runs, metrics, params, and tags. If experiment uses FileStore,
 // underlying artifacts associated with experiment are also restored.
 //
+// Only workspace experiments can be restored through this method.
+//
 // Throws `RESOURCE_DOES_NOT_EXIST` if experiment was never created or was
 // permanently deleted.
 func (c *internalClient) RestoreExperiment(ctx context.Context, req RestoreExperimentRequest, opts ...call.Option) (*RestoreExperimentResponse, error) {
@@ -2816,7 +2820,8 @@ func (c *internalClient) SetTag(ctx context.Context, req SetTagRequest, opts ...
 	return resp, nil
 }
 
-// Updates experiment metadata.
+// Updates experiment metadata. Only workspace experiments can be updated; a
+// notebook experiment takes its name from its notebook.
 func (c *internalClient) UpdateExperiment(ctx context.Context, req UpdateExperimentRequest, opts ...call.Option) (*UpdateExperimentResponse, error) {
 	wireReq, err := updateExperimentRequestToWire(&req)
 	if err != nil {

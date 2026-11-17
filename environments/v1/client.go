@@ -82,7 +82,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // Creates a new WorkspaceBaseEnvironment. This is a long-running operation. The
 // operation will asynchronously generate a materialized environment to optimize
 // dependency resolution and is only marked as done when the materialized
-// environment has been successfully generated or has failed.
+// environment has been successfully generated or has failed. Poll the returned
+// operation with GetOperation.
 func (c *internalClient) createWorkspaceBaseEnvironmentBase(ctx context.Context, req CreateWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*Operation, error) {
 	wireReq, err := createWorkspaceBaseEnvironmentRequestToWire(&req)
 	if err != nil {
@@ -160,7 +161,8 @@ func (c *internalClient) createWorkspaceBaseEnvironmentBase(ctx context.Context,
 // Creates a new WorkspaceBaseEnvironment. This is a long-running operation. The
 // operation will asynchronously generate a materialized environment to optimize
 // dependency resolution and is only marked as done when the materialized
-// environment has been successfully generated or has failed.
+// environment has been successfully generated or has failed. Poll the returned
+// operation with GetOperation.
 func (c *internalClient) CreateWorkspaceBaseEnvironment(ctx context.Context, req CreateWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*CreateWorkspaceBaseEnvironmentOperation, error) {
 	operation, err := c.createWorkspaceBaseEnvironmentBase(ctx, req, opts...)
 	if err != nil {
@@ -262,6 +264,7 @@ func (o *CreateWorkspaceBaseEnvironmentOperation) Wait(ctx context.Context, opts
 // Deletes a WorkspaceBaseEnvironment. Deleting a base environment may impact
 // linked notebooks and jobs. This operation is irreversible and should be
 // performed only when you are certain the environment is no longer needed.
+// Databricks-provided base environments cannot be deleted.
 func (c *internalClient) DeleteWorkspaceBaseEnvironment(ctx context.Context, req DeleteWorkspaceBaseEnvironmentRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
@@ -379,7 +382,13 @@ func (c *internalClient) GetDefaultWorkspaceBaseEnvironment(ctx context.Context,
 }
 
 // Gets the status of a long-running operation. Clients can use this method to
-// poll the operation result.
+// poll the operation result. Create, update and refresh return an operation
+// named `operations/{workspace_base_environment_id}`. The operation is done
+// when the materialized environment build finishes. On success, `response`
+// contains the WorkspaceBaseEnvironment with status `CREATED`. When the status
+// is `FAILED`, `EXPIRED` or `INVALID`, `error` is set instead, and
+// `error.message` carries the environment's status message when one is
+// available.
 func (c *internalClient) getOperation(ctx context.Context, req GetOperationRequest, opts ...call.Option) (*Operation, error) {
 
 	headers := http.Header{}
@@ -626,7 +635,9 @@ func (c *internalClient) ListWorkspaceBaseEnvironmentsIter(ctx context.Context, 
 // is a long-running operation. The operation will asynchronously regenerate the
 // materialized environment and is only marked as done when the materialized
 // environment has been successfully generated or has failed. The existing
-// materialized environment remains available until it expires.
+// materialized environment remains available until it expires. Poll the
+// returned operation with GetOperation. Databricks-provided base environments
+// cannot be refreshed.
 func (c *internalClient) refreshWorkspaceBaseEnvironmentBase(ctx context.Context, req RefreshWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*Operation, error) {
 	wireReq, err := refreshWorkspaceBaseEnvironmentRequestToWire(&req)
 	if err != nil {
@@ -703,7 +714,9 @@ func (c *internalClient) refreshWorkspaceBaseEnvironmentBase(ctx context.Context
 // is a long-running operation. The operation will asynchronously regenerate the
 // materialized environment and is only marked as done when the materialized
 // environment has been successfully generated or has failed. The existing
-// materialized environment remains available until it expires.
+// materialized environment remains available until it expires. Poll the
+// returned operation with GetOperation. Databricks-provided base environments
+// cannot be refreshed.
 func (c *internalClient) RefreshWorkspaceBaseEnvironment(ctx context.Context, req RefreshWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*RefreshWorkspaceBaseEnvironmentOperation, error) {
 	operation, err := c.refreshWorkspaceBaseEnvironmentBase(ctx, req, opts...)
 	if err != nil {
@@ -884,7 +897,8 @@ func (c *internalClient) UpdateDefaultWorkspaceBaseEnvironment(ctx context.Conte
 // operation. The operation will asynchronously regenerate the materialized
 // environment and is only marked as done when the materialized environment has
 // been successfully generated or has failed. The existing materialized
-// environment remains available until it expires.
+// environment remains available until it expires. Poll the returned operation
+// with GetOperation. Databricks-provided base environments cannot be updated.
 func (c *internalClient) updateWorkspaceBaseEnvironmentBase(ctx context.Context, req UpdateWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*Operation, error) {
 	wireReq, err := updateWorkspaceBaseEnvironmentRequestToWire(&req)
 	if err != nil {
@@ -960,7 +974,8 @@ func (c *internalClient) updateWorkspaceBaseEnvironmentBase(ctx context.Context,
 // operation. The operation will asynchronously regenerate the materialized
 // environment and is only marked as done when the materialized environment has
 // been successfully generated or has failed. The existing materialized
-// environment remains available until it expires.
+// environment remains available until it expires. Poll the returned operation
+// with GetOperation. Databricks-provided base environments cannot be updated.
 func (c *internalClient) UpdateWorkspaceBaseEnvironment(ctx context.Context, req UpdateWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*UpdateWorkspaceBaseEnvironmentOperation, error) {
 	operation, err := c.updateWorkspaceBaseEnvironmentBase(ctx, req, opts...)
 	if err != nil {

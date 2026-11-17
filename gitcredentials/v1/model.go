@@ -21,12 +21,15 @@ type CreateCredentialsRequest struct {
 	//
 	// [Learn more]: https://docs.databricks.com/repos/get-access-tokens-from-git-provider.html
 	PersonalAccessToken *string
-	// The ID of the service principal whose credentials will be modified. Only
-	// service principal managers can perform this action.
+	// The ID of the service principal for which the credential will be created.
+	// Only service principal managers can perform this action.
 	PrincipalId *int64
-	// the name of the git credential, used for identification and ease of lookup
+	// The name of the Git credential, used for identification and ease of lookup.
+	// It must not exceed 100 characters.
 	Name *string
-	// if the credential is the default for the given provider
+	// Set to true to make the new credential the default for its Git provider,
+	// replacing the current default. The first credential created for a provider
+	// becomes the default regardless of this value.
 	IsDefaultForProvider *bool
 	// The authenticating email associated with your Git provider user account. Used
 	// for authentication with the remote repository and also sets the author &
@@ -47,9 +50,11 @@ type CreateCredentialsResponse struct {
 	// depending on your Git provider / token requirements. Required for AWS
 	// CodeCommit.
 	GitUsername *string
-	// the name of the git credential, used for identification and ease of lookup
+	// The name of the Git credential, used for identification and ease of lookup.
 	Name *string
-	// if the credential is the default for the given provider
+	// Whether this credential is the default for its Git provider. The default
+	// credential is the fallback that is used when no specific credential is
+	// selected.
 	IsDefaultForProvider *bool
 	// The authenticating email associated with your Git provider user account. Used
 	// for authentication with the remote repository and also sets the author &
@@ -59,6 +64,9 @@ type CreateCredentialsResponse struct {
 	GitEmail *string
 }
 
+// A Git credential that Databricks uses to authenticate to a Git provider on
+// behalf of a user or service principal. Each user has one default credential
+// per Git provider, which is used when no specific credential is selected..
 type Credential struct {
 	// ID of the credential object in the workspace.
 	CredentialId *int64
@@ -74,9 +82,12 @@ type Credential struct {
 	// depending on your Git provider / token requirements. Required for AWS
 	// CodeCommit.
 	GitUsername *string
-	// the name of the git credential, used for identification and ease of lookup
+	// The name of the Git credential, used for identification and ease of lookup.
 	Name *string
-	// if the credential is the default for the given provider
+	// Whether this credential is the default for its Git provider. The default
+	// credential is the fallback that is used when no specific credential is
+	// selected. See
+	// https://docs.databricks.com/aws/en/repos/repos-setup#how-default-credentials-work.
 	IsDefaultForProvider *bool
 	// The authenticating email associated with your Git provider user account. Used
 	// for authentication with the remote repository and also sets the author &
@@ -89,7 +100,7 @@ type Credential struct {
 type DeleteCredentialsRequest struct {
 	// The ID for the corresponding credential to access.
 	Id *int64
-	// The ID of the service principal whose credentials will be modified. Only
+	// The ID of the service principal whose credential will be deleted. Only
 	// service principal managers can perform this action.
 	PrincipalId *int64
 }
@@ -100,7 +111,7 @@ type DeleteCredentialsResponse struct {
 type GetCredentialsRequest struct {
 	// The ID for the corresponding credential to access.
 	Id *int64
-	// The ID of the service principal whose credentials will be modified. Only
+	// The ID of the service principal whose credential will be returned. Only
 	// service principal managers can perform this action.
 	PrincipalId *int64
 }
@@ -116,9 +127,11 @@ type GetCredentialsResponse struct {
 	// depending on your Git provider / token requirements. Required for AWS
 	// CodeCommit.
 	GitUsername *string
-	// the name of the git credential, used for identification and ease of lookup
+	// The name of the Git credential, used for identification and ease of lookup.
 	Name *string
-	// if the credential is the default for the given provider
+	// Whether this credential is the default for its Git provider. The default
+	// credential is the fallback that is used when no specific credential is
+	// selected.
 	IsDefaultForProvider *bool
 	// The authenticating email associated with your Git provider user account. Used
 	// for authentication with the remote repository and also sets the author &
@@ -152,7 +165,8 @@ type UpdateCredentialsRequest struct {
 	// `gitHub`, `bitbucketCloud`, `gitLab`, `azureDevOpsServices` (Azure DevOps
 	// Services, including Microsoft Entra ID authentication), `gitHubEnterprise`,
 	// `bitbucketServer` (Bitbucket Data Center), `gitLabEnterpriseEdition` (GitLab
-	// Self-Managed), and `awsCodeCommit`.
+	// Self-Managed), and `awsCodeCommit`. Must match the Git provider of the
+	// existing credential; the provider cannot be changed.
 	GitProvider *string
 	// The username provided with your Git provider account and associated with the
 	// credential. For most Git providers it is only used to set the Git committer &
@@ -163,9 +177,12 @@ type UpdateCredentialsRequest struct {
 	// The ID of the service principal whose credentials will be modified. Only
 	// service principal managers can perform this action.
 	PrincipalId *int64
-	// the name of the git credential, used for identification and ease of lookup
+	// The name of the Git credential, used for identification and ease of lookup.
+	// It must not exceed 100 characters.
 	Name *string
-	// if the credential is the default for the given provider
+	// Set to true to make this credential the default for its Git provider,
+	// replacing the current default. Cannot be set to false; make another
+	// credential the default instead.
 	IsDefaultForProvider *bool
 	// The authenticating email associated with your Git provider user account. Used
 	// for authentication with the remote repository and also sets the author &

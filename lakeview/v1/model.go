@@ -33,24 +33,24 @@ const (
 )
 
 type AuthorizationDetails struct {
-	// The type of authorization downscoping policy. Ex: `workspace_rule_set`
-	// defines access rules for a specific workspace resource
+	// The type of authorization downscoping policy. A `workspace_rule_set` policy
+	// defines access rules for a specific workspace resource.
 	Type *string
 	// The resource name to which the authorization rule applies. This field is
-	// specific to `workspace_rule_set` constraint. Format:
-	// `workspaces/{workspace_id}/dashboards/{dashboard_id}`
+	// specific to the `workspace_rule_set` constraint. Format:
+	// `workspaces/{workspace_id}` for a workspace-level rule, or
+	// `workspaces/{workspace_id}/dashboards/{dashboard_id}` for a rule on a
+	// dashboard.
 	ResourceName *string
-	// The acl path of the tree store resource resource.
+	// The legacy ACL path of the workspace object that the rule applies to.
 	ResourceLegacyAclPath *string
 	// Represents downscoped permission rules with specific access rights. This
-	// field is specific to `workspace_rule_set` constraint.
+	// field is specific to the `workspace_rule_set` constraint.
 	GrantRules []AuthorizationDetails_GrantRule
 }
 
 type AuthorizationDetails_GrantRule struct {
-	// Permission sets for dashboard are defined in
-	// iam-common/rbac-common/permission-sets/definitions/TreeStoreBasePermissionSets
-	// Ex: `permissionSets/dashboard.runner`
+	// The permission set that the rule grants on the resource.
 	PermissionSet *string
 }
 
@@ -78,10 +78,10 @@ type CreateSubscriptionRequest struct {
 }
 
 type CronSchedule struct {
-	// A cron expression using quartz syntax. EX: `0 0 8 * * ?` represents everyday
-	// at 8am. See [Cron Trigger] for details.
+	// A cron expression in Quartz syntax that defines when the schedule runs. See
+	// the [Quartz cron trigger tutorial] for the syntax.
 	//
-	// [Cron Trigger]: http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html
+	// [Quartz cron trigger tutorial]: https://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html
 	QuartzCronExpression *string
 	// A Java timezone id. The schedule will be resolved with respect to this
 	// timezone. See [Java TimeZone] for details.
@@ -181,12 +181,13 @@ type DeleteScheduleRequest struct {
 type DeleteSubscriptionRequest struct {
 	// UUID identifying the subscription.
 	SubscriptionId *string
-	// UUID identifying the schedule which the subscription belongs.
+	// UUID identifying the schedule to which the subscription belongs.
 	ScheduleId *string
-	// UUID identifying the dashboard which the subscription belongs.
+	// UUID identifying the dashboard to which the subscription belongs.
 	DashboardId *string
-	// The etag for the subscription. Can be optionally provided to ensure that the
-	// subscription has not been modified since the last read.
+	// The etag of the subscription, as returned when it was read. If it is provided
+	// and no longer matches, the request fails with ABORTED and the subscription is
+	// not deleted.
 	Etag *string
 }
 
@@ -203,21 +204,28 @@ type GetPublishedDashboardRequest struct {
 type GetPublishedDashboardTokenInfoRequest struct {
 	// UUID identifying the published dashboard.
 	DashboardId *string
-	// Provided external value to be included in the custom claim.
+	// Value to carry in the token for this viewer, such as a tenant or region key.
+	// Dashboard dataset queries can reference it as `__aibi_external_value` to
+	// filter data per viewer. The combined size of `external_value` and
+	// `external_viewer_id` must be less than 1 KB.
 	ExternalValue *string
-	// Provided external viewer id to be included in the custom claim.
+	// Identifier of the viewer in the external application. It is recorded in
+	// dashboard audit logs, so it should be unique per viewer and must not contain
+	// personally identifiable information.
 	ExternalViewerId *string
 }
 
 type GetPublishedDashboardTokenInfoResponse struct {
-	// Custom claim generated from external_value and external_viewer_id. Format:
+	// Custom claim that carries `external_value` and `external_viewer_id` into the
+	// minted token. It is only present when at least one of those query parameters
+	// was provided. Format:
 	// `urn:aibi:external_data:<external_value>:<external_viewer_id>:<dashboard_id>`
 	CustomClaim *string
-	// Scope defining access permissions.
+	// The space-separated OAuth scopes to request when minting the token.
 	Scope *string
-	// Authorization constraints for accessing the published dashboard. Currently
-	// includes `workspace_rule_set` and could be enriched with
-	// `unity_catalog_privileges` before oAuth token generation.
+	// Authorization constraints that restrict the minted token to viewing the
+	// published dashboard. Pass them to the OAuth token endpoint serialized as a
+	// JSON array.
 	AuthorizationDetails []AuthorizationDetails
 }
 
@@ -231,9 +239,9 @@ type GetScheduleRequest struct {
 type GetSubscriptionRequest struct {
 	// UUID identifying the subscription.
 	SubscriptionId *string
-	// UUID identifying the schedule which the subscription belongs.
+	// UUID identifying the schedule to which the subscription belongs.
 	ScheduleId *string
-	// UUID identifying the dashboard which the subscription belongs.
+	// UUID identifying the dashboard to which the subscription belongs.
 	DashboardId *string
 }
 
@@ -258,7 +266,7 @@ type ListDashboardsResponse struct {
 }
 
 type ListSchedulesRequest struct {
-	// UUID identifying the dashboard to which the schedules belongs.
+	// UUID identifying the dashboard to which the schedules belong.
 	DashboardId *string
 	// The number of schedules to return per page.
 	PageSize *int
@@ -276,9 +284,9 @@ type ListSchedulesResponse struct {
 }
 
 type ListSubscriptionsRequest struct {
-	// UUID identifying the dashboard which the subscriptions belongs.
+	// UUID identifying the dashboard to which the subscriptions belong.
 	DashboardId *string
-	// UUID identifying the schedule which the subscriptions belongs.
+	// UUID identifying the schedule to which the subscriptions belong.
 	ScheduleId *string
 	// The number of subscriptions to return per page.
 	PageSize *int
@@ -323,11 +331,17 @@ type PublishDashboardRequest struct {
 type PublishedDashboard struct {
 	// The display name of the published dashboard.
 	DisplayName *string
-	// The warehouse ID used to run the published dashboard.
+	// The ID of the SQL warehouse that runs the published dashboard's queries. It
+	// is the warehouse given when the dashboard was published, or the draft's
+	// warehouse if none was given.
 	WarehouseId *string
-	// Indicates whether credentials are embedded in the published dashboard.
+	// Whether the publisher's credentials are embedded in the published dashboard.
+	// When true, viewers run the dashboard's queries with the publisher's data
+	// permissions (shared data permissions); when false, each viewer runs them with
+	// their own data permissions.
 	EmbedCredentials *bool
-	// The timestamp of when the published dashboard was last revised.
+	// The timestamp of when the current published version was created, that is,
+	// when the dashboard was last published.
 	RevisionCreateTime *types.Time
 }
 
@@ -335,8 +349,9 @@ type PublishedDashboard struct {
 type RevertDashboardRequest struct {
 	// UUID identifying the dashboard.
 	DashboardId *string
-	// The etag for the dashboard. Optionally, it can be provided to verify that the
-	// dashboard has not been modified from its last retrieval.
+	// The etag of the draft dashboard, as returned by the get dashboard API. When
+	// provided, the request fails with ABORTED if the draft has been modified since
+	// that etag was read.
 	Etag *string
 }
 
@@ -346,17 +361,24 @@ type RevertDashboardResponse struct {
 	Dashboard *Dashboard
 }
 
+// A schedule periodically runs a dashboard on a cron cadence. Each run executes
+// the dashboard's queries to refresh its cached data and sends a snapshot of
+// the dashboard to the schedule's subscribers. See [Manage scheduled dashboard
+// updates and subscriptions] for details.
+//
+// [Manage scheduled dashboard updates and subscriptions]: https://docs.databricks.com/dashboards/share/schedule-subscribe.
 type Schedule struct {
 	// UUID identifying the schedule.
 	ScheduleId *string
 	// UUID identifying the dashboard to which the schedule belongs.
 	DashboardId *string
-	// The cron expression describing the frequency of the periodic refresh for this
-	// schedule.
+	// The cron expression and time zone that define when the schedule runs.
 	CronSchedule *CronSchedule
-	// The status indicates whether this schedule is paused or not.
+	// Whether the schedule is paused. A paused schedule keeps its configuration and
+	// subscribers, but the dashboard is not refreshed and no notifications are sent
+	// until the schedule is unpaused.
 	PauseStatus SchedulePauseStatus
-	// The display name for schedule.
+	// The name of the schedule, as shown in the dashboard's list of schedules.
 	DisplayName *string
 	// The etag for the schedule. Must be left empty on create, must be provided on
 	// updates to ensure that the schedule has not been modified since the last
@@ -366,30 +388,48 @@ type Schedule struct {
 	CreateTime *types.Time
 	// A timestamp indicating when the schedule was last updated.
 	UpdateTime *types.Time
-	// The warehouse id to run the dashboard with for the schedule.
+	// The ID of the SQL warehouse that runs the dashboard's queries during
+	// scheduled refreshes. If omitted, the warehouse of the published dashboard is
+	// used.
 	WarehouseId *string
 }
 
+// A schedule periodically runs a dashboard on a cron cadence. Each run executes
+// the dashboard's queries to refresh its cached data and sends a snapshot of
+// the dashboard to the schedule's subscribers. See [Manage scheduled dashboard
+// updates and subscriptions] for details.
+//
+// [Manage scheduled dashboard updates and subscriptions]: https://docs.databricks.com/dashboards/share/schedule-subscribe.
 type ScheduleCreate struct {
 	// UUID identifying the schedule.
 	ScheduleId *string
 	// UUID identifying the dashboard to which the schedule belongs.
 	DashboardId *string
-	// The cron expression describing the frequency of the periodic refresh for this
-	// schedule.
+	// The cron expression and time zone that define when the schedule runs.
 	CronSchedule *CronSchedule
-	// The status indicates whether this schedule is paused or not.
+	// Whether the schedule is paused. A paused schedule keeps its configuration and
+	// subscribers, but the dashboard is not refreshed and no notifications are sent
+	// until the schedule is unpaused.
 	PauseStatus SchedulePauseStatus
-	// The display name for schedule.
+	// The name of the schedule, as shown in the dashboard's list of schedules.
 	DisplayName *string
 	// A timestamp indicating when the schedule was created.
 	CreateTime *types.Time
 	// A timestamp indicating when the schedule was last updated.
 	UpdateTime *types.Time
-	// The warehouse id to run the dashboard with for the schedule.
+	// The ID of the SQL warehouse that runs the dashboard's queries during
+	// scheduled refreshes. If omitted, the warehouse of the published dashboard is
+	// used.
 	WarehouseId *string
 }
 
+// A subscription registers a workspace user or a notification destination as a
+// subscriber of a dashboard schedule. Each time the schedule runs, the
+// subscriber receives a snapshot of the published dashboard, unless the
+// subscription is refresh-only. See [Manage scheduled dashboard updates and
+// subscriptions].
+//
+// [Manage scheduled dashboard updates and subscriptions]: https://docs.databricks.com/dashboards/share/schedule-subscribe.
 type Subscription struct {
 	// UUID identifying the subscription.
 	SubscriptionId *string
@@ -397,45 +437,59 @@ type Subscription struct {
 	ScheduleId *string
 	// UUID identifying the dashboard to which the subscription belongs.
 	DashboardId *string
-	// Subscriber details for users and destinations to be added as subscribers to
-	// the schedule.
+	// The subscriber that receives the dashboard snapshot. Exactly one of
+	// `user_subscriber` and `destination_subscriber` must be set.
 	Subscriber *Subscription_Subscriber
 	// UserId of the user who adds subscribers (users or notification destinations)
 	// to the dashboard's schedule.
 	CreatedByUserId *int64
-	// The etag for the subscription. Must be left empty on create, can be
-	// optionally provided on delete to ensure that the subscription has not been
-	// deleted since the last read.
+	// The etag of the subscription. It must be left empty on create. It can be
+	// passed as the `etag` parameter of the delete method to make sure the
+	// subscription has not changed since it was read.
 	Etag *string
 	// A timestamp indicating when the subscription was created.
 	CreateTime *types.Time
 	// A timestamp indicating when the subscription was last updated.
 	UpdateTime *types.Time
-	// Controls whether notifications are sent to the subscriber for scheduled
-	// dashboard refreshes. If not defined, defaults to false in the backend to
-	// match the current behavior (refresh and notify)
+	// Whether the subscription is refresh-only. When true, each scheduled run
+	// refreshes the dashboard data for the subscriber without sending a
+	// notification. Defaults to false. Refresh-only subscriptions are only allowed
+	// on dashboards published without embedded credentials.
 	SkipNotify *bool
 }
 
 type Subscription_Subscriber struct {
-	// The user to receive the subscription email. This parameter is mutually
-	// exclusive with `destination_subscriber`.
+	// The workspace user who receives the subscription.
 	UserSubscriber *Subscription_Subscriber_User
-	// The destination to receive the subscription email. This parameter is mutually
-	// exclusive with `user_subscriber`.
+	// The notification destination that receives the subscription, such as an email
+	// list or a Slack or Microsoft Teams channel. Workspace admins configure
+	// notification destinations.
 	DestinationSubscriber *Subscription_Subscriber_Destination
 }
 
 type Subscription_Subscriber_Destination struct {
-	// The canonical identifier of the destination to receive email notification.
+	// The UUID of the notification destination that receives the subscription, as
+	// returned by the [Notification Destinations API].
+	//
+	// [Notification Destinations API]: https://docs.databricks.com/api/workspace/notificationdestinations
 	DestinationId *string
 }
 
 type Subscription_Subscriber_User struct {
-	// UserId of the subscriber.
+	// The ID of the workspace user who receives the subscription, as returned by
+	// the [Workspace Users API].
+	//
+	// [Workspace Users API]: https://docs.databricks.com/api/workspace/users
 	UserId *int64
 }
 
+// A subscription registers a workspace user or a notification destination as a
+// subscriber of a dashboard schedule. Each time the schedule runs, the
+// subscriber receives a snapshot of the published dashboard, unless the
+// subscription is refresh-only. See [Manage scheduled dashboard updates and
+// subscriptions].
+//
+// [Manage scheduled dashboard updates and subscriptions]: https://docs.databricks.com/dashboards/share/schedule-subscribe.
 type SubscriptionCreate struct {
 	// UUID identifying the subscription.
 	SubscriptionId *string
@@ -443,8 +497,8 @@ type SubscriptionCreate struct {
 	ScheduleId *string
 	// UUID identifying the dashboard to which the subscription belongs.
 	DashboardId *string
-	// Subscriber details for users and destinations to be added as subscribers to
-	// the schedule.
+	// The subscriber that receives the dashboard snapshot. Exactly one of
+	// `user_subscriber` and `destination_subscriber` must be set.
 	Subscriber *Subscription_Subscriber
 	// UserId of the user who adds subscribers (users or notification destinations)
 	// to the dashboard's schedule.
@@ -453,9 +507,10 @@ type SubscriptionCreate struct {
 	CreateTime *types.Time
 	// A timestamp indicating when the subscription was last updated.
 	UpdateTime *types.Time
-	// Controls whether notifications are sent to the subscriber for scheduled
-	// dashboard refreshes. If not defined, defaults to false in the backend to
-	// match the current behavior (refresh and notify)
+	// Whether the subscription is refresh-only. When true, each scheduled run
+	// refreshes the dashboard data for the subscriber without sending a
+	// notification. Defaults to false. Refresh-only subscriptions are only allowed
+	// on dashboards published without embedded credentials.
 	SkipNotify *bool
 }
 
