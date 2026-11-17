@@ -76,8 +76,11 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	}, nil
 }
 
-// Get the status of all libraries on all clusters. A status is returned for all
-// libraries installed on this cluster via the API or the libraries UI.
+// Get the status of all libraries on all clusters in the workspace. A status is
+// returned for all libraries installed on each cluster via the API or the
+// libraries UI. If the workspace has more library statuses than the response
+// limit allows, the request fails; call the per-cluster status method for each
+// cluster instead.
 func (c *internalClient) AllClusterStatuses(ctx context.Context, req ListAllClusterLibraryStatusesRequest, opts ...call.Option) (*ListAllClusterLibraryStatusesResponse, error) {
 
 	headers := http.Header{}
@@ -138,8 +141,8 @@ func (c *internalClient) AllClusterStatuses(ctx context.Context, req ListAllClus
 // order of returned libraries is as follows: 1. Libraries set to be installed
 // on this cluster, in the order that the libraries were added to the cluster,
 // are returned first. 2. Libraries that were previously requested to be
-// installed on this cluster or, but are now marked for removal, in no
-// particular order, are returned last.
+// installed on this cluster but are now marked for removal, in no particular
+// order, are returned last.
 func (c *internalClient) ClusterStatus(ctx context.Context, req ClusterStatusRequest, opts ...call.Option) (*ClusterLibraryStatuses, error) {
 	wireReq, err := clusterStatusRequestToWire(&req)
 	if err != nil {

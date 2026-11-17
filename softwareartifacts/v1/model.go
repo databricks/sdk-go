@@ -25,7 +25,8 @@ type GetSoftwareArtifactRequest struct {
 // Request to get a software artifact version..
 type GetSoftwareArtifactVersionRequest struct {
 	// Resource name of the version, of the form
-	// `software-artifacts/{catalog}.{schema}.{artifact}/versions/{version}`.
+	// `software-artifacts/{catalog}.{schema}.{artifact}/versions/{version}`, where
+	// `{version}` is the version's content digest.
 	Name *string
 }
 
@@ -82,9 +83,12 @@ type ListSoftwareArtifactsResponse struct {
 
 // Request to resolve a software artifact version from its tag alias..
 type ResolveSoftwareArtifactVersionRequest struct {
-	// Resource name of the software artifact containing the alias.
+	// Resource name of the software artifact containing the alias, of the form
+	// `software-artifacts/{catalog}.{schema}.{artifact}`.
 	Parent *string
-	// Image tag alias selecting the version.
+	// Image tag alias selecting the version. The alias must be a valid OCI image
+	// tag of at most 128 characters, made of letters, digits, underscores, periods,
+	// and hyphens, and must not start with a period or hyphen.
 	Alias *string
 }
 
@@ -94,18 +98,26 @@ type ResolveSoftwareArtifactVersionResponse struct {
 	SoftwareArtifactVersion *SoftwareArtifactVersion
 }
 
-// A software artifact in a Unity Catalog schema..
+// A software artifact is a named container image stored in a Unity Catalog
+// schema and governed by Unity Catalog privileges. Images are pushed through
+// Databricks Artifact Registry; each pushed image digest becomes an immutable
+// version of the artifact, exposed as a SoftwareArtifactVersion. See
+// https://docs.databricks.com/aws/en/artifact-registry/ for concepts, naming
+// rules, and the privileges each operation requires..
 type SoftwareArtifact struct {
 	// Resource name of the artifact, of the form
 	// `software-artifacts/{catalog}.{schema}.{artifact}`.
 	Name *string `fieldmask:"name"`
-	// Principal name (a user, service principal, or group) that owns this artifact.
+	// Principal that owns the artifact, given as a user's email address, a service
+	// principal's application ID, or a group name.
 	Owner *string `fieldmask:"owner"`
-	// Time at which this software artifact was created.
+	// Time at which the artifact was created, formatted as an RFC 3339 timestamp in
+	// JSON.
 	CreateTime *types.Time `fieldmask:"create_time"`
 	// Principal name of the software artifact creator.
 	CreatedBy *string `fieldmask:"created_by"`
-	// Time at which this software artifact was last updated.
+	// Time at which the artifact was last updated, formatted as an RFC 3339
+	// timestamp in JSON.
 	UpdateTime *types.Time `fieldmask:"update_time"`
 	// Principal name that last updated this software artifact.
 	UpdatedBy *string `fieldmask:"updated_by"`
@@ -114,10 +126,12 @@ type SoftwareArtifact struct {
 // An immutable version of a software artifact, identified by its content
 // digest..
 type SoftwareArtifactVersion struct {
-	// Content digest of the version, for example `sha256:...`.
+	// Content digest of the version's image manifest, of the form
+	// `{algorithm}:{hex}`.
 	Digest *string
 	// Resource name of the version, of the form
-	// `software-artifacts/{catalog}.{schema}.{artifact}/versions/{version}`.
+	// `software-artifacts/{catalog}.{schema}.{artifact}/versions/{version}`, where
+	// `{version}` is the version's content digest.
 	Name *string
 	// Tags (aliases) that currently point at this version, for example `latest` or
 	// `v1.2.3`. Bounded at 10 per version; a version pointed at by more tags
@@ -125,11 +139,13 @@ type SoftwareArtifactVersion struct {
 	Tags []string
 	// Image acceleration information for this version.
 	ImageAccelerationDetails *ImageAccelerationDetail
-	// Time at which this software artifact version was created.
+	// Time at which this software artifact version was created, formatted as an RFC
+	// 3339 timestamp in JSON.
 	CreateTime *types.Time
 	// Principal name of the software artifact version creator.
 	CreatedBy *string
-	// Time at which this software artifact version was last updated.
+	// Time at which this software artifact version was last updated, formatted as
+	// an RFC 3339 timestamp in JSON.
 	UpdateTime *types.Time
 	// Principal name that last updated this software artifact version.
 	UpdatedBy *string

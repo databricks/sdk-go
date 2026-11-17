@@ -78,7 +78,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	}, nil
 }
 
-// Creates a new policy.
+// Creates a new usage policy. The creator is granted the manager role on the
+// new policy.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
 func (c *internalClient) CreateBudgetPolicy(ctx context.Context, req CreateBudgetPolicyRequest, opts ...call.Option) (*BudgetPolicy, error) {
 	wireReq, err := createBudgetPolicyRequestToWire(&req)
@@ -153,7 +154,7 @@ func (c *internalClient) CreateBudgetPolicy(ctx context.Context, req CreateBudge
 	return resp, nil
 }
 
-// Deletes a policy
+// Deletes a usage policy.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
 func (c *internalClient) DeleteBudgetPolicy(ctx context.Context, req DeleteBudgetPolicyRequest, opts ...call.Option) error {
 
@@ -210,7 +211,7 @@ func (c *internalClient) DeleteBudgetPolicy(ctx context.Context, req DeleteBudge
 	return nil
 }
 
-// Retrieves a policy by it's ID.
+// Retrieves a usage policy by its ID.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
 func (c *internalClient) GetBudgetPolicy(ctx context.Context, req GetBudgetPolicyRequest, opts ...call.Option) (*BudgetPolicy, error) {
 
@@ -276,8 +277,9 @@ func (c *internalClient) GetBudgetPolicy(ctx context.Context, req GetBudgetPolic
 	return resp, nil
 }
 
-// Lists all policies. Policies are returned in the alphabetically ascending
-// order of their names.
+// Lists the usage policies that the caller has permission to view. Policies are
+// sorted by name in ascending order unless `sort_spec` requests a different
+// order.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
 func (c *internalClient) ListBudgetPolicies(ctx context.Context, req ListBudgetPoliciesRequest, opts ...call.Option) (*ListBudgetPoliciesResponse, error) {
 	wireReq, err := listBudgetPoliciesRequestToWire(&req)
@@ -396,7 +398,8 @@ func (c *internalClient) ListBudgetPoliciesIter(ctx context.Context, req ListBud
 	}
 }
 
-// Updates a policy
+// Updates a usage policy. Changes apply only to serverless usage that starts
+// after the update, not to workloads that are already running.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
 func (c *internalClient) UpdateBudgetPolicy(ctx context.Context, req UpdateBudgetPolicyRequest, opts ...call.Option) (*BudgetPolicy, error) {
 	wireReq, err := updateBudgetPolicyRequestToWire(&req)

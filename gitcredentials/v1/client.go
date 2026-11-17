@@ -339,7 +339,8 @@ func (c *internalClient) ListCredentials(ctx context.Context, req ListCredential
 	return resp, nil
 }
 
-// Updates the specified Git credential.
+// Updates the specified Git credential. Fields that are omitted keep their
+// current values.
 func (c *internalClient) UpdateCredentials(ctx context.Context, req UpdateCredentialsRequest, opts ...call.Option) (*UpdateCredentialsResponse, error) {
 	wireReq, err := updateCredentialsRequestToWire(&req)
 	if err != nil {

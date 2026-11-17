@@ -141,27 +141,6 @@ func TestSingleShotAcquiresOneSlot(t *testing.T) {
 	}
 }
 
-func TestResumableAcquiresPerChunk(t *testing.T) {
-	f := newFakeServer(t, "resumable")
-	e := shrunkEngine(t, f)
-
-	lim := newCountingLimiter(4)
-	in := data(4 * 1024) // several resumable chunks
-	_, err := e.upload(t.Context(), "/Volumes/c/s/v/r.bin", bytes.NewReader(in), WithLimiter(lim))
-	noErr(t, err)
-	eqBytes(t, f.assembled(), in)
-
-	if lim.acquires < 2 {
-		t.Errorf("resumable acquires = %d, want >= 2 (one per chunk)", lim.acquires)
-	}
-	if lim.acquires != lim.releases {
-		t.Errorf("unbalanced: %d acquires, %d releases", lim.acquires, lim.releases)
-	}
-	if lim.max != 1 {
-		t.Errorf("resumable is sequential; peak concurrency = %d, want 1", lim.max)
-	}
-}
-
 func TestLimiterCancelNoLeak(t *testing.T) {
 	f := newFakeServer(t, "multipart")
 	slowParts(f, 50*time.Millisecond)

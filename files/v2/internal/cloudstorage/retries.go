@@ -11,9 +11,6 @@ import (
 	"github.com/databricks/sdk-go/core/ops"
 )
 
-// maxRetries caps how many times a single request is retried before giving up.
-var maxRetries = 4
-
 // retryStatusCodes are the HTTP statuses retried for an idempotent request.
 var retryStatusCodes = []int{
 	http.StatusRequestTimeout,     // 408
@@ -23,15 +20,9 @@ var retryStatusCodes = []int{
 	http.StatusGatewayTimeout,     // 504
 }
 
-// IsRetryableStatus reports whether an HTTP status code should be retried. It is
-// exported for callers (such as a resumable upload) that run their own
-// resume-aware retry loop over Attempt rather than using Send.
+// IsRetryableStatus reports whether an HTTP status code should be retried.
 func IsRetryableStatus(code int) bool {
 	return slices.Contains(retryStatusCodes, code)
-}
-
-func newRetrier() ops.Retrier {
-	return &retrier{maxRetries: maxRetries}
 }
 
 type retrier struct {
@@ -56,9 +47,7 @@ func (r *retrier) IsRetriable(err error) (time.Duration, bool) {
 // IsRetriable reports whether an error from Attempt is worth retrying: a stalled
 // attempt is, a short read (deterministic) is not, a retryable HTTP status (as
 // an APIError) is, and any other failure is retried only if it is a transient
-// network error (which excludes context cancellation and deadline). It is
-// exported for callers (such as a resumable upload) that run their own
-// resume-aware retry loop over Attempt.
+// network error (which excludes context cancellation and deadline).
 func IsRetriable(err error) bool {
 	if err == nil {
 		return false

@@ -78,7 +78,7 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	}, nil
 }
 
-// Creates a group in the <Databricks> account with a unique name, using the
+// Creates a group in the Databricks account with a unique name, using the
 // supplied group details.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
 func (c *internalClient) CreateAccountGroup(ctx context.Context, req CreateAccountGroupRequest, opts ...call.Option) (*AccountGroup, error) {
@@ -151,7 +151,7 @@ func (c *internalClient) CreateAccountGroup(ctx context.Context, req CreateAccou
 	return resp, nil
 }
 
-// Deletes a group from the <Databricks> account.
+// Deletes a group from the Databricks account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
 func (c *internalClient) DeleteAccountGroup(ctx context.Context, req DeleteAccountGroupRequest, opts ...call.Option) error {
 
@@ -208,7 +208,7 @@ func (c *internalClient) DeleteAccountGroup(ctx context.Context, req DeleteAccou
 	return nil
 }
 
-// Gets the information for a specific group in the <Databricks> account.
+// Gets the information for a specific group in the Databricks account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
 func (c *internalClient) GetAccountGroup(ctx context.Context, req GetAccountGroupRequest, opts ...call.Option) (*AccountGroup, error) {
 
@@ -274,8 +274,8 @@ func (c *internalClient) GetAccountGroup(ctx context.Context, req GetAccountGrou
 	return resp, nil
 }
 
-// Gets all details of the groups associated with the <Databricks> account. As
-// of 08/22/2025, this endpoint will no longer return members. Instead, members
+// Gets all details of the groups associated with the Databricks account. As of
+// 08/22/2025, this endpoint will no longer return members. Instead, members
 // should be retrieved by iterating through `Get group details`. Existing
 // accounts that rely on this attribute will not be impacted and will continue
 // receiving member data as before.
@@ -620,7 +620,7 @@ func (c *internalClient) CreateAccountServicePrincipal(ctx context.Context, req 
 	return resp, nil
 }
 
-// Delete a single service principal in the <Databricks> account.
+// Deletes a single service principal from the <Databricks> account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
 func (c *internalClient) DeleteAccountServicePrincipal(ctx context.Context, req DeleteAccountServicePrincipalRequest, opts ...call.Option) error {
 
@@ -677,8 +677,7 @@ func (c *internalClient) DeleteAccountServicePrincipal(ctx context.Context, req 
 	return nil
 }
 
-// Gets the details for a single service principal define in the <Databricks>
-// account.
+// Gets the details for a single service principal in the <Databricks> account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
 func (c *internalClient) GetAccountServicePrincipal(ctx context.Context, req GetAccountServicePrincipalRequest, opts ...call.Option) (*AccountServicePrincipal, error) {
 
@@ -949,7 +948,7 @@ func (c *internalClient) PatchAccountServicePrincipal(ctx context.Context, req P
 
 // Updates the details of a single service principal.
 //
-// This action replaces the existing service principal with the same name.
+// This action replaces the existing service principal that has the given ID.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
 func (c *internalClient) UpdateAccountServicePrincipal(ctx context.Context, req UpdateAccountServicePrincipalRequest, opts ...call.Option) error {
 	wireReq, err := updateAccountServicePrincipalRequestToWire(&req)

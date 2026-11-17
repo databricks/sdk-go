@@ -2023,7 +2023,8 @@ func (o *CreateRoleOperation) Wait(ctx context.Context, opts ...lro.Option) (*Ro
 }
 
 // Creates a snapshot, an immutable point-in-time copy of a branch's data,
-// within the project.
+// within the project. Returns a long-running operation. Poll it until done is
+// true; its response holds the new snapshot.
 func (c *internalClient) createSnapshotBase(ctx context.Context, req CreateSnapshotRequest, opts ...call.Option) (*Operation, error) {
 	wireReq, err := createSnapshotRequestToWire(&req)
 	if err != nil {
@@ -2100,7 +2101,8 @@ func (c *internalClient) createSnapshotBase(ctx context.Context, req CreateSnaps
 }
 
 // Creates a snapshot, an immutable point-in-time copy of a branch's data,
-// within the project.
+// within the project. Returns a long-running operation. Poll it until done is
+// true; its response holds the new snapshot.
 func (c *internalClient) CreateSnapshot(ctx context.Context, req CreateSnapshotRequest, opts ...call.Option) (*CreateSnapshotOperation, error) {
 	operation, err := c.createSnapshotBase(ctx, req, opts...)
 	if err != nil {
@@ -2997,7 +2999,7 @@ func (o *DeleteDataApiOperation) Wait(ctx context.Context, opts ...lro.Option) e
 	return nil
 }
 
-// Delete a Database.
+// Deletes the specified Postgres database.
 func (c *internalClient) deleteDatabaseBase(ctx context.Context, req DeleteDatabaseRequest, opts ...call.Option) (*Operation, error) {
 
 	headers := http.Header{}
@@ -3059,7 +3061,7 @@ func (c *internalClient) deleteDatabaseBase(ctx context.Context, req DeleteDatab
 	return resp, nil
 }
 
-// Delete a Database.
+// Deletes the specified Postgres database.
 func (c *internalClient) DeleteDatabase(ctx context.Context, req DeleteDatabaseRequest, opts ...call.Option) (*DeleteDatabaseOperation, error) {
 	operation, err := c.deleteDatabaseBase(ctx, req, opts...)
 	if err != nil {
@@ -3791,7 +3793,8 @@ func (o *DeleteRoleOperation) Wait(ctx context.Context, opts ...lro.Option) erro
 	return nil
 }
 
-// Deletes the specified snapshot.
+// Deletes the specified snapshot. A deleted snapshot cannot be recovered.
+// Returns a long-running operation. Poll it until done is true.
 func (c *internalClient) deleteSnapshotBase(ctx context.Context, req DeleteSnapshotRequest, opts ...call.Option) (*Operation, error) {
 
 	headers := http.Header{}
@@ -3853,7 +3856,8 @@ func (c *internalClient) deleteSnapshotBase(ctx context.Context, req DeleteSnaps
 	return resp, nil
 }
 
-// Deletes the specified snapshot.
+// Deletes the specified snapshot. A deleted snapshot cannot be recovered.
+// Returns a long-running operation. Poll it until done is true.
 func (c *internalClient) DeleteSnapshot(ctx context.Context, req DeleteSnapshotRequest, opts ...call.Option) (*DeleteSnapshotOperation, error) {
 	operation, err := c.deleteSnapshotBase(ctx, req, opts...)
 	if err != nil {
@@ -4536,7 +4540,7 @@ func (c *internalClient) GetDataApi(ctx context.Context, req GetDataApiRequest, 
 	return resp, nil
 }
 
-// Get a Database.
+// Retrieves information about the specified Postgres database.
 func (c *internalClient) GetDatabase(ctx context.Context, req GetDatabaseRequest, opts ...call.Option) (*Database, error) {
 
 	headers := http.Header{}
@@ -5562,7 +5566,7 @@ func (c *internalClient) ListCdfStatusesIter(ctx context.Context, req ListCdfSta
 	}
 }
 
-// List Databases.
+// Returns a list of Postgres databases in the branch.
 func (c *internalClient) ListDatabases(ctx context.Context, req ListDatabasesRequest, opts ...call.Option) (*ListDatabasesResponse, error) {
 	wireReq, err := listDatabasesRequestToWire(&req)
 	if err != nil {
@@ -7347,7 +7351,8 @@ func (o *UpdateDataApiOperation) Wait(ctx context.Context, opts ...lro.Option) (
 	return result, nil
 }
 
-// Update a Database.
+// Updates the specified Postgres database. Only the fields named in
+// `update_mask` change.
 func (c *internalClient) updateDatabaseBase(ctx context.Context, req UpdateDatabaseRequest, opts ...call.Option) (*Operation, error) {
 	wireReq, err := updateDatabaseRequestToWire(&req)
 	if err != nil {
@@ -7423,7 +7428,8 @@ func (c *internalClient) updateDatabaseBase(ctx context.Context, req UpdateDatab
 	return resp, nil
 }
 
-// Update a Database.
+// Updates the specified Postgres database. Only the fields named in
+// `update_mask` change.
 func (c *internalClient) UpdateDatabase(ctx context.Context, req UpdateDatabaseRequest, opts ...call.Option) (*UpdateDatabaseOperation, error) {
 	operation, err := c.updateDatabaseBase(ctx, req, opts...)
 	if err != nil {

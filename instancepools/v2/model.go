@@ -231,9 +231,9 @@ type DiskType_RemoteVolumeType_AzureDiskVolumeType struct {
 func (*DiskType_RemoteVolumeType_AzureDiskVolumeType) isDiskType_RemoteVolumeType() {}
 
 type DockerBasicAuth struct {
-	// Name of the user
+	// User name for authenticating to the Docker registry that hosts the image.
 	Username *string
-	// Password of the user
+	// Password for authenticating to the Docker registry that hosts the image.
 	Password *string
 }
 

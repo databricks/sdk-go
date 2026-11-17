@@ -30,14 +30,15 @@ const (
 	ConnectionType_Confluence          ConnectionType = "CONFLUENCE"
 	ConnectionType_Jdbc                ConnectionType = "JDBC"
 	ConnectionType_MetaMarketing       ConnectionType = "META_MARKETING"
-	ConnectionType_TiktokAds           ConnectionType = "TIKTOK_ADS"
-	ConnectionType_Hubspot             ConnectionType = "HUBSPOT"
-	ConnectionType_Zendesk             ConnectionType = "ZENDESK"
-	ConnectionType_AwsSecretsManager   ConnectionType = "AWS_SECRETS_MANAGER"
-	ConnectionType_AzureKeyVault       ConnectionType = "AZURE_KEY_VAULT"
-	ConnectionType_Github              ConnectionType = "GITHUB"
-	ConnectionType_Outlook             ConnectionType = "OUTLOOK"
-	ConnectionType_Smartsheet          ConnectionType = "SMARTSHEET"
+	// Connection to TikTok Ads for accessing advertising data.
+	ConnectionType_TiktokAds         ConnectionType = "TIKTOK_ADS"
+	ConnectionType_Hubspot           ConnectionType = "HUBSPOT"
+	ConnectionType_Zendesk           ConnectionType = "ZENDESK"
+	ConnectionType_AwsSecretsManager ConnectionType = "AWS_SECRETS_MANAGER"
+	ConnectionType_AzureKeyVault     ConnectionType = "AZURE_KEY_VAULT"
+	ConnectionType_Github            ConnectionType = "GITHUB"
+	ConnectionType_Outlook           ConnectionType = "OUTLOOK"
+	ConnectionType_Smartsheet        ConnectionType = "SMARTSHEET"
 )
 
 type CredentialType string

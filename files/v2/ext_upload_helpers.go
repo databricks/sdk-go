@@ -9,7 +9,6 @@ import (
 	"context"
 	"io"
 	"maps"
-	"net/http"
 )
 
 // --- Buffer helpers ---
@@ -59,10 +58,10 @@ func octetStreamHeaders(presigned map[string]string) map[string]string {
 
 // --- Single-shot delegation and best-effort abort glue ---
 
-// singleShotUpload sends the whole body in one PUT through the control-plane
-// single-shot path. Used for small files and as the multipart/resumable
-// fallback. Progress is reported as the body streams.
-func (e *engine) singleShotUpload(ctx context.Context, uc *uploadContext, body io.Reader) error {
+// singleShotUpload sends the whole body, of size bytes or -1 if unknown, in one
+// PUT to the current endpoint's Files API. Progress is reported as the body
+// streams.
+func (e *engine) singleShotUpload(ctx context.Context, uc *uploadContext, body io.Reader, size int64) error {
 	if uc.progress != nil {
 		body = withProgress(body, uc.progress)
 	}
@@ -72,30 +71,19 @@ func (e *engine) singleShotUpload(ctx context.Context, uc *uploadContext, body i
 		return err
 	}
 	defer uc.limiter.Release()
-	return e.uploadSingleShot(ctx, uc.targetPath, uc.overwrite, body)
+	return e.uploadSingleShot(ctx, uc, body, size)
 }
 
-// abortMultipartUpload mints a presigned abort URL on the control plane and
-// issues the unauthenticated cloud DELETE against it. Both halves run on the
-// caller's context, which abortMultipartBestEffort detaches and bounds.
-func (e *engine) abortMultipartUpload(ctx context.Context, uc *uploadContext, token string) error {
-	purl, err := e.createAbortURL(ctx, uc.targetPath, token)
-	if err != nil {
-		return err
-	}
-	headers := octetStreamHeaders(purl.Headers)
-	_, err = uc.cloud.Send(ctx, http.MethodDelete, purl.URL, headers, nil)
-	return err
-}
-
+// abortMultipartBestEffort aborts the multipart session on a context detached
+// from the caller's (see cleanupContext), and logs rather than returns a
+// failure.
 func (e *engine) abortMultipartBestEffort(ctx context.Context, uc *uploadContext, token string) {
 	ctx, cancel := e.cleanupContext(ctx)
 	defer cancel()
-	if err := e.abortMultipartUpload(ctx, uc, token); err != nil {
-		// Best-effort cleanup; its failure is not user-actionable (e.g. some clouds
-		// do not support abort presigned URLs), so it stays at debug rather than
-		// surfacing as a warning on an otherwise-normal outcome like a skip.
-		e.c.logger.DebugContext(ctx, "failed to abort multipart upload", "error", err)
+	if err := e.abortMultipart(ctx, uc, token); err != nil {
+		// Best-effort cleanup: the server expires abandoned sessions, so a failed
+		// abort is logged but doesn't change the upload's outcome.
+		e.c.logger.WarnContext(ctx, "failed to abort multipart upload", "error", err)
 	}
 }
 
@@ -106,11 +94,4 @@ func (e *engine) abortMultipartBestEffort(ctx context.Context, uc *uploadContext
 // abort fail instantly and leak the partial upload on the storage provider.
 func (e *engine) cleanupContext(ctx context.Context) (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.WithoutCancel(ctx), e.tun.cleanupTimeout)
-}
-
-func (e *engine) abortResumableUpload(ctx context.Context, uc *uploadContext, purl presignedURL) error {
-	ctx, cancel := e.cleanupContext(ctx)
-	defer cancel()
-	_, err := uc.cloud.Send(ctx, http.MethodDelete, purl.URL, purl.Headers, nil)
-	return err
 }

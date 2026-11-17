@@ -7,7 +7,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
+
+	"github.com/databricks/sdk-go/core/ops"
 )
 
 // newControlEngine builds an engine whose control plane points at an httptest
@@ -19,6 +23,15 @@ func newControlEngine(t *testing.T, h http.HandlerFunc) *engine {
 	srv := httptest.NewServer(requireCredentials(t, h))
 	t.Cleanup(srv.Close)
 	return newEngine(buildUploadClient(t, srv.URL, srv.Client(), ""))
+}
+
+// controlContext returns the context of an upload of /Volumes/c/s/v/f.bin to
+// e's workspace host, as the walk's last endpoint, so that its requests keep
+// the API client's retries.
+func controlContext(e *engine, overwrite *bool) *uploadContext {
+	uc := &uploadContext{tun: e.tun, targetPath: "/Volumes/c/s/v/f.bin", overwrite: overwrite}
+	uc.startEndpoint(endpoint{kind: presignedEndpoint, baseURL: e.c.host, multipart: true}, true)
+	return uc
 }
 
 // requireCredentials rejects a control-plane request that does not carry
@@ -51,15 +64,12 @@ func TestInitiate(t *testing.T) {
 	})
 
 	ow := true
-	res, err := c.initiateUpload(t.Context(), "/Volumes/c/s/v/f.bin", &ow)
+	res, err := c.initiateUpload(t.Context(), controlContext(c, &ow))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if res.MultipartUpload == nil || res.MultipartUpload.SessionToken != "tok" {
 		t.Errorf("multipart = %+v", res.MultipartUpload)
-	}
-	if res.ResumableUpload != nil {
-		t.Error("resumable should be nil")
 	}
 }
 
@@ -68,7 +78,7 @@ func TestCreatePartURLs(t *testing.T) {
 		_, _ = io.WriteString(w, `{"upload_part_urls":[{"url":"https://cloud.test/part/1","part_number":1,"headers":[{"name":"x-h","value":"v"}]}]}`)
 	})
 
-	urls, err := c.createPartURLs(t.Context(), "/Volumes/c/s/v/f.bin", "tok", 1, 1)
+	urls, err := c.createPartURLs(t.Context(), controlContext(c, nil), "tok", 1, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,45 +94,36 @@ func TestCreatePartURLsEmpty(t *testing.T) {
 	c := newControlEngine(t, func(w http.ResponseWriter, r *http.Request) {
 		_, _ = io.WriteString(w, `{"upload_part_urls":[]}`)
 	})
-	if _, err := c.createPartURLs(t.Context(), "/Volumes/c/s/v/f.bin", "tok", 1, 1); !errors.Is(err, errUnexpectedServerResponse) {
+	if _, err := c.createPartURLs(t.Context(), controlContext(c, nil), "tok", 1, 1); !errors.Is(err, errUnexpectedServerResponse) {
 		t.Fatalf("err = %v, want errUnexpectedServerResponse", err)
 	}
 }
 
-func TestCreateResumableURL(t *testing.T) {
+func TestAbortMultipart(t *testing.T) {
+	// The abort is an authenticated POST with the abort-upload action, sent once
+	// even when it fails with a retryable status.
+	var requests atomic.Int32
 	c := newControlEngine(t, func(w http.ResponseWriter, r *http.Request) {
-		_, _ = io.WriteString(w, `{"resumable_upload_url":{"url":"https://cloud.test/resumable","headers":[{"name":"x-h","value":"v"}]}}`)
+		requests.Add(1)
+		q := r.URL.Query()
+		if r.Method != http.MethodPost || r.URL.Path != "/api/2.0/fs/files/Volumes/c/s/v/f.bin" {
+			t.Errorf("request = %s %s", r.Method, r.URL.Path)
+		}
+		if q.Get("action") != "abort-upload" || q.Get("upload_type") != "multipart" || q.Get("session_token") != "tok" {
+			t.Errorf("query = %v", q)
+		}
+		w.WriteHeader(http.StatusServiceUnavailable)
 	})
+	// Fast retries, so that a retried abort shows up as a second request rather
+	// than as a test that runs out its retry budget.
+	c.tun.cpBackoff = ops.BackoffPolicy{Initial: time.Millisecond, Maximum: time.Millisecond, Factor: 1}
+	c.tun.cpRetryTimeout = time.Second
 
-	purl, err := c.createResumableURL(t.Context(), "/Volumes/c/s/v/f.bin", "tok")
-	if err != nil {
-		t.Fatal(err)
+	if err := c.abortMultipart(t.Context(), controlContext(c, nil), "tok"); err == nil {
+		t.Fatal("expected the 503 to be returned")
 	}
-	if purl.URL != "https://cloud.test/resumable" || purl.Headers["x-h"] != "v" {
-		t.Errorf("url = %+v", purl)
-	}
-}
-
-func TestCreateResumableURLMissing(t *testing.T) {
-	c := newControlEngine(t, func(w http.ResponseWriter, r *http.Request) {
-		_, _ = io.WriteString(w, `{}`)
-	})
-	if _, err := c.createResumableURL(t.Context(), "/Volumes/c/s/v/f.bin", "tok"); !errors.Is(err, errUnexpectedServerResponse) {
-		t.Fatalf("err = %v, want errUnexpectedServerResponse", err)
-	}
-}
-
-func TestCreateAbortURL(t *testing.T) {
-	c := newControlEngine(t, func(w http.ResponseWriter, r *http.Request) {
-		_, _ = io.WriteString(w, `{"abort_upload_url":{"url":"https://cloud.test/abort"}}`)
-	})
-
-	purl, err := c.createAbortURL(t.Context(), "/Volumes/c/s/v/f.bin", "tok")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if purl.URL != "https://cloud.test/abort" {
-		t.Errorf("url = %q", purl.URL)
+	if got := requests.Load(); got != 1 {
+		t.Errorf("requests = %d, want 1", got)
 	}
 }
 
@@ -145,7 +146,7 @@ func TestCompleteMultipartSortsParts(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	err := c.completeMultipart(t.Context(), "/Volumes/c/s/v/f.bin", "tok", map[int]string{3: "e3", 1: "e1", 2: "e2"})
+	err := c.completeMultipart(t.Context(), controlContext(c, nil), "tok", map[int]string{3: "e3", 1: "e1", 2: "e2"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -163,21 +164,21 @@ func TestControlPlaneAlreadyExists(t *testing.T) {
 	}
 
 	// complete-upload (the multipart finish) returning 409 ALREADY_EXISTS maps to
-	// the sentinel so callers can skip-if-exists, matching single-shot/resumable.
+	// the sentinel so callers can skip-if-exists, matching single-shot.
 	c := newControlEngine(t, conflict("ALREADY_EXISTS"))
-	if err := c.completeMultipart(t.Context(), "/Volumes/c/s/v/f.bin", "tok", map[int]string{1: "e1"}); !errors.Is(err, ErrAlreadyExists) {
+	if err := c.completeMultipart(t.Context(), controlContext(c, nil), "tok", map[int]string{1: "e1"}); !errors.Is(err, ErrAlreadyExists) {
 		t.Errorf("completeMultipart err = %v, want ErrAlreadyExists", err)
 	}
 
 	// initiate-upload maps the same way.
 	c2 := newControlEngine(t, conflict("ALREADY_EXISTS"))
-	if _, err := c2.initiateUpload(t.Context(), "/Volumes/c/s/v/f.bin", nil); !errors.Is(err, ErrAlreadyExists) {
+	if _, err := c2.initiateUpload(t.Context(), controlContext(c2, nil)); !errors.Is(err, ErrAlreadyExists) {
 		t.Errorf("initiateUpload err = %v, want ErrAlreadyExists", err)
 	}
 
 	// A different 409 is not mistaken for the already-exists sentinel.
 	c3 := newControlEngine(t, conflict("RESOURCE_CONFLICT"))
-	if _, err := c3.initiateUpload(t.Context(), "/Volumes/c/s/v/f.bin", nil); errors.Is(err, ErrAlreadyExists) {
+	if _, err := c3.initiateUpload(t.Context(), controlContext(c3, nil)); errors.Is(err, ErrAlreadyExists) {
 		t.Errorf("a non-ALREADY_EXISTS 409 mapped to ErrAlreadyExists: %v", err)
 	}
 }
@@ -205,7 +206,7 @@ func TestSingleShotUploadOverwrite(t *testing.T) {
 				gotContentType = r.Header.Get("Content-Type")
 				w.WriteHeader(http.StatusOK)
 			})
-			err := c.uploadSingleShot(t.Context(), "/Volumes/c/s/v/f.bin", tc.overwrite, strings.NewReader("hello"))
+			err := c.uploadSingleShot(t.Context(), controlContext(c, tc.overwrite), strings.NewReader("hello"), 5)
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -110,7 +110,8 @@ type GetSecretRequest struct {
 type GetSecretResponse struct {
 	// A unique name to identify the secret.
 	Key *string
-	// The value of the secret in its byte representation.
+	// The secret value, base64-encoded. A secret written with ``string_value`` is
+	// returned as the base64 encoding of its UTF-8 bytes.
 	Value []byte
 }
 
@@ -155,7 +156,7 @@ type PutAclResponse struct {
 }
 
 type PutSecretRequest struct {
-	// The name of the scope to which the secret will be associated with.
+	// The name of the scope to store the secret in.
 	Scope *string
 	// A unique name to identify the secret.
 	Key   *string
@@ -167,7 +168,8 @@ type isPutSecretRequest_Value interface {
 }
 
 // PutSecretRequest_Value_StringValue selects StringValue for PutSecretRequest.Value.
-// If specified, note that the value will be stored in UTF-8 (MB4) form.
+// The secret value as text. The server stores it as the UTF-8 encoding of the
+// string.
 type PutSecretRequest_Value_StringValue struct {
 	StringValue string
 }
@@ -175,7 +177,8 @@ type PutSecretRequest_Value_StringValue struct {
 func (*PutSecretRequest_Value_StringValue) isPutSecretRequest_Value() {}
 
 // PutSecretRequest_Value_BytesValue selects BytesValue for PutSecretRequest.Value.
-// If specified, value will be stored as bytes.
+// The secret value as raw bytes. The bytes must be base64-encoded in the JSON
+// request body.
 type PutSecretRequest_Value_BytesValue struct {
 	BytesValue []byte
 }
@@ -190,7 +193,7 @@ type PutSecretResponse struct {
 type SecretMetadata struct {
 	// A unique name to identify the secret.
 	Key *string
-	// The last updated timestamp (in milliseconds) for the secret.
+	// The time the secret was last written, in milliseconds since the Unix epoch.
 	LastUpdatedTimestamp *int64
 }
 

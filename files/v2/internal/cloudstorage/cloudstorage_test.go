@@ -18,11 +18,7 @@ import (
 // tests do not sleep.
 func fastClient(srv *httptest.Server) *Client {
 	fast := ops.BackoffPolicy{Initial: time.Millisecond, Maximum: time.Millisecond, Factor: 1}
-	c := New(srv.Client())
-	c.retrier = func() ops.Retrier {
-		return &retrier{backoff: fast, maxRetries: 3}
-	}
-	return c
+	return New(srv.Client(), WithBackoff(fast))
 }
 
 func TestSendRetriesRetryableStatus(t *testing.T) {
@@ -36,7 +32,7 @@ func TestSendRetriesRetryableStatus(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	resp, err := fastClient(srv).Send(t.Context(), http.MethodPut, srv.URL, nil, BytesBody([]byte("x")))
+	resp, err := fastClient(srv).Send(t.Context(), http.MethodPut, srv.URL, nil, BytesBody([]byte("x")), 3)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -54,10 +50,28 @@ func TestSendExhaustsRetryableStatus(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	_, err := fastClient(srv).Send(t.Context(), http.MethodPut, srv.URL, nil, BytesBody([]byte("x")))
+	_, err := fastClient(srv).Send(t.Context(), http.MethodPut, srv.URL, nil, BytesBody([]byte("x")), 3)
 	aerr, ok := errors.AsType[*apierr.APIError](err)
 	if !ok || aerr.HTTPStatusCode() != http.StatusServiceUnavailable {
 		t.Fatalf("err = %v, want a 503 APIError after exhausting retries", err)
+	}
+}
+
+func TestSendRetriesAtMostTheGivenCount(t *testing.T) {
+	for _, retries := range []int{0, 1, 2} {
+		var calls atomic.Int32
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			calls.Add(1)
+			w.WriteHeader(http.StatusServiceUnavailable)
+		}))
+		_, err := fastClient(srv).Send(t.Context(), http.MethodPut, srv.URL, nil, BytesBody([]byte("x")), retries)
+		srv.Close()
+		if err == nil {
+			t.Fatalf("retries=%d: want an error", retries)
+		}
+		if got := int(calls.Load()); got != retries+1 {
+			t.Errorf("retries=%d: calls = %d, want %d", retries, got, retries+1)
+		}
 	}
 }
 
@@ -68,7 +82,7 @@ func TestSendReturnsNonRetryableStatusAsError(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	resp, err := New(srv.Client()).Send(t.Context(), http.MethodPut, srv.URL, nil, BytesBody([]byte("x")))
+	resp, err := New(srv.Client()).Send(t.Context(), http.MethodPut, srv.URL, nil, BytesBody([]byte("x")), 3)
 	if resp != nil {
 		t.Errorf("expected nil response on error, got %v", resp)
 	}
@@ -82,8 +96,8 @@ func TestSendReturnsNonRetryableStatusAsError(t *testing.T) {
 }
 
 func TestAttemptReturnsRawResponse(t *testing.T) {
-	// Attempt never maps a status to an error: a 308 (resumable continue) and its
-	// Range header come back as a Response.
+	// Attempt never maps a status to an error: a 308 and its Range header come
+	// back as a Response.
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Range", "bytes=0-41")
 		w.WriteHeader(http.StatusPermanentRedirect)

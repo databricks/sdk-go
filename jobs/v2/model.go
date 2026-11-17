@@ -1301,7 +1301,12 @@ type AwsAttributes struct {
 	// does not affect cluster size and cannot currently be mutated over the
 	// lifetime of a cluster.
 	FirstOnDemand *int
-	Availability  AwsAvailability
+	// Availability type used for all subsequent nodes past the `first_on_demand`
+	// ones.
+	//
+	// Note: If `first_on_demand` is zero, this availability type will be used for
+	// the entire cluster.
+	Availability AwsAvailability
 	// Identifier for the availability zone/datacenter in which the cluster resides.
 	// This string will be of a form like "us-west-2a". The provided availability
 	// zone must be in the same region as the <Databricks> deployment. For example,
@@ -1364,7 +1369,9 @@ type AwsAttributes struct {
 
 // Attributes set during cluster creation which are related to Microsoft Azure..
 type AzureAttributes struct {
-	// Defines values necessary to configure and run Azure Log Analytics agent
+	// Defines values necessary to configure and run Azure Log Analytics agent. Both
+	// `log_analytics_workspace_id` and `log_analytics_primary_key` must be set, or
+	// neither.
 	LogAnalyticsInfo *LogAnalyticsInfo
 	// The first `first_on_demand` nodes of the cluster will be placed on on-demand
 	// instances. This value should be greater than 0, to make sure the cluster
@@ -1843,7 +1850,10 @@ type ClusterSpec_NewCluster struct {
 	// `cluster_log_conf` is specified, init script logs are sent to
 	// `<destination>/<cluster-ID>/init_scripts`.
 	InitScripts []InitScriptInfo
-	// Custom docker image BYOC
+	// Custom Docker image for the cluster's nodes, used with [Databricks Container
+	// Services].
+	//
+	// [Databricks Container Services]: https://docs.databricks.com/compute/custom-containers.html
 	DockerImage *DockerImage
 	// The optional ID of the instance pool to which the cluster belongs.
 	InstancePoolId *string
@@ -1857,8 +1867,39 @@ type ClusterSpec_NewCluster struct {
 	// The pool cluster uses the instance pool with id (instance_pool_id) if the
 	// driver pool is not assigned.
 	DriverInstancePoolId *string
-	WorkloadType         *WorkloadType
-	DataSecurityMode     DataSecurityMode
+	// Types of workloads that can use the cluster, such as notebooks or jobs. If
+	// omitted, the cluster can be used for both notebooks and jobs.
+	WorkloadType *WorkloadType
+	// Data security mode decides what data governance model to use when accessing
+	// data from a cluster.
+	//
+	// * `DATA_SECURITY_MODE_AUTO`: <Databricks> will choose the most appropriate
+	// access mode depending on your compute configuration. *
+	// `DATA_SECURITY_MODE_STANDARD`: A secure cluster that can be shared by
+	// multiple users. Cluster users are fully isolated so that they cannot see each
+	// other's data and credentials. Most data governance features are supported in
+	// this mode. But programming languages and cluster features might be limited. *
+	// `DATA_SECURITY_MODE_DEDICATED`: A secure cluster that can only be exclusively
+	// used by a single user specified in `single_user_name`. Most programming
+	// languages, cluster features and data governance features are available in
+	// this mode. * `NONE`: No security isolation for multiple users sharing the
+	// cluster. Data governance features are not available in this mode.
+	//
+	// The following modes are legacy aliases for the above modes:
+	//
+	// * `USER_ISOLATION`: Legacy alias for `DATA_SECURITY_MODE_STANDARD`. *
+	// `SINGLE_USER`: Legacy alias for `DATA_SECURITY_MODE_DEDICATED`.
+	//
+	// The following modes are deprecated starting with Databricks Runtime 15.0 and
+	// will be removed for future Databricks Runtime versions:
+	//
+	// * `LEGACY_TABLE_ACL`: This mode is for users migrating from legacy Table ACL
+	// clusters. * `LEGACY_PASSTHROUGH`: This mode is for users migrating from
+	// legacy Passthrough on high concurrency clusters. * `LEGACY_SINGLE_USER`: This
+	// mode is for users migrating from legacy Passthrough on standard clusters. *
+	// `LEGACY_SINGLE_USER_STANDARD`: This mode provides a way that doesn't have UC
+	// or passthrough enabled.
+	DataSecurityMode DataSecurityMode
 	// Determines the cluster's runtime engine, either standard or Photon.
 	//
 	// This field is not compatible with legacy `spark_version` values that contain
@@ -1868,7 +1909,22 @@ type ClusterSpec_NewCluster struct {
 	// If left unspecified, the runtime engine defaults to standard unless the
 	// spark_version contains -photon-, in which case Photon will be used.
 	RuntimeEngine RuntimeEngine
-	Kind          ComputeKind
+	// The kind of compute described by this compute specification.
+	//
+	// Depending on `kind`, different validations and default values will be
+	// applied.
+	//
+	// Clusters with `kind = CLASSIC_PREVIEW` support the following fields, whereas
+	// clusters with no specified `kind` do not. * [is_single_node] *
+	// [use_ml_runtime]
+	//
+	// By using the [simple form], your clusters are automatically using `kind =
+	// CLASSIC_PREVIEW`.
+	//
+	// [is_single_node]: https://docs.databricks.com/api/workspace/clusters/create#is_single_node
+	// [simple form]: https://docs.databricks.com/compute/simple-form.html
+	// [use_ml_runtime]: https://docs.databricks.com/api/workspace/clusters/create#use_ml_runtime
+	Kind ComputeKind
 	// This field can only be used when `kind = CLASSIC_PREVIEW`.
 	//
 	// `effective_spark_version` is determined by `spark_version` (DBR release),
@@ -2439,9 +2495,9 @@ type DeploymentSpec struct {
 }
 
 type DockerBasicAuth struct {
-	// Name of the user
+	// User name for authenticating to the Docker registry that hosts the image.
 	Username *string
-	// Password of the user
+	// Password for authenticating to the Docker registry that hosts the image.
 	Password *string
 }
 
@@ -3651,6 +3707,8 @@ type JobsHealthRules struct {
 	Rules []JobsHealthRule
 }
 
+// A library to install on a cluster. Exactly one of the library-type fields
+// must be set..
 type Library struct {
 	Lib isLibrary_Lib
 }
@@ -3674,8 +3732,9 @@ type Library_Lib_Jar struct {
 func (*Library_Lib_Jar) isLibrary_Lib() {}
 
 // Library_Lib_Egg selects Egg for Library.Lib.
-// Deprecated. URI of the egg library to install. Installing Python egg files is
-// deprecated and is not supported in Databricks Runtime 14.0 and above.
+// Deprecated: Installing Python egg files is not supported in Databricks
+// Runtime 14.0 and above. Use a wheel (`whl`) or a PyPI package (`pypi`)
+// instead. The value is the URI of the egg file to install.
 type Library_Lib_Egg struct {
 	Egg string
 }
@@ -3683,7 +3742,7 @@ type Library_Lib_Egg struct {
 func (*Library_Lib_Egg) isLibrary_Lib() {}
 
 // Library_Lib_Pypi selects Pypi for Library.Lib.
-// Specification of a PyPi library to be installed. For example: `{ "package":
+// Specification of a PyPI library to be installed. For example: `{ "package":
 // "simplejson" }`
 type Library_Lib_Pypi struct {
 	Pypi PythonPyPiLibrary
@@ -3701,7 +3760,7 @@ type Library_Lib_Maven struct {
 func (*Library_Lib_Maven) isLibrary_Lib() {}
 
 // Library_Lib_Cran selects Cran for Library.Lib.
-// Specification of a CRAN library to be installed as part of the library
+// Specification of a CRAN library to be installed.
 type Library_Lib_Cran struct {
 	Cran RCranLibrary
 }
@@ -3726,7 +3785,8 @@ func (*Library_Lib_Whl) isLibrary_Lib() {}
 // URI of the requirements.txt file to install. Only Workspace paths and Unity
 // Catalog Volumes paths are supported. For example: `{ "requirements":
 // "/Workspace/path/to/requirements.txt" }` or `{ "requirements" :
-// "/Volumes/path/to/requirements.txt" }`
+// "/Volumes/path/to/requirements.txt" }`. Installing a requirements file
+// requires Databricks Runtime 15.0 or above.
 type Library_Lib_Requirements struct {
 	Requirements string
 }
@@ -3883,8 +3943,12 @@ type LocalFileInfo struct {
 }
 
 type LogAnalyticsInfo struct {
+	// ID of the Azure Log Analytics workspace that the Log Analytics agent on the
+	// cluster's nodes reports to.
 	LogAnalyticsWorkspaceId *string
-	LogAnalyticsPrimaryKey  *string
+	// Primary key of the Azure Log Analytics workspace. The agent uses it to
+	// authenticate when reporting to the workspace.
+	LogAnalyticsPrimaryKey *string
 }
 
 // A recurring weekly time window during which platform-initiated maintenance is
@@ -3910,7 +3974,7 @@ type MavenLibrary struct {
 	// Maven repo to install the Maven package from. If omitted, both Maven Central
 	// Repository and Spark Packages are searched.
 	Repo *string
-	// List of dependences to exclude. For example: `["slf4j:slf4j",
+	// List of dependencies to exclude. For example: `["slf4j:slf4j",
 	// "*:hadoop-client"]`.
 	//
 	// Maven dependency exclusions:
@@ -4195,7 +4259,7 @@ type PythonOperatorTask_Parameter struct {
 }
 
 type PythonPyPiLibrary struct {
-	// The name of the pypi package to install. An optional exact version
+	// The name of the PyPI package to install. An optional exact version
 	// specification is also supported. Examples: "simplejson" and
 	// "simplejson==3.8.0".
 	Package *string
@@ -5881,7 +5945,8 @@ type SqlAlertState struct {
 }
 
 type SqlConditionConfiguration struct {
-	// The ID of the SQL query to evaluate as the trigger condition.
+	// The ID of the SQL query to evaluate as the trigger condition. Exactly one of
+	// `sql_query_id` or `file` must be set.
 	SqlQueryId *string
 	// The canonical identifier of the SQL warehouse to run the condition query
 	// against.

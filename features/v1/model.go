@@ -2158,9 +2158,11 @@ type MaterializedFeature struct {
 	Notifications *MaterializationNotifications `fieldmask:"notifications"`
 	// The ID of the materialization set containing this materialized feature. Unset
 	// for a materialized feature that is not part of a set.
-	MaterializationSetId *string                                            `fieldmask:"materialization_set_id"`
-	_                    [0]materializedFeatureDestinationFieldMaskMetadata `fieldmask_oneof:"Destination"`
-	_                    [0]materializedFeatureTriggerFieldMaskMetadata     `fieldmask_oneof:"Trigger"`
+	MaterializationSetId *string `fieldmask:"materialization_set_id"`
+	// Operations associated with this materialized feature.
+	Operations *MaterializedFeatureOperations                     `fieldmask:"operations"`
+	_          [0]materializedFeatureDestinationFieldMaskMetadata `fieldmask_oneof:"Destination"`
+	_          [0]materializedFeatureTriggerFieldMaskMetadata     `fieldmask_oneof:"Trigger"`
 }
 
 type isMaterializedFeature_Destination interface {
@@ -2247,6 +2249,12 @@ type MaterializedFeatureChangeFailure struct {
 	ErrorCode *string
 	// The failure's message.
 	Message *string
+}
+
+// References to operations on a materialized feature..
+type MaterializedFeatureOperations struct {
+	// Name of the latest entity purge operation. Format: operations/{operation_id}.
+	LatestEntityPurgeOperation *string `fieldmask:"latest_entity_purge_operation"`
 }
 
 // Computes the maximum value..

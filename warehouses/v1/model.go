@@ -683,7 +683,9 @@ type CreateWarehouseRequest struct {
 	// The amount of time in minutes that a SQL warehouse must be idle (i.e., no
 	// RUNNING queries) before it is automatically stopped.
 	//
-	// Supported values: - Must be == 0 or >= 10 mins - 0 indicates no autostop.
+	// Supported values: - Must be == 0 or >= 1 min for serverless warehouses. -
+	// Must be == 0 or >= 10 mins for classic and pro warehouses. - 0 indicates no
+	// autostop.
 	//
 	// Defaults to 120 mins
 	AutoStopMins *int
@@ -801,7 +803,9 @@ type EditWarehouseRequest struct {
 	// The amount of time in minutes that a SQL warehouse must be idle (i.e., no
 	// RUNNING queries) before it is automatically stopped.
 	//
-	// Supported values: - Must be == 0 or >= 10 mins - 0 indicates no autostop.
+	// Supported values: - Must be == 0 or >= 1 min for serverless warehouses. -
+	// Must be == 0 or >= 10 mins for classic and pro warehouses. - 0 indicates no
+	// autostop.
 	//
 	// Defaults to 120 mins
 	AutoStopMins *int
@@ -903,7 +907,9 @@ type EndpointInfo struct {
 	// The amount of time in minutes that a SQL warehouse must be idle (i.e., no
 	// RUNNING queries) before it is automatically stopped.
 	//
-	// Supported values: - Must be == 0 or >= 10 mins - 0 indicates no autostop.
+	// Supported values: - Must be == 0 or >= 1 min for serverless warehouses. -
+	// Must be == 0 or >= 10 mins for classic and pro warehouses. - 0 indicates no
+	// autostop.
 	//
 	// Defaults to 120 mins
 	AutoStopMins *int
@@ -1020,7 +1026,9 @@ type GetWarehouseResponse struct {
 	// The amount of time in minutes that a SQL warehouse must be idle (i.e., no
 	// RUNNING queries) before it is automatically stopped.
 	//
-	// Supported values: - Must be == 0 or >= 10 mins - 0 indicates no autostop.
+	// Supported values: - Must be == 0 or >= 1 min for serverless warehouses. -
+	// Must be == 0 or >= 10 mins for classic and pro warehouses. - 0 indicates no
+	// autostop.
 	//
 	// Defaults to 120 mins
 	AutoStopMins *int
