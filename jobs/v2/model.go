@@ -1838,8 +1838,9 @@ type ClusterSpec_NewCluster struct {
 	SparkEnvVars map[string]string
 	// Automatically terminates the cluster after it is inactive for this time in
 	// minutes. If not set, this cluster will not be automatically terminated. If
-	// specified, the threshold must be between 10 and 10000 minutes. Users can also
-	// set this value to 0 to explicitly disable automatic termination.
+	// specified, the threshold must be between 10 and 43200 minutes (30 days).
+	// Users can also set this value to 0 to explicitly disable automatic
+	// termination.
 	AutoterminationMinutes *int
 	// Autoscaling Local Storage: when enabled, this cluster will dynamically
 	// acquire additional disk space when its Spark workers are running low on disk
@@ -2069,9 +2070,15 @@ type ContinuousTriggerConfiguration struct {
 }
 
 type ContinuousTriggerState struct {
+	// The number of consecutive unsuccessful runs. Resets to `0` after a healthy
+	// run and determines the exponential backoff before the next run.
 	ConsecutiveFailures *int
-	NextAttemptMs       *int64
-	IsBackingOff        *bool
+	// The time at which the trigger next attempts to start a run, in epoch
+	// milliseconds.
+	NextAttemptMs *int64
+	// Whether the trigger is delaying the next run with exponential backoff after
+	// repeated failures.
+	IsBackingOff *bool
 }
 
 type CreateJobRequest struct {
@@ -2095,7 +2102,8 @@ type CreateJobRequest struct {
 	// An optional timeout applied to each run of this job. A value of `0` means no
 	// timeout.
 	TimeoutSeconds *int
-	Health         *JobsHealthRules
+	// An optional set of health rules that can be defined for this job.
+	Health *JobsHealthRules
 	// An optional periodic schedule for this job. The default behavior is that the
 	// job only runs when triggered by clicking “Run Now” in the Jobs UI or
 	// sending an API request to `runNow`.
@@ -3146,10 +3154,14 @@ type GitSource struct {
 	// is case insensitive.
 	GitProvider  *string
 	GitReference isGitSource_GitReference
-	GitSnapshot  *GitMetadataSnapshot
+	// Read-only state of the remote repository at the time the job was run. This
+	// field is only included on job runs.
+	GitSnapshot *GitMetadataSnapshot
 	// The source of the job specification in the remote repository when the job is
 	// source controlled.
-	JobSource      *JobSource
+	JobSource *JobSource
+	// Sparse checkout settings for the repository. When set, only the directories
+	// listed in `patterns` are checked out.
 	SparseCheckout *SparseCheckout
 }
 
@@ -3298,8 +3310,7 @@ type JobCompletionTriggerConfiguration struct {
 type JobCompletionTriggerConfiguration_MonitoredJob struct {
 	// The ID of the workspace containing the upstream job. This can differ from the
 	// caller's workspace and downstream services enforce correct entitlements and
-	// CAN_VIEW permissions for the user + job combination. SDR:
-	// https://databricks.atlassian.net/browse/SDR-5267
+	// CAN_VIEW permissions for the user + job combination.
 	WorkspaceId *string
 	// The ID of the upstream job.
 	JobId *string
@@ -3405,7 +3416,9 @@ type JobEmailNotifications struct {
 type JobEnvironment struct {
 	// The key of an environment. It has to be unique within a job.
 	EnvironmentKey *string
-	Spec           *Environment
+	// The environment specification, including the environment version and the
+	// dependencies to install before a task runs.
+	Spec *Environment
 }
 
 // A named environment-variable entry, defined once at the job level and
@@ -3523,7 +3536,8 @@ type JobSettings struct {
 	// An optional timeout applied to each run of this job. A value of `0` means no
 	// timeout.
 	TimeoutSeconds *int
-	Health         *JobsHealthRules
+	// An optional set of health rules that can be defined for this job.
+	Health *JobsHealthRules
 	// An optional periodic schedule for this job. The default behavior is that the
 	// job only runs when triggered by clicking “Run Now” in the Jobs UI or
 	// sending an API request to `runNow`.
@@ -3695,8 +3709,22 @@ type JobSource_ImportFromGitReference_ImportFromGitBranch struct {
 func (*JobSource_ImportFromGitReference_ImportFromGitBranch) isJobSource_ImportFromGitReference() {}
 
 type JobsHealthRule struct {
+	// Specifies the health metric that is being evaluated for a particular health
+	// rule.
+	//
+	// * `RUN_DURATION_SECONDS`: Expected total time for a run in seconds. *
+	// `STREAMING_BACKLOG_BYTES`: An estimate of the maximum bytes of data waiting
+	// to be consumed across all streams. This metric is in Public Preview. *
+	// `STREAMING_BACKLOG_RECORDS`: An estimate of the maximum offset lag across all
+	// streams. This metric is in Public Preview. * `STREAMING_BACKLOG_SECONDS`: An
+	// estimate of the maximum consumer delay across all streams. This metric is in
+	// Public Preview. * `STREAMING_BACKLOG_FILES`: An estimate of the maximum
+	// number of outstanding files across all streams. This metric is in Public
+	// Preview.
 	Metric JobsHealthMetric
-	Op     JobsHealthOperator
+	// Specifies the operator used to compare the health metric value with the
+	// specified threshold.
+	Op JobsHealthOperator
 	// Specifies the threshold value that the health metric should obey to satisfy
 	// the health rule.
 	Value *int64
@@ -3704,6 +3732,7 @@ type JobsHealthRule struct {
 
 // An optional set of health rules that can be defined for this job..
 type JobsHealthRules struct {
+	// The health rules to evaluate for each run.
 	Rules []JobsHealthRule
 }
 
@@ -4109,6 +4138,7 @@ type isPerTriggerState_TriggerType interface {
 }
 
 // PerTriggerState_TriggerType_Periodic selects Periodic for PerTriggerState.TriggerType.
+// State of the periodic trigger.
 type PerTriggerState_TriggerType_Periodic struct {
 	Periodic PeriodicTriggerState
 }
@@ -4116,6 +4146,7 @@ type PerTriggerState_TriggerType_Periodic struct {
 func (*PerTriggerState_TriggerType_Periodic) isPerTriggerState_TriggerType() {}
 
 // PerTriggerState_TriggerType_Schedule selects Schedule for PerTriggerState.TriggerType.
+// State of the cron schedule trigger.
 type PerTriggerState_TriggerType_Schedule struct {
 	Schedule ScheduleTriggerState
 }
@@ -4123,6 +4154,7 @@ type PerTriggerState_TriggerType_Schedule struct {
 func (*PerTriggerState_TriggerType_Schedule) isPerTriggerState_TriggerType() {}
 
 // PerTriggerState_TriggerType_Continuous selects Continuous for PerTriggerState.TriggerType.
+// State of the continuous trigger.
 type PerTriggerState_TriggerType_Continuous struct {
 	Continuous ContinuousTriggerState
 }
@@ -4130,6 +4162,7 @@ type PerTriggerState_TriggerType_Continuous struct {
 func (*PerTriggerState_TriggerType_Continuous) isPerTriggerState_TriggerType() {}
 
 // PerTriggerState_TriggerType_FileArrival selects FileArrival for PerTriggerState.TriggerType.
+// State of the file arrival trigger.
 type PerTriggerState_TriggerType_FileArrival struct {
 	FileArrival FileArrivalTriggerState
 }
@@ -4137,6 +4170,7 @@ type PerTriggerState_TriggerType_FileArrival struct {
 func (*PerTriggerState_TriggerType_FileArrival) isPerTriggerState_TriggerType() {}
 
 // PerTriggerState_TriggerType_TableUpdate selects TableUpdate for PerTriggerState.TriggerType.
+// State of the table update trigger.
 type PerTriggerState_TriggerType_TableUpdate struct {
 	TableUpdate TableTriggerState
 }
@@ -4144,6 +4178,7 @@ type PerTriggerState_TriggerType_TableUpdate struct {
 func (*PerTriggerState_TriggerType_TableUpdate) isPerTriggerState_TriggerType() {}
 
 // PerTriggerState_TriggerType_Model selects Model for PerTriggerState.TriggerType.
+// State of the model trigger.
 type PerTriggerState_TriggerType_Model struct {
 	Model ModelTriggerState
 }
@@ -4151,6 +4186,7 @@ type PerTriggerState_TriggerType_Model struct {
 func (*PerTriggerState_TriggerType_Model) isPerTriggerState_TriggerType() {}
 
 // PerTriggerState_TriggerType_JobCompletion selects JobCompletion for PerTriggerState.TriggerType.
+// State of the job completion trigger.
 type PerTriggerState_TriggerType_JobCompletion struct {
 	JobCompletion JobCompletionTriggerState
 }
@@ -4168,6 +4204,8 @@ type PeriodicTriggerConfiguration struct {
 }
 
 type PeriodicTriggerState struct {
+	// The time of the next scheduled run, in epoch milliseconds. Only set while the
+	// trigger is not paused.
 	NextRunTime *int64
 }
 
@@ -4910,7 +4948,8 @@ type RunLifecycleStateV2 struct {
 type RunNowRequest struct {
 	// The ID of the job to be executed
 	JobId *int64
-	// Job-level parameters used in the run. for example `"param": "overriding_val"`
+	// Job-level parameters used in the run, for example `"param":
+	// "overriding_val"`.
 	JobParameters map[string]string
 	// An optional token to guarantee the idempotency of job run requests. If a run
 	// with the provided token already exists, the request does not create a new run
@@ -5937,7 +5976,8 @@ type SparkSubmitTask struct {
 }
 
 type SparseCheckout struct {
-	// List of patterns to include for sparse checkout.
+	// List of patterns to include for sparse checkout. Each pattern is the path of
+	// a directory relative to the repository root.
 	Patterns []string
 }
 
@@ -6467,6 +6507,7 @@ type TableTriggerConfiguration struct {
 }
 
 type TableTriggerState struct {
+	// The last observed state of each monitored table.
 	LastSeenTableStates []TableState
 	// Indicates whether the trigger is using scalable monitoring.
 	UsingScalableMonitoring *bool
@@ -6504,7 +6545,8 @@ type TaskSettings struct {
 	// An optional timeout applied to each run of this job task. A value of `0`
 	// means no timeout.
 	TimeoutSeconds *int
-	Health         *JobsHealthRules
+	// An optional set of health rules that can be defined for this task.
+	Health *JobsHealthRules
 	// An optional set of email addresses that is notified when runs of this task
 	// begin or complete as well as when this task is deleted. The default behavior
 	// is to not send any emails.
@@ -6890,6 +6932,7 @@ type TriggerSettings_Configuration_Periodic struct {
 func (*TriggerSettings_Configuration_Periodic) isTriggerSettings_Configuration() {}
 
 // TriggerSettings_Configuration_TableUpdate selects TableUpdate for TriggerSettings.Configuration.
+// Table update trigger settings.
 type TriggerSettings_Configuration_TableUpdate struct {
 	TableUpdate TableTriggerConfiguration
 }
@@ -6927,6 +6970,7 @@ type isTriggerState_TriggerType interface {
 }
 
 // TriggerState_TriggerType_Table selects Table for TriggerState.TriggerType.
+// State of the table update trigger.
 type TriggerState_TriggerType_Table struct {
 	Table TableTriggerState
 }
@@ -6934,6 +6978,7 @@ type TriggerState_TriggerType_Table struct {
 func (*TriggerState_TriggerType_Table) isTriggerState_TriggerType() {}
 
 // TriggerState_TriggerType_FileArrival selects FileArrival for TriggerState.TriggerType.
+// State of the file arrival trigger.
 type TriggerState_TriggerType_FileArrival struct {
 	FileArrival FileArrivalTriggerState
 }
@@ -6941,6 +6986,7 @@ type TriggerState_TriggerType_FileArrival struct {
 func (*TriggerState_TriggerType_FileArrival) isTriggerState_TriggerType() {}
 
 // TriggerState_TriggerType_JobCompletion selects JobCompletion for TriggerState.TriggerType.
+// State of the job completion trigger.
 type TriggerState_TriggerType_JobCompletion struct {
 	JobCompletion JobCompletionTriggerState
 }
@@ -6998,6 +7044,7 @@ type VolumesStorageInfo struct {
 }
 
 type Webhook struct {
+	// The ID of the notification destination to call. Must be a UUID.
 	Id *string
 }
 

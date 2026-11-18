@@ -237,7 +237,9 @@ func (w *CreateEndpointWaiter) Wait(ctx context.Context, opts ...lro.Option) (*E
 	return result, nil
 }
 
-// Create a new index.
+// Create a new index on an endpoint. Creating a Delta Sync index also creates
+// the pipeline that populates it from the source table; a Direct Vector Access
+// index starts empty and is populated through Upsert data into an index.
 func (c *internalClient) CreateVectorIndex(ctx context.Context, req CreateVectorIndexRequest, opts ...call.Option) (*VectorIndex, error) {
 	wireReq, err := createVectorIndexRequestToWire(&req)
 	if err != nil {
@@ -303,7 +305,9 @@ func (c *internalClient) CreateVectorIndex(ctx context.Context, req CreateVector
 	return resp, nil
 }
 
-// Handles the deletion of data from a specified vector index.
+// Delete rows from a Direct Vector Access index by primary key. The response
+// reports how many rows were deleted and the primary keys of the rows that
+// failed.
 func (c *internalClient) DeleteDataVectorIndex(ctx context.Context, req DeleteDataVectorIndexRequest, opts ...call.Option) (*DeleteDataVectorIndexResponse, error) {
 	wireReq, err := deleteDataVectorIndexRequestToWire(&req)
 	if err != nil {
@@ -429,7 +433,8 @@ func (c *internalClient) DeleteEndpoint(ctx context.Context, req DeleteEndpointR
 	return resp, nil
 }
 
-// Delete an index.
+// Delete an index and the data it holds. The source table of a Delta Sync index
+// is not affected.
 func (c *internalClient) DeleteVectorIndex(ctx context.Context, req DeleteVectorIndexRequest, opts ...call.Option) (*DeleteVectorIndexResponse, error) {
 
 	headers := http.Header{}
@@ -974,7 +979,8 @@ func (c *internalClient) PatchEndpointBudgetPolicy(ctx context.Context, req Patc
 	return resp, nil
 }
 
-// Query the specified vector index.
+// Query an index with a vector, text, or both, and return the requested columns
+// of the best-matching rows.
 func (c *internalClient) QueryVectorIndex(ctx context.Context, req QueryVectorIndexRequest, opts ...call.Option) (*QueryVectorIndexResponse, error) {
 	wireReq, err := queryVectorIndexRequestToWire(&req)
 	if err != nil {
@@ -1121,7 +1127,9 @@ func (c *internalClient) QueryVectorIndexNextPage(ctx context.Context, req Query
 	return resp, nil
 }
 
-// Retrieve user-visible metrics for an endpoint
+// Retrieve time series of usage and health metrics for an endpoint and its
+// indexes, such as request counts, request latency percentiles and endpoint
+// utilization.
 func (c *internalClient) RetrieveUserVisibleMetrics(ctx context.Context, req RetrieveUserVisibleMetricsRequest, opts ...call.Option) (*RetrieveUserVisibleMetricsResponse, error) {
 	wireReq, err := retrieveUserVisibleMetricsRequestToWire(&req)
 	if err != nil {
@@ -1194,8 +1202,9 @@ func (c *internalClient) RetrieveUserVisibleMetrics(ctx context.Context, req Ret
 	return resp, nil
 }
 
-// Scan the specified vector index and return the first `num_results` entries
-// after the exclusive `primary_key`.
+// Scan an index and return the first `num_results` rows after the exclusive
+// `last_primary_key`. Repeat the call with the returned `last_primary_key` to
+// read the whole index.
 func (c *internalClient) ScanVectorIndex(ctx context.Context, req ScanVectorIndexRequest, opts ...call.Option) (*ScanVectorIndexResponse, error) {
 	wireReq, err := scanVectorIndexRequestToWire(&req)
 	if err != nil {
@@ -1417,7 +1426,9 @@ func (c *internalClient) StopEndpoint(ctx context.Context, req StopEndpointReque
 	return resp, nil
 }
 
-// Triggers a synchronization process for a specified vector index.
+// Start a sync of a Delta Sync index with a `TRIGGERED` pipeline from its
+// source table. An index with a `CONTINUOUS` pipeline syncs automatically and
+// rejects manual syncs.
 func (c *internalClient) SyncVectorIndex(ctx context.Context, req SyncVectorIndexRequest, opts ...call.Option) (*SyncVectorIndexResponse, error) {
 	wireReq, err := syncVectorIndexRequestToWire(&req)
 	if err != nil {
@@ -1557,7 +1568,9 @@ func (c *internalClient) UpdateEndpointCustomTags(ctx context.Context, req Updat
 	return resp, nil
 }
 
-// Handles the upserting of data into a specified vector index.
+// Insert rows into a Direct Vector Access index, replacing existing rows that
+// have the same primary key. The response reports how many rows succeeded and
+// the primary keys of the rows that failed.
 func (c *internalClient) UpsertDataVectorIndex(ctx context.Context, req UpsertDataVectorIndexRequest, opts ...call.Option) (*UpsertDataVectorIndexResponse, error) {
 	wireReq, err := upsertDataVectorIndexRequestToWire(&req)
 	if err != nil {

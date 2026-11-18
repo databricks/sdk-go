@@ -40,25 +40,48 @@ type CreateExternalMetadataRequest struct {
 }
 
 type DeleteExternalMetadataRequest struct {
+	// Name of the external metadata object to delete.
 	Name *string
 }
 
+// Metadata about an object that lives outside of <Databricks>, such as a Kafka
+// topic, a Tableau dashboard, or a Salesforce table. An external metadata
+// object is a Unity Catalog securable that can be the source or the target of
+// external lineage relationships, so that data flows into and out of
+// <Databricks> appear in the Unity Catalog lineage graph. See [External
+// lineage].
+//
+// [External lineage]: https://docs.databricks.com/aws/en/data-governance/unity-catalog/external-lineage.
 type ExternalMetadata struct {
-	// Name of the external metadata object.
+	// Name of the external metadata object. The name is unique within the
+	// metastore, must follow the [Unity Catalog naming requirements], and is stored
+	// in lowercase. It cannot be changed after creation, and external lineage
+	// relationships refer to the object by this name.
+	//
+	// [Unity Catalog naming requirements]: https://docs.databricks.com/aws/en/data-governance/unity-catalog/requirements#naming-requirements
 	Name *string `fieldmask:"name"`
-	// Type of external system.
+	// Type of the external system that holds the object. Use `OTHER` for a system
+	// that is not in the list.
 	SystemType SystemType `fieldmask:"system_type"`
-	// Type of entity within the external system.
+	// Type of the object within the external system, such as a table, a report, or
+	// a dashboard. The value is free-form text of at most 255 characters.
 	EntityType *string `fieldmask:"entity_type"`
-	// URL associated with the external metadata object.
+	// URL of the object in the external system. When set, lineage graph viewers can
+	// follow it to the external asset. The URL must not exceed 2048 characters.
 	Url *string `fieldmask:"url"`
-	// User-provided free-form text description.
+	// User-provided free-form text description of the object. The description must
+	// not exceed 5000 characters.
 	Description *string `fieldmask:"description"`
-	// List of columns associated with the external metadata object.
+	// Names of the columns of the object, used for column-level mappings in
+	// external lineage relationships. Column names must be unique within the list,
+	// and the combined size of all column names is limited.
 	Columns []string `fieldmask:"columns"`
-	// A map of key-value properties attached to the external metadata object.
+	// Key-value properties attached to the object. Keys and values must be
+	// non-empty, and the combined length of all keys and values must not exceed
+	// 5000 characters.
 	Properties map[string]string `fieldmask:"properties"`
-	// Owner of the external metadata object.
+	// Owner of the external metadata object. Defaults to the creator. To change the
+	// owner, send an update whose update mask includes `owner`.
 	Owner *string `fieldmask:"owner"`
 	// Unique identifier of parent metastore.
 	MetastoreId *string `fieldmask:"metastore_id"`
@@ -70,17 +93,20 @@ type ExternalMetadata struct {
 	UpdateTime *types.Time `fieldmask:"update_time"`
 	// Username of user who last modified external metadata object.
 	UpdatedBy *string `fieldmask:"updated_by"`
-	// Unique identifier of the external metadata object.
+	// Unique identifier of the external metadata object. The ID is a UUID that the
+	// system assigns on creation.
 	Id *string `fieldmask:"id"`
 }
 
 type GetExternalMetadataRequest struct {
+	// Name of the external metadata object to get.
 	Name *string
 }
 
 type ListExternalMetadataRequest struct {
 	// Specifies the maximum number of external metadata objects to return in a
-	// single response. The value must be less than or equal to 1000.
+	// single response. The value must be less than or equal to 1000. Defaults to
+	// 1000 when omitted.
 	PageSize *int
 	// Opaque pagination token to go to next page based on previous query.
 	PageToken *string
@@ -93,5 +119,8 @@ type ListExternalMetadataResponseV2 struct {
 
 type UpdateExternalMetadataRequest struct {
 	ExternalMetadata *ExternalMetadata
-	UpdateMask       *types.FieldMask[ExternalMetadata]
+	// Comma-separated list of the fields to update, for example
+	// `description,properties`. Only the listed fields change. The other fields
+	// keep their current values. The mask must not be empty.
+	UpdateMask *types.FieldMask[ExternalMetadata]
 }

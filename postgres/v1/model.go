@@ -529,9 +529,6 @@ const (
 	MigrationType_Unspecified MigrationType = ""
 	// Intended for a single copy of the source data, without ongoing replication.
 	MigrationType_MigrationTypeOneTimeCopy MigrationType = "MIGRATION_TYPE_ONE_TIME_COPY"
-	// Intended for an initial copy followed by ongoing replication of source
-	// changes.
-	MigrationType_MigrationTypeOnline MigrationType = "MIGRATION_TYPE_ONLINE"
 )
 
 // Controls how the Data API exposes the OpenAPI documentation endpoint. Only
@@ -1294,7 +1291,9 @@ type CreateSyncedTableRequest struct {
 	// Lakehouse Federation. 2. Postgres table named "{table}" in schema "{schema}"
 	// in the connected Postgres database
 	SyncedTableId *string
-	SyncedTable   *SyncedTable
+	// The synced table to create. Its configuration is read from spec, and its name
+	// comes from synced_table_id.
+	SyncedTable *SyncedTable
 }
 
 // Take a snapshot once per day, at the configured hour..
@@ -2774,13 +2773,17 @@ type StartMigrationResponse struct {
 	Migration *Migration
 }
 
+// A synced table is a read-only Postgres table that Databricks keeps up to date
+// from a Unity Catalog source table through a managed pipeline. It is also
+// registered in Unity Catalog under its three-part name. See
+// https://docs.databricks.com/aws/en/oltp/projects/sync-tables..
 type SyncedTable struct {
-	// Output only. The Full resource name of the synced table in Postgres where
-	// (catalog, schema, table) are the UC entity names.
+	// The full resource name of the synced table, where (catalog, schema, table)
+	// are the Unity Catalog names of the synced table.
 	//
-	// Format "synced_tables/{catalog}.{schema}.{table}"
+	// Format: "synced_tables/{catalog}.{schema}.{table}".
 	//
-	// For the corresponding source table in the Unity catalog look for the
+	// For the corresponding source table in Unity Catalog, look for the
 	// "source_table_full_name" attribute.
 	Name *string
 	// The Unity Catalog table ID for this synced table.
@@ -2789,28 +2792,31 @@ type SyncedTable struct {
 	// scheduling policy, etc.
 	Spec *SyncedTable_SyncedTableSpec
 	// Synced Table data synchronization status.
-	Status     *SyncedTable_SyncedTableStatus
+	Status *SyncedTable_SyncedTableStatus
+	// The time when the synced table was created.
 	CreateTime *types.Time
-	// The part of the name, chosen by the user when the resource was created.
+	// The three-part Unity Catalog name of the synced table, in the format
+	// "{catalog}.{schema}.{table}". It is the synced_table_id that was used to
+	// create the synced table and the last component of name.
 	SyncedTableId *string
 }
 
 type SyncedTable_SyncedTableSpec struct {
-	// The Postgres database name where the synced table will be created in.
-	//
-	// If this synced table is created inside a Lakebase Catalog, this attribute can
-	// be omitted on creation and is inferred from the postgres_database associated
-	// with the Lakebase Catalog. If specified when inside a Lakebase Catalog, the
-	// value must match.
-	//
-	// A value must be specified when creating a synced table inside a Standard
-	// Catalog.
+	// The name of the Postgres database where the synced table is created. A value
+	// must be specified on creation. If the synced table is created inside a
+	// Lakebase catalog, the value must match the Postgres database of that catalog.
 	PostgresDatabase *string
-	// The full resource name the branch associated with the table.
+	// The full resource name of the branch that contains the synced table.
 	//
 	// Format: "projects/{project_id}/branches/{branch_id}".
+	//
+	// A value must be specified when creating a synced table inside a standard
+	// catalog. Inside a Lakebase catalog it can be omitted, and if specified it
+	// must match the branch of that catalog.
 	Branch *string
-	// Scheduling policy of the underlying pipeline.
+	// Scheduling policy of the underlying pipeline. A value must be specified on
+	// creation. See https://docs.databricks.com/aws/en/oltp/projects/sync-tables
+	// for how to choose a sync mode.
 	SchedulingPolicy SyncedTable_SyncedTableSpec_SyncedTableSchedulingPolicy
 	// Three-part (catalog, schema, table) name of the source Delta table.
 	//
@@ -2819,15 +2825,17 @@ type SyncedTable_SyncedTableSpec struct {
 	// * synced_table_id used at the creation of the SyncedTable * "name" consisting
 	// of "synced_tables/" prefix and the full name of the destination table.
 	SourceTableFullName *string
-	// Primary Key columns to be used for data insert/update in the destination.
+	// Primary Key columns to be used for data insert/update in the destination. At
+	// least one column must be specified.
 	PrimaryKeyColumns []string
 	// Time series key to deduplicate (tie-break) rows with the same primary key.
 	TimeseriesKey *string
-	// ID of an existing pipeline to bin-pack this synced table into. At most one of
-	// existing_pipeline_id and new_pipeline_spec should be defined.
+	// ID of an existing pipeline to bin-pack this synced table into. The pipeline
+	// must be a synced table pipeline that runs continuously if and only if
+	// scheduling_policy is CONTINUOUS. At most one of existing_pipeline_id and
+	// new_pipeline_spec should be defined.
 	//
-	// The pipeline used for the synced table is returned via the top level
-	// pipeline_id attribute.
+	// The pipeline used for the synced table is returned in status.pipeline_id.
 	ExistingPipelineId *string
 	// If true, the synced table's logical database and schema resources in PG will
 	// be created if they do not already exist. The request will fail if this is
@@ -2838,8 +2846,7 @@ type SyncedTable_SyncedTableSpec struct {
 	// Specification for creating a new pipeline. At most one of
 	// existing_pipeline_id and new_pipeline_spec should be defined.
 	//
-	// The pipeline used for the synced table is returned via the top level
-	// pipeline_id attribute.
+	// The pipeline used for the synced table is returned in status.pipeline_id.
 	NewPipelineSpec *NewPipelineSpec
 	// When true, enables accelerated sync mode for the initial data load. This
 	// significantly improves performance for large tables. Requires workspace-level
@@ -2882,7 +2889,9 @@ type SyncedTable_SyncedTableStatus struct {
 	// The state of the synced table.
 	DetailedState SyncedTableState
 	// Summary of the last successful synchronization from source to destination.
-	LastSync            *SyncedTablePosition
+	LastSync *SyncedTablePosition
+	// Progress of the sync that is currently running, either the initial data load
+	// or an update of a triggered or snapshot synced table.
 	OngoingSyncProgress *SyncedTablePipelineProgress
 	// The current phase of the data synchronization pipeline.
 	ProvisioningPhase ProvisioningPhase
@@ -2941,6 +2950,7 @@ type isSyncedTablePosition_SourceSyncInfo interface {
 }
 
 // SyncedTablePosition_SourceSyncInfo_DeltaTableSyncInfo selects DeltaTableSyncInfo for SyncedTablePosition.SourceSyncInfo.
+// The source Delta table version that the last successful sync read.
 type SyncedTablePosition_SourceSyncInfo_DeltaTableSyncInfo struct {
 	DeltaTableSyncInfo DeltaTableSyncInfo
 }

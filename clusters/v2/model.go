@@ -1202,8 +1202,9 @@ type ClusterAttributes struct {
 	SparkEnvVars map[string]string
 	// Automatically terminates the cluster after it is inactive for this time in
 	// minutes. If not set, this cluster will not be automatically terminated. If
-	// specified, the threshold must be between 10 and 10000 minutes. Users can also
-	// set this value to 0 to explicitly disable automatic termination.
+	// specified, the threshold must be between 10 and 43200 minutes (30 days).
+	// Users can also set this value to 0 to explicitly disable automatic
+	// termination.
 	AutoterminationMinutes *int
 	// Autoscaling Local Storage: when enabled, this cluster will dynamically
 	// acquire additional disk space when its Spark workers are running low on disk
@@ -1472,8 +1473,9 @@ type ClusterInfo struct {
 	SparkEnvVars map[string]string
 	// Automatically terminates the cluster after it is inactive for this time in
 	// minutes. If not set, this cluster will not be automatically terminated. If
-	// specified, the threshold must be between 10 and 10000 minutes. Users can also
-	// set this value to 0 to explicitly disable automatic termination.
+	// specified, the threshold must be between 10 and 43200 minutes (30 days).
+	// Users can also set this value to 0 to explicitly disable automatic
+	// termination.
 	AutoterminationMinutes *int
 	// Autoscaling Local Storage: when enabled, this cluster will dynamically
 	// acquire additional disk space when its Spark workers are running low on disk
@@ -1703,8 +1705,9 @@ type ClusterInfo_ComputeSpec struct {
 	SparkEnvVars map[string]string
 	// Automatically terminates the cluster after it is inactive for this time in
 	// minutes. If not set, this cluster will not be automatically terminated. If
-	// specified, the threshold must be between 10 and 10000 minutes. Users can also
-	// set this value to 0 to explicitly disable automatic termination.
+	// specified, the threshold must be between 10 and 43200 minutes (30 days).
+	// Users can also set this value to 0 to explicitly disable automatic
+	// termination.
 	AutoterminationMinutes *int
 	// Autoscaling Local Storage: when enabled, this cluster will dynamically
 	// acquire additional disk space when its Spark workers are running low on disk
@@ -2009,8 +2012,9 @@ type CreateClusterRequest struct {
 	SparkEnvVars map[string]string
 	// Automatically terminates the cluster after it is inactive for this time in
 	// minutes. If not set, this cluster will not be automatically terminated. If
-	// specified, the threshold must be between 10 and 10000 minutes. Users can also
-	// set this value to 0 to explicitly disable automatic termination.
+	// specified, the threshold must be between 10 and 43200 minutes (30 days).
+	// Users can also set this value to 0 to explicitly disable automatic
+	// termination.
 	AutoterminationMinutes *int
 	// Autoscaling Local Storage: when enabled, this cluster will dynamically
 	// acquire additional disk space when its Spark workers are running low on disk
@@ -2285,8 +2289,9 @@ type EditClusterRequest struct {
 	SparkEnvVars map[string]string
 	// Automatically terminates the cluster after it is inactive for this time in
 	// minutes. If not set, this cluster will not be automatically terminated. If
-	// specified, the threshold must be between 10 and 10000 minutes. Users can also
-	// set this value to 0 to explicitly disable automatic termination.
+	// specified, the threshold must be between 10 and 43200 minutes (30 days).
+	// Users can also set this value to 0 to explicitly disable automatic
+	// termination.
 	AutoterminationMinutes *int
 	// Autoscaling Local Storage: when enabled, this cluster will dynamically
 	// acquire additional disk space when its Spark workers are running low on disk
@@ -2535,8 +2540,9 @@ type EnforcePolicyComplianceForClusterResponse_ClusterSettings struct {
 	SparkEnvVars map[string]string
 	// Automatically terminates the cluster after it is inactive for this time in
 	// minutes. If not set, this cluster will not be automatically terminated. If
-	// specified, the threshold must be between 10 and 10000 minutes. Users can also
-	// set this value to 0 to explicitly disable automatic termination.
+	// specified, the threshold must be between 10 and 43200 minutes (30 days).
+	// Users can also set this value to 0 to explicitly disable automatic
+	// termination.
 	AutoterminationMinutes *int
 	// Autoscaling Local Storage: when enabled, this cluster will dynamically
 	// acquire additional disk space when its Spark workers are running low on disk
@@ -3517,8 +3523,9 @@ type UpdateClusterRequest_UpdateClusterResource struct {
 	SparkEnvVars map[string]string `fieldmask:"spark_env_vars"`
 	// Automatically terminates the cluster after it is inactive for this time in
 	// minutes. If not set, this cluster will not be automatically terminated. If
-	// specified, the threshold must be between 10 and 10000 minutes. Users can also
-	// set this value to 0 to explicitly disable automatic termination.
+	// specified, the threshold must be between 10 and 43200 minutes (30 days).
+	// Users can also set this value to 0 to explicitly disable automatic
+	// termination.
 	AutoterminationMinutes *int `fieldmask:"autotermination_minutes"`
 	// Autoscaling Local Storage: when enabled, this cluster will dynamically
 	// acquire additional disk space when its Spark workers are running low on disk
