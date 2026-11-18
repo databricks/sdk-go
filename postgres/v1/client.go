@@ -2201,7 +2201,9 @@ func (o *CreateSnapshotOperation) Wait(ctx context.Context, opts ...lro.Option) 
 	return result, nil
 }
 
-// Create a Synced Table.
+// Create a Synced Table. Creates the synced table in Unity Catalog and the
+// Postgres table on the branch, and starts the pipeline that loads the initial
+// data from the source table.
 func (c *internalClient) createSyncedTableBase(ctx context.Context, req CreateSyncedTableRequest, opts ...call.Option) (*Operation, error) {
 	wireReq, err := createSyncedTableRequestToWire(&req)
 	if err != nil {
@@ -2270,7 +2272,9 @@ func (c *internalClient) createSyncedTableBase(ctx context.Context, req CreateSy
 	return resp, nil
 }
 
-// Create a Synced Table.
+// Create a Synced Table. Creates the synced table in Unity Catalog and the
+// Postgres table on the branch, and starts the pipeline that loads the initial
+// data from the source table.
 func (c *internalClient) CreateSyncedTable(ctx context.Context, req CreateSyncedTableRequest, opts ...call.Option) (*CreateSyncedTableOperation, error) {
 	operation, err := c.createSyncedTableBase(ctx, req, opts...)
 	if err != nil {
@@ -3947,7 +3951,9 @@ func (o *DeleteSnapshotOperation) Wait(ctx context.Context, opts ...lro.Option) 
 	return nil
 }
 
-// Delete a Synced Table.
+// Delete a Synced Table. Drops the Postgres table, removes the synced table
+// from its pipeline, and deletes it from Unity Catalog. The pipeline itself is
+// deleted when no other synced table uses it.
 func (c *internalClient) deleteSyncedTableBase(ctx context.Context, req DeleteSyncedTableRequest, opts ...call.Option) (*Operation, error) {
 
 	headers := http.Header{}
@@ -4009,7 +4015,9 @@ func (c *internalClient) deleteSyncedTableBase(ctx context.Context, req DeleteSy
 	return resp, nil
 }
 
-// Delete a Synced Table.
+// Delete a Synced Table. Drops the Postgres table, removes the synced table
+// from its pipeline, and deletes it from Unity Catalog. The pipeline itself is
+// deleted when no other synced table uses it.
 func (c *internalClient) DeleteSyncedTable(ctx context.Context, req DeleteSyncedTableRequest, opts ...call.Option) (*DeleteSyncedTableOperation, error) {
 	operation, err := c.deleteSyncedTableBase(ctx, req, opts...)
 	if err != nil {

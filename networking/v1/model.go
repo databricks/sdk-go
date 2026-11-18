@@ -1639,9 +1639,7 @@ type IngressNetworkPolicy_PrivateIngressRule struct {
 	// RequestDestination.
 	Destination *IngressNetworkPolicy_RequestDestination
 	// The authenticated identity the request must match. When unset, the rule
-	// matches all users and service principals. On the account-level network
-	// policy, scoping to specific identities is not currently supported, so this
-	// field must be unset (the rule matches all users and service principals).
+	// matches all users and service principals.
 	Authentication *IngressNetworkPolicy_Authentication
 	// The label for this ingress rule.
 	Label *string

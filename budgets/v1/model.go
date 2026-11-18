@@ -68,16 +68,20 @@ const (
 )
 
 type ActionConfiguration struct {
-	// <Databricks> action configuration ID.
+	// Databricks action configuration ID.
 	ActionConfigurationId *string
-	// The type of the action.
+	// The action to take when the alert enters a triggered state.
+	// `EMAIL_NOTIFICATION` sends an email and `BLOCK_USAGE` blocks further usage.
+	// `BLOCK_USAGE` is only supported on Unity AI Gateway budgets, with
+	// `resource_type` set to `BUDGET_RESOURCE_TYPE_UNITY_AI_GATEWAY`.
 	ActionType ActionConfigurationType
-	// Target for the action. For example, an email address.
+	// Target of the action. For `EMAIL_NOTIFICATION`, the email address that
+	// receives the alert, up to 256 characters. Must be omitted for `BLOCK_USAGE`.
 	Target *string
 }
 
 type AlertConfiguration struct {
-	// <Databricks> alert configuration ID.
+	// Databricks alert configuration ID.
 	AlertConfigurationId *string
 	// The time window of usage data for the budget.
 	TimePeriod AlertConfigurationTimePeriod
@@ -88,10 +92,11 @@ type AlertConfiguration struct {
 	// `quantity_threshold` is measured in.
 	QuantityType AlertConfigurationQuantityType
 	// The threshold for the budget alert to determine if it is in a triggered
-	// state. The number is evaluated based on `quantity_type`.
+	// state. The number is evaluated based on `quantity_type`. A decimal number
+	// passed as a string, from 0 to 1,000,000,000.
 	QuantityThreshold *string
 	// Configured actions for this alert. These define what happens when an alert
-	// enters a triggered state.
+	// enters a triggered state. An alert can have up to 10 actions.
 	ActionConfigurations []ActionConfiguration
 	// How the alert threshold is evaluated. Determines whether spend is tracked in
 	// aggregate or per individual user.
@@ -129,14 +134,20 @@ type AlertSpendStatus struct {
 	PercentConsumed *string
 }
 
+// A budget tracks the spend of your account, or of the workspaces and custom
+// tags selected by its filter, against one or more alert thresholds. Spend is
+// measured in US dollars at list price. For an overview, see
+// https://docs.databricks.com/en/admin/account-settings/budgets.html..
 type BudgetConfiguration struct {
-	// <Databricks> budget configuration ID.
+	// Databricks budget configuration ID.
 	BudgetConfigurationId *string
-	// <Databricks> account ID.
+	// Databricks account ID.
 	AccountId *string
-	// Creation time of this budget configuration.
+	// Creation time of this budget configuration, in milliseconds since the Unix
+	// epoch.
 	CreateTime *int64
-	// Update time of this budget configuration.
+	// Time of the most recent update to this budget configuration, in milliseconds
+	// since the Unix epoch.
 	UpdateTime *int64
 	// Alerts to configure when this budget is in a triggered state. Budgets must
 	// have at least one alert configuration. A budget can have up to four shared
@@ -152,12 +163,13 @@ type BudgetConfiguration struct {
 	// Configured filters for this budget. These are applied to your account's usage
 	// to limit the scope of what is considered for this budget. Leave empty to
 	// include all usage for this account. All provided filters must be matched for
-	// usage to be included.
+	// usage to be included. The filter cannot be changed after the budget is
+	// created. To change it, delete the budget and create a new one.
 	Filter *BudgetConfigurationFilter
 	// Human-readable name of budget configuration. Max Length: 128
 	DisplayName *string
 	// Whether this budget tracks external pass-through spend (third-party costs
-	// billed through a <Databricks> product) in addition to internal <Databricks>
+	// billed through a Databricks product) in addition to internal Databricks
 	// spend. Only applicable to Unity Gateway budgets, i.e. when `resource_type` is
 	// `BUDGET_RESOURCE_TYPE_UNITY_AI_GATEWAY`. This field is immutable after
 	// create.
@@ -168,7 +180,7 @@ type BudgetConfiguration struct {
 }
 
 type BudgetConfigurationFilter struct {
-	// If provided, usage must match with the provided <Databricks> workspace IDs.
+	// If provided, usage must match with the provided Databricks workspace IDs.
 	WorkspaceId *BudgetConfigurationFilter_WorkspaceIdClause
 	// A list of tag keys and values that will limit the budget to usage that
 	// includes those specific custom tags. Tags are case-sensitive and should be
@@ -177,18 +189,29 @@ type BudgetConfigurationFilter struct {
 }
 
 type BudgetConfigurationFilter_Clause struct {
+	// How usage is compared with `values`. `IN` matches usage whose value is one of
+	// `values`.
 	Operator BudgetConfigurationFilter_Operator
-	Values   []string
+	// Values to match. A clause can list up to 30 values.
+	Values []string
 }
 
 type BudgetConfigurationFilter_TagClause struct {
-	Key   *string
+	// The custom tag key to match, exactly as it appears in your usage data. A key
+	// can appear in at most one clause per operator.
+	Key *string
+	// The tag values to match for `key`. Usage is included when its value for `key`
+	// is one of the listed values.
 	Value *BudgetConfigurationFilter_Clause
 }
 
 type BudgetConfigurationFilter_WorkspaceIdClause struct {
+	// How usage is compared with `values`. `IN` matches usage from any of the
+	// listed workspaces.
 	Operator BudgetConfigurationFilter_Operator
-	Values   []int64
+	// IDs of the workspaces whose usage is included. A clause can list up to 30
+	// workspaces, all of which must belong to this account.
+	Values []int64
 }
 
 // The calling user's live spend against the blocking thresholds of a single
@@ -203,8 +226,12 @@ type BudgetSpendStatus struct {
 	AlertSpendStatuses []AlertSpendStatus
 }
 
+// A budget tracks the spend of your account, or of the workspaces and custom
+// tags selected by its filter, against one or more alert thresholds. Spend is
+// measured in US dollars at list price. For an overview, see
+// https://docs.databricks.com/en/admin/account-settings/budgets.html..
 type CreateBudgetConfigurationBudget struct {
-	// <Databricks> account ID.
+	// Databricks account ID.
 	AccountId *string
 	// Alerts to configure when this budget is in a triggered state. Budgets must
 	// have at least one alert configuration. A budget can have up to four shared
@@ -220,12 +247,13 @@ type CreateBudgetConfigurationBudget struct {
 	// Configured filters for this budget. These are applied to your account's usage
 	// to limit the scope of what is considered for this budget. Leave empty to
 	// include all usage for this account. All provided filters must be matched for
-	// usage to be included.
+	// usage to be included. The filter cannot be changed after the budget is
+	// created. To change it, delete the budget and create a new one.
 	Filter *BudgetConfigurationFilter
 	// Human-readable name of budget configuration. Max Length: 128
 	DisplayName *string
 	// Whether this budget tracks external pass-through spend (third-party costs
-	// billed through a <Databricks> product) in addition to internal <Databricks>
+	// billed through a Databricks product) in addition to internal Databricks
 	// spend. Only applicable to Unity Gateway budgets, i.e. when `resource_type` is
 	// `BUDGET_RESOURCE_TYPE_UNITY_AI_GATEWAY`. This field is immutable after
 	// create.
@@ -236,9 +264,13 @@ type CreateBudgetConfigurationBudget struct {
 }
 
 type CreateBudgetConfigurationBudgetActionConfigurations struct {
-	// The type of the action.
+	// The action to take when the alert enters a triggered state.
+	// `EMAIL_NOTIFICATION` sends an email and `BLOCK_USAGE` blocks further usage.
+	// `BLOCK_USAGE` is only supported on Unity AI Gateway budgets, with
+	// `resource_type` set to `BUDGET_RESOURCE_TYPE_UNITY_AI_GATEWAY`.
 	ActionType ActionConfigurationType
-	// Target for the action. For example, an email address.
+	// Target of the action. For `EMAIL_NOTIFICATION`, the email address that
+	// receives the alert, up to 256 characters. Must be omitted for `BLOCK_USAGE`.
 	Target *string
 }
 
@@ -252,10 +284,11 @@ type CreateBudgetConfigurationBudgetAlertConfigurations struct {
 	// `quantity_threshold` is measured in.
 	QuantityType AlertConfigurationQuantityType
 	// The threshold for the budget alert to determine if it is in a triggered
-	// state. The number is evaluated based on `quantity_type`.
+	// state. The number is evaluated based on `quantity_type`. A decimal number
+	// passed as a string, from 0 to 1,000,000,000.
 	QuantityThreshold *string
 	// Configured actions for this alert. These define what happens when an alert
-	// enters a triggered state.
+	// enters a triggered state. An alert can have up to 10 actions.
 	ActionConfigurations []CreateBudgetConfigurationBudgetActionConfigurations
 	// How the alert threshold is evaluated. Determines whether spend is tracked in
 	// aggregate or per individual user.
@@ -278,9 +311,9 @@ type CreateBudgetConfigurationResponse struct {
 
 // * Delete budget.
 type DeleteBudgetConfigurationRequest struct {
-	// The <Databricks> budget configuration ID.
+	// The Databricks budget configuration ID.
 	BudgetId *string
-	// <Databricks> account ID.
+	// Databricks account ID.
 	AccountId *string
 }
 
@@ -290,11 +323,12 @@ type DeleteBudgetConfigurationResponse struct {
 type GetBudgetConfigurationRequest struct {
 	// The budget configuration ID
 	BudgetId *string
-	// <Databricks> account ID.
+	// Databricks account ID.
 	AccountId *string
 }
 
 type GetBudgetConfigurationResponse struct {
+	// The requested budget configuration.
 	Budget *BudgetConfiguration
 }
 
@@ -307,7 +341,7 @@ type GetBudgetSpendStatusRequest struct {
 }
 
 type ListBudgetConfigurationsRequest struct {
-	// <Databricks> account ID.
+	// Databricks account ID.
 	AccountId *string
 	// A page token received from a previous get all budget configurations call.
 	// This token can be used to retrieve the subsequent page. Requests first page
@@ -368,10 +402,14 @@ type PrincipalOverride struct {
 	OverrideThreshold *string
 }
 
+// A budget tracks the spend of your account, or of the workspaces and custom
+// tags selected by its filter, against one or more alert thresholds. Spend is
+// measured in US dollars at list price. For an overview, see
+// https://docs.databricks.com/en/admin/account-settings/budgets.html..
 type UpdateBudgetConfigurationBudget struct {
-	// <Databricks> budget configuration ID.
+	// Databricks budget configuration ID.
 	BudgetConfigurationId *string
-	// <Databricks> account ID.
+	// Databricks account ID.
 	AccountId *string
 	// Alerts to configure when this budget is in a triggered state. Budgets must
 	// have at least one alert configuration. A budget can have up to four shared
@@ -387,12 +425,13 @@ type UpdateBudgetConfigurationBudget struct {
 	// Configured filters for this budget. These are applied to your account's usage
 	// to limit the scope of what is considered for this budget. Leave empty to
 	// include all usage for this account. All provided filters must be matched for
-	// usage to be included.
+	// usage to be included. The filter cannot be changed after the budget is
+	// created. To change it, delete the budget and create a new one.
 	Filter *BudgetConfigurationFilter
 	// Human-readable name of budget configuration. Max Length: 128
 	DisplayName *string
 	// Whether this budget tracks external pass-through spend (third-party costs
-	// billed through a <Databricks> product) in addition to internal <Databricks>
+	// billed through a Databricks product) in addition to internal Databricks
 	// spend. Only applicable to Unity Gateway budgets, i.e. when `resource_type` is
 	// `BUDGET_RESOURCE_TYPE_UNITY_AI_GATEWAY`. This field is immutable after
 	// create.
@@ -403,10 +442,11 @@ type UpdateBudgetConfigurationBudget struct {
 }
 
 type UpdateBudgetConfigurationRequest struct {
-	// The <Databricks> budget configuration ID.
+	// The Databricks budget configuration ID.
 	BudgetId *string
 	// The updated budget. This will overwrite the budget specified by the budget
-	// ID.
+	// ID. Alerts and actions are matched by ID: those omitted from the request are
+	// removed, and those without an ID are created.
 	Budget *UpdateBudgetConfigurationBudget
 }
 

@@ -345,11 +345,9 @@ type GetInstancePoolResponse struct {
 	//
 	// - Vendor: <Databricks>
 	//
-	// - InstancePoolCreator: <user_id_of_creator>
+	// - DatabricksInstancePoolCreatorId: <user_id_of_creator>
 	//
-	// - InstancePoolName: <name_of_pool>
-	//
-	// - InstancePoolId: <id_of_pool>
+	// - DatabricksInstancePoolId: <id_of_pool>
 	DefaultTags map[string]string
 	// Current state of the instance pool.
 	State InstancePoolState
@@ -432,11 +430,9 @@ type InstancePoolAndStats struct {
 	//
 	// - Vendor: <Databricks>
 	//
-	// - InstancePoolCreator: <user_id_of_creator>
+	// - DatabricksInstancePoolCreatorId: <user_id_of_creator>
 	//
-	// - InstancePoolName: <name_of_pool>
-	//
-	// - InstancePoolId: <id_of_pool>
+	// - DatabricksInstancePoolId: <id_of_pool>
 	DefaultTags map[string]string
 	// Current state of the instance pool.
 	State InstancePoolState
