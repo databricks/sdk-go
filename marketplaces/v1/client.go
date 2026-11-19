@@ -1809,8 +1809,10 @@ func (c *internalClient) CreateExchangeFilter(ctx context.Context, req CreateExc
 	return resp, nil
 }
 
-// Create a file. Currently, only provider icons and attached notebooks are
-// supported.
+// Creates a file and returns a short-lived URL for uploading its content with
+// an HTTP PUT request. Only provider icons (PROVIDER_ICON files on a PROVIDER
+// parent) and sample notebooks (EMBEDDED_NOTEBOOK files on a LISTING parent)
+// are supported.
 func (c *internalClient) CreateFile(ctx context.Context, req CreateFileRequest, opts ...call.Option) (*CreateFileResponse, error) {
 	wireReq, err := createFileRequestToWire(&req)
 	if err != nil {
@@ -1876,7 +1878,10 @@ func (c *internalClient) CreateFile(ctx context.Context, req CreateFileRequest, 
 	return resp, nil
 }
 
-// Create a new listing
+// Creates a listing under one of the caller's provider profiles. The listing
+// name, provider ID and visibility are required, and the caller must have
+// access to any share that the listing references. Returns the ID of the new
+// listing.
 func (c *internalClient) CreateListing(ctx context.Context, req CreateListingRequest, opts ...call.Option) (*CreateListingResponse, error) {
 	wireReq, err := createListingRequestToWire(&req)
 	if err != nil {
@@ -1942,7 +1947,8 @@ func (c *internalClient) CreateListing(ctx context.Context, req CreateListingReq
 	return resp, nil
 }
 
-// Create a provider
+// Creates a provider profile in the caller's account. Returns the ID of the new
+// profile.
 func (c *internalClient) CreateProvider(ctx context.Context, req CreateProviderRequest, opts ...call.Option) (*CreateProviderResponse, error) {
 	wireReq, err := createProviderRequestToWire(&req)
 	if err != nil {
@@ -2008,8 +2014,10 @@ func (c *internalClient) CreateProvider(ctx context.Context, req CreateProviderR
 	return resp, nil
 }
 
-// Create provider analytics dashboard. Returns Marketplace specific `id`. Not
-// to be confused with the Lakeview dashboard id.
+// Creates the Provider Analytics Dashboard in the caller's workspace from the
+// latest template. Fails if the dashboard already exists. Returns the
+// Marketplace-specific `id` of the dashboard record, which is distinct from the
+// AI/BI dashboard ID.
 func (c *internalClient) CreateProviderAnalyticsDashboard(ctx context.Context, req CreateProviderAnalyticsDashboardRequest, opts ...call.Option) (*CreateProviderAnalyticsDashboardResponse, error) {
 	wireReq, err := createProviderAnalyticsDashboardRequestToWire(&req)
 	if err != nil {
@@ -2187,7 +2195,7 @@ func (c *internalClient) DeleteExchangeFilter(ctx context.Context, req DeleteExc
 	return resp, nil
 }
 
-// Delete a file
+// Deletes a file. Fails if the file is still in use.
 func (c *internalClient) DeleteFile(ctx context.Context, req DeleteFileRequest, opts ...call.Option) (*DeleteFileResponse, error) {
 
 	headers := http.Header{}
@@ -2243,7 +2251,9 @@ func (c *internalClient) DeleteFile(ctx context.Context, req DeleteFileRequest, 
 	return resp, nil
 }
 
-// Delete a listing
+// Deletes a listing permanently. The underlying share is not deleted, and
+// consumers who already have access to the share keep that access until it is
+// revoked in Delta Sharing.
 func (c *internalClient) DeleteListing(ctx context.Context, req DeleteListingRequest, opts ...call.Option) (*DeleteListingResponse, error) {
 
 	headers := http.Header{}
@@ -2299,7 +2309,7 @@ func (c *internalClient) DeleteListing(ctx context.Context, req DeleteListingReq
 	return resp, nil
 }
 
-// Delete provider
+// Deletes a provider profile and all of the listings that it owns.
 func (c *internalClient) DeleteProvider(ctx context.Context, req DeleteProviderRequest, opts ...call.Option) (*DeleteProviderResponse, error) {
 
 	headers := http.Header{}
@@ -2417,7 +2427,7 @@ func (c *internalClient) GetExchange(ctx context.Context, req GetExchangeRequest
 	return resp, nil
 }
 
-// Get a file
+// Gets a file's metadata, including a short-lived download URL.
 func (c *internalClient) GetFile(ctx context.Context, req GetFileRequest, opts ...call.Option) (*GetFileResponse, error) {
 
 	headers := http.Header{}
@@ -2479,7 +2489,8 @@ func (c *internalClient) GetFile(ctx context.Context, req GetFileRequest, opts .
 	return resp, nil
 }
 
-// Get latest version of provider analytics dashboard.
+// Gets the latest available version of the Provider Analytics Dashboard
+// template.
 func (c *internalClient) GetLatestVersionProviderAnalyticsDashboard(ctx context.Context, req GetLatestVersionProviderAnalyticsDashboardRequest, opts ...call.Option) (*GetLatestVersionProviderAnalyticsDashboardResponse, error) {
 
 	headers := http.Header{}
@@ -2535,7 +2546,7 @@ func (c *internalClient) GetLatestVersionProviderAnalyticsDashboard(ctx context.
 	return resp, nil
 }
 
-// Get a listing
+// Gets a listing owned by one of the caller's provider profiles.
 func (c *internalClient) GetListing(ctx context.Context, req GetListingRequest, opts ...call.Option) (*GetListingResponse, error) {
 
 	headers := http.Header{}
@@ -2705,7 +2716,7 @@ func (c *internalClient) GetPersonalizationRequestsForProviderIter(ctx context.C
 	}
 }
 
-// Get provider profile
+// Gets a provider profile by ID.
 func (c *internalClient) GetProvider(ctx context.Context, req GetProviderRequest, opts ...call.Option) (*GetProviderResponse, error) {
 
 	headers := http.Header{}
@@ -3094,7 +3105,7 @@ func (c *internalClient) ListExchangesForListingIter(ctx context.Context, req Li
 	}
 }
 
-// List files attached to a parent entity.
+// Lists the files attached to a provider profile or a listing.
 func (c *internalClient) ListFiles(ctx context.Context, req ListFilesRequest, opts ...call.Option) (*ListFilesResponse, error) {
 	wireReq, err := listFilesRequestToWire(&req)
 	if err != nil {
@@ -3204,7 +3215,7 @@ func (c *internalClient) ListFilesIter(ctx context.Context, req ListFilesRequest
 	}
 }
 
-// List listings owned by this provider
+// Lists the listings owned by the provider profiles in the caller's account.
 func (c *internalClient) ListListings(ctx context.Context, req ListListingsRequest, opts ...call.Option) (*GetListingsResponse, error) {
 	wireReq, err := listListingsRequestToWire(&req)
 	if err != nil {
@@ -3421,7 +3432,8 @@ func (c *internalClient) ListListingsForExchangeIter(ctx context.Context, req Li
 	}
 }
 
-// Get provider analytics dashboard.
+// Gets the Provider Analytics Dashboard that was created for the caller's
+// account. Returns an empty response if the dashboard has not been created yet.
 func (c *internalClient) ListProviderAnalyticsDashboard(ctx context.Context, req ListProviderAnalyticsDashboardRequest, opts ...call.Option) (*ListProviderAnalyticsDashboardResponse, error) {
 
 	headers := http.Header{}
@@ -3477,7 +3489,7 @@ func (c *internalClient) ListProviderAnalyticsDashboard(ctx context.Context, req
 	return resp, nil
 }
 
-// List provider profiles for account.
+// Lists the provider profiles in the caller's account.
 func (c *internalClient) ListProviders(ctx context.Context, req ListProvidersRequest, opts ...call.Option) (*ListProvidersResponse, error) {
 	wireReq, err := listProvidersRequestToWire(&req)
 	if err != nil {
@@ -3784,7 +3796,9 @@ func (c *internalClient) UpdateExchangeFilter(ctx context.Context, req UpdateExc
 	return resp, nil
 }
 
-// Update a listing
+// Updates a listing. Send the full listing definition; the listing type cannot
+// be changed after the listing is created, and changing the share re-links the
+// listing to the new share.
 func (c *internalClient) UpdateListing(ctx context.Context, req UpdateListingRequest, opts ...call.Option) (*UpdateListingResponse, error) {
 	wireReq, err := updateListingRequestToWire(&req)
 	if err != nil {
@@ -3856,8 +3870,10 @@ func (c *internalClient) UpdateListing(ctx context.Context, req UpdateListingReq
 	return resp, nil
 }
 
-// Update personalization request. This method only permits updating the status
-// of the request.
+// Updates the status of a personalization request; other properties of the
+// request cannot be changed. Fulfilling a request grants the consumer access to
+// the share, and denying a fulfilled request revokes that access. The listing
+// must be published.
 func (c *internalClient) UpdatePersonalizationRequestStatus(ctx context.Context, req UpdatePersonalizationRequestStatusRequest, opts ...call.Option) (*UpdatePersonalizationRequestStatusResponse, error) {
 	wireReq, err := updatePersonalizationRequestStatusRequestToWire(&req)
 	if err != nil {
@@ -3935,7 +3951,7 @@ func (c *internalClient) UpdatePersonalizationRequestStatus(ctx context.Context,
 	return resp, nil
 }
 
-// Update provider profile
+// Updates a provider profile. Send the full profile definition.
 func (c *internalClient) UpdateProvider(ctx context.Context, req UpdateProviderRequest, opts ...call.Option) (*UpdateProviderResponse, error) {
 	wireReq, err := updateProviderRequestToWire(&req)
 	if err != nil {
@@ -4007,7 +4023,9 @@ func (c *internalClient) UpdateProvider(ctx context.Context, req UpdateProviderR
 	return resp, nil
 }
 
-// Update provider analytics dashboard.
+// Updates the Provider Analytics Dashboard to a newer version of the template.
+// The requested version must be newer than the version that the dashboard
+// currently uses.
 func (c *internalClient) UpdateProviderAnalyticsDashboard(ctx context.Context, req UpdateProviderAnalyticsDashboardRequest, opts ...call.Option) (*UpdateProviderAnalyticsDashboardResponse, error) {
 	wireReq, err := updateProviderAnalyticsDashboardRequestToWire(&req)
 	if err != nil {

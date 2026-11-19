@@ -166,9 +166,9 @@ type GenieAgentConfig struct {
 
 // The data a Genie Agent can access..
 type GenieAgentDataSources struct {
-	// Unity Catalog tables, views, and metric views, in the order they were added.
+	// Unity Catalog tables, views, and metric views, sorted by `identifier`.
 	Tables []GenieAgentTable `fieldmask:"tables"`
-	// Unity Catalog volumes, in the order they were added.
+	// Unity Catalog volumes, sorted by `path`.
 	Volumes []GenieAgentVolume `fieldmask:"volumes"`
 	// Unity Catalog MCP connections, sorted by `mcp_connection`.
 	McpConnections []GenieAgentMcpConnection `fieldmask:"mcp_connections"`

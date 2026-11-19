@@ -373,10 +373,11 @@ func (c *internalClient) DeleteCustomOAuthAppIntegration(ctx context.Context, re
 	return resp, nil
 }
 
-// Delete an existing Published OAuth App Integration. You can retrieve the
-// published OAuth app integration via [PublishedAppIntegration/get].
+// Delete an existing Published OAuth App Integration. The app can no longer be
+// used to sign in to the account until it is enabled again with
+// [PublishedAppIntegration/create].
 //
-// [PublishedAppIntegration/get]: https://docs.databricks.com/api/account/publishedappintegration/get
+// [PublishedAppIntegration/create]: https://docs.databricks.com/api/account/publishedappintegration/create
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
 func (c *internalClient) DeletePublishedOAuthAppIntegration(ctx context.Context, req DeletePublishedOAuthAppIntegrationRequest, opts ...call.Option) (*DeletePublishedOAuthAppIntegrationResponse, error) {
 
@@ -688,7 +689,8 @@ func (c *internalClient) ListCustomOAuthAppIntegrationsIter(ctx context.Context,
 	}
 }
 
-// Get the list of published OAuth app integrations for the specified <Account>
+// Get the list of published OAuth app integrations for the specified
+// <Databricks> account.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
 func (c *internalClient) ListPublishedOAuthAppIntegrations(ctx context.Context, req ListPublishedOAuthAppIntegrationsRequest, opts ...call.Option) (*ListPublishedOAuthAppIntegrationsResponse, error) {
 	wireReq, err := listPublishedOAuthAppIntegrationsRequestToWire(&req)

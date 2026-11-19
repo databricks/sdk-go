@@ -19,38 +19,44 @@ const (
 )
 
 type CreateBillingUsageDashboardRequest struct {
-	// The workspace ID of the workspace in which the usage dashboard is created.
+	// The ID of the workspace to import the usage dashboard into. The workspace
+	// must be running, belong to the account, and not be a disaster recovery
+	// secondary.
 	WorkspaceId *int64
 	// <Databricks> account ID.
 	AccountId *string
 	// Workspace level usage dashboard shows usage data for the specified workspace
 	// ID. Global level usage dashboard shows usage data for all workspaces in the
-	// account.
+	// account. The request fails if the type is not set.
 	DashboardType UsageDashboardType
-	// The major version of the usage dashboard template to use. Defaults to
-	// VERSION_1.
+	// The major version of the usage dashboard template to import. Version 2 adds
+	// cost forecasting and object-level cost drill-down.
 	MajorVersion UsageDashboardMajorVersion
 }
 
 type CreateBillingUsageDashboardResponse struct {
-	// The unique id of the usage dashboard.
+	// The ID of the AI/BI dashboard that was created.
 	DashboardId *string
 }
 
 type GetBillingUsageDashboardRequest struct {
-	// The workspace ID of the workspace in which the usage dashboard is created.
+	// The ID of the workspace that contains the usage dashboard. If omitted, the
+	// most recently created dashboard of the given type across all workspaces in
+	// the account is returned.
 	WorkspaceId *int64
 	// <Databricks> account ID.
 	AccountId *string
 	// Workspace level usage dashboard shows usage data for the specified workspace
 	// ID. Global level usage dashboard shows usage data for all workspaces in the
-	// account.
+	// account. The request fails if the type is not set.
 	DashboardType UsageDashboardType
 }
 
 type GetBillingUsageDashboardResponse struct {
-	// The unique id of the usage dashboard.
+	// The ID of the AI/BI dashboard. The ID is empty if no matching dashboard is
+	// found.
 	DashboardId *string
-	// The URL of the usage dashboard.
+	// The URL of the dashboard in its workspace. The URL is empty if no matching
+	// dashboard is found.
 	DashboardUrl *string
 }

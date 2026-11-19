@@ -76,8 +76,11 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	}, nil
 }
 
-// Create a usage dashboard specified by workspaceId, accountId, and dashboard
-// type.
+// Imports a pre-built usage dashboard of the given type into a workspace. Each
+// call imports a new dashboard, even if the caller already created one of the
+// same type in that workspace. The caller must be an account admin and a user
+// of the target workspace. See
+// https://docs.databricks.com/admin/account-settings/usage.html.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
 func (c *internalClient) CreateBillingUsageDashboard(ctx context.Context, req CreateBillingUsageDashboardRequest, opts ...call.Option) (*CreateBillingUsageDashboardResponse, error) {
 	wireReq, err := createBillingUsageDashboardRequestToWire(&req)
@@ -149,8 +152,9 @@ func (c *internalClient) CreateBillingUsageDashboard(ctx context.Context, req Cr
 	return resp, nil
 }
 
-// Get a usage dashboard specified by workspaceId, accountId, and dashboard
-// type.
+// Gets the most recent usage dashboard of the given type that the caller
+// created. The response is empty if no such dashboard exists, if it has been
+// deleted, or if the caller can no longer access its workspace.
 // Account-level method. Uses the Client's accountID, overridable per call via req.AccountId.
 func (c *internalClient) GetBillingUsageDashboard(ctx context.Context, req GetBillingUsageDashboardRequest, opts ...call.Option) (*GetBillingUsageDashboardResponse, error) {
 	wireReq, err := getBillingUsageDashboardRequestToWire(&req)

@@ -204,7 +204,7 @@ func (c *internalClient) DeleteConnection(ctx context.Context, req DeleteConnect
 	return resp, nil
 }
 
-// Gets a connection from it's name.
+// Gets a connection from its name.
 func (c *internalClient) GetConnection(ctx context.Context, req GetConnectionRequest, opts ...call.Option) (*ConnectionInfo, error) {
 
 	headers := http.Header{}
@@ -384,7 +384,9 @@ func (c *internalClient) ListConnectionsIter(ctx context.Context, req ListConnec
 	}
 }
 
-// Updates the connection that matches the supplied name.
+// Updates the connection that matches the supplied name. When options are
+// provided, they replace the existing options of the connection, so include
+// every key that the connection type requires.
 func (c *internalClient) UpdateConnection(ctx context.Context, req UpdateConnectionRequest, opts ...call.Option) (*ConnectionInfo, error) {
 	wireReq, err := updateConnectionRequestToWire(&req)
 	if err != nil {

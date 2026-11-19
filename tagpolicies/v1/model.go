@@ -11,10 +11,12 @@ type CreateTagPolicyRequest struct {
 }
 
 type DeleteTagPolicyRequest struct {
+	// The key of the governed tag whose policy to delete.
 	TagKey *string
 }
 
 type GetTagPolicyRequest struct {
+	// The key of the governed tag whose policy to get.
 	TagKey *string
 }
 
@@ -32,11 +34,23 @@ type ListTagPoliciesResponse struct {
 	NextPageToken *string
 }
 
+// A tag policy makes a tag key governed and defines the values that can be
+// assigned to it. Governed tags are enforced across all workspaces in the
+// account, and only users with the ASSIGN permission on the governed tag can
+// assign it. See https://docs.databricks.com/aws/en/admin/governed-tags/..
 type TagPolicy struct {
-	TagKey      *string `fieldmask:"tag_key"`
-	Id          *string `fieldmask:"id"`
+	// The tag key that this policy governs. Tag keys are case-sensitive.
+	TagKey *string `fieldmask:"tag_key"`
+	// The unique identifier of the tag policy, generated when the policy is
+	// created.
+	Id *string `fieldmask:"id"`
+	// A description of the governed tag, such as its purpose or the meaning of its
+	// values.
 	Description *string `fieldmask:"description"`
-	Values      []Value `fieldmask:"values"`
+	// The allowed values of the governed tag. Only these values can be assigned to
+	// the tag key, and each value must be unique. A policy without values defines a
+	// key-only governed tag.
+	Values []Value `fieldmask:"values"`
 	// Timestamp when the tag policy was created
 	CreateTime *types.Time `fieldmask:"create_time"`
 	// Timestamp when the tag policy was last updated
@@ -44,10 +58,15 @@ type TagPolicy struct {
 }
 
 type UpdateTagPolicyRequest struct {
-	TagPolicy  *TagPolicy
+	TagPolicy *TagPolicy
+	// The comma-separated list of tag policy fields to update. When the mask
+	// includes `values`, the values in the request replace all existing allowed
+	// values.
 	UpdateMask *types.FieldMask[TagPolicy]
 }
 
+// An allowed value of a governed tag..
 type Value struct {
+	// The value that can be assigned to the tag key. Values are case-sensitive.
 	Name *string
 }

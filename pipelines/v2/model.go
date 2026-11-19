@@ -573,7 +573,9 @@ type ClonePipelineRequest struct {
 	Environment *PipelinesEnvironment
 	// Path of the pipeline parent folder in workspace file tree.
 	//
-	// If absent, the pipeline doesn't have a workspace object.
+	// If absent, the pipeline doesn't have a parent folder.
+	//
+	// Example: /Workspace/Projects/my_project
 	ParentPath *string
 	// Usage policy of this pipeline.
 	UsagePolicyId *string
@@ -744,6 +746,10 @@ func (*ConnectorOptions_ConnectorOptions_OnedriveOptions) isConnectorOptions_Con
 type CreatePipelineRequest struct {
 	// If false, deployment will fail if name conflicts with that of another
 	// pipeline.
+	//
+	// Ignored when `parent_path` is set. A pipeline in a workspace folder must have
+	// a name that is unique within that folder, and creation fails if the folder
+	// already contains an object with the same name.
 	AllowDuplicateNames *bool
 	// If true, no pipeline is created. The response contains the settings that
 	// would be applied, with server defaults filled in, instead of a pipeline ID.
@@ -837,7 +843,9 @@ type CreatePipelineRequest struct {
 	Environment *PipelinesEnvironment
 	// Path of the pipeline parent folder in workspace file tree.
 	//
-	// If absent, the pipeline doesn't have a workspace object.
+	// If absent, the pipeline doesn't have a parent folder.
+	//
+	// Example: /Workspace/Projects/my_project
 	ParentPath *string
 	// Usage policy of this pipeline.
 	UsagePolicyId *string
@@ -902,8 +910,12 @@ type DeletePipelineResponse struct {
 type EditPipelineRequest struct {
 	// Unique identifier for this pipeline.
 	PipelineId *string
-	// If false, deployment will fail if name has changed and conflicts the name of
-	// another pipeline.
+	// If false, deployment will fail if name has changed and conflicts with the
+	// name of another pipeline.
+	//
+	// Ignored when the pipeline is in a workspace folder or the request sets
+	// `parent_path`. Renaming or moving such a pipeline fails if the target folder
+	// already contains an object with the same name.
 	AllowDuplicateNames *bool
 	// If present, the last-modified time of the pipeline settings before the edit.
 	// If the settings were modified after that time, then the request will fail
@@ -997,7 +1009,9 @@ type EditPipelineRequest struct {
 	Environment *PipelinesEnvironment
 	// Path of the pipeline parent folder in workspace file tree.
 	//
-	// If absent, the pipeline doesn't have a workspace object.
+	// If absent, the pipeline doesn't have a parent folder.
+	//
+	// Example: /Workspace/Projects/my_project
 	ParentPath *string
 	// Usage policy of this pipeline.
 	UsagePolicyId *string
@@ -1241,8 +1255,10 @@ type IngestionGatewayPipelineDefinition struct {
 }
 
 type IngestionPipelineDefinition struct {
-	// (Required, Mutable) Identifies the data source for the Lakeflow Connect
-	// Ingestion pipeline. Exactly one option must be specified.
+	// (Mutable) Identifies the data source for the Lakeflow Connect Ingestion
+	// pipeline. Exactly one option must be specified, unless the objects ingest
+	// from cloud object storage via `connector_options.cloud_files_options`, in
+	// which case none is specified.
 	Source isIngestionPipelineDefinition_Source
 	// Required. Settings specifying tables to replicate and the destination for the
 	// replicated tables.
@@ -2239,7 +2255,9 @@ type PipelineSpec struct {
 	Environment *PipelinesEnvironment
 	// Path of the pipeline parent folder in workspace file tree.
 	//
-	// If absent, the pipeline doesn't have a workspace object.
+	// If absent, the pipeline doesn't have a parent folder.
+	//
+	// Example: /Workspace/Projects/my_project
 	ParentPath *string
 	// Usage policy of this pipeline.
 	UsagePolicyId *string
