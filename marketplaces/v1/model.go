@@ -222,10 +222,14 @@ type ConsumerTerms struct {
 // contact info for the consumer requesting data or performing a listing
 // installation.
 type ContactInfo struct {
+	// First name of the consumer contact.
 	FirstName *string
-	LastName  *string
-	Email     *string
-	Company   *string
+	// Last name of the consumer contact.
+	LastName *string
+	// Email address of the consumer contact.
+	Email *string
+	// Company of the consumer contact.
+	Company *string
 }
 
 type CreateExchangeFilterRequest struct {
@@ -245,16 +249,24 @@ type CreateExchangeResponse struct {
 }
 
 type CreateFileRequest struct {
-	FileParent          *FileParent
+	// Provider profile or listing to attach the file to.
+	FileParent *FileParent
+	// Purpose of the file. PROVIDER_ICON requires a PROVIDER parent;
+	// EMBEDDED_NOTEBOOK requires a LISTING parent.
 	MarketplaceFileType MarketplaceFileType
-	MimeType            *string
-	DisplayName         *string
+	// MIME type of the file content: text/html for notebooks; image/png, image/jpeg
+	// or image/svg+xml for icons.
+	MimeType *string
+	// Name shown to consumers for the file, for example a notebook title. At most
+	// 255 characters.
+	DisplayName *string
 }
 
 type CreateFileResponse struct {
-	// Pre-signed POST URL to blob storage
+	// Short-lived URL for uploading the file content with an HTTP PUT request.
 	UploadUrl *string
-	FileInfo  *FileInfo
+	// Metadata of the created file.
+	FileInfo *FileInfo
 }
 
 type CreateInstallationRequest struct {
@@ -272,10 +284,12 @@ type CreateInstallationResponse struct {
 }
 
 type CreateListingRequest struct {
+	// Listing to create.
 	Listing *Listing
 }
 
 type CreateListingResponse struct {
+	// ID of the created listing.
 	ListingId *string
 }
 
@@ -300,20 +314,26 @@ type CreateProviderAnalyticsDashboardRequest struct {
 }
 
 type CreateProviderAnalyticsDashboardResponse struct {
+	// Marketplace-specific ID of the dashboard record, distinct from the AI/BI
+	// dashboard ID.
 	Id *string
 }
 
 type CreateProviderRequest struct {
+	// Provider profile to create.
 	Provider *ProviderInfo
 }
 
 type CreateProviderResponse struct {
+	// ID of the created provider profile.
 	Id *string
 }
 
 type DataRefreshInfo struct {
+	// Number of time units. Must be greater than zero.
 	Interval *int64
-	Unit     DataRefresh
+	// Time unit that the interval is expressed in.
+	Unit DataRefresh
 }
 
 type DeleteExchangeFilterRequest struct {
@@ -331,6 +351,7 @@ type DeleteExchangeResponse struct {
 }
 
 type DeleteFileRequest struct {
+	// ID of the file to delete.
 	FileId *string
 }
 
@@ -346,6 +367,7 @@ type DeleteInstallationResponse struct {
 }
 
 type DeleteListingRequest struct {
+	// ID of the listing to delete.
 	Id *string
 }
 
@@ -353,6 +375,7 @@ type DeleteListingResponse struct {
 }
 
 type DeleteProviderRequest struct {
+	// ID of the provider profile to delete.
 	Id *string
 }
 
@@ -394,23 +417,37 @@ type ExchangeListing struct {
 }
 
 type FileInfo struct {
-	Id                  *string
+	// ID of the file.
+	Id *string
+	// Purpose of the file, such as a provider icon or a notebook attached to a
+	// listing.
 	MarketplaceFileType MarketplaceFileType
-	FileParent          *FileParent
-	MimeType            *string
-	DownloadLink        *string
-	CreatedAt           *int64
-	UpdatedAt           *int64
+	// Provider or listing that the file belongs to.
+	FileParent *FileParent
+	// MIME type of the file content, for example text/html for notebooks or
+	// image/png for icons.
+	MimeType *string
+	// Short-lived URL for downloading the file content.
+	DownloadLink *string
+	// Time the file was created, in epoch milliseconds.
+	CreatedAt *int64
+	// Time the file was last updated, in epoch milliseconds.
+	UpdatedAt *int64
 	// Name displayed to users for applicable files, e.g. embedded notebooks
 	DisplayName *string
-	Status      FileStatus
+	// Processing status of the file. New files start in FILE_STATUS_STAGING and
+	// become FILE_STATUS_PUBLISHED after Databricks has sanitized them.
+	Status FileStatus
 	// Populated if status is in a failed state with more information on reason for
 	// the failure.
 	StatusMessage *string
 }
 
 type FileParent struct {
-	ParentId       *string
+	// ID of the provider or listing that the file belongs to.
+	ParentId *string
+	// Type of the parent: PROVIDER for provider icons, LISTING for notebooks
+	// attached to a listing.
 	FileParentType FileParentType
 }
 
@@ -428,10 +465,12 @@ type GetExchangeResponse struct {
 }
 
 type GetFileRequest struct {
+	// ID of the file.
 	FileId *string
 }
 
 type GetFileResponse struct {
+	// Metadata of the file.
 	FileInfo *FileInfo
 }
 
@@ -447,7 +486,7 @@ type GetLatestVersionProviderAnalyticsDashboardRequest struct {
 }
 
 type GetLatestVersionProviderAnalyticsDashboardResponse struct {
-	// version here is latest logical version of the dashboard template
+	// Latest available version of the dashboard template.
 	Version *int64
 }
 
@@ -463,15 +502,19 @@ type GetListingContentMetadataResponse struct {
 }
 
 type GetListingRequest struct {
+	// ID of the listing.
 	Id *string
 }
 
 type GetListingResponse struct {
+	// The requested listing.
 	Listing *Listing
 }
 
 type GetListingsResponse struct {
-	Listings      []Listing
+	// Listings on this page.
+	Listings []Listing
+	// Token for the next page. Not set when there are no more results.
 	NextPageToken *string
 }
 
@@ -484,20 +527,27 @@ type GetPersonalizationRequestsForConsumerResponse struct {
 }
 
 type GetPersonalizationRequestsForProviderRequest struct {
+	// Token from the next_page_token field of a previous response. Omit to get the
+	// first page.
 	PageToken *string
-	PageSize  *int
+	// Maximum number of results to return per page.
+	PageSize *int
 }
 
 type GetPersonalizationRequestsForProviderResponse struct {
+	// Personalization requests on this page.
 	PersonalizationRequests []PersonalizationRequest
-	NextPageToken           *string
+	// Token for the next page. Not set when there are no more results.
+	NextPageToken *string
 }
 
 type GetProviderRequest struct {
+	// ID of the provider profile.
 	Id *string
 }
 
 type GetProviderResponse struct {
+	// The requested provider profile.
 	Provider *ProviderInfo
 }
 
@@ -576,13 +626,19 @@ type ListExchangesResponse struct {
 }
 
 type ListFilesRequest struct {
+	// Provider profile or listing whose files to list.
 	FileParent *FileParent
-	PageToken  *string
-	PageSize   *int
+	// Token from the next_page_token field of a previous response. Omit to get the
+	// first page.
+	PageToken *string
+	// Maximum number of results to return per page.
+	PageSize *int
 }
 
 type ListFilesResponse struct {
-	FileInfos     []FileInfo
+	// Files on this page.
+	FileInfos []FileInfo
+	// Token for the next page. Not set when there are no more results.
 	NextPageToken *string
 }
 
@@ -619,8 +675,11 @@ type ListListingsForExchangeResponse struct {
 }
 
 type ListListingsRequest struct {
+	// Token from the next_page_token field of a previous response. Omit to get the
+	// first page.
 	PageToken *string
-	PageSize  *int
+	// Maximum number of results to return per page.
+	PageSize *int
 }
 
 type ListPersonalizationRequestsForConsumerRequest struct {
@@ -632,19 +691,28 @@ type ListProviderAnalyticsDashboardRequest struct {
 }
 
 type ListProviderAnalyticsDashboardResponse struct {
-	Id      *string
+	// Marketplace-specific ID of the dashboard record. Use it as the `id` when
+	// updating the dashboard.
+	Id *string
+	// Version of the dashboard template that the dashboard was created or last
+	// updated from.
 	Version *int64
-	// dashboard_id will be used to open Lakeview dashboard.
+	// ID of the AI/BI dashboard in the workspace. Use it to open the dashboard.
 	DashboardId *string
 }
 
 type ListProvidersRequest struct {
+	// Token from the next_page_token field of a previous response. Omit to get the
+	// first page.
 	PageToken *string
-	PageSize  *int
+	// Maximum number of results to return per page.
+	PageSize *int
 }
 
 type ListProvidersResponse struct {
-	Providers     []ProviderInfo
+	// Provider profiles on this page.
+	Providers []ProviderInfo
+	// Token for the next page. Not set when there are no more results.
 	NextPageToken *string
 }
 
@@ -679,19 +747,38 @@ type ListPublishedProvidersForConsumerResponse struct {
 	NextPageToken *string
 }
 
+// A Marketplace listing: a data product that a provider offers to consumers.
+// The summary holds the listing's identity, status and sharing configuration,
+// and the detail holds the descriptive content that consumers see on the
+// listing page..
 type Listing struct {
-	Id      *string
+	// ID of the listing. Assigned by the server; not allowed in create requests.
+	Id *string
+	// Identity, status and sharing configuration of the listing.
 	Summary *ListingSummary
-	Detail  *ListingDetail
+	// Descriptive content shown to consumers on the listing page, such as the
+	// description, links and data attributes.
+	Detail *ListingDetail
 }
 
 type ListingDetail struct {
-	Description               *string
-	TermsOfService            *string
-	DocumentationLink         *string
-	SupportLink               *string
-	FileIds                   []string
-	PrivacyPolicyLink         *string
+	// Detailed description of the data product. Supports basic Markdown formatting
+	// such as bold, italics and lists.
+	Description *string
+	// URL of the terms of service for the listing. Defaults to the provider
+	// profile's terms of service link when empty.
+	TermsOfService *string
+	// URL of documentation that helps consumers use the data product.
+	DocumentationLink *string
+	// URL where consumers can get support for the listing.
+	SupportLink *string
+	FileIds     []string
+	// URL of the privacy policy for the listing. Defaults to the provider profile's
+	// privacy policy link when empty.
+	PrivacyPolicyLink *string
+	// Sample notebooks attached to the listing. Create each notebook with
+	// createFile, using the EMBEDDED_NOTEBOOK file type and the listing as the
+	// parent, and reference it here.
 	EmbeddedNotebookFileInfos []FileInfo
 	// Which geo region the listing data is collected from
 	GeographicalCoverage *string
@@ -712,19 +799,13 @@ type ListingDetail struct {
 	DataSource *string
 	// size of the dataset in GB
 	Size *float64
-	// Type of assets included in the listing. eg. GIT_REPO, DATA_TABLE, MODEL,
-	// NOTEBOOK
+	// Types of assets included in the listing. At least one is required unless the
+	// listing is a DRAFT. Duplicate values are ignored.
 	Assets []AssetType
-	// ID 20, 21 removed don't use License of the data asset - Required for listings
-	// with model based assets
+	// License of the data asset. Required for listings with model-based assets.
 	License *string
-	// Listing tags - Simple key value pair to annotate listings. When should I use
-	// tags vs dedicated fields? Using tags avoids the need to add new columns in
-	// the database for new annotations. However, this should be used sparingly
-	// since tags are stored as key value pair. Use tags only: 1. If the field is
-	// optional and won't need to have NOT NULL integrity check 2. The value is
-	// fairly fixed, static and low cardinality (eg. enums). 3. The value won't be
-	// used in filters or joins with other tables.
+	// Tags that annotate the listing with fixed, low-cardinality values, such as
+	// supported languages or tasks.
 	Tags []ListingTag
 }
 
@@ -737,30 +818,62 @@ type ListingFulfillment struct {
 }
 
 type ListingSetting struct {
+	// PUBLIC listings are visible to all consumers in the Marketplace. PRIVATE
+	// listings are visible only to members of the private exchanges that they are
+	// shared in.
 	Visibility Visibility
 }
 
 type ListingSummary struct {
-	Name           *string
-	Subtitle       *string
-	Status         ListingStatus
-	Share          *ShareInfo
+	// Display name of the listing. Must start with a letter or digit and be at most
+	// 100 characters.
+	Name *string
+	// One-line subtitle shown with the listing name.
+	Subtitle *string
+	// Publication status of the listing. Only PUBLISHED listings are visible to
+	// consumers; create a listing as DRAFT and set the status to PUBLISHED when it
+	// is ready.
+	Status ListingStatus
+	// Delta Sharing share that holds the listing's data assets. Required to publish
+	// a STANDARD listing, except for app and MCP server listings; notebook and Git
+	// repo listings can use git_repo instead. The caller must have access to the
+	// share.
+	Share *ShareInfo
+	// Cloud and region of the provider's Unity Catalog metastore. Not allowed in
+	// create requests.
 	ProviderRegion *RegionInfo
-	Setting        *ListingSetting
-	CreatedAt      *int64
-	CreatedBy      *string
-	UpdatedAt      *int64
-	UpdatedBy      *string
-	PublishedAt    *int64
-	PublishedBy    *string
-	Categories     []Category
-	ListingType    ListingType
-	CreatedById    *int64
-	UpdatedById    *int64
-	ProviderId     *string
-	ExchangeIds    []string
-	// if a git repo is being created, a listing will be initialized with this field
-	// as opposed to a share
+	// Listing settings, such as whether the listing is visible in the public
+	// Marketplace or only in private exchanges.
+	Setting *ListingSetting
+	// Time the listing was created, in epoch milliseconds.
+	CreatedAt *int64
+	// Name of the user who created the listing.
+	CreatedBy *string
+	// Time the listing was last updated, in epoch milliseconds.
+	UpdatedAt *int64
+	// Name of the user who last updated the listing.
+	UpdatedBy   *string
+	PublishedAt *int64
+	PublishedBy *string
+	// Categories that consumers can use to filter listings. They also appear as
+	// tags on the listing tile and detail page.
+	Categories []Category
+	// How consumers get access to the listing. STANDARD listings are instantly
+	// available; PERSONALIZED listings require the provider to approve each
+	// consumer request. Cannot be changed after the listing is created.
+	ListingType ListingType
+	// ID of the user who created the listing.
+	CreatedById *int64
+	// ID of the user who last updated the listing.
+	UpdatedById *int64
+	// ID of the provider profile that owns the listing.
+	ProviderId *string
+	// IDs of the private exchanges that the listing is shared in. A listing can be
+	// linked to at most 10 exchanges.
+	ExchangeIds []string
+	// Git repository that holds the listing's assets, used instead of a share for
+	// notebook and Git repo listings. A listing cannot have both a share and a Git
+	// repo.
 	GitRepo *RepoInfo
 }
 
@@ -773,47 +886,90 @@ type ListingTag struct {
 }
 
 type PersonalizationRequest struct {
-	Id             *string
+	// ID of the personalization request.
+	Id *string
+	// Cloud and region of the consumer's Unity Catalog metastore.
 	ConsumerRegion *RegionInfo
-	ContactInfo    *ContactInfo
-	Comment        *string
-	IntendedUse    *string
-	Status         PersonalizationRequestStatus
-	StatusMessage  *string
+	// Contact details that the consumer entered with the request.
+	ContactInfo *ContactInfo
+	// Comment that the consumer entered with the request.
+	Comment *string
+	// How the consumer intends to use the data product, as entered with the
+	// request.
+	IntendedUse *string
+	// Current status of the request.
+	Status PersonalizationRequestStatus
+	// Reason that the provider gave in the most recent status update.
+	StatusMessage *string
 	// Share information is required for data listings but should be empty/ignored
 	// for non-data listings (MCP and App).
-	Share            *ShareInfo
-	CreatedAt        *int64
-	ListingId        *string
-	UpdatedAt        *int64
-	MetastoreId      *string
+	Share *ShareInfo
+	// Time the request was created, in epoch milliseconds.
+	CreatedAt *int64
+	// ID of the listing that the request was made for.
+	ListingId *string
+	// Time the request was last updated, in epoch milliseconds.
+	UpdatedAt *int64
+	// ID of the consumer's Unity Catalog metastore.
+	MetastoreId *string
+	// Name of the listing that the request was made for.
 	ListingName      *string
 	IsFromLighthouse *bool
-	ProviderId       *string
-	RecipientType    DeltaSharingRecipientType
+	// ID of the provider profile that owns the listing.
+	ProviderId *string
+	// How the consumer receives the shared data:
+	// DELTA_SHARING_RECIPIENT_TYPE_DATABRICKS for a consumer on a Databricks
+	// workspace, DELTA_SHARING_RECIPIENT_TYPE_OPEN for a consumer on another
+	// platform who uses a credential file.
+	RecipientType DeltaSharingRecipientType
 }
 
 type ProviderInfo struct {
-	Id                   *string
-	Name                 *string
-	Description          *string
-	IconFilePath         *string
+	// ID of the provider profile. Assigned by the server; not allowed in create or
+	// update requests.
+	Id *string
+	// Display name of the provider. Consumers can filter listings by provider name.
+	Name *string
+	// Description of the provider organization, shown on the provider profile and
+	// on all of its listings.
+	Description *string
+	// URL for downloading the provider icon. Populated by the server from
+	// icon_file_id.
+	IconFilePath *string
+	// Email address that Databricks uses to contact the provider. Not shown to
+	// consumers.
 	BusinessContactEmail *string
-	SupportContactEmail  *string
-	// is_featured is accessible by consumers only
+	// Email address that consumers can use to request support. Shown on all of the
+	// provider's listings.
+	SupportContactEmail *string
+	// Whether Databricks features the provider in the Marketplace. Set by
+	// Databricks; not allowed in create or update requests.
 	IsFeatured *bool
 	// published_by is only applicable to data aggregators (e.g. Crux)
-	PublishedBy          *string
-	CompanyWebsiteLink   *string
-	IconFileId           *string
-	TermOfServiceLink    *string
-	PrivacyPolicyLink    *string
-	DarkModeIconFileId   *string
+	PublishedBy *string
+	// URL of the provider's website. Shown on all of the provider's listings.
+	CompanyWebsiteLink *string
+	// ID of the provider icon file, created with createFile using the PROVIDER_ICON
+	// file type.
+	IconFileId *string
+	// URL of the provider's terms of service. Shown on all of the provider's
+	// listings unless a listing sets its own terms of service.
+	TermOfServiceLink *string
+	// URL of the provider's privacy policy. Shown on all of the provider's listings
+	// unless a listing sets its own privacy policy.
+	PrivacyPolicyLink *string
+	// ID of the provider icon file used in dark mode, created with createFile using
+	// the PROVIDER_ICON file type.
+	DarkModeIconFileId *string
+	// URL for downloading the dark mode provider icon. Populated by the server from
+	// dark_mode_icon_file_id.
 	DarkModeIconFilePath *string
 }
 
 type RegionInfo struct {
-	Cloud  *string
+	// Cloud provider: aws, azure or gcp.
+	Cloud *string
+	// Cloud region, for example us-west-2.
 	Region *string
 }
 
@@ -859,6 +1015,7 @@ type SearchPublishedListingsForConsumerResponse struct {
 }
 
 type ShareInfo struct {
+	// Name of the Delta Sharing share in the provider's Unity Catalog metastore.
 	Name *string
 	Type ListingShareType
 }
@@ -928,48 +1085,68 @@ type UpdateInstallationResponse struct {
 }
 
 type UpdateListingRequest struct {
-	Id      *string
+	// ID of the listing to update.
+	Id *string
+	// Full definition of the listing, including the fields that are not changing.
 	Listing *Listing
 }
 
 type UpdateListingResponse struct {
+	// The updated listing.
 	Listing *Listing
 }
 
 type UpdatePersonalizationRequestStatusRequest struct {
+	// ID of the listing that the request was made for.
 	ListingId *string
+	// ID of the personalization request.
 	RequestId *string
-	Status    PersonalizationRequestStatus
-	Reason    *string
-	Share     *ShareInfo
+	// New status of the request. Allowed transitions: NEW or REQUEST_PENDING to
+	// REQUEST_PENDING, FULFILLED or DENIED; FULFILLED to DENIED; DENIED to
+	// REQUEST_PENDING.
+	Status PersonalizationRequestStatus
+	// Message for the consumer that explains the status change, at most 255
+	// characters.
+	Reason *string
+	// Share to grant the consumer access to. Required when fulfilling a request for
+	// a listing with data assets and not allowed with other statuses. Ignored for
+	// app and MCP server listings.
+	Share *ShareInfo
 }
 
 type UpdatePersonalizationRequestStatusResponse struct {
+	// The updated personalization request.
 	Request *PersonalizationRequest
 }
 
 type UpdateProviderAnalyticsDashboardRequest struct {
-	// id is immutable property and can't be updated.
+	// Marketplace-specific ID of the dashboard record, as returned when the
+	// dashboard was created or retrieved.
 	Id *string
-	// this is the version of the dashboard template we want to update our user to
-	// current expectation is that it should be equal to latest version of the
-	// dashboard template
+	// Version of the dashboard template to update to. Must be newer than the
+	// version that the dashboard currently uses; use the version returned by
+	// getLatestVersionProviderAnalyticsDashboard.
 	Version *int64
 }
 
 type UpdateProviderAnalyticsDashboardResponse struct {
-	// id & version should be the same as the request
-	Id      *string
+	// Marketplace-specific ID of the dashboard record, the same as in the request.
+	Id *string
+	// Version of the dashboard template that the dashboard now uses.
 	Version *int64
-	// this is newly created Lakeview dashboard for the user
+	// ID of the AI/BI dashboard that now contains the updated template.
 	DashboardId *string
 }
 
 type UpdateProviderRequest struct {
-	Id       *string
+	// ID of the provider profile to update.
+	Id *string
+	// Full definition of the provider profile, including the fields that are not
+	// changing.
 	Provider *ProviderInfo
 }
 
 type UpdateProviderResponse struct {
+	// The updated provider profile.
 	Provider *ProviderInfo
 }

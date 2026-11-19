@@ -49,15 +49,18 @@ type CreateCustomOAuthAppIntegrationRequest struct {
 
 type CreatePublishedOAuthAppIntegrationRequest struct {
 	AccountId *string
-	// App id of the OAuth published app integration. For example power-bi,
-	// tableau-deskop
+	// ID of the published OAuth app to enable, as returned in app_id by the list of
+	// published OAuth apps. The short legacy IDs of the original published apps,
+	// such as power-bi and tableau-desktop, are also accepted. The request fails if
+	// the app is already enabled for the account.
 	AppId *string
-	// Token access policy
+	// Lifetimes of the tokens issued to the app. If omitted, the app's default
+	// token lifetimes apply. If set, both TTL fields are required.
 	TokenAccessPolicy *TokenAccessPolicy
 }
 
 type CreatePublishedOAuthAppIntegrationResponse struct {
-	// Unique integration id for the published OAuth app
+	// ID of the published OAuth app integration.
 	IntegrationId *string
 }
 
@@ -118,7 +121,8 @@ type DeleteCustomOAuthAppIntegrationResponse struct {
 }
 
 type DeletePublishedOAuthAppIntegrationRequest struct {
-	AccountId     *string
+	AccountId *string
+	// ID of the published OAuth app integration to delete.
 	IntegrationId *string
 }
 
@@ -163,7 +167,8 @@ type GetCustomOAuthAppIntegrationRequest struct {
 }
 
 type GetPublishedOAuthAppIntegrationRequest struct {
-	AccountId     *string
+	AccountId *string
+	// ID of the published OAuth app integration.
 	IntegrationId *string
 }
 
@@ -188,13 +193,18 @@ type ListCustomOAuthAppIntegrationsResponse struct {
 
 type ListPublishedOAuthAppIntegrationsRequest struct {
 	AccountId *string
+	// Token from the next_page_token field of a previous response. Omit it to
+	// request the first page.
 	PageToken *string
-	PageSize  *int
+	// Maximum number of integrations to return in one page, at most 1000.
+	PageSize *int
 }
 
 type ListPublishedOAuthAppIntegrationsResponse struct {
 	// List of Published OAuth App Integrations defined for the account.
-	Apps          []PublishedOAuthAppIntegration
+	Apps []PublishedOAuthAppIntegration
+	// Token for the next page of results. If not present, there are no more results
+	// to show.
 	NextPageToken *string
 }
 
@@ -218,7 +228,8 @@ type ListPublishedOAuthAppsResponse struct {
 type PublishedOAuthApp struct {
 	// Unique ID of the published OAuth app.
 	AppId *string
-	// Client ID of the published OAuth app. It is the client_id in the OAuth flow
+	// Client ID of the published OAuth app. The app sends it as client_id in the
+	// OAuth flow.
 	ClientId *string
 	// The display name of the published OAuth app.
 	Name *string
@@ -233,17 +244,26 @@ type PublishedOAuthApp struct {
 	Scopes []string
 }
 
+// A published OAuth app integration enables an OAuth app published by
+// <Databricks>, such as Power BI or Tableau Desktop, for the account.
+// <Databricks> manages the app's client ID, redirect URLs and scopes; the
+// integration only sets the lifetimes of the tokens issued to the app. To
+// register your own application, use a custom OAuth app integration instead.
+// See https://docs.databricks.com/aws/en/integrations/enable-disable-oauth..
 type PublishedOAuthAppIntegration struct {
-	// App-id of the published app integration
+	// ID of the published OAuth app, as returned in app_id by the list of published
+	// OAuth apps.
 	AppId *string
-	// Unique integration id for the published OAuth app
+	// ID of the published OAuth app integration in the account.
 	IntegrationId *string
-	// Display name of the published OAuth app
+	// Display name of the published OAuth app.
 	Name *string
-	// Token access policy
+	// Lifetimes of the access and refresh tokens issued to the app.
 	TokenAccessPolicy *TokenAccessPolicy
-	CreatedBy         *int64
-	CreateTime        *string
+	// ID of the user who created the integration.
+	CreatedBy *int64
+	// Time the integration was created, as an ISO 8601 timestamp.
+	CreateTime *string
 }
 
 type TokenAccessPolicy struct {
@@ -296,9 +316,12 @@ type UpdateCustomOAuthAppIntegrationResponse struct {
 }
 
 type UpdatePublishedOAuthAppIntegrationRequest struct {
-	AccountId     *string
+	AccountId *string
+	// ID of the published OAuth app integration to update.
 	IntegrationId *string
-	// Token access policy to be updated in the published OAuth app integration
+	// New token lifetimes for the app. Both TTL fields are required when the policy
+	// is set; the single-use refresh token settings keep their current values when
+	// omitted. If the policy is omitted, the integration is left unchanged.
 	TokenAccessPolicy *TokenAccessPolicy
 }
 

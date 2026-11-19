@@ -15,13 +15,12 @@ const (
 	AclPermission_Manage AclPermission = "MANAGE"
 )
 
-// The types of secret scope backends in the Secret Manager. Azure KeyVault
-// backed secret scopes will be supported in a later release.
+// The types of secret scope backends in the Secret Manager.
 type ScopeBackendType string
 
 const (
 	ScopeBackendType_Unspecified ScopeBackendType = ""
-	// A secret scope in which secrets are stored in Databrick managed storage and
+	// A secret scope in which secrets are stored in Databricks-managed storage and
 	// encrypted with a cloud-based specific encryption key.
 	ScopeBackendType_Databricks ScopeBackendType = "DATABRICKS"
 	// A customer Azure KeyVault backed secret scope. Reading secrets from this
@@ -33,7 +32,8 @@ const (
 // An item representing an ACL rule applied to the given principal (user or
 // group) on the associated scope point..
 type AclItem struct {
-	// The principal in which the permission is applied.
+	// The user name or group name of an existing Databricks principal that the
+	// permission applies to.
 	Principal *string
 	// The permission level applied to the principal.
 	Permission AclPermission
@@ -42,10 +42,10 @@ type AclItem struct {
 // The metadata of the Azure KeyVault for a secret scope of type
 // `AZURE_KEYVAULT`.
 type AzureKeyVaultSecretScopeMetadata struct {
-	// The resource id of the azure KeyVault that user wants to associate the scope
-	// with.
+	// The Azure resource ID of the key vault to associate with the scope.
 	ResourceId *string
-	// The DNS of the KeyVault
+	// The DNS name of the key vault, for example
+	// ``https://my-key-vault.vault.azure.net/``.
 	DnsName *string
 }
 
@@ -55,8 +55,7 @@ type CreateScopeRequest struct {
 	// The principal that is initially granted ``MANAGE`` permission to the created
 	// scope.
 	InitialManagePrincipal *string
-	// The backend type the scope will be created with. If not specified, will
-	// default to ``DATABRICKS``
+	// The backend type of the new scope. Defaults to ``DATABRICKS``.
 	ScopeBackendType ScopeBackendType
 	// The metadata for the secret scope if the type is ``AZURE_KEYVAULT``
 	BackendAzureKeyvault *AzureKeyVaultSecretScopeMetadata
@@ -146,7 +145,8 @@ type ListSecretsResponse struct {
 type PutAclRequest struct {
 	// The name of the scope to apply permissions to.
 	Scope *string
-	// The principal in which the permission is applied.
+	// The user name or group name of an existing Databricks principal that the
+	// permission applies to.
 	Principal *string
 	// The permission level applied to the principal.
 	Permission AclPermission
@@ -197,14 +197,14 @@ type SecretMetadata struct {
 	LastUpdatedTimestamp *int64
 }
 
-// An organizational resource for storing secrets. Secret scopes can be
-// different types (Databricks-managed, Azure KeyVault backed, etc), and ACLs
-// can be applied to control permissions for all secrets within a scope..
+// An organizational resource for storing secrets. A secret scope is either
+// Databricks-backed or Azure Key Vault-backed, and ACLs can be applied to
+// control permissions for all secrets within a scope..
 type SecretScope struct {
 	// A unique name to identify the secret scope.
 	Name *string
 	// The type of secret scope backend.
 	BackendType ScopeBackendType
-	// The metadata for the secret scope if the type is ``AZURE_KEYVAULT``
+	// The metadata for the secret scope if the type is ``AZURE_KEYVAULT``.
 	KeyvaultMetadata *AzureKeyVaultSecretScopeMetadata
 }

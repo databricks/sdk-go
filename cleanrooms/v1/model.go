@@ -345,7 +345,9 @@ type CleanRoomAsset struct {
 	AssetType CleanRoomAsset_AssetType
 	// When the asset is added to the clean room, in epoch milliseconds.
 	AddedAt *int64
-	// Status of the asset
+	// The sharing status of the asset. `PERMISSION_DENIED` means the clean room
+	// owner no longer has the privileges needed on the underlying Unity Catalog
+	// object, so the asset is not shared into the clean room.
 	Status CleanRoomAsset_Status_Enum
 	// The alias of the collaborator who owns this asset
 	OwnerCollaboratorAlias *string
@@ -387,8 +389,8 @@ type CleanRoomAsset_LocalDetails_ViewLocalDetails struct {
 func (*CleanRoomAsset_LocalDetails_ViewLocalDetails) isCleanRoomAsset_LocalDetails() {}
 
 // CleanRoomAsset_LocalDetails_ForeignTableLocalDetails selects ForeignTableLocalDetails for CleanRoomAsset.LocalDetails.
-// Local details for a foreign that are only available to its owner. Present if
-// and only if **asset_type** is **FOREIGN_TABLE**
+// Local details for a foreign table that are only available to its owner.
+// Present if and only if **asset_type** is **FOREIGN_TABLE**
 type CleanRoomAsset_LocalDetails_ForeignTableLocalDetails struct {
 	ForeignTableLocalDetails CleanRoomAsset_ForeignTableLocalDetails
 }

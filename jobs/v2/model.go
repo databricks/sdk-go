@@ -496,10 +496,10 @@ type AiRuntimeTask_PriorityClass string
 
 const (
 	AiRuntimeTask_PriorityClass_Unspecified AiRuntimeTask_PriorityClass = ""
-	// Lowest priority; preemptable by higher-priority workloads.
-	AiRuntimeTask_PriorityClass_BestEffort AiRuntimeTask_PriorityClass = "BEST_EFFORT"
 	// Medium priority; not preemptable.
 	AiRuntimeTask_PriorityClass_Normal AiRuntimeTask_PriorityClass = "NORMAL"
+	// Highest priority; not preemptable.
+	AiRuntimeTask_PriorityClass_High AiRuntimeTask_PriorityClass = "HIGH"
 )
 
 // Same alert evaluation state as in redash-v2/api/proto/alertsv2/alerts.proto
@@ -2217,7 +2217,9 @@ type CreateJobRequest struct {
 	// performance level without additional cost-saving optimizations.
 	DurationTarget *string
 	// Path of the job parent folder in workspace file tree. If absent, the job
-	// doesn't have a workspace object.
+	// doesn't have a parent folder.
+	//
+	// Example: /Workspace/Projects/my_project
 	ParentPath *string
 	// List of triggers attached to this job. A run starts when any active trigger
 	// evaluates to true. Cannot be set in the same request as the legacy
@@ -3651,7 +3653,9 @@ type JobSettings struct {
 	// performance level without additional cost-saving optimizations.
 	DurationTarget *string
 	// Path of the job parent folder in workspace file tree. If absent, the job
-	// doesn't have a workspace object.
+	// doesn't have a parent folder.
+	//
+	// Example: /Workspace/Projects/my_project
 	ParentPath *string
 	// List of triggers attached to this job. A run starts when any active trigger
 	// evaluates to true. Cannot be set in the same request as the legacy

@@ -1238,8 +1238,9 @@ type CreateRoleRequest struct {
 	// The ID used to identify and manage the Role resource through the API. The
 	// Postgres role name is specified in `spec.postgres_role`.
 	//
-	// This value should be 4-63 characters, and valid characters are lowercase
-	// letters, numbers, and hyphens, as defined by RFC 1123.
+	// This value should be 3-63 characters, start with a lowercase letter, end with
+	// a lowercase letter or digit, and contain only lowercase letters, digits, and
+	// hyphens.
 	//
 	// If role_id is not specified in the request, it is generated automatically.
 	RoleId *string
@@ -1531,7 +1532,8 @@ type DeleteRoleRequest struct {
 	// projects/{project_id}/branches/{branch_id}/roles/{role_id}
 	Name *string
 	// Reassign objects. If this is set, all objects owned by the role are
-	// reassigned to the role specified in this parameter.
+	// reassigned to the role specified in this parameter. The role must already
+	// exist. Format: projects/{project_id}/branches/{branch_id}/roles/{role_id}
 	//
 	// NOTE: setting this requires spinning up a compute to succeed, since it
 	// involves running SQL queries.
@@ -2469,8 +2471,10 @@ type Role struct {
 	Name *string `fieldmask:"name"`
 	// The Branch where this Role exists. Format:
 	// projects/{project_id}/branches/{branch_id}
-	Parent     *string     `fieldmask:"parent"`
+	Parent *string `fieldmask:"parent"`
+	// A timestamp indicating when the role was created.
 	CreateTime *types.Time `fieldmask:"create_time"`
+	// A timestamp indicating when the role was last updated.
 	UpdateTime *types.Time `fieldmask:"update_time"`
 	// The spec contains the role configuration, including identity type,
 	// authentication method, and role attributes.
@@ -2492,9 +2496,14 @@ type Role struct {
 // Postgres keyword naming e.g. CREATEDB, BYPASSRLS, etc. which is why they
 // don't include typical underscores between words..
 type Role_Attributes struct {
-	Createdb   *bool `fieldmask:"createdb"`
+	// Whether the role can create databases (the Postgres CREATEDB attribute).
+	Createdb *bool `fieldmask:"createdb"`
+	// Whether the role can create, alter and drop other roles (the Postgres
+	// CREATEROLE attribute).
 	Createrole *bool `fieldmask:"createrole"`
-	Bypassrls  *bool `fieldmask:"bypassrls"`
+	// Whether the role bypasses every row-level security policy (the Postgres
+	// BYPASSRLS attribute).
+	Bypassrls *bool `fieldmask:"bypassrls"`
 }
 
 type Role_RoleSpec struct {
@@ -2502,16 +2511,16 @@ type Role_RoleSpec struct {
 	// selected in update_mask, this field replaces all existing memberships. An
 	// empty or omitted list clears all memberships, including DATABRICKS_SUPERUSER.
 	MembershipRoles []Role_MembershipRole `fieldmask:"membership_roles"`
-	// The type of role. When specifying a managed-identity, the chosen
-	// postgres_role must be a valid:
+	// The type of Databricks identity that backs the role. Leave unset to create a
+	// native Postgres role that is not associated with a Databricks identity. When
+	// specifying a managed-identity, the chosen postgres_role must be a valid:
 	//
 	// * application ID for SERVICE_PRINCIPAL * user email for USER * group name for
 	// GROUP
 	//
 	// This value cannot be changed after creation.
 	IdentityType Role_IdentityType `fieldmask:"identity_type"`
-	// The desired API-exposed Postgres role attribute to associate with the role.
-	// Optional.
+	// The Postgres role attributes to grant to the role.
 	Attributes *Role_Attributes `fieldmask:"attributes"`
 	// Controls how the Postgres role authenticates when a client opens a database
 	// connection. Supported values:
@@ -2547,20 +2556,21 @@ type Role_RoleSpec struct {
 	// identity, then postgres_role must be one of the following:
 	//
 	// 1. user email for IdentityType.USER 2. app ID for
-	// IdentityType.SERVICE_PRINCIPAL 2. group name for IdentityType.GROUP
+	// IdentityType.SERVICE_PRINCIPAL 3. group name for IdentityType.GROUP
 	//
 	// This value cannot be changed after creation.
 	PostgresRole *string `fieldmask:"postgres_role"`
 }
 
 type Role_RoleStatus struct {
-	// An enum value for a standard role that this role is a member of.
+	// The standard roles that the role is currently a member of.
 	MembershipRoles []Role_MembershipRole `fieldmask:"membership_roles"`
-	// The type of the role.
+	// The type of Databricks identity that backs the role, if any.
 	IdentityType Role_IdentityType `fieldmask:"identity_type"`
-	// The PG role attributes associated with the role.
+	// The Postgres role attributes currently granted to the role.
 	Attributes *Role_Attributes `fieldmask:"attributes"`
-	AuthMethod Role_AuthMethod  `fieldmask:"auth_method"`
+	// How the role authenticates when it connects to Postgres.
+	AuthMethod Role_AuthMethod `fieldmask:"auth_method"`
 	// The name of the Postgres role.
 	PostgresRole *string `fieldmask:"postgres_role"`
 	// Part of the resource name.
