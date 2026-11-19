@@ -455,7 +455,9 @@ type Datasource struct {
 	// Schedule on which the datasource's ingestion job runs. A datasource cannot be
 	// paused, so a request that sets `schedule.enabled` to `false` is rejected.
 	// Continuous schedules are not supported for Unity Catalog connection
-	// datasources.
+	// datasources. For an existing-table datasource, runs must be no further apart
+	// than the shorter of the source table's `delta.deletedFileRetentionDuration`
+	// and `delta.logRetentionDuration`.
 	Schedule *Schedule `fieldmask:"schedule"`
 	// Compute mode for the datasource's ingestion job. If unset, the
 	// `default_compute_mode` of the catalog's datasource configuration applies, or
@@ -1442,8 +1444,9 @@ type RuleTimeRange struct {
 // Defines when a recurring job executes.
 //
 // Exactly one of the timing modes (`at_least_every`, `cron_expression`,
-// `continuous`) must be set; combining them or setting none is rejected by the
-// server. `compute_group` and `enabled` are orthogonal to the timing..
+// `continuous`, `file_arrival`) must be set; combining them or setting none is
+// rejected by the server. `compute_group` and `enabled` are orthogonal to the
+// timing..
 type Schedule struct {
 	Timing isSchedule_Timing
 	// `dedicated`, `inherited`, `automatic`, or a custom group name. Reads return

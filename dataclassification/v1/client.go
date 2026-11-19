@@ -80,7 +80,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // Create Data Classification configuration for a catalog.
 //
 // Creates a new config resource, which enables Data Classification for the
-// specified catalog. - The config must not already exist for the catalog.
+// specified catalog. The catalog must not already have a config. Creating the
+// config starts a scan of the selected schemas and schedules recurring scans.
 func (c *internalClient) CreateCatalogConfig(ctx context.Context, req CreateCatalogConfigRequest, opts ...call.Option) (*CatalogConfig, error) {
 	wireReq, err := createCatalogConfigRequestToWire(&req)
 	if err != nil {
@@ -154,6 +155,10 @@ func (c *internalClient) CreateCatalogConfig(ctx context.Context, req CreateCata
 }
 
 // Delete Data Classification configuration for a catalog.
+//
+// Deleting the config disables Data Classification for the catalog and stops
+// its scheduled scans. Tags that auto-tagging already applied to columns are
+// not removed. Deleting a config that does not exist succeeds.
 func (c *internalClient) DeleteCatalogConfig(ctx context.Context, req DeleteCatalogConfigRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
@@ -268,9 +273,10 @@ func (c *internalClient) GetCatalogConfig(ctx context.Context, req GetCatalogCon
 	return resp, nil
 }
 
-// Update the Data Classification configuration for a catalog. - The config must
-// already exist for the catalog. - Updates fields specified in the update_mask.
-// Use update_mask field to perform partial updates of the configuration.
+// Update the Data Classification configuration for a catalog.
+//
+// The config must already exist for the catalog. Only the fields named in
+// `update_mask` change; the other fields keep their current values.
 func (c *internalClient) UpdateCatalogConfig(ctx context.Context, req UpdateCatalogConfigRequest, opts ...call.Option) (*CatalogConfig, error) {
 	wireReq, err := updateCatalogConfigRequestToWire(&req)
 	if err != nil {

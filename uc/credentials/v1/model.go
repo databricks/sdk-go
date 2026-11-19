@@ -734,6 +734,7 @@ type DeleteStorageCredentialResponse struct {
 // GCP temporary credentials for API authentication. Read more at
 // https://developers.google.com/identity/protocols/oauth2/service-account.
 type GcpOauthToken struct {
+	// The OAuth 2.0 access token to pass as a bearer token to Google Cloud APIs.
 	OauthToken *string
 }
 
@@ -774,6 +775,7 @@ type isGenerateTemporaryPathCredentialResponse_Credentials interface {
 }
 
 // GenerateTemporaryPathCredentialResponse_Credentials_AwsTempCredentials selects AwsTempCredentials for GenerateTemporaryPathCredentialResponse.Credentials.
+// Temporary AWS credentials that can be used to sign AWS API requests.
 type GenerateTemporaryPathCredentialResponse_Credentials_AwsTempCredentials struct {
 	AwsTempCredentials TemporaryAwsCredentials
 }
@@ -782,6 +784,8 @@ func (*GenerateTemporaryPathCredentialResponse_Credentials_AwsTempCredentials) i
 }
 
 // GenerateTemporaryPathCredentialResponse_Credentials_AzureUserDelegationSas selects AzureUserDelegationSas for GenerateTemporaryPathCredentialResponse.Credentials.
+// An Azure user delegation shared access signature (SAS) that grants access to
+// the requested storage path.
 type GenerateTemporaryPathCredentialResponse_Credentials_AzureUserDelegationSas struct {
 	AzureUserDelegationSas AzureUserDelegationSas
 }
@@ -790,6 +794,8 @@ func (*GenerateTemporaryPathCredentialResponse_Credentials_AzureUserDelegationSa
 }
 
 // GenerateTemporaryPathCredentialResponse_Credentials_GcpOauthToken selects GcpOauthToken for GenerateTemporaryPathCredentialResponse.Credentials.
+// A GCP OAuth 2.0 access token that is issued for the credential's service
+// account.
 type GenerateTemporaryPathCredentialResponse_Credentials_GcpOauthToken struct {
 	GcpOauthToken GcpOauthToken
 }
@@ -798,6 +804,8 @@ func (*GenerateTemporaryPathCredentialResponse_Credentials_GcpOauthToken) isGene
 }
 
 // GenerateTemporaryPathCredentialResponse_Credentials_AzureAad selects AzureAad for GenerateTemporaryPathCredentialResponse.Credentials.
+// A Microsoft Entra ID (formerly Azure Active Directory) token that is issued
+// for the credential's identity.
 type GenerateTemporaryPathCredentialResponse_Credentials_AzureAad struct {
 	AzureAad AzureActiveDirectoryToken
 }
@@ -806,6 +814,8 @@ func (*GenerateTemporaryPathCredentialResponse_Credentials_AzureAad) isGenerateT
 }
 
 // GenerateTemporaryPathCredentialResponse_Credentials_R2TempCredentials selects R2TempCredentials for GenerateTemporaryPathCredentialResponse.Credentials.
+// Temporary Cloudflare R2 credentials that can be used with the R2
+// S3-compatible API.
 type GenerateTemporaryPathCredentialResponse_Credentials_R2TempCredentials struct {
 	R2TempCredentials R2Credentials
 }
@@ -824,6 +834,8 @@ type isGenerateTemporaryServiceCredentialRequest_Options interface {
 }
 
 // GenerateTemporaryServiceCredentialRequest_Options_AzureOptions selects AzureOptions for GenerateTemporaryServiceCredentialRequest.Options.
+// Options for an Azure service credential. They are required when the service
+// credential uses an Azure managed identity.
 type GenerateTemporaryServiceCredentialRequest_Options_AzureOptions struct {
 	AzureOptions GenerateTemporaryServiceCredentialRequest_AzureOptions
 }
@@ -832,6 +844,8 @@ func (*GenerateTemporaryServiceCredentialRequest_Options_AzureOptions) isGenerat
 }
 
 // GenerateTemporaryServiceCredentialRequest_Options_GcpOptions selects GcpOptions for GenerateTemporaryServiceCredentialRequest.Options.
+// Options for a GCP service credential. They are required when the service
+// credential uses a <Databricks>-managed GCP service account.
 type GenerateTemporaryServiceCredentialRequest_Options_GcpOptions struct {
 	GcpOptions GenerateTemporaryServiceCredentialRequest_GcpOptions
 }
@@ -843,7 +857,9 @@ func (*GenerateTemporaryServiceCredentialRequest_Options_GcpOptions) isGenerateT
 type GenerateTemporaryServiceCredentialRequest_AzureOptions struct {
 	// The resources to which the temporary Azure credential should apply. These
 	// resources are the scopes that are passed to the token provider (see
-	// https://learn.microsoft.com/python/api/azure-core/azure.core.credentials.tokencredential?view=azure-python)
+	// https://learn.microsoft.com/python/api/azure-core/azure.core.credentials.tokencredential?view=azure-python).
+	// Exactly one resource is supported, and its URL must end with the `.default`
+	// scope.
 	Resources []string
 }
 
@@ -851,7 +867,9 @@ type GenerateTemporaryServiceCredentialRequest_AzureOptions struct {
 type GenerateTemporaryServiceCredentialRequest_GcpOptions struct {
 	// The scopes to which the temporary GCP credential should apply. These
 	// resources are the scopes that are passed to the token provider (see
-	// https://google-auth.readthedocs.io/en/latest/reference/google.auth.html#google.auth.credentials.Credentials)
+	// https://google-auth.readthedocs.io/en/latest/reference/google.auth.html#google.auth.credentials.Credentials).
+	// Each scope must be a Google OAuth 2.0 scope URL on the `googleapis.com` or
+	// `www.googleapis.com` host.
 	Scopes []string
 }
 
@@ -879,6 +897,7 @@ type isGenerateTemporaryTableCredentialResponse_Credentials interface {
 }
 
 // GenerateTemporaryTableCredentialResponse_Credentials_AwsTempCredentials selects AwsTempCredentials for GenerateTemporaryTableCredentialResponse.Credentials.
+// Temporary AWS credentials that can be used to sign AWS API requests.
 type GenerateTemporaryTableCredentialResponse_Credentials_AwsTempCredentials struct {
 	AwsTempCredentials TemporaryAwsCredentials
 }
@@ -887,6 +906,8 @@ func (*GenerateTemporaryTableCredentialResponse_Credentials_AwsTempCredentials) 
 }
 
 // GenerateTemporaryTableCredentialResponse_Credentials_AzureUserDelegationSas selects AzureUserDelegationSas for GenerateTemporaryTableCredentialResponse.Credentials.
+// An Azure user delegation shared access signature (SAS) that grants access to
+// the requested storage path.
 type GenerateTemporaryTableCredentialResponse_Credentials_AzureUserDelegationSas struct {
 	AzureUserDelegationSas AzureUserDelegationSas
 }
@@ -895,6 +916,8 @@ func (*GenerateTemporaryTableCredentialResponse_Credentials_AzureUserDelegationS
 }
 
 // GenerateTemporaryTableCredentialResponse_Credentials_GcpOauthToken selects GcpOauthToken for GenerateTemporaryTableCredentialResponse.Credentials.
+// A GCP OAuth 2.0 access token that is issued for the credential's service
+// account.
 type GenerateTemporaryTableCredentialResponse_Credentials_GcpOauthToken struct {
 	GcpOauthToken GcpOauthToken
 }
@@ -903,6 +926,8 @@ func (*GenerateTemporaryTableCredentialResponse_Credentials_GcpOauthToken) isGen
 }
 
 // GenerateTemporaryTableCredentialResponse_Credentials_AzureAad selects AzureAad for GenerateTemporaryTableCredentialResponse.Credentials.
+// A Microsoft Entra ID (formerly Azure Active Directory) token that is issued
+// for the credential's identity.
 type GenerateTemporaryTableCredentialResponse_Credentials_AzureAad struct {
 	AzureAad AzureActiveDirectoryToken
 }
@@ -911,6 +936,8 @@ func (*GenerateTemporaryTableCredentialResponse_Credentials_AzureAad) isGenerate
 }
 
 // GenerateTemporaryTableCredentialResponse_Credentials_R2TempCredentials selects R2TempCredentials for GenerateTemporaryTableCredentialResponse.Credentials.
+// Temporary Cloudflare R2 credentials that can be used with the R2
+// S3-compatible API.
 type GenerateTemporaryTableCredentialResponse_Credentials_R2TempCredentials struct {
 	R2TempCredentials R2Credentials
 }
@@ -943,6 +970,7 @@ type isGenerateTemporaryVolumeCredentialResponse_Credentials interface {
 }
 
 // GenerateTemporaryVolumeCredentialResponse_Credentials_AwsTempCredentials selects AwsTempCredentials for GenerateTemporaryVolumeCredentialResponse.Credentials.
+// Temporary AWS credentials that can be used to sign AWS API requests.
 type GenerateTemporaryVolumeCredentialResponse_Credentials_AwsTempCredentials struct {
 	AwsTempCredentials TemporaryAwsCredentials
 }
@@ -951,6 +979,8 @@ func (*GenerateTemporaryVolumeCredentialResponse_Credentials_AwsTempCredentials)
 }
 
 // GenerateTemporaryVolumeCredentialResponse_Credentials_AzureUserDelegationSas selects AzureUserDelegationSas for GenerateTemporaryVolumeCredentialResponse.Credentials.
+// An Azure user delegation shared access signature (SAS) that grants access to
+// the requested storage path.
 type GenerateTemporaryVolumeCredentialResponse_Credentials_AzureUserDelegationSas struct {
 	AzureUserDelegationSas AzureUserDelegationSas
 }
@@ -959,6 +989,8 @@ func (*GenerateTemporaryVolumeCredentialResponse_Credentials_AzureUserDelegation
 }
 
 // GenerateTemporaryVolumeCredentialResponse_Credentials_GcpOauthToken selects GcpOauthToken for GenerateTemporaryVolumeCredentialResponse.Credentials.
+// A GCP OAuth 2.0 access token that is issued for the credential's service
+// account.
 type GenerateTemporaryVolumeCredentialResponse_Credentials_GcpOauthToken struct {
 	GcpOauthToken GcpOauthToken
 }
@@ -967,6 +999,8 @@ func (*GenerateTemporaryVolumeCredentialResponse_Credentials_GcpOauthToken) isGe
 }
 
 // GenerateTemporaryVolumeCredentialResponse_Credentials_AzureAad selects AzureAad for GenerateTemporaryVolumeCredentialResponse.Credentials.
+// A Microsoft Entra ID (formerly Azure Active Directory) token that is issued
+// for the credential's identity.
 type GenerateTemporaryVolumeCredentialResponse_Credentials_AzureAad struct {
 	AzureAad AzureActiveDirectoryToken
 }
@@ -975,6 +1009,8 @@ func (*GenerateTemporaryVolumeCredentialResponse_Credentials_AzureAad) isGenerat
 }
 
 // GenerateTemporaryVolumeCredentialResponse_Credentials_R2TempCredentials selects R2TempCredentials for GenerateTemporaryVolumeCredentialResponse.Credentials.
+// Temporary Cloudflare R2 credentials that can be used with the R2
+// S3-compatible API.
 type GenerateTemporaryVolumeCredentialResponse_Credentials_R2TempCredentials struct {
 	R2TempCredentials R2Credentials
 }
@@ -1194,6 +1230,7 @@ type isTemporaryCredentials_Credentials interface {
 }
 
 // TemporaryCredentials_Credentials_AwsTempCredentials selects AwsTempCredentials for TemporaryCredentials.Credentials.
+// Temporary AWS credentials that can be used to sign AWS API requests.
 type TemporaryCredentials_Credentials_AwsTempCredentials struct {
 	AwsTempCredentials TemporaryAwsCredentials
 }
@@ -1201,6 +1238,8 @@ type TemporaryCredentials_Credentials_AwsTempCredentials struct {
 func (*TemporaryCredentials_Credentials_AwsTempCredentials) isTemporaryCredentials_Credentials() {}
 
 // TemporaryCredentials_Credentials_AzureUserDelegationSas selects AzureUserDelegationSas for TemporaryCredentials.Credentials.
+// An Azure user delegation shared access signature (SAS) that grants access to
+// the requested storage path.
 type TemporaryCredentials_Credentials_AzureUserDelegationSas struct {
 	AzureUserDelegationSas AzureUserDelegationSas
 }
@@ -1209,6 +1248,8 @@ func (*TemporaryCredentials_Credentials_AzureUserDelegationSas) isTemporaryCrede
 }
 
 // TemporaryCredentials_Credentials_GcpOauthToken selects GcpOauthToken for TemporaryCredentials.Credentials.
+// A GCP OAuth 2.0 access token that is issued for the credential's service
+// account.
 type TemporaryCredentials_Credentials_GcpOauthToken struct {
 	GcpOauthToken GcpOauthToken
 }
@@ -1216,6 +1257,8 @@ type TemporaryCredentials_Credentials_GcpOauthToken struct {
 func (*TemporaryCredentials_Credentials_GcpOauthToken) isTemporaryCredentials_Credentials() {}
 
 // TemporaryCredentials_Credentials_AzureAad selects AzureAad for TemporaryCredentials.Credentials.
+// A Microsoft Entra ID (formerly Azure Active Directory) token that is issued
+// for the credential's identity.
 type TemporaryCredentials_Credentials_AzureAad struct {
 	AzureAad AzureActiveDirectoryToken
 }
@@ -1223,6 +1266,8 @@ type TemporaryCredentials_Credentials_AzureAad struct {
 func (*TemporaryCredentials_Credentials_AzureAad) isTemporaryCredentials_Credentials() {}
 
 // TemporaryCredentials_Credentials_R2TempCredentials selects R2TempCredentials for TemporaryCredentials.Credentials.
+// Temporary Cloudflare R2 credentials that can be used with the R2
+// S3-compatible API.
 type TemporaryCredentials_Credentials_R2TempCredentials struct {
 	R2TempCredentials R2Credentials
 }

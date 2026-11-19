@@ -60,9 +60,9 @@ const (
 	FunctionInfo_RoutineBody_Unspecified FunctionInfo_RoutineBody = ""
 	FunctionInfo_RoutineBody_Sql         FunctionInfo_RoutineBody = "SQL"
 	// When `EXTERNAL` is used, * The language of the routine function should be
-	// specified in the `external_language` field. * The returnParams of the
-	// function cannot be used as TABLE return type is not supported. * The
-	// getSqlDataAccess must be NO_SQL.
+	// specified in the `external_language` field. * The TABLE return type, and so
+	// return_params, is supported only when external_language is Python. * The
+	// `sql_data_access` field must be `NO_SQL`.
 	FunctionInfo_RoutineBody_External FunctionInfo_RoutineBody = "EXTERNAL"
 )
 
@@ -88,6 +88,11 @@ type ConnectionDependency struct {
 	ConnectionName *string
 }
 
+// A user-defined function (UDF) registered in Unity Catalog. A function belongs
+// to a schema and is referenced as catalog_name.schema_name.function_name. Its
+// body is either a SQL expression or query, or source code in an external
+// language such as Python. See
+// https://docs.databricks.com/aws/en/udf/unity-catalog for an overview..
 type CreateFunction struct {
 	// Name of function, relative to parent schema.
 	Name *string
@@ -95,38 +100,53 @@ type CreateFunction struct {
 	CatalogName *string
 	// Name of parent Schema relative to its parent Catalog.
 	SchemaName *string
-	// Function input parameters.
+	// Input parameters of the function. When it is set, parameters must contain at
+	// least one entry. A function that takes no arguments omits input_params, even
+	// though the Create request schema marks it as required.
 	InputParams *FunctionParameterInfos
-	// Scalar function return data type.
+	// Data type of the value the function returns. A table function uses TABLE_TYPE
+	// and describes its result columns in return_params, except for a polymorphic
+	// Python UDTF, which omits them.
 	DataType ColumnTypeName
-	// Pretty printed function data type.
+	// Return data type of the function in SQL syntax, including any type parameters
+	// such as precision and scale.
 	FullDataType *string
-	// Function language. When **EXTERNAL** is used, the language of the routine
-	// function should be specified in the **external_language** field, and the
-	// **return_params** of the function cannot be used (as **TABLE** return type is
-	// not supported), and the **sql_data_access** field must be **NO_SQL**.
+	// Language of the function body. SQL means that routine_definition holds a SQL
+	// expression or query. EXTERNAL means that it holds source code in the language
+	// named by external_language, and sql_data_access must then be NO_SQL.
 	RoutineBody FunctionInfo_RoutineBody
-	// Function body.
+	// Body of the function. For a SQL function it is the expression or query that
+	// computes the result; for an EXTERNAL function it is the source code of the
+	// function. It is omitted when the caller can only browse the function.
 	RoutineDefinition *string
-	// Function parameter style. **S** is the value for SQL.
+	// How arguments are passed to the function body. S means that each argument is
+	// passed as a single scalar value.
 	ParameterStyle FunctionInfo_ParameterStyle
-	// Whether the function is deterministic.
+	// Whether the function returns the same result for the same arguments. It
+	// corresponds to the DETERMINISTIC characteristic of CREATE FUNCTION.
 	IsDeterministic *bool
-	// Function SQL data access.
+	// How the function body interacts with SQL data. CONTAINS_SQL means that the
+	// body contains SQL but reads no table or view, READS_SQL_DATA means that it
+	// reads a table or view, and NO_SQL is required for EXTERNAL functions.
 	SqlDataAccess FunctionInfo_SqlDataAccess
-	// Function null call.
+	// Whether the function is a null-call function in the sense of the SQL
+	// standard, which returns NULL whenever any argument is NULL.
 	IsNullCall *bool
-	// Function security type.
+	// Whose privileges the function body runs with. DEFINER runs it with the
+	// privileges of the function owner.
 	SecurityType FunctionInfo_SecurityType
-	// Specific name of the function; Reserved for future use.
+	// Specific name of the function. Set it to the same value as name.
 	SpecificName *string
-	// Table function return parameters.
+	// Result columns of a table function. Set it when data_type is TABLE_TYPE,
+	// except for a polymorphic Python UDTF (an EXTERNAL Python function with
+	// full_data_type "()"), which must not set it.
 	ReturnParams *FunctionParameterInfos
-	// External function name.
+	// Name of the function in its external language. It is reserved for future use.
 	ExternalName *string
-	// External function language.
+	// Language of the function body for an EXTERNAL function. It is required when
+	// routine_body is EXTERNAL.
 	ExternalLanguage *string
-	// List of schemes whose objects can be referenced without qualification.
+	// List of schemas whose objects can be referenced without qualification.
 	SqlPath *string
 	// Username of current owner of the function.
 	Owner *string
@@ -171,9 +191,9 @@ type CredentialDependency struct {
 
 type DeleteFunctionRequest struct {
 	// The fully-qualified name of the function (of the form
-	// __catalog_name__.__schema_name__.__function__name__) .
+	// __catalog_name__.__schema_name__.__function_name__).
 	FullNameArg *string
-	// Force deletion even if the function is notempty.
+	// Force deletion even if the function is not empty.
 	Force *bool
 }
 
@@ -232,6 +252,11 @@ type FunctionDependency struct {
 	FunctionFullName *string
 }
 
+// A user-defined function (UDF) registered in Unity Catalog. A function belongs
+// to a schema and is referenced as catalog_name.schema_name.function_name. Its
+// body is either a SQL expression or query, or source code in an external
+// language such as Python. See
+// https://docs.databricks.com/aws/en/udf/unity-catalog for an overview..
 type FunctionInfo struct {
 	// Name of function, relative to parent schema.
 	Name *string
@@ -239,38 +264,53 @@ type FunctionInfo struct {
 	CatalogName *string
 	// Name of parent Schema relative to its parent Catalog.
 	SchemaName *string
-	// Function input parameters.
+	// Input parameters of the function. When it is set, parameters must contain at
+	// least one entry. A function that takes no arguments omits input_params, even
+	// though the Create request schema marks it as required.
 	InputParams *FunctionParameterInfos
-	// Scalar function return data type.
+	// Data type of the value the function returns. A table function uses TABLE_TYPE
+	// and describes its result columns in return_params, except for a polymorphic
+	// Python UDTF, which omits them.
 	DataType ColumnTypeName
-	// Pretty printed function data type.
+	// Return data type of the function in SQL syntax, including any type parameters
+	// such as precision and scale.
 	FullDataType *string
-	// Function language. When **EXTERNAL** is used, the language of the routine
-	// function should be specified in the **external_language** field, and the
-	// **return_params** of the function cannot be used (as **TABLE** return type is
-	// not supported), and the **sql_data_access** field must be **NO_SQL**.
+	// Language of the function body. SQL means that routine_definition holds a SQL
+	// expression or query. EXTERNAL means that it holds source code in the language
+	// named by external_language, and sql_data_access must then be NO_SQL.
 	RoutineBody FunctionInfo_RoutineBody
-	// Function body.
+	// Body of the function. For a SQL function it is the expression or query that
+	// computes the result; for an EXTERNAL function it is the source code of the
+	// function. It is omitted when the caller can only browse the function.
 	RoutineDefinition *string
-	// Function parameter style. **S** is the value for SQL.
+	// How arguments are passed to the function body. S means that each argument is
+	// passed as a single scalar value.
 	ParameterStyle FunctionInfo_ParameterStyle
-	// Whether the function is deterministic.
+	// Whether the function returns the same result for the same arguments. It
+	// corresponds to the DETERMINISTIC characteristic of CREATE FUNCTION.
 	IsDeterministic *bool
-	// Function SQL data access.
+	// How the function body interacts with SQL data. CONTAINS_SQL means that the
+	// body contains SQL but reads no table or view, READS_SQL_DATA means that it
+	// reads a table or view, and NO_SQL is required for EXTERNAL functions.
 	SqlDataAccess FunctionInfo_SqlDataAccess
-	// Function null call.
+	// Whether the function is a null-call function in the sense of the SQL
+	// standard, which returns NULL whenever any argument is NULL.
 	IsNullCall *bool
-	// Function security type.
+	// Whose privileges the function body runs with. DEFINER runs it with the
+	// privileges of the function owner.
 	SecurityType FunctionInfo_SecurityType
-	// Specific name of the function; Reserved for future use.
+	// Specific name of the function. Set it to the same value as name.
 	SpecificName *string
-	// Table function return parameters.
+	// Result columns of a table function. Set it when data_type is TABLE_TYPE,
+	// except for a polymorphic Python UDTF (an EXTERNAL Python function with
+	// full_data_type "()"), which must not set it.
 	ReturnParams *FunctionParameterInfos
-	// External function name.
+	// Name of the function in its external language. It is reserved for future use.
 	ExternalName *string
-	// External function language.
+	// Language of the function body for an EXTERNAL function. It is required when
+	// routine_body is EXTERNAL.
 	ExternalLanguage *string
-	// List of schemes whose objects can be referenced without qualification.
+	// List of schemas whose objects can be referenced without qualification.
 	SqlPath *string
 	// Username of current owner of the function.
 	Owner *string
@@ -305,9 +345,11 @@ type FunctionInfo struct {
 type FunctionParameterInfo struct {
 	// Name of Parameter.
 	Name *string
-	// Full data type spec, SQL/catalogString text.
+	// Data type of the parameter in SQL syntax, including any type parameters such
+	// as precision and scale.
 	TypeText *string
-	// Full data type spec, JSON-serialized.
+	// Data type of the parameter as the JSON representation of a Spark SQL struct
+	// field, with name, type, nullable and metadata keys.
 	TypeJson *string
 	// Name of type (INT, STRUCT, MAP, etc.)
 	TypeName ColumnTypeName
@@ -315,27 +357,33 @@ type FunctionParameterInfo struct {
 	TypePrecision *int
 	// Digits to right of decimal; Required on Create for DecimalTypes.
 	TypeScale *int
-	// Format of IntervalType.
+	// Unit range of the data type for INTERVAL parameters. It is unset for other
+	// types.
 	TypeIntervalType *string
-	// Ordinal position of column (starting at position 0).
+	// Zero-based position of the parameter in the parameter list. Positions must be
+	// unique and consecutive.
 	Position *int
-	// Function parameter mode.
+	// Direction of the parameter. Only IN parameters, which pass a value into the
+	// function, are supported.
 	ParameterMode FunctionParameterMode
-	// Function parameter type.
+	// Whether the entry is an input parameter (PARAM) or a result column of a table
+	// function (COLUMN).
 	ParameterType FunctionParameterType
-	// Default value of the parameter.
+	// Default value of the parameter as a SQL expression, used when a call omits
+	// the argument.
 	ParameterDefault *string
 	// User-provided free-form text description.
 	Comment *string
 }
 
 type FunctionParameterInfos struct {
+	// The parameters that make up the list, ordered by position.
 	Parameters []FunctionParameterInfo
 }
 
 type GetFunctionRequest struct {
 	// The fully-qualified name of the function (of the form
-	// __catalog_name__.__schema_name__.__function__name__).
+	// __catalog_name__.__schema_name__.__function_name__).
 	FullNameArg *string
 	// Whether to include functions in the response for which the principal can only
 	// access selective metadata for
@@ -378,7 +426,7 @@ type TableDependency struct {
 
 type UpdateFunctionRequest struct {
 	// The fully-qualified name of the function (of the form
-	// __catalog_name__.__schema_name__.__function__name__).
+	// __catalog_name__.__schema_name__.__function_name__).
 	FullNameArg *string
 	// Name of function, relative to parent schema.
 	Name *string
@@ -386,38 +434,53 @@ type UpdateFunctionRequest struct {
 	CatalogName *string
 	// Name of parent Schema relative to its parent Catalog.
 	SchemaName *string
-	// Function input parameters.
+	// Input parameters of the function. When it is set, parameters must contain at
+	// least one entry. A function that takes no arguments omits input_params, even
+	// though the Create request schema marks it as required.
 	InputParams *FunctionParameterInfos
-	// Scalar function return data type.
+	// Data type of the value the function returns. A table function uses TABLE_TYPE
+	// and describes its result columns in return_params, except for a polymorphic
+	// Python UDTF, which omits them.
 	DataType ColumnTypeName
-	// Pretty printed function data type.
+	// Return data type of the function in SQL syntax, including any type parameters
+	// such as precision and scale.
 	FullDataType *string
-	// Function language. When **EXTERNAL** is used, the language of the routine
-	// function should be specified in the **external_language** field, and the
-	// **return_params** of the function cannot be used (as **TABLE** return type is
-	// not supported), and the **sql_data_access** field must be **NO_SQL**.
+	// Language of the function body. SQL means that routine_definition holds a SQL
+	// expression or query. EXTERNAL means that it holds source code in the language
+	// named by external_language, and sql_data_access must then be NO_SQL.
 	RoutineBody FunctionInfo_RoutineBody
-	// Function body.
+	// Body of the function. For a SQL function it is the expression or query that
+	// computes the result; for an EXTERNAL function it is the source code of the
+	// function. It is omitted when the caller can only browse the function.
 	RoutineDefinition *string
-	// Function parameter style. **S** is the value for SQL.
+	// How arguments are passed to the function body. S means that each argument is
+	// passed as a single scalar value.
 	ParameterStyle FunctionInfo_ParameterStyle
-	// Whether the function is deterministic.
+	// Whether the function returns the same result for the same arguments. It
+	// corresponds to the DETERMINISTIC characteristic of CREATE FUNCTION.
 	IsDeterministic *bool
-	// Function SQL data access.
+	// How the function body interacts with SQL data. CONTAINS_SQL means that the
+	// body contains SQL but reads no table or view, READS_SQL_DATA means that it
+	// reads a table or view, and NO_SQL is required for EXTERNAL functions.
 	SqlDataAccess FunctionInfo_SqlDataAccess
-	// Function null call.
+	// Whether the function is a null-call function in the sense of the SQL
+	// standard, which returns NULL whenever any argument is NULL.
 	IsNullCall *bool
-	// Function security type.
+	// Whose privileges the function body runs with. DEFINER runs it with the
+	// privileges of the function owner.
 	SecurityType FunctionInfo_SecurityType
-	// Specific name of the function; Reserved for future use.
+	// Specific name of the function. Set it to the same value as name.
 	SpecificName *string
-	// Table function return parameters.
+	// Result columns of a table function. Set it when data_type is TABLE_TYPE,
+	// except for a polymorphic Python UDTF (an EXTERNAL Python function with
+	// full_data_type "()"), which must not set it.
 	ReturnParams *FunctionParameterInfos
-	// External function name.
+	// Name of the function in its external language. It is reserved for future use.
 	ExternalName *string
-	// External function language.
+	// Language of the function body for an EXTERNAL function. It is required when
+	// routine_body is EXTERNAL.
 	ExternalLanguage *string
-	// List of schemes whose objects can be referenced without qualification.
+	// List of schemas whose objects can be referenced without qualification.
 	SqlPath *string
 	// Username of current owner of the function.
 	Owner *string

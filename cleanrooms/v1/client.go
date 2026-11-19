@@ -1124,7 +1124,9 @@ func (c *internalClient) ListCleanRoomAssetRevisionsIter(ctx context.Context, re
 	}
 }
 
-// List assets.
+// List the assets in a clean room. Listed assets do not include their
+// asset-type specific details, such as table columns or notebook content; use
+// the get method to retrieve them.
 func (c *internalClient) ListCleanRoomAssets(ctx context.Context, req ListCleanRoomAssetsRequest, opts ...call.Option) (*ListCleanRoomAssetsResponse, error) {
 	wireReq, err := listCleanRoomAssetsRequestToWire(&req)
 	if err != nil {

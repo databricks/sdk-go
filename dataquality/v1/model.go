@@ -114,6 +114,7 @@ const (
 // Anomaly Detection Configurations..
 type AnomalyDetectionConfig struct {
 	// List of fully qualified table names to exclude from anomaly detection.
+	// Format: `catalog.schema.table_name`.
 	ExcludedTableFullNames []string `fieldmask:"excluded_table_full_names"`
 	// Who to alert when anomaly detection finds unhealthy tables in this schema.
 	// Applicable to `schema` monitors only. This is the same schema alert you
@@ -179,11 +180,10 @@ type CronSchedule struct {
 	//
 	// [examples]: https://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html
 	QuartzCronExpression *string `fieldmask:"quartz_cron_expression"`
-	// A Java timezone id. The schedule for a job will be resolved with respect to
-	// this timezone. See `Java TimeZone
-	// <http://docs.oracle.com/javase/7/docs/api/java/util/TimeZone.html>`_ for
-	// details. The timezone id (e.g., ``America/Los_Angeles``) in which to evaluate
-	// the quartz expression.
+	// The Java timezone ID in which the cron expression is evaluated. See [Java
+	// TimeZone] for the supported IDs.
+	//
+	// [Java TimeZone]: https://docs.oracle.com/javase/8/docs/api/java/util/TimeZone.html
 	TimezoneId *string `fieldmask:"timezone_id"`
 	// Read only field that indicates whether the schedule is paused or not.
 	PauseStatus CronSchedulePauseStatus `fieldmask:"pause_status"`
@@ -191,42 +191,55 @@ type CronSchedule struct {
 
 // Data Profiling Configurations..
 type DataProfilingConfig struct {
-	// ID of the schema where output tables are created.
+	// The UUID of the Unity Catalog schema where the profile and drift metrics
+	// tables are created.
 	OutputSchemaId *string `fieldmask:"output_schema_id"`
-	// Field for specifying the absolute path to a custom directory to store
-	// data-monitoring assets. Normally prepopulated to a default user location via
-	// UI and Python APIs.
+	// The absolute workspace path of the directory where the monitor's assets, such
+	// as the dashboard, are stored. The UI and the Python APIs normally prepopulate
+	// a default user location.
 	AssetsDir *string `fieldmask:"assets_dir"`
 	// (--[Create:REQ Update:REQ]--) Analysis config which is used to determine
 	// analysis logic.
 	AnalysisConfig isDataProfilingConfig_AnalysisConfig
 	// List of column expressions to slice data with for targeted analysis. The data
 	// is grouped by each expression independently, resulting in a separate slice
-	// for each predicate and its complements. For example
-	// `slicing_exprs=[“col_1”, “col_2 > 10”]` will generate the following
-	// slices: two slices for `col_2 > 10` (True and False), and one slice per
-	// unique value in `col1`. For high-cardinality columns, only the top 100 unique
-	// values by frequency will generate slices.
+	// for each predicate and its complements. For example `slicing_exprs=["col_1",
+	// "col_2 > 10"]` will generate the following slices: two slices for `col_2 >
+	// 10` (True and False), and one slice per unique value in `col_1`. For
+	// high-cardinality columns, only the top 100 unique values by frequency will
+	// generate slices.
 	SlicingExprs []string `fieldmask:"slicing_exprs"`
-	// Custom metrics.
+	// Custom metrics to compute in addition to the built-in ones. See [custom
+	// metrics].
+	//
+	// [custom metrics]: https://docs.databricks.com/aws/en/data-governance/unity-catalog/data-quality-monitoring/data-profiling/custom-metrics
 	CustomMetrics []DataProfilingCustomMetric `fieldmask:"custom_metrics"`
-	// Baseline table name. Baseline data is used to compute drift from the data in
-	// the monitored `table_name`. The baseline table and the monitored table shall
-	// have the same schema.
+	// The fully qualified name of a baseline table. Format:
+	// `catalog.schema.table_name`. Drift metrics compare the monitored table
+	// against the baseline data, so the two tables must have the same schema.
 	BaselineTableName *string `fieldmask:"baseline_table_name"`
-	// The cron schedule.
+	// The schedule on which the monitor refreshes its metrics. Refreshes can also
+	// be triggered on demand through the Refresh resource.
 	Schedule *CronSchedule `fieldmask:"schedule"`
-	// Field for specifying notification settings.
+	// Who to notify about this monitor's refreshes. Only `on_failure` with
+	// `email_addresses` is supported here.
 	NotificationSettings *NotificationSettings `fieldmask:"notification_settings"`
 	// Whether to skip creating a default dashboard summarizing data quality
 	// metrics.
 	SkipBuiltinDashboard *bool `fieldmask:"skip_builtin_dashboard"`
-	// Optional argument to specify the warehouse for dashboard creation. If not
-	// specified, the first running warehouse will be used.
+	// The ID of the SQL warehouse used to create the dashboard. If not specified,
+	// the first running warehouse the caller can access is used.
 	WarehouseId *string `fieldmask:"warehouse_id"`
-	// Unity Catalog table to monitor. Format: `catalog.schema.table_name`
+	// The fully qualified name of the monitored table. Format:
+	// `catalog.schema.table_name`.
 	MonitoredTableName *string `fieldmask:"monitored_table_name"`
-	// The data profiling monitor status.
+	// The status of the monitor. `DATA_PROFILING_STATUS_PENDING` means the
+	// monitor's assets are being created or updated. `DATA_PROFILING_STATUS_ACTIVE`
+	// means the monitor is ready and can be refreshed.
+	// `DATA_PROFILING_STATUS_FAILED` and `DATA_PROFILING_STATUS_ERROR` mean the
+	// monitor is not operational, and `latest_monitor_failure_message` describes
+	// the cause when one was recorded. `DATA_PROFILING_STATUS_DELETE_PENDING` means
+	// the monitor is being deleted.
 	Status DataProfilingStatus `fieldmask:"status"`
 	// The latest error message for a monitor failure.
 	LatestMonitorFailureMessage *string `fieldmask:"latest_monitor_failure_message"`
@@ -234,8 +247,10 @@ type DataProfilingConfig struct {
 	ProfileMetricsTableName *string `fieldmask:"profile_metrics_table_name"`
 	// Table that stores drift metrics data. Format: `catalog.schema.table_name`.
 	DriftMetricsTableName *string `fieldmask:"drift_metrics_table_name"`
-	// Id of dashboard that visualizes the computed metrics. This can be empty if
-	// the monitor is in PENDING state.
+	// The ID of the dashboard that visualizes the computed metrics. It is empty
+	// while the monitor is pending, when the dashboard was skipped with
+	// `skip_builtin_dashboard`, or when the caller is in a different workspace from
+	// the one where the monitor was created.
 	DashboardId *string `fieldmask:"dashboard_id"`
 	// Represents the current monitor configuration version in use. The version will
 	// be represented in a numeric fashion (1,2,3...). The field has flexibility to
@@ -252,7 +267,9 @@ type isDataProfilingConfig_AnalysisConfig interface {
 }
 
 // DataProfilingConfig_AnalysisConfig_InferenceLog selects InferenceLog for DataProfilingConfig.AnalysisConfig.
-// `Analysis Configuration` for monitoring inference log tables.
+// Profiles an inference log table, which stores the requests and predictions of
+// a model. Metrics are computed per time window and include model quality
+// metrics.
 type DataProfilingConfig_AnalysisConfig_InferenceLog struct {
 	InferenceLog InferenceLogConfig `fieldmask:"inference_log"`
 }
@@ -260,7 +277,8 @@ type DataProfilingConfig_AnalysisConfig_InferenceLog struct {
 func (*DataProfilingConfig_AnalysisConfig_InferenceLog) isDataProfilingConfig_AnalysisConfig() {}
 
 // DataProfilingConfig_AnalysisConfig_TimeSeries selects TimeSeries for DataProfilingConfig.AnalysisConfig.
-// `Analysis Configuration` for monitoring time series tables.
+// Profiles a time series table. Metrics are computed per time window, as
+// defined by `timestamp_column` and `granularities`.
 type DataProfilingConfig_AnalysisConfig_TimeSeries struct {
 	TimeSeries TimeSeriesConfig `fieldmask:"time_series"`
 }
@@ -268,7 +286,8 @@ type DataProfilingConfig_AnalysisConfig_TimeSeries struct {
 func (*DataProfilingConfig_AnalysisConfig_TimeSeries) isDataProfilingConfig_AnalysisConfig() {}
 
 // DataProfilingConfig_AnalysisConfig_Snapshot selects Snapshot for DataProfilingConfig.AnalysisConfig.
-// `Analysis Configuration` for monitoring snapshot tables.
+// Profiles the full contents of the table. Metrics are computed over all rows
+// at each refresh.
 type DataProfilingConfig_AnalysisConfig_Snapshot struct {
 	Snapshot SnapshotConfig `fieldmask:"snapshot"`
 }
@@ -291,12 +310,17 @@ type DataProfilingCustomMetric struct {
 	// [create metric definition]: https://docs.databricks.com/en/lakehouse-monitoring/custom-metrics.html#create-definition
 	Definition *string
 	// A list of column names in the input table the metric should be computed for.
-	// Can use ``":table"`` to indicate that the metric needs information from
+	// Can use `":table"` to indicate that the metric needs information from
 	// multiple columns.
 	InputColumns []string
-	// The output type of the custom metric.
+	// Specifies the Spark SQL data type of the metric value, either as a plain type
+	// name or as a JSON-encoded StructField.
 	OutputDataType *string
-	// The type of the custom metric.
+	// The type of the custom metric. `DATA_PROFILING_CUSTOM_METRIC_TYPE_AGGREGATE`
+	// metrics depend only on the columns of the input table,
+	// `DATA_PROFILING_CUSTOM_METRIC_TYPE_DERIVED` metrics depend only on previously
+	// computed aggregate metrics, and `DATA_PROFILING_CUSTOM_METRIC_TYPE_DRIFT`
+	// metrics depend on previously computed aggregate or derived metrics.
 	Type DataProfilingCustomMetricType
 }
 
@@ -394,30 +418,37 @@ type GetRefreshRequest struct {
 
 // Inference log configuration..
 type InferenceLogConfig struct {
-	// Problem type the model aims to solve.
+	// The type of problem the model solves. It determines which model quality
+	// metrics are computed.
 	ProblemType InferenceProblemType `fieldmask:"problem_type"`
-	// Column for the timestamp.
+	// Column containing the timestamp of each inference request. Its type must be
+	// TIMESTAMP or convertible to a timestamp.
 	TimestampColumn *string `fieldmask:"timestamp_column"`
 	// List of granularities to use when aggregating data into time windows based on
 	// their timestamp.
 	Granularities []AggregationGranularity `fieldmask:"granularities"`
-	// Column for the prediction.
+	// Column containing the model's predicted values.
 	PredictionColumn *string `fieldmask:"prediction_column"`
-	// Column for the label.
+	// Column containing the ground truth for the model's predictions.
 	LabelColumn *string `fieldmask:"label_column"`
-	// Column for the model identifier.
+	// Column containing the ID of the model that produced each prediction. A slice
+	// is created automatically for each distinct model ID.
 	ModelIdColumn *string `fieldmask:"model_id_column"`
 }
 
 // Request to list Monitors..
 type ListMonitorRequest struct {
+	// Pagination token from a previous response, used to fetch the next page.
 	PageToken *string
-	PageSize  *int
+	// The maximum number of monitors to return in one page.
+	PageSize *int
 }
 
 // Response for listing Monitors..
 type ListMonitorResponse struct {
-	Monitors      []Monitor
+	// The monitors on this page.
+	Monitors []Monitor
+	// Pagination token to pass as `page_token` to fetch the next page.
 	NextPageToken *string
 }
 
@@ -451,8 +482,10 @@ type ListRefreshResponse struct {
 	NextPageToken *string
 }
 
-// Monitor for the data quality of unity catalog entities such as schema or
-// table..
+// A data quality monitor on a Unity Catalog object. A `schema` monitor runs
+// anomaly detection on the tables in the schema and is configured through
+// `anomaly_detection_config`. A `table` monitor profiles a single table and is
+// configured through `data_profiling_config`..
 type Monitor struct {
 	// The type of the monitored object. Can be one of the following: `schema` or
 	// `table`.
@@ -472,17 +505,20 @@ type Monitor struct {
 	// [schema_id]: https://docs.databricks.com/api/workspace/schemas/get#schema_id
 	// [table_id]: https://docs.databricks.com/api/workspace/tables/get#table_id
 	ObjectId *string `fieldmask:"object_id"`
-	// Anomaly Detection Configuration, applicable to `schema` object types.
+	// Anomaly detection settings. Required when `object_type` is `schema`. When
+	// reading a `table` monitor, this holds the settings of the parent schema's
+	// monitor if the schema has one.
 	AnomalyDetectionConfig *AnomalyDetectionConfig `fieldmask:"anomaly_detection_config"`
-	// Data Profiling Configuration, applicable to `table` object types. Exactly one
-	// `Analysis Configuration` must be present.
+	// Data profiling settings. Required when `object_type` is `table`. Exactly one
+	// of `inference_log`, `time_series` or `snapshot` must be set.
 	DataProfilingConfig *DataProfilingConfig `fieldmask:"data_profiling_config"`
 }
 
 // Destination of the data quality monitoring notification..
 type NotificationDestination struct {
 	// The list of email addresses to send the notification to. A maximum of 5 email
-	// addresses is supported.
+	// addresses is supported. Only supported on table monitors, via
+	// `data_profiling_config`; rejected on schema monitors.
 	EmailAddresses []string `fieldmask:"email_addresses"`
 	// The notification-destination IDs (Slack / Teams / webhook / Asana /
 	// ServiceNow / AWS EventBridge) to send the notification to. The destinations
@@ -498,7 +534,9 @@ type NotificationDestination struct {
 
 // Settings for sending notifications on the data quality monitoring..
 type NotificationSettings struct {
-	// Destinations to send notifications on failure/timeout.
+	// Recipients to notify when a refresh of the monitor fails or times out. Only
+	// supported on table monitors, via `data_profiling_config`, and only
+	// `email_addresses` is accepted there.
 	OnFailure *NotificationDestination `fieldmask:"on_failure"`
 	// Recipients to notify when anomaly detection finds unhealthy tables in the
 	// schema. Each recipient gets one notification per important unhealthy table.
@@ -548,7 +586,8 @@ type SnapshotConfig struct {
 
 // Time series analysis configuration..
 type TimeSeriesConfig struct {
-	// Column for the timestamp.
+	// Column containing the timestamp of each row. Its type must be TIMESTAMP or
+	// convertible to a timestamp.
 	TimestampColumn *string `fieldmask:"timestamp_column"`
 	// List of granularities to use when aggregating data into time windows based on
 	// their timestamp.
@@ -575,7 +614,8 @@ type UpdateMonitorRequest struct {
 	// [schema_id]: https://docs.databricks.com/api/workspace/schemas/get#schema_id
 	// [table_id]: https://docs.databricks.com/api/workspace/tables/get#table_id
 	ObjectId *string
-	// The monitor to update.
+	// The new values for the monitor. Only the fields named in `update_mask` are
+	// applied.
 	Monitor *Monitor
 	// The field mask to specify which fields to update as a comma-separated list.
 	// Example value:
