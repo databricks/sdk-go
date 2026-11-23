@@ -290,6 +290,14 @@ type ListSandboxesResponse struct {
 	NextPageToken *string
 }
 
+// Network configuration for the sandbox..
+type NetworkSpec struct {
+	// Whether the sandbox can reach the public internet. Defaults to true.
+	// Control-plane, PrivateLink, and workspace/UC/Delta-shared storage stay
+	// reachable either way.
+	InternetAccess *bool `fieldmask:"internet_access"`
+}
+
 // Identifies the source and exact destination for a sandbox path rename..
 type RenamePathRequest struct {
 	// Sandbox resource name, for example `sandboxes/my-sandbox`.
@@ -358,6 +366,8 @@ type SandboxSpec struct {
 	Compute *ComputeSpec `fieldmask:"compute"`
 	// Software environment for the sandbox, such as the container image it runs.
 	Environment *EnvironmentSpec `fieldmask:"environment"`
+	// Network configuration requested for the sandbox.
+	Network *NetworkSpec `fieldmask:"network"`
 }
 
 type SandboxStatus struct {

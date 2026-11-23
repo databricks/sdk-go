@@ -308,8 +308,9 @@ type BuiltinParserVersion struct {
 // becomes its own row, with the element's `message` parsed as the event body..
 type CloudWatchLogsEnvelope struct {
 	// Whether to keep the envelope's `owner`, `logGroup`, and `logStream` values in
-	// the `data.lw_header` field of each unwrapped row. Must be set explicitly to
-	// `true` or `false`.
+	// the `data.lw_header` field of each unwrapped row whose message is a JSON
+	// object. A message that is any other JSON value is kept without the field.
+	// Must be set explicitly to `true` or `false`.
 	HeaderRetention *bool `fieldmask:"header_retention"`
 }
 
@@ -455,7 +456,9 @@ type Datasource struct {
 	// Schedule on which the datasource's ingestion job runs. A datasource cannot be
 	// paused, so a request that sets `schedule.enabled` to `false` is rejected.
 	// Continuous schedules are not supported for Unity Catalog connection
-	// datasources.
+	// datasources. For an existing-table datasource, runs must be no further apart
+	// than the shorter of the source table's `delta.deletedFileRetentionDuration`
+	// and `delta.logRetentionDuration`.
 	Schedule *Schedule `fieldmask:"schedule"`
 	// Compute mode for the datasource's ingestion job. If unset, the
 	// `default_compute_mode` of the catalog's datasource configuration applies, or
@@ -1209,7 +1212,8 @@ type Rule struct {
 	Deduplication RuleDeduplication `fieldmask:"deduplication"`
 	// Time window for deduplication, such as `1h`, `24h`, `7d`, or `automatic`.
 	DeduplicationTimeWindow *string `fieldmask:"deduplication_time_window"`
-	// When the rule executes.
+	// When the rule executes. Required for scheduled rules. A streaming rule
+	// accepts only `enabled`, and an omitted schedule means enabled.
 	Schedule *RuleSchedule `fieldmask:"schedule"`
 	// The input data the rule operates on. Exactly one source is required.
 	Source isRule_Source
@@ -1256,8 +1260,18 @@ type Rule_Source_Batch struct {
 
 func (*Rule_Source_Batch) isRule_Source() {}
 
+// Rule_Source_Streaming selects Streaming for Rule.Source.
+// Native streaming rule input: one source table filtered by one stateless row
+// predicate. Permanent field number; must not be renumbered.
+type Rule_Source_Streaming struct {
+	Streaming RuleInputStreaming `fieldmask:"streaming"`
+}
+
+func (*Rule_Source_Streaming) isRule_Source() {}
+
 type ruleSourceFieldMaskMetadata struct {
 	*Rule_Source_Batch
+	*Rule_Source_Streaming
 }
 
 // Per-catalog rule-related config. Singleton. Name format:
@@ -1356,6 +1370,16 @@ type RuleInputCustomNotebook struct {
 	Options map[string]string `fieldmask:"options"`
 }
 
+// Native V2 streaming input for a detection rule: one Delta table and one
+// stateless row predicate. The complete source row is preserved as event
+// context..
+type RuleInputStreaming struct {
+	// Source table whose rows are evaluated.
+	Source *StreamingSource `fieldmask:"source"`
+	// Row predicate that selects matching rows.
+	Predicate *StreamingPredicate `fieldmask:"predicate"`
+}
+
 // MITRE ATT&CK mapping for a detection rule..
 type RuleMitreMapping struct {
 	// Structured framework that organizes adversary behaviors, such as
@@ -1442,8 +1466,9 @@ type RuleTimeRange struct {
 // Defines when a recurring job executes.
 //
 // Exactly one of the timing modes (`at_least_every`, `cron_expression`,
-// `continuous`) must be set; combining them or setting none is rejected by the
-// server. `compute_group` and `enabled` are orthogonal to the timing..
+// `continuous`, `file_arrival`) must be set; combining them or setting none is
+// rejected by the server. `compute_group` and `enabled` are orthogonal to the
+// timing..
 type Schedule struct {
 	Timing isSchedule_Timing
 	// `dedicated`, `inherited`, `automatic`, or a custom group name. Reads return
@@ -1522,6 +1547,19 @@ type SlackExportConfig struct {
 	// an alert is exported, so rotating the secret takes effect without editing
 	// this config.
 	BotTokenUcSecret *string `fieldmask:"bot_token_uc_secret"`
+}
+
+// Stateless row predicate for a streaming detection rule..
+type StreamingPredicate struct {
+	// A SQL expression suitable for a WHERE clause, not a SELECT query. Evaluated
+	// per input row; only stateless, row-local expressions are accepted.
+	Expression *string `fieldmask:"expression"`
+}
+
+// Source Delta table for a streaming detection rule..
+type StreamingSource struct {
+	// Fully-qualified Unity Catalog table in `catalog.schema.table` form.
+	Table *string `fieldmask:"table"`
 }
 
 // A fully-qualified Unity Catalog table reference by catalog / schema / table

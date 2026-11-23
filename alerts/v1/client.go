@@ -374,7 +374,9 @@ func (c *internalClient) TrashAlert(ctx context.Context, req TrashAlertRequest, 
 	return resp, nil
 }
 
-// Updates an alert.
+// Updates the fields of an alert named in `update_mask`. Changing
+// `owner_user_name` requires workspace admin privileges; changing any other
+// field requires CAN MANAGE permission on the alert.
 func (c *internalClient) UpdateAlert(ctx context.Context, req UpdateAlertRequest, opts ...call.Option) (*Alert, error) {
 	wireReq, err := updateAlertRequestToWire(&req)
 	if err != nil {

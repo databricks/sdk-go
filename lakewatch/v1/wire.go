@@ -3441,6 +3441,7 @@ type ruleWire struct {
 	DeduplicationTimeWindow *string                   `json:"deduplication_time_window,omitempty"`
 	Schedule                *ruleScheduleWire         `json:"schedule,omitempty"`
 	Batch                   *ruleInputBatchWire       `json:"batch,omitempty"`
+	Streaming               *ruleInputStreamingWire   `json:"streaming,omitempty"`
 	Output                  *ruleOutputWire           `json:"output,omitempty"`
 	Status                  *resourceStatusWire       `json:"status,omitempty"`
 	SuppressUntilTime       *types.Time               `json:"suppress_until_time,omitempty"`
@@ -3497,6 +3498,7 @@ func ruleToWire(v *Rule) (*ruleWire, error) {
 		return nil, fmt.Errorf("%s: %w", "Rule.Timerange", err)
 	}
 	var sourceBatchWire *ruleInputBatchWire
+	var sourceStreamingWire *ruleInputStreamingWire
 	switch value := v.Source.(type) {
 	case nil:
 	case *Rule_Source_Batch:
@@ -3506,6 +3508,14 @@ func ruleToWire(v *Rule) (*ruleWire, error) {
 				return nil, fmt.Errorf("%s: %w", "Rule.Source.Batch", err)
 			}
 			sourceBatchWire = sourceBatchConverted
+		}
+	case *Rule_Source_Streaming:
+		if value != nil {
+			sourceStreamingConverted, err := ruleInputStreamingToWire(&value.Streaming)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Rule.Source.Streaming", err)
+			}
+			sourceStreamingWire = sourceStreamingConverted
 		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Rule.Source", value)
@@ -3539,6 +3549,7 @@ func ruleToWire(v *Rule) (*ruleWire, error) {
 		DeduplicationTimeWindow: v.DeduplicationTimeWindow,
 		Schedule:                scheduleWireValue,
 		Batch:                   sourceBatchWire,
+		Streaming:               sourceStreamingWire,
 		Output:                  outputWireValue,
 		Status:                  statusWireValue,
 		SuppressUntilTime:       v.SuppressUntilTime,
@@ -3557,6 +3568,9 @@ func ruleFromWire(w *ruleWire) (*Rule, error) {
 	}
 	sourceMembers := 0
 	if w.Batch != nil {
+		sourceMembers++
+	}
+	if w.Streaming != nil {
 		sourceMembers++
 	}
 	if sourceMembers > 1 {
@@ -3610,6 +3624,12 @@ func ruleFromWire(w *ruleWire) (*Rule, error) {
 			return nil, fmt.Errorf("%s: %w", "Rule.Source.Batch", err)
 		}
 		sourceSelection = &Rule_Source_Batch{Batch: *sourceBatchConverted}
+	case w.Streaming != nil:
+		sourceStreamingConverted, err := ruleInputStreamingFromWire(w.Streaming)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "Rule.Source.Streaming", err)
+		}
+		sourceSelection = &Rule_Source_Streaming{Streaming: *sourceStreamingConverted}
 	}
 	return &Rule{
 		Name:                    w.Name,
@@ -3969,6 +3989,71 @@ func (v *RuleInputCustomNotebook) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := ruleInputCustomNotebookFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type ruleInputStreamingWire struct {
+	Source    *streamingSourceWire    `json:"source,omitempty"`
+	Predicate *streamingPredicateWire `json:"predicate,omitempty"`
+}
+
+func ruleInputStreamingToWire(v *RuleInputStreaming) (*ruleInputStreamingWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sourceWireValue, err := streamingSourceToWire(v.Source)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RuleInputStreaming.Source", err)
+	}
+	predicateWireValue, err := streamingPredicateToWire(v.Predicate)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RuleInputStreaming.Predicate", err)
+	}
+	return &ruleInputStreamingWire{
+		Source:    sourceWireValue,
+		Predicate: predicateWireValue,
+	}, nil
+}
+
+func ruleInputStreamingFromWire(w *ruleInputStreamingWire) (*RuleInputStreaming, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sourcePublicValue, err := streamingSourceFromWire(w.Source)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RuleInputStreaming.Source", err)
+	}
+	predicatePublicValue, err := streamingPredicateFromWire(w.Predicate)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "RuleInputStreaming.Predicate", err)
+	}
+	return &RuleInputStreaming{
+		Source:    sourcePublicValue,
+		Predicate: predicatePublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v RuleInputStreaming) MarshalJSON() ([]byte, error) {
+	w, err := ruleInputStreamingToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *RuleInputStreaming) UnmarshalJSON(data []byte) error {
+	var w ruleInputStreamingWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := ruleInputStreamingFromWire(&w)
 	if err != nil {
 		return err
 	}
@@ -4413,6 +4498,98 @@ func (v *SlackExportConfig) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := slackExportConfigFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type streamingPredicateWire struct {
+	Expression *string `json:"expression,omitempty"`
+}
+
+func streamingPredicateToWire(v *StreamingPredicate) (*streamingPredicateWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &streamingPredicateWire{
+		Expression: v.Expression,
+	}, nil
+}
+
+func streamingPredicateFromWire(w *streamingPredicateWire) (*StreamingPredicate, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &StreamingPredicate{
+		Expression: w.Expression,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v StreamingPredicate) MarshalJSON() ([]byte, error) {
+	w, err := streamingPredicateToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *StreamingPredicate) UnmarshalJSON(data []byte) error {
+	var w streamingPredicateWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := streamingPredicateFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type streamingSourceWire struct {
+	Table *string `json:"table,omitempty"`
+}
+
+func streamingSourceToWire(v *StreamingSource) (*streamingSourceWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &streamingSourceWire{
+		Table: v.Table,
+	}, nil
+}
+
+func streamingSourceFromWire(w *streamingSourceWire) (*StreamingSource, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &StreamingSource{
+		Table: w.Table,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v StreamingSource) MarshalJSON() ([]byte, error) {
+	w, err := streamingSourceToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *StreamingSource) UnmarshalJSON(data []byte) error {
+	var w streamingSourceWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := streamingSourceFromWire(&w)
 	if err != nil {
 		return err
 	}

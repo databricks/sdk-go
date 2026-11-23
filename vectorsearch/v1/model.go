@@ -135,6 +135,9 @@ const (
 	// The completion time is being estimated, for example just after the change is
 	// requested or updated.
 	EndpointScalingInfo_ScalingPhase_Estimating EndpointScalingInfo_ScalingPhase = "ESTIMATING"
+	// The new capacity and index replicas are in place, and the change is being
+	// finalized.
+	EndpointScalingInfo_ScalingPhase_Finalizing EndpointScalingInfo_ScalingPhase = "FINALIZING"
 )
 
 // Current state of the endpoint

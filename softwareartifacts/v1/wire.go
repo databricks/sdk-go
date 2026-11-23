@@ -9,6 +9,101 @@ import (
 	"github.com/databricks/sdk-go/core/types"
 )
 
+type deleteSoftwareArtifactRequestWire struct {
+	Name  *string `json:"name,omitempty"`
+	Force *bool   `json:"force,omitempty"`
+}
+
+func deleteSoftwareArtifactRequestToWire(v *DeleteSoftwareArtifactRequest) (*deleteSoftwareArtifactRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteSoftwareArtifactRequestWire{
+		Name:  v.Name,
+		Force: v.Force,
+	}, nil
+}
+
+func deleteSoftwareArtifactRequestFromWire(w *deleteSoftwareArtifactRequestWire) (*DeleteSoftwareArtifactRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteSoftwareArtifactRequest{
+		Name:  w.Name,
+		Force: w.Force,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteSoftwareArtifactRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteSoftwareArtifactRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteSoftwareArtifactRequest) UnmarshalJSON(data []byte) error {
+	var w deleteSoftwareArtifactRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteSoftwareArtifactRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteSoftwareArtifactVersionRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func deleteSoftwareArtifactVersionRequestToWire(v *DeleteSoftwareArtifactVersionRequest) (*deleteSoftwareArtifactVersionRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteSoftwareArtifactVersionRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func deleteSoftwareArtifactVersionRequestFromWire(w *deleteSoftwareArtifactVersionRequestWire) (*DeleteSoftwareArtifactVersionRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteSoftwareArtifactVersionRequest{
+		Name: w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteSoftwareArtifactVersionRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteSoftwareArtifactVersionRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteSoftwareArtifactVersionRequest) UnmarshalJSON(data []byte) error {
+	var w deleteSoftwareArtifactVersionRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteSoftwareArtifactVersionRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type getSoftwareArtifactRequestWire struct {
 	Name *string `json:"name,omitempty"`
 }

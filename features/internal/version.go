@@ -2,4 +2,4 @@ package internal
 
 const ModuleName = "sdk-go-features"
 
-const Version = "0.23.0"
+const Version = "0.24.0"

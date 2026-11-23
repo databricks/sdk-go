@@ -118,6 +118,11 @@ type completeRequest struct {
 // rather than streaming the raw octet stream the Files API expects. A seekable
 // body is sent again on each retry (see retryBodies); a non-seekable body cannot
 // be replayed, so it is attempted once.
+//
+// cpRetryTimeout only stops new attempts, so that an upload whose bytes keep
+// moving isn't thrown away: an attempt is never cut short while its bytes
+// move. It fails if none move for transferIdleTimeout (see stallWatch), or
+// when ctx ends.
 func (e *engine) uploadSingleShot(ctx context.Context, uc *uploadContext, body io.Reader, size int64) error {
 	query := url.Values{}
 	if uc.overwrite != nil {
@@ -130,10 +135,13 @@ func (e *engine) uploadSingleShot(ctx context.Context, uc *uploadContext, body i
 
 	bodies, seekable := newRetryBodies(body)
 
-	call := func(ctx context.Context) error {
+	// The attempts use ctx rather than opCtx, the one ops.Execute passes, whose
+	// deadline is the retry budget, as getRange does. Waiting to start an
+	// attempt is bounded by the budget.
+	call := func(opCtx context.Context) error {
 		attempt := body
 		if seekable {
-			next, err := bodies.next(ctx)
+			next, err := bodies.next(opCtx)
 			if err != nil {
 				return err
 			}
@@ -143,24 +151,58 @@ func (e *engine) uploadSingleShot(ctx context.Context, uc *uploadContext, body i
 			// attempt ends, and the body is the caller's.
 			attempt = struct{ io.Reader }{body}
 		}
+		attemptCtx, cancel := context.WithCancelCause(ctx)
+		defer cancel(nil)
+		watch := newStallWatch(e.tun.transferIdleTimeout, cancel)
+		defer watch.stop()
+		// Each body net/http reads, including one it asks GetBody for, sends the
+		// whole upload from the start, so progress rewinds to zero: no part has
+		// landed before a single shot, on this endpoint or an earlier one.
+		newBody := func(r io.Reader) *attemptBody {
+			return &attemptBody{r: r, watch: watch, progress: uc.progress, attempt: uc.progress.restart()}
+		}
 		headers := http.Header{}
 		headers.Set("Content-Type", "application/octet-stream")
-		req, err := newHTTPRequest(ctx, httpRequestOptions{
+		// The request is built, and its credentials resolved, under opCtx with
+		// the watch's clock stopped: resolving isn't a stall, so only the retry
+		// budget bounds it. A resolution the budget cuts short stays failed for
+		// the Client, as credentials that resolve once keep their first result.
+		// The clock starts, and the attempt's context applies, once the request
+		// is built.
+		watch.pause()
+		req, err := newHTTPRequest(opCtx, httpRequestOptions{
 			Method:      http.MethodPut,
 			URL:         urlStr,
 			Credentials: e.c.credentials,
+			UserAgent:   e.userAgent,
 			Headers:     headers,
-			Body:        attempt,
+			Body:        newBody(attempt),
 		})
 		if err != nil {
 			return err
 		}
+		// Credentials can return after the budget ran out, as one that waits on
+		// another call's resolution does: then no new attempt starts.
+		if err := opCtx.Err(); err != nil {
+			_ = req.Body.Close()
+			return err
+		}
+		watch.moved()
 		// Hosts require a Content-Length, which net/http knows only for a few
 		// in-memory body types, and never for an attempt's body; an empty body
 		// must be no body to send one.
 		length := size
 		if seekable {
-			length, req.GetBody = bodies.size, bodies.getBody()
+			length = bodies.size
+			if getBody := bodies.getBody(); getBody != nil {
+				req.GetBody = func() (io.ReadCloser, error) {
+					r, err := getBody()
+					if err != nil {
+						return nil, err
+					}
+					return newBody(r), nil
+				}
+			}
 		}
 		if length == 0 {
 			_ = req.Body.Close()
@@ -170,7 +212,10 @@ func (e *engine) uploadSingleShot(ctx context.Context, uc *uploadContext, body i
 			req.ContentLength = length
 		}
 		e.setWorkspaceHeader(req)
-		_, _, err = executeHTTPCall(httpCallOptions{req: req, client: e.c.httpClient, logger: e.c.logger})
+		_, _, err = executeHTTPCall(httpCallOptions{req: req.WithContext(attemptCtx), client: e.c.httpClient, logger: e.c.logger})
+		if err != nil && ctx.Err() == nil && errors.Is(context.Cause(attemptCtx), errUploadStalled) {
+			return &stalledError{idle: e.tun.transferIdleTimeout}
+		}
 		return err
 	}
 
@@ -180,7 +225,134 @@ func (e *engine) uploadSingleShot(ctx context.Context, uc *uploadContext, body i
 	if seekable {
 		opts = append(opts, ops.WithRetrier(e.controlPlaneRetrier(uc)))
 	}
-	return e.asAlreadyExistsOn(uc, ops.Execute(ctx, call, opts...))
+	err = ops.Execute(ctx, call, opts...)
+	if err != nil && bodies != nil && bodies.last != nil {
+		// The last attempt's body reads the source itself, which the walk
+		// rewinds for the next endpoint.
+		uc.data.sending(bodies.last.closed)
+	}
+	return e.asAlreadyExistsOn(uc, err)
+}
+
+// errNoAnswer is the cause a control-plane attempt is cancelled with when it
+// gets no answer within controlAttemptTimeout.
+var errNoAnswer = errors.New("no answer")
+
+// noAnswerError is a control-plane attempt that got no answer in time, within
+// controlAttemptTimeout or the client's own Timeout. Like stalledError, it is
+// a timeout net.Error, so the retriers treat it as a transient failure:
+// retried within the endpoint's retries, then walked on.
+type noAnswerError struct {
+	wait time.Duration
+	// err is the client's timeout error, when its Timeout ended the attempt.
+	err error
+}
+
+func (e *noAnswerError) Error() string {
+	if e.err != nil {
+		return fmt.Sprintf("%v within %v: %v", errNoAnswer, e.wait, e.err)
+	}
+	return fmt.Sprintf("%v within %v", errNoAnswer, e.wait)
+}
+func (*noAnswerError) Timeout() bool   { return true }
+func (*noAnswerError) Temporary() bool { return true }
+
+// Unwrap returns errNoAnswer only: the client's timeout error matches
+// context.DeadlineExceeded, which the retriers never retry.
+func (*noAnswerError) Unwrap() error { return errNoAnswer }
+
+// errUploadStalled is the cause a single-shot attempt is cancelled with when
+// no bytes move for the idle timeout.
+var errUploadStalled = errors.New("upload stalled")
+
+// stalledError is a single-shot attempt that moved no bytes for the idle
+// timeout. It is a timeout net.Error, so the retriers treat it as the
+// transient network failure it stands for.
+type stalledError struct{ idle time.Duration }
+
+func (e *stalledError) Error() string {
+	return fmt.Sprintf("%v: no bytes moved for %v", errUploadStalled, e.idle)
+}
+func (*stalledError) Timeout() bool   { return true }
+func (*stalledError) Temporary() bool { return true }
+func (*stalledError) Unwrap() error   { return errUploadStalled }
+
+// stallWatch cancels an upload attempt with errUploadStalled once no bytes
+// have moved for idle: net/http read no more of the body, or, once it read all
+// of it, no answer came. Time inside the body's own Read, waiting on the
+// caller's reader, doesn't count: a slow source isn't a stalled connection.
+// Bytes net/http has read count as moved even while they wait below it, in the
+// kernel's socket buffer or an HTTP/2 flow-control window. It is the upload's
+// counterpart of idleTimeoutBody.
+type stallWatch struct {
+	idle time.Duration
+
+	mu      sync.Mutex
+	timer   *time.Timer
+	stopped bool
+}
+
+func newStallWatch(idle time.Duration, cancel context.CancelCauseFunc) *stallWatch {
+	w := &stallWatch{idle: idle}
+	if idle > 0 {
+		w.timer = time.AfterFunc(idle, func() { cancel(errUploadStalled) })
+	}
+	return w
+}
+
+// pause stops the clock while the body reads from the caller's reader.
+func (w *stallWatch) pause() {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if w.timer != nil {
+		w.timer.Stop()
+	}
+}
+
+// moved restarts the clock after bytes moved.
+func (w *stallWatch) moved() {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if w.timer != nil && !w.stopped {
+		w.timer.Reset(w.idle)
+	}
+}
+
+// stop ends the watch when the attempt returns. A late read of the body
+// doesn't restart it.
+func (w *stallWatch) stop() {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.stopped = true
+	if w.timer != nil {
+		w.timer.Stop()
+	}
+}
+
+// attemptBody is the body one single-shot attempt sends. Its reads keep the
+// attempt's stallWatch from firing and count toward the upload's progress.
+// Close reaches the body under it, which retryBodies waits on before it
+// rewinds.
+type attemptBody struct {
+	r        io.Reader
+	watch    *stallWatch
+	progress *progressReporter
+	attempt  int64
+}
+
+func (b *attemptBody) Read(p []byte) (int, error) {
+	b.watch.pause()
+	n, err := b.r.Read(p)
+	b.watch.moved()
+	b.progress.addAttempt(b.attempt, int64(n))
+	return n, err
+}
+
+func (b *attemptBody) Close() error {
+	if c, ok := b.r.(io.Closer); ok {
+		return c.Close()
+	}
+	return nil
 }
 
 // retryBodies gives each attempt of a request its own body over the same
@@ -358,10 +530,14 @@ func (e *engine) controlPlaneCall(baseURL, method, path string, query url.Values
 		}
 		headers := http.Header{}
 		headers.Set("Content-Type", "application/json")
+		// The request is built, and its credentials resolved, under ctx rather
+		// than the attempt's bound: credentials that resolve once would keep a
+		// resolution the bound cut short, and fail every later call.
 		req, err := newHTTPRequest(ctx, httpRequestOptions{
 			Method:      method,
 			URL:         urlStr,
 			Credentials: e.c.credentials,
+			UserAgent:   e.userAgent,
 			Headers:     headers,
 			Body:        rdr,
 		})
@@ -369,7 +545,29 @@ func (e *engine) controlPlaneCall(baseURL, method, path string, query url.Values
 			return err
 		}
 		e.setWorkspaceHeader(req)
-		respBody, _, err := executeHTTPCall(httpCallOptions{req: req, client: e.c.httpClient, logger: e.c.logger})
+		attemptCtx, cancel := context.WithCancelCause(ctx)
+		defer cancel(nil)
+		// A Timeout on the client's own HTTP client already bounds each attempt,
+		// so this bound applies only when the client sets none. net/http applies
+		// only a positive Timeout.
+		clientTimeout := e.c.httpClient != nil && e.c.httpClient.Timeout > 0
+		if wait := e.tun.controlAttemptTimeout; wait > 0 && !clientTimeout {
+			timer := time.AfterFunc(wait, func() { cancel(errNoAnswer) })
+			defer timer.Stop()
+		}
+		respBody, _, err := executeHTTPCall(httpCallOptions{req: req.WithContext(attemptCtx), client: e.c.httpClient, logger: e.c.logger})
+		if err != nil && ctx.Err() == nil {
+			switch {
+			// Only an attempt the bound cancelled is a miss: an answer that
+			// arrived as the bound fired keeps its own error. net/http reports
+			// the cancellation as its cause.
+			case errors.Is(context.Cause(attemptCtx), errNoAnswer) && (errors.Is(err, errNoAnswer) || errors.Is(err, context.Canceled)):
+				return &noAnswerError{wait: e.tun.controlAttemptTimeout}
+			case clientTimeout && errors.Is(err, context.DeadlineExceeded):
+				// The client's Timeout ended the attempt: the same miss.
+				return &noAnswerError{wait: e.c.httpClient.Timeout, err: err}
+			}
+		}
 		if err != nil {
 			return err
 		}

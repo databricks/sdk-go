@@ -636,7 +636,11 @@ const (
 // Configures the channel name and DBSQL version of the warehouse.
 // CHANNEL_NAME_CUSTOM should be chosen only when `dbsql_version` is specified..
 type Channel struct {
-	Name         ChannelName
+	// Channel to follow. CHANNEL_NAME_CURRENT is the default, and
+	// CHANNEL_NAME_PREVIEW carries the upcoming Databricks SQL release for testing.
+	Name ChannelName
+	// Databricks SQL version to pin to. Set it if and only if name is
+	// CHANNEL_NAME_CUSTOM.
 	DbsqlVersion *string
 }
 
@@ -652,9 +656,9 @@ type CreateDefaultWarehouseOverrideRequest struct {
 
 // Creates a new SQL warehouse..
 type CreateWarehouseRequest struct {
-	// Logical name for the cluster.
+	// Logical name for the warehouse.
 	//
-	// Supported values: - Must be unique within an org. - Must be less than 100
+	// Supported values: - Must be unique within an org. - Must be 1 to 100
 	// characters.
 	Name *string
 	// Size of the clusters allocated for this warehouse. Increasing the size of a
@@ -689,7 +693,8 @@ type CreateWarehouseRequest struct {
 	//
 	// Defaults to 120 mins
 	AutoStopMins *int
-	// warehouse creator name
+	// Name of the user who created the warehouse. Set by the server and ignored in
+	// requests.
 	CreatorName *string
 	// Deprecated. Instance profile used to pass IAM role to the cluster
 	InstanceProfileArn *string
@@ -698,13 +703,15 @@ type CreateWarehouseRequest struct {
 	//
 	// Supported values: - Number of tags < 45.
 	Tags *EndpointTags
-	// Configurations whether the endpoint should use spot instances.
+	// Configures whether the warehouse should use spot instances. COST_OPTIMIZED
+	// uses spot instances where the cloud provider supports them, and
+	// RELIABILITY_OPTIMIZED uses on-demand instances only.
 	SpotInstancePolicy EndpointSpotInstancePolicy
 	// Configures whether the warehouse should use Photon optimized clusters.
 	//
 	// Defaults to true.
 	EnablePhoton *bool
-	// Channel Details
+	// Channel that determines which Databricks SQL version the warehouse runs.
 	Channel *Channel
 	// Configures whether the warehouse should use serverless compute
 	EnableServerlessCompute *bool
@@ -712,7 +719,10 @@ type CreateWarehouseRequest struct {
 	// you must set to `PRO` and also set the field `enable_serverless_compute` to
 	// `true`.
 	WarehouseType WarehouseType
-	// Warehouse statement timeout in seconds.
+	// Maximum time in seconds that a statement can run on this warehouse before it
+	// is cancelled. Set to 0 to remove the warehouse-level timeout. Changing the
+	// value of a running warehouse restarts it. See
+	// https://docs.databricks.com/aws/en/sql/language-manual/parameters/statement_timeout.
 	StatementTimeout *int
 	// Cluster size multiplier for Reyden warehouses. Scales the effective compute
 	// capacity relative to the nominal virtual cluster size. Only meaningful when
@@ -772,9 +782,9 @@ type DeleteWarehouseResponse struct {
 type EditWarehouseRequest struct {
 	// Required. Id of the warehouse to configure.
 	Id *string
-	// Logical name for the cluster.
+	// Logical name for the warehouse.
 	//
-	// Supported values: - Must be unique within an org. - Must be less than 100
+	// Supported values: - Must be unique within an org. - Must be 1 to 100
 	// characters.
 	Name *string
 	// Size of the clusters allocated for this warehouse. Increasing the size of a
@@ -809,7 +819,8 @@ type EditWarehouseRequest struct {
 	//
 	// Defaults to 120 mins
 	AutoStopMins *int
-	// warehouse creator name
+	// Name of the user who created the warehouse. Set by the server and ignored in
+	// requests.
 	CreatorName *string
 	// Deprecated. Instance profile used to pass IAM role to the cluster
 	InstanceProfileArn *string
@@ -818,13 +829,15 @@ type EditWarehouseRequest struct {
 	//
 	// Supported values: - Number of tags < 45.
 	Tags *EndpointTags
-	// Configurations whether the endpoint should use spot instances.
+	// Configures whether the warehouse should use spot instances. COST_OPTIMIZED
+	// uses spot instances where the cloud provider supports them, and
+	// RELIABILITY_OPTIMIZED uses on-demand instances only.
 	SpotInstancePolicy EndpointSpotInstancePolicy
 	// Configures whether the warehouse should use Photon optimized clusters.
 	//
 	// Defaults to true.
 	EnablePhoton *bool
-	// Channel Details
+	// Channel that determines which Databricks SQL version the warehouse runs.
 	Channel *Channel
 	// Configures whether the warehouse should use serverless compute
 	EnableServerlessCompute *bool
@@ -832,7 +845,10 @@ type EditWarehouseRequest struct {
 	// you must set to `PRO` and also set the field `enable_serverless_compute` to
 	// `true`.
 	WarehouseType WarehouseType
-	// Warehouse statement timeout in seconds.
+	// Maximum time in seconds that a statement can run on this warehouse before it
+	// is cancelled. Set to 0 to remove the warehouse-level timeout. Changing the
+	// value of a running warehouse restarts it. See
+	// https://docs.databricks.com/aws/en/sql/language-manual/parameters/statement_timeout.
 	StatementTimeout *int
 	// Cluster size multiplier for Reyden warehouses. Scales the effective compute
 	// capacity relative to the nominal virtual cluster size. Only meaningful when
@@ -855,7 +871,9 @@ type EditWarehouseResponse struct {
 }
 
 type EndpointConfPair struct {
-	Key   *string
+	// Name of the configuration parameter.
+	Key *string
+	// Value of the configuration parameter.
 	Value *string
 }
 
@@ -874,11 +892,11 @@ type EndpointHealth struct {
 }
 
 type EndpointInfo struct {
-	// unique identifier for warehouse
+	// Unique identifier of the warehouse.
 	Id *string
-	// Logical name for the cluster.
+	// Logical name for the warehouse.
 	//
-	// Supported values: - Must be unique within an org. - Must be less than 100
+	// Supported values: - Must be unique within an org. - Must be 1 to 100
 	// characters.
 	Name *string
 	// Size of the clusters allocated for this warehouse. Increasing the size of a
@@ -913,7 +931,8 @@ type EndpointInfo struct {
 	//
 	// Defaults to 120 mins
 	AutoStopMins *int
-	// warehouse creator name
+	// Name of the user who created the warehouse. Set by the server and ignored in
+	// requests.
 	CreatorName *string
 	// Deprecated. Instance profile used to pass IAM role to the cluster
 	InstanceProfileArn *string
@@ -922,13 +941,15 @@ type EndpointInfo struct {
 	//
 	// Supported values: - Number of tags < 45.
 	Tags *EndpointTags
-	// Configurations whether the endpoint should use spot instances.
+	// Configures whether the warehouse should use spot instances. COST_OPTIMIZED
+	// uses spot instances where the cloud provider supports them, and
+	// RELIABILITY_OPTIMIZED uses on-demand instances only.
 	SpotInstancePolicy EndpointSpotInstancePolicy
 	// Configures whether the warehouse should use Photon optimized clusters.
 	//
 	// Defaults to true.
 	EnablePhoton *bool
-	// Channel Details
+	// Channel that determines which Databricks SQL version the warehouse runs.
 	Channel *Channel
 	// Configures whether the warehouse should use serverless compute
 	EnableServerlessCompute *bool
@@ -936,7 +957,10 @@ type EndpointInfo struct {
 	// you must set to `PRO` and also set the field `enable_serverless_compute` to
 	// `true`.
 	WarehouseType WarehouseType
-	// Warehouse statement timeout in seconds.
+	// Maximum time in seconds that a statement can run on this warehouse before it
+	// is cancelled. Set to 0 to remove the warehouse-level timeout. Changing the
+	// value of a running warehouse restarts it. See
+	// https://docs.databricks.com/aws/en/sql/language-manual/parameters/statement_timeout.
 	StatementTimeout *int
 	// Cluster size multiplier for Reyden warehouses. Scales the effective compute
 	// capacity relative to the nominal virtual cluster size. Only meaningful when
@@ -953,13 +977,14 @@ type EndpointInfo struct {
 	// be at least the minimum DBU for the selected warehouse size and no greater
 	// than the configured DBU limit. Actual capacity may be below this ceiling.
 	MaxDbu *int
-	// current number of clusters running for the service
+	// Number of clusters currently allocated to the warehouse, including clusters
+	// that are still starting.
 	NumClusters *int
 	// Deprecated. current number of active sessions for the warehouse
 	NumActiveSessions *int64
-	// state of the endpoint
+	// Current state of the warehouse.
 	State EndpointState
-	// the jdbc connection string for this warehouse
+	// JDBC connection string for the warehouse.
 	JdbcUrl *string
 	// ODBC parameters for the SQL warehouse
 	OdbcParams *OdbcParams
@@ -969,11 +994,17 @@ type EndpointInfo struct {
 }
 
 type EndpointTagPair struct {
-	Key   *string
+	// Tag key. Keys must be unique within the warehouse and cannot use the keys
+	// that Databricks reserves for the tags it sets automatically.
+	Key *string
+	// Tag value. Keys and values must follow the tagging rules of the cloud
+	// provider.
 	Value *string
 }
 
 type EndpointTags struct {
+	// User-defined tags, applied in addition to the tags Databricks sets
+	// automatically.
 	CustomTags []EndpointTagPair
 }
 
@@ -993,11 +1024,11 @@ type GetWarehouseRequest struct {
 }
 
 type GetWarehouseResponse struct {
-	// unique identifier for warehouse
+	// Unique identifier of the warehouse.
 	Id *string
-	// Logical name for the cluster.
+	// Logical name for the warehouse.
 	//
-	// Supported values: - Must be unique within an org. - Must be less than 100
+	// Supported values: - Must be unique within an org. - Must be 1 to 100
 	// characters.
 	Name *string
 	// Size of the clusters allocated for this warehouse. Increasing the size of a
@@ -1032,7 +1063,8 @@ type GetWarehouseResponse struct {
 	//
 	// Defaults to 120 mins
 	AutoStopMins *int
-	// warehouse creator name
+	// Name of the user who created the warehouse. Set by the server and ignored in
+	// requests.
 	CreatorName *string
 	// Deprecated. Instance profile used to pass IAM role to the cluster
 	InstanceProfileArn *string
@@ -1041,13 +1073,15 @@ type GetWarehouseResponse struct {
 	//
 	// Supported values: - Number of tags < 45.
 	Tags *EndpointTags
-	// Configurations whether the endpoint should use spot instances.
+	// Configures whether the warehouse should use spot instances. COST_OPTIMIZED
+	// uses spot instances where the cloud provider supports them, and
+	// RELIABILITY_OPTIMIZED uses on-demand instances only.
 	SpotInstancePolicy EndpointSpotInstancePolicy
 	// Configures whether the warehouse should use Photon optimized clusters.
 	//
 	// Defaults to true.
 	EnablePhoton *bool
-	// Channel Details
+	// Channel that determines which Databricks SQL version the warehouse runs.
 	Channel *Channel
 	// Configures whether the warehouse should use serverless compute
 	EnableServerlessCompute *bool
@@ -1055,7 +1089,10 @@ type GetWarehouseResponse struct {
 	// you must set to `PRO` and also set the field `enable_serverless_compute` to
 	// `true`.
 	WarehouseType WarehouseType
-	// Warehouse statement timeout in seconds.
+	// Maximum time in seconds that a statement can run on this warehouse before it
+	// is cancelled. Set to 0 to remove the warehouse-level timeout. Changing the
+	// value of a running warehouse restarts it. See
+	// https://docs.databricks.com/aws/en/sql/language-manual/parameters/statement_timeout.
 	StatementTimeout *int
 	// Cluster size multiplier for Reyden warehouses. Scales the effective compute
 	// capacity relative to the nominal virtual cluster size. Only meaningful when
@@ -1072,13 +1109,14 @@ type GetWarehouseResponse struct {
 	// be at least the minimum DBU for the selected warehouse size and no greater
 	// than the configured DBU limit. Actual capacity may be below this ceiling.
 	MaxDbu *int
-	// current number of clusters running for the service
+	// Number of clusters currently allocated to the warehouse, including clusters
+	// that are still starting.
 	NumClusters *int
 	// Deprecated. current number of active sessions for the warehouse
 	NumActiveSessions *int64
-	// state of the endpoint
+	// Current state of the warehouse.
 	State EndpointState
-	// the jdbc connection string for this warehouse
+	// JDBC connection string for the warehouse.
 	JdbcUrl *string
 	// ODBC parameters for the SQL warehouse
 	OdbcParams *OdbcParams
@@ -1096,8 +1134,11 @@ type GetWorkspaceWarehouseConfigRequest struct {
 type GetWorkspaceWarehouseConfigResponse struct {
 	// Security policy for warehouses
 	SecurityPolicy EndpointSecurityPolicy
-	// Spark confs for external hive metastore configuration JSON serialized size
-	// must be less than <= 512K
+	// Spark configuration applied to every warehouse in the workspace, for example
+	// to connect to an external Hive metastore or to configure access to cloud
+	// storage. Only allowlisted keys are accepted, and the JSON-serialized size
+	// must be at most 512 KB. See
+	// https://docs.databricks.com/aws/en/admin/sql/data-access-configuration.
 	DataAccessConfig []EndpointConfPair
 	// AWS Only: The instance profile used to pass an IAM role to the SQL
 	// warehouses. This configuration is also applied to the workspace's serverless
@@ -1111,17 +1152,18 @@ type GetWorkspaceWarehouseConfigResponse struct {
 	GlobalParam *RepeatedEndpointConfPairs
 	// Deprecated: Use sql_configuration_parameters
 	ConfigParam *RepeatedEndpointConfPairs
-	// SQL configuration parameters
+	// SQL configuration parameters applied to every warehouse in the workspace.
+	// Only parameters that can be set at the workspace scope are accepted. See
+	// https://docs.databricks.com/aws/en/sql/language-manual/sql-ref-parameters.
 	SqlConfigurationParameters *RepeatedEndpointConfPairs
-	// GCP only: Google Service Account used to pass to cluster to access Google
-	// Cloud Storage
+	// GCP only: Google service account that the warehouse clusters use to access
+	// Google Cloud Storage.
 	GoogleServiceAccount *string
 	// List of Warehouse Types allowed in this workspace (limits allowed value of
 	// the type field in CreateWarehouse and EditWarehouse). Note: Some types cannot
 	// be disabled, they don't need to be specified in SetWorkspaceWarehouseConfig.
 	// Note: Disabling a type may cause existing warehouses to be converted to
-	// another type. Used by frontend to save specific type availability in the
-	// warehouse create and edit form UI.
+	// another type.
 	EnabledWarehouseTypes []WarehouseTypePair
 }
 
@@ -1158,15 +1200,20 @@ type ListWarehousesResponse struct {
 }
 
 type OdbcParams struct {
+	// Hostname of the workspace to connect to.
 	Hostname *string
-	Path     *string
+	// HTTP path of the warehouse.
+	Path *string
+	// The transport protocol is always https.
 	Protocol *string
-	Port     *int
+	// The connection port is always 443.
+	Port *int
 }
 
 type RepeatedEndpointConfPairs struct {
 	// Deprecated: Use configuration_pairs
-	ConfigPair         []EndpointConfPair
+	ConfigPair []EndpointConfPair
+	// Configuration parameters, each a key-value pair.
 	ConfigurationPairs []EndpointConfPair
 }
 
@@ -1177,8 +1224,11 @@ type RepeatedEndpointConfPairs struct {
 type SetWorkspaceWarehouseConfigRequest struct {
 	// Security policy for warehouses
 	SecurityPolicy EndpointSecurityPolicy
-	// Spark confs for external hive metastore configuration JSON serialized size
-	// must be less than <= 512K
+	// Spark configuration applied to every warehouse in the workspace, for example
+	// to connect to an external Hive metastore or to configure access to cloud
+	// storage. Only allowlisted keys are accepted, and the JSON-serialized size
+	// must be at most 512 KB. See
+	// https://docs.databricks.com/aws/en/admin/sql/data-access-configuration.
 	DataAccessConfig []EndpointConfPair
 	// AWS Only: The instance profile used to pass an IAM role to the SQL
 	// warehouses. This configuration is also applied to the workspace's serverless
@@ -1192,17 +1242,18 @@ type SetWorkspaceWarehouseConfigRequest struct {
 	GlobalParam *RepeatedEndpointConfPairs
 	// Deprecated: Use sql_configuration_parameters
 	ConfigParam *RepeatedEndpointConfPairs
-	// SQL configuration parameters
+	// SQL configuration parameters applied to every warehouse in the workspace.
+	// Only parameters that can be set at the workspace scope are accepted. See
+	// https://docs.databricks.com/aws/en/sql/language-manual/sql-ref-parameters.
 	SqlConfigurationParameters *RepeatedEndpointConfPairs
-	// GCP only: Google Service Account used to pass to cluster to access Google
-	// Cloud Storage
+	// GCP only: Google service account that the warehouse clusters use to access
+	// Google Cloud Storage.
 	GoogleServiceAccount *string
 	// List of Warehouse Types allowed in this workspace (limits allowed value of
 	// the type field in CreateWarehouse and EditWarehouse). Note: Some types cannot
 	// be disabled, they don't need to be specified in SetWorkspaceWarehouseConfig.
 	// Note: Disabling a type may cause existing warehouses to be converted to
-	// another type. Used by frontend to save specific type availability in the
-	// warehouse create and edit form UI.
+	// another type.
 	EnabledWarehouseTypes []WarehouseTypePair
 }
 
@@ -1246,6 +1297,7 @@ type UpdateDefaultWarehouseOverrideRequest struct {
 // * Configuration values to enable or disable the access to specific warehouse
 // types in the workspace..
 type WarehouseTypePair struct {
+	// Warehouse type that this entry enables or disables.
 	WarehouseType WarehouseType
 	// If set to false the specific warehouse type will not be allowed as a value
 	// for warehouse_type in CreateWarehouse and EditWarehouse

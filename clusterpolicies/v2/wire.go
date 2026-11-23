@@ -248,6 +248,60 @@ func (v *ComputePolicy) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type createComputePolicyRequestWire struct {
+	ComputePolicy *computePolicyWire `json:"compute_policy,omitempty"`
+}
+
+func createComputePolicyRequestToWire(v *CreateComputePolicyRequest) (*createComputePolicyRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	computePolicyWireValue, err := computePolicyToWire(v.ComputePolicy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateComputePolicyRequest.ComputePolicy", err)
+	}
+	return &createComputePolicyRequestWire{
+		ComputePolicy: computePolicyWireValue,
+	}, nil
+}
+
+func createComputePolicyRequestFromWire(w *createComputePolicyRequestWire) (*CreateComputePolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	computePolicyPublicValue, err := computePolicyFromWire(w.ComputePolicy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "CreateComputePolicyRequest.ComputePolicy", err)
+	}
+	return &CreateComputePolicyRequest{
+		ComputePolicy: computePolicyPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v CreateComputePolicyRequest) MarshalJSON() ([]byte, error) {
+	w, err := createComputePolicyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *CreateComputePolicyRequest) UnmarshalJSON(data []byte) error {
+	var w createComputePolicyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := createComputePolicyRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type createPolicyRequestWire struct {
 	Name                            *string       `json:"name,omitempty"`
 	Definition                      *string       `json:"definition,omitempty"`
@@ -367,6 +421,52 @@ func (v *CreatePolicyResponse) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := createPolicyResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type deleteComputePolicyRequestWire struct {
+	ComputePolicyId *string `json:"compute_policy_id,omitempty"`
+}
+
+func deleteComputePolicyRequestToWire(v *DeleteComputePolicyRequest) (*deleteComputePolicyRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &deleteComputePolicyRequestWire{
+		ComputePolicyId: v.ComputePolicyId,
+	}, nil
+}
+
+func deleteComputePolicyRequestFromWire(w *deleteComputePolicyRequestWire) (*DeleteComputePolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &DeleteComputePolicyRequest{
+		ComputePolicyId: w.ComputePolicyId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v DeleteComputePolicyRequest) MarshalJSON() ([]byte, error) {
+	w, err := deleteComputePolicyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *DeleteComputePolicyRequest) UnmarshalJSON(data []byte) error {
+	var w deleteComputePolicyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := deleteComputePolicyRequestFromWire(&w)
 	if err != nil {
 		return err
 	}
@@ -578,6 +678,52 @@ func (v *EditPolicyResponse) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := editPolicyResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type getComputePolicyRequestWire struct {
+	ComputePolicyId *string `json:"compute_policy_id,omitempty"`
+}
+
+func getComputePolicyRequestToWire(v *GetComputePolicyRequest) (*getComputePolicyRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &getComputePolicyRequestWire{
+		ComputePolicyId: v.ComputePolicyId,
+	}, nil
+}
+
+func getComputePolicyRequestFromWire(w *getComputePolicyRequestWire) (*GetComputePolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &GetComputePolicyRequest{
+		ComputePolicyId: w.ComputePolicyId,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GetComputePolicyRequest) MarshalJSON() ([]byte, error) {
+	w, err := getComputePolicyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GetComputePolicyRequest) UnmarshalJSON(data []byte) error {
+	var w getComputePolicyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := getComputePolicyRequestFromWire(&w)
 	if err != nil {
 		return err
 	}
@@ -1528,6 +1674,63 @@ func (v *ServerlessCompute) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := serverlessComputeFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type updateComputePolicyRequestWire struct {
+	ComputePolicy *computePolicyWire              `json:"compute_policy,omitempty"`
+	UpdateMask    *types.FieldMask[ComputePolicy] `json:"update_mask,omitempty"`
+}
+
+func updateComputePolicyRequestToWire(v *UpdateComputePolicyRequest) (*updateComputePolicyRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	computePolicyWireValue, err := computePolicyToWire(v.ComputePolicy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateComputePolicyRequest.ComputePolicy", err)
+	}
+	return &updateComputePolicyRequestWire{
+		ComputePolicy: computePolicyWireValue,
+		UpdateMask:    v.UpdateMask,
+	}, nil
+}
+
+func updateComputePolicyRequestFromWire(w *updateComputePolicyRequestWire) (*UpdateComputePolicyRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	computePolicyPublicValue, err := computePolicyFromWire(w.ComputePolicy)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "UpdateComputePolicyRequest.ComputePolicy", err)
+	}
+	return &UpdateComputePolicyRequest{
+		ComputePolicy: computePolicyPublicValue,
+		UpdateMask:    w.UpdateMask,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UpdateComputePolicyRequest) MarshalJSON() ([]byte, error) {
+	w, err := updateComputePolicyRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UpdateComputePolicyRequest) UnmarshalJSON(data []byte) error {
+	var w updateComputePolicyRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := updateComputePolicyRequestFromWire(&w)
 	if err != nil {
 		return err
 	}

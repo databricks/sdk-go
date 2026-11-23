@@ -35,6 +35,8 @@ type CreateTokenRequest struct {
 	Scopes []string
 	// Whether to enable autoscoping for this token. When true, the token will
 	// automatically collect inferred API path scopes as it is used.
+	// `disable_autoscoping` supersedes this field and is the one read when both are
+	// set.
 	AutoscopeEnabled *bool
 }
 

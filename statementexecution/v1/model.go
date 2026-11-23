@@ -120,7 +120,7 @@ type ChunkInfo struct {
 	ByteCount *int64
 	// When fetching, provides the `chunk_index` for the _next_ chunk. If absent,
 	// indicates there are no more chunks. The next chunk can be fetched with a
-	// :method:statementexecution/getstatementresultchunkn request.
+	// :method:statementexecution/getStatementResultChunkN request.
 	NextChunkIndex *int
 	// When fetching, provides a link to fetch the _next_ chunk. If absent,
 	// indicates there are no more chunks. This link is an absolute `path` to be
@@ -282,9 +282,9 @@ type ExecuteStatementRequest struct {
 	//
 	// The parameters can be passed in the request body as follows:
 	//
-	// ` { ..., "statement": "SELECT * FROM my_table WHERE name = :my_name AND date
-	// = :my_date", "parameters": [ { "name": "my_name", "value": "the name" }, {
-	// "name": "my_date", "value": "2020-01-01", "type": "DATE" } ] } `
+	// ``` { ..., "statement": "SELECT * FROM my_table WHERE name = :my_name AND
+	// date = :my_date", "parameters": [ { "name": "my_name", "value": "the name" },
+	// { "name": "my_date", "value": "2020-01-01", "type": "DATE" } ] } ```
 	//
 	// Currently, positional parameters denoted by a `?` marker are not supported by
 	// the Databricks SQL Statement Execution API.
@@ -333,7 +333,7 @@ type ExternalLink struct {
 	ByteCount *int64
 	// When fetching, provides the `chunk_index` for the _next_ chunk. If absent,
 	// indicates there are no more chunks. The next chunk can be fetched with a
-	// :method:statementexecution/getstatementresultchunkn request.
+	// :method:statementexecution/getStatementResultChunkN request.
 	NextChunkIndex *int
 	// When fetching, provides a link to fetch the _next_ chunk. If absent,
 	// indicates there are no more chunks. This link is an absolute `path` to be
@@ -346,7 +346,8 @@ type GetResultDataRequest struct {
 	// The statement ID is returned upon successfully submitting a SQL statement,
 	// and is a required reference for all subsequent calls.
 	StatementId *string
-	ChunkIndex  *int
+	// The zero-based index of the result chunk to fetch.
+	ChunkIndex *int
 	// The ID of the warehouse that ran the statement. The Statement Execution
 	// (Lakehouse//RT) API takes it as a path parameter. The Statement Execution API
 	// doesn't use it.
@@ -380,6 +381,8 @@ type QueryTag struct {
 // `external_links` array prepares the API to return multiple links in a single
 // response. Currently only a single link is returned.).
 type ResultData struct {
+	// Short-lived cloud-storage links to the result data, used with the
+	// `EXTERNAL_LINKS` disposition.
 	ExternalLinks []ExternalLink
 	// The `JSON_ARRAY` format is an array of arrays of values, where each non-null
 	// value is formatted as a string. Null values are encoded as JSON `null`.
@@ -395,7 +398,7 @@ type ResultData struct {
 	ByteCount *int64
 	// When fetching, provides the `chunk_index` for the _next_ chunk. If absent,
 	// indicates there are no more chunks. The next chunk can be fetched with a
-	// :method:statementexecution/getstatementresultchunkn request.
+	// :method:statementexecution/getStatementResultChunkN request.
 	NextChunkIndex *int
 	// When fetching, provides a link to fetch the _next_ chunk. If absent,
 	// indicates there are no more chunks. This link is an absolute `path` to be
@@ -406,7 +409,9 @@ type ResultData struct {
 
 // The result manifest provides schema and metadata for the result set..
 type ResultManifest struct {
+	// The format of the result data, as requested with `format`.
 	Format Format
+	// The schema of the result set: the ordered list of column descriptions.
 	Schema *Schema
 	// The total number of chunks that the result set has been divided into.
 	TotalChunkCount *int
@@ -423,11 +428,14 @@ type ResultManifest struct {
 
 // The schema is an ordered list of column descriptions..
 type Schema struct {
+	// The number of columns in the result set.
 	ColumnCount *int
-	Columns     []ColumnInfo
+	// The column descriptions, in result set order.
+	Columns []ColumnInfo
 }
 
 type ServiceError struct {
+	// The error code that classifies the failure.
 	ErrorCode ServiceErrorCode
 	// A brief summary of the error condition.
 	Message *string
@@ -456,9 +464,18 @@ type StatementResponse struct {
 	// The statement ID is returned upon successfully submitting a SQL statement,
 	// and is a required reference for all subsequent calls.
 	StatementId *string
-	Status      *StatementStatus
-	Manifest    *ResultManifest
-	Result      *ResultData
+	// The execution state of the statement and, if it failed, the error details.
+	Status *StatementStatus
+	// The schema and metadata of the result set. Present when `status.state` is
+	// `SUCCEEDED`.
+	Manifest *ResultManifest
+	// Contains the result data of a single chunk when using `INLINE` disposition.
+	// When using `EXTERNAL_LINKS` disposition, the array `external_links` is used
+	// instead to provide short-lived cloud-storage URLs to the result data in cloud
+	// storage. Exactly one of these alternatives is used. Calls to `getResultData`
+	// return the link for the requested chunk; `executeStatement` and
+	// `getStatementResult` responses can contain links for multiple chunks.
+	Result *ResultData
 }
 
 // The status response includes execution state and if relevant, error
@@ -472,6 +489,8 @@ type StatementStatus struct {
 	// execution successful, and statement closed; result no longer available for
 	// fetch
 	State StatementStatus_State
+	// The error that caused the statement to fail. Only populated when `state` is
+	// `FAILED`.
 	Error *ServiceError
 	// SQLSTATE error code returned when the statement execution fails. Only
 	// populated when the statement status is `FAILED`.

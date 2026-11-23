@@ -3228,8 +3228,9 @@ type NodeType struct {
 	NodeInfo            *CloudProviderNodeInfo
 	PhotonWorkerCapable *bool
 	PhotonDriverCapable *bool
-	// AWS specific, whether this instance supports encryption in transit, used for
-	// hipaa and pci workloads.
+	// Whether this node type supports encryption in transit, which matters for
+	// workloads that need it, such as hipaa and pci. Always true on GCP; on AWS and
+	// Azure it depends on the node type.
 	IsEncryptedInTransit *bool
 	// Whether this is an Arm-based instance.
 	IsGraviton *bool

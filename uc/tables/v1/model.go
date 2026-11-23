@@ -314,9 +314,10 @@ type CreateTableConstraintRequest struct {
 type CreateTableRequest struct {
 	// Name of table, relative to parent schema.
 	Name *string
-	// Name of parent catalog.
+	// Name of parent catalog. Required for creation using catalog and schema names.
 	CatalogName *string
-	// Name of parent schema relative to its parent catalog.
+	// Name of parent schema relative to its parent catalog. Required for creation
+	// using catalog and schema names.
 	SchemaName *string
 	// The type of the table. MANAGED tables store their data in storage that Unity
 	// Catalog manages, EXTERNAL tables store it in a registered external location,
@@ -461,6 +462,7 @@ type isDependency_Value interface {
 }
 
 // Dependency_Value_Table selects Table for Dependency.Value.
+// A dependency on a Unity Catalog table.
 type Dependency_Value_Table struct {
 	Table TableDependency
 }
@@ -468,6 +470,7 @@ type Dependency_Value_Table struct {
 func (*Dependency_Value_Table) isDependency_Value() {}
 
 // Dependency_Value_Function selects Function for Dependency.Value.
+// A dependency on a Unity Catalog function.
 type Dependency_Value_Function struct {
 	Function FunctionDependency
 }
@@ -475,6 +478,7 @@ type Dependency_Value_Function struct {
 func (*Dependency_Value_Function) isDependency_Value() {}
 
 // Dependency_Value_Connection selects Connection for Dependency.Value.
+// A dependency on a Unity Catalog connection.
 type Dependency_Value_Connection struct {
 	Connection ConnectionDependency
 }
@@ -482,6 +486,7 @@ type Dependency_Value_Connection struct {
 func (*Dependency_Value_Connection) isDependency_Value() {}
 
 // Dependency_Value_Credential selects Credential for Dependency.Value.
+// A dependency on a Unity Catalog credential.
 type Dependency_Value_Credential struct {
 	Credential CredentialDependency
 }
@@ -799,9 +804,10 @@ type TableExistsResponse struct {
 type TableInfo struct {
 	// Name of table, relative to parent schema.
 	Name *string
-	// Name of parent catalog.
+	// Name of parent catalog. Required for creation using catalog and schema names.
 	CatalogName *string
-	// Name of parent schema relative to its parent catalog.
+	// Name of parent schema relative to its parent catalog. Required for creation
+	// using catalog and schema names.
 	SchemaName *string
 	// The type of the table. MANAGED tables store their data in storage that Unity
 	// Catalog manages, EXTERNAL tables store it in a registered external location,
@@ -912,9 +918,10 @@ type UpdateTableRequest struct {
 	FullNameArg *string
 	// Name of table, relative to parent schema.
 	Name *string
-	// Name of parent catalog.
+	// Name of parent catalog. Required for creation using catalog and schema names.
 	CatalogName *string
-	// Name of parent schema relative to its parent catalog.
+	// Name of parent schema relative to its parent catalog. Required for creation
+	// using catalog and schema names.
 	SchemaName *string
 	// The type of the table. MANAGED tables store their data in storage that Unity
 	// Catalog manages, EXTERNAL tables store it in a registered external location,

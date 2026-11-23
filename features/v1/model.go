@@ -1248,6 +1248,15 @@ type DirectSchemas struct {
 	KeySchema *SchemaConfig `fieldmask:"key_schema"`
 }
 
+// Binds one entity column of a Lookup's upstream Feature to the input that
+// supplies its values..
+type EntityBinding struct {
+	// Specifies the entity column of the upstream Feature.
+	Entity *string
+	// Specifies where the column's values come from.
+	Input *InputReference
+}
+
 type EntityColumn struct {
 	// The name of the entity column. For Kafka sources, use dot-prefixed path
 	// notation to reference fields within the key or value schema (e.g.,
@@ -1373,7 +1382,7 @@ type FeatureLookup struct {
 // without a breaking type change..
 type FeatureReference struct {
 	// The three-part full name of the upstream Feature.
-	Feature *string
+	Feature *string `fieldmask:"feature"`
 }
 
 // A named set of features to serve, stored as a Unity Catalog function..
@@ -1520,10 +1529,30 @@ type Function_Function_CustomUdf struct {
 
 func (*Function_Function_CustomUdf) isFunction_Function() {}
 
+// Function_Function_SecondaryKeys selects SecondaryKeys for Function.Function.
+// Selects the secondary key values an upstream Feature has stored for the
+// request's entity.
+type Function_Function_SecondaryKeys struct {
+	SecondaryKeys SecondaryKeys `fieldmask:"secondary_keys"`
+}
+
+func (*Function_Function_SecondaryKeys) isFunction_Function() {}
+
+// Function_Function_Lookup selects Lookup for Function.Function.
+// Looks up an upstream Feature using entity values from other Features or the
+// request.
+type Function_Function_Lookup struct {
+	Lookup Lookup `fieldmask:"lookup"`
+}
+
+func (*Function_Function_Lookup) isFunction_Function() {}
+
 type functionFunctionFieldMaskMetadata struct {
 	*Function_Function_AggregationFunction
 	*Function_Function_ColumnSelection
 	*Function_Function_CustomUdf
+	*Function_Function_SecondaryKeys
+	*Function_Function_Lookup
 }
 
 type FunctionExtraParameter struct {
@@ -1680,6 +1709,25 @@ type InputBinding struct {
 	// Source column whose value is passed for this parameter at execution time.
 	Column *string
 }
+
+// The input that supplies a value. A value from the request comes from a
+// Feature whose source is a RequestSource..
+type InputReference struct {
+	// (-- Next ID: 2. --)
+	Source isInputReference_Source
+}
+
+type isInputReference_Source interface {
+	isInputReference_Source()
+}
+
+// InputReference_Source_Feature selects Feature for InputReference.Source.
+// Specifies another Feature whose output supplies the value.
+type InputReference_Source_Feature struct {
+	Feature FeatureReference
+}
+
+func (*InputReference_Source_Feature) isInputReference_Source() {}
 
 type JobContext struct {
 	// The job ID where this API invoked.
@@ -1953,6 +2001,25 @@ type ListStreamsResponse struct {
 	Streams []Stream
 	// Pagination token to request the next page of results for this query.
 	NextPageToken *string
+}
+
+// Looks up an upstream Feature using entity values bound from other Features or
+// from the request. When a binding is an array, such as the output of a
+// SecondaryKeys Feature, returns one value per position as an array aligned
+// with that binding. The Feature's source must be a FeatureViewSource that
+// includes `feature` and every Feature referenced in `entities`. Currently,
+// exactly one entity must be bound to a Feature: a SecondaryKeys Feature whose
+// key has the same name as that entity. Its target can be `feature` or another
+// Feature. Every other entity must be bound to a request column of the same
+// name. Names are compared without struct prefixes, so `user_id` matches
+// `value.user_id`. A FeatureSpec can't also look up `feature` with all of its
+// entities supplied..
+type Lookup struct {
+	// The upstream Feature to look up.
+	Feature *FeatureReference `fieldmask:"feature"`
+	// One binding per entity column of the upstream Feature. Every entity column
+	// must be bound exactly once.
+	Entities []EntityBinding `fieldmask:"entities"`
 }
 
 // Recipients to notify when a materialization run fails..
@@ -2696,6 +2763,22 @@ type SdpSource struct {
 	// specified. Example:
 	// {"type":"struct","fields":[{"name":"col_a","type":"integer","nullable":true,"metadata":{}},{"name":"col_c","type":"integer","nullable":true,"metadata":{}}]}
 	DataframeSchema *string `fieldmask:"dataframe_schema"`
+}
+
+// Returns the values of one entity column that an upstream Feature has stored
+// for the request's other entity columns, as an array. For example, given a
+// Feature with entities (user_id, ad_id), returns the ad_ids stored for the
+// requested user_id. The Feature's source must be a FeatureViewSource that
+// includes `feature`..
+type SecondaryKeys struct {
+	// The upstream Feature whose stored keys are selected.
+	Feature *FeatureReference `fieldmask:"feature"`
+	// The entity column of the upstream Feature to return values for. It is not
+	// supplied by the request.
+	Key *string `fieldmask:"key"`
+	// Maximum number of keys to return per entity, in primary key order. Must not
+	// exceed the workspace limit.
+	MaxKeys *int64 `fieldmask:"max_keys"`
 }
 
 // Reference to an entry in a <Databricks> secret scope..

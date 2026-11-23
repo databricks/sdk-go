@@ -18,7 +18,7 @@ type GetCatalogWorkspaceBindingsRequest struct {
 }
 
 type GetCatalogWorkspaceBindingsResponse struct {
-	// A list of workspace IDs
+	// The IDs of the workspaces that are bound to the catalog.
 	Workspaces []int64
 }
 
@@ -51,14 +51,14 @@ type GetWorkspaceBindingsResponse struct {
 type UpdateCatalogWorkspaceBindingsRequest struct {
 	// The name of the catalog.
 	CatalogName *string
-	// A list of workspace IDs.
+	// The IDs of the workspaces to bind to the catalog.
 	AssignWorkspaces []int64
-	// A list of workspace IDs.
+	// The IDs of the workspaces to unbind from the catalog.
 	UnassignWorkspaces []int64
 }
 
 type UpdateCatalogWorkspaceBindingsResponse struct {
-	// A list of workspace IDs
+	// The IDs of the workspaces that are bound to the catalog.
 	Workspaces []int64
 }
 
@@ -82,9 +82,13 @@ type UpdateWorkspaceBindingsResponse struct {
 	Bindings []WorkspaceBindingInfo
 }
 
+// A binding between a workspace and a securable. When the isolation mode of the
+// securable is `ISOLATED`, only bound workspaces can access it..
 type WorkspaceBindingInfo struct {
-	// Required
+	// The ID of the workspace that the binding applies to.
 	WorkspaceId *int64
-	// One of READ_WRITE/READ_ONLY. Default is READ_WRITE.
+	// One of READ_WRITE/READ_ONLY. Default is READ_WRITE. Only catalogs support
+	// `BINDING_TYPE_READ_ONLY`; other securable types accept only
+	// `BINDING_TYPE_READ_WRITE`.
 	BindingType BindingType
 }

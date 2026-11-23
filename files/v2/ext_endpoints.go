@@ -13,6 +13,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
 	"github.com/databricks/sdk-go/core/apierr"
@@ -182,23 +183,22 @@ func (e *engine) walkUpload(ctx context.Context, uc *uploadContext, data *upload
 	if err := data.readAhead(e.tun.minStreamSize); err != nil {
 		return err
 	}
-	var plans []endpointPlan
-	var tooLarge []string
-	for _, ep := range e.uploadEndpoints(ctx) {
-		if plan, ok := e.planUpload(ep, data.size()); ok {
-			plans = append(plans, plan)
-		} else if ep.kind != presignedEndpoint {
-			tooLarge = append(tooLarge, ep.String())
-		}
-	}
+	health := e.endpointHealth(true)
+	order, plans, tooLarge := e.planUploads(health, e.uploadEndpoints(ctx), data.size())
 	if len(plans) == 0 {
 		return fmt.Errorf("no endpoint can take this upload of %d bytes: %s takes a single shot of at most %d bytes",
 			data.size(), strings.Join(tooLarge, ", "), workspaceMaxSingleShotSize)
 	}
+	var walkedPast []endpoint
 	for i, plan := range plans {
 		uc.startEndpoint(plan.ep, i == len(plans)-1)
 		err := e.uploadTo(ctx, uc, plan, data)
 		if err == nil {
+			tried := make([]endpoint, 0, i+1)
+			for _, p := range plans[:i+1] {
+				tried = append(tried, p.ep)
+			}
+			e.transferDone(ctx, health, order, walkedPast, tried)
 			return nil
 		}
 		if uc.committed() || uc.lastEndpoint || !walksOn(ctx, err) || !data.canSendAgain() {
@@ -206,11 +206,52 @@ func (e *engine) walkUpload(ctx context.Context, uc *uploadContext, data *upload
 		}
 		e.c.logger.InfoContext(ctx, "upload failed before any part landed, trying the next endpoint",
 			"endpoint", plan.ep.String(), "error", err)
-		if err := data.restart(); err != nil {
+		if countsAgainstEndpoint(ctx, err) {
+			walkedPast = append(walkedPast, plan.ep)
+		}
+		if err := data.restart(ctx); err != nil {
 			return err
 		}
+		// The next endpoint sends the data from its start, and no part has
+		// landed, so progress rewinds.
+		uc.progress.restart()
 	}
 	panic("unreachable: the last endpoint returns")
+}
+
+// planUploads returns the endpoints an upload of size bytes (-1 if unknown)
+// walks, without those that keep failing uploads, how the data goes to each,
+// and those too small for it. Skipping saves a failed attempt, so it must not
+// fail an upload that only a skipped endpoint can take: one of known size over
+// every single-shot limit left, or one of unknown size, which a single shot
+// can't send again. Such an upload walks every endpoint.
+func (e *engine) planUploads(health *endpointHealth, every []endpoint, size int64) (endpointOrder, []endpointPlan, []string) {
+	order := health.order(e.clock(), every)
+	plans, tooLarge := e.plansFor(order.endpoints, size)
+	cannotTake := len(plans) == 0
+	if size < 0 {
+		cannotTake = !slices.ContainsFunc(plans, func(p endpointPlan) bool { return p.multipart })
+	}
+	if cannotTake && len(order.endpoints) < len(every) {
+		order.endpoints = every
+		plans, tooLarge = e.plansFor(every, size)
+	}
+	return order, plans, tooLarge
+}
+
+// plansFor returns how an upload of size bytes goes to each endpoint that can
+// take it, and the endpoints other than presigned URLs that can't.
+func (e *engine) plansFor(endpoints []endpoint, size int64) ([]endpointPlan, []string) {
+	var plans []endpointPlan
+	var tooLarge []string
+	for _, ep := range endpoints {
+		if plan, ok := e.planUpload(ep, size); ok {
+			plans = append(plans, plan)
+		} else if ep.kind != presignedEndpoint {
+			tooLarge = append(tooLarge, ep.String())
+		}
+	}
+	return plans, tooLarge
 }
 
 // walksOn reports whether a failure before any part has landed moves the
@@ -275,7 +316,15 @@ func filesAPIPartURLs(uc *uploadContext, token string, startPart, count int) ([]
 // the client's credentials on every request. A transport that isn't an
 // *http.Transport is used as is. It sets no whole-request timeout, which would
 // abort a long transfer.
+//
+// The Client keeps one such client per size, so that transfers share its
+// connections: a copy of the transport per transfer would leave its idle
+// connections open, for good on a transport without an idle timeout.
 func (e *engine) authenticatedHTTPClient(n int) *http.Client {
+	key := authenticatedClientKey{n: n, responseHeaderTimeout: e.tun.responseHeaderTimeout}
+	if v, ok := e.c.extensions.Load(key); ok {
+		return v.(*http.Client)
+	}
 	base := http.DefaultTransport
 	if e.c.httpClient != nil && e.c.httpClient.Transport != nil {
 		base = e.c.httpClient.Transport
@@ -283,31 +332,92 @@ func (e *engine) authenticatedHTTPClient(n int) *http.Client {
 	if t, ok := base.(*http.Transport); ok {
 		base = sizedForTransfers(t, n, e.tun)
 	}
-	return &http.Client{Transport: &credentialTransport{base: base, creds: e.c.credentials}}
+	v, _ := e.c.extensions.LoadOrStore(key, &http.Client{Transport: &credentialTransport{base: base, creds: e.c.credentials, userAgent: e.userAgent}})
+	return v.(*http.Client)
 }
 
-// credentialTransport adds credentials to every request it sends. Presigned
-// URLs never go through it.
+// authenticatedClientKey keys a client authenticatedHTTPClient keeps in
+// Client.extensions.
+type authenticatedClientKey struct {
+	n                     int
+	responseHeaderTimeout time.Duration
+}
+
+// userAgent returns the client's User-Agent for the requests this package
+// builds itself. It is only for attribution, so a failure to build it is logged
+// and the request goes without it.
+func (e *engine) userAgent() (string, error) {
+	if e.c.userAgent == nil {
+		return "", nil
+	}
+	userAgent, err := e.c.userAgent()
+	if err != nil {
+		if e.c.logger != nil {
+			e.c.logger.Debug("sending without the SDK's User-Agent", "error", err)
+		}
+		return "", nil
+	}
+	return userAgent, nil
+}
+
+// credentialTransport adds the SDK's User-Agent to every request it sends, as
+// the generated client does, and credentials to those sent to the origin a
+// request was first sent to. A redirect to another origin is followed without
+// them, so credentials go only to the host they were meant for. Presigned URLs
+// never go through it.
 type credentialTransport struct {
-	base  http.RoundTripper
-	creds auth.Credentials
+	base      http.RoundTripper
+	creds     auth.Credentials
+	userAgent func() (string, error)
 }
 
 func (t *credentialTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	if t.creds == nil {
+	creds := t.creds
+	if !redirectsKeptOrigin(req) {
+		creds = nil
+	}
+	if creds == nil && t.userAgent == nil {
 		return t.base.RoundTrip(req)
 	}
-	headers, err := t.creds.AuthHeaders(req.Context())
-	if err != nil {
+	fail := func(err error) (*http.Response, error) {
 		if req.Body != nil {
 			_ = req.Body.Close()
 		}
 		return nil, err
+	}
+	var headers []auth.Header
+	if creds != nil {
+		var err error
+		if headers, err = creds.AuthHeaders(req.Context()); err != nil {
+			return fail(err)
+		}
+	}
+	var userAgent string
+	if t.userAgent != nil {
+		// Only for attribution: a User-Agent that can't be built is left out.
+		userAgent, _ = t.userAgent()
 	}
 	// A RoundTripper must not modify the request it is given.
 	req = req.Clone(req.Context())
 	for _, h := range headers {
 		req.Header.Add(h.Key, h.Value)
 	}
+	if userAgent != "" {
+		req.Header.Set("User-Agent", userAgent)
+	}
 	return t.base.RoundTrip(req)
+}
+
+// redirectsKeptOrigin reports whether every earlier request in req's redirect
+// chain has req's origin. Once a redirect leaves the origin, no later request
+// gets credentials, even one back to it: requests drops them for good.
+func redirectsKeptOrigin(req *http.Request) bool {
+	for resp := req.Response; resp != nil; resp = resp.Request.Response {
+		// A custom transport may leave a response's Request unset, so the chain
+		// can be incomplete: then it fails closed.
+		if resp.Request == nil || !sameOrigin(resp.Request.URL.String(), req.URL.String()) {
+			return false
+		}
+	}
+	return true
 }

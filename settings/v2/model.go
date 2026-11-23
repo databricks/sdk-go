@@ -158,14 +158,25 @@ const (
 )
 
 type AibiDashboardEmbeddingAccessPolicy struct {
+	// Where AI/BI dashboards can be embedded: in any domain (ALLOW_ALL_DOMAINS),
+	// only in the approved domains configured for the workspace
+	// (ALLOW_APPROVED_DOMAINS), or nowhere (DENY_ALL_DOMAINS). Defaults to
+	// ALLOW_APPROVED_DOMAINS.
 	AccessPolicyType AibiDashboardEmbeddingAccessPolicy_AccessPolicyType
 }
 
 type AibiDashboardEmbeddingApprovedDomains struct {
+	// Domains allowed to host embedded AI/BI dashboards. A leading wildcard allows
+	// every subdomain of a domain. The list applies, and can only be changed, while
+	// the embedding access policy is ALLOW_APPROVED_DOMAINS.
 	ApprovedDomains []string
 }
 
 type AllowedAppsUserApiScopesMessage struct {
+	// OAuth scopes that app developers can request when an app acts on behalf of a
+	// user. A list with the single entry * allows every supported scope and cannot
+	// be combined with other scopes. An empty list disables user authorization for
+	// apps.
 	AllowedScopes []string
 }
 
@@ -174,10 +185,24 @@ type BooleanMessage struct {
 }
 
 type ClusterAutoRestartMessage struct {
-	Enabled                         *bool
-	CanToggle                       *bool
-	MaintenanceWindow               *ClusterAutoRestartMessage_MaintenanceWindow
-	EnablementDetails               *ClusterAutoRestartMessage_EnablementDetails
+	// Whether automatic cluster update is enabled for the workspace. The effective
+	// value is always true while the compliance security profile is enabled on the
+	// workspace.
+	Enabled *bool
+	// Whether the workspace can change the enabled state. Databricks computes this
+	// value: it is false when the compliance security profile forces the feature on
+	// or when the workspace lacks the Enhanced Security and Compliance entitlement.
+	// A value sent in an update request has no effect.
+	CanToggle *bool
+	// When the maintenance window runs. When unset, it defaults to the first Sunday
+	// of every month at 01:00 UTC.
+	MaintenanceWindow *ClusterAutoRestartMessage_MaintenanceWindow
+	// Why the feature is forced on or unavailable. Databricks sets these details
+	// for information only; they do not determine whether the feature is enabled.
+	EnablementDetails *ClusterAutoRestartMessage_EnablementDetails
+	// Whether compute resources restart during every maintenance window even when
+	// no update is available. When false, they restart only when an update is
+	// available.
 	RestartEvenIfNoUpdatesAvailable *bool
 }
 
@@ -190,25 +215,33 @@ type ClusterAutoRestartMessage struct {
 type ClusterAutoRestartMessage_EnablementDetails struct {
 	// The feature is unavailable if the customer doesn't have enterprise tier
 	UnavailableForNonEnterpriseTier *bool
-	// The feature is unavailable if the corresponding entitlement disabled (see
-	// getShieldEntitlementEnable)
+	// The feature is unavailable because the workspace does not have the Enhanced
+	// Security and Compliance entitlement.
 	UnavailableForDisabledEntitlement *bool
 	// The feature is force enabled if compliance mode is active
 	ForcedForComplianceMode *bool
 }
 
 type ClusterAutoRestartMessage_MaintenanceWindow struct {
+	// Schedule anchored to a day of the week, either every week or on given weeks
+	// of the month.
 	WeekDayBasedSchedule *ClusterAutoRestartMessage_MaintenanceWindow_WeekDayBasedSchedule
 }
 
 type ClusterAutoRestartMessage_MaintenanceWindow_WeekDayBasedSchedule struct {
-	Frequency       ClusterAutoRestartMessage_MaintenanceWindow_WeekDayFrequency
-	DayOfWeek       ClusterAutoRestartMessage_MaintenanceWindow_DayOfWeek
+	// How often the maintenance window occurs: every week, or only on the listed
+	// occurrences of the day of the week within each month.
+	Frequency ClusterAutoRestartMessage_MaintenanceWindow_WeekDayFrequency
+	// Day of the week on which the maintenance window starts.
+	DayOfWeek ClusterAutoRestartMessage_MaintenanceWindow_DayOfWeek
+	// Time of day, in UTC, at which the maintenance window starts.
 	WindowStartTime *ClusterAutoRestartMessage_MaintenanceWindow_WindowStartTime
 }
 
 type ClusterAutoRestartMessage_MaintenanceWindow_WindowStartTime struct {
-	Hours   *int
+	// Hour of the day on a 24-hour clock.
+	Hours *int
+	// Minute of the hour.
 	Minutes *int
 }
 
@@ -433,7 +466,7 @@ type GetPublicAccountUserPreferenceRequest struct {
 }
 
 type GetPublicWorkspaceSettingRequest struct {
-	// Name of the setting
+	// Name of the setting to retrieve.
 	Name *string
 }
 
@@ -515,6 +548,9 @@ type ListWorkspaceSettingsMetadataResponse struct {
 }
 
 type OperationalEmailCustomRecipientMessage struct {
+	// Email address that receives this workspace's operational emails in addition
+	// to the workspace admins. Use a distribution list address to reach several
+	// people. An empty string clears the additional recipient.
 	Email *string
 }
 
@@ -535,24 +571,46 @@ type PatchPublicAccountUserPreferenceRequest struct {
 }
 
 type PatchPublicWorkspaceSettingRequest struct {
-	// Name of the setting
+	// Name of the setting to update.
 	Name    *string
 	Setting *Setting
 }
 
 type PersonalComputeMessage struct {
+	// ON grants all users in all workspaces of the account access to the Personal
+	// Compute default policy. DELEGATE moves control to each workspace, where users
+	// or groups must be added to the policy's permissions before they can create
+	// compute with it.
 	Value PersonalComputeMessage_PersonalComputeMessageEnum
 }
 
 type RestrictWorkspaceAdminsMessage struct {
+	// Controls what workspace admins can do with service principal tokens and job
+	// identities. With ALLOW_ALL, workspace admins can create personal access
+	// tokens on behalf of any service principal in the workspace, change a job
+	// owner to any workspace user, and set a job's run_as identity to any workspace
+	// user or to a service principal they have the Service Principal User role on.
+	// With RESTRICT_TOKENS_AND_JOB_RUN_AS, they can only create tokens for service
+	// principals they have the Service Principal User role on, change a job owner
+	// to themselves, and set run_as to themselves or to a service principal they
+	// have that role on.
 	Status RestrictWorkspaceAdminsMessage_Status
 	// When true, workspace admins cannot create governance tags. ALLOW_ALL status
 	// does not override this; they are independent.
 	DisableGovTagCreation *bool
 }
 
+// A setting and its value at the workspace or account scope. Each setting has
+// one value type, so one value field applies to it: a primitive wrapper
+// (boolean_val, string_val or integer_val) or a setting-specific message. The
+// settings metadata endpoint reports the field each setting uses. When updating
+// a setting, set only the value field that matches its type. Responses return
+// that field with the value configured at this scope, if one is set, together
+// with the matching effective_* field, which holds the value in effect after
+// Databricks applies account policies and defaults..
 type Setting struct {
-	// Name of the setting.
+	// Name of the setting. The settings metadata endpoint lists the names available
+	// at each scope.
 	Name *string
 	// New fields should be added before the oneof below - unless it's a new Setting
 	// value message, in that case it needs to be defined in the oneof below. The
@@ -905,6 +963,11 @@ func (*UserPreference_EffectiveValue_EffectiveStringVal) isUserPreference_Effect
 
 // Workspace label and color for display (e.g. in account console)..
 type WorkspaceLabelMessage struct {
+	// Text of the label shown next to the workspace name in the top navigation bar.
+	// An empty string means no label is set.
 	Label *string
+	// Color of the label badge. The supported colors are coral, lemon, lime,
+	// turquoise, indigo, purple and pink. It is an empty string when no label is
+	// set.
 	Color *string
 }

@@ -319,7 +319,8 @@ func (c *internalClient) DeleteWorkspaceBaseEnvironment(ctx context.Context, req
 
 // Gets the default WorkspaceBaseEnvironment configuration for the workspace.
 // Returns the current default base environment settings for both CPU and GPU
-// compute.
+// compute. An unset CPU or GPU field means that compute type uses the
+// Databricks Standard base environment.
 func (c *internalClient) GetDefaultWorkspaceBaseEnvironment(ctx context.Context, req GetDefaultWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*DefaultWorkspaceBaseEnvironment, error) {
 
 	headers := http.Header{}
@@ -817,7 +818,9 @@ func (o *RefreshWorkspaceBaseEnvironmentOperation) Wait(ctx context.Context, opt
 
 // Updates the default WorkspaceBaseEnvironment configuration for the workspace.
 // Sets the specified base environments as the workspace defaults for CPU and/or
-// GPU compute.
+// GPU compute. Unsetting a default makes that compute type use the Databricks
+// Standard base environment. The Standard base environment has no resource
+// name, so unsetting the field is the only way to select it.
 func (c *internalClient) UpdateDefaultWorkspaceBaseEnvironment(ctx context.Context, req UpdateDefaultWorkspaceBaseEnvironmentRequest, opts ...call.Option) (*DefaultWorkspaceBaseEnvironment, error) {
 	wireReq, err := updateDefaultWorkspaceBaseEnvironmentRequestToWire(&req)
 	if err != nil {

@@ -1294,9 +1294,11 @@ func (c *internalClient) ListPermissionLevels(ctx context.Context, req ListPermi
 	return resp, nil
 }
 
-// Sets permissions on an object, replacing existing permissions if they exist.
-// Deletes all direct permissions if none are specified. Objects can inherit
-// permissions from their parent objects or root object.
+// Sets permissions on an object, replacing all direct permissions with the ones
+// in the request. Principals that are not in the request lose their direct
+// permissions on the object, and all direct permissions are deleted if none are
+// specified. Objects can inherit permissions from their parent objects or root
+// object.
 func (c *internalClient) SetObjectPermissions(ctx context.Context, req SetObjectPermissionsRequest, opts ...call.Option) (*PermissionsResponse, error) {
 	wireReq, err := setObjectPermissionsRequestToWire(&req)
 	if err != nil {
@@ -1375,8 +1377,10 @@ func (c *internalClient) SetObjectPermissions(ctx context.Context, req SetObject
 	return resp, nil
 }
 
-// Updates the permissions on an object. Objects can inherit permissions from
-// their parent objects or root object.
+// Updates the permissions on an object by adding or changing the permissions of
+// the principals in the request. Principals that are not in the request keep
+// their existing permissions. Objects can inherit permissions from their parent
+// objects or root object.
 func (c *internalClient) UpdateObjectPermissions(ctx context.Context, req UpdateObjectPermissionsRequest, opts ...call.Option) (*PermissionsResponse, error) {
 	wireReq, err := updateObjectPermissionsRequestToWire(&req)
 	if err != nil {

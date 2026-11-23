@@ -80,7 +80,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // Create Data Classification configuration for a catalog.
 //
 // Creates a new config resource, which enables Data Classification for the
-// specified catalog. - The config must not already exist for the catalog.
+// specified catalog. The catalog must not already have a config. Creating the
+// config starts a scan of the selected schemas and schedules recurring scans.
 func (c *internalClient) CreateCatalogConfig(ctx context.Context, req CreateCatalogConfigRequest, opts ...call.Option) (*CatalogConfig, error) {
 	wireReq, err := createCatalogConfigRequestToWire(&req)
 	if err != nil {
@@ -154,6 +155,10 @@ func (c *internalClient) CreateCatalogConfig(ctx context.Context, req CreateCata
 }
 
 // Delete Data Classification configuration for a catalog.
+//
+// Deleting the config disables Data Classification for the catalog and stops
+// its scheduled scans. Tags that auto-tagging already applied to columns are
+// not removed. Deleting a config that does not exist succeeds.
 func (c *internalClient) DeleteCatalogConfig(ctx context.Context, req DeleteCatalogConfigRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
@@ -268,9 +273,87 @@ func (c *internalClient) GetCatalogConfig(ctx context.Context, req GetCatalogCon
 	return resp, nil
 }
 
-// Update the Data Classification configuration for a catalog. - The config must
-// already exist for the catalog. - Updates fields specified in the update_mask.
-// Use update_mask field to perform partial updates of the configuration.
+// Rescan the tables in a catalog's Data Classification scope that changed since
+// their last scan.
+//
+// The rescan uses the catalog's current classifiers and follows its config
+// (schema selection) and SKIP tags. Tables with no commits since their last
+// scan are skipped. Views and tables without a Delta commit history keep their
+// regular rescan schedule. The call returns once the rescan is scheduled;
+// scanning runs in the background. If a scan of the catalog is running, the
+// call cancels it and starts a new run. - Data Classification must be enabled
+// for the catalog. - The call must come from the workspace where Data
+// Classification was enabled.
+func (c *internalClient) RescanCatalog(ctx context.Context, req RescanCatalogRequest, opts ...call.Option) (*RescanCatalogResponse, error) {
+	wireReq, err := rescanCatalogRequestToWire(&req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := json.Marshal(wireReq)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
+	if c.workspaceID != "" {
+		headers.Set("X-Databricks-Workspace-Id", c.workspaceID)
+	}
+
+	baseURL, err := url.Parse(c.host)
+	if err != nil {
+		return nil, err
+	}
+	pb := pathBuilder{}
+	pb.literal("/api/data-classification/v1/")
+	if req.Name == nil {
+		return nil, fmt.Errorf("path parameter %q is required", "name")
+	}
+	pb.singleSegment(*req.Name)
+	pb.literal("/rescan")
+	baseURL.Path, baseURL.RawPath = pb.build()
+	queryParams := url.Values{}
+	baseURL.RawQuery = queryParams.Encode()
+	urlStr := baseURL.String()
+
+	var resp *RescanCatalogResponse
+
+	call := func(ctx context.Context) error {
+		httpReq, err := newHTTPRequest(ctx, httpRequestOptions{
+			Method:      "POST",
+			URL:         urlStr,
+			Credentials: c.credentials,
+			UserAgent:   c.userAgent,
+			Headers:     headers,
+			Body:        bytes.NewBuffer(body),
+		})
+		if err != nil {
+			return err
+		}
+
+		respBody, _, err := executeHTTPCall(httpCallOptions{
+			req:    httpReq,
+			client: c.httpClient,
+			logger: c.logger,
+		})
+		if err != nil {
+			return err
+		}
+		_ = respBody
+		resp = &RescanCatalogResponse{}
+		return nil
+	}
+
+	if err := c.executeCall(ctx, call, opts); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Update the Data Classification configuration for a catalog.
+//
+// The config must already exist for the catalog. Only the fields named in
+// `update_mask` change; the other fields keep their current values.
 func (c *internalClient) UpdateCatalogConfig(ctx context.Context, req UpdateCatalogConfigRequest, opts ...call.Option) (*CatalogConfig, error) {
 	wireReq, err := updateCatalogConfigRequestToWire(&req)
 	if err != nil {

@@ -151,27 +151,42 @@ type ListToolsResponse struct {
 	NextPageToken *string
 }
 
+// A Supervisor Agent coordinates tools and subagents, such as Genie Agents,
+// Knowledge Assistants, Unity Catalog functions, MCP servers and agent
+// endpoints, to answer requests that span several domains. It is served through
+// its own serving endpoint. Tools and subagents are managed through the Tool
+// resource. See
+// https://docs.databricks.com/aws/en/generative-ai/agent-bricks/multi-agent-supervisor
+// for the product documentation..
 type SupervisorAgent struct {
-	// The resource name of the SupervisorAgent. Format:
-	// supervisor-agents/{supervisor_agent_id}
+	// The resource name of the Supervisor Agent. Format:
+	// supervisor-agents/{supervisor_agent_id} The server assigns the name when the
+	// agent is created.
 	Name *string `fieldmask:"name"`
-	// The display name of the Supervisor Agent, unique at workspace level.
+	// The display name of the Supervisor Agent. It must be unique among the agents
+	// in the workspace. Creating an agent with a display name that is already in
+	// use fails with ALREADY_EXISTS.
 	DisplayName *string `fieldmask:"display_name"`
-	// Description of what this agent can do (user-facing).
+	// A summary of what the agent does. It is shown to users of the agent.
 	Description *string `fieldmask:"description"`
-	// Optional natural-language instructions for the supervisor agent.
+	// Natural-language guidelines for how the supervisor should respond and how it
+	// should delegate requests to its tools and subagents.
 	Instructions *string `fieldmask:"instructions"`
-	// Deprecated: Use supervisor_agent_id instead.
+	// Deprecated: Use supervisor_agent_id instead. This field is no longer
+	// populated.
 	Id *string `fieldmask:"id"`
-	// The universally unique identifier (UUID) of the Supervisor Agent.
+	// The universally unique identifier (UUID) of the Supervisor Agent. It is the
+	// last segment of `name`.
 	SupervisorAgentId *string `fieldmask:"supervisor_agent_id"`
-	// The creator of the Supervisor Agent.
+	// The email address of the user who created the Supervisor Agent.
 	Creator *string `fieldmask:"creator"`
-	// Creation timestamp.
+	// The time at which the Supervisor Agent was created, as an RFC 3339 timestamp.
 	CreateTime *types.Time `fieldmask:"create_time"`
-	// The name of the supervisor agent's serving endpoint.
+	// The name of the Model Serving endpoint that serves the Supervisor Agent.
+	// Query this endpoint to chat with the agent.
 	EndpointName *string `fieldmask:"endpoint_name"`
-	// The MLflow experiment ID.
+	// The ID of the MLflow experiment that is created together with the Supervisor
+	// Agent.
 	ExperimentId *string `fieldmask:"experiment_id"`
 }
 
@@ -275,9 +290,12 @@ type UpdateExampleRequest struct {
 }
 
 type UpdateSupervisorAgentRequest struct {
-	// The SupervisorAgent to update.
+	// The Supervisor Agent to update. `name` identifies the agent. The other fields
+	// carry the new values for the paths listed in `update_mask`.
 	SupervisorAgent *SupervisorAgent
-	// Field mask for fields to be updated.
+	// Comma-separated list of the fields to update. Supported values are
+	// `display_name`, `description` and `instructions`. The request fails if the
+	// mask is empty or names any other field.
 	UpdateMask *types.FieldMask[SupervisorAgent]
 }
 

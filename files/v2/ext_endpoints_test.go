@@ -5,11 +5,17 @@ import (
 	"context"
 	"errors"
 	"io"
+	"maps"
 	"net/http"
+	"net/http/httptest"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/databricks/sdk-go/auth"
+	"github.com/databricks/sdk-go/core/ops"
 )
 
 func TestPlanUpload(t *testing.T) {
@@ -130,7 +136,7 @@ func TestReplayStreamShortStream(t *testing.T) {
 	if !d.canSendAgain() {
 		t.Fatal("an ended stream can't be sent again")
 	}
-	noErr(t, d.restart())
+	noErr(t, d.restart(t.Context()))
 	if got := readAllString(t, d.whole()); got != "hello" {
 		t.Errorf("whole() after restart = %q, want hello", got)
 	}
@@ -151,7 +157,7 @@ func TestReplayStreamRestartBeforeCommit(t *testing.T) {
 	if !d.canSendAgain() {
 		t.Fatal("can't send again before commit")
 	}
-	noErr(t, d.restart())
+	noErr(t, d.restart(t.Context()))
 	if got := readAllString(t, d.r); got != "abcdefghij" {
 		t.Errorf("after restart = %q, want the whole stream", got)
 	}
@@ -284,6 +290,169 @@ func TestAuthenticatedHTTPClientIsSizedForTheParts(t *testing.T) {
 	}
 }
 
+func TestAuthenticatedTransfersShareTheirConnections(t *testing.T) {
+	// Every call builds its own engine. Downloads from a discovered Files API
+	// host share one copy of the client's transport, so they reuse its
+	// connection rather than each leaving one open: this transport, like many
+	// custom ones, has no idle timeout that would close them.
+	data := payload(100)
+	var mu sync.Mutex
+	conns := map[string]bool{}
+	srv := httptest.NewServer(requireCredentials(t, func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		conns[r.RemoteAddr] = true
+		mu.Unlock()
+		w.Header().Set("Last-Modified", testLastModified)
+		_, _ = w.Write(data)
+	}))
+	t.Cleanup(srv.Close)
+	c := buildUploadClient(t, srv.URL, &http.Client{Transport: &http.Transport{}}, "")
+	ep := endpoint{kind: filesAPIEndpoint, baseURL: strings.Replace(srv.URL, "127.0.0.1", "localhost", 1), multipart: true}
+
+	const transfers = 5
+	for range transfers {
+		e := newEngine(c)
+		dc := e.newDownloadContext(downloadConfig{}, "/Volumes/c/s/v/f.bin", ep, true, 1)
+		d, err := e.openDownload(t.Context(), dc, byteRange{start: 0, end: -1}, "")
+		noErr(t, err)
+		got, err := io.ReadAll(d)
+		noErr(t, err)
+		_ = d.Close()
+		eqBytes(t, got, data)
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	if len(conns) != 1 {
+		t.Errorf("%d transfers used %d connections, want the 1 they share", transfers, len(conns))
+	}
+}
+
+func TestControlCallsKeepTheClientTimeout(t *testing.T) {
+	// A control call to a discovered Files API host goes through the client's
+	// own HTTP client. A positive Timeout set there bounds each attempt, in
+	// place of the package's default bound, either way, and a miss it ends is
+	// retried like one the default bound ends.
+	type result struct {
+		attempts int32
+		// miss is "" for success, else which bound ended the last attempt.
+		miss string
+	}
+	tests := []struct {
+		name          string
+		clientTimeout time.Duration
+		defaultBound  time.Duration
+		// answerAfter is when the host answers, or never when negative.
+		answerAfter time.Duration
+		want        result
+	}{
+		{"a client Timeout ends an attempt that gets no answer", 100 * time.Millisecond, time.Minute, -1, result{2, "client Timeout"}},
+		{"a client Timeout waits past the default bound", 2 * time.Second, 100 * time.Millisecond, 300 * time.Millisecond, result{1, ""}},
+		{"a negative client Timeout leaves the default bound", -1, 100 * time.Millisecond, -1, result{2, "default bound"}},
+	}
+	missOf := func(err error) string {
+		switch {
+		case err == nil:
+			return ""
+		case !errors.Is(err, errNoAnswer):
+			return err.Error()
+		case strings.Contains(err.Error(), "Client.Timeout exceeded"):
+			return "client Timeout"
+		default:
+			return "default bound"
+		}
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			var calls atomic.Int32
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				calls.Add(1)
+				if tc.answerAfter < 0 {
+					<-r.Context().Done()
+					return
+				}
+				select {
+				case <-time.After(tc.answerAfter):
+				case <-r.Context().Done():
+					return
+				}
+				_, _ = io.WriteString(w, `{"multipart_upload":{"session_token":"tok"}}`)
+			}))
+			t.Cleanup(srv.Close)
+			e := newEngine(buildUploadClient(t, srv.URL, &http.Client{Transport: srv.Client().Transport, Timeout: tc.clientTimeout}, ""))
+			e.tun.cpBackoff = ops.BackoffPolicy{Initial: time.Millisecond, Maximum: time.Millisecond, Factor: 1}
+			e.tun.controlAttemptTimeout = tc.defaultBound
+			e.tun.cpRetryTimeout = 10 * time.Second
+			uc := controlContext(e, nil)
+			// An endpoint with one after it, before any part lands: an attempt
+			// that gets no answer is retried once, then the walk moves on.
+			uc.startEndpoint(endpoint{kind: filesAPIEndpoint, baseURL: strings.Replace(srv.URL, "127.0.0.1", "localhost", 1), multipart: true}, false)
+
+			start := time.Now()
+			_, err := e.initiateUpload(t.Context(), uc)
+			took := time.Since(start)
+			if got := (result{calls.Load(), missOf(err)}); got != tc.want {
+				t.Errorf("got %+v (err %v), want %+v", got, err, tc.want)
+			}
+			if took > 3*time.Second {
+				t.Errorf("the call took %v, want each attempt bounded", took)
+			}
+		})
+	}
+}
+
+func TestControlCallsResolveCredentialsOutsideTheAttemptBound(t *testing.T) {
+	// Credentials that resolve once, as the default ones do, keep the first
+	// resolution's error. A first resolution slower than the attempt's bound
+	// must not be cut short by it, or every later call would fail too.
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = io.WriteString(w, `{"multipart_upload":{"session_token":"tok"}}`)
+	}))
+	t.Cleanup(srv.Close)
+	e := newEngine(buildUploadClient(t, srv.URL, srv.Client(), ""))
+	e.c.credentials = &resolveOnceCredentials{delay: 300 * time.Millisecond}
+	e.tun.cpBackoff = ops.BackoffPolicy{Initial: time.Millisecond, Maximum: time.Millisecond, Factor: 1}
+	e.tun.controlAttemptTimeout = 100 * time.Millisecond
+	uc := controlContext(e, nil)
+	uc.ep = endpoint{kind: filesAPIEndpoint, baseURL: strings.Replace(srv.URL, "127.0.0.1", "localhost", 1), multipart: true}
+
+	for call := range 2 {
+		if _, err := e.initiateUpload(t.Context(), uc); err != nil {
+			t.Fatalf("call %d: %v", call+1, err)
+		}
+	}
+}
+
+func TestControlCallsKeepAnAnswerThatArrivesAtTheBound(t *testing.T) {
+	// The host's answer, a 400, reaches the client only once the attempt's
+	// bound has fired. It is an answer, not a miss: the call fails with it
+	// after one attempt, instead of retrying it as an attempt that got none.
+	var attempts atomic.Int32
+	hc := &http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		attempts.Add(1)
+		<-r.Context().Done()
+		return &http.Response{
+			StatusCode: http.StatusBadRequest,
+			Header:     http.Header{"Content-Type": {"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(`{"error_code":"INVALID_PARAMETER_VALUE","message":"bad"}`)),
+			Request:    r,
+		}, nil
+	})}
+	e := newEngine(buildUploadClient(t, "https://ws.example.com", hc, ""))
+	e.tun.cpBackoff = ops.BackoffPolicy{Initial: time.Millisecond, Maximum: time.Millisecond, Factor: 1}
+	e.tun.controlAttemptTimeout = 50 * time.Millisecond
+	e.tun.cpRetryTimeout = time.Second
+
+	_, err := e.initiateUpload(t.Context(), controlContext(e, nil))
+	type result struct {
+		attempts int32
+		status   int
+		noAnswer bool
+	}
+	if got, want := (result{attempts.Load(), httpStatus(err), errors.Is(err, errNoAnswer)}), (result{1, http.StatusBadRequest, false}); got != want {
+		t.Errorf("got %+v (err %v), want %+v", got, err, want)
+	}
+}
+
 type staticCredentials struct {
 	headers []auth.Header
 	err     error
@@ -326,6 +495,78 @@ func TestCredentialTransport(t *testing.T) {
 	}
 	if seen != nil || !body.closed.Load() {
 		t.Errorf("sent = %v, body closed = %v; want nothing sent and the body closed", seen != nil, body.closed.Load())
+	}
+}
+
+func TestCredentialTransportKeepsCredentialsToTheirOrigin(t *testing.T) {
+	// A redirect within the origin, however it is spelled, keeps the
+	// credentials. Once one leaves it, no later request gets them: not the
+	// next one to the other host, nor one back to the origin.
+	redirects := map[string]string{
+		"/a":  "https://PROXY.example.com:443/b",
+		"/b":  "https://other.example.com/c",
+		"/c":  "https://other.example.com/c2",
+		"/c2": "https://proxy.example.com/d",
+	}
+	sent := map[string]string{}
+	base := roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		sent[r.URL.Path] = r.Header.Get("Authorization")
+		if next, ok := redirects[r.URL.Path]; ok {
+			return &http.Response{StatusCode: http.StatusTemporaryRedirect, Header: http.Header{"Location": {next}}, Body: http.NoBody, Request: r}, nil
+		}
+		return &http.Response{StatusCode: http.StatusOK, Body: http.NoBody, Request: r}, nil
+	})
+	c := &http.Client{Transport: &credentialTransport{base: base, creds: staticCredentials{headers: []auth.Header{{Key: "Authorization", Value: "Bearer t"}}}}}
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "https://proxy.example.com/a", nil)
+	noErr(t, err)
+	resp, err := c.Do(req)
+	noErr(t, err)
+	_ = resp.Body.Close()
+	want := map[string]string{"/a": "Bearer t", "/b": "Bearer t", "/c": "", "/c2": "", "/d": ""}
+	if !maps.Equal(sent, want) {
+		t.Errorf("Authorization sent per request = %v, want %v", sent, want)
+	}
+}
+
+// sentOverABrokenRedirectChain sends a GET for https://proxy.example.com/a
+// through a credentialTransport whose base transport answers /a with a 302 to
+// location and, as a custom transport may, leaves every response's Request
+// unset. It returns the Authorization each request carried, by host and path.
+func sentOverABrokenRedirectChain(t *testing.T, location string) map[string]string {
+	t.Helper()
+	sent := map[string]string{}
+	base := roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		sent[r.URL.Host+r.URL.Path] = r.Header.Get("Authorization")
+		if r.URL.Path == "/a" {
+			return &http.Response{StatusCode: http.StatusFound, Header: http.Header{"Location": {location}}, Body: http.NoBody}, nil
+		}
+		return &http.Response{StatusCode: http.StatusOK, Body: http.NoBody}, nil
+	})
+	c := &http.Client{Transport: &credentialTransport{base: base, creds: staticCredentials{headers: []auth.Header{{Key: "Authorization", Value: "Bearer t"}}}}}
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "https://proxy.example.com/a", nil)
+	noErr(t, err)
+	resp, err := c.Do(req)
+	noErr(t, err)
+	_ = resp.Body.Close()
+	return sent
+}
+
+func TestCredentialTransportSendsNoCredentialsAcrossABrokenRedirectChain(t *testing.T) {
+	got := sentOverABrokenRedirectChain(t, "https://other.example.com/b")
+	want := map[string]string{"proxy.example.com/a": "Bearer t", "other.example.com/b": ""}
+	if !maps.Equal(got, want) {
+		t.Errorf("Authorization sent per request = %v, want %v", got, want)
+	}
+}
+
+func TestCredentialTransportDropsCredentialsWithinTheOriginOnABrokenRedirectChain(t *testing.T) {
+	// Without the chain, a redirect within the origin can't be told from one
+	// that left it, so it goes without credentials too: a broken chain drops
+	// them rather than risk sending them elsewhere.
+	got := sentOverABrokenRedirectChain(t, "https://proxy.example.com/b")
+	want := map[string]string{"proxy.example.com/a": "Bearer t", "proxy.example.com/b": ""}
+	if !maps.Equal(got, want) {
+		t.Errorf("Authorization sent per request = %v, want %v", got, want)
 	}
 }
 
@@ -390,5 +631,46 @@ func TestFilesAPIv3InitiateNeedsAnUploadID(t *testing.T) {
 				t.Errorf("err = %v, want errUnexpectedServerResponse", err)
 			}
 		})
+	}
+}
+
+func TestCredentialTransport_sendsTheSDKUserAgent(t *testing.T) {
+	// The storage proxy and Files API 3.0 requests go through this transport.
+	var seen http.Header
+	base := roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		seen = r.Header.Clone()
+		return &http.Response{StatusCode: http.StatusOK, Body: http.NoBody, Request: r}, nil
+	})
+	rt := &credentialTransport{base: base, userAgent: func() (string, error) { return "databricks-sdk-go/test", nil }}
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "https://rig.example.com/x", nil)
+	noErr(t, err)
+	_, err = rt.RoundTrip(req)
+	noErr(t, err)
+	if got := seen.Get("User-Agent"); got != "databricks-sdk-go/test" {
+		t.Errorf("sent User-Agent = %q, want the SDK's", got)
+	}
+	if req.Header.Get("User-Agent") != "" {
+		t.Error("the caller's request was modified")
+	}
+
+	// The User-Agent is only for attribution: one that can't be built is left
+	// out, and the request is still sent.
+	req, err = http.NewRequestWithContext(t.Context(), http.MethodPut, "https://rig.example.com/x", strings.NewReader("x"))
+	noErr(t, err)
+	seen = nil
+	rt.userAgent = func() (string, error) { return "", errors.New("boom") }
+	_, err = rt.RoundTrip(req)
+	noErr(t, err)
+	if seen == nil || seen.Get("User-Agent") != "" {
+		t.Errorf("sent = %v, User-Agent = %q; want the request sent without one", seen != nil, seen.Get("User-Agent"))
+	}
+
+	// The transfers' authenticated client sends the client's User-Agent.
+	e := newEngine(buildUploadClient(t, "https://ws.example.com", http.DefaultClient, ""))
+	ct := e.authenticatedHTTPClient(4).Transport.(*credentialTransport)
+	got, err := ct.userAgent()
+	noErr(t, err)
+	if want, _ := e.c.userAgent(); got != want {
+		t.Errorf("authenticated transfers' User-Agent = %q, want the client's %q", got, want)
 	}
 }

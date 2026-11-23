@@ -1183,6 +1183,52 @@ func (v *ListSandboxesResponse) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type networkSpecWire struct {
+	InternetAccess *bool `json:"internet_access,omitempty"`
+}
+
+func networkSpecToWire(v *NetworkSpec) (*networkSpecWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &networkSpecWire{
+		InternetAccess: v.InternetAccess,
+	}, nil
+}
+
+func networkSpecFromWire(w *networkSpecWire) (*NetworkSpec, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &NetworkSpec{
+		InternetAccess: w.InternetAccess,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v NetworkSpec) MarshalJSON() ([]byte, error) {
+	w, err := networkSpecToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *NetworkSpec) UnmarshalJSON(data []byte) error {
+	var w networkSpecWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := networkSpecFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type renamePathRequestWire struct {
 	Parent      *string `json:"parent,omitempty"`
 	Source      *string `json:"source,omitempty"`
@@ -1494,6 +1540,7 @@ func (v *SandboxMetadata) UnmarshalJSON(data []byte) error {
 type sandboxSpecWire struct {
 	Compute     *computeSpecWire     `json:"compute,omitempty"`
 	Environment *environmentSpecWire `json:"environment,omitempty"`
+	Network     *networkSpecWire     `json:"network,omitempty"`
 }
 
 func sandboxSpecToWire(v *SandboxSpec) (*sandboxSpecWire, error) {
@@ -1508,9 +1555,14 @@ func sandboxSpecToWire(v *SandboxSpec) (*sandboxSpecWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "SandboxSpec.Environment", err)
 	}
+	networkWireValue, err := networkSpecToWire(v.Network)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SandboxSpec.Network", err)
+	}
 	return &sandboxSpecWire{
 		Compute:     computeWireValue,
 		Environment: environmentWireValue,
+		Network:     networkWireValue,
 	}, nil
 }
 
@@ -1526,9 +1578,14 @@ func sandboxSpecFromWire(w *sandboxSpecWire) (*SandboxSpec, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "SandboxSpec.Environment", err)
 	}
+	networkPublicValue, err := networkSpecFromWire(w.Network)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SandboxSpec.Network", err)
+	}
 	return &SandboxSpec{
 		Compute:     computePublicValue,
 		Environment: environmentPublicValue,
+		Network:     networkPublicValue,
 	}, nil
 }
 

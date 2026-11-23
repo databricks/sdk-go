@@ -64,7 +64,8 @@ type CredentialDependency struct {
 }
 
 type DeleteModelVersionRequest struct {
-	// The three-level (fully qualified) name of the model version
+	// The three-level (fully qualified) name of the parent registered model, in the
+	// form `catalog_name.schema_name.model_name`.
 	FullNameArg *string
 	// The integer version number of the model version
 	VersionArg *int64
@@ -103,6 +104,7 @@ type isDependency_Value interface {
 }
 
 // Dependency_Value_Table selects Table for Dependency.Value.
+// A dependency on a Unity Catalog table.
 type Dependency_Value_Table struct {
 	Table TableDependency
 }
@@ -110,6 +112,7 @@ type Dependency_Value_Table struct {
 func (*Dependency_Value_Table) isDependency_Value() {}
 
 // Dependency_Value_Function selects Function for Dependency.Value.
+// A dependency on a Unity Catalog function.
 type Dependency_Value_Function struct {
 	Function FunctionDependency
 }
@@ -117,6 +120,7 @@ type Dependency_Value_Function struct {
 func (*Dependency_Value_Function) isDependency_Value() {}
 
 // Dependency_Value_Connection selects Connection for Dependency.Value.
+// A dependency on a Unity Catalog connection.
 type Dependency_Value_Connection struct {
 	Connection ConnectionDependency
 }
@@ -124,6 +128,7 @@ type Dependency_Value_Connection struct {
 func (*Dependency_Value_Connection) isDependency_Value() {}
 
 // Dependency_Value_Credential selects Credential for Dependency.Value.
+// A dependency on a Unity Catalog credential.
 type Dependency_Value_Credential struct {
 	Credential CredentialDependency
 }
@@ -153,7 +158,8 @@ type GetModelVersionByAliasRequest struct {
 }
 
 type GetModelVersionRequest struct {
-	// The three-level (fully qualified) name of the model version
+	// The three-level (fully qualified) name of the parent registered model, in the
+	// form `catalog_name.schema_name.model_name`.
 	FullNameArg *string
 	// The integer version number of the model version
 	VersionArg *int64
@@ -235,6 +241,10 @@ type ListRegisteredModelsResponse struct {
 	NextPageToken *string
 }
 
+// A numbered version of a registered model in Unity Catalog. A model version is
+// identified by the full name of its parent registered model and its version
+// number, or by an alias that points to it. See
+// https://docs.databricks.com/aws/en/machine-learning/manage-model-lifecycle/..
 type ModelVersionInfo struct {
 	// The name of the parent registered model of the model version, relative to
 	// parent schema
@@ -270,9 +280,11 @@ type ModelVersionInfo struct {
 	StorageLocation *string
 	// The unique identifier of the metastore containing the model version
 	MetastoreId *string
-	CreatedAt   *int64
+	// Time at which the model version was created, in epoch milliseconds.
+	CreatedAt *int64
 	// The identifier of the user who created the model version
 	CreatedBy *string
+	// Time at which the model version was last updated, in epoch milliseconds.
 	UpdatedAt *int64
 	// The identifier of the user who updated the model version last time
 	UpdatedBy *string
@@ -352,7 +364,8 @@ type TableDependency struct {
 }
 
 type UpdateModelVersionRequest struct {
-	// The three-level (fully qualified) name of the model version
+	// The three-level (fully qualified) name of the parent registered model, in the
+	// form `catalog_name.schema_name.model_name`.
 	FullNameArg *string
 	// The integer version number of the model version
 	VersionArg *int64
@@ -390,9 +403,11 @@ type UpdateModelVersionRequest struct {
 	StorageLocation *string
 	// The unique identifier of the metastore containing the model version
 	MetastoreId *string
-	CreatedAt   *int64
+	// Time at which the model version was created, in epoch milliseconds.
+	CreatedAt *int64
 	// The identifier of the user who created the model version
 	CreatedBy *string
+	// Time at which the model version was last updated, in epoch milliseconds.
 	UpdatedAt *int64
 	// The identifier of the user who updated the model version last time
 	UpdatedBy *string
