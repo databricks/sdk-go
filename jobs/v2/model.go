@@ -496,10 +496,12 @@ type AiRuntimeTask_PriorityClass string
 
 const (
 	AiRuntimeTask_PriorityClass_Unspecified AiRuntimeTask_PriorityClass = ""
-	// Lowest priority; preemptable by higher-priority workloads.
-	AiRuntimeTask_PriorityClass_BestEffort AiRuntimeTask_PriorityClass = "BEST_EFFORT"
 	// Medium priority; not preemptable.
 	AiRuntimeTask_PriorityClass_Normal AiRuntimeTask_PriorityClass = "NORMAL"
+	// Highest priority; not preemptable.
+	AiRuntimeTask_PriorityClass_High AiRuntimeTask_PriorityClass = "HIGH"
+	// Lowest priority; preemptable by higher-priority workloads.
+	AiRuntimeTask_PriorityClass_Preemptable AiRuntimeTask_PriorityClass = "PREEMPTABLE"
 )
 
 // Same alert evaluation state as in redash-v2/api/proto/alertsv2/alerts.proto
@@ -879,10 +881,7 @@ const (
 	// parameter Values in the request/ providing a bad request etc
 	TerminationCode_Code_InvalidClusterRequest TerminationCode_Code = "INVALID_CLUSTER_REQUEST"
 	// * Returned if an org set a limit for number of their concurrent active runs
-	// and the run couldn't start because it would exceed this limit. TODO:
-	// JOBS-12528: The original comment (on the issue) does not seem to reflect how
-	// this is actually used in code It should be looked into how we're handling the
-	// scenario where a given job exceeds its own internal concurrency limits.
+	// and the run couldn't start because it would exceed this limit.
 	TerminationCode_Code_WorkspaceRunLimitExceeded TerminationCode_Code = "WORKSPACE_RUN_LIMIT_EXCEEDED"
 	TerminationCode_Code_FeatureDisabled           TerminationCode_Code = "FEATURE_DISABLED"
 	// * ClusterRequestLimitExceeded represents failures when cluster creation,
@@ -2217,7 +2216,9 @@ type CreateJobRequest struct {
 	// performance level without additional cost-saving optimizations.
 	DurationTarget *string
 	// Path of the job parent folder in workspace file tree. If absent, the job
-	// doesn't have a workspace object.
+	// doesn't have a parent folder.
+	//
+	// Example: /Workspace/Projects/my_project
 	ParentPath *string
 	// List of triggers attached to this job. A run starts when any active trigger
 	// evaluates to true. Cannot be set in the same request as the legacy
@@ -3651,7 +3652,9 @@ type JobSettings struct {
 	// performance level without additional cost-saving optimizations.
 	DurationTarget *string
 	// Path of the job parent folder in workspace file tree. If absent, the job
-	// doesn't have a workspace object.
+	// doesn't have a parent folder.
+	//
+	// Example: /Workspace/Projects/my_project
 	ParentPath *string
 	// List of triggers attached to this job. A run starts when any active trigger
 	// evaluates to true. Cannot be set in the same request as the legacy
@@ -4283,8 +4286,7 @@ type PowerBiTask struct {
 }
 
 type PythonOperatorTask struct {
-	// An ordered list of task parameters. TODO(JOBS-30885): Add limits for
-	// parameters.
+	// An ordered list of task parameters.
 	Parameters []PythonOperatorTask_Parameter
 	// Fully qualified name of the main class or function. For example,
 	// `my_project.my_function` or `my_project.MyOperator`.

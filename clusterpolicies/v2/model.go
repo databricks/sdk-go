@@ -50,15 +50,15 @@ const (
 type AllowedComputeProducts struct {
 	// Constraints for serverless automated compute. Absence disallows automated
 	// compute.
-	Automated *AutomatedConstraints
+	Automated *AutomatedConstraints `fieldmask:"automated"`
 	// Constraints for Lakebase instances. Absence disallows Lakebase.
-	Lakebase *LakebaseConstraints
+	Lakebase *LakebaseConstraints `fieldmask:"lakebase"`
 }
 
 // Constraints applied to serverless automated workloads by a compute policy..
 type AutomatedConstraints struct {
 	// Maximum per-workload Spark executor allocation. Absence imposes no limit.
-	PerWorkloadMax *RateLimitConfig
+	PerWorkloadMax *RateLimitConfig `fieldmask:"per_workload_max"`
 }
 
 // A compute policy resource. A workspace-scoped policy that allows one or more
@@ -66,26 +66,32 @@ type AutomatedConstraints struct {
 type ComputePolicy struct {
 	// The unique identifier of the compute policy (UUID). Server-assigned on
 	// create.
-	ComputePolicyId *string
+	ComputePolicyId *string `fieldmask:"compute_policy_id"`
 	// The display name of the compute policy.
-	DisplayName *string
+	DisplayName *string `fieldmask:"display_name"`
 	// The compute products allowed by this policy and their constraints. At least
 	// one product must be set.
-	AllowedComputeProducts *AllowedComputeProducts
+	AllowedComputeProducts *AllowedComputeProducts `fieldmask:"allowed_compute_products"`
 	// User-defined key/value tags on the compute policy, provided at creation and
 	// validated. unified-tagging is the system of record for tag assignments.
-	Tags map[string]string
+	Tags map[string]string `fieldmask:"tags"`
 	// Whether this is the workspace default policy for its single allowed compute
 	// product. Default policies are system-provisioned and cannot be deleted or
 	// renamed.
-	IsDefault *bool
+	IsDefault *bool `fieldmask:"is_default"`
 	// The creation timestamp.
-	CreateTime *types.Time
+	CreateTime *types.Time `fieldmask:"create_time"`
 	// Whether the calling user has use permission on this compute policy.
-	CanUse *bool
+	CanUse *bool `fieldmask:"can_use"`
 	// Whether the calling user has manage permission on this compute policy. Manage
 	// includes use, so can_use is also true whenever this is true.
-	CanManage *bool
+	CanManage *bool `fieldmask:"can_manage"`
+}
+
+// Request to create a custom compute policy..
+type CreateComputePolicyRequest struct {
+	// The compute policy to create.
+	ComputePolicy *ComputePolicy
 }
 
 type CreatePolicyRequest struct {
@@ -126,6 +132,15 @@ type CreatePolicyRequest struct {
 type CreatePolicyResponse struct {
 	// Canonical unique identifier for the cluster policy.
 	PolicyId *string
+}
+
+// Request to delete a custom compute policy by ID. Automated compute follows
+// the serverless compute recovery period. Repeating a completed Lakebase
+// deletion returns NOT_FOUND and preserves Automated compute restored
+// afterward..
+type DeleteComputePolicyRequest struct {
+	// The ID of the compute policy to delete.
+	ComputePolicyId *string
 }
 
 type DeletePolicyRequest struct {
@@ -176,6 +191,12 @@ type EditPolicyRequest struct {
 type EditPolicyResponse struct {
 }
 
+// Request to get a compute policy by ID..
+type GetComputePolicyRequest struct {
+	// The ID of the compute policy to retrieve.
+	ComputePolicyId *string
+}
+
 type GetPolicyRequest struct {
 	// Canonical unique identifier for the Cluster Policy.
 	PolicyId *string
@@ -184,10 +205,10 @@ type GetPolicyRequest struct {
 // Constraints applied to Lakebase instances by a compute policy..
 type LakebaseConstraints struct {
 	// Maximum capacity units permitted per instance. Absence imposes no limit.
-	MaxCapacityUnitsPerInstance *int64
+	MaxCapacityUnitsPerInstance *int64 `fieldmask:"max_capacity_units_per_instance"`
 	// Maximum idle time in minutes before scale-to-zero. Absence imposes no
 	// requirement.
-	MaxIdleMinutesBeforeScaleToZero *int64
+	MaxIdleMinutesBeforeScaleToZero *int64 `fieldmask:"max_idle_minutes_before_scale_to_zero"`
 }
 
 // A library to install on a cluster. Exactly one of the library-type fields
@@ -407,11 +428,11 @@ type RCranLibrary struct {
 
 // Rate-limit configuration for serverless compute workloads..
 type RateLimitConfig struct {
-	TShirtSize TshirtSize
+	TShirtSize TshirtSize `fieldmask:"t_shirt_size"`
 	// Proto enum name of t_shirt_size (e.g. T_SHIRT_SIZE_SMALL). Output-only;
 	// derived on read so a minting client that does not know a new enum value can
 	// still put the name on the cost-control token.
-	TShirtSizeName *string
+	TShirtSizeName *string `fieldmask:"t_shirt_size_name"`
 }
 
 // A serverless compute resource..
@@ -430,4 +451,19 @@ type ServerlessCompute struct {
 	// Whether the calling user has ManageServerlessComputePermission on this
 	// compute.
 	CanManage *bool
+}
+
+// Request to update a custom compute policy..
+type UpdateComputePolicyRequest struct {
+	// The compute policy to update. `compute_policy.compute_policy_id` identifies
+	// which policy to update; only the fields named in `update_mask` are applied.
+	ComputePolicy *ComputePolicy
+	// Fields to update, relative to `compute_policy`. Must contain at least one
+	// path; the supported paths are `display_name` and `allowed_compute_products`.
+	// Supplied product arms replace their constraints and omitted products remain
+	// unchanged. An empty arm clears that product's limits; an absent or empty
+	// products object is invalid. Removing a product requires its delete API.
+	// Nested masks and wildcards are unsupported. `display_name` cannot be cleared:
+	// if it is in the mask it must be non-empty.
+	UpdateMask *types.FieldMask[ComputePolicy]
 }

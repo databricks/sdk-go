@@ -1,14 +1,13 @@
 package files
 
 // Large-file upload engine for Databricks Unity Catalog Volumes. It chooses a
-// single-shot or multipart protocol based on the stream size.
+// single-shot or multipart protocol based on the stream size, and walks the
+// upload endpoints in order (ext_endpoints.go) until one takes the upload.
 //
-// The engine is pure orchestration over two transports: this client's own
-// authenticated Files API calls (the control plane; see upload_control.go),
-// which handle the single-shot upload and the multipart coordination,
-// and the unauthenticated cloud-storage client (the cloudstorage subpackage),
-// which transfers parts directly to object storage over the presigned
-// URLs the control plane mints.
+// The Files API calls that run an upload (ext_upload_control.go) carry the
+// client's credentials. Parts go either to presigned cloud-storage URLs, without
+// credentials, through the cloudstorage subpackage, or to a Files API host with
+// them.
 
 import (
 	"context"
@@ -90,16 +89,17 @@ func WithProgress(fn ProgressFunc) UploadOption {
 	return func(c *uploadConfig) { c.progress = fn }
 }
 
-// WithTransferClient overrides the HTTP client used to transfer file contents
-// during a large-file upload, replacing the one the call would otherwise create
-// internally. Use it to route the transfer through a custom transport, proxy, or
-// CA.
+// WithTransferClient overrides the HTTP client that sends parts to presigned
+// cloud-storage URLs, replacing the one the call would otherwise create
+// internally. Use it to route those transfers through a custom transport, proxy,
+// or CA. Requests to Databricks hosts, including parts sent to a Files API host,
+// use the client's own transport.
 //
-// Because these transfers use self-authenticating presigned URLs, the client must
-// not attach Databricks credentials; the storage provider rejects extra
-// authentication. Do not set http.Client.Timeout, a whole-request deadline that
-// would abort a legitimately long part transfer; bound the upload with the context
-// passed to Upload instead.
+// Because presigned URLs authenticate themselves, the client must not attach
+// Databricks credentials; the storage provider rejects extra authentication. Do
+// not set http.Client.Timeout, a whole-request deadline that would abort a
+// legitimately long part transfer; bound the upload with the context passed to
+// Upload instead.
 func WithTransferClient(client *http.Client) UploadOption {
 	return func(c *uploadConfig) { c.transferClient = client }
 }
@@ -294,6 +294,9 @@ type progressReporter struct {
 
 	mu          sync.Mutex
 	transferred int64
+	// attempt numbers the single-shot attempts; only the latest one's reads
+	// count (see restart).
+	attempt int64
 }
 
 // newProgressReporter returns nil when fn is nil so that reporter calls are
@@ -317,75 +320,72 @@ func (p *progressReporter) add(n int64) {
 	p.fn(Progress{Transferred: p.transferred, Total: p.total})
 }
 
-// progressReader reports bytes as they are read. It tracks single-shot uploads,
-// where the whole body streams through one request rather than discrete parts.
-type progressReader struct {
-	r io.Reader
-	p *progressReporter
-}
-
-func (pr *progressReader) Read(b []byte) (int, error) {
-	n, err := pr.r.Read(b)
-	pr.p.add(int64(n))
-	return n, err
-}
-
-// progressSeekReader is a progressReader over a seekable source. It forwards
-// Seek so the wrapper preserves the underlying io.Seeker, which the single-shot
-// path probes to decide whether a failed attempt can be rewound and retried.
-// Kept distinct from progressReader so a non-seekable source is never wrongly
-// reported as seekable.
-type progressSeekReader struct {
-	progressReader
-	s io.Seeker
-}
-
-func (pr *progressSeekReader) Seek(offset int64, whence int) (int64, error) {
-	return pr.s.Seek(offset, whence)
-}
-
-// withProgress wraps r so reads report to p, preserving r's io.Seeker capability
-// when it has one. Without this, wrapping a replayable body (bytes.Reader,
-// *os.File, io.SectionReader) would hide its Seeker and make an otherwise
-// retriable single-shot upload non-retriable.
-func withProgress(r io.Reader, p *progressReporter) io.Reader {
-	pr := progressReader{r: r, p: p}
-	if s, ok := r.(io.Seeker); ok {
-		return &progressSeekReader{progressReader: pr, s: s}
+// restart begins a pass that sends the whole upload from its start, a
+// single-shot attempt or the next endpoint of the walk: the count rewinds to
+// zero, so Transferred never exceeds Total. It returns the attempt's number
+// for addAttempt; reads of earlier attempts, on this endpoint or an earlier
+// one, no longer count.
+func (p *progressReporter) restart() int64 {
+	if p == nil {
+		return 0
 	}
-	return &pr
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.attempt++
+	if p.transferred != 0 {
+		p.transferred = 0
+		p.fn(Progress{Transferred: 0, Total: p.total})
+	}
+	return p.attempt
+}
+
+// addAttempt records n bytes that single-shot attempt read, unless a later
+// attempt has begun. It is a no-op on a nil reporter.
+func (p *progressReporter) addAttempt(attempt, n int64) {
+	if p == nil || n <= 0 {
+		return
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if attempt != p.attempt {
+		return
+	}
+	p.transferred += n
+	p.fn(Progress{Transferred: p.transferred, Total: p.total})
 }
 
 // Upload uploads contents to the remote file at filePath, which must be an
 // absolute path such as "/Volumes/catalog/schema/volume/file". It chooses a
-// single-shot or multipart upload based on the stream size (when the reader is
-// seekable).
+// single-shot or multipart upload based on the size, which it learns by seeking
+// a seekable reader, or by reading any other reader up to the multipart
+// threshold.
 //
 // When contents implements io.ReaderAt (for example an *os.File or a
-// *bytes.Reader), parts are read from it with concurrent positioned reads rather
-// than buffered in memory. A reader without random access has each in-flight part
-// buffered as it is read.
+// *bytes.Reader) and more than one part is in flight, parts are read from it
+// with concurrent positioned reads rather than buffered in memory. Otherwise
+// each in-flight part is buffered as it is read.
 //
 // ctx bounds the entire operation, including all retries; pass a context with a
 // deadline to cap the total upload time.
 func (c *Client) Upload(ctx context.Context, filePath string, contents io.Reader, opts ...UploadOption) (*UploadResult, error) {
-	return newEngine(c).upload(ctx, filePath, contents, opts...)
+	return newClientEngine(ctx, c).upload(ctx, filePath, contents, opts...)
 }
 
 // UploadFrom uploads the local file at sourcePath to the remote file at
 // filePath. The local file is opened as needed; its size is always known, so it
 // never takes the non-seekable path.
 //
-// Parts are read from the file on demand rather than buffered, so the upload
-// covers the file as of its size when the call begins: bytes appended afterward
-// are not included, and truncating the file mid-upload fails the upload (it does
-// not produce a partial object). Do not modify the file while an upload is in
-// progress.
+// A multipart upload covers the file as of its size when the call begins:
+// bytes appended afterward are not included, and truncating the file mid-upload
+// fails the upload (it does not produce a partial object). A single-shot
+// upload, including the fallback after a multipart upload fails before any part
+// lands, sends the file as it is when that request starts. Do not modify the
+// file while an upload is in progress.
 //
 // ctx bounds the entire operation, including all retries; pass a context with a
 // deadline to cap the total upload time.
 func (c *Client) UploadFrom(ctx context.Context, filePath, sourcePath string, opts ...UploadOption) (*UploadResult, error) {
-	return newEngine(c).uploadFrom(ctx, filePath, sourcePath, opts...)
+	return newClientEngine(ctx, c).uploadFrom(ctx, filePath, sourcePath, opts...)
 }
 
 func (e *engine) upload(ctx context.Context, filePath string, contents io.Reader, opts ...UploadOption) (*UploadResult, error) {

@@ -20,7 +20,8 @@ const (
 type AutoTaggingConfig struct {
 	// The Classification Tag. For built-in classes this is a system tag (e.g.,
 	// "class.name", "class.location"); for custom classes it is a user-defined
-	// governance tag key.
+	// governance tag key. The built-in tags are listed at
+	// https://docs.databricks.com/aws/en/data-governance/unity-catalog/data-classification-tags.
 	ClassificationTag *string
 	// Whether auto-tagging is enabled or disabled for this classification tag.
 	AutoTaggingMode AutoTaggingConfig_AutoTaggingMode
@@ -35,8 +36,9 @@ type CatalogConfig struct {
 	// Resource name in the format: catalogs/{catalog_name}/config.
 	Name            *string `fieldmask:"name"`
 	SelectedSchemas isCatalogConfig_SelectedSchemas
-	// List of auto-tagging configurations for this catalog. Empty list means no
-	// auto-tagging is enabled.
+	// Auto-tagging configurations that apply to this catalog. Each entry overrides
+	// the metastore-level auto-tagging setting for its classification tag; tags
+	// without an entry inherit the metastore-level setting.
 	AutoTagConfigs []AutoTaggingConfig                              `fieldmask:"auto_tag_configs"`
 	_              [0]catalogConfigSelectedSchemasFieldMaskMetadata `fieldmask_oneof:"SelectedSchemas"`
 }
@@ -47,7 +49,8 @@ type isCatalogConfig_SelectedSchemas interface {
 
 // CatalogConfig_SelectedSchemas_IncludedSchemas selects IncludedSchemas for CatalogConfig.SelectedSchemas.
 // Schemas to include in the scan, each named relative to the parent catalog. If
-// specified, only listed schemas will be scanned. Mutually exclusive with
+// specified, only listed schemas will be scanned. Schemas created later are not
+// scanned until you add them to the list. Mutually exclusive with
 // `excluded_schemas`: only one may be set per request. If neither
 // `included_schemas` nor `excluded_schemas` is set, all schemas are scanned.
 type CatalogConfig_SelectedSchemas_IncludedSchemas struct {
@@ -58,10 +61,10 @@ func (*CatalogConfig_SelectedSchemas_IncludedSchemas) isCatalogConfig_SelectedSc
 
 // CatalogConfig_SelectedSchemas_ExcludedSchemas selects ExcludedSchemas for CatalogConfig.SelectedSchemas.
 // Schemas to exclude from the scan, each named relative to the parent catalog.
-// If specified, all schemas except the specified ones will be scanned. Mutually
-// exclusive with `included_schemas`: only one may be set per request. If
-// neither `included_schemas` nor `excluded_schemas` is set, all schemas are
-// scanned.
+// If specified, all schemas except the specified ones will be scanned,
+// including schemas created later. Mutually exclusive with `included_schemas`:
+// only one may be set per request. If neither `included_schemas` nor
+// `excluded_schemas` is set, all schemas are scanned.
 type CatalogConfig_SelectedSchemas_ExcludedSchemas struct {
 	ExcludedSchemas CatalogConfig_SchemaNames `fieldmask:"excluded_schemas"`
 }
@@ -82,7 +85,7 @@ type CatalogConfig_SchemaNames struct {
 // Create Data Classification configuration for a catalog. Creating a config
 // enables Data Classification for the catalog..
 type CreateCatalogConfigRequest struct {
-	// Parent resource in the format: catalogs/{catalog_name}
+	// Name of the catalog to enable, in the format catalogs/{catalog_name}.
 	Parent *string
 	// The configuration to create.
 	CatalogConfig *CatalogConfig
@@ -91,14 +94,25 @@ type CreateCatalogConfigRequest struct {
 // Delete Data Classification configuration for a catalog. Deleting the config
 // disables Data Classification for the catalog..
 type DeleteCatalogConfigRequest struct {
-	// Resource name in the format: catalogs/{catalog_name}/config
+	// Resource name of the config, in the format catalogs/{catalog_name}/config.
 	Name *string
 }
 
 // Get Data Classification configuration for a catalog..
 type GetCatalogConfigRequest struct {
-	// Resource name in the format: catalogs/{catalog_name}/config
+	// Resource name of the config, in the format catalogs/{catalog_name}/config.
 	Name *string
+}
+
+// Request to rescan a catalog that has Data Classification enabled..
+type RescanCatalogRequest struct {
+	// Resource name of the catalog, in the format: catalogs/{catalog_name}.
+	Name *string
+}
+
+// Response for RescanCatalog. Empty for now; a named message lets later
+// versions add fields..
+type RescanCatalogResponse struct {
 }
 
 // Request to update the Data Classification configuration for a catalog.
@@ -109,6 +123,7 @@ type UpdateCatalogConfigRequest struct {
 	// The configuration to apply to the catalog. The name field in catalog_config
 	// identifies which resource to update.
 	CatalogConfig *CatalogConfig
-	// Field mask specifying which fields to update.
+	// Comma-separated list of the fields of catalog_config to update, for example
+	// `included_schemas` or `auto_tag_configs`.
 	UpdateMask *types.FieldMask[CatalogConfig]
 }

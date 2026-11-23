@@ -2616,6 +2616,63 @@ func (v *DirectSchemas) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type entityBindingWire struct {
+	Entity *string             `json:"entity,omitempty"`
+	Input  *inputReferenceWire `json:"input,omitempty"`
+}
+
+func entityBindingToWire(v *EntityBinding) (*entityBindingWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	inputWireValue, err := inputReferenceToWire(v.Input)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EntityBinding.Input", err)
+	}
+	return &entityBindingWire{
+		Entity: v.Entity,
+		Input:  inputWireValue,
+	}, nil
+}
+
+func entityBindingFromWire(w *entityBindingWire) (*EntityBinding, error) {
+	if w == nil {
+		return nil, nil
+	}
+	inputPublicValue, err := inputReferenceFromWire(w.Input)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "EntityBinding.Input", err)
+	}
+	return &EntityBinding{
+		Entity: w.Entity,
+		Input:  inputPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v EntityBinding) MarshalJSON() ([]byte, error) {
+	w, err := entityBindingToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *EntityBinding) UnmarshalJSON(data []byte) error {
+	var w entityBindingWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := entityBindingFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type entityColumnWire struct {
 	Name *string `json:"name,omitempty"`
 }
@@ -3631,6 +3688,8 @@ type functionWire struct {
 	AggregationFunction *aggregationFunctionWire     `json:"aggregation_function,omitempty"`
 	ColumnSelection     *columnSelectionWire         `json:"column_selection,omitempty"`
 	CustomUdf           *customUdfWire               `json:"custom_udf,omitempty"`
+	SecondaryKeys       *secondaryKeysWire           `json:"secondary_keys,omitempty"`
+	Lookup              *lookupWire                  `json:"lookup,omitempty"`
 }
 
 func functionToWire(v *Function) (*functionWire, error) {
@@ -3644,6 +3703,8 @@ func functionToWire(v *Function) (*functionWire, error) {
 	var functionAggregationFunctionWire *aggregationFunctionWire
 	var functionColumnSelectionWire *columnSelectionWire
 	var functionCustomUdfWire *customUdfWire
+	var functionSecondaryKeysWire *secondaryKeysWire
+	var functionLookupWire *lookupWire
 	switch value := v.Function.(type) {
 	case nil:
 	case *Function_Function_AggregationFunction:
@@ -3670,6 +3731,22 @@ func functionToWire(v *Function) (*functionWire, error) {
 			}
 			functionCustomUdfWire = functionCustomUdfConverted
 		}
+	case *Function_Function_SecondaryKeys:
+		if value != nil {
+			functionSecondaryKeysConverted, err := secondaryKeysToWire(&value.SecondaryKeys)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Function.Function.SecondaryKeys", err)
+			}
+			functionSecondaryKeysWire = functionSecondaryKeysConverted
+		}
+	case *Function_Function_Lookup:
+		if value != nil {
+			functionLookupConverted, err := lookupToWire(&value.Lookup)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Function.Function.Lookup", err)
+			}
+			functionLookupWire = functionLookupConverted
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Function.Function", value)
 	}
@@ -3679,6 +3756,8 @@ func functionToWire(v *Function) (*functionWire, error) {
 		AggregationFunction: functionAggregationFunctionWire,
 		ColumnSelection:     functionColumnSelectionWire,
 		CustomUdf:           functionCustomUdfWire,
+		SecondaryKeys:       functionSecondaryKeysWire,
+		Lookup:              functionLookupWire,
 	}, nil
 }
 
@@ -3694,6 +3773,12 @@ func functionFromWire(w *functionWire) (*Function, error) {
 		functionMembers++
 	}
 	if w.CustomUdf != nil {
+		functionMembers++
+	}
+	if w.SecondaryKeys != nil {
+		functionMembers++
+	}
+	if w.Lookup != nil {
 		functionMembers++
 	}
 	if functionMembers > 1 {
@@ -3723,6 +3808,18 @@ func functionFromWire(w *functionWire) (*Function, error) {
 			return nil, fmt.Errorf("%s: %w", "Function.Function.CustomUdf", err)
 		}
 		functionSelection = &Function_Function_CustomUdf{CustomUdf: *functionCustomUdfConverted}
+	case w.SecondaryKeys != nil:
+		functionSecondaryKeysConverted, err := secondaryKeysFromWire(w.SecondaryKeys)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "Function.Function.SecondaryKeys", err)
+		}
+		functionSelection = &Function_Function_SecondaryKeys{SecondaryKeys: *functionSecondaryKeysConverted}
+	case w.Lookup != nil:
+		functionLookupConverted, err := lookupFromWire(w.Lookup)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "Function.Function.Lookup", err)
+		}
+		functionSelection = &Function_Function_Lookup{Lookup: *functionLookupConverted}
 	}
 	return &Function{
 		FunctionType:    w.FunctionType,
@@ -4402,6 +4499,82 @@ func (v *InputBinding) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := inputBindingFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type inputReferenceWire struct {
+	Feature *featureReferenceWire `json:"feature,omitempty"`
+}
+
+func inputReferenceToWire(v *InputReference) (*inputReferenceWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var sourceFeatureWire *featureReferenceWire
+	switch value := v.Source.(type) {
+	case nil:
+	case *InputReference_Source_Feature:
+		if value != nil {
+			sourceFeatureConverted, err := featureReferenceToWire(&value.Feature)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "InputReference.Source.Feature", err)
+			}
+			sourceFeatureWire = sourceFeatureConverted
+		}
+	default:
+		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "InputReference.Source", value)
+	}
+	return &inputReferenceWire{
+		Feature: sourceFeatureWire,
+	}, nil
+}
+
+func inputReferenceFromWire(w *inputReferenceWire) (*InputReference, error) {
+	if w == nil {
+		return nil, nil
+	}
+	sourceMembers := 0
+	if w.Feature != nil {
+		sourceMembers++
+	}
+	if sourceMembers > 1 {
+		return nil, fmt.Errorf("%s: multiple oneof members set", "InputReference.Source")
+	}
+	var sourceSelection isInputReference_Source
+	switch {
+	case w.Feature != nil:
+		sourceFeatureConverted, err := featureReferenceFromWire(w.Feature)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "InputReference.Source.Feature", err)
+		}
+		sourceSelection = &InputReference_Source_Feature{Feature: *sourceFeatureConverted}
+	}
+	return &InputReference{
+		Source: sourceSelection,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v InputReference) MarshalJSON() ([]byte, error) {
+	w, err := inputReferenceToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *InputReference) UnmarshalJSON(data []byte) error {
+	var w inputReferenceWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := inputReferenceFromWire(&w)
 	if err != nil {
 		return err
 	}
@@ -5565,6 +5738,71 @@ func (v *ListStreamsResponse) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := listStreamsResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type lookupWire struct {
+	Feature  *featureReferenceWire `json:"feature,omitempty"`
+	Entities []entityBindingWire   `json:"entities,omitempty"`
+}
+
+func lookupToWire(v *Lookup) (*lookupWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	featureWireValue, err := featureReferenceToWire(v.Feature)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Lookup.Feature", err)
+	}
+	entitiesWireValue, err := convertSlice(v.Entities, entityBindingToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Lookup.Entities", err)
+	}
+	return &lookupWire{
+		Feature:  featureWireValue,
+		Entities: entitiesWireValue,
+	}, nil
+}
+
+func lookupFromWire(w *lookupWire) (*Lookup, error) {
+	if w == nil {
+		return nil, nil
+	}
+	featurePublicValue, err := featureReferenceFromWire(w.Feature)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Lookup.Feature", err)
+	}
+	entitiesPublicValue, err := convertSlice(w.Entities, entityBindingFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Lookup.Entities", err)
+	}
+	return &Lookup{
+		Feature:  featurePublicValue,
+		Entities: entitiesPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v Lookup) MarshalJSON() ([]byte, error) {
+	w, err := lookupToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *Lookup) UnmarshalJSON(data []byte) error {
+	var w lookupWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := lookupFromWire(&w)
 	if err != nil {
 		return err
 	}
@@ -7890,6 +8128,74 @@ func (v *SdpSource) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := sdpSourceFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type secondaryKeysWire struct {
+	Feature *featureReferenceWire `json:"feature,omitempty"`
+	Key     *string               `json:"key,omitempty"`
+	MaxKeys *wireInt64            `json:"max_keys,omitempty"`
+}
+
+func secondaryKeysToWire(v *SecondaryKeys) (*secondaryKeysWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	featureWireValue, err := featureReferenceToWire(v.Feature)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SecondaryKeys.Feature", err)
+	}
+	maxKeysWireValue, err := int64ToWire(v.MaxKeys)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SecondaryKeys.MaxKeys", err)
+	}
+	return &secondaryKeysWire{
+		Feature: featureWireValue,
+		Key:     v.Key,
+		MaxKeys: maxKeysWireValue,
+	}, nil
+}
+
+func secondaryKeysFromWire(w *secondaryKeysWire) (*SecondaryKeys, error) {
+	if w == nil {
+		return nil, nil
+	}
+	featurePublicValue, err := featureReferenceFromWire(w.Feature)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SecondaryKeys.Feature", err)
+	}
+	maxKeysPublicValue, err := int64FromWire(w.MaxKeys)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SecondaryKeys.MaxKeys", err)
+	}
+	return &SecondaryKeys{
+		Feature: featurePublicValue,
+		Key:     w.Key,
+		MaxKeys: maxKeysPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v SecondaryKeys) MarshalJSON() ([]byte, error) {
+	w, err := secondaryKeysToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *SecondaryKeys) UnmarshalJSON(data []byte) error {
+	var w secondaryKeysWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := secondaryKeysFromWire(&w)
 	if err != nil {
 		return err
 	}

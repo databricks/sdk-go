@@ -286,8 +286,9 @@ type GrantSessionStorePermissionRequest struct {
 type GrantSessionStorePermissionResponse struct {
 }
 
-// Request to list memory entries for one actor, optionally restricted by
-// session and path prefix, or matched by exact path regardless of session..
+// Request to list memory entries for one actor, optionally restricted by path
+// prefix and the deprecated session filter, or matched by exact path regardless
+// of session..
 type ListManagedMemoryEntriesRequest struct {
 	// Memory store whose entries are listed, in the form
 	// `memory-stores/{managed_memory_store_id}`.
@@ -301,9 +302,9 @@ type ListManagedMemoryEntriesRequest struct {
 	ActorId *string
 	// Optional path prefix used to restrict entries within the actor partition.
 	PathPrefix *string
-	// Optional session identifier. When set, only entries with this exact
-	// `session_id` are returned. Omitted-session (cross-session) entries are not
-	// included. Ignored when path is set.
+	// Deprecated: the service will ignore this filter. Until then, when set, only
+	// entries with this exact `session_id` are returned, and omitted-session
+	// (cross-session) entries are not included. Ignored when path is set.
 	SessionId *string
 	// Controls whether each returned entry includes memory content. Defaults to
 	// `FULL`.
@@ -458,12 +459,13 @@ type ManagedMemoryEntry struct {
 	// Customer-provided identifier for the actor whose memory this entry
 	// represents.
 	ActorId *string `fieldmask:"actor_id"`
-	// Optional identifier for the session associated with this memory entry. When
-	// omitted, the entry applies across the actor's sessions.
+	// Deprecated: memory entries will be identified by `(actor_id, path)`, and the
+	// service will ignore this field on writes and omit it from responses. Until
+	// then, an omitted value means the entry applies across the actor's sessions.
 	SessionId *string `fieldmask:"session_id"`
-	// Absolute, case-sensitive path identifying the entry within its actor and
-	// optional session. Paths must begin with `/` and must not contain empty, `.`
-	// or `..` segments.
+	// Absolute, case-sensitive path identifying the entry within its actor and,
+	// until the deprecated `session_id` is ignored, its optional session. Paths
+	// must begin with `/` and must not contain empty, `.` or `..` segments.
 	Path *string `fieldmask:"path"`
 	// Optional free-form memory content.
 	Content *string `fieldmask:"content"`
@@ -585,9 +587,9 @@ type SearchManagedMemoryEntriesRequest struct {
 	// Reserved for pagination compatibility. The server currently ignores this
 	// field because Search returns a ranked top-N result set.
 	PageToken *string
-	// Optional session identifier. When set, only entries with this exact
-	// `session_id` are searched. Omitted-session (cross-session) entries are not
-	// included.
+	// Deprecated: the service will ignore this filter. Until then, when set, only
+	// entries with this exact `session_id` are searched, and omitted-session
+	// (cross-session) entries are not included.
 	SessionId *string
 	// Optional absolute, case-sensitive path prefix used to restrict searched
 	// entries within the actor partition. The prefix must begin with `/` and must

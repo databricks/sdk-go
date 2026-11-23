@@ -9,7 +9,7 @@ package files
 // The transfer contract is the scenario matrix of the Python SDK's
 // tests/test_files_walk.py, recorded with the outcome and requests the Python
 // SDK produced. This test runs every scenario against this package through
-// portFake. The recording is not distributed with this module; the test skips
+// hostsFake. The recording is not distributed with this module; the test skips
 // without it.
 //
 // The ratchet: a scenario on neither list must match the contract, a scenario
@@ -40,7 +40,6 @@ import (
 	"github.com/databricks/sdk-go/core/apierr/codes"
 	"github.com/databricks/sdk-go/core/ops"
 	"github.com/databricks/sdk-go/files/v2/internal/cloudstorage"
-	"github.com/databricks/sdk-go/options/call"
 )
 
 const (
@@ -169,8 +168,8 @@ func runScenario(t *testing.T, h contractHeader, s contractScenario, wantOutcome
 	if err != nil {
 		t.Fatalf("decoding the faults: %v", err)
 	}
-	cfg := portFakeConfig{
-		portHosts:    portHosts{Workspace: k.WorkspaceHost, StorageProxy: k.StorageProxyHost, RIG: k.RIGHost, Cloud: k.CloudHost},
+	cfg := hostsFakeConfig{
+		hostNames:    hostNames{Workspace: k.WorkspaceHost, StorageProxy: k.StorageProxyHost, RIG: k.RIGHost, Cloud: k.CloudHost},
 		FilePath:     k.FilePath,
 		LastModified: k.LastModified,
 		Endpoints:    h.EndpointLists[s.EndpointList].EndpointsAPI,
@@ -179,7 +178,7 @@ func runScenario(t *testing.T, h contractHeader, s contractScenario, wantOutcome
 	if s.Transfer == "download" {
 		cfg.DownloadContent = data
 	}
-	srv := newPortFake(cfg)
+	srv := newHostsFake(cfg)
 	e := newEngine(buildUploadClient(t, "http://"+k.WorkspaceHost, srv.Client(), ""))
 	e.tun = contractTunables(e.tun, k.PartSize)
 	e.tun.endpointsAPI = h.EndpointLists[s.EndpointList].EndpointsAPI != nil
@@ -187,10 +186,11 @@ func runScenario(t *testing.T, h contractHeader, s contractScenario, wantOutcome
 	ctx, cancel := context.WithTimeoutCause(t.Context(), 30*time.Second, errScenarioHung)
 	defer cancel()
 	var downloaded []byte
+	var leftovers []string
 	if s.Transfer == "upload" {
 		err = contractUpload(ctx, t, e, srv, k.FilePath, k.PartSize, s, data)
 	} else {
-		downloaded, err = contractDownload(ctx, e, k.FilePath)
+		downloaded, leftovers, err = contractDownload(ctx, t, e, srv, k.FilePath, s.Mode)
 	}
 	if errors.Is(context.Cause(ctx), errScenarioHung) {
 		hung := []string{"the scenario did not finish within 30s"}
@@ -233,6 +233,9 @@ func runScenario(t *testing.T, h contractHeader, s contractScenario, wantOutcome
 		case wantOutcome == "OK" && !bytes.Equal(downloaded, data):
 			mismatches = append(mismatches, fmt.Sprintf("downloaded %d bytes, want the %d stored", len(downloaded), len(data)))
 		}
+		if len(leftovers) > 0 {
+			broken = append(broken, fmt.Sprintf("the failed download left %v behind", leftovers))
+		}
 	}
 	if err := srv.CheckCredentials(); err != nil {
 		broken = append(broken, err.Error())
@@ -255,6 +258,8 @@ func runScenario(t *testing.T, h contractHeader, s contractScenario, wantOutcome
 func contractTunables(tun tunables, partSize int64) tunables {
 	tun.minStreamSize = partSize
 	tun.defaultPartSize = partSize
+	tun.downloadMinParallelSize = partSize
+	tun.downloadPartSize = partSize
 	fast := ops.BackoffPolicy{Initial: time.Millisecond, Maximum: time.Millisecond, Factor: 1}
 	tun.cpBackoff = fast
 	tun.cloudBackoff = fast
@@ -262,7 +267,7 @@ func contractTunables(tun tunables, partSize int64) tunables {
 	return tun
 }
 
-func contractUpload(ctx context.Context, t *testing.T, e *engine, srv *portFake, path string, partSize int64, s contractScenario, data []byte) error {
+func contractUpload(ctx context.Context, t *testing.T, e *engine, srv *hostsFake, path string, partSize int64, s contractScenario, data []byte) error {
 	parallelism := 1
 	if s.Mode == "parallel" {
 		// The Python SDK's default parallelism.
@@ -288,15 +293,36 @@ func contractUpload(ctx context.Context, t *testing.T, e *engine, srv *portFake,
 	return nil
 }
 
-// contractDownload downloads through the generated client, the only download
-// this package has. Its retries are off because they back off for seconds.
-func contractDownload(ctx context.Context, e *engine, path string) ([]byte, error) {
-	resp, err := e.c.DownloadFile(ctx, DownloadFileRequest{FilePath: new(path)}, call.WithDisableRetry())
-	if err != nil {
-		return nil, err
+// contractDownload downloads in the scenario's mode: a stream, or to a file,
+// sequentially or in parallel ranges. It also returns the files a failed
+// download to a new file left behind, which must be none.
+func contractDownload(ctx context.Context, t *testing.T, e *engine, srv *hostsFake, path, mode string) ([]byte, []string, error) {
+	cfg := downloadConfig{transferClient: srv.Client()}
+	if mode == "stream" {
+		resp, err := e.download(ctx, path, cfg)
+		if err != nil {
+			return nil, nil, err
+		}
+		defer resp.Contents.Close()
+		data, err := io.ReadAll(resp.Contents)
+		return data, nil, err
 	}
-	defer resp.Contents.Close()
-	return io.ReadAll(resp.Contents)
+	if mode == "parallel" {
+		// The Python SDK's default parallelism.
+		cfg.parallel, cfg.parallelism = true, new(10)
+	}
+	dir := t.TempDir()
+	dest := filepath.Join(dir, "downloaded.bin")
+	if err := e.downloadTo(ctx, path, dest, cfg); err != nil {
+		entries, _ := os.ReadDir(dir)
+		var leftovers []string
+		for _, entry := range entries {
+			leftovers = append(leftovers, entry.Name())
+		}
+		return nil, leftovers, err
+	}
+	data, err := os.ReadFile(dest)
+	return data, nil, err
 }
 
 // contractOutcome maps an error to the contract's language-neutral outcome
@@ -315,7 +341,7 @@ func contractOutcome(err error) string {
 		return "TRANSFER_BROKEN"
 	case errors.Is(err, context.DeadlineExceeded):
 		return "RETRY_TIMEOUT"
-	case errors.Is(err, errPortNetwork):
+	case errors.Is(err, errHostsNetwork):
 		return "CONNECTION_FAILED"
 	case errors.Is(err, errUnexpectedServerResponse):
 		return "UNEXPECTED_RESPONSE"
@@ -343,8 +369,8 @@ func contractPayload(size int) []byte {
 // decodeFaults turns the contract's faults into fake faults. A fault is either
 // one fault for every call, or one per call in calls, the last standing for
 // every later call.
-func decodeFaults(raw map[string]json.RawMessage, calls []int) (map[string]portFaultFunc, error) {
-	faults := map[string]portFaultFunc{}
+func decodeFaults(raw map[string]json.RawMessage, calls []int) (map[string]hostsFaultFunc, error) {
+	faults := map[string]hostsFaultFunc{}
 	for op, msg := range raw {
 		var list []*encodedFault
 		if err := json.Unmarshal(msg, &list); err != nil {
@@ -354,7 +380,7 @@ func decodeFaults(raw map[string]json.RawMessage, calls []int) (map[string]portF
 			}
 			list = []*encodedFault{one}
 		}
-		decoded := make([]*portFault, len(list))
+		decoded := make([]*hostsFault, len(list))
 		for i, f := range list {
 			d, err := f.decode()
 			if err != nil {
@@ -362,7 +388,7 @@ func decodeFaults(raw map[string]json.RawMessage, calls []int) (map[string]portF
 			}
 			decoded[i] = d
 		}
-		faults[op] = func(call int) *portFault {
+		faults[op] = func(call int) *hostsFault {
 			if len(decoded) == 1 {
 				return decoded[0]
 			}
@@ -373,16 +399,16 @@ func decodeFaults(raw map[string]json.RawMessage, calls []int) (map[string]portF
 	return faults, nil
 }
 
-func (f *encodedFault) decode() (*portFault, error) {
+func (f *encodedFault) decode() (*hostsFault, error) {
 	switch {
 	case f == nil:
 		return nil, nil
 	case f.Status != 0:
-		return &portFault{Status: f.Status}, nil
+		return &hostsFault{Status: f.Status}, nil
 	case f.Error == "connection":
-		return &portFault{Connection: true}, nil
+		return &hostsFault{Connection: true}, nil
 	case f.BreakAfter != nil:
-		return &portFault{Break: true, BreakAfter: *f.BreakAfter}, nil
+		return &hostsFault{Break: true, BreakAfter: *f.BreakAfter}, nil
 	}
 	return nil, fmt.Errorf("unknown fault %+v", *f)
 }

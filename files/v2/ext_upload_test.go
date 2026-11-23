@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -17,6 +18,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"testing"
 	"time"
 
@@ -73,6 +75,11 @@ func buildUploadClient(t *testing.T, host string, hc *http.Client, workspaceID s
 // tests can assert byte-for-byte equality with the input.
 type fakeServer struct {
 	srv *httptest.Server
+	// onRequest, when set, sees every request first.
+	onRequest func(*http.Request)
+	// endpoints, when set, answers GET /api/2.0/fs/endpoints, with each
+	// $HOST in it the server's host.
+	endpoints string
 
 	mu          sync.Mutex
 	mode        string // "multipart", or "resumable" to offer a resumable session
@@ -111,6 +118,12 @@ type fakeServer struct {
 	// the default 200 + store". singleTry counts single-shot PUTs seen.
 	singleShotHook func(attempt int) int
 	singleTry      int
+
+	// singleShotRead, when set, reads the single-shot body in place of
+	// io.ReadAll, to pace or stall it. It returns false to leave the request
+	// unanswered. Tests count its calls themselves: an attempt the client gave
+	// up on may return after the next one began.
+	singleShotRead func(r *http.Request) ([]byte, bool)
 }
 
 func newFakeServer(t *testing.T, mode string) *fakeServer {
@@ -131,6 +144,9 @@ func (f *fakeServer) base() string { return f.srv.URL }
 func isControlPlane(path string) bool { return strings.HasPrefix(path, "/api/2.0/fs/") }
 
 func (f *fakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if f.onRequest != nil {
+		f.onRequest(r)
+	}
 	path := r.URL.Path
 
 	// Enforce the credential split the real deployment enforces, so any upload
@@ -148,6 +164,8 @@ func (f *fakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch {
+	case r.Method == http.MethodGet && path == endpointsAPIPath && f.endpoints != "":
+		_, _ = io.WriteString(w, strings.ReplaceAll(f.endpoints, "$HOST", r.Host))
 	case r.Method == http.MethodPost && strings.HasSuffix(path, "/create-upload-part-urls"):
 		f.handleCreatePartURLs(w, r)
 	case r.Method == http.MethodPut && strings.HasPrefix(path, "/cloud/part/"):
@@ -199,7 +217,18 @@ func (f *fakeServer) handleFiles(w http.ResponseWriter, r *http.Request) {
 		f.mu.Unlock()
 		w.WriteHeader(http.StatusOK)
 	case r.Method == http.MethodPut: // single-shot
-		body, _ := io.ReadAll(r.Body)
+		f.mu.Lock()
+		read := f.singleShotRead
+		f.mu.Unlock()
+		var body []byte
+		if read != nil {
+			var ok bool
+			if body, ok = read(r); !ok {
+				return
+			}
+		} else {
+			body, _ = io.ReadAll(r.Body)
+		}
 		f.mu.Lock()
 		f.singleBody = body
 		f.overwriteQ = append(f.overwriteQ, r.URL.Query().Get("overwrite"))
@@ -558,26 +587,224 @@ func TestUploadAlreadyExists(t *testing.T) {
 	}
 }
 
-// TestWithProgressPreservesSeekable is the unit-level guard for the retry bug:
-// wrapping a body for progress reporting must not hide its io.Seeker (which the
-// single-shot path probes to decide retriability), yet must not fabricate one
-// for a non-seekable source.
-func TestWithProgressPreservesSeekable(t *testing.T) {
-	p := newProgressReporter(func(Progress) {}, 10)
-
-	// A seekable source stays seekable through the wrapper, and Seek is forwarded.
-	seekable := withProgress(bytes.NewReader([]byte("0123456789")), p)
-	s, ok := seekable.(io.Seeker)
-	if !ok {
-		t.Fatal("withProgress dropped io.Seeker for a seekable source")
+// TestSingleShotProgressRewindsOnRetry: a retried single shot sends the body
+// again from its start, so progress rewinds instead of counting the bytes
+// twice, and Transferred never exceeds Total.
+func TestSingleShotProgressRewindsOnRetry(t *testing.T) {
+	f := newFakeServer(t, "multipart")
+	// The fake reads the whole body before it answers the first PUT with a 503.
+	f.singleShotHook = func(attempt int) int {
+		if attempt == 1 {
+			return http.StatusServiceUnavailable
+		}
+		return 0
 	}
-	if _, err := s.Seek(0, io.SeekStart); err != nil {
-		t.Errorf("forwarded Seek returned error: %v", err)
+	e := shrunkEngine(t, f)
+	e.tun.cpBackoff = ops.BackoffPolicy{Initial: time.Millisecond, Maximum: time.Millisecond, Factor: 1}
+
+	in := data(500) // below the 1024 single-shot threshold
+	var mu sync.Mutex
+	var reports []Progress
+	_, err := e.upload(t.Context(), "/Volumes/c/s/v/p.bin", bytes.NewReader(in),
+		WithProgress(func(p Progress) {
+			mu.Lock()
+			defer mu.Unlock()
+			reports = append(reports, p)
+		}))
+	noErr(t, err)
+	eqBytes(t, f.assembled(), in)
+	if f.singleTry != 2 {
+		t.Fatalf("single-shot attempts = %d, want 2 (one retry after the 503)", f.singleTry)
 	}
 
-	// A non-seekable source must not be reported as seekable.
-	if _, ok := withProgress(io.MultiReader(bytes.NewReader(nil)), p).(io.Seeker); ok {
-		t.Error("withProgress fabricated io.Seeker for a non-seekable source")
+	mu.Lock()
+	defer mu.Unlock()
+	rewound := false
+	for i, p := range reports {
+		if p.Transferred > p.Total {
+			t.Errorf("report %d: Transferred %d exceeds Total %d", i, p.Transferred, p.Total)
+		}
+		if i > 0 && p.Transferred < reports[i-1].Transferred {
+			rewound = true
+		}
+	}
+	if !rewound {
+		t.Error("progress never rewound for the retry")
+	}
+	if n := len(reports); n == 0 || reports[n-1].Transferred != int64(len(in)) {
+		t.Errorf("last report = %v, want Transferred %d", reports, len(in))
+	}
+}
+
+// TestSingleShotOutlastsTheRetryBudget: the retry budget stops new attempts
+// and never cuts a running one short. A single shot whose bytes keep moving
+// for longer than both the budget and the idle timeout lands in one attempt.
+func TestSingleShotOutlastsTheRetryBudget(t *testing.T) {
+	f := newFakeServer(t, "multipart")
+	f.singleShotRead = func(r *http.Request) ([]byte, bool) {
+		var body []byte
+		buf := make([]byte, 32<<10)
+		for {
+			n, err := io.ReadFull(r.Body, buf)
+			body = append(body, buf[:n]...)
+			if err != nil {
+				return body, true
+			}
+			time.Sleep(5 * time.Millisecond)
+		}
+	}
+	// A small send buffer makes the client's writes wait on the server's
+	// reads, so the client sees the bytes move at the server's pace instead of
+	// handing them all to the kernel at once.
+	transport := &http.Transport{DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+		c, err := (&net.Dialer{}).DialContext(ctx, network, addr)
+		if tc, ok := c.(*net.TCPConn); ok {
+			_ = tc.SetWriteBuffer(16 << 10)
+		}
+		return c, err
+	}}
+	t.Cleanup(transport.CloseIdleConnections)
+	e := newEngine(buildUploadClient(t, f.base(), &http.Client{Transport: transport}, ""))
+	e.tun.minStreamSize = 8 << 20 // so 4 MiB is a single shot
+	e.tun.cpRetryTimeout = 50 * time.Millisecond
+	e.tun.transferIdleTimeout = 300 * time.Millisecond
+
+	in := data(4 << 20)
+	start := time.Now()
+	_, err := e.upload(t.Context(), "/Volumes/c/s/v/slow.bin", bytes.NewReader(in))
+	took := time.Since(start)
+	noErr(t, err)
+	eqBytes(t, f.assembled(), in)
+	if f.singleTry != 1 {
+		t.Errorf("single-shot attempts = %d, want 1", f.singleTry)
+	}
+	if took < e.tun.transferIdleTimeout {
+		t.Fatalf("the upload took %v, under the idle timeout, so it shows nothing", took)
+	}
+}
+
+// TestSingleShotStallIsCutAndRetried: an attempt that moves no bytes for the
+// idle timeout fails as a timeout, which is retried as any transient failure
+// is.
+func TestSingleShotStallIsCutAndRetried(t *testing.T) {
+	f := newFakeServer(t, "multipart")
+	// Registered after the server's Close, so it runs first and frees a held
+	// answer.
+	release := make(chan struct{})
+	t.Cleanup(func() { close(release) })
+	var tries atomic.Int32
+	f.singleShotRead = func(r *http.Request) ([]byte, bool) {
+		// The server notices that the client gave up only once the body is read.
+		body, _ := io.ReadAll(r.Body)
+		if tries.Add(1) == 1 {
+			// Hold the answer: no bytes move until the client gives up.
+			select {
+			case <-r.Context().Done():
+			case <-release:
+			}
+			return nil, false
+		}
+		return body, true
+	}
+	e := shrunkEngine(t, f)
+	e.tun.cpBackoff = ops.BackoffPolicy{Initial: time.Millisecond, Maximum: time.Millisecond, Factor: 1}
+	e.tun.cpRetryTimeout = 5 * time.Second
+	e.tun.transferIdleTimeout = 250 * time.Millisecond
+
+	in := data(500)
+	// Without the stall rule this would wait for the held answer; fail instead.
+	ctx, cancel := context.WithTimeout(t.Context(), 3*time.Second)
+	defer cancel()
+	start := time.Now()
+	_, err := e.upload(ctx, "/Volumes/c/s/v/stall.bin", bytes.NewReader(in))
+	took := time.Since(start)
+	noErr(t, err)
+	eqBytes(t, f.assembled(), in)
+	if n := tries.Load(); n != 2 {
+		t.Errorf("single-shot attempts = %d, want 2 (the stall, then a retry)", n)
+	}
+	if took < e.tun.transferIdleTimeout || took > e.tun.cpRetryTimeout {
+		t.Errorf("the upload took %v, want at least the %v idle timeout and well under the %v budget", took, e.tun.transferIdleTimeout, e.tun.cpRetryTimeout)
+	}
+}
+
+// TestSingleShotRetriesStopAtTheBudget: no new attempt starts once the budget
+// has passed. The upload then returns the deadline error, as ops.Execute does
+// for any call, which the contract reads as RETRY_TIMEOUT.
+func TestSingleShotRetriesStopAtTheBudget(t *testing.T) {
+	f := newFakeServer(t, "multipart")
+	f.singleShotHook = func(int) int { return http.StatusServiceUnavailable }
+	e := shrunkEngine(t, f)
+	e.tun.cpBackoff = ops.BackoffPolicy{Initial: 5 * time.Millisecond, Maximum: 5 * time.Millisecond, Factor: 1}
+	e.tun.cpRetryTimeout = 100 * time.Millisecond
+
+	// Without the budget the workspace would be retried until ctx ends; fail
+	// instead.
+	ctx, cancel := context.WithTimeout(t.Context(), 3*time.Second)
+	defer cancel()
+	start := time.Now()
+	_, err := e.upload(ctx, "/Volumes/c/s/v/p.bin", bytes.NewReader(data(500)))
+	took := time.Since(start)
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("got error %v, want the budget's deadline", err)
+	}
+	if f.singleTry < 2 {
+		t.Errorf("single-shot attempts = %d, want retries within the budget", f.singleTry)
+	}
+	if took > time.Second {
+		t.Errorf("the upload took %v, want it to stop at the %v budget", took, e.tun.cpRetryTimeout)
+	}
+}
+
+// slowReader is a seekable reader whose every Read first waits, as a caller's
+// slow source would. It has no ReadAt, so the upload reads through Read.
+type slowReader struct {
+	r     *bytes.Reader
+	pause time.Duration
+}
+
+func (s *slowReader) Read(p []byte) (int, error) {
+	time.Sleep(s.pause)
+	return s.r.Read(p[:min(len(p), 100)])
+}
+
+func (s *slowReader) Seek(offset int64, whence int) (int64, error) {
+	return s.r.Seek(offset, whence)
+}
+
+// TestSingleShotIdleTimeoutIgnoresTheCallersReader: time spent waiting on the
+// caller's reader isn't a stall.
+func TestSingleShotIdleTimeoutIgnoresTheCallersReader(t *testing.T) {
+	f := newFakeServer(t, "multipart")
+	e := shrunkEngine(t, f)
+	e.tun.transferIdleTimeout = 200 * time.Millisecond
+	e.tun.cpRetryTimeout = 10 * time.Millisecond
+
+	in := data(500)
+	start := time.Now()
+	_, err := e.upload(t.Context(), "/Volumes/c/s/v/slow-source.bin", &slowReader{r: bytes.NewReader(in), pause: 3 * e.tun.transferIdleTimeout / 2})
+	took := time.Since(start)
+	noErr(t, err)
+	eqBytes(t, f.assembled(), in)
+	if f.singleTry != 1 {
+		t.Errorf("single-shot attempts = %d, want 1", f.singleTry)
+	}
+	if took < 2*e.tun.transferIdleTimeout {
+		t.Fatalf("the upload took %v, so the caller's reader never outlasted the idle timeout", took)
+	}
+}
+
+func TestStalledSingleShotIsTransient(t *testing.T) {
+	e := shrunkEngine(t, newFakeServer(t, "multipart"))
+	err := &stalledError{idle: time.Minute}
+	if _, ok := e.newControlPlaneRetrier().IsRetriable(err); !ok {
+		t.Error("a stalled attempt isn't retried")
+	}
+	if !walksOn(t.Context(), err) {
+		t.Error("a stalled attempt doesn't move on to the next endpoint")
+	}
+	if !errors.Is(err, errUploadStalled) {
+		t.Error("a stalled attempt doesn't match errUploadStalled")
 	}
 }
 
@@ -666,21 +893,22 @@ func TestSingleShotRetryIsNotCutShortByALateRead(t *testing.T) {
 	// net/http may still read a request body after the attempt returns, until
 	// it closes it. This transport answers the first attempt with a 503 at once
 	// and keeps reading that attempt's body while the retry runs, as a write
-	// loop still sending it would. The retry must still send every byte.
+	// loop still sending it would. The retry must still send every byte, and
+	// the late read mustn't count toward the retry's progress.
 	in := data(500) // below the 1024 single-shot threshold
 	src := filepath.Join(t.TempDir(), "src.bin")
 	noErr(t, os.WriteFile(src, in, 0o600))
 	uploads := map[string]struct {
-		upload func(*engine) error
+		upload func(*engine, ...UploadOption) error
 		// randomAccess is whether net/http can also send the body again itself.
 		randomAccess bool
 	}{
-		"a file": {func(e *engine) error {
-			_, err := e.uploadFrom(t.Context(), "/Volumes/c/s/v/p.bin", src)
+		"a file": {func(e *engine, opts ...UploadOption) error {
+			_, err := e.uploadFrom(t.Context(), "/Volumes/c/s/v/p.bin", src, opts...)
 			return err
 		}, true},
-		"a reader without random access": {func(e *engine) error {
-			_, err := e.upload(t.Context(), "/Volumes/c/s/v/p.bin", struct{ io.ReadSeeker }{bytes.NewReader(in)})
+		"a reader without random access": {func(e *engine, opts ...UploadOption) error {
+			_, err := e.upload(t.Context(), "/Volumes/c/s/v/p.bin", struct{ io.ReadSeeker }{bytes.NewReader(in)}, opts...)
 			return err
 		}, false},
 	}
@@ -730,9 +958,13 @@ func TestSingleShotRetryIsNotCutShortByALateRead(t *testing.T) {
 			e.tun.minStreamSize = 1024
 			e.tun.cpBackoff = ops.BackoffPolicy{Initial: time.Millisecond, Maximum: time.Millisecond, Factor: 1}
 
-			noErr(t, tc.upload(e))
+			var past int64 // the most Transferred ran past Total
+			noErr(t, tc.upload(e, WithProgress(func(p Progress) { past = max(past, p.Transferred-p.Total) })))
 			if attempts != 2 {
 				t.Errorf("attempts = %d, want 2 (one retry after the 503)", attempts)
+			}
+			if past > 0 {
+				t.Errorf("progress ran %d bytes past Total: the first attempt's late read counted", past)
 			}
 			eqBytes(t, sent, in)
 			if sentLength != int64(len(in)) {
@@ -747,10 +979,183 @@ func TestSingleShotRetryIsNotCutShortByALateRead(t *testing.T) {
 	}
 }
 
+func TestWalkWaitsForTheLastBodyBeforeTheNextEndpoint(t *testing.T) {
+	// RoundTrip may close a request body on another goroutine after it
+	// returns. Here the storage proxy refuses the single shot at once and keeps
+	// reading its body while the walk moves on, as a write loop still sending it
+	// would. The workspace must still get exactly the source's bytes.
+	in := data(500) // below the 1024 single-shot threshold
+	src := filepath.Join(t.TempDir(), "src.bin")
+	noErr(t, os.WriteFile(src, in, 0o600))
+	sources := map[string]func(*engine) error{
+		// It reads the source itself on every endpoint, so the walk must wait
+		// for the proxy's body to close before it rewinds the source.
+		"a reader that seeks but has no ReadAt": func(e *engine) error {
+			_, err := e.upload(t.Context(), "/Volumes/c/s/v/p.bin", struct{ io.ReadSeeker }{bytes.NewReader(in)})
+			return err
+		},
+		// Each attempt reads its own section, so a late read can't move the
+		// next endpoint's position.
+		"a file": func(e *engine) error {
+			_, err := e.uploadFrom(t.Context(), "/Volumes/c/s/v/p.bin", src)
+			return err
+		},
+	}
+	for name, upload := range sources {
+		t.Run(name, func(t *testing.T) {
+			workspaceStarted, lateReadDone := make(chan struct{}), make(chan struct{})
+			var proxyPuts, workspacePuts atomic.Int32
+			var sent []byte
+			rt := roundTripFunc(func(r *http.Request) (*http.Response, error) {
+				switch {
+				case r.Method == http.MethodGet && r.URL.Path == endpointsAPIPath:
+					return cannedResponse(r, http.StatusOK, `{"endpoints":[
+						{"api":"FILES_API","api_version":"2.0","scheme":"http","hostname":"proxy.example.com"},
+						{"api":"FILES_API","api_version":"2.0","scheme":"https","hostname":"ws.example.com"}]}`), nil
+				case r.Method == http.MethodPut && r.URL.Host == "proxy.example.com":
+					proxyPuts.Add(1)
+					go func() {
+						// Wait for the next endpoint, but not forever: a walk that
+						// waits for this body to close never gets there.
+						select {
+						case <-workspaceStarted:
+						case <-time.After(100 * time.Millisecond):
+						}
+						_, _ = io.CopyN(io.Discard, r.Body, 100)
+						_ = r.Body.Close()
+						close(lateReadDone)
+					}()
+					return cannedResponse(r, http.StatusBadRequest, `{"error_code":"BAD_REQUEST","message":"no"}`), nil
+				case r.Method == http.MethodPut && r.URL.Host == "ws.example.com":
+					if workspacePuts.Add(1) == 1 {
+						close(workspaceStarted)
+					}
+					<-lateReadDone
+					var err error
+					sent, err = io.ReadAll(r.Body)
+					_ = r.Body.Close()
+					if err != nil {
+						return nil, err
+					}
+					return cannedResponse(r, http.StatusNoContent, ""), nil
+				}
+				t.Errorf("unexpected request %s %s", r.Method, r.URL)
+				return cannedResponse(r, http.StatusNotFound, `{"error_code":"NOT_FOUND","message":"no"}`), nil
+			})
+			e := newEngine(buildUploadClient(t, "https://ws.example.com", &http.Client{Transport: rt}, ""))
+			e.tun.endpointsAPI = true
+			e.tun.minStreamSize = 1024
+			e.tun.cpBackoff = ops.BackoffPolicy{Initial: time.Millisecond, Maximum: time.Millisecond, Factor: 1}
+
+			noErr(t, upload(e))
+			if p, w := proxyPuts.Load(), workspacePuts.Load(); p != 1 || w != 1 {
+				t.Fatalf("PUTs: storage proxy %d, workspace %d; want 1 each, walking from the proxy to the workspace", p, w)
+			}
+			eqBytes(t, sent, in)
+		})
+	}
+}
+
+func TestWalkWaitingForTheLastBodyStopsWhenCancelled(t *testing.T) {
+	// The proxy here never closes its body, so only the caller's cancellation
+	// can end the walk's wait for it.
+	var workspacePuts atomic.Int32
+	rt := roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		switch {
+		case r.Method == http.MethodGet && r.URL.Path == endpointsAPIPath:
+			return cannedResponse(r, http.StatusOK, `{"endpoints":[
+				{"api":"FILES_API","api_version":"2.0","scheme":"http","hostname":"proxy.example.com"},
+				{"api":"FILES_API","api_version":"2.0","scheme":"https","hostname":"ws.example.com"}]}`), nil
+		case r.Method == http.MethodPut && r.URL.Host == "proxy.example.com":
+			return cannedResponse(r, http.StatusBadRequest, `{"error_code":"BAD_REQUEST","message":"no"}`), nil
+		case r.Method == http.MethodPut && r.URL.Host == "ws.example.com":
+			workspacePuts.Add(1)
+			_ = r.Body.Close()
+			return cannedResponse(r, http.StatusNoContent, ""), nil
+		}
+		t.Errorf("unexpected request %s %s", r.Method, r.URL)
+		return cannedResponse(r, http.StatusNotFound, `{"error_code":"NOT_FOUND","message":"no"}`), nil
+	})
+	e := newEngine(buildUploadClient(t, "https://ws.example.com", &http.Client{Transport: rt}, ""))
+	e.tun.endpointsAPI = true
+	e.tun.minStreamSize = 1024
+
+	stop := errors.New("the caller gave up")
+	ctx, cancel := context.WithCancelCause(t.Context())
+	time.AfterFunc(50*time.Millisecond, func() { cancel(stop) })
+	done := make(chan error, 1)
+	go func() {
+		_, err := e.upload(ctx, "/Volumes/c/s/v/p.bin", struct{ io.ReadSeeker }{bytes.NewReader(data(500))})
+		done <- err
+	}()
+	select {
+	case err := <-done:
+		if !errors.Is(err, stop) {
+			t.Errorf("err = %v, want the cancellation cause %v", err, stop)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("the walk still waits for a body that is never closed after its context was cancelled")
+	}
+	if n := workspacePuts.Load(); n != 0 {
+		t.Errorf("workspace PUTs = %d, want none: the source was never free to rewind", n)
+	}
+}
+
+// failOnCall is credentials whose nth AuthHeaders call fails.
+type failOnCall struct {
+	n     int32
+	calls atomic.Int32
+}
+
+func (*failOnCall) Name() string { return "fail-on-call" }
+
+func (c *failOnCall) AuthHeaders(context.Context) ([]auth.Header, error) {
+	if c.calls.Add(1) == c.n {
+		return nil, errors.New("no credentials this time")
+	}
+	return []auth.Header{{Key: "Authorization", Value: "Bearer test"}}, nil
+}
+
+func TestWalkDoesNotWaitForABodyThatWasNeverSent(t *testing.T) {
+	// The proxy's request fails to build (its credentials fail), so net/http
+	// never gets the body. newHTTPRequest closes it then, or the walk's wait
+	// for it would only end with the caller's context.
+	in := data(500)
+	var sent []byte
+	rt := roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		switch {
+		case r.Method == http.MethodGet && r.URL.Path == endpointsAPIPath:
+			return cannedResponse(r, http.StatusOK, `{"endpoints":[
+				{"api":"FILES_API","api_version":"2.0","scheme":"http","hostname":"proxy.example.com"},
+				{"api":"FILES_API","api_version":"2.0","scheme":"https","hostname":"ws.example.com"}]}`), nil
+		case r.Method == http.MethodPut && r.URL.Host == "ws.example.com":
+			var err error
+			sent, err = io.ReadAll(r.Body)
+			_ = r.Body.Close()
+			if err != nil {
+				return nil, err
+			}
+			return cannedResponse(r, http.StatusNoContent, ""), nil
+		}
+		t.Errorf("unexpected request %s %s", r.Method, r.URL)
+		return cannedResponse(r, http.StatusNotFound, `{"error_code":"NOT_FOUND","message":"no"}`), nil
+	})
+	e := newEngine(buildUploadClient(t, "https://ws.example.com", &http.Client{Transport: rt}, ""))
+	e.c.credentials = &failOnCall{n: 2} // the first call is discovery's
+	e.tun.endpointsAPI = true
+	e.tun.minStreamSize = 1024
+
+	ctx, cancel := context.WithTimeout(t.Context(), 3*time.Second)
+	defer cancel()
+	_, err := e.upload(ctx, "/Volumes/c/s/v/p.bin", struct{ io.ReadSeeker }{bytes.NewReader(in)})
+	noErr(t, err)
+	eqBytes(t, sent, in)
+}
+
 func TestSingleShotRetryWaitingForTheLastBodyStopsWhenCancelled(t *testing.T) {
 	// A retry of data without random access waits for net/http to close the
 	// last attempt's body. This transport never closes it, so only the
-	// caller's cancellation can end the wait.
+	// caller's cancellation, or the retry budget, can end the wait.
 	var attempts atomic.Int32
 	rt := roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		attempts.Add(1)
@@ -778,6 +1183,342 @@ func TestSingleShotRetryWaitingForTheLastBodyStopsWhenCancelled(t *testing.T) {
 	}
 	if got := attempts.Load(); got != 1 {
 		t.Errorf("attempts = %d, want 1: the retry waits for the first attempt's body", got)
+	}
+}
+
+func TestSingleShotRetryWaitingForTheLastBodyStopsAtTheBudget(t *testing.T) {
+	// The same wait as above, with no cancellation: the budget, which bounds
+	// starting a new attempt, ends it.
+	var attempts atomic.Int32
+	rt := roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		attempts.Add(1)
+		return cannedResponse(r, http.StatusServiceUnavailable, `{"error_code":"TEMPORARILY_UNAVAILABLE","message":"busy"}`), nil
+	})
+	e := newEngine(buildUploadClient(t, "https://ws.example.com", &http.Client{Transport: rt}, ""))
+	e.tun.minStreamSize = 1024
+	e.tun.cpBackoff = ops.BackoffPolicy{Initial: time.Millisecond, Maximum: time.Millisecond, Factor: 1}
+	e.tun.cpRetryTimeout = 50 * time.Millisecond
+
+	ctx, cancel := context.WithTimeout(t.Context(), 3*time.Second)
+	defer cancel()
+	start := time.Now()
+	_, err := e.upload(ctx, "/Volumes/c/s/v/p.bin", struct{ io.ReadSeeker }{bytes.NewReader(data(500))})
+	if took := time.Since(start); took > time.Second {
+		t.Errorf("the upload took %v, want it to stop at the %v budget", took, e.tun.cpRetryTimeout)
+	}
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Errorf("err = %v, want the budget's deadline", err)
+	}
+	if got := attempts.Load(); got != 1 {
+		t.Errorf("attempts = %d, want 1: the retry waits for the first attempt's body", got)
+	}
+}
+
+// flakyCredentials fails its first AuthHeaders call with a connection reset,
+// which the control-plane retrier retries, and gives testToken after that.
+type flakyCredentials struct{ calls atomic.Int32 }
+
+func (*flakyCredentials) Name() string { return "flaky" }
+
+func (c *flakyCredentials) AuthHeaders(context.Context) ([]auth.Header, error) {
+	if c.calls.Add(1) == 1 {
+		return nil, fmt.Errorf("refreshing the token: %w", syscall.ECONNRESET)
+	}
+	return []auth.Header{{Key: "Authorization", Value: testToken}}, nil
+}
+
+// resolveOnceCredentials resolves on its first AuthHeaders call, which takes
+// delay, and keeps that resolution's result, as the default credentials do:
+// a resolution its context ended fails every later call too.
+type resolveOnceCredentials struct {
+	delay time.Duration
+	once  sync.Once
+	err   error
+}
+
+func (*resolveOnceCredentials) Name() string { return "resolve-once" }
+
+func (c *resolveOnceCredentials) AuthHeaders(ctx context.Context) ([]auth.Header, error) {
+	c.once.Do(func() {
+		select {
+		case <-time.After(c.delay):
+		case <-ctx.Done():
+			c.err = fmt.Errorf("resolving the credentials: %w", context.Cause(ctx))
+		}
+	})
+	if c.err != nil {
+		return nil, c.err
+	}
+	return []auth.Header{{Key: "Authorization", Value: testToken}}, nil
+}
+
+func TestSingleShotRetriesAfterTheCredentialsFail(t *testing.T) {
+	// An attempt whose credentials fail sends nothing, but its body must still
+	// be closed: the retry of data without random access waits for that
+	// before it rewinds.
+	var got []byte
+	e := newControlEngine(t, func(w http.ResponseWriter, r *http.Request) {
+		got, _ = io.ReadAll(r.Body)
+		w.WriteHeader(http.StatusOK)
+	})
+	creds := &flakyCredentials{}
+	e.c.credentials = creds
+	e.tun.cpBackoff = ops.BackoffPolicy{Initial: time.Millisecond, Maximum: time.Millisecond, Factor: 1}
+	// A retry left waiting for that body would fail at this budget.
+	e.tun.cpRetryTimeout = 2 * time.Second
+
+	in := data(500)
+	noErr(t, e.uploadSingleShot(t.Context(), controlContext(e, nil), struct{ io.ReadSeeker }{bytes.NewReader(in)}, int64(len(in))))
+	eqBytes(t, got, in)
+	if n := creds.calls.Load(); n != 2 {
+		t.Errorf("credential calls = %d, want 2: the failed one, then the retry's", n)
+	}
+}
+
+func TestSingleShotResolvesCredentialsOutsideTheIdleTimeout(t *testing.T) {
+	// Credentials that resolve once, as the default ones do, keep the first
+	// resolution's result. A first resolution slower than the idle timeout
+	// moves no bytes, but it isn't a stall: the attempt, sent only once since
+	// its body can't be rewound, must land, and so must the next upload.
+	var mu sync.Mutex
+	var got [][]byte
+	e := newControlEngine(t, func(w http.ResponseWriter, r *http.Request) {
+		b, _ := io.ReadAll(r.Body)
+		mu.Lock()
+		got = append(got, b)
+		mu.Unlock()
+		w.WriteHeader(http.StatusOK)
+	})
+	e.c.credentials = &resolveOnceCredentials{delay: 300 * time.Millisecond}
+	e.tun.transferIdleTimeout = 100 * time.Millisecond
+
+	in := data(500)
+	for upload := range 2 {
+		if err := e.uploadSingleShot(t.Context(), controlContext(e, nil), struct{ io.Reader }{bytes.NewReader(in)}, int64(len(in))); err != nil {
+			t.Fatalf("upload %d: %v", upload+1, err)
+		}
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	if want := [][]byte{in, in}; !slices.EqualFunc(got, want, bytes.Equal) {
+		t.Errorf("the host got %d bodies, want both uploads' %d bytes", len(got), len(in))
+	}
+}
+
+func TestSingleShotCredentialResolutionIsBoundedByTheRetryBudget(t *testing.T) {
+	// Resolving credentials isn't a stall, so the idle timeout doesn't bound
+	// it, but the retry budget does: credentials that never resolve fail the
+	// upload once the budget runs out, instead of holding it for good.
+	e := newControlEngine(t, func(w http.ResponseWriter, r *http.Request) {
+		t.Errorf("request sent without resolved credentials: %s %s", r.Method, r.URL)
+		w.WriteHeader(http.StatusOK)
+	})
+	e.c.credentials = &resolveOnceCredentials{delay: time.Hour}
+	e.tun.cpRetryTimeout = 200 * time.Millisecond
+
+	in := data(500)
+	done := make(chan error, 1)
+	go func() {
+		done <- e.uploadSingleShot(t.Context(), controlContext(e, nil), struct{ io.Reader }{bytes.NewReader(in)}, int64(len(in)))
+	}()
+	select {
+	case err := <-done:
+		if !errors.Is(err, context.DeadlineExceeded) {
+			t.Errorf("err = %v, want the retry budget's deadline", err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatalf("the upload still waits on its credentials 5 s into a %v retry budget", e.tun.cpRetryTimeout)
+	}
+}
+
+// lateCredentials returns testToken after delay whatever its context, as
+// credentials waiting on another call's resolution or token refresh do.
+type lateCredentials struct{ delay time.Duration }
+
+func (lateCredentials) Name() string { return "late" }
+
+func (c lateCredentials) AuthHeaders(context.Context) ([]auth.Header, error) {
+	time.Sleep(c.delay)
+	return []auth.Header{{Key: "Authorization", Value: testToken}}, nil
+}
+
+func TestSingleShotStartsNoAttemptOnceTheRetryBudgetIsSpent(t *testing.T) {
+	// The credentials return only after the retry budget ran out. The upload
+	// fails with the budget's deadline and sends nothing, as the budget stops
+	// new attempts.
+	var puts atomic.Int32
+	e := newControlEngine(t, func(w http.ResponseWriter, r *http.Request) {
+		puts.Add(1)
+		w.WriteHeader(http.StatusOK)
+	})
+	e.c.credentials = lateCredentials{delay: 300 * time.Millisecond}
+	e.tun.cpRetryTimeout = 100 * time.Millisecond
+
+	in := data(500)
+	err := e.uploadSingleShot(t.Context(), controlContext(e, nil), struct{ io.Reader }{bytes.NewReader(in)}, int64(len(in)))
+	type result struct {
+		puts     int32
+		deadline bool
+	}
+	if got, want := (result{puts.Load(), errors.Is(err, context.DeadlineExceeded)}), (result{0, true}); got != want {
+		t.Errorf("got %+v (err %v), want %+v", got, err, want)
+	}
+}
+
+// TestSingleShotProgressStartsAtZeroOnTheNextEndpoint: an endpoint the walk
+// moves on to sends the whole upload again, so progress starts from zero there,
+// not from what the last endpoint's attempts read.
+func TestSingleShotProgressStartsAtZeroOnTheNextEndpoint(t *testing.T) {
+	f := newFakeServer(t, "multipart")
+	e := shrunkEngine(t, f)
+	in := data(500)
+	var reports []Progress
+	uc := controlContext(e, nil)
+	uc.progress = newProgressReporter(func(p Progress) { reports = append(reports, p) }, int64(len(in)))
+	// The last endpoint's attempt read the whole body before it failed.
+	uc.progress.addAttempt(uc.progress.restart(), int64(len(in)))
+
+	noErr(t, e.uploadSingleShot(t.Context(), uc, bytes.NewReader(in), int64(len(in))))
+	eqBytes(t, f.assembled(), in)
+	for i, p := range reports {
+		if p.Transferred > p.Total {
+			t.Errorf("report %d: Transferred %d exceeds Total %d", i, p.Transferred, p.Total)
+		}
+	}
+	if last := reports[len(reports)-1]; last.Transferred != int64(len(in)) {
+		t.Errorf("last report = %+v, want Transferred %d", last, len(in))
+	}
+}
+
+func TestUploadWalksPastAnEndpointThatNeverAnswers(t *testing.T) {
+	// A discovered Files API host accepts initiate-upload and never answers.
+	// Each attempt there ends at the control-call bound, so the upload moves on
+	// to the next endpoint long before the retry budget runs out.
+	f := newFakeServer(t, "multipart")
+	proxy := strings.Replace(strings.TrimPrefix(f.base(), "http://"), "127.0.0.1", "localhost", 1)
+	f.endpoints = fmt.Sprintf(`{"endpoints":[
+		{"api":"FILES_API","api_version":"2.0","scheme":"http","hostname":%q,"multipart_upload_supported":true},
+		{"api":"IO_OFFLOAD","scheme":"http","hostname":"$HOST","multipart_upload_supported":true}]}`, proxy)
+	var hung atomic.Int32
+	f.onRequest = func(r *http.Request) {
+		if r.Host == proxy && r.URL.Query().Get("action") == "initiate-upload" {
+			hung.Add(1)
+			<-r.Context().Done()
+		}
+	}
+	e := shrunkEngine(t, f)
+	e.tun.endpointsAPI = true
+	e.tun.cpBackoff = ops.BackoffPolicy{Initial: time.Millisecond, Maximum: time.Millisecond, Factor: 1}
+	e.tun.controlAttemptTimeout = 200 * time.Millisecond
+	// Without a bound per attempt, the first attempt would hold all of this.
+	e.tun.cpRetryTimeout = 10 * time.Second
+
+	in := data(3000)
+	start := time.Now()
+	_, err := e.upload(t.Context(), "/Volumes/c/s/v/p.bin", bytes.NewReader(in))
+	took := time.Since(start)
+	noErr(t, err)
+	eqBytes(t, f.assembled(), in)
+	if n := hung.Load(); n != 2 {
+		t.Errorf("unanswered initiates = %d, want 2: the attempt and its one retry before any part lands", n)
+	}
+	if took > 3*time.Second {
+		t.Errorf("the upload took %v, want it to move on after two %v attempts", took, e.tun.controlAttemptTimeout)
+	}
+}
+
+func TestUploadSkipsAnEndpointThatNeverAnswers(t *testing.T) {
+	// A discovered Files API host accepts initiate-upload and never answers.
+	// Each upload that walks past it to the next endpoint counts against it,
+	// so after endpointSkipAfter uploads the next one skips it, and after the
+	// cool-off one upload probes it again.
+	f := newFakeServer(t, "multipart")
+	proxy := strings.Replace(strings.TrimPrefix(f.base(), "http://"), "127.0.0.1", "localhost", 1)
+	f.endpoints = fmt.Sprintf(`{"endpoints":[
+		{"api":"FILES_API","api_version":"2.0","scheme":"http","hostname":%q,"multipart_upload_supported":true},
+		{"api":"IO_OFFLOAD","scheme":"http","hostname":"$HOST","multipart_upload_supported":true}]}`, proxy)
+	var hung atomic.Int32
+	f.onRequest = func(r *http.Request) {
+		if r.Host == proxy && r.URL.Query().Get("action") == "initiate-upload" {
+			hung.Add(1)
+			<-r.Context().Done()
+		}
+	}
+	clock := newTestClock()
+	e := shrunkEngine(t, f)
+	e.now = clock.time
+	e.tun.endpointsAPI = true
+	e.tun.cpBackoff = ops.BackoffPolicy{Initial: time.Millisecond, Maximum: time.Millisecond, Factor: 1}
+	e.tun.controlAttemptTimeout = 100 * time.Millisecond
+	e.tun.cpRetryTimeout = 10 * time.Second
+
+	// triesProxy runs one upload, which must land, and tells whether it tried
+	// the host that never answers.
+	in := data(3000)
+	triesProxy := func() bool {
+		t.Helper()
+		before := hung.Load()
+		_, err := e.upload(t.Context(), "/Volumes/c/s/v/p.bin", bytes.NewReader(in))
+		noErr(t, err)
+		eqBytes(t, f.assembled(), in)
+		return hung.Load() > before
+	}
+	var tried, want []bool
+	for i := range e.tun.endpointSkipAfter + 1 {
+		tried = append(tried, triesProxy())
+		want = append(want, i < e.tun.endpointSkipAfter)
+	}
+	if !slices.Equal(tried, want) {
+		t.Fatalf("tried the host = %v, want %v", tried, want)
+	}
+	clock.advance(e.tun.endpointSkipCoolOff)
+	if !triesProxy() {
+		t.Error("after the cool-off, the upload didn't probe the host")
+	}
+}
+
+// TestUploadProgressRewindsWhenTheWalkMovesOn: a single shot that read the
+// whole upload and failed leaves its bytes in the count; the multipart upload
+// on the next endpoint sends them all again, so progress starts from zero.
+func TestUploadProgressRewindsWhenTheWalkMovesOn(t *testing.T) {
+	f := newFakeServer(t, "multipart")
+	f.endpoints = `{"endpoints":[
+		{"api":"FILES_API","api_version":"2.0","scheme":"http","hostname":"$HOST"},
+		{"api":"IO_OFFLOAD","scheme":"http","hostname":"$HOST","multipart_upload_supported":true}]}`
+	// The fake reads the whole body before it answers the single shot.
+	f.singleShotHook = func(int) int { return http.StatusInternalServerError }
+	e := shrunkEngine(t, f)
+	e.tun.endpointsAPI = true
+
+	in := data(3000) // at the 1024 multipart threshold or more
+	var mu sync.Mutex
+	var reports []Progress
+	_, err := e.upload(t.Context(), "/Volumes/c/s/v/p.bin", bytes.NewReader(in),
+		WithProgress(func(p Progress) {
+			mu.Lock()
+			defer mu.Unlock()
+			reports = append(reports, p)
+		}))
+	noErr(t, err)
+	eqBytes(t, f.assembled(), in)
+	if f.singleTry != 1 || len(f.completed) != 3 {
+		t.Fatalf("single shots = %d, parts = %d; want 1 single shot, then 3 parts", f.singleTry, len(f.completed))
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+	var most int64
+	for i, p := range reports {
+		most = max(most, p.Transferred)
+		if p.Transferred > p.Total {
+			t.Errorf("report %d: Transferred %d exceeds Total %d", i, p.Transferred, p.Total)
+		}
+	}
+	if most != int64(len(in)) {
+		t.Errorf("most Transferred = %d, want %d: the single shot read the whole upload", most, len(in))
+	}
+	if last := reports[len(reports)-1]; last.Transferred != int64(len(in)) {
+		t.Errorf("last report = %+v, want Transferred %d", last, len(in))
 	}
 }
 
@@ -1355,5 +2096,91 @@ func TestParallelStreamReadErrorDuringReadAhead(t *testing.T) {
 	f.mu.Unlock()
 	if requests != 0 {
 		t.Errorf("%d initiate, single-shot or abort requests, want none", requests)
+	}
+}
+
+// userAgents records the User-Agent of each request, by method and path.
+type userAgents struct {
+	mu     sync.Mutex
+	byPath map[string]string
+}
+
+func (u *userAgents) record(r *http.Request) {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	if u.byPath == nil {
+		u.byPath = map[string]string{}
+	}
+	u.byPath[r.Method+" "+r.URL.Path] = r.UserAgent()
+}
+
+// check fails unless every Files API request sent c's User-Agent, as the
+// generated client does, and no presigned one did: those keep the transport's.
+func (u *userAgents) check(t *testing.T, c *Client, presigned func(path string) bool) {
+	t.Helper()
+	want, err := c.userAgent()
+	noErr(t, err)
+	if want == "" {
+		t.Fatal("the client has no User-Agent")
+	}
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	var api, cloud int
+	for req, got := range u.byPath {
+		_, path, _ := strings.Cut(req, " ")
+		if presigned(path) {
+			cloud++
+			if got == want {
+				t.Errorf("%s: sent the SDK's User-Agent to a presigned URL", req)
+			}
+			continue
+		}
+		api++
+		if got != want {
+			t.Errorf("%s: User-Agent = %q, want the SDK's %q", req, got, want)
+		}
+	}
+	if api == 0 || cloud == 0 {
+		t.Fatalf("requests = %v, want Files API and presigned ones", u.byPath)
+	}
+}
+
+func TestUpload_sendsTheSDKUserAgent(t *testing.T) {
+	// Requests the generated client doesn't send still carry the SDK's
+	// User-Agent.
+	f := newFakeServer(t, "multipart")
+	var uas userAgents
+	f.onRequest = uas.record
+	e := shrunkEngine(t, f)
+	_, err := e.upload(t.Context(), "/Volumes/c/s/v/multipart.bin", bytes.NewReader(data(3000)))
+	noErr(t, err)
+	_, err = e.upload(t.Context(), "/Volumes/c/s/v/single-shot.bin", bytes.NewReader(data(500)))
+	noErr(t, err)
+	uas.check(t, e.c, func(path string) bool { return strings.HasPrefix(path, "/cloud/") })
+}
+
+func TestRequestsGoWithoutAUserAgentThatCantBeBuilt(t *testing.T) {
+	// The User-Agent is only for attribution, so a client that can't build
+	// one still uploads and discovers endpoints, and says why at debug.
+	noUserAgent := func() (string, error) { return "", errors.New("no version") }
+	var logs bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&logs, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+	f := newFakeServer(t, "multipart")
+	e := shrunkEngine(t, f)
+	e.c.logger, e.c.userAgent = logger, noUserAgent
+	_, err := e.upload(t.Context(), "/Volumes/c/s/v/multipart.bin", bytes.NewReader(data(3000)))
+	noErr(t, err)
+	_, err = e.upload(t.Context(), "/Volumes/c/s/v/single-shot.bin", bytes.NewReader(data(500)))
+	noErr(t, err)
+	eqBytes(t, f.assembled(), data(500))
+
+	d, _ := discoveryEngine(t, respondJSON(http.StatusOK, `{"endpoints":[{"api":"FILES_API","api_version":"2.0","scheme":"http","hostname":"proxy.example.com"}]}`))
+	d.c.logger, d.c.userAgent = logger, noUserAgent
+	if got, want := d.transferEndpoints(t.Context()), []endpoint{{kind: filesAPIEndpoint, baseURL: "http://proxy.example.com"}}; !slices.Equal(got, want) {
+		t.Errorf("endpoints = %v, want the workspace's %v", got, want)
+	}
+	if !strings.Contains(logs.String(), "sending without the SDK's User-Agent") {
+		t.Errorf("no debug line for the missing User-Agent; logs:\n%s", logs.String())
 	}
 }

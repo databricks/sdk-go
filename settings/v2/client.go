@@ -221,7 +221,7 @@ func (c *internalClient) GetPublicAccountUserPreference(ctx context.Context, req
 }
 
 // Get a setting value at workspace level. See
-// :method:settingsv2/listworkspacesettingsmetadata for list of setting
+// :method:settingsv2/listworkspacesettingsmetadata for the list of settings
 // available via public APIs.
 func (c *internalClient) GetPublicWorkspaceSetting(ctx context.Context, req GetPublicWorkspaceSettingRequest, opts ...call.Option) (*Setting, error) {
 
@@ -799,7 +799,7 @@ func (c *internalClient) PatchPublicAccountUserPreference(ctx context.Context, r
 }
 
 // Patch a setting value at workspace level. See
-// :method:settingsv2/listworkspacesettingsmetadata for list of setting
+// :method:settingsv2/listworkspacesettingsmetadata for the list of settings
 // available via public APIs at workspace level. To determine the correct field
 // to include in a patch request, refer to the type field of the setting
 // returned in the :method:settingsv2/listworkspacesettingsmetadata response.

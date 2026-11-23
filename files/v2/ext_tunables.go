@@ -6,6 +6,8 @@ package files
 // mutates shared state and uploads with different policies cannot interfere.
 
 import (
+	"context"
+	"os"
 	"time"
 
 	"github.com/databricks/sdk-go/core/ops"
@@ -71,6 +73,14 @@ type tunables struct {
 	// forever. It is applied to the transfer client built in resolveCloudClient.
 	responseHeaderTimeout time.Duration
 
+	// controlAttemptTimeout bounds one attempt of a control-plane call
+	// (initiate, complete, create-upload-part-urls, create-download-url, abort),
+	// so that a host that accepts the connection and never answers gives way to
+	// the next endpoint instead of holding the whole retry budget. It applies
+	// only when the client's HTTP client sets no Timeout, which would already
+	// bound each attempt.
+	controlAttemptTimeout time.Duration
+
 	// cleanupTimeout bounds a best-effort abort, which runs on a context detached
 	// from the upload's (see cleanupContext).
 	cleanupTimeout time.Duration
@@ -128,17 +138,47 @@ type tunables struct {
 
 	// cpRetryTimeout bounds the total time spent retrying a single control-plane
 	// call. Without it, a persistently failing endpoint would be retried until the
-	// caller's context expires (and forever if it has no deadline).
+	// caller's context expires (and forever if it has no deadline). For the
+	// single-shot PUT, which may carry gigabytes, it only stops new attempts and
+	// bounds the credential resolution before one; it never cuts a running
+	// transfer short.
 	cpRetryTimeout time.Duration
 
+	// A download to a file larger than both downloadMinParallelSize and
+	// downloadPartSize is split into ranges of downloadPartSize, written on up
+	// to downloadParallelism goroutines by default.
+	downloadMinParallelSize int64
+	downloadPartSize        int64
+	downloadParallelism     int
+
+	// transferIdleTimeout breaks a transfer whose connection moves no bytes for
+	// this long: a download resumes on a fresh connection, and a single-shot
+	// upload's attempt fails as a timeout, to be retried or walked on. It never
+	// bounds a transfer whose bytes keep moving.
+	transferIdleTimeout time.Duration
+
+	// downloadResumesWithoutProgress caps how often a download resumes in a row
+	// without receiving a byte.
+	downloadResumesWithoutProgress int
+
 	// endpointsAPI is whether a transfer asks the workspace which endpoints to
-	// use (GET /api/2.0/fs/endpoints). Off by default until the port is done,
-	// though the Python SDK now turns it on; without it a transfer walks the
-	// built-in order.
+	// use (GET /api/2.0/fs/endpoints); without it a transfer walks the built-in
+	// order. Client calls turn it on, so that the workspace chooses the hosts,
+	// unless endpointsAPIEnv is false. Engines built in tests leave it off.
 	endpointsAPI bool
 
 	// urlExpiry is how long requested presigned URLs are valid.
 	urlExpiry time.Duration
+
+	// After endpointSkipAfter transfers in a row that failed on an endpoint
+	// and then completed on a later one, a client leaves that endpoint out of
+	// new transfers for endpointSkipCoolOff (an upload only it can take still
+	// uses it), then lets one transfer probe it. Each failed probe doubles the
+	// cool-off, up to endpointSkipMaxCoolOff; a success clears it. 0 turns
+	// skipping off.
+	endpointSkipAfter      int
+	endpointSkipCoolOff    time.Duration
+	endpointSkipMaxCoolOff time.Duration
 }
 
 // defaultTunables returns the production policy values.
@@ -151,12 +191,12 @@ func defaultTunables() tunables {
 		fileParallelism:    128,
 		streamMemoryBudget: 256 << 20,
 		maxRetries:         3,
-		// Python's experimental_files_ext_cloud_api_max_retries is 3 attempts in
-		// all, and its _UPLOAD_RETRIES_BEFORE_COMMIT is 1 retry.
+		// A part PUT gets 3 attempts once a part has landed, and 2 before.
 		cloudRetries:             2,
 		cloudRetriesBeforeCommit: 1,
 		maxUploadParts:           10_000,
 		responseHeaderTimeout:    60 * time.Second,
+		controlAttemptTimeout:    60 * time.Second,
 		cleanupTimeout:           30 * time.Second,
 		slowFactor:               3,
 		slowWarmup:               32,
@@ -169,6 +209,16 @@ func defaultTunables() tunables {
 		cpBackoff:                ops.BackoffPolicy{},
 		cpRetryTimeout:           5 * time.Minute,
 		urlExpiry:                time.Hour,
+		// Downloads.
+		downloadMinParallelSize:        50 << 20,
+		downloadPartSize:               10 << 20,
+		downloadParallelism:            10,
+		transferIdleTimeout:            60 * time.Second,
+		downloadResumesWithoutProgress: 1,
+		// Endpoint skipping.
+		endpointSkipAfter:      3,
+		endpointSkipCoolOff:    2 * time.Minute,
+		endpointSkipMaxCoolOff: 30 * time.Minute,
 	}
 }
 
@@ -180,9 +230,33 @@ func defaultTunables() tunables {
 type engine struct {
 	c   *Client
 	tun tunables
+	// now is the clock that endpoint-list expiry reads; nil is time.Now.
+	now func() time.Time
+}
+
+// clock returns the current time.
+func (e *engine) clock() time.Time {
+	if e.now != nil {
+		return e.now()
+	}
+	return time.Now()
 }
 
 // newEngine builds an engine over c with the production tunables.
 func newEngine(c *Client) *engine {
 	return &engine{c: c, tun: defaultTunables()}
+}
+
+// clientTunables returns the tunables a Client method's engine starts from:
+// defaultTunables. Tests replace it to shrink the limits, so that a transfer
+// through the Client methods needs neither large files nor long retries.
+var clientTunables = defaultTunables
+
+// newClientEngine builds the engine for a Client method. Unlike newEngine, it
+// reads endpointsAPIEnv, so that engines built in tests do not depend on the
+// environment.
+func newClientEngine(ctx context.Context, c *Client) *engine {
+	e := &engine{c: c, tun: clientTunables()}
+	e.tun.endpointsAPI = endpointsAPIEnabled(ctx, c.logger, os.Getenv(endpointsAPIEnv))
+	return e
 }
