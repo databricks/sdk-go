@@ -38,8 +38,8 @@ type ListSecretsRequest struct {
 	// The name of the schema under which to list secrets. Both **catalog_name** and
 	// **schema_name** must be specified together.
 	SchemaName *string
-	// Opaque pagination token to go to the next page based on previous query. The
-	// maximum page length is determined by a server configured value.
+	// Opaque pagination token for the next page of results. Set it to the
+	// **next_page_token** value from the previous response.
 	PageToken *string
 	// Maximum number of secrets to return.
 	//
@@ -65,8 +65,9 @@ type ListSecretsResponse struct {
 type Secret struct {
 	// The name of the secret, relative to its parent schema.
 	Name *string `fieldmask:"name"`
-	// The owner of the secret. Defaults to the creating principal on creation. Can
-	// be updated to transfer ownership of the secret to another principal.
+	// The owner of the secret. It cannot be set when creating a secret and defaults
+	// to the creating principal. Set it in UpdateSecret to transfer ownership of
+	// the secret to another principal.
 	Owner *string `fieldmask:"owner"`
 	// The effective owner of the secret, which may differ from the directly-set
 	// **owner** due to inheritance.
@@ -90,11 +91,10 @@ type Secret struct {
 	CatalogName *string `fieldmask:"catalog_name"`
 	// The name of the schema where the secret resides.
 	SchemaName *string `fieldmask:"schema_name"`
-	// The secret value to store. This field is input-only and is not returned in
-	// responses — use the **effective_value** field (via GetSecret with
-	// **include_value** set to true) to read the secret value. The maximum size is
-	// 60 KiB (pre-encryption). Accepted content includes passwords, tokens, keys,
-	// and other sensitive credential data.
+	// The secret value to store, such as a password, token, or key. It is never
+	// returned in responses. To read it, call GetSecret with **include_value** set
+	// to true and use the **effective_value** field. The maximum size is 60 KiB
+	// before encryption.
 	Value *string `fieldmask:"value"`
 	// The secret value. Only populated in responses when you have the
 	// **READ_SECRET** privilege and **include_value** is set to true in the

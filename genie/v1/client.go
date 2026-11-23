@@ -490,8 +490,11 @@ func (w *GenieCreateConversationMessageWaiter) Wait(ctx context.Context, opts ..
 	return result, nil
 }
 
-// Creates and runs chat-mode evaluations for multiple benchmark questions in a
-// Genie space.
+// Starts a benchmark evaluation run that asks Genie each selected benchmark
+// question in a Genie space and compares every response with the benchmark SQL.
+// The run executes asynchronously: the response is the new run with its current
+// status. If it is still running, poll with the get method until the status is
+// terminal.
 func (c *internalClient) GenieCreateEvalRun(ctx context.Context, req GenieCreateEvalRunRequest, opts ...call.Option) (*GenieEvalRunResponse, error) {
 	wireReq, err := genieCreateEvalRunRequestToWire(&req)
 	if err != nil {
@@ -1234,7 +1237,10 @@ func (c *internalClient) GenieGetDownloadFullQueryResult(ctx context.Context, re
 	return resp, nil
 }
 
-// Get details for evaluation results.
+// Gets the full result for one benchmark question in an evaluation run: its
+// assessment and the reasons for it, Genie's response with the SQL execution
+// result, and the expected response from the benchmark. The result must belong
+// to the given run.
 func (c *internalClient) GenieGetEvalResultDetails(ctx context.Context, req GenieGetEvalResultDetailsRequest, opts ...call.Option) (*GenieEvalResultDetails, error) {
 
 	headers := http.Header{}
@@ -1306,7 +1312,9 @@ func (c *internalClient) GenieGetEvalResultDetails(ctx context.Context, req Geni
 	return resp, nil
 }
 
-// Get evaluation run details.
+// Gets the current status and summary counts of a benchmark evaluation run.
+// Poll this method until `eval_run_status` is terminal: DONE,
+// EVALUATION_CANCELLED or EVALUATION_TIMEOUT.
 func (c *internalClient) GenieGetEvalRun(ctx context.Context, req GenieGetEvalRunRequest, opts ...call.Option) (*GenieEvalRunResponse, error) {
 
 	headers := http.Header{}
@@ -1911,7 +1919,10 @@ func (c *internalClient) GenieListConversations(ctx context.Context, req GenieLi
 	return resp, nil
 }
 
-// List evaluation results for a specific evaluation run.
+// Lists the results of a benchmark evaluation run, one per benchmark question.
+// Each entry carries the result status and a snapshot of the question and
+// benchmark answer; the assessment and Genie's response are available through
+// the result details method.
 func (c *internalClient) GenieListEvalResults(ctx context.Context, req GenieListEvalResultsRequest, opts ...call.Option) (*GenieListEvalResultsResponse, error) {
 	wireReq, err := genieListEvalResultsRequestToWire(&req)
 	if err != nil {
@@ -1989,7 +2000,8 @@ func (c *internalClient) GenieListEvalResults(ctx context.Context, req GenieList
 	return resp, nil
 }
 
-// Lists all evaluation runs in a space.
+// Lists the benchmark evaluation runs in a Genie space with the current status
+// and summary counts of each run.
 func (c *internalClient) GenieListEvalRuns(ctx context.Context, req GenieListEvalRunsRequest, opts ...call.Option) (*GenieListEvalRunsResponse, error) {
 	wireReq, err := genieListEvalRunsRequestToWire(&req)
 	if err != nil {

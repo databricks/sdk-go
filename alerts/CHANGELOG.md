@@ -1,5 +1,7 @@
 # Version changelog
 
+## Release v0.9.0 (2026-11-23)
+
 ## Release v0.8.0 (2026-11-12)
 
 ### New Features and Improvements

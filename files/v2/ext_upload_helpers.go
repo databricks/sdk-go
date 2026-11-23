@@ -60,11 +60,8 @@ func octetStreamHeaders(presigned map[string]string) map[string]string {
 
 // singleShotUpload sends the whole body, of size bytes or -1 if unknown, in one
 // PUT to the current endpoint's Files API. Progress is reported as the body
-// streams.
+// streams (see attemptBody).
 func (e *engine) singleShotUpload(ctx context.Context, uc *uploadContext, body io.Reader, size int64) error {
-	if uc.progress != nil {
-		body = withProgress(body, uc.progress)
-	}
 	// A single-shot upload is one transfer; hold one slot for its duration so it
 	// draws from the same concurrency budget as multipart parts.
 	if err := uc.limiter.Acquire(ctx); err != nil {

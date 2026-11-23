@@ -363,6 +363,93 @@ func (v *GetCatalogConfigRequest) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type rescanCatalogRequestWire struct {
+	Name *string `json:"name,omitempty"`
+}
+
+func rescanCatalogRequestToWire(v *RescanCatalogRequest) (*rescanCatalogRequestWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &rescanCatalogRequestWire{
+		Name: v.Name,
+	}, nil
+}
+
+func rescanCatalogRequestFromWire(w *rescanCatalogRequestWire) (*RescanCatalogRequest, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RescanCatalogRequest{
+		Name: w.Name,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v RescanCatalogRequest) MarshalJSON() ([]byte, error) {
+	w, err := rescanCatalogRequestToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *RescanCatalogRequest) UnmarshalJSON(data []byte) error {
+	var w rescanCatalogRequestWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := rescanCatalogRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type rescanCatalogResponseWire struct {
+}
+
+func rescanCatalogResponseToWire(v *RescanCatalogResponse) (*rescanCatalogResponseWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &rescanCatalogResponseWire{}, nil
+}
+
+func rescanCatalogResponseFromWire(w *rescanCatalogResponseWire) (*RescanCatalogResponse, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &RescanCatalogResponse{}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v RescanCatalogResponse) MarshalJSON() ([]byte, error) {
+	w, err := rescanCatalogResponseToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *RescanCatalogResponse) UnmarshalJSON(data []byte) error {
+	var w rescanCatalogResponseWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := rescanCatalogResponseFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type updateCatalogConfigRequestWire struct {
 	CatalogConfig *catalogConfigWire              `json:"catalog_config,omitempty"`
 	UpdateMask    *types.FieldMask[CatalogConfig] `json:"update_mask,omitempty"`

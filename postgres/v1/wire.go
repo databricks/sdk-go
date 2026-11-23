@@ -6565,6 +6565,7 @@ type projectStatusWire struct {
 	EnablePgNativeLogin         *bool                               `json:"enable_pg_native_login,omitempty"`
 	DefaultBranch               *string                             `json:"default_branch,omitempty"`
 	ProjectId                   *string                             `json:"project_id,omitempty"`
+	ComputePolicyId             *string                             `json:"compute_policy_id,omitempty"`
 }
 
 func projectStatusToWire(v *ProjectStatus) (*projectStatusWire, error) {
@@ -6601,6 +6602,7 @@ func projectStatusToWire(v *ProjectStatus) (*projectStatusWire, error) {
 		EnablePgNativeLogin:         v.EnablePgNativeLogin,
 		DefaultBranch:               v.DefaultBranch,
 		ProjectId:                   v.ProjectId,
+		ComputePolicyId:             v.ComputePolicyId,
 	}, nil
 }
 
@@ -6638,6 +6640,7 @@ func projectStatusFromWire(w *projectStatusWire) (*ProjectStatus, error) {
 		EnablePgNativeLogin:         w.EnablePgNativeLogin,
 		DefaultBranch:               w.DefaultBranch,
 		ProjectId:                   w.ProjectId,
+		ComputePolicyId:             w.ComputePolicyId,
 	}, nil
 }
 

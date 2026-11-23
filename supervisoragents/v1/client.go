@@ -151,7 +151,9 @@ func (c *internalClient) CreateExample(ctx context.Context, req CreateExampleReq
 	return resp, nil
 }
 
-// Creates a new Supervisor Agent.
+// Creates a Supervisor Agent together with its serving endpoint and MLflow
+// experiment. Tools and subagents are added to the agent afterwards with the
+// Tool methods.
 func (c *internalClient) CreateSupervisorAgent(ctx context.Context, req CreateSupervisorAgentRequest, opts ...call.Option) (*SupervisorAgent, error) {
 	wireReq, err := createSupervisorAgentRequestToWire(&req)
 	if err != nil {
@@ -353,7 +355,8 @@ func (c *internalClient) DeleteExample(ctx context.Context, req DeleteExampleReq
 	return nil
 }
 
-// Deletes a Supervisor Agent.
+// Deletes a Supervisor Agent together with the resources created for it,
+// including its tools, examples, serving endpoint and MLflow experiment.
 func (c *internalClient) DeleteSupervisorAgent(ctx context.Context, req DeleteSupervisorAgentRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
@@ -759,7 +762,8 @@ func (c *internalClient) ListExamplesIter(ctx context.Context, req ListExamplesR
 	}
 }
 
-// Lists Supervisor Agents.
+// Lists the Supervisor Agents in the workspace that the caller has permission
+// to view.
 func (c *internalClient) ListSupervisorAgents(ctx context.Context, req ListSupervisorAgentsRequest, opts ...call.Option) (*ListSupervisorAgentsResponse, error) {
 	wireReq, err := listSupervisorAgentsRequestToWire(&req)
 	if err != nil {
@@ -1055,8 +1059,8 @@ func (c *internalClient) UpdateExample(ctx context.Context, req UpdateExampleReq
 	return resp, nil
 }
 
-// Updates a Supervisor Agent. The fields that are required depend on the paths
-// specified in `update_mask`. Only fields included in the mask will be updated.
+// Updates a Supervisor Agent. Only the fields listed in `update_mask` are
+// changed. All other fields keep their current values.
 func (c *internalClient) UpdateSupervisorAgent(ctx context.Context, req UpdateSupervisorAgentRequest, opts ...call.Option) (*SupervisorAgent, error) {
 	wireReq, err := updateSupervisorAgentRequestToWire(&req)
 	if err != nil {

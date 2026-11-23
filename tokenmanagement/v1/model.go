@@ -65,7 +65,8 @@ type CreateOnBehalfOfTokenRequest struct {
 	// Comment that describes the purpose of the token.
 	Comment *string
 	Scopes  []string
-	// Whether to enable autoscoping for this token.
+	// Whether to enable autoscoping for this token. `disable_autoscoping`
+	// supersedes this field and is the one read when both are set.
 	AutoscopeEnabled *bool
 }
 

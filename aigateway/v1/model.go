@@ -198,8 +198,10 @@ type CreateSkillRequest struct {
 	// Name of the parent schema. Format: `schemas/{catalog}.{schema}`. Each `{...}`
 	// component is capped at 255 characters individually.
 	Parent *string
-	// Name for the skill, e.g. "basic-math". The server normalizes this identifier
-	// to lowercase. It is independent of the bundle name read from SKILL.md.
+	// Name of the skill within the parent schema. The name must not contain
+	// periods, spaces, forward slashes, percent signs, or control characters, and
+	// it is stored in lowercase. It is independent of the bundle name read from
+	// SKILL.md.
 	SkillId *string
 	// The skill to create. `comment` is the only accepted client input and may be
 	// omitted. Do not set `name`; the server derives it from `parent` and
@@ -1667,9 +1669,9 @@ type RateLimit struct {
 // SKILL.md and projects its frontmatter onto the Skill metadata..
 type Skill struct {
 	// Resource name of the skill. Format: `skills/{catalog}.{schema}.{skill}`. Each
-	// `{...}` component is capped at 255 characters individually. Server-derived on
-	// Create from `parent` + `skill_id`; required and immutable on
-	// Update/Get/Delete.
+	// `{...}` component is capped at 255 characters individually. The server
+	// derives the name on Create from `parent` and `skill_id`; it is required and
+	// immutable on Update, Get, and Delete.
 	Name *string `fieldmask:"name"`
 	// Name from the most recently successfully finalized SKILL.md. It may differ
 	// from the final component of the Skill resource name. Unset until
@@ -1690,19 +1692,20 @@ type Skill struct {
 	UpdateTime *types.Time `fieldmask:"update_time"`
 	// Time of the most recent successful FinalizeSkill. Unset until one succeeds.
 	FinalizeTime *types.Time `fieldmask:"finalize_time"`
-	// Creator identity.
+	// Username or service principal application ID of the principal that created
+	// the skill.
 	CreatedBy *string `fieldmask:"created_by"`
-	// Identity of the last updater.
+	// Username or service principal application ID of the principal that last
+	// updated the skill.
 	UpdatedBy *string `fieldmask:"updated_by"`
-	// Owner of the skill.
+	// Username, group name, or service principal application ID of the skill owner.
 	EffectiveOwner *string `fieldmask:"effective_owner"`
-	// Metastore hosting the skill.
+	// Unique identifier of the metastore that contains the skill.
 	MetastoreId *string `fieldmask:"metastore_id"`
-	// User-provided comment for the skill. Free-text, user-editable via UpdateSkill
-	// (listed in its `update_mask`). DISTINCT from `description`, which is the
-	// server-parsed, OUTPUT_ONLY SKILL.md frontmatter value: `comment` is the
-	// customer's own annotation and is preserved across bundle re-uploads. When
-	// `comment` is in the update mask, omitting it clears the field, while an
+	// User-provided comment for the skill, which you can change with UpdateSkill.
+	// It is separate from `description`, which the server reads from the SKILL.md
+	// frontmatter, and it is preserved across bundle re-uploads and FinalizeSkill.
+	// When `comment` is in the update mask, omitting it clears the field, while an
 	// explicitly empty string is retained.
 	Comment *string `fieldmask:"comment"`
 }
@@ -1785,8 +1788,8 @@ type UpdateSkillRequest struct {
 	// (`skills/{catalog}.{schema}.{skill}`); only fields listed in `update_mask`
 	// are applied.
 	Skill *Skill
-	// Fields to update; validated against `skill`. REQUIRED, matching the sibling
-	// Update RPCs. `comment` is the only mutable field.
+	// Comma-separated list of `skill` fields to update. `comment` is the only field
+	// that can be updated.
 	UpdateMask *types.FieldMask[Skill]
 	// Optimistic concurrency token from the most recent read. When set, the update
 	// succeeds only if the resource has not changed. Leave unset for an
