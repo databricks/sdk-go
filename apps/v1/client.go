@@ -411,7 +411,10 @@ func (w *CreateAppWaiter) Wait(ctx context.Context, opts ...lro.Option) (*App, e
 	return result, nil
 }
 
-// Creates an app deployment for the app with the supplied name.
+// Creates an app deployment for the app with the supplied name. The call
+// returns while the deployment is still `IN_PROGRESS`; poll the deployment
+// until it reaches a terminal state. The request fails with RESOURCE_CONFLICT
+// if another deployment of the same app is still pending and has not timed out.
 func (c *internalClient) createAppDeploymentBase(ctx context.Context, req CreateAppDeploymentRequest, opts ...call.Option) (*AppDeployment, error) {
 	wireReq, err := createAppDeploymentRequestToWire(&req)
 	if err != nil {
@@ -485,7 +488,10 @@ func (c *internalClient) createAppDeploymentBase(ctx context.Context, req Create
 	return resp, nil
 }
 
-// Creates an app deployment for the app with the supplied name.
+// Creates an app deployment for the app with the supplied name. The call
+// returns while the deployment is still `IN_PROGRESS`; poll the deployment
+// until it reaches a terminal state. The request fails with RESOURCE_CONFLICT
+// if another deployment of the same app is still pending and has not timed out.
 func (c *internalClient) CreateAppDeployment(ctx context.Context, req CreateAppDeploymentRequest, opts ...call.Option) (*CreateAppDeploymentWaiter, error) {
 	if req.AppName == nil {
 		return nil, fmt.Errorf("request field %q required for polling is missing", "AppName")
@@ -1715,7 +1721,8 @@ func (c *internalClient) ListAppDeploymentScanFindingsIter(ctx context.Context, 
 	}
 }
 
-// Lists all app deployments for the app with the supplied name.
+// Lists all app deployments for the app with the supplied name. The history
+// holds only the app's most recent deployments.
 func (c *internalClient) ListAppDeployments(ctx context.Context, req ListAppDeploymentsRequest, opts ...call.Option) (*ListAppDeploymentsResponse, error) {
 	wireReq, err := listAppDeploymentsRequestToWire(&req)
 	if err != nil {

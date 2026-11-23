@@ -166,9 +166,9 @@ type GenieAgentConfig struct {
 
 // The data a Genie Agent can access..
 type GenieAgentDataSources struct {
-	// Unity Catalog tables, views, and metric views, in the order they were added.
+	// Unity Catalog tables, views, and metric views, sorted by `identifier`.
 	Tables []GenieAgentTable `fieldmask:"tables"`
-	// Unity Catalog volumes, in the order they were added.
+	// Unity Catalog volumes, sorted by `path`.
 	Volumes []GenieAgentVolume `fieldmask:"volumes"`
 	// Unity Catalog MCP connections, sorted by `mcp_connection`.
 	McpConnections []GenieAgentMcpConnection `fieldmask:"mcp_connections"`
@@ -435,7 +435,12 @@ type UpdateGenieAgentRequest struct {
 	// unset there: an unset `description` is cleared; an unset `display_name`,
 	// `warehouse_id`, or `definition` is rejected with INVALID_PARAMETER_VALUE; an
 	// unset `parent_path` is cleared without moving the Genie Agent. `definition`
-	// is replaced as a whole; paths within it are not supported.
+	// is replaced as a whole.
+	//
+	// The one supported path inside `definition` is
+	// `definition.data_sources.sub_agents`, and only alongside `definition`. Naming
+	// it makes the sub-agent list exact, so an empty list detaches every sub-agent.
+	// Without it, including with `*`, an empty list keeps them.
 	//
 	// The special value `*` replaces the whole Genie Agent, as if every updatable
 	// field were named. It must be the only path in the mask. Prefer naming fields

@@ -98,6 +98,20 @@ type AccessRequestDestinations struct {
 	SecurableType *string `fieldmask:"securable_type"`
 	// The full name of the securable, repeated from **securable**.
 	FullName *string `fieldmask:"full_name"`
+	// The access request URLs shared by every workspace in the metastore. Only set
+	// when the securable is a metastore. These URLs are used when neither the
+	// requested securable nor its parents have an explicit destination or a default
+	// owner email destination, and they take precedence over metastore
+	// destinations.
+	//
+	// A **dynamic_url** and default owner email destinations cannot both be on:
+	// saving one turns the other off. Saving a **dynamic_url** while they are on
+	// requires a metastore admin.
+	//
+	// Setting this field removes the metastore destinations in this workspace. The
+	// first save also removes the metastore URL destinations of other workspaces.
+	// Once set, the configuration can be cleared but not removed.
+	UrlConfiguration *UrlConfiguration `fieldmask:"url_configuration"`
 }
 
 type BatchCreateAccessRequestsRequest struct {
@@ -204,4 +218,36 @@ type UpdateAccessRequestDestinationsRequest struct {
 	// The paths of the field mask are not evaluated, because an update always
 	// replaces the full list of destinations.
 	UpdateMask *types.FieldMask[AccessRequestDestinations]
+}
+
+// Access request URLs shared by every workspace in a metastore..
+type UrlConfiguration struct {
+	// The URL for access requests on the metastore and on securables outside
+	// catalogs, such as external locations, connections, and credentials. Also used
+	// for catalogs and the securables inside them when **dynamic_url** is not set
+	// or cannot produce a valid URL. Must start with `http://` or `https://`,
+	// contain only printable ASCII characters without spaces or backslashes, and be
+	// at most 2,048 characters.
+	RedirectUrl *string `fieldmask:"redirect_url"`
+	// The URL template for access requests on catalogs and the securables inside
+	// them, such as schemas, tables, volumes, functions, and registered models.
+	// Placeholders are replaced with percent-encoded values from the requested
+	// securable: `{catalog}` with the catalog name (`main`), `{catalog.schema}`
+	// with the catalog and schema names (`main.sales`), `{catalog.schema.object}`
+	// with the full name (`main.sales.orders`), `{securable_type}` with the
+	// securable type (`TABLE`), and `{securable_id}` with the securable ID. Name
+	// placeholders leave out levels the securable does not have, so
+	// `{catalog.schema.object}` is `main.sales` for a schema. When the deepest name
+	// placeholder stops above the requested securable, such as `{catalog.schema}`
+	// for a table, `{securable_type}` and `{securable_id}` describe that parent. If
+	// the filled-in URL is longer than 4,096 characters, the **redirect_url** is
+	// used instead.
+	//
+	// Must start with `http://` or `https://`, contain only printable ASCII
+	// characters without spaces or backslashes, and be at most 2,048 characters.
+	// Braces are only allowed around a placeholder.
+	DynamicUrl *string `fieldmask:"dynamic_url"`
+	// The version of the placeholder syntax used in **dynamic_url**. The only
+	// supported version is `1`.
+	SyntaxVersion *int `fieldmask:"syntax_version"`
 }

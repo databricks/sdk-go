@@ -16,6 +16,7 @@ type accessRequestDestinationsWire struct {
 	DestinationSourceSecurable *securableWire                `json:"destination_source_securable,omitempty"`
 	SecurableType              *string                       `json:"securable_type,omitempty"`
 	FullName                   *string                       `json:"full_name,omitempty"`
+	UrlConfiguration           *urlConfigurationWire         `json:"url_configuration,omitempty"`
 }
 
 func accessRequestDestinationsToWire(v *AccessRequestDestinations) (*accessRequestDestinationsWire, error) {
@@ -34,6 +35,10 @@ func accessRequestDestinationsToWire(v *AccessRequestDestinations) (*accessReque
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "AccessRequestDestinations.DestinationSourceSecurable", err)
 	}
+	urlConfigurationWireValue, err := urlConfigurationToWire(v.UrlConfiguration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccessRequestDestinations.UrlConfiguration", err)
+	}
 	return &accessRequestDestinationsWire{
 		Destinations:               destinationsWireValue,
 		Securable:                  securableWireValue,
@@ -41,6 +46,7 @@ func accessRequestDestinationsToWire(v *AccessRequestDestinations) (*accessReque
 		DestinationSourceSecurable: destinationSourceSecurableWireValue,
 		SecurableType:              v.SecurableType,
 		FullName:                   v.FullName,
+		UrlConfiguration:           urlConfigurationWireValue,
 	}, nil
 }
 
@@ -60,6 +66,10 @@ func accessRequestDestinationsFromWire(w *accessRequestDestinationsWire) (*Acces
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "AccessRequestDestinations.DestinationSourceSecurable", err)
 	}
+	urlConfigurationPublicValue, err := urlConfigurationFromWire(w.UrlConfiguration)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "AccessRequestDestinations.UrlConfiguration", err)
+	}
 	return &AccessRequestDestinations{
 		Destinations:               destinationsPublicValue,
 		Securable:                  securablePublicValue,
@@ -67,6 +77,7 @@ func accessRequestDestinationsFromWire(w *accessRequestDestinationsWire) (*Acces
 		DestinationSourceSecurable: destinationSourceSecurablePublicValue,
 		SecurableType:              w.SecurableType,
 		FullName:                   w.FullName,
+		UrlConfiguration:           urlConfigurationPublicValue,
 	}, nil
 }
 
@@ -644,6 +655,58 @@ func (v *UpdateAccessRequestDestinationsRequest) UnmarshalJSON(data []byte) erro
 		return err
 	}
 	decoded, err := updateAccessRequestDestinationsRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type urlConfigurationWire struct {
+	RedirectUrl   *string `json:"redirect_url,omitempty"`
+	DynamicUrl    *string `json:"dynamic_url,omitempty"`
+	SyntaxVersion *int    `json:"syntax_version,omitempty"`
+}
+
+func urlConfigurationToWire(v *UrlConfiguration) (*urlConfigurationWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &urlConfigurationWire{
+		RedirectUrl:   v.RedirectUrl,
+		DynamicUrl:    v.DynamicUrl,
+		SyntaxVersion: v.SyntaxVersion,
+	}, nil
+}
+
+func urlConfigurationFromWire(w *urlConfigurationWire) (*UrlConfiguration, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &UrlConfiguration{
+		RedirectUrl:   w.RedirectUrl,
+		DynamicUrl:    w.DynamicUrl,
+		SyntaxVersion: w.SyntaxVersion,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v UrlConfiguration) MarshalJSON() ([]byte, error) {
+	w, err := urlConfigurationToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *UrlConfiguration) UnmarshalJSON(data []byte) error {
+	var w urlConfigurationWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := urlConfigurationFromWire(&w)
 	if err != nil {
 		return err
 	}

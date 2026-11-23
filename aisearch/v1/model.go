@@ -134,6 +134,9 @@ const (
 	// The completion time is being estimated, for example just after the change is
 	// requested or updated.
 	EndpointScalingInfo_Phase_Estimating EndpointScalingInfo_Phase = "ESTIMATING"
+	// The new capacity and index replicas are in place, and the change is being
+	// finalized.
+	EndpointScalingInfo_Phase_Finalizing EndpointScalingInfo_Phase = "FINALIZING"
 )
 
 // Lifecycle state of an AI Search endpoint, used by both Standard and Storage

@@ -48,7 +48,8 @@ const (
 )
 
 type AccessControlRequest struct {
-	PrincipalName   isAccessControlRequest_PrincipalName
+	PrincipalName isAccessControlRequest_PrincipalName
+	// Permission level to grant to the principal.
 	PermissionLevel PermissionLevel
 }
 
@@ -57,7 +58,7 @@ type isAccessControlRequest_PrincipalName interface {
 }
 
 // AccessControlRequest_PrincipalName_UserName selects UserName for AccessControlRequest.PrincipalName.
-// name of the user
+// Username of the user, which is the user's email address.
 type AccessControlRequest_PrincipalName_UserName struct {
 	UserName string
 }
@@ -65,7 +66,7 @@ type AccessControlRequest_PrincipalName_UserName struct {
 func (*AccessControlRequest_PrincipalName_UserName) isAccessControlRequest_PrincipalName() {}
 
 // AccessControlRequest_PrincipalName_GroupName selects GroupName for AccessControlRequest.PrincipalName.
-// name of the group
+// Display name of the group.
 type AccessControlRequest_PrincipalName_GroupName struct {
 	GroupName string
 }
@@ -73,7 +74,7 @@ type AccessControlRequest_PrincipalName_GroupName struct {
 func (*AccessControlRequest_PrincipalName_GroupName) isAccessControlRequest_PrincipalName() {}
 
 // AccessControlRequest_PrincipalName_ServicePrincipalName selects ServicePrincipalName for AccessControlRequest.PrincipalName.
-// application ID of a service principal
+// Application ID of the service principal.
 type AccessControlRequest_PrincipalName_ServicePrincipalName struct {
 	ServicePrincipalName string
 }
@@ -85,7 +86,8 @@ type AccessControlResponse struct {
 	PrincipalName isAccessControlResponse_PrincipalName
 	// Display name of the user or service principal.
 	DisplayName *string
-	// All permissions.
+	// Permission levels the principal holds on the object, both granted directly
+	// and inherited.
 	AllPermissions []Permission
 }
 
@@ -94,7 +96,7 @@ type isAccessControlResponse_PrincipalName interface {
 }
 
 // AccessControlResponse_PrincipalName_UserName selects UserName for AccessControlResponse.PrincipalName.
-// name of the user
+// Username of the user, which is the user's email address.
 type AccessControlResponse_PrincipalName_UserName struct {
 	UserName string
 }
@@ -102,7 +104,7 @@ type AccessControlResponse_PrincipalName_UserName struct {
 func (*AccessControlResponse_PrincipalName_UserName) isAccessControlResponse_PrincipalName() {}
 
 // AccessControlResponse_PrincipalName_GroupName selects GroupName for AccessControlResponse.PrincipalName.
-// name of the group
+// Display name of the group.
 type AccessControlResponse_PrincipalName_GroupName struct {
 	GroupName string
 }
@@ -110,7 +112,7 @@ type AccessControlResponse_PrincipalName_GroupName struct {
 func (*AccessControlResponse_PrincipalName_GroupName) isAccessControlResponse_PrincipalName() {}
 
 // AccessControlResponse_PrincipalName_ServicePrincipalName selects ServicePrincipalName for AccessControlResponse.PrincipalName.
-// Name of the service principal.
+// Application ID of the service principal.
 type AccessControlResponse_PrincipalName_ServicePrincipalName struct {
 	ServicePrincipalName string
 }
@@ -195,7 +197,10 @@ type GetObjectPermissionsRequest struct {
 	// registered-models, repos, serving-endpoints, supervisor-agents,
 	// vector-search-endpoints, or warehouses.
 	RequestObjectType *string
-	// The id of the request object.
+	// The id of the object. It is the id that the object's own API uses, for
+	// example the cluster id for clusters, the job id for jobs, and the workspace
+	// object id for notebooks and directories. For the `authorization` object type,
+	// use `tokens` to manage token permissions.
 	RequestObjectId *string
 }
 
@@ -273,11 +278,15 @@ type ListPermissionLevelsRequest struct {
 	// registered-models, repos, serving-endpoints, supervisor-agents,
 	// vector-search-endpoints, or warehouses.
 	RequestObjectType *string
-	RequestObjectId   *string
+	// The id of the object. It is the id that the object's own API uses, for
+	// example the cluster id for clusters, the job id for jobs, and the workspace
+	// object id for notebooks and directories. For the `authorization` object type,
+	// use `tokens` to manage token permissions.
+	RequestObjectId *string
 }
 
 type ListPermissionLevelsResponse struct {
-	// Specific permission levels
+	// Permission levels that can be granted on objects of the requested type.
 	PermissionLevels []PermissionsDescription
 }
 
@@ -346,8 +355,13 @@ type MigratePermissionsResponse struct {
 }
 
 type Permission struct {
-	PermissionLevel     PermissionLevel
-	Inherited           *bool
+	// Permission level the principal holds on the object.
+	PermissionLevel PermissionLevel
+	// Whether the permission is inherited from a parent object or the root object
+	// instead of being granted directly on the object.
+	Inherited *bool
+	// Paths of the objects the permission is inherited from. It is only set when
+	// `inherited` is true.
 	InheritedFromObject []string
 }
 
@@ -358,13 +372,24 @@ type PermissionOutput struct {
 }
 
 type PermissionsDescription struct {
+	// Permission level that can be granted on the object.
 	PermissionLevel PermissionLevel
-	Description     *string
+	// Human-readable description of the permission level.
+	Description *string
 }
 
+// The permissions set on an object, with one entry per principal that holds a
+// permission on it..
 type PermissionsResponse struct {
-	ObjectId          *string
-	ObjectType        *string
+	// Path that identifies the object in the access control list, built from the
+	// object type and the object id.
+	ObjectId *string
+	// Type of the object, as recorded in the access control list. It can differ
+	// from the `request_object_type` path segment, for example a request for
+	// `clusters` returns `cluster`.
+	ObjectType *string
+	// Permissions on the object, with one entry per principal. Each entry lists the
+	// principal's direct and inherited permission levels.
 	AccessControlList []AccessControlResponse
 }
 
@@ -474,8 +499,14 @@ type SetObjectPermissionsRequest struct {
 	// registered-models, repos, serving-endpoints, supervisor-agents,
 	// vector-search-endpoints, or warehouses.
 	RequestObjectType *string
-	// The id of the request object.
-	RequestObjectId   *string
+	// The id of the object. It is the id that the object's own API uses, for
+	// example the cluster id for clusters, the job id for jobs, and the workspace
+	// object id for notebooks and directories. For the `authorization` object type,
+	// use `tokens` to manage token permissions.
+	RequestObjectId *string
+	// Permissions to apply to the object, with one entry per principal. Each entry
+	// names exactly one principal through `user_name`, `group_name` or
+	// `service_principal_name` and the `permission_level` for that principal.
 	AccessControlList []AccessControlRequest
 }
 
@@ -487,8 +518,14 @@ type UpdateObjectPermissionsRequest struct {
 	// registered-models, repos, serving-endpoints, supervisor-agents,
 	// vector-search-endpoints, or warehouses.
 	RequestObjectType *string
-	// The id of the request object.
-	RequestObjectId   *string
+	// The id of the object. It is the id that the object's own API uses, for
+	// example the cluster id for clusters, the job id for jobs, and the workspace
+	// object id for notebooks and directories. For the `authorization` object type,
+	// use `tokens` to manage token permissions.
+	RequestObjectId *string
+	// Permissions to apply to the object, with one entry per principal. Each entry
+	// names exactly one principal through `user_name`, `group_name` or
+	// `service_principal_name` and the `permission_level` for that principal.
 	AccessControlList []AccessControlRequest
 }
 

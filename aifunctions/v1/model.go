@@ -13,22 +13,23 @@ type BatchStatus string
 
 const (
 	BatchStatus_Unspecified BatchStatus = ""
-	// The service is preparing to run the batch.
+	// The batch is waiting to start. No requests have run yet.
 	BatchStatus_Pending BatchStatus = "PENDING"
-	// The batch is in progress.
+	// The service is running the requests. `request_counts` and `percent_complete`
+	// show the progress.
 	BatchStatus_InProgress BatchStatus = "IN_PROGRESS"
-	// The service processed every request and is writing the output file.
+	// The service has processed every request and is writing the output file.
 	BatchStatus_Finalizing BatchStatus = "FINALIZING"
-	// The batch completed and the output file is written. A request that failed has
-	// an `error` line in the output file.
+	// The batch finished and the output file is at `output_ref`. A completed batch
+	// can include requests that failed: each one has an `error` line in the output
+	// file and is counted in `request_counts.failed`.
 	BatchStatus_Completed BatchStatus = "COMPLETED"
-	// The batch is being cancelled. Requests in progress are drained and the output
-	// file is written.
+	// The batch is being cancelled.
 	BatchStatus_Cancelling BatchStatus = "CANCELLING"
-	// The batch was cancelled. If it had started, the output file holds the results
-	// of the requests that finished.
+	// The batch was cancelled. If it had started, the output file has the results
+	// of the requests that finished, and an `error` line for each one that did not.
 	BatchStatus_Cancelled BatchStatus = "CANCELLED"
-	// The batch failed.
+	// The batch failed. `output_ref` is not set.
 	BatchStatus_Failed BatchStatus = "FAILED"
 )
 
@@ -56,7 +57,8 @@ type AiClassifyRequest struct {
 	// The label set to classify as. Either a JSON array of label strings (e.g.
 	// ["spam", "not_spam"]), or a JSON object mapping each label to a description
 	// (e.g. {"spam": "unsolicited bulk message", "not_spam": "a legitimate
-	// message"}). Accepts 2 to 500 labels, each 1 to 100 characters.
+	// message"}). Accepts 2 to 5000 labels, each 1 to 100 characters. When
+	// multilabel is true, a single label is also accepted.
 	Labels json.RawMessage
 	// Function options. Omitted fields fall back to their documented defaults.
 	Options *AiClassifyOptions
@@ -80,8 +82,8 @@ type AiClassifyResponseMetadata struct {
 
 // ai_decide.
 type AiDecideOptions struct {
-	// The function API version to invoke. Defaults to "1.0". Supported versions:
-	// ["1.0"].
+	// The function API version to invoke. If unset, version 1.0 is used. Supported
+	// versions: ["1.0"].
 	Version *string
 }
 
@@ -356,10 +358,15 @@ type AiParseDocumentResponseMetadata struct {
 // The AI Functions Asynchronous API lets you process large volumes of requests
 // as a batch in a single call. It is in Beta: a workspace admin must turn on
 // the **AI Functions Asynchronous API** preview on the workspace Previews page
-// before you can call it..
+// before you can call it.
+//
+// For examples, see
+// [`ai_parse_document`](/agents/agent-bricks/document-parsing#asynchronous-api),
+// [`ai_extract`](/agents/agent-bricks/info-extraction#asynchronous-api), and
+// [`ai_classify`](/agents/agent-bricks/classification#asynchronous-api)..
 type Batch struct {
-	// Output only. Identifier. Resource name of the batch, returned by create.
-	// Format: `batch_<id>`.
+	// Output only. Unique identifier of the batch, returned by create. Format:
+	// `batch_<id>`.
 	Name *string
 	// The AI function, for example `ai_parse_document`.
 	Endpoint *string
@@ -376,9 +383,13 @@ type Batch struct {
 	// directory, the file is `<path>/<name>_output.jsonl`. Each line is the result
 	// of one request, in the form `{"custom_id": ..., "response": ...}`, or
 	// `{"custom_id": ..., "error": {"type": ..., "message": ...}}` for a request
-	// that failed.
+	// that failed or did not finish.
 	OutputRef *string
-	// Output only. The status of the batch.
+	// Output only. The status of the batch. A batch starts as `PENDING`, runs as
+	// `IN_PROGRESS`, is `FINALIZING` while the output file is written, and ends as
+	// `COMPLETED`. A running batch that is cancelled is `CANCELLING`, then
+	// `CANCELLED`. A `COMPLETED` batch can include requests that failed, and a
+	// `FAILED` batch has no `output_ref`.
 	Status BatchStatus
 	// Output only. The time when the batch was created.
 	CreateTime *types.Time
@@ -402,7 +413,7 @@ type BatchRequestCounts struct {
 }
 
 type CancelBatchRequest struct {
-	// Resource name of the batch. Format: `batch_<id>`.
+	// Unique identifier of the batch. Format: `batch_<id>`.
 	Name *string
 }
 
@@ -415,7 +426,7 @@ type CreateBatchRequest struct {
 }
 
 type GetBatchRequest struct {
-	// Resource name of the batch. Format: `batch_<id>`.
+	// Unique identifier of the batch. Format: `batch_<id>`.
 	Name *string
 }
 

@@ -30,6 +30,8 @@ const (
 	ConnectionType_Confluence          ConnectionType = "CONFLUENCE"
 	ConnectionType_Jdbc                ConnectionType = "JDBC"
 	ConnectionType_MetaMarketing       ConnectionType = "META_MARKETING"
+	// Connection to Google Ads for accessing advertising data.
+	ConnectionType_GoogleAds ConnectionType = "GOOGLE_ADS"
 	// Connection to TikTok Ads for accessing advertising data.
 	ConnectionType_TiktokAds         ConnectionType = "TIKTOK_ADS"
 	ConnectionType_Hubspot           ConnectionType = "HUBSPOT"
@@ -111,22 +113,29 @@ const (
 type ConnectionInfo struct {
 	// Name of the connection.
 	Name *string
-	// The type of connection.
+	// The type of external data source or service that the connection reaches. The
+	// connection type determines which keys are required in options and cannot be
+	// changed after creation.
 	ConnectionType ConnectionType
-	// Username of current owner of the connection.
+	// Username of the current owner of the connection. The creator becomes the
+	// owner at creation, and ownership can be transferred on update.
 	Owner *string
-	// If the connection is read only.
+	// Whether the connection is read only. All connections are currently read only,
+	// so a value set on create or update is ignored.
 	ReadOnly *bool
 	// User-provided free-form text description.
 	Comment *string
-	// [Create,Update:OPT] Connection environment settings as EnvironmentSettings
-	// object.
+	// Environment settings for the connection, such as the Java libraries that it
+	// needs and the environment version.
 	EnvironmentSettings *EnvironmentSettings
 	// Full name of connection.
 	FullName *string
-	// URL of the remote data source, extracted from options.
+	// URL of the remote data source. The server derives it from the host, port and
+	// path options.
 	Url *string
-	// The type of credential.
+	// The type of credential that is used to authenticate to the external data
+	// source. The server derives it from the connection type and the keys present
+	// in options.
 	CredentialType CredentialType
 	// Unique identifier of the Connection.
 	ConnectionId *string
@@ -139,8 +148,10 @@ type ConnectionInfo struct {
 	// Time at which this connection was updated, in epoch milliseconds.
 	UpdatedAt *int64
 	// Username of user who last modified connection.
-	UpdatedBy        *string
-	SecurableType    SecurableType
+	UpdatedBy *string
+	// The type of Unity Catalog securable. This is always CONNECTION.
+	SecurableType SecurableType
+	// Provisioning status of the connection.
 	ProvisioningInfo *ProvisioningInfo
 	// A map of key-value properties attached to the securable.
 	Options map[string]string
@@ -158,22 +169,29 @@ type CreateConnectionRequest struct {
 	Parent *string
 	// Name of the connection.
 	Name *string
-	// The type of connection.
+	// The type of external data source or service that the connection reaches. The
+	// connection type determines which keys are required in options and cannot be
+	// changed after creation.
 	ConnectionType ConnectionType
-	// Username of current owner of the connection.
+	// Username of the current owner of the connection. The creator becomes the
+	// owner at creation, and ownership can be transferred on update.
 	Owner *string
-	// If the connection is read only.
+	// Whether the connection is read only. All connections are currently read only,
+	// so a value set on create or update is ignored.
 	ReadOnly *bool
 	// User-provided free-form text description.
 	Comment *string
-	// [Create,Update:OPT] Connection environment settings as EnvironmentSettings
-	// object.
+	// Environment settings for the connection, such as the Java libraries that it
+	// needs and the environment version.
 	EnvironmentSettings *EnvironmentSettings
 	// Full name of connection.
 	FullName *string
-	// URL of the remote data source, extracted from options.
+	// URL of the remote data source. The server derives it from the host, port and
+	// path options.
 	Url *string
-	// The type of credential.
+	// The type of credential that is used to authenticate to the external data
+	// source. The server derives it from the connection type and the keys present
+	// in options.
 	CredentialType CredentialType
 	// Unique identifier of the Connection.
 	ConnectionId *string
@@ -186,8 +204,10 @@ type CreateConnectionRequest struct {
 	// Time at which this connection was updated, in epoch milliseconds.
 	UpdatedAt *int64
 	// Username of user who last modified connection.
-	UpdatedBy        *string
-	SecurableType    SecurableType
+	UpdatedBy *string
+	// The type of Unity Catalog securable. This is always CONNECTION.
+	SecurableType SecurableType
+	// Provisioning status of the connection.
 	ProvisioningInfo *ProvisioningInfo
 	// A map of key-value properties attached to the securable.
 	Options map[string]string
@@ -253,22 +273,29 @@ type UpdateConnectionRequest struct {
 	NewName *string
 	// Name of the connection.
 	Name *string
-	// The type of connection.
+	// The type of external data source or service that the connection reaches. The
+	// connection type determines which keys are required in options and cannot be
+	// changed after creation.
 	ConnectionType ConnectionType
-	// Username of current owner of the connection.
+	// Username of the current owner of the connection. The creator becomes the
+	// owner at creation, and ownership can be transferred on update.
 	Owner *string
-	// If the connection is read only.
+	// Whether the connection is read only. All connections are currently read only,
+	// so a value set on create or update is ignored.
 	ReadOnly *bool
 	// User-provided free-form text description.
 	Comment *string
-	// [Create,Update:OPT] Connection environment settings as EnvironmentSettings
-	// object.
+	// Environment settings for the connection, such as the Java libraries that it
+	// needs and the environment version.
 	EnvironmentSettings *EnvironmentSettings
 	// Full name of connection.
 	FullName *string
-	// URL of the remote data source, extracted from options.
+	// URL of the remote data source. The server derives it from the host, port and
+	// path options.
 	Url *string
-	// The type of credential.
+	// The type of credential that is used to authenticate to the external data
+	// source. The server derives it from the connection type and the keys present
+	// in options.
 	CredentialType CredentialType
 	// Unique identifier of the Connection.
 	ConnectionId *string
@@ -281,8 +308,10 @@ type UpdateConnectionRequest struct {
 	// Time at which this connection was updated, in epoch milliseconds.
 	UpdatedAt *int64
 	// Username of user who last modified connection.
-	UpdatedBy        *string
-	SecurableType    SecurableType
+	UpdatedBy *string
+	// The type of Unity Catalog securable. This is always CONNECTION.
+	SecurableType SecurableType
+	// Provisioning status of the connection.
 	ProvisioningInfo *ProvisioningInfo
 	// A map of key-value properties attached to the securable.
 	Options map[string]string

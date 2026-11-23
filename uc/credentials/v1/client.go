@@ -801,8 +801,8 @@ func (c *internalClient) GenerateTemporaryPathCredential(ctx context.Context, re
 }
 
 // Returns a set of temporary credentials generated using the specified service
-// credential. The caller must be a metastore admin or have the metastore
-// privilege **ACCESS** on the service credential.
+// credential. The caller must be a metastore admin or have the **ACCESS**
+// privilege on the service credential.
 func (c *internalClient) GenerateTemporaryServiceCredential(ctx context.Context, req GenerateTemporaryServiceCredentialRequest, opts ...call.Option) (*TemporaryCredentials, error) {
 	wireReq, err := generateTemporaryServiceCredentialRequestToWire(&req)
 	if err != nil {

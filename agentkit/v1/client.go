@@ -224,6 +224,8 @@ func (c *internalClient) ClearSessionItems(ctx context.Context, req ClearSession
 // exists. Omitted `session_id` is its own uniqueness key: two omitted-session
 // entries with the same actor and path conflict, but an omitted-session entry
 // does not conflict with a session-scoped entry at the same actor and path.
+// `session_id` is deprecated: once it is ignored, the uniqueness key becomes
+// actor and path.
 func (c *internalClient) CreateMemory(ctx context.Context, req CreateManagedMemoryEntryRequest, opts ...call.Option) (*ManagedMemoryEntry, error) {
 	wireReq, err := createManagedMemoryEntryRequestToWire(&req)
 	if err != nil {
@@ -515,7 +517,11 @@ func (c *internalClient) CreateSessionStore(ctx context.Context, req CreateSessi
 }
 
 // Deletes a memory entry by resource name. Returns `NOT_FOUND` when the entry
-// does not exist in the caller's workspace.
+// does not exist in the caller's workspace. The entry stops appearing in Get,
+// List and Search. In a store that records memory history, the versions written
+// before the delete, including their content, stay readable through
+// `ListMemoryChanges` and `GetMemoryChange` to anyone who can read the store,
+// until the store itself is deleted.
 func (c *internalClient) DeleteMemory(ctx context.Context, req DeleteManagedMemoryEntryRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
@@ -1408,9 +1414,9 @@ func (c *internalClient) GrantSessionStorePermission(ctx context.Context, req Gr
 }
 
 // Lists memory entries for one actor. An exact `path` filters entries across
-// sessions, ignoring session metadata. Otherwise, `session_id` and
-// `path_prefix` restrict the actor partition. `view` controls whether each
-// returned entry includes memory content.
+// sessions, ignoring session metadata. Otherwise, `path_prefix` and the
+// deprecated `session_id` restrict the actor partition. `view` controls whether
+// each returned entry includes memory content.
 func (c *internalClient) ListMemories(ctx context.Context, req ListManagedMemoryEntriesRequest, opts ...call.Option) (*ListManagedMemoryEntriesResponse, error) {
 	wireReq, err := listManagedMemoryEntriesRequestToWire(&req)
 	if err != nil {

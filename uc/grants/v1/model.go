@@ -59,9 +59,11 @@ type GetEffectivePermissionsResponse struct {
 }
 
 type GetPermissionsRequest struct {
-	// Type of securable.
+	// Type of the securable, such as `catalog`, `schema`, `table` or `volume`. The
+	// value is case-insensitive.
 	SecurableType *string
-	// Full name of securable.
+	// Full name of the securable. Tables, views, volumes and functions use the
+	// three-level name `catalog.schema.object`; a metastore uses its metastore ID.
 	SecurableFullName *string
 	// If provided, only the permissions for the specified principal (user or group)
 	// are returned.
@@ -159,8 +161,7 @@ type ListPrivilegeAssignmentsResponse struct {
 }
 
 type PermissionsChange struct {
-	// The principal whose privileges we are changing. Only one of principal or
-	// principal_id should be specified, never both at the same time.
+	// The principal whose privileges we are changing.
 	Principal *string
 	// The set of privileges to add.
 	Add []string
@@ -169,20 +170,22 @@ type PermissionsChange struct {
 }
 
 type PrivilegeAssignment struct {
-	// The principal (user email address or group name). For deleted principals,
-	// `principal` is empty while `principal_id` is populated.
+	// The principal (user email address or group name).
 	Principal *string
 	// The privileges assigned to the principal.
 	Privileges []string
 }
 
 type UpdatePermissionsRequest struct {
-	// Type of securable.
+	// Type of the securable, such as `catalog`, `schema`, `table` or `volume`. The
+	// value is case-insensitive.
 	SecurableType *string
-	// Full name of securable.
+	// Full name of the securable. Tables, views, volumes and functions use the
+	// three-level name `catalog.schema.object`; a metastore uses its metastore ID.
 	SecurableFullName *string
-	// Optional, default false. Specifies whether all the permissions should be
-	// returned in the response.
+	// Whether to omit the privilege assignments from the response. When false, the
+	// response lists all direct privilege assignments on the securable after the
+	// update.
 	OmitPermissionsInResponse *bool
 	// Array of permissions change objects.
 	Changes []PermissionsChange

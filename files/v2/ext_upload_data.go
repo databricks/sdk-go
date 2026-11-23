@@ -2,6 +2,7 @@ package files
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"sync"
 )
@@ -22,6 +23,9 @@ type uploadData struct {
 	stream *replayStream
 	// knownSize is the size of a seekable source.
 	knownSize int64
+	// sent, when set, is closed once net/http has closed the last request body
+	// that read r itself; restart waits for it.
+	sent <-chan struct{}
 }
 
 // newSeekableData returns the data of r, of the given size, which r was sized
@@ -63,8 +67,27 @@ func (d *uploadData) canSendAgain() bool {
 	return d.stream == nil || d.stream.canRestart()
 }
 
-// restart positions the data at the start for the next endpoint.
-func (d *uploadData) restart() error {
+// sending records that a request body reading r itself may be read until done
+// is closed. RoundTrip always closes the body, but may do so on another
+// goroutine after it returns, so the bytes it still sends would race the next
+// endpoint's reads of r. It is a no-op on nil data.
+func (d *uploadData) sending(done <-chan struct{}) {
+	if d != nil {
+		d.sent = done
+	}
+}
+
+// restart positions the data at the start for the next endpoint, once no
+// request of the last endpoint reads r any more.
+func (d *uploadData) restart(ctx context.Context) error {
+	if d.sent != nil {
+		select {
+		case <-d.sent:
+		case <-ctx.Done():
+			return context.Cause(ctx)
+		}
+		d.sent = nil
+	}
 	if d.stream != nil {
 		d.stream.restart()
 		return nil

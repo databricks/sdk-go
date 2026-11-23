@@ -81,17 +81,6 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // The scope name must consist of alphanumeric characters, dashes, underscores,
 // and periods, and may not exceed 128 characters.
 //
-// Example request:
-//
-// .. code::
-//
-// { "scope": "my-simple-databricks-scope", "initial_manage_principal": "users"
-// "scope_backend_type": "databricks|azure_keyvault", # below is only required
-// if scope type is azure_keyvault "backend_azure_keyvault": { "resource_id":
-// "/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/xxxx/providers/Microsoft.KeyVault/vaults/xxxx",
-// "tenant_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "dns_name":
-// "https://xxxx.vault.azure.net/", } }
-//
 // If “initial_manage_principal“ is specified, the initial ACL applied to the
 // scope is applied to the supplied principal (user or group) with “MANAGE“
 // permissions. The only supported principal for this option is the group
@@ -100,19 +89,19 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 // “MANAGE“ permission applied to the scope is assigned to the API request
 // issuer's user identity.
 //
-// If “scope_backend_type“ is “azure_keyvault“, a secret scope is created
-// with secrets from a given Azure KeyVault. The caller must provide the
-// keyvault_resource_id and the tenant_id for the key vault. If
-// “scope_backend_type“ is “databricks“ or is unspecified, an empty secret
-// scope is created and stored in <Databricks>'s own storage.
+// If “scope_backend_type“ is “AZURE_KEYVAULT“, a secret scope is created
+// with secrets from an existing Azure key vault. The caller must provide the
+// key vault's resource ID and DNS name in “backend_azure_keyvault“. If
+// “scope_backend_type“ is “DATABRICKS“ or is unspecified, an empty secret
+// scope is created and stored in Databricks-managed storage.
 //
 // Throws “RESOURCE_ALREADY_EXISTS“ if a scope with the given name already
 // exists. Throws “RESOURCE_LIMIT_EXCEEDED“ if maximum number of scopes in the
 // workspace is exceeded. Throws “INVALID_PARAMETER_VALUE“ if the scope name
 // is invalid. Throws “BAD_REQUEST“ if request violated constraints. Throws
-// “CUSTOMER_UNAUTHORIZED“ if normal user attempts to create a scope with name
-// reserved for databricks internal usage. Throws “UNAUTHENTICATED“ if unable
-// to verify user access permission on Azure KeyVault
+// “CUSTOMER_UNAUTHORIZED“ if the scope name is reserved for Databricks
+// internal use. Throws “UNAUTHENTICATED“ if Databricks cannot verify the
+// caller's access to the Azure key vault.
 func (c *internalClient) CreateScope(ctx context.Context, req CreateScopeRequest, opts ...call.Option) (*CreateScopeResponse, error) {
 	wireReq, err := createScopeRequestToWire(&req)
 	if err != nil {
@@ -175,12 +164,6 @@ func (c *internalClient) CreateScope(ctx context.Context, req CreateScopeRequest
 // Deletes the given ACL on the given scope.
 //
 // Users must have the “MANAGE“ permission to invoke this API.
-//
-// Example request:
-//
-// .. code::
-//
-// { "scope": "my-secret-scope", "principal": "data-scientists" }
 //
 // Throws “RESOURCE_DOES_NOT_EXIST“ if no such secret scope, principal, or ACL
 // exists. Throws “PERMISSION_DENIED“ if the user does not have permission to
@@ -247,16 +230,9 @@ func (c *internalClient) DeleteAcl(ctx context.Context, req DeleteAclRequest, op
 
 // Deletes a secret scope.
 //
-// Example request:
-//
-// .. code::
-//
-// { "scope": "my-secret-scope" }
-//
 // Throws “RESOURCE_DOES_NOT_EXIST“ if the scope does not exist. Throws
 // “PERMISSION_DENIED“ if the user does not have permission to make this API
-// call. Throws “BAD_REQUEST“ if system user attempts to delete internal
-// secret scope.
+// call.
 func (c *internalClient) DeleteScope(ctx context.Context, req DeleteScopeRequest, opts ...call.Option) (*DeleteScopeResponse, error) {
 	wireReq, err := deleteScopeRequestToWire(&req)
 	if err != nil {
@@ -321,8 +297,8 @@ func (c *internalClient) DeleteScope(ctx context.Context, req DeleteScopeRequest
 //
 // Throws “RESOURCE_DOES_NOT_EXIST“ if no such secret scope or secret exists.
 // Throws “PERMISSION_DENIED“ if the user does not have permission to make
-// this API call. Throws “BAD_REQUEST“ if system user attempts to delete an
-// internal secret, or request is made against Azure KeyVault backed scope.
+// this API call. Throws “BAD_REQUEST“ if the request is made against an Azure
+// Key Vault-backed scope.
 func (c *internalClient) DeleteSecret(ctx context.Context, req DeleteSecretRequest, opts ...call.Option) (*DeleteSecretResponse, error) {
 	wireReq, err := deleteSecretRequestToWire(&req)
 	if err != nil {
@@ -385,12 +361,6 @@ func (c *internalClient) DeleteSecret(ctx context.Context, req DeleteSecretReque
 // Describes the details about the given ACL, such as the group and permission.
 //
 // Users must have the “MANAGE“ permission to invoke this API.
-//
-// Example response:
-//
-// .. code::
-//
-// { "principal": "data-scientists", "permission": "READ" }
 //
 // Throws “RESOURCE_DOES_NOT_EXIST“ if no such secret scope exists. Throws
 // “PERMISSION_DENIED“ if the user does not have permission to make this API
@@ -472,9 +442,9 @@ func (c *internalClient) GetAcl(ctx context.Context, req GetAclRequest, opts ...
 // Throws “PERMISSION_DENIED“ if the user does not have permission to make
 // this API call. Azure Key Vault-backed scopes can also return the following
 // errors: Throws “INVALID_PARAMETER_VALUE“ if the secret name is not
-// alphanumeric or is too long. Throws “PERMISSION_DENIED“ if <Databricks>
+// alphanumeric or is too long. Throws “PERMISSION_DENIED“ if Databricks
 // cannot access the key vault (HTTP 403). Throws “MALFORMED_REQUEST“ if
-// <Databricks> cannot access the key vault with any other 4xx error.
+// Databricks cannot access the key vault with any other 4xx error.
 func (c *internalClient) GetSecret(ctx context.Context, req GetSecretRequest, opts ...call.Option) (*GetSecretResponse, error) {
 	wireReq, err := getSecretRequestToWire(&req)
 	if err != nil {
@@ -544,13 +514,6 @@ func (c *internalClient) GetSecret(ctx context.Context, req GetSecretRequest, op
 //
 // Users must have the “MANAGE“ permission to invoke this API.
 //
-// Example response:
-//
-// .. code::
-//
-// { "acls": [{ "principal": "admins", "permission": "MANAGE" },{ "principal":
-// "data-scientists", "permission": "READ" }] }
-//
 // Throws “RESOURCE_DOES_NOT_EXIST“ if no such secret scope exists. Throws
 // “PERMISSION_DENIED“ if the user does not have permission to make this API
 // call.
@@ -617,13 +580,6 @@ func (c *internalClient) ListAcls(ctx context.Context, req ListAclsRequest, opts
 }
 
 // Lists all secret scopes available in the workspace.
-//
-// Example response:
-//
-// .. code::
-//
-// { "scopes": [{ "name": "my-databricks-scope", "backend_type": "DATABRICKS"
-// },{ "name": "mount-points", "backend_type": "DATABRICKS" }] }
 //
 // Throws “PERMISSION_DENIED“ if the user does not have permission to make
 // this API call.
@@ -761,29 +717,12 @@ func (c *internalClient) ListSecrets(ctx context.Context, req ListSecretsRequest
 // “READ“ - Allowed to read this secret scope and list what secrets are
 // available.
 //
-// Note that in general, secret values can only be read from within a command on
-// a cluster (for example, through a notebook). There is no API to read the
-// actual secret value material outside of a cluster. However, the user's
-// permission will be applied based on who is executing the command, and they
-// must have at least READ permission.
-//
 // Users must have the “MANAGE“ permission to invoke this API.
 //
-// Example request:
-//
-// .. code::
-//
-// { "scope": "my-secret-scope", "principal": "data-scientists", "permission":
-// "READ" }
-//
-// The principal is a user or group name corresponding to an existing
-// <Databricks> principal to be granted or revoked access.
-//
 // Throws “RESOURCE_DOES_NOT_EXIST“ if no such secret scope exists. Throws
-// “RESOURCE_ALREADY_EXISTS“ if a permission for the principal already exists.
-// Throws “INVALID_PARAMETER_VALUE“ if the permission or principal is invalid.
-// Throws “PERMISSION_DENIED“ if the user does not have permission to make
-// this API call.
+// “INVALID_PARAMETER_VALUE“ if the permission or principal is invalid. Throws
+// “PERMISSION_DENIED“ if the user does not have permission to make this API
+// call.
 func (c *internalClient) PutAcl(ctx context.Context, req PutAclRequest, opts ...call.Option) (*PutAclResponse, error) {
 	wireReq, err := putAclRequestToWire(&req)
 	if err != nil {

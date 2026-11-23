@@ -270,8 +270,10 @@ func (c *internalClient) GetRepo(ctx context.Context, req GetRepoRequest, opts .
 //
 // Deprecated: This operation does not return a complete list of the repos in
 // the workspace, because repos with the Git CLI enabled are not included in its
-// results. Instead, use the Repos and Workspace APIs to find repos and their
-// associated metadata in the workspace.
+// results. Instead, find Git folders with `GET /api/2.0/workspace/get-status`
+// (for one path) or `GET /api/2.0/workspace/list` (keep objects with
+// `object_type == "REPO"` or `directory_info.is_git_folder == true`), then call
+// `GET /api/2.0/repos/{object_id}` for Git metadata.
 func (c *internalClient) ListRepos(ctx context.Context, req ListReposRequest, opts ...call.Option) (*ListReposResponse, error) {
 	wireReq, err := listReposRequestToWire(&req)
 	if err != nil {

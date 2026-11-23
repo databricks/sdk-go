@@ -499,7 +499,8 @@ type Issue struct {
 	// Additional details about the Issue, such as how issue detection observed it.
 	// Not a stable contract: keys and values can change without notice, so clients
 	// must tolerate unknown and missing keys. At most 20 entries, with keys of at
-	// most 64 UTF-8 bytes.
+	// most 64 UTF-8 bytes. Values are at most 256 UTF-8 bytes, except
+	// recent_affected_trace_ids (4 KiB) and suggested_fix (16 KiB).
 	Metadata map[string]string `fieldmask:"metadata"`
 }
 

@@ -218,7 +218,9 @@ type CreateShareRequest struct {
 	Owner *string
 	// User-provided free-form text description.
 	Comment *string
-	// Storage root URL for the share.
+	// Cloud storage path, within an external location, under which the share stores
+	// the notebook files added to it. When unset, notebook files are stored under
+	// the metastore root storage location.
 	StorageRoot *string
 	// A list of shared data objects within the share.
 	Objects []SharedDataObject
@@ -230,7 +232,8 @@ type CreateShareRequest struct {
 	UpdatedAt *int64
 	// Username of share updater.
 	UpdatedBy *string
-	// Storage Location URL (full path) for the share.
+	// Full storage path, derived from `storage_root`, where the share's notebook
+	// files are stored.
 	StorageLocation *string
 }
 
@@ -446,7 +449,8 @@ type GetSharePermissionsResponse struct {
 type GetShareRequest struct {
 	// The name of the share.
 	Name *string
-	// Query for data to include in the share.
+	// Whether to include the share's data objects in the response. When false or
+	// omitted, the response omits `objects`.
 	IncludeSharedData *bool
 }
 
@@ -699,7 +703,9 @@ type PartitionSpecification struct {
 }
 
 type PartitionSpecification_Partition struct {
-	// An array of partition values.
+	// An array of partition values. A row belongs to the partition when it matches
+	// every value in the array, and each `name` must appear at most once in the
+	// array.
 	Values []PartitionSpecification_Partition_PartitionValue
 }
 
@@ -714,13 +720,13 @@ type PartitionSpecification_Partition_PartitionValue struct {
 	// "databricks-account-id". When this field is set, field `value` can not be
 	// set.
 	RecipientPropertyKey *string
-	// The operator to apply for the value.
+	// The operator to apply for the value. **EQUAL** matches the partition value
+	// exactly; **LIKE** matches it against a SQL `LIKE` pattern.
 	Op PartitionSpecification_Partition_PartitionValue_PartitionValueOp
 }
 
 type PermissionsChange struct {
-	// The principal whose privileges we are changing. Only one of principal or
-	// principal_id should be specified, never both at the same time.
+	// The principal whose privileges we are changing.
 	Principal *string
 	// The set of privileges to add.
 	Add []string
@@ -729,8 +735,7 @@ type PermissionsChange struct {
 }
 
 type PrivilegeAssignment struct {
-	// The principal (user email address or group name). For deleted principals,
-	// `principal` is empty while `principal_id` is populated.
+	// The principal (user email address or group name).
 	Principal *string
 	// The privileges assigned to the principal.
 	Privileges []string
@@ -903,6 +908,11 @@ type Share struct {
 	Id   *string
 }
 
+// A share is a named collection of data and AI assets from a single Unity
+// Catalog metastore that a provider makes available to recipients through Delta
+// Sharing. A share is created empty; tables, views, volumes, models, notebook
+// files, or whole schemas are added to it with **update**, and recipients are
+// granted access to it through share permissions..
 type ShareInfo struct {
 	// Name of the share.
 	Name *string
@@ -910,7 +920,9 @@ type ShareInfo struct {
 	Owner *string
 	// User-provided free-form text description.
 	Comment *string
-	// Storage root URL for the share.
+	// Cloud storage path, within an external location, under which the share stores
+	// the notebook files added to it. When unset, notebook files are stored under
+	// the metastore root storage location.
 	StorageRoot *string
 	// A list of shared data objects within the share.
 	Objects []SharedDataObject
@@ -922,7 +934,8 @@ type ShareInfo struct {
 	UpdatedAt *int64
 	// Username of share updater.
 	UpdatedBy *string
-	// Storage Location URL (full path) for the share.
+	// Full storage path, derived from `storage_root`, where the share's notebook
+	// files are stored.
 	StorageLocation *string
 }
 
@@ -936,9 +949,14 @@ type ShareToPrivilegeAssignment struct {
 type SharedDataObject struct {
 	// A fully qualified name that uniquely identifies a data object. For example, a
 	// table's fully qualified name is in the format of
-	// `<catalog>.<schema>.<table>`,
+	// `<catalog>.<schema>.<table>`, a schema's is `<catalog>.<schema>`, a volume's,
+	// model's, or function's is `<catalog>.<schema>.<object_name>`, and a notebook
+	// file's is its workspace path.
 	Name *string
-	// The type of the data object.
+	// The type of the data object. One of **TABLE**, **VIEW**,
+	// **MATERIALIZED_VIEW**, **STREAMING_TABLE**, **FOREIGN_TABLE**, **SCHEMA**,
+	// **VOLUME**, **MODEL**, **FUNCTION**, **FEATURE_SPEC**, or **NOTEBOOK_FILE**.
+	// Defaults to **TABLE** when omitted.
 	DataObjectType *string
 	// The time when this data object is added to the share, in epoch milliseconds.
 	AddedAt *int64
@@ -970,10 +988,14 @@ type SharedDataObject struct {
 	// "catalog.analytics_schema.customer_view" (3 parts not allowed) - Invalid:
 	// "analytics-schema.customer-view" (hyphens not allowed)
 	SharedAs *string
-	// Whether to enable cdf or indicate if cdf is enabled on the shared object.
+	// Whether to share the table's change data feed (CDF) with recipients. Requires
+	// change data feed to be enabled on the source table, and implicitly enables
+	// history sharing. Only applies to tables.
 	CdfEnabled *bool
-	// Whether to enable or disable sharing of data history. If not specified, the
-	// default is **DISABLED**.
+	// Whether to share the table's history, which lets recipients run time travel
+	// queries and streaming reads against it. When a **TABLE** is added without
+	// this field or `cdf_enabled`, history sharing is **ENABLED** by default;
+	// otherwise the default is **DISABLED**.
 	HistoryDataSharingStatus SharedDataObject_HistoryDataSharingStatus_Enum
 	// The start version associated with the object. This allows data providers to
 	// control the lowest object version that is accessible by clients. If
@@ -983,7 +1005,10 @@ type SharedDataObject struct {
 	//
 	// NOTE: The start_version should be <= the `current` version of the object.
 	StartVersion *int64
-	// One of: **ACTIVE**, **PERMISSION_DENIED**.
+	// Sharing status of the data object. **ACTIVE** means the object is being
+	// shared with recipients without issues; **PERMISSION_DENIED** means the share
+	// owner has lost access to the object, so it is not being shared with
+	// recipients.
 	Status SharedDataObject_Status_Enum
 	// The content of the notebook file when the data object type is NOTEBOOK_FILE.
 	// This should be base64 encoded. Required for adding a NOTEBOOK_FILE, optional
@@ -1017,7 +1042,8 @@ type SharedDataObject struct {
 	// "catalog.data_schema.training_data" (3 parts not allowed for volumes) -
 	// Invalid: "data-schema.training-data" (hyphens not allowed)
 	StringSharedAs *string
-	// Array of partitions for the shared data.
+	// Array of partitions for the shared data. Only rows that belong to at least
+	// one of the listed partitions are shared. Only applies to tables.
 	Partitions []PartitionSpecification_Partition
 }
 
@@ -1204,7 +1230,8 @@ type UpdateShareRequest struct {
 	NameArg *string
 	// New name for the share.
 	NewName *string
-	// Array of shared data object updates.
+	// Array of shared data object updates. The server limits how many updates a
+	// single request can contain.
 	Updates []UpdateShareRequest_SharedDataObjectUpdate
 	// Name of the share.
 	Name *string
@@ -1212,7 +1239,9 @@ type UpdateShareRequest struct {
 	Owner *string
 	// User-provided free-form text description.
 	Comment *string
-	// Storage root URL for the share.
+	// Cloud storage path, within an external location, under which the share stores
+	// the notebook files added to it. When unset, notebook files are stored under
+	// the metastore root storage location.
 	StorageRoot *string
 	// A list of shared data objects within the share.
 	Objects []SharedDataObject
@@ -1224,15 +1253,17 @@ type UpdateShareRequest struct {
 	UpdatedAt *int64
 	// Username of share updater.
 	UpdatedBy *string
-	// Storage Location URL (full path) for the share.
+	// Full storage path, derived from `storage_root`, where the share's notebook
+	// files are stored.
 	StorageLocation *string
 }
 
 type UpdateShareRequest_SharedDataObjectUpdate struct {
-	// One of: **ADD**, **REMOVE**, **UPDATE**.
+	// One of: **ADD**, **REMOVE**, **UPDATE**. **ADD** adds the data object to the
+	// share, **REMOVE** removes it, and **UPDATE** changes the properties of a data
+	// object that is already in the share.
 	Action UpdateShareRequest_SharedDataObjectUpdate_Action
-	// The data object that is being added, removed, or updated. The maximum number
-	// update data objects allowed is a 100.
+	// The data object that is being added, removed, or updated.
 	DataObject *SharedDataObject
 }
 
