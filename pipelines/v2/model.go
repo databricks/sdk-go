@@ -579,7 +579,8 @@ type ClonePipelineRequest struct {
 	ParentPath *string
 	// Usage policy of this pipeline.
 	UsagePolicyId *string
-	// Serverless compute ID specified by the user for serverless pipelines.
+	// Serverless compute ID specified by the user for serverless pipelines. Use
+	// compute_policy_id instead. Only one of these fields may be set.
 	ServerlessComputeId *string
 	// Test configuration for this pipeline. Used only by test-only updates.
 	Testing *PipelineTesting
@@ -849,7 +850,8 @@ type CreatePipelineRequest struct {
 	ParentPath *string
 	// Usage policy of this pipeline.
 	UsagePolicyId *string
-	// Serverless compute ID specified by the user for serverless pipelines.
+	// Serverless compute ID specified by the user for serverless pipelines. Use
+	// compute_policy_id instead. Only one of these fields may be set.
 	ServerlessComputeId *string
 	// Test configuration for this pipeline. Used only by test-only updates.
 	Testing *PipelineTesting
@@ -1015,7 +1017,8 @@ type EditPipelineRequest struct {
 	ParentPath *string
 	// Usage policy of this pipeline.
 	UsagePolicyId *string
-	// Serverless compute ID specified by the user for serverless pipelines.
+	// Serverless compute ID specified by the user for serverless pipelines. Use
+	// compute_policy_id instead. Only one of these fields may be set.
 	ServerlessComputeId *string
 	// Test configuration for this pipeline. Used only by test-only updates.
 	Testing *PipelineTesting
@@ -1149,7 +1152,8 @@ type GetPipelineResponse struct {
 	// Key/value map of default parameters to use for pipeline execution. Maximum
 	// total size: 10k characters (JSON format)
 	Parameters map[string]string
-	// Serverless compute ID resolved for the pipeline.
+	// Serverless compute ID resolved for the pipeline. For the equivalent compute
+	// policy ID, use effective_compute_policy_id.
 	EffectiveServerlessComputeId *string
 }
 
@@ -2261,7 +2265,8 @@ type PipelineSpec struct {
 	ParentPath *string
 	// Usage policy of this pipeline.
 	UsagePolicyId *string
-	// Serverless compute ID specified by the user for serverless pipelines.
+	// Serverless compute ID specified by the user for serverless pipelines. Use
+	// compute_policy_id instead. Only one of these fields may be set.
 	ServerlessComputeId *string
 	// Test configuration for this pipeline. Used only by test-only updates.
 	Testing *PipelineTesting

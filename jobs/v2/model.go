@@ -3332,7 +3332,8 @@ type JobCompletionTriggerState struct {
 type JobCompletionTriggerState_MonitoredJobState struct {
 	// The ID of the workspace containing the upstream job.
 	WorkspaceId *string
-	// The ID of the upstream job.
+	// The ID of the upstream job. For a job monitored by name, the ID of the job
+	// that the name last resolved to. Omitted until the name resolves to a job.
 	JobId *string
 	// The completion time of the latest matching upstream run observed by the
 	// trigger.
