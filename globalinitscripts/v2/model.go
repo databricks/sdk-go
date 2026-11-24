@@ -3,9 +3,10 @@
 package globalinitscripts
 
 type CreateGlobalInitScriptRequest struct {
-	// The name of the script
+	// The name of the script. The name must be unique within the workspace.
 	Name *string
-	// The Base64-encoded content of the script.
+	// The Base64-encoded content of the script. The decoded content must not be
+	// empty and cannot exceed 64 KB.
 	Script []byte
 	// The position of a global init script, where 0 represents the first script to
 	// run, 1 is the second script to run, in ascending order.
@@ -41,10 +42,12 @@ type GetGlobalInitScriptRequest struct {
 	ScriptId *string
 }
 
+// A global init script in the workspace. Only workspace admins can view and
+// manage global init scripts..
 type GlobalInitScriptDetails struct {
 	// The global init script ID.
 	ScriptId *string
-	// The name of the script
+	// The name of the script. The name must be unique within the workspace.
 	Name *string
 	// The position of a script, where 0 represents the first script to run, 1 is
 	// the second script to run, in ascending order.
@@ -56,7 +59,7 @@ type GlobalInitScriptDetails struct {
 	// Time when the script was created, represented as a Unix timestamp in
 	// milliseconds.
 	CreatedAt *int64
-	// The username of the user who last updated the script
+	// The username of the user who last updated the script.
 	UpdatedBy *string
 	// Time when the script was updated, represented as a Unix timestamp in
 	// milliseconds.
@@ -73,9 +76,10 @@ type ListGlobalInitScriptsResponse struct {
 type UpdateGlobalInitScriptRequest struct {
 	// The ID of the global init script.
 	ScriptId *string
-	// The name of the script
+	// The name of the script. The name must be unique within the workspace.
 	Name *string
-	// The Base64-encoded content of the script.
+	// The Base64-encoded content of the script. The decoded content must not be
+	// empty and cannot exceed 64 KB.
 	Script []byte
 	// The position of a script, where 0 represents the first script to run, 1 is
 	// the second script to run, in ascending order. To move the script to run

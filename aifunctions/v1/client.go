@@ -384,9 +384,9 @@ func (c *internalClient) ListBatchesIter(ctx context.Context, req ListBatchesReq
 	}
 }
 
-// Classifies content according to a set of provided labels. For REST API
-// requests, the default rate limit is 1,200 requests per minute per workspace.
-// Contact your <Databricks> account team to request a higher limit.
+// Classifies content according to a set of provided labels. The AI Classify
+// REST API has a default rate limit of 1,200 requests per minute per workspace.
+// Contact your account team to request a higher limit.
 func (c *internalClient) AiClassify(ctx context.Context, req AiClassifyRequest, opts ...call.Option) (*AiClassifyResponse, error) {
 	wireReq, err := aiClassifyRequestToWire(&req)
 	if err != nil {
@@ -454,9 +454,9 @@ func (c *internalClient) AiClassify(ctx context.Context, req AiClassifyRequest, 
 
 // Turn text and structured data into decisions your application can use. Define
 // questions and criteria to choose an option, estimate a probability, or assign
-// a score given a provided state. For REST API requests, the default rate limit
-// is 1,200 requests per minute per workspace. Contact your <Databricks> account
-// team to request a higher limit.
+// a score given a provided state. The AI Decide REST API has a default rate
+// limit of 1,200 requests per minute per workspace. Contact your account team
+// to request a higher limit.
 func (c *internalClient) AiDecide(ctx context.Context, req AiDecideRequest, opts ...call.Option) (*AiDecideResponse, error) {
 	wireReq, err := aiDecideRequestToWire(&req)
 	if err != nil {
@@ -523,9 +523,8 @@ func (c *internalClient) AiDecide(ctx context.Context, req AiDecideRequest, opts
 }
 
 // Extracts structured data from text and documents according to a provided
-// schema. For REST API requests, the default rate limit is 120 requests per
-// minute per workspace. Contact your <Databricks> account team to request a
-// higher limit.
+// schema. The AI Extract REST API has a default rate limit of 120 requests per
+// minute per workspace. Contact your account team to request a higher limit.
 func (c *internalClient) AiExtract(ctx context.Context, req AiExtractRequest, opts ...call.Option) (*AiExtractResponse, error) {
 	wireReq, err := aiExtractRequestToWire(&req)
 	if err != nil {

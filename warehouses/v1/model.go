@@ -715,9 +715,9 @@ type CreateWarehouseRequest struct {
 	Channel *Channel
 	// Configures whether the warehouse should use serverless compute
 	EnableServerlessCompute *bool
-	// Warehouse type: `PRO` or `CLASSIC`. If you want to use serverless compute,
-	// you must set to `PRO` and also set the field `enable_serverless_compute` to
-	// `true`.
+	// Warehouse type: `PRO`, `CLASSIC`, or `REALTIME`. For serverless compute, use
+	// `PRO` or `REALTIME` with `enable_serverless_compute=true`. `REALTIME`
+	// requires serverless compute and Photon; `enable_photon` defaults to `true`.
 	WarehouseType WarehouseType
 	// Maximum time in seconds that a statement can run on this warehouse before it
 	// is cancelled. Set to 0 to remove the warehouse-level timeout. Changing the
@@ -733,11 +733,12 @@ type CreateWarehouseRequest struct {
 	// Values above the configured maximum are capped at that maximum. - When
 	// absent, the warehouse is treated as having a multiplier of 1.0.
 	ReydenClusterSizeMultiplier *float64
-	// Compute version label for a REALTIME warehouse. This field is output only.
+	// Compute version label for a Real-Time warehouse. This field is output only.
 	CustomerVersionLabel *string
-	// Maximum compute capacity of a real-time SQL warehouse, in DBU per hour. Must
-	// be at least the minimum DBU for the selected warehouse size and no greater
-	// than the configured DBU limit. Actual capacity may be below this ceiling.
+	// Maximum autoscaling capacity of a Real-Time SQL warehouse, in DBU per hour.
+	// Must be at least the minimum DBU for the selected warehouse size and no
+	// greater than the configured DBU limit. Actual capacity may be below this
+	// ceiling.
 	MaxDbu *int
 }
 
@@ -841,9 +842,9 @@ type EditWarehouseRequest struct {
 	Channel *Channel
 	// Configures whether the warehouse should use serverless compute
 	EnableServerlessCompute *bool
-	// Warehouse type: `PRO` or `CLASSIC`. If you want to use serverless compute,
-	// you must set to `PRO` and also set the field `enable_serverless_compute` to
-	// `true`.
+	// Warehouse type: `PRO`, `CLASSIC`, or `REALTIME`. For serverless compute, use
+	// `PRO` or `REALTIME` with `enable_serverless_compute=true`. `REALTIME`
+	// requires serverless compute and Photon; `enable_photon` defaults to `true`.
 	WarehouseType WarehouseType
 	// Maximum time in seconds that a statement can run on this warehouse before it
 	// is cancelled. Set to 0 to remove the warehouse-level timeout. Changing the
@@ -859,11 +860,12 @@ type EditWarehouseRequest struct {
 	// Values above the configured maximum are capped at that maximum. - When
 	// absent, the warehouse is treated as having a multiplier of 1.0.
 	ReydenClusterSizeMultiplier *float64
-	// Compute version label for a REALTIME warehouse. This field is output only.
+	// Compute version label for a Real-Time warehouse. This field is output only.
 	CustomerVersionLabel *string
-	// Maximum compute capacity of a real-time SQL warehouse, in DBU per hour. Must
-	// be at least the minimum DBU for the selected warehouse size and no greater
-	// than the configured DBU limit. Actual capacity may be below this ceiling.
+	// Maximum autoscaling capacity of a Real-Time SQL warehouse, in DBU per hour.
+	// Must be at least the minimum DBU for the selected warehouse size and no
+	// greater than the configured DBU limit. Actual capacity may be below this
+	// ceiling.
 	MaxDbu *int
 }
 
@@ -953,9 +955,9 @@ type EndpointInfo struct {
 	Channel *Channel
 	// Configures whether the warehouse should use serverless compute
 	EnableServerlessCompute *bool
-	// Warehouse type: `PRO` or `CLASSIC`. If you want to use serverless compute,
-	// you must set to `PRO` and also set the field `enable_serverless_compute` to
-	// `true`.
+	// Warehouse type: `PRO`, `CLASSIC`, or `REALTIME`. For serverless compute, use
+	// `PRO` or `REALTIME` with `enable_serverless_compute=true`. `REALTIME`
+	// requires serverless compute and Photon; `enable_photon` defaults to `true`.
 	WarehouseType WarehouseType
 	// Maximum time in seconds that a statement can run on this warehouse before it
 	// is cancelled. Set to 0 to remove the warehouse-level timeout. Changing the
@@ -971,11 +973,12 @@ type EndpointInfo struct {
 	// Values above the configured maximum are capped at that maximum. - When
 	// absent, the warehouse is treated as having a multiplier of 1.0.
 	ReydenClusterSizeMultiplier *float64
-	// Compute version label for a REALTIME warehouse. This field is output only.
+	// Compute version label for a Real-Time warehouse. This field is output only.
 	CustomerVersionLabel *string
-	// Maximum compute capacity of a real-time SQL warehouse, in DBU per hour. Must
-	// be at least the minimum DBU for the selected warehouse size and no greater
-	// than the configured DBU limit. Actual capacity may be below this ceiling.
+	// Maximum autoscaling capacity of a Real-Time SQL warehouse, in DBU per hour.
+	// Must be at least the minimum DBU for the selected warehouse size and no
+	// greater than the configured DBU limit. Actual capacity may be below this
+	// ceiling.
 	MaxDbu *int
 	// Number of clusters currently allocated to the warehouse, including clusters
 	// that are still starting.
@@ -1085,9 +1088,9 @@ type GetWarehouseResponse struct {
 	Channel *Channel
 	// Configures whether the warehouse should use serverless compute
 	EnableServerlessCompute *bool
-	// Warehouse type: `PRO` or `CLASSIC`. If you want to use serverless compute,
-	// you must set to `PRO` and also set the field `enable_serverless_compute` to
-	// `true`.
+	// Warehouse type: `PRO`, `CLASSIC`, or `REALTIME`. For serverless compute, use
+	// `PRO` or `REALTIME` with `enable_serverless_compute=true`. `REALTIME`
+	// requires serverless compute and Photon; `enable_photon` defaults to `true`.
 	WarehouseType WarehouseType
 	// Maximum time in seconds that a statement can run on this warehouse before it
 	// is cancelled. Set to 0 to remove the warehouse-level timeout. Changing the
@@ -1103,11 +1106,12 @@ type GetWarehouseResponse struct {
 	// Values above the configured maximum are capped at that maximum. - When
 	// absent, the warehouse is treated as having a multiplier of 1.0.
 	ReydenClusterSizeMultiplier *float64
-	// Compute version label for a REALTIME warehouse. This field is output only.
+	// Compute version label for a Real-Time warehouse. This field is output only.
 	CustomerVersionLabel *string
-	// Maximum compute capacity of a real-time SQL warehouse, in DBU per hour. Must
-	// be at least the minimum DBU for the selected warehouse size and no greater
-	// than the configured DBU limit. Actual capacity may be below this ceiling.
+	// Maximum autoscaling capacity of a Real-Time SQL warehouse, in DBU per hour.
+	// Must be at least the minimum DBU for the selected warehouse size and no
+	// greater than the configured DBU limit. Actual capacity may be below this
+	// ceiling.
 	MaxDbu *int
 	// Number of clusters currently allocated to the warehouse, including clusters
 	// that are still starting.

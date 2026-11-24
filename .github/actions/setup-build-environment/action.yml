@@ -13,12 +13,107 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Setup JFrog CLI with OIDC
+    # Only installs the JFrog CLI. The next step logs in, because the action
+    # retries the OIDC token exchange without waiting between attempts.
+    - name: Setup JFrog CLI
       uses: jfrog/setup-jfrog-cli@279b1f629f43dd5bc658d8361ac4802a7ef8d2d5 # v4.9.1
+
+    # CI runs one job per module, and all of them log in at about the same
+    # time, so a short JFrog outage fails some of them. Retry transient
+    # failures with exponential backoff and full jitter, which spreads the
+    # retries of jobs that failed together.
+    - name: Log in to JFrog with OIDC
+      shell: bash
       env:
         JF_URL: https://databricks.jfrog.io
-      with:
-        oidc-provider-name: github-actions
+        OIDC_PROVIDER_NAME: github-actions
+        # The server ID that setup-jfrog-cli uses. Listing it in
+        # SETUP_JFROG_CLI_SERVER_IDS lets the action's post step clean it up.
+        SERVER_ID: setup-jfrog-cli-server
+      run: |
+        set -euo pipefail
+
+        max_attempts=5
+        max_delay_seconds=10
+
+        if [[ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ||
+              -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" ]]; then
+          echo "::error::Logging in to JFrog needs the job permission id-token: write."
+          exit 1
+        fi
+
+        response=$(mktemp)
+        trap 'rm -f "$response"' EXIT
+
+        # Exchanges a new GitHub ID token for a JFrog access token and stores
+        # it in access_token. Returns 1 when a retry can help (network errors,
+        # timeouts, and HTTP 408, 429, and 5xx) and 2 otherwise.
+        exchange_token() {
+          local id_token status
+          if ! id_token=$(curl --silent --show-error --fail \
+              --connect-timeout 10 --max-time 30 \
+              --header "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+              "$ACTIONS_ID_TOKEN_REQUEST_URL" |
+              jq --raw-output --exit-status .value); then
+            echo "Could not get a GitHub OIDC ID token."
+            return 1
+          fi
+          echo "::add-mask::$id_token"
+
+          # curl prints 000 when it gets no HTTP response.
+          status=$(ID_TOKEN=$id_token jq --null-input '{
+                grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
+                subject_token_type: "urn:ietf:params:oauth:token-type:id_token",
+                subject_token: $ENV.ID_TOKEN,
+                provider_name: $ENV.OIDC_PROVIDER_NAME
+              }' |
+            curl --silent --show-error --connect-timeout 10 --max-time 30 \
+              --header "Content-Type: application/json" --data @- \
+              --output "$response" --write-out "%{http_code}" \
+              "$JF_URL/access/api/v1/oidc/token") || true
+          status=${status:-000}
+
+          case "$status" in
+            2??)
+              if ! access_token=$(jq --raw-output --exit-status .access_token \
+                  "$response"); then
+                echo "JFrog returned HTTP $status without an access token."
+                return 2
+              fi
+              echo "::add-mask::$access_token"
+              ;;
+            000 | 408 | 429 | 5??)
+              echo "The JFrog OIDC token exchange failed with HTTP $status."
+              return 1
+              ;;
+            *)
+              echo "The JFrog OIDC token exchange failed with HTTP $status:" \
+                "$(head -c 500 "$response")"
+              return 2
+              ;;
+          esac
+        }
+
+        for ((attempt = 1; ; attempt++)); do
+          result=0
+          exchange_token || result=$?
+          if ((result == 0)); then
+            break
+          fi
+          if ((result == 2 || attempt == max_attempts)); then
+            echo "::error::Could not log in to JFrog with OIDC after $attempt attempt(s)."
+            exit 1
+          fi
+          delay_seconds=$((RANDOM % max_delay_seconds + 1))
+          echo "Attempt $attempt of $max_attempts failed. Retrying in ${delay_seconds}s."
+          sleep "$delay_seconds"
+          max_delay_seconds=$((max_delay_seconds * 2))
+        done
+
+        jf config add "$SERVER_ID" --url "$JF_URL" --access-token "$access_token" \
+          --interactive=false --overwrite=true
+        jf config use "$SERVER_ID"
+        echo "SETUP_JFROG_CLI_SERVER_IDS=$SERVER_ID" >> "$GITHUB_ENV"
 
     - name: Setup Go
       uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0

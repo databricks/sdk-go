@@ -1185,11 +1185,14 @@ type Rule struct {
 	// `run_as_principal` keeps the current identity, and the requester must still
 	// be authorized to delegate to it; an editor who is not must supply a
 	// run_as_principal they can delegate to (for example, their own identity), or
-	// clear it, either of which reassigns the rule. An update whose mask includes
-	// `run_as_principal` but supplies no value clears it: the rule then runs as the
-	// requester, exactly as when it is omitted on create. Reads return the value as
-	// supplied; the identity the rule runs as is reported in
-	// `effective_run_as_principal`.
+	// clear it, either of which reassigns the rule. An update that only enables or
+	// disables the rule (changes `schedule.enabled` and nothing else) does not
+	// require delegate permission and keeps the current identity. Enabling the rule
+	// still requires the current identity to have the access the rule needs to run,
+	// or the request is rejected. An update whose mask includes `run_as_principal`
+	// but supplies no value clears it: the rule then runs as the requester, exactly
+	// as when it is omitted on create. Reads return the value as supplied; the
+	// identity the rule runs as is reported in `effective_run_as_principal`.
 	RunAsPrincipal *string `fieldmask:"run_as_principal"`
 	// The identity this rule's job runs as: the resolved `run_as_principal`, or the
 	// requester's identity when it was omitted on create or cleared on update. The

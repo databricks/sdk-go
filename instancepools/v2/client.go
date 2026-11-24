@@ -203,7 +203,12 @@ func (c *internalClient) DeleteInstancePool(ctx context.Context, req DeleteInsta
 	return resp, nil
 }
 
-// Modifies the configuration of an existing instance pool.
+// Modifies the configuration of an existing instance pool. Settings that are
+// fixed at creation, such as the node type, cannot be changed and the request
+// fails if it attempts to change one. Omitted `min_idle_instances`,
+// `max_capacity` and `idle_instance_autotermination_minutes` are reset to their
+// defaults; omitted `custom_tags` keep their current value. On Azure, an
+// omitted `azure_attributes.capacity_reservation_group` is removed.
 func (c *internalClient) EditInstancePool(ctx context.Context, req EditInstancePoolRequest, opts ...call.Option) (*EditInstancePoolResponse, error) {
 	wireReq, err := editInstancePoolRequestToWire(&req)
 	if err != nil {

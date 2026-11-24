@@ -77,7 +77,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 	}, nil
 }
 
-// Creates a new global init script in this workspace.
+// Creates a new global init script in this workspace. The number of global init
+// scripts per workspace is limited.
 func (c *internalClient) CreateGlobalInitScript(ctx context.Context, req CreateGlobalInitScriptRequest, opts ...call.Option) (*CreateGlobalInitScriptResponse, error) {
 	wireReq, err := createGlobalInitScriptRequestToWire(&req)
 	if err != nil {
