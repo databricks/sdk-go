@@ -945,8 +945,9 @@ type UpdateDatabaseInstanceRequest struct {
 }
 
 type UpdateSyncedDatabaseTableRequest struct {
-	// Note that updating a synced database table is not yet supported.
+	// The synced database table and requested spec values.
 	SyncedTable *SyncedDatabaseTable
-	// The list of fields to update. Setting this field is not yet supported.
+	// The list of fields to update. Updatable paths include spec.accelerated_sync
+	// and *.
 	UpdateMask *types.FieldMask[SyncedDatabaseTable]
 }

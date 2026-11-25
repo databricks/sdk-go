@@ -747,7 +747,7 @@ type Metric struct {
 	Key *string
 	// The value of the metric.
 	Value *float64
-	// The timestamp at which the metric was recorded.
+	// Time at which the metric was recorded, as a Unix timestamp in milliseconds.
 	Timestamp *int64
 	// The step at which the metric was logged.
 	Step *int64
@@ -847,7 +847,7 @@ type RunInfo struct {
 	// [Deprecated, use run_id instead] Unique identifier for the run. This field
 	// will be removed in a future MLflow version.
 	RunUuid *string
-	// The experiment ID.
+	// ID of the experiment that the run belongs to.
 	ExperimentId *string
 	// The name of the run.
 	RunName *string
@@ -860,18 +860,17 @@ type RunInfo struct {
 	StartTime *int64
 	// Unix timestamp of when the run ended in milliseconds.
 	EndTime *int64
-	// URI of the directory where artifacts should be uploaded. This can be a local
-	// path (starting with "/"), or a distributed file system (DFS) path, like
-	// ``s3://bucket/directory`` or ``dbfs:/my/directory``. If not set, the local
-	// ``./mlruns`` directory is chosen.
+	// URI of the directory where the run's artifacts are stored. MLflow sets it
+	// when the run is created, as the `artifact_location` of the run's experiment
+	// followed by `/<run_id>/artifacts`.
 	ArtifactUri *string
-	// Current life cycle stage of the experiment : OneOf("active", "deleted")
+	// Current life cycle stage of the run: `active` or `deleted`.
 	LifecycleStage *string
 }
 
 // Run inputs..
 type RunInputs struct {
-	// Run metrics.
+	// Datasets used as inputs to the run.
 	DatasetInputs []DatasetInput
 	// Model inputs to the Run.
 	ModelInputs []ModelInput

@@ -5988,9 +5988,8 @@ func (v *MaterializationRunProgress) UnmarshalJSON(data []byte) error {
 }
 
 type materializationSetWire struct {
-	MaterializationSetId *string                           `json:"materialization_set_id,omitempty"`
-	MaterializedFeatures []materializedFeatureWire         `json:"materialized_features,omitempty"`
-	Notifications        *materializationNotificationsWire `json:"notifications,omitempty"`
+	MaterializationSetId *string                   `json:"materialization_set_id,omitempty"`
+	MaterializedFeatures []materializedFeatureWire `json:"materialized_features,omitempty"`
 }
 
 func materializationSetToWire(v *MaterializationSet) (*materializationSetWire, error) {
@@ -6001,14 +6000,9 @@ func materializationSetToWire(v *MaterializationSet) (*materializationSetWire, e
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "MaterializationSet.MaterializedFeatures", err)
 	}
-	notificationsWireValue, err := materializationNotificationsToWire(v.Notifications)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "MaterializationSet.Notifications", err)
-	}
 	return &materializationSetWire{
 		MaterializationSetId: v.MaterializationSetId,
 		MaterializedFeatures: materializedFeaturesWireValue,
-		Notifications:        notificationsWireValue,
 	}, nil
 }
 
@@ -6020,14 +6014,9 @@ func materializationSetFromWire(w *materializationSetWire) (*MaterializationSet,
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "MaterializationSet.MaterializedFeatures", err)
 	}
-	notificationsPublicValue, err := materializationNotificationsFromWire(w.Notifications)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "MaterializationSet.Notifications", err)
-	}
 	return &MaterializationSet{
 		MaterializationSetId: w.MaterializationSetId,
 		MaterializedFeatures: materializedFeaturesPublicValue,
-		Notifications:        notificationsPublicValue,
 	}, nil
 }
 

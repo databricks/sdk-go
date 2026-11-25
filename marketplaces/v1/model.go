@@ -17,6 +17,10 @@ const (
 	AssetType_AssetTypePartnerIntegration AssetType = "ASSET_TYPE_PARTNER_INTEGRATION"
 	AssetType_AssetTypeApp                AssetType = "ASSET_TYPE_APP"
 	AssetType_AssetTypeMcp                AssetType = "ASSET_TYPE_MCP"
+	// A listing containing Unity Catalog metric views.
+	AssetType_AssetTypeMetricView AssetType = "ASSET_TYPE_METRIC_VIEW"
+	// A listing containing Unity Catalog agent skills.
+	AssetType_AssetTypeAgentSkill AssetType = "ASSET_TYPE_AGENT_SKILL"
 )
 
 type Category string

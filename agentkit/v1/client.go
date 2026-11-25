@@ -889,9 +889,8 @@ func (c *internalClient) ForkSession(ctx context.Context, req ForkSessionRequest
 	return resp, nil
 }
 
-// Retrieves a memory entry by resource name. `view` controls whether the
-// response includes memory content. Returns `NOT_FOUND` when the entry does not
-// exist in the caller's workspace.
+// Retrieves a memory entry by resource name. Returns `NOT_FOUND` when the entry
+// does not exist in the caller's workspace.
 func (c *internalClient) GetMemory(ctx context.Context, req GetManagedMemoryEntryRequest, opts ...call.Option) (*ManagedMemoryEntry, error) {
 	wireReq, err := getManagedMemoryEntryRequestToWire(&req)
 	if err != nil {
@@ -2437,8 +2436,7 @@ func (c *internalClient) RevokeSessionStorePermission(ctx context.Context, req R
 }
 
 // Searches memory entries by text query for one actor. Returns matching entries
-// and scores ranked by relevance; `view` controls whether each returned entry
-// includes content.
+// and scores ranked by relevance.
 func (c *internalClient) SearchMemories(ctx context.Context, req SearchManagedMemoryEntriesRequest, opts ...call.Option) (*SearchManagedMemoryEntriesResponse, error) {
 	wireReq, err := searchManagedMemoryEntriesRequestToWire(&req)
 	if err != nil {

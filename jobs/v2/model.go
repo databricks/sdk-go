@@ -1475,12 +1475,15 @@ type BaseRun struct {
 	// The cluster used for this run. If the run is specified to use a new cluster,
 	// this field is set once the Jobs service has requested a cluster for the run.
 	ClusterInstance *ClusterInstance
-	// Job-level parameters used in the run
+	// Job-level parameters used in the run. Each entry carries the parameter's
+	// name, its default, and the value used in this run.
 	JobParameters []Run_JobLevelParameters
 	// The parameters used for this run.
 	OverridingParameters *RunParameters
 	Trigger              TriggerType
-	TriggerInfo          *RunTriggerInfo
+	// Additional details about the trigger that fired the run. The fields that are
+	// populated depend on the value of `trigger`.
+	TriggerInfo *RunTriggerInfo
 	// An optional name for the run. The maximum length is 4096 bytes in UTF-8
 	// encoding.
 	RunName *string
@@ -1521,7 +1524,9 @@ type BaseRun struct {
 	GitSource *GitSource
 	// The repair history of the run.
 	RepairHistory []Repair
-	Status        *RunStatus
+	// The current status of the run. Use this field instead of the deprecated
+	// `state` field.
+	Status *RunStatus
 	// ID of the job run that this run belongs to. For legacy and single-task job
 	// runs the field is populated with the job run ID. For task runs, the field is
 	// populated with the ID of the job run that the task run belongs to.
@@ -1611,7 +1616,7 @@ type CancelAllRunsResponse struct {
 }
 
 type CancelRunRequest struct {
-	// This field is required.
+	// The canonical identifier of the run to cancel.
 	RunId *int64
 }
 
@@ -3006,12 +3011,15 @@ type GetRunResponse struct {
 	// The cluster used for this run. If the run is specified to use a new cluster,
 	// this field is set once the Jobs service has requested a cluster for the run.
 	ClusterInstance *ClusterInstance
-	// Job-level parameters used in the run
+	// Job-level parameters used in the run. Each entry carries the parameter's
+	// name, its default, and the value used in this run.
 	JobParameters []Run_JobLevelParameters
 	// The parameters used for this run.
 	OverridingParameters *RunParameters
 	Trigger              TriggerType
-	TriggerInfo          *RunTriggerInfo
+	// Additional details about the trigger that fired the run. The fields that are
+	// populated depend on the value of `trigger`.
+	TriggerInfo *RunTriggerInfo
 	// An optional name for the run. The maximum length is 4096 bytes in UTF-8
 	// encoding.
 	RunName *string
@@ -3052,7 +3060,9 @@ type GetRunResponse struct {
 	GitSource *GitSource
 	// The repair history of the run.
 	RepairHistory []Repair
-	Status        *RunStatus
+	// The current status of the run. Use this field instead of the deprecated
+	// `state` field.
+	Status *RunStatus
 	// ID of the job run that this run belongs to. For legacy and single-task job
 	// runs the field is populated with the job run ID. For task runs, the field is
 	// populated with the ID of the job run that the task run belongs to.
@@ -3320,6 +3330,8 @@ type JobCompletionTriggerConfiguration_MonitoredJob struct {
 // Contains the immutable set of upstream completions that triggered the run, in
 // configured jobs order.
 type JobCompletionTriggerRunInfoDetails struct {
+	// The upstream job completions that fired the trigger, in the order in which
+	// the jobs are configured on the trigger.
 	CompletedJobs []CompletedJob
 }
 
@@ -3907,7 +3919,7 @@ type ListRunsRequest struct {
 	// Deprecated since June 2023. Use `page_token` to iterate through the pages
 	// instead.
 	Offset *int
-	// The number of runs to return. This value must be greater than 0 and less than
+	// The number of runs to return. This value must be greater than 0 and at most
 	// 25. The default value is 20. If a request specifies a limit of 0, the service
 	// instead uses the maximum limit.
 	Limit *int
@@ -4363,9 +4375,11 @@ type Repair struct {
 	// The repair history item type. Indicates whether a run is the original run or
 	// a repair run.
 	Type RepairType
-	// The start time of the (repaired) run.
+	// The start time of this repair history item in epoch milliseconds
+	// (milliseconds since 1/1/1970 UTC).
 	StartTime *int64
-	// The end time of the (repaired) run.
+	// The end time of this repair history item in epoch milliseconds (milliseconds
+	// since 1/1/1970 UTC).
 	EndTime *int64
 	// Deprecated. Please use the `status` field instead.
 	State *RunState
@@ -4374,7 +4388,10 @@ type Repair struct {
 	Id *int64
 	// The run IDs of the task runs that ran as part of this repair history item.
 	TaskRunIds []int64
-	Status     *RunStatus
+	// The status of the run at the end of this repair history item, or its current
+	// status for the latest item. Use this field instead of the deprecated `state`
+	// field.
+	Status *RunStatus
 	// The actual performance target used by the serverless run during execution.
 	// This can differ from the client-set performance target on the request
 	// depending on whether the performance mode is supported by the job type.
@@ -4396,7 +4413,8 @@ type RepairRunRequest struct {
 	LatestRepairId *int64
 	// The task keys of the task runs to repair.
 	RerunTasks []string
-	// Job-level parameters used in the run. for example `"param": "overriding_val"`
+	// Job-level parameters used in the run, for example `"param":
+	// "overriding_val"`.
 	JobParameters map[string]string
 	// If true, repair all failed tasks. Only one of `rerun_tasks` or
 	// `rerun_all_failed_tasks` can be used.
@@ -4536,6 +4554,7 @@ type isResolvedValues_Resolved interface {
 }
 
 // ResolvedValues_Resolved_NotebookTask selects NotebookTask for ResolvedValues.Resolved.
+// Resolved parameters of a notebook task.
 type ResolvedValues_Resolved_NotebookTask struct {
 	NotebookTask ResolvedValues_NotebookTaskResolvedValues
 }
@@ -4543,6 +4562,7 @@ type ResolvedValues_Resolved_NotebookTask struct {
 func (*ResolvedValues_Resolved_NotebookTask) isResolvedValues_Resolved() {}
 
 // ResolvedValues_Resolved_SparkJarTask selects SparkJarTask for ResolvedValues.Resolved.
+// Resolved parameters of a JAR task.
 type ResolvedValues_Resolved_SparkJarTask struct {
 	SparkJarTask ResolvedValues_SparkJarTaskResolvedValues
 }
@@ -4550,6 +4570,7 @@ type ResolvedValues_Resolved_SparkJarTask struct {
 func (*ResolvedValues_Resolved_SparkJarTask) isResolvedValues_Resolved() {}
 
 // ResolvedValues_Resolved_SparkPythonTask selects SparkPythonTask for ResolvedValues.Resolved.
+// Resolved parameters of a Python script task.
 type ResolvedValues_Resolved_SparkPythonTask struct {
 	SparkPythonTask ResolvedValues_SparkPythonTaskResolvedValues
 }
@@ -4557,6 +4578,7 @@ type ResolvedValues_Resolved_SparkPythonTask struct {
 func (*ResolvedValues_Resolved_SparkPythonTask) isResolvedValues_Resolved() {}
 
 // ResolvedValues_Resolved_SparkSubmitTask selects SparkSubmitTask for ResolvedValues.Resolved.
+// Resolved parameters of a spark-submit task.
 type ResolvedValues_Resolved_SparkSubmitTask struct {
 	SparkSubmitTask ResolvedValues_SparkSubmitTaskResolvedValues
 }
@@ -4564,6 +4586,7 @@ type ResolvedValues_Resolved_SparkSubmitTask struct {
 func (*ResolvedValues_Resolved_SparkSubmitTask) isResolvedValues_Resolved() {}
 
 // ResolvedValues_Resolved_PythonWheelTask selects PythonWheelTask for ResolvedValues.Resolved.
+// Resolved parameters of a Python wheel task.
 type ResolvedValues_Resolved_PythonWheelTask struct {
 	PythonWheelTask ResolvedValues_PythonWheelTaskResolvedValues
 }
@@ -4571,6 +4594,7 @@ type ResolvedValues_Resolved_PythonWheelTask struct {
 func (*ResolvedValues_Resolved_PythonWheelTask) isResolvedValues_Resolved() {}
 
 // ResolvedValues_Resolved_DbtTask selects DbtTask for ResolvedValues.Resolved.
+// Resolved commands of a dbt task.
 type ResolvedValues_Resolved_DbtTask struct {
 	DbtTask ResolvedValues_DbtTaskResolvedValues
 }
@@ -4578,6 +4602,7 @@ type ResolvedValues_Resolved_DbtTask struct {
 func (*ResolvedValues_Resolved_DbtTask) isResolvedValues_Resolved() {}
 
 // ResolvedValues_Resolved_SqlTask selects SqlTask for ResolvedValues.Resolved.
+// Resolved parameters of a SQL task.
 type ResolvedValues_Resolved_SqlTask struct {
 	SqlTask ResolvedValues_SqlTaskResolvedValues
 }
@@ -4585,6 +4610,7 @@ type ResolvedValues_Resolved_SqlTask struct {
 func (*ResolvedValues_Resolved_SqlTask) isResolvedValues_Resolved() {}
 
 // ResolvedValues_Resolved_RunJobTask selects RunJobTask for ResolvedValues.Resolved.
+// Resolved parameters of a Run Job task.
 type ResolvedValues_Resolved_RunJobTask struct {
 	RunJobTask ResolvedValues_RunJobTaskResolvedValues
 }
@@ -4592,6 +4618,7 @@ type ResolvedValues_Resolved_RunJobTask struct {
 func (*ResolvedValues_Resolved_RunJobTask) isResolvedValues_Resolved() {}
 
 // ResolvedValues_Resolved_ConditionTask selects ConditionTask for ResolvedValues.Resolved.
+// Resolved operands of a condition task.
 type ResolvedValues_Resolved_ConditionTask struct {
 	ConditionTask ResolvedValues_ConditionTaskResolvedValues
 }
@@ -4606,6 +4633,7 @@ type ResolvedValues_Resolved_SimulationTask struct {
 func (*ResolvedValues_Resolved_SimulationTask) isResolvedValues_Resolved() {}
 
 // ResolvedValues_Resolved_PipelineTask selects PipelineTask for ResolvedValues.Resolved.
+// Resolved parameters of a pipeline task.
 type ResolvedValues_Resolved_PipelineTask struct {
 	PipelineTask ResolvedValues_PipelineTaskResolvedValues
 }
@@ -4645,15 +4673,23 @@ type ResolvedValues_AiRuntimeTaskResolvedValues struct {
 }
 
 type ResolvedValues_ConditionTaskResolvedValues struct {
-	Left  *string
+	// The left operand of the condition with dynamic value references replaced by
+	// their concrete values.
+	Left *string
+	// The right operand of the condition with dynamic value references replaced by
+	// their concrete values.
 	Right *string
 }
 
 type ResolvedValues_DbtTaskResolvedValues struct {
+	// The dbt commands with dynamic value references replaced by their concrete
+	// values.
 	Commands []string
 }
 
 type ResolvedValues_NotebookTaskResolvedValues struct {
+	// The notebook parameters with dynamic value references replaced by their
+	// concrete values.
 	BaseParameters map[string]string
 }
 
@@ -4664,12 +4700,18 @@ type ResolvedValues_PipelineTaskResolvedValues struct {
 }
 
 type ResolvedValues_PythonWheelTaskResolvedValues struct {
-	Parameters      []string
+	// The positional parameters with dynamic value references replaced by their
+	// concrete values.
+	Parameters []string
+	// The named parameters with dynamic value references replaced by their concrete
+	// values.
 	NamedParameters map[string]string
 }
 
 type ResolvedValues_RunJobTaskResolvedValues struct {
-	Parameters    map[string]string
+	Parameters map[string]string
+	// The job-level parameters passed to the triggered job with dynamic value
+	// references replaced by their concrete values.
 	JobParameters map[string]string
 }
 
@@ -4678,6 +4720,8 @@ type ResolvedValues_SimulationTaskResolvedValues struct {
 }
 
 type ResolvedValues_SparkJarTaskResolvedValues struct {
+	// The parameters passed to the main class with dynamic value references
+	// replaced by their concrete values.
 	Parameters []string
 }
 
@@ -4688,6 +4732,8 @@ type ResolvedValues_SparkSubmitTaskResolvedValues struct {
 }
 
 type ResolvedValues_SqlTaskResolvedValues struct {
+	// The query parameters with dynamic value references replaced by their concrete
+	// values.
 	Parameters map[string]string
 }
 
@@ -4716,12 +4762,15 @@ type Run struct {
 	// The cluster used for this run. If the run is specified to use a new cluster,
 	// this field is set once the Jobs service has requested a cluster for the run.
 	ClusterInstance *ClusterInstance
-	// Job-level parameters used in the run
+	// Job-level parameters used in the run. Each entry carries the parameter's
+	// name, its default, and the value used in this run.
 	JobParameters []Run_JobLevelParameters
 	// The parameters used for this run.
 	OverridingParameters *RunParameters
 	Trigger              TriggerType
-	TriggerInfo          *RunTriggerInfo
+	// Additional details about the trigger that fired the run. The fields that are
+	// populated depend on the value of `trigger`.
+	TriggerInfo *RunTriggerInfo
 	// An optional name for the run. The maximum length is 4096 bytes in UTF-8
 	// encoding.
 	RunName *string
@@ -4762,7 +4811,9 @@ type Run struct {
 	GitSource *GitSource
 	// The repair history of the run.
 	RepairHistory []Repair
-	Status        *RunStatus
+	// The current status of the run. Use this field instead of the deprecated
+	// `state` field.
+	Status *RunStatus
 	// ID of the job run that this run belongs to. For legacy and single-task job
 	// runs the field is populated with the job run ID. For task runs, the field is
 	// populated with the ID of the job run that the task run belongs to.
@@ -5208,7 +5259,8 @@ type RunTask struct {
 	// The ID of the task run.
 	RunId *int64
 	// Deprecated. Please use the `status` field instead.
-	State      *RunState
+	State *RunState
+	// The URL to the detail page of the task run.
 	RunPageUrl *string
 	// The cluster used for this run. If the run is specified to use a new cluster,
 	// this field is set once the Jobs service has requested a cluster for the run.
@@ -5231,7 +5283,9 @@ type RunTask struct {
 	GitSource *GitSource
 	// Parameter values including resolved references
 	ResolvedValues *ResolvedValues
-	Status         *RunStatus
+	// The current status of the task run. Use this field instead of the deprecated
+	// `state` field.
+	Status *RunStatus
 	// The actual performance target used by the serverless run during execution.
 	// This can differ from the client-set performance target on the request
 	// depending on whether the performance mode is supported by the job type.

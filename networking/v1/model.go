@@ -1079,9 +1079,8 @@ func (*CreateVpcEndpointRequest_VpcEndpointInfo_GcpVpcEndpointInfo) isCreateVpcE
 }
 
 type CustomerFacingNetworkConnectivityConfigEgressConfig struct {
-	// The network connectivity rules that are applied by default without resource
-	// specific configurations. You can find the stable network information of your
-	// serverless compute resources here.
+	// Deprecated. This field is retained for compatibility with existing clients.
+	// Avoid using it in new integrations.
 	DefaultRules *NetworkConnectivityConfigEgressConfig_DefaultRule `fieldmask:"default_rules"`
 	// The network connectivity rules that configured for each destinations. These
 	// rules override default rules.
@@ -1091,9 +1090,11 @@ type CustomerFacingNetworkConnectivityConfigEgressConfig struct {
 // Target rule controls the egress rules that are dedicated to specific
 // resources..
 type CustomerFacingNetworkConnectivityConfigEgressConfig_CustomerFacingTargetRule struct {
+	// Deprecated. This field is not supported anymore and kept purely for interface
+	// stability.
 	AzurePrivateEndpointRules []NetworkConnectivityConfigAzurePrivateEndpointRule `fieldmask:"azure_private_endpoint_rules"`
-	// AWS private endpoint rule controls the AWS private endpoint based egress
-	// rules.
+	// Deprecated. This field is not supported anymore and kept purely for interface
+	// stability.
 	AwsPrivateEndpointRules []NetworkConnectivityConfigAwsPrivateEndpointRule `fieldmask:"aws_private_endpoint_rules"`
 }
 
