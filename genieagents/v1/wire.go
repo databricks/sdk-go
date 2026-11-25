@@ -480,85 +480,9 @@ func (v *GenieAgentConfig) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-type genieAgentDataSourcesWire struct {
-	Tables         []genieAgentTableWire         `json:"tables,omitempty"`
-	Volumes        []genieAgentVolumeWire        `json:"volumes,omitempty"`
-	McpConnections []genieAgentMcpConnectionWire `json:"mcp_connections,omitempty"`
-}
-
-func genieAgentDataSourcesToWire(v *GenieAgentDataSources) (*genieAgentDataSourcesWire, error) {
-	if v == nil {
-		return nil, nil
-	}
-	tablesWireValue, err := convertSlice(v.Tables, genieAgentTableToWire)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "GenieAgentDataSources.Tables", err)
-	}
-	volumesWireValue, err := convertSlice(v.Volumes, genieAgentVolumeToWire)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "GenieAgentDataSources.Volumes", err)
-	}
-	mcpConnectionsWireValue, err := convertSlice(v.McpConnections, genieAgentMcpConnectionToWire)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "GenieAgentDataSources.McpConnections", err)
-	}
-	return &genieAgentDataSourcesWire{
-		Tables:         tablesWireValue,
-		Volumes:        volumesWireValue,
-		McpConnections: mcpConnectionsWireValue,
-	}, nil
-}
-
-func genieAgentDataSourcesFromWire(w *genieAgentDataSourcesWire) (*GenieAgentDataSources, error) {
-	if w == nil {
-		return nil, nil
-	}
-	tablesPublicValue, err := convertSlice(w.Tables, genieAgentTableFromWire)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "GenieAgentDataSources.Tables", err)
-	}
-	volumesPublicValue, err := convertSlice(w.Volumes, genieAgentVolumeFromWire)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "GenieAgentDataSources.Volumes", err)
-	}
-	mcpConnectionsPublicValue, err := convertSlice(w.McpConnections, genieAgentMcpConnectionFromWire)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "GenieAgentDataSources.McpConnections", err)
-	}
-	return &GenieAgentDataSources{
-		Tables:         tablesPublicValue,
-		Volumes:        volumesPublicValue,
-		McpConnections: mcpConnectionsPublicValue,
-	}, nil
-}
-
-// MarshalJSON returns the JSON form that the API uses for this message, with
-// fields that a request sends in the URL path or query as regular fields.
-func (v GenieAgentDataSources) MarshalJSON() ([]byte, error) {
-	w, err := genieAgentDataSourcesToWire(&v)
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(w)
-}
-
-// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
-func (v *GenieAgentDataSources) UnmarshalJSON(data []byte) error {
-	var w genieAgentDataSourcesWire
-	if err := json.Unmarshal(data, &w); err != nil {
-		return err
-	}
-	decoded, err := genieAgentDataSourcesFromWire(&w)
-	if err != nil {
-		return err
-	}
-	*v = *decoded
-	return nil
-}
-
 type genieAgentDefinitionWire struct {
 	Config       *genieAgentConfigWire       `json:"config,omitempty"`
-	DataSources  *genieAgentDataSourcesWire  `json:"data_sources,omitempty"`
+	Resources    *genieAgentResourcesWire    `json:"resources,omitempty"`
 	Instructions *genieAgentInstructionsWire `json:"instructions,omitempty"`
 	Benchmarks   *genieAgentBenchmarksWire   `json:"benchmarks,omitempty"`
 }
@@ -571,9 +495,9 @@ func genieAgentDefinitionToWire(v *GenieAgentDefinition) (*genieAgentDefinitionW
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "GenieAgentDefinition.Config", err)
 	}
-	dataSourcesWireValue, err := genieAgentDataSourcesToWire(v.DataSources)
+	resourcesWireValue, err := genieAgentResourcesToWire(v.Resources)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "GenieAgentDefinition.DataSources", err)
+		return nil, fmt.Errorf("%s: %w", "GenieAgentDefinition.Resources", err)
 	}
 	instructionsWireValue, err := genieAgentInstructionsToWire(v.Instructions)
 	if err != nil {
@@ -585,7 +509,7 @@ func genieAgentDefinitionToWire(v *GenieAgentDefinition) (*genieAgentDefinitionW
 	}
 	return &genieAgentDefinitionWire{
 		Config:       configWireValue,
-		DataSources:  dataSourcesWireValue,
+		Resources:    resourcesWireValue,
 		Instructions: instructionsWireValue,
 		Benchmarks:   benchmarksWireValue,
 	}, nil
@@ -599,9 +523,9 @@ func genieAgentDefinitionFromWire(w *genieAgentDefinitionWire) (*GenieAgentDefin
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "GenieAgentDefinition.Config", err)
 	}
-	dataSourcesPublicValue, err := genieAgentDataSourcesFromWire(w.DataSources)
+	resourcesPublicValue, err := genieAgentResourcesFromWire(w.Resources)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "GenieAgentDefinition.DataSources", err)
+		return nil, fmt.Errorf("%s: %w", "GenieAgentDefinition.Resources", err)
 	}
 	instructionsPublicValue, err := genieAgentInstructionsFromWire(w.Instructions)
 	if err != nil {
@@ -613,7 +537,7 @@ func genieAgentDefinitionFromWire(w *genieAgentDefinitionWire) (*GenieAgentDefin
 	}
 	return &GenieAgentDefinition{
 		Config:       configPublicValue,
-		DataSources:  dataSourcesPublicValue,
+		Resources:    resourcesPublicValue,
 		Instructions: instructionsPublicValue,
 		Benchmarks:   benchmarksPublicValue,
 	}, nil
@@ -710,9 +634,8 @@ func (v *GenieAgentExampleQuestionSql) UnmarshalJSON(data []byte) error {
 }
 
 type genieAgentInstructionsWire struct {
-	TextInstructions    []genieAgentTextInstructionWire    `json:"text_instructions,omitempty"`
+	TextInstruction     *genieAgentTextInstructionWire     `json:"text_instruction,omitempty"`
 	ExampleQuestionSqls []genieAgentExampleQuestionSqlWire `json:"example_question_sqls,omitempty"`
-	SqlFunctions        []genieAgentSqlFunctionWire        `json:"sql_functions,omitempty"`
 	JoinSpecs           []genieAgentJoinSpecWire           `json:"join_specs,omitempty"`
 	SqlSnippets         *genieAgentSqlSnippetsWire         `json:"sql_snippets,omitempty"`
 }
@@ -721,17 +644,13 @@ func genieAgentInstructionsToWire(v *GenieAgentInstructions) (*genieAgentInstruc
 	if v == nil {
 		return nil, nil
 	}
-	textInstructionsWireValue, err := convertSlice(v.TextInstructions, genieAgentTextInstructionToWire)
+	textInstructionWireValue, err := genieAgentTextInstructionToWire(v.TextInstruction)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "GenieAgentInstructions.TextInstructions", err)
+		return nil, fmt.Errorf("%s: %w", "GenieAgentInstructions.TextInstruction", err)
 	}
 	exampleQuestionSqlsWireValue, err := convertSlice(v.ExampleQuestionSqls, genieAgentExampleQuestionSqlToWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "GenieAgentInstructions.ExampleQuestionSqls", err)
-	}
-	sqlFunctionsWireValue, err := convertSlice(v.SqlFunctions, genieAgentSqlFunctionToWire)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "GenieAgentInstructions.SqlFunctions", err)
 	}
 	joinSpecsWireValue, err := convertSlice(v.JoinSpecs, genieAgentJoinSpecToWire)
 	if err != nil {
@@ -742,9 +661,8 @@ func genieAgentInstructionsToWire(v *GenieAgentInstructions) (*genieAgentInstruc
 		return nil, fmt.Errorf("%s: %w", "GenieAgentInstructions.SqlSnippets", err)
 	}
 	return &genieAgentInstructionsWire{
-		TextInstructions:    textInstructionsWireValue,
+		TextInstruction:     textInstructionWireValue,
 		ExampleQuestionSqls: exampleQuestionSqlsWireValue,
-		SqlFunctions:        sqlFunctionsWireValue,
 		JoinSpecs:           joinSpecsWireValue,
 		SqlSnippets:         sqlSnippetsWireValue,
 	}, nil
@@ -754,17 +672,13 @@ func genieAgentInstructionsFromWire(w *genieAgentInstructionsWire) (*GenieAgentI
 	if w == nil {
 		return nil, nil
 	}
-	textInstructionsPublicValue, err := convertSlice(w.TextInstructions, genieAgentTextInstructionFromWire)
+	textInstructionPublicValue, err := genieAgentTextInstructionFromWire(w.TextInstruction)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "GenieAgentInstructions.TextInstructions", err)
+		return nil, fmt.Errorf("%s: %w", "GenieAgentInstructions.TextInstruction", err)
 	}
 	exampleQuestionSqlsPublicValue, err := convertSlice(w.ExampleQuestionSqls, genieAgentExampleQuestionSqlFromWire)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "GenieAgentInstructions.ExampleQuestionSqls", err)
-	}
-	sqlFunctionsPublicValue, err := convertSlice(w.SqlFunctions, genieAgentSqlFunctionFromWire)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "GenieAgentInstructions.SqlFunctions", err)
 	}
 	joinSpecsPublicValue, err := convertSlice(w.JoinSpecs, genieAgentJoinSpecFromWire)
 	if err != nil {
@@ -775,9 +689,8 @@ func genieAgentInstructionsFromWire(w *genieAgentInstructionsWire) (*GenieAgentI
 		return nil, fmt.Errorf("%s: %w", "GenieAgentInstructions.SqlSnippets", err)
 	}
 	return &GenieAgentInstructions{
-		TextInstructions:    textInstructionsPublicValue,
+		TextInstruction:     textInstructionPublicValue,
 		ExampleQuestionSqls: exampleQuestionSqlsPublicValue,
-		SqlFunctions:        sqlFunctionsPublicValue,
 		JoinSpecs:           joinSpecsPublicValue,
 		SqlSnippets:         sqlSnippetsPublicValue,
 	}, nil
@@ -975,6 +888,93 @@ func (v *GenieAgentMcpConnection) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := genieAgentMcpConnectionFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type genieAgentResourcesWire struct {
+	Tables         []genieAgentTableWire         `json:"tables,omitempty"`
+	Volumes        []genieAgentVolumeWire        `json:"volumes,omitempty"`
+	McpConnections []genieAgentMcpConnectionWire `json:"mcp_connections,omitempty"`
+	SqlFunctions   []genieAgentSqlFunctionWire   `json:"sql_functions,omitempty"`
+}
+
+func genieAgentResourcesToWire(v *GenieAgentResources) (*genieAgentResourcesWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tablesWireValue, err := convertSlice(v.Tables, genieAgentTableToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieAgentResources.Tables", err)
+	}
+	volumesWireValue, err := convertSlice(v.Volumes, genieAgentVolumeToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieAgentResources.Volumes", err)
+	}
+	mcpConnectionsWireValue, err := convertSlice(v.McpConnections, genieAgentMcpConnectionToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieAgentResources.McpConnections", err)
+	}
+	sqlFunctionsWireValue, err := convertSlice(v.SqlFunctions, genieAgentSqlFunctionToWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieAgentResources.SqlFunctions", err)
+	}
+	return &genieAgentResourcesWire{
+		Tables:         tablesWireValue,
+		Volumes:        volumesWireValue,
+		McpConnections: mcpConnectionsWireValue,
+		SqlFunctions:   sqlFunctionsWireValue,
+	}, nil
+}
+
+func genieAgentResourcesFromWire(w *genieAgentResourcesWire) (*GenieAgentResources, error) {
+	if w == nil {
+		return nil, nil
+	}
+	tablesPublicValue, err := convertSlice(w.Tables, genieAgentTableFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieAgentResources.Tables", err)
+	}
+	volumesPublicValue, err := convertSlice(w.Volumes, genieAgentVolumeFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieAgentResources.Volumes", err)
+	}
+	mcpConnectionsPublicValue, err := convertSlice(w.McpConnections, genieAgentMcpConnectionFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieAgentResources.McpConnections", err)
+	}
+	sqlFunctionsPublicValue, err := convertSlice(w.SqlFunctions, genieAgentSqlFunctionFromWire)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "GenieAgentResources.SqlFunctions", err)
+	}
+	return &GenieAgentResources{
+		Tables:         tablesPublicValue,
+		Volumes:        volumesPublicValue,
+		McpConnections: mcpConnectionsPublicValue,
+		SqlFunctions:   sqlFunctionsPublicValue,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v GenieAgentResources) MarshalJSON() ([]byte, error) {
+	w, err := genieAgentResourcesToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *GenieAgentResources) UnmarshalJSON(data []byte) error {
+	var w genieAgentResourcesWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := genieAgentResourcesFromWire(&w)
 	if err != nil {
 		return err
 	}

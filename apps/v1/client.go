@@ -1007,7 +1007,8 @@ func (c *internalClient) DeleteCustomTemplate(ctx context.Context, req DeleteCus
 	return resp, nil
 }
 
-// Deletes an app space.
+// Deletes the app space with the supplied name. Spaces are identified by name,
+// not by id. The workspace's default space can't be deleted.
 func (c *internalClient) deleteSpaceBase(ctx context.Context, req DeleteSpaceRequest, opts ...call.Option) (*Operation, error) {
 
 	headers := http.Header{}
@@ -1069,7 +1070,8 @@ func (c *internalClient) deleteSpaceBase(ctx context.Context, req DeleteSpaceReq
 	return resp, nil
 }
 
-// Deletes an app space.
+// Deletes the app space with the supplied name. Spaces are identified by name,
+// not by id. The workspace's default space can't be deleted.
 func (c *internalClient) DeleteSpace(ctx context.Context, req DeleteSpaceRequest, opts ...call.Option) (*DeleteSpaceOperation, error) {
 	operation, err := c.deleteSpaceBase(ctx, req, opts...)
 	if err != nil {
@@ -1480,7 +1482,8 @@ func (c *internalClient) GetCustomTemplate(ctx context.Context, req GetCustomTem
 	return resp, nil
 }
 
-// Retrieves information for the app space with the supplied name.
+// Retrieves information for the app space with the supplied name. Spaces are
+// identified by name, not by id.
 func (c *internalClient) GetSpace(ctx context.Context, req GetSpaceRequest, opts ...call.Option) (*Space, error) {
 
 	headers := http.Header{}
@@ -2791,8 +2794,10 @@ func (c *internalClient) UpdateCustomTemplate(ctx context.Context, req UpdateCus
 	return resp, nil
 }
 
-// Updates an app space. The update process is asynchronous and the status of
-// the update can be checked with the GetSpaceOperation method.
+// Updates the app space with the supplied name. Spaces are identified by name,
+// not by id. The workspace's default space can't be updated. The update process
+// is asynchronous and the status of the update can be checked with the
+// GetSpaceOperation method.
 func (c *internalClient) updateSpaceBase(ctx context.Context, req UpdateSpaceRequest, opts ...call.Option) (*Operation, error) {
 	wireReq, err := updateSpaceRequestToWire(&req)
 	if err != nil {
@@ -2867,8 +2872,10 @@ func (c *internalClient) updateSpaceBase(ctx context.Context, req UpdateSpaceReq
 	return resp, nil
 }
 
-// Updates an app space. The update process is asynchronous and the status of
-// the update can be checked with the GetSpaceOperation method.
+// Updates the app space with the supplied name. Spaces are identified by name,
+// not by id. The workspace's default space can't be updated. The update process
+// is asynchronous and the status of the update can be checked with the
+// GetSpaceOperation method.
 func (c *internalClient) UpdateSpace(ctx context.Context, req UpdateSpaceRequest, opts ...call.Option) (*UpdateSpaceOperation, error) {
 	operation, err := c.updateSpaceBase(ctx, req, opts...)
 	if err != nil {

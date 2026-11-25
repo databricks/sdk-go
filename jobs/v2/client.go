@@ -729,7 +729,9 @@ func (c *internalClient) DeleteRun(ctx context.Context, req DeleteRunRequest, op
 	return resp, nil
 }
 
-// Export and retrieve the job run task.
+// Export and retrieve the job run task. Only notebook task runs can be
+// exported. For a multi-task job run, pass the `run_id` of the individual
+// notebook task run rather than the ID of the job run.
 func (c *internalClient) ExportRun(ctx context.Context, req ExportRunRequest, opts ...call.Option) (*ExportRunResponse, error) {
 	wireReq, err := exportRunRequestToWire(&req)
 	if err != nil {

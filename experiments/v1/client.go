@@ -547,8 +547,7 @@ func (c *internalClient) CreateLoggedModel(ctx context.Context, req CreateLogged
 
 // Creates a new run within an experiment. A run is usually a single execution
 // of a machine learning or data ETL pipeline. MLflow uses runs to track the
-// `mlflowParam`, `mlflowMetric`, and `mlflowRunTag` associated with a single
-// execution.
+// params, metrics, and tags associated with a single execution.
 func (c *internalClient) CreateRun(ctx context.Context, req CreateRunRequest, opts ...call.Option) (*CreateRunResponse, error) {
 	wireReq, err := createRunRequestToWire(&req)
 	if err != nil {
@@ -2524,7 +2523,7 @@ func (c *internalClient) SearchLoggedModels(ctx context.Context, req SearchLogge
 
 // Searches for runs that satisfy expressions.
 //
-// Search expressions can use `mlflowMetric` and `mlflowParam` keys.
+// Search expressions can use metric, param, and tag keys.
 func (c *internalClient) SearchRuns(ctx context.Context, req SearchRunsRequest, opts ...call.Option) (*SearchRunsResponse, error) {
 	wireReq, err := searchRunsRequestToWire(&req)
 	if err != nil {
