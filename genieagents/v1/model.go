@@ -165,22 +165,13 @@ type GenieAgentConfig struct {
 	SampleQuestions []GenieAgentSampleQuestion `fieldmask:"sample_questions"`
 }
 
-// The data a Genie Agent can access..
-type GenieAgentDataSources struct {
-	// Unity Catalog tables, views, and metric views, sorted by `identifier`.
-	Tables []GenieAgentTable `fieldmask:"tables"`
-	// Unity Catalog volumes, sorted by `path`.
-	Volumes []GenieAgentVolume `fieldmask:"volumes"`
-	// Unity Catalog MCP connections, sorted by `mcp_connection`.
-	McpConnections []GenieAgentMcpConnection `fieldmask:"mcp_connections"`
-}
-
 // The definition of a Genie Agent..
 type GenieAgentDefinition struct {
 	// General settings of the Genie Agent.
 	Config *GenieAgentConfig `fieldmask:"config"`
-	// The data the Genie Agent can access.
-	DataSources *GenieAgentDataSources `fieldmask:"data_sources"`
+	// The resources the Genie Agent can use: data, SQL functions, connections, and
+	// sub-agents.
+	Resources *GenieAgentResources `fieldmask:"resources"`
 	// Instructions and SQL that guide how the Genie Agent answers questions.
 	Instructions *GenieAgentInstructions `fieldmask:"instructions"`
 	// Benchmarks for evaluating the quality of the Genie Agent's answers.
@@ -204,12 +195,10 @@ type GenieAgentExampleQuestionSql struct {
 
 // Instructions and SQL that guide how a Genie Agent answers questions..
 type GenieAgentInstructions struct {
-	// General text instructions. At most one text instruction is supported.
-	TextInstructions []GenieAgentTextInstruction `fieldmask:"text_instructions"`
+	// The general text instruction.
+	TextInstruction *GenieAgentTextInstruction `fieldmask:"text_instruction"`
 	// Example questions paired with the SQL that answers them.
 	ExampleQuestionSqls []GenieAgentExampleQuestionSql `fieldmask:"example_question_sqls"`
-	// Unity Catalog SQL functions the generated SQL may call.
-	SqlFunctions []GenieAgentSqlFunction `fieldmask:"sql_functions"`
 	// Predefined joins between tables or metric views.
 	JoinSpecs []GenieAgentJoinSpec `fieldmask:"join_specs"`
 	// Reusable SQL filters, expressions, and measures.
@@ -248,6 +237,19 @@ type GenieAgentMcpConnection struct {
 	// The name of the Unity Catalog connection, for example
 	// `system.ai.google_calendar`.
 	McpConnection *string
+}
+
+// The resources a Genie Agent can use..
+type GenieAgentResources struct {
+	// Unity Catalog tables, views, and metric views, sorted by `identifier`.
+	Tables []GenieAgentTable `fieldmask:"tables"`
+	// Unity Catalog volumes, sorted by `path`.
+	Volumes []GenieAgentVolume `fieldmask:"volumes"`
+	// Unity Catalog MCP connections, sorted by `mcp_connection`.
+	McpConnections []GenieAgentMcpConnection `fieldmask:"mcp_connections"`
+	// Unity Catalog SQL functions the generated SQL may call, sorted by `id`, then
+	// `identifier`.
+	SqlFunctions []GenieAgentSqlFunction `fieldmask:"sql_functions"`
 }
 
 // A sample question shown to users of the Genie Agent..
@@ -370,9 +372,9 @@ type GenieAgentTable struct {
 type GenieAgentTextInstruction struct {
 	// Identifier of the instruction: 32 lowercase hexadecimal characters, unique
 	// within the Genie Agent.
-	Id *string
+	Id *string `fieldmask:"id"`
 	// The text of the instruction.
-	Content *string
+	Content *string `fieldmask:"content"`
 }
 
 // A Unity Catalog volume the Genie Agent can access..
@@ -439,8 +441,8 @@ type UpdateGenieAgentRequest struct {
 	// is replaced as a whole.
 	//
 	// The one supported path inside `definition` is
-	// `definition.data_sources.sub_agents`, and only alongside `definition`. Naming
-	// it makes the sub-agent list exact, so an empty list detaches every sub-agent.
+	// `definition.resources.sub_agents`, and only alongside `definition`. Naming it
+	// makes the sub-agent list exact, so an empty list detaches every sub-agent.
 	// Without it, including with `*`, an empty list keeps them.
 	//
 	// The special value `*` replaces the whole Genie Agent, as if every updatable

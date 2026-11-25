@@ -2075,11 +2075,6 @@ type MaterializationSet struct {
 	// `UpdateMaterializationSet` request with `materialized_features` or `*` in its
 	// update mask deletes omitted materialized features.
 	MaterializedFeatures []MaterializedFeature `fieldmask:"materialized_features"`
-	// Notification configuration around the materialization job or pipeline
-	// lifecycle. They are applied to every job and pipeline that materializes a
-	// feature in this set. Features which are materialized in the same pipeline
-	// will share the same notification.
-	Notifications *MaterializationNotifications `fieldmask:"notifications"`
 }
 
 // What a partly failed DeleteMaterializationSet got through, attached to the

@@ -800,7 +800,9 @@ type App struct {
 	// OAuth client ID of the app integration that signs in the app's users.
 	Oauth2AppClientId *string `fieldmask:"oauth2_app_client_id"`
 	// Size of the compute instances the app runs on. Defaults to MEDIUM. Larger
-	// sizes provide more CPU and memory at a higher hourly cost. See
+	// sizes provide more CPU and memory at a higher hourly cost. Leave unset for an
+	// app in a space: apps in a space always run on space compute and reject any
+	// other size. See
 	// https://docs.databricks.com/aws/en/dev-tools/databricks-apps/compute-size.
 	ComputeSize ComputeSize `fieldmask:"compute_size"`
 	// ID of the usage policy that the app's compute usage is attributed to.
@@ -1322,7 +1324,8 @@ type AsyncUpdateAppRequest struct {
 	App *App
 	// Comma-separated names of the `app` fields to update, such as `description` or
 	// `resources`. A field named in the mask but absent from `app` is cleared,
-	// except `compute_size`, which resets to `MEDIUM`.
+	// except `compute_size`, which resets to `MEDIUM`. Sent in the request body
+	// together with `app`.
 	UpdateMask *types.FieldMask[App]
 	// The name of the app to update.
 	AppName *string
@@ -1800,6 +1803,7 @@ type UpdateSpaceRequest struct {
 	Space *Space
 	// Comma-separated names of the `space` fields to update, such as `description`
 	// or `resources`. A field named in the mask but absent from `space` is cleared.
+	// Sent as a query parameter, not in the `space` body.
 	UpdateMask *types.FieldMask[Space]
 }
 

@@ -94,8 +94,9 @@ type CreateManagedMemoryEntryRequest struct {
 	Parent *string
 	// The memory entry to create.
 	ManagedMemoryEntry *ManagedMemoryEntry
-	// Optional caller-selected memory entry ID. The service generates an ID when
-	// omitted.
+	// Caller-selected memory entry ID. It must contain 1-255 letters, digits,
+	// hyphens, or underscores, and it becomes the last segment of the entry's
+	// `name`. The service generates a UUID when it is omitted.
 	ManagedMemoryEntryId *string
 }
 
@@ -296,7 +297,9 @@ type ListManagedMemoryEntriesRequest struct {
 	// Maximum number of entries to return. The service may return fewer entries
 	// than requested. Defaults to 10; must be between 1 and 100.
 	PageSize *int
-	// Opaque pagination token from a previous ListManagedMemoryEntries response.
+	// Opaque pagination token, taken from the `next_page_token` of a previous
+	// response. The other request parameters must match the request that returned
+	// the token.
 	PageToken *string
 	// Customer-provided identifier for the actor whose entries are listed.
 	ActorId *string
@@ -313,7 +316,8 @@ type ListManagedMemoryEntriesRequest struct {
 
 // Response containing memory entries..
 type ListManagedMemoryEntriesResponse struct {
-	// Memory entries matching the request and selected response view.
+	// Memory entries matching the request and selected response view, ordered by
+	// creation time, oldest first.
 	ManagedMemoryEntries []ManagedMemoryEntry
 	// Opaque pagination token. This field is omitted when there are no more
 	// results.
@@ -450,7 +454,9 @@ type ListSessionsResponse struct {
 	NextPageToken *string
 }
 
-// A workspace-scoped entry in a memory store..
+// A workspace-scoped entry in a memory store. Each entry belongs to one actor
+// and, optionally, one session, and its `path` is unique within that actor and
+// session..
 type ManagedMemoryEntry struct {
 	// Resource name in the form
 	// `memory-stores/{managed_memory_store_id}/entries/{managed_memory_entry_id}`.
@@ -576,7 +582,8 @@ type SearchManagedMemoryEntriesRequest struct {
 	Parent *string
 	// Customer-provided identifier for the actor whose entries are searched.
 	ActorId *string
-	// Free-form search query.
+	// Free-form search query. Entries are ranked by how well their `content` and
+	// `description` match it.
 	Query *string
 	// Deprecated alias for `page_size`. When both fields are set, their values must
 	// match.
