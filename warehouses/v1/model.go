@@ -753,14 +753,17 @@ type CreateWarehouseResponse struct {
 // default warehouse will be used..
 type DefaultWarehouseOverride struct {
 	// The resource name of the default warehouse override. Format:
-	// default-warehouse-overrides/{default_warehouse_override_id}
+	// default-warehouse-overrides/{default_warehouse_override_id} Responses always
+	// contain the numeric user ID, even when the request used `me`.
 	Name *string `fieldmask:"name"`
-	// The ID component of the resource name (user ID).
+	// The numeric ID of the user that the override applies to. It is the last
+	// component of `name`.
 	DefaultWarehouseOverrideId *string `fieldmask:"default_warehouse_override_id"`
 	// The type of override behavior.
 	Type DefaultWarehouseOverrideType `fieldmask:"type"`
-	// The specific warehouse ID when type is CUSTOM. Not set for LAST_SELECTED
-	// type.
+	// The ID of the SQL warehouse to preselect when `type` is `CUSTOM`. It is
+	// required for `CUSTOM` and must be a valid warehouse ID. It is ignored for
+	// `LAST_SELECTED` and is not returned for that type.
 	WarehouseId *string `fieldmask:"warehouse_id"`
 }
 
@@ -1293,8 +1296,9 @@ type UpdateDefaultWarehouseOverrideRequest struct {
 	// allow_missing is true, this field is ignored and all fields are applied.
 	UpdateMask *types.FieldMask[DefaultWarehouseOverride]
 	// If set to true, and the override is not found, a new override will be
-	// created. In this situation, `update_mask` is ignored and all fields are
-	// applied. Defaults to false.
+	// created. Whenever `allow_missing` is true, `update_mask` is ignored and all
+	// fields are applied, whether or not the override already exists. Defaults to
+	// false.
 	AllowMissing *bool
 }
 

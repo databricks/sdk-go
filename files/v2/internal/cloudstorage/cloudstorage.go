@@ -15,7 +15,10 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptrace"
+	"net/url"
+	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/databricks/sdk-go/core/apierr"
@@ -110,7 +113,7 @@ func (c *Client) Attempt(ctx context.Context, method, url string, headers map[st
 
 	req, err := http.NewRequestWithContext(attemptCtx, method, url, rdr)
 	if err != nil {
-		return nil, err
+		return nil, RedactURLError(err)
 	}
 	for k, v := range headers {
 		req.Header.Set(k, v)
@@ -137,6 +140,7 @@ func (c *Client) Attempt(ctx context.Context, method, url string, headers map[st
 	start := time.Now()
 	resp, err := c.http.Do(req)
 	if err != nil {
+		err = RedactURLError(err)
 		// Surface our own cancellations as distinct errors; a caller ctx
 		// cancellation stays as-is. errShortRead carries its detail message.
 		if ctx.Err() == nil {
@@ -198,6 +202,77 @@ func (c *Client) Send(ctx context.Context, method, url string, headers map[strin
 	return result, nil
 }
 
+// RedactURLError returns err, as [http.Client.Do] or [http.NewRequestWithContext]
+// returns it, without the query, user info and fragment of any URL in it, since a
+// presigned URL's query is a credential. It changes no error in place, because a
+// transport may share the errors it returns.
+func RedactURLError(err error) error {
+	uerr, ok := err.(*url.Error)
+	if !ok {
+		return redactMessage(err)
+	}
+	redacted := *uerr
+	redacted.URL = redactedURL(uerr.URL)
+	redacted.Err = redactMessage(uerr.Err)
+	return &redacted
+}
+
+// redactMessage returns err, or, when err's message holds a URL with a query,
+// user info or fragment, an error that wraps err with those removed from its
+// message. Errors can carry a URL in their text alone, as when net/http copies
+// a transport error's message on a client timeout.
+func redactMessage(err error) error {
+	if err == nil {
+		return nil
+	}
+	msg := err.Error()
+	redacted := urlQuery.ReplaceAllString(urlUserInfo.ReplaceAllString(msg, "$1"), "$1")
+	if redacted == msg {
+		return err
+	}
+	return &redactedError{msg: redacted, err: err}
+}
+
+// urlUserInfo and urlQuery match the user info, and the query and fragment, of
+// an http or https URL in an error message, where %q may have escaped its bytes.
+var (
+	urlUserInfo = regexp.MustCompile(`(?i)(https?://)(?:\\.|[^\s"\\/?#])*@`)
+	urlQuery    = regexp.MustCompile(`(?i)(https?://(?:\\.|[^\s"\\?#])*)[?#](?:\\.|[^\s"\\])*`)
+)
+
+// redactedURL returns raw without its query, user info and fragment, or
+// "<unparsable URL>" when raw doesn't parse.
+func redactedURL(raw string) string {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return "<unparsable URL>"
+	}
+	u.RawQuery, u.ForceQuery, u.Fragment, u.RawFragment, u.User = "", false, "", "", nil
+	return u.String()
+}
+
+// redactedError has the message of the error it wraps, with its URLs redacted.
+type redactedError struct {
+	msg string
+	err error
+}
+
+func (e *redactedError) Error() string { return e.msg }
+
+func (e *redactedError) Unwrap() error { return e.err }
+
+// Timeout and Temporary answer for the wrapped error, as [url.Error]'s do, so
+// that a [*url.Error] around a redactedError reports the same timeouts.
+func (e *redactedError) Timeout() bool {
+	t, ok := e.err.(interface{ Timeout() bool })
+	return ok && t.Timeout()
+}
+
+func (e *redactedError) Temporary() bool {
+	t, ok := e.err.(interface{ Temporary() bool })
+	return ok && t.Temporary()
+}
+
 // IsURLExpired reports whether err (as returned by Send) is one of the known
 // cloud-provider "presigned URL expired" errors: a 403 with the AWS or Azure
 // signature-expiry body.
@@ -234,7 +309,12 @@ type stallReader struct {
 	r      io.Reader
 	idle   time.Duration
 	cancel context.CancelCauseFunc
-	timer  *time.Timer
+
+	// mu guards timer and stopped: the transport may close the body, which stops
+	// the timer, while another goroutine is in Read.
+	mu      sync.Mutex
+	timer   *time.Timer
+	stopped bool
 }
 
 func newStallReader(r io.Reader, idle time.Duration, cancel context.CancelCauseFunc) *stallReader {
@@ -244,11 +324,7 @@ func newStallReader(r io.Reader, idle time.Duration, cancel context.CancelCauseF
 func (s *stallReader) Read(p []byte) (int, error) {
 	// Arm on the first read (after the connection is established, so dial time is
 	// not charged against the idle budget) and reset on each later read.
-	if s.timer == nil {
-		s.timer = time.AfterFunc(s.idle, func() { s.cancel(errStalled) })
-	} else {
-		s.timer.Reset(s.idle)
-	}
+	s.arm()
 	n, err := s.r.Read(p)
 	if err != nil {
 		// EOF (transfer done) or a read error: stop arming so the response phase is
@@ -258,9 +334,26 @@ func (s *stallReader) Read(p []byte) (int, error) {
 	return n, err
 }
 
-// stop disarms the idle timer. Safe to call before the first Read (timer nil)
-// and more than once.
+// arm starts or resets the idle timer, unless stop has run.
+func (s *stallReader) arm() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.stopped {
+		return
+	}
+	if s.timer == nil {
+		s.timer = time.AfterFunc(s.idle, func() { s.cancel(errStalled) })
+	} else {
+		s.timer.Reset(s.idle)
+	}
+}
+
+// stop disarms the idle timer for good, so a later Read doesn't arm it again.
+// Safe to call before the first Read and more than once.
 func (s *stallReader) stop() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.stopped = true
 	if s.timer != nil {
 		s.timer.Stop()
 	}

@@ -64,7 +64,8 @@ type CreateOnBehalfOfTokenRequest struct {
 	LifetimeSeconds *int64
 	// Comment that describes the purpose of the token.
 	Comment *string
-	Scopes  []string
+	// Optional scopes of the token.
+	Scopes []string
 	// Whether to enable autoscoping for this token. `disable_autoscoping`
 	// supersedes this field and is the one read when both are set.
 	AutoscopeEnabled *bool
@@ -74,7 +75,8 @@ type CreateOnBehalfOfTokenRequest struct {
 type CreateOnBehalfOfTokenResponse struct {
 	// Value of the token.
 	TokenValue *string
-	TokenInfo  *AdminTokenInfo
+	// Metadata of the created token. Does not include the token value.
+	TokenInfo *AdminTokenInfo
 }
 
 // !! KEEP THIS IN-SYNC WITH THE WORKSPACE PROTO DEFINITIONS IN SERVICE.PROTO !!

@@ -3469,8 +3469,9 @@ func (v *FieldDefinition) UnmarshalJSON(data []byte) error {
 }
 
 type firstDistinctFunctionWire struct {
-	Input *string    `json:"input,omitempty"`
-	N     *wireInt64 `json:"n,omitempty"`
+	Input       *string    `json:"input,omitempty"`
+	N           *wireInt64 `json:"n,omitempty"`
+	IgnoreNulls *bool      `json:"ignore_nulls,omitempty"`
 }
 
 func firstDistinctFunctionToWire(v *FirstDistinctFunction) (*firstDistinctFunctionWire, error) {
@@ -3482,8 +3483,9 @@ func firstDistinctFunctionToWire(v *FirstDistinctFunction) (*firstDistinctFuncti
 		return nil, fmt.Errorf("%s: %w", "FirstDistinctFunction.N", err)
 	}
 	return &firstDistinctFunctionWire{
-		Input: v.Input,
-		N:     nWireValue,
+		Input:       v.Input,
+		N:           nWireValue,
+		IgnoreNulls: v.IgnoreNulls,
 	}, nil
 }
 
@@ -3496,8 +3498,9 @@ func firstDistinctFunctionFromWire(w *firstDistinctFunctionWire) (*FirstDistinct
 		return nil, fmt.Errorf("%s: %w", "FirstDistinctFunction.N", err)
 	}
 	return &FirstDistinctFunction{
-		Input: w.Input,
-		N:     nPublicValue,
+		Input:       w.Input,
+		N:           nPublicValue,
+		IgnoreNulls: w.IgnoreNulls,
 	}, nil
 }
 
@@ -3526,7 +3529,8 @@ func (v *FirstDistinctFunction) UnmarshalJSON(data []byte) error {
 }
 
 type firstFunctionWire struct {
-	Input *string `json:"input,omitempty"`
+	Input       *string `json:"input,omitempty"`
+	IgnoreNulls *bool   `json:"ignore_nulls,omitempty"`
 }
 
 func firstFunctionToWire(v *FirstFunction) (*firstFunctionWire, error) {
@@ -3534,7 +3538,8 @@ func firstFunctionToWire(v *FirstFunction) (*firstFunctionWire, error) {
 		return nil, nil
 	}
 	return &firstFunctionWire{
-		Input: v.Input,
+		Input:       v.Input,
+		IgnoreNulls: v.IgnoreNulls,
 	}, nil
 }
 
@@ -3543,7 +3548,8 @@ func firstFunctionFromWire(w *firstFunctionWire) (*FirstFunction, error) {
 		return nil, nil
 	}
 	return &FirstFunction{
-		Input: w.Input,
+		Input:       w.Input,
+		IgnoreNulls: w.IgnoreNulls,
 	}, nil
 }
 
@@ -3572,8 +3578,9 @@ func (v *FirstFunction) UnmarshalJSON(data []byte) error {
 }
 
 type firstNFunctionWire struct {
-	Input *string    `json:"input,omitempty"`
-	N     *wireInt64 `json:"n,omitempty"`
+	Input       *string    `json:"input,omitempty"`
+	N           *wireInt64 `json:"n,omitempty"`
+	IgnoreNulls *bool      `json:"ignore_nulls,omitempty"`
 }
 
 func firstNFunctionToWire(v *FirstNFunction) (*firstNFunctionWire, error) {
@@ -3585,8 +3592,9 @@ func firstNFunctionToWire(v *FirstNFunction) (*firstNFunctionWire, error) {
 		return nil, fmt.Errorf("%s: %w", "FirstNFunction.N", err)
 	}
 	return &firstNFunctionWire{
-		Input: v.Input,
-		N:     nWireValue,
+		Input:       v.Input,
+		N:           nWireValue,
+		IgnoreNulls: v.IgnoreNulls,
 	}, nil
 }
 
@@ -3599,8 +3607,9 @@ func firstNFunctionFromWire(w *firstNFunctionWire) (*FirstNFunction, error) {
 		return nil, fmt.Errorf("%s: %w", "FirstNFunction.N", err)
 	}
 	return &FirstNFunction{
-		Input: w.Input,
-		N:     nPublicValue,
+		Input:       w.Input,
+		N:           nPublicValue,
+		IgnoreNulls: w.IgnoreNulls,
 	}, nil
 }
 
@@ -5085,8 +5094,9 @@ func (v *KinesisStreamConfig) UnmarshalJSON(data []byte) error {
 }
 
 type lastDistinctFunctionWire struct {
-	Input *string    `json:"input,omitempty"`
-	N     *wireInt64 `json:"n,omitempty"`
+	Input       *string    `json:"input,omitempty"`
+	N           *wireInt64 `json:"n,omitempty"`
+	IgnoreNulls *bool      `json:"ignore_nulls,omitempty"`
 }
 
 func lastDistinctFunctionToWire(v *LastDistinctFunction) (*lastDistinctFunctionWire, error) {
@@ -5098,8 +5108,9 @@ func lastDistinctFunctionToWire(v *LastDistinctFunction) (*lastDistinctFunctionW
 		return nil, fmt.Errorf("%s: %w", "LastDistinctFunction.N", err)
 	}
 	return &lastDistinctFunctionWire{
-		Input: v.Input,
-		N:     nWireValue,
+		Input:       v.Input,
+		N:           nWireValue,
+		IgnoreNulls: v.IgnoreNulls,
 	}, nil
 }
 
@@ -5112,8 +5123,9 @@ func lastDistinctFunctionFromWire(w *lastDistinctFunctionWire) (*LastDistinctFun
 		return nil, fmt.Errorf("%s: %w", "LastDistinctFunction.N", err)
 	}
 	return &LastDistinctFunction{
-		Input: w.Input,
-		N:     nPublicValue,
+		Input:       w.Input,
+		N:           nPublicValue,
+		IgnoreNulls: w.IgnoreNulls,
 	}, nil
 }
 
@@ -5142,7 +5154,8 @@ func (v *LastDistinctFunction) UnmarshalJSON(data []byte) error {
 }
 
 type lastFunctionWire struct {
-	Input *string `json:"input,omitempty"`
+	Input       *string `json:"input,omitempty"`
+	IgnoreNulls *bool   `json:"ignore_nulls,omitempty"`
 }
 
 func lastFunctionToWire(v *LastFunction) (*lastFunctionWire, error) {
@@ -5150,7 +5163,8 @@ func lastFunctionToWire(v *LastFunction) (*lastFunctionWire, error) {
 		return nil, nil
 	}
 	return &lastFunctionWire{
-		Input: v.Input,
+		Input:       v.Input,
+		IgnoreNulls: v.IgnoreNulls,
 	}, nil
 }
 
@@ -5159,7 +5173,8 @@ func lastFunctionFromWire(w *lastFunctionWire) (*LastFunction, error) {
 		return nil, nil
 	}
 	return &LastFunction{
-		Input: w.Input,
+		Input:       w.Input,
+		IgnoreNulls: w.IgnoreNulls,
 	}, nil
 }
 
@@ -5188,8 +5203,9 @@ func (v *LastFunction) UnmarshalJSON(data []byte) error {
 }
 
 type lastNFunctionWire struct {
-	Input *string    `json:"input,omitempty"`
-	N     *wireInt64 `json:"n,omitempty"`
+	Input       *string    `json:"input,omitempty"`
+	N           *wireInt64 `json:"n,omitempty"`
+	IgnoreNulls *bool      `json:"ignore_nulls,omitempty"`
 }
 
 func lastNFunctionToWire(v *LastNFunction) (*lastNFunctionWire, error) {
@@ -5201,8 +5217,9 @@ func lastNFunctionToWire(v *LastNFunction) (*lastNFunctionWire, error) {
 		return nil, fmt.Errorf("%s: %w", "LastNFunction.N", err)
 	}
 	return &lastNFunctionWire{
-		Input: v.Input,
-		N:     nWireValue,
+		Input:       v.Input,
+		N:           nWireValue,
+		IgnoreNulls: v.IgnoreNulls,
 	}, nil
 }
 
@@ -5215,8 +5232,9 @@ func lastNFunctionFromWire(w *lastNFunctionWire) (*LastNFunction, error) {
 		return nil, fmt.Errorf("%s: %w", "LastNFunction.N", err)
 	}
 	return &LastNFunction{
-		Input: w.Input,
-		N:     nPublicValue,
+		Input:       w.Input,
+		N:           nPublicValue,
+		IgnoreNulls: w.IgnoreNulls,
 	}, nil
 }
 

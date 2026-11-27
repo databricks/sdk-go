@@ -1,5 +1,11 @@
 # Version changelog
 
+## Release v0.10.0 (2026-11-27)
+
+### Bug Fixes
+* A request to a presigned URL that fails before any answer, such as on a refused connection, now returns an error whose URL has no query, so the URL's signature no longer appears in error messages or debug logs.
+* `Upload` and `UploadFrom` no longer fail a part upload with a stall error when nothing stalled. The SDK cancels a part upload when it sends no bytes for a while. Before, when the HTTP transport closed a part's request body and then read from it once more, that read started the wait again, and the part upload then failed with a stall error.
+
 ## Release v0.9.0 (2026-11-23)
 
 ### New Features and Improvements

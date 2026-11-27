@@ -80,7 +80,8 @@ func NewClient(ctx context.Context, opts ...client.Option) (*Client, error) {
 }
 
 // Creates a new default warehouse override for a user. Users can create their
-// own override. Admins can create overrides for any user.
+// own override. Admins can create overrides for any user. If the user already
+// has an override, the request fails with `ALREADY_EXISTS`.
 func (c *internalClient) CreateDefaultWarehouseOverride(ctx context.Context, req CreateDefaultWarehouseOverrideRequest, opts ...call.Option) (*DefaultWarehouseOverride, error) {
 	wireReq, err := createDefaultWarehouseOverrideRequestToWire(&req)
 	if err != nil {
@@ -567,8 +568,9 @@ func (w *EditWarehouseWaiter) Wait(ctx context.Context, opts ...lro.Option) (*Ge
 }
 
 // Returns the default warehouse override for a user. Users can fetch their own
-// override. Admins can fetch overrides for any user. If no override exists, the
-// UI will fallback to the workspace default warehouse.
+// override. Admins can fetch overrides for any user. If the user has no
+// override, the request fails with `NOT_FOUND` and the workspace default
+// warehouse is used.
 func (c *internalClient) GetDefaultWarehouseOverride(ctx context.Context, req GetDefaultWarehouseOverrideRequest, opts ...call.Option) (*DefaultWarehouseOverride, error) {
 
 	headers := http.Header{}
@@ -1331,7 +1333,9 @@ func (w *StopWarehouseWaiter) Wait(ctx context.Context, opts ...lro.Option) (*Ge
 }
 
 // Updates an existing default warehouse override for a user. Users can update
-// their own override. Admins can update overrides for any user.
+// their own override. Admins can update overrides for any user. If the user has
+// no override, the request fails with `NOT_FOUND` unless `allow_missing` is
+// true.
 func (c *internalClient) UpdateDefaultWarehouseOverride(ctx context.Context, req UpdateDefaultWarehouseOverrideRequest, opts ...call.Option) (*DefaultWarehouseOverride, error) {
 	wireReq, err := updateDefaultWarehouseOverrideRequestToWire(&req)
 	if err != nil {

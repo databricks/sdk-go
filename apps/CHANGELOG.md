@@ -1,5 +1,10 @@
 # Version changelog
 
+## Release v0.13.0 (2026-11-27)
+
+### API Changes
+* Add `SpaceType` field for [apps/v1.Space](https://pkg.go.dev/github.com/databricks/sdk-go/apps/v1#Space).
+
 ## Release v0.12.0 (2026-11-25)
 
 ## Release v0.11.0 (2026-11-23)

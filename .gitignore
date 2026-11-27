@@ -2,6 +2,7 @@
 .*
 !.codegen.json
 !.package.json
+!.nextchanges/
 # Track the release ledger + anchors under each module's .codegen/ (the
 # per-module releases.jsonl prepare-release reads to compute the next
 # version). The dir must be un-ignored explicitly — the .* rule above

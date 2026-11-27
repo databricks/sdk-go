@@ -4100,6 +4100,7 @@ type spaceWire struct {
 	UsagePolicyId            *string           `json:"usage_policy_id,omitempty"`
 	EffectiveUsagePolicyId   *string           `json:"effective_usage_policy_id,omitempty"`
 	AssumeGroupId            *string           `json:"assume_group_id,omitempty"`
+	SpaceType                SpaceType         `json:"space_type,omitempty"`
 }
 
 func spaceToWire(v *Space) (*spaceWire, error) {
@@ -4136,6 +4137,7 @@ func spaceToWire(v *Space) (*spaceWire, error) {
 		UsagePolicyId:            v.UsagePolicyId,
 		EffectiveUsagePolicyId:   v.EffectiveUsagePolicyId,
 		AssumeGroupId:            v.AssumeGroupId,
+		SpaceType:                v.SpaceType,
 	}, nil
 }
 
@@ -4173,6 +4175,7 @@ func spaceFromWire(w *spaceWire) (*Space, error) {
 		UsagePolicyId:            w.UsagePolicyId,
 		EffectiveUsagePolicyId:   w.EffectiveUsagePolicyId,
 		AssumeGroupId:            w.AssumeGroupId,
+		SpaceType:                w.SpaceType,
 	}, nil
 }
 

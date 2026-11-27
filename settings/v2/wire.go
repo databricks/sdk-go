@@ -2130,6 +2130,52 @@ func (v *PersonalComputeMessage) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type reposAllowListPermissionMessageWire struct {
+	Permission ReposAllowListPermissionMessage_Permission `json:"permission,omitempty"`
+}
+
+func reposAllowListPermissionMessageToWire(v *ReposAllowListPermissionMessage) (*reposAllowListPermissionMessageWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &reposAllowListPermissionMessageWire{
+		Permission: v.Permission,
+	}, nil
+}
+
+func reposAllowListPermissionMessageFromWire(w *reposAllowListPermissionMessageWire) (*ReposAllowListPermissionMessage, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &ReposAllowListPermissionMessage{
+		Permission: w.Permission,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v ReposAllowListPermissionMessage) MarshalJSON() ([]byte, error) {
+	w, err := reposAllowListPermissionMessageToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *ReposAllowListPermissionMessage) UnmarshalJSON(data []byte) error {
+	var w reposAllowListPermissionMessageWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := reposAllowListPermissionMessageFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
 type restrictWorkspaceAdminsMessageWire struct {
 	Status                RestrictWorkspaceAdminsMessage_Status `json:"status,omitempty"`
 	DisableGovTagCreation *bool                                 `json:"disable_gov_tag_creation,omitempty"`
@@ -2194,6 +2240,7 @@ type settingWire struct {
 	OperationalEmailCustomRecipient                *operationalEmailCustomRecipientMessageWire   `json:"operational_email_custom_recipient,omitempty"`
 	CollaborationPlatformConnectivity              *collaborationPlatformConnectivityMessageWire `json:"collaboration_platform_connectivity,omitempty"`
 	WorkspaceDashboardTheme                        *dashboardThemeWire                           `json:"workspace_dashboard_theme,omitempty"`
+	RepoAllowlistPermission                        *reposAllowListPermissionMessageWire          `json:"repo_allowlist_permission,omitempty"`
 	EffectiveBooleanVal                            *booleanMessageWire                           `json:"effective_boolean_val,omitempty"`
 	EffectiveStringVal                             *stringMessageWire                            `json:"effective_string_val,omitempty"`
 	EffectiveIntegerVal                            *integerMessageWire                           `json:"effective_integer_val,omitempty"`
@@ -2207,6 +2254,7 @@ type settingWire struct {
 	EffectiveOperationalEmailCustomRecipient       *operationalEmailCustomRecipientMessageWire   `json:"effective_operational_email_custom_recipient,omitempty"`
 	EffectiveCollaborationPlatformConnectivity     *collaborationPlatformConnectivityMessageWire `json:"effective_collaboration_platform_connectivity,omitempty"`
 	EffectiveWorkspaceDashboardTheme               *dashboardThemeWire                           `json:"effective_workspace_dashboard_theme,omitempty"`
+	EffectiveRepoAllowlistPermission               *reposAllowListPermissionMessageWire          `json:"effective_repo_allowlist_permission,omitempty"`
 }
 
 func settingToWire(v *Setting) (*settingWire, error) {
@@ -2226,6 +2274,7 @@ func settingToWire(v *Setting) (*settingWire, error) {
 	var valueOperationalEmailCustomRecipientWire *operationalEmailCustomRecipientMessageWire
 	var valueCollaborationPlatformConnectivityWire *collaborationPlatformConnectivityMessageWire
 	var valueWorkspaceDashboardThemeWire *dashboardThemeWire
+	var valueRepoAllowlistPermissionWire *reposAllowListPermissionMessageWire
 	switch value := v.Value.(type) {
 	case nil:
 	case *Setting_Value_BooleanVal:
@@ -2332,6 +2381,14 @@ func settingToWire(v *Setting) (*settingWire, error) {
 			}
 			valueWorkspaceDashboardThemeWire = valueWorkspaceDashboardThemeConverted
 		}
+	case *Setting_Value_RepoAllowlistPermission:
+		if value != nil {
+			valueRepoAllowlistPermissionConverted, err := reposAllowListPermissionMessageToWire(&value.RepoAllowlistPermission)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Setting.Value.RepoAllowlistPermission", err)
+			}
+			valueRepoAllowlistPermissionWire = valueRepoAllowlistPermissionConverted
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Setting.Value", value)
 	}
@@ -2348,6 +2405,7 @@ func settingToWire(v *Setting) (*settingWire, error) {
 	var effectiveValueEffectiveOperationalEmailCustomRecipientWire *operationalEmailCustomRecipientMessageWire
 	var effectiveValueEffectiveCollaborationPlatformConnectivityWire *collaborationPlatformConnectivityMessageWire
 	var effectiveValueEffectiveWorkspaceDashboardThemeWire *dashboardThemeWire
+	var effectiveValueEffectiveRepoAllowlistPermissionWire *reposAllowListPermissionMessageWire
 	switch value := v.EffectiveValue.(type) {
 	case nil:
 	case *Setting_EffectiveValue_EffectiveBooleanVal:
@@ -2454,6 +2512,14 @@ func settingToWire(v *Setting) (*settingWire, error) {
 			}
 			effectiveValueEffectiveWorkspaceDashboardThemeWire = effectiveValueEffectiveWorkspaceDashboardThemeConverted
 		}
+	case *Setting_EffectiveValue_EffectiveRepoAllowlistPermission:
+		if value != nil {
+			effectiveValueEffectiveRepoAllowlistPermissionConverted, err := reposAllowListPermissionMessageToWire(&value.EffectiveRepoAllowlistPermission)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", "Setting.EffectiveValue.EffectiveRepoAllowlistPermission", err)
+			}
+			effectiveValueEffectiveRepoAllowlistPermissionWire = effectiveValueEffectiveRepoAllowlistPermissionConverted
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported oneof implementation %T", "Setting.EffectiveValue", value)
 	}
@@ -2472,6 +2538,7 @@ func settingToWire(v *Setting) (*settingWire, error) {
 		OperationalEmailCustomRecipient:                valueOperationalEmailCustomRecipientWire,
 		CollaborationPlatformConnectivity:              valueCollaborationPlatformConnectivityWire,
 		WorkspaceDashboardTheme:                        valueWorkspaceDashboardThemeWire,
+		RepoAllowlistPermission:                        valueRepoAllowlistPermissionWire,
 		EffectiveBooleanVal:                            effectiveValueEffectiveBooleanValWire,
 		EffectiveStringVal:                             effectiveValueEffectiveStringValWire,
 		EffectiveIntegerVal:                            effectiveValueEffectiveIntegerValWire,
@@ -2485,6 +2552,7 @@ func settingToWire(v *Setting) (*settingWire, error) {
 		EffectiveOperationalEmailCustomRecipient:       effectiveValueEffectiveOperationalEmailCustomRecipientWire,
 		EffectiveCollaborationPlatformConnectivity:     effectiveValueEffectiveCollaborationPlatformConnectivityWire,
 		EffectiveWorkspaceDashboardTheme:               effectiveValueEffectiveWorkspaceDashboardThemeWire,
+		EffectiveRepoAllowlistPermission:               effectiveValueEffectiveRepoAllowlistPermissionWire,
 	}, nil
 }
 
@@ -2532,6 +2600,9 @@ func settingFromWire(w *settingWire) (*Setting, error) {
 	if w.WorkspaceDashboardTheme != nil {
 		valueMembers++
 	}
+	if w.RepoAllowlistPermission != nil {
+		valueMembers++
+	}
 	if valueMembers > 1 {
 		return nil, fmt.Errorf("%s: multiple oneof members set", "Setting.Value")
 	}
@@ -2573,6 +2644,9 @@ func settingFromWire(w *settingWire) (*Setting, error) {
 		effectiveValueMembers++
 	}
 	if w.EffectiveWorkspaceDashboardTheme != nil {
+		effectiveValueMembers++
+	}
+	if w.EffectiveRepoAllowlistPermission != nil {
 		effectiveValueMembers++
 	}
 	if effectiveValueMembers > 1 {
@@ -2658,6 +2732,12 @@ func settingFromWire(w *settingWire) (*Setting, error) {
 			return nil, fmt.Errorf("%s: %w", "Setting.Value.WorkspaceDashboardTheme", err)
 		}
 		valueSelection = &Setting_Value_WorkspaceDashboardTheme{WorkspaceDashboardTheme: *valueWorkspaceDashboardThemeConverted}
+	case w.RepoAllowlistPermission != nil:
+		valueRepoAllowlistPermissionConverted, err := reposAllowListPermissionMessageFromWire(w.RepoAllowlistPermission)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "Setting.Value.RepoAllowlistPermission", err)
+		}
+		valueSelection = &Setting_Value_RepoAllowlistPermission{RepoAllowlistPermission: *valueRepoAllowlistPermissionConverted}
 	}
 	var effectiveValueSelection isSetting_EffectiveValue
 	switch {
@@ -2739,6 +2819,12 @@ func settingFromWire(w *settingWire) (*Setting, error) {
 			return nil, fmt.Errorf("%s: %w", "Setting.EffectiveValue.EffectiveWorkspaceDashboardTheme", err)
 		}
 		effectiveValueSelection = &Setting_EffectiveValue_EffectiveWorkspaceDashboardTheme{EffectiveWorkspaceDashboardTheme: *effectiveValueEffectiveWorkspaceDashboardThemeConverted}
+	case w.EffectiveRepoAllowlistPermission != nil:
+		effectiveValueEffectiveRepoAllowlistPermissionConverted, err := reposAllowListPermissionMessageFromWire(w.EffectiveRepoAllowlistPermission)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", "Setting.EffectiveValue.EffectiveRepoAllowlistPermission", err)
+		}
+		effectiveValueSelection = &Setting_EffectiveValue_EffectiveRepoAllowlistPermission{EffectiveRepoAllowlistPermission: *effectiveValueEffectiveRepoAllowlistPermissionConverted}
 	}
 	return &Setting{
 		Name:           w.Name,

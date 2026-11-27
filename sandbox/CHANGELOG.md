@@ -1,5 +1,11 @@
 # Version changelog
 
+## Release v0.14.0 (2026-11-27)
+
+### API Changes
+* Add `Cpu` and `MemoryMib` fields for [sandbox/v1.ComputeSpec](https://pkg.go.dev/github.com/databricks/sdk-go/sandbox/v1#ComputeSpec).
+* Add `Storage` field for [sandbox/v1.SandboxSpec](https://pkg.go.dev/github.com/databricks/sdk-go/sandbox/v1#SandboxSpec).
+
 ## Release v0.13.0 (2026-11-23)
 
 ## Release v0.12.0 (2026-11-16)

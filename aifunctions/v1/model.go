@@ -89,9 +89,10 @@ type AiDecideOptions struct {
 
 type AiDecideRequest struct {
 	// A nonempty array of typed content objects shared by all questions. Set
-	// `options.version` to `"2.0"` to use this format. Text and JSON content plus
-	// questions must fit within 32 KiB as compact UTF-8 JSON, excluding image
-	// parts.
+	// `options.version` to `"2.0"` to use this format. Each content object accepts
+	// only `type` and the content field listed below; other fields are rejected.
+	// Text and JSON content plus questions must fit within 32 KiB as compact UTF-8
+	// JSON, excluding image parts.
 	//
 	// | type | Content field | Value | | --- | --- | --- | | `text` | `text` | A
 	// nonblank string. | | `json` | `data` | A JSON object or array. | | `image` |

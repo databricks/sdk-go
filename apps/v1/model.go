@@ -468,6 +468,17 @@ const (
 	ScanFindingStatus_ScanFindingStatusIgnored ScanFindingStatus = "SCAN_FINDING_STATUS_IGNORED"
 )
 
+// The kind of app space.
+type SpaceType string
+
+const (
+	SpaceType_Unspecified SpaceType = ""
+	// A space created through CreateSpace.
+	SpaceType_SpaceTypeStandard SpaceType = "SPACE_TYPE_STANDARD"
+	// The workspace's built-in default space.
+	SpaceType_SpaceTypeDefault SpaceType = "SPACE_TYPE_DEFAULT"
+)
+
 type SpaceUpdateState string
 
 const (
@@ -1266,7 +1277,10 @@ type AppResourceUcSecurable struct {
 
 // The thumbnail for an app..
 type AppThumbnail struct {
-	// The thumbnail image bytes.
+	// The thumbnail image file, such as a PNG or JPEG image. In JSON the bytes are
+	// base64-encoded. An update request must include a non-empty image. The service
+	// stores the image as a PNG of at most 320x180 pixels and crops an image that
+	// is not 16:9, so use a 16:9 image.
 	Thumbnail []byte
 }
 
@@ -1325,7 +1339,9 @@ type AsyncUpdateAppRequest struct {
 	// Comma-separated names of the `app` fields to update, such as `description` or
 	// `resources`. A field named in the mask but absent from `app` is cleared,
 	// except `compute_size`, which resets to `MEDIUM`. Sent in the request body
-	// together with `app`.
+	// together with `app`. A `*` mask does not include `custom_domains`; name it to
+	// set or clear them. Apps in a space can only update `description` and
+	// `resources`.
 	UpdateMask *types.FieldMask[App]
 	// The name of the app to update.
 	AppName *string
@@ -1708,6 +1724,9 @@ type Space struct {
 	// this space. When set, user tokens assume the role of this group instead of
 	// doing regular obo token downscoping. Set only at space creation.
 	AssumeGroupId *string `fieldmask:"assume_group_id"`
+	// The kind of app space. A default space is available to every workspace user
+	// and can't be updated or deleted.
+	SpaceType SpaceType `fieldmask:"space_type"`
 }
 
 type SpaceStatus struct {

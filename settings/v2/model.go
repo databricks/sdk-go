@@ -145,6 +145,15 @@ const (
 	PersonalComputeMessage_PersonalComputeMessageEnum_Delegate    PersonalComputeMessage_PersonalComputeMessageEnum = "DELEGATE"
 )
 
+type ReposAllowListPermissionMessage_Permission string
+
+const (
+	ReposAllowListPermissionMessage_Permission_Unspecified                ReposAllowListPermissionMessage_Permission = ""
+	ReposAllowListPermissionMessage_Permission_AllRepos                   ReposAllowListPermissionMessage_Permission = "ALL_REPOS"
+	ReposAllowListPermissionMessage_Permission_AllowlistedCommitPush      ReposAllowListPermissionMessage_Permission = "ALLOWLISTED_COMMIT_PUSH"
+	ReposAllowListPermissionMessage_Permission_AllowlistedCloneCommitPush ReposAllowListPermissionMessage_Permission = "ALLOWLISTED_CLONE_COMMIT_PUSH"
+)
+
 type RestrictWorkspaceAdminsMessage_Status string
 
 const (
@@ -457,11 +466,11 @@ type GetPublicAccountSettingRequest struct {
 }
 
 type GetPublicAccountUserPreferenceRequest struct {
-	// <Databricks> account ID of the account being managed.
+	// Identifies the Databricks account that the user belongs to.
 	AccountId *string
 	// User ID of the user whose setting is being retrieved.
 	UserId *string
-	// User Setting name.
+	// Identifies the user preference to retrieve.
 	Name *string
 }
 
@@ -562,10 +571,12 @@ type PatchPublicAccountSettingRequest struct {
 }
 
 type PatchPublicAccountUserPreferenceRequest struct {
-	// <Databricks> account ID of the account being managed.
+	// Identifies the Databricks account that the user belongs to.
 	AccountId *string
 	// User ID of the user whose setting is being updated.
-	UserId  *string
+	UserId *string
+	// Identifies the user preference to update. The request body's `name` and
+	// `user_id` are ignored; the path parameters select the preference.
 	Name    *string
 	Setting *UserPreference
 }
@@ -582,6 +593,10 @@ type PersonalComputeMessage struct {
 	// or groups must be added to the policy's permissions before they can create
 	// compute with it.
 	Value PersonalComputeMessage_PersonalComputeMessageEnum
+}
+
+type ReposAllowListPermissionMessage struct {
+	Permission ReposAllowListPermissionMessage_Permission
 }
 
 type RestrictWorkspaceAdminsMessage struct {
@@ -751,6 +766,15 @@ type Setting_Value_WorkspaceDashboardTheme struct {
 
 func (*Setting_Value_WorkspaceDashboardTheme) isSetting_Value() {}
 
+// Setting_Value_RepoAllowlistPermission selects RepoAllowlistPermission for Setting.Value.
+// Saved Git folder allowlist permission. Check
+// effective_repo_allowlist_permission for the evaluated value.
+type Setting_Value_RepoAllowlistPermission struct {
+	RepoAllowlistPermission ReposAllowListPermissionMessage
+}
+
+func (*Setting_Value_RepoAllowlistPermission) isSetting_Value() {}
+
 type isSetting_EffectiveValue interface {
 	isSetting_EffectiveValue()
 }
@@ -883,6 +907,15 @@ type Setting_EffectiveValue_EffectiveWorkspaceDashboardTheme struct {
 
 func (*Setting_EffectiveValue_EffectiveWorkspaceDashboardTheme) isSetting_EffectiveValue() {}
 
+// Setting_EffectiveValue_EffectiveRepoAllowlistPermission selects EffectiveRepoAllowlistPermission for Setting.EffectiveValue.
+// Evaluated Git folder allowlist permission. To set a value, use
+// repo_allowlist_permission.
+type Setting_EffectiveValue_EffectiveRepoAllowlistPermission struct {
+	EffectiveRepoAllowlistPermission ReposAllowListPermissionMessage
+}
+
+func (*Setting_EffectiveValue_EffectiveRepoAllowlistPermission) isSetting_EffectiveValue() {}
+
 type SettingsMetadata struct {
 	// Name of the setting.
 	Name *string
@@ -911,9 +944,12 @@ type StringMessage struct {
 // all users, user preferences allow personal customization (e.g., UI theme,
 // editor preferences) without affecting other users..
 type UserPreference struct {
-	// Name of the setting.
+	// Identifies the user preference. The "List user preferences and their
+	// metadata" method returns the valid names.
 	Name *string
-	// User ID of the user.
+	// Identifies the user that the preference belongs to. The value is the numeric
+	// account user ID that the Account Users API
+	// (https://docs.databricks.com/api/account/accountusersv2/list) returns.
 	UserId *string
 	// New fields should be added before the oneof below - unless it's a new Setting
 	// value message, in that case it needs to be defined in the oneof below. The
@@ -930,6 +966,9 @@ type isUserPreference_Value interface {
 }
 
 // UserPreference_Value_BooleanVal selects BooleanVal for UserPreference.Value.
+// Holds the value that the user set for a boolean preference. Each preference
+// uses either `boolean_val` or `string_val`, depending on its type. Responses
+// omit the user-set value when the user has not set one.
 type UserPreference_Value_BooleanVal struct {
 	BooleanVal BooleanMessage
 }
@@ -937,6 +976,7 @@ type UserPreference_Value_BooleanVal struct {
 func (*UserPreference_Value_BooleanVal) isUserPreference_Value() {}
 
 // UserPreference_Value_StringVal selects StringVal for UserPreference.Value.
+// Holds the value that the user set for a string preference.
 type UserPreference_Value_StringVal struct {
 	StringVal StringMessage
 }
@@ -948,6 +988,10 @@ type isUserPreference_EffectiveValue interface {
 }
 
 // UserPreference_EffectiveValue_EffectiveBooleanVal selects EffectiveBooleanVal for UserPreference.EffectiveValue.
+// Holds the value that takes effect for a boolean preference. The server
+// evaluates it from the user-set value and the preference's policy, so it can
+// differ from `boolean_val`. When the user has not set a value, it reflects the
+// preference's default.
 type UserPreference_EffectiveValue_EffectiveBooleanVal struct {
 	EffectiveBooleanVal BooleanMessage
 }
@@ -955,6 +999,8 @@ type UserPreference_EffectiveValue_EffectiveBooleanVal struct {
 func (*UserPreference_EffectiveValue_EffectiveBooleanVal) isUserPreference_EffectiveValue() {}
 
 // UserPreference_EffectiveValue_EffectiveStringVal selects EffectiveStringVal for UserPreference.EffectiveValue.
+// Holds the value that takes effect for a string preference, as evaluated by
+// the server.
 type UserPreference_EffectiveValue_EffectiveStringVal struct {
 	EffectiveStringVal StringMessage
 }

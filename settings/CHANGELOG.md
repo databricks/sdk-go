@@ -1,5 +1,10 @@
 # Version changelog
 
+## Release v0.9.0 (2026-11-27)
+
+### API Changes
+* Add `RepoAllowlistPermission` and `EffectiveRepoAllowlistPermission` fields for [settings/v2.Setting](https://pkg.go.dev/github.com/databricks/sdk-go/settings/v2#Setting).
+
 ## Release v0.8.0 (2026-11-23)
 
 ## Release v0.7.0 (2026-11-12)

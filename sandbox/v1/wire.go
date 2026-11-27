@@ -125,6 +125,8 @@ func (v *Command) UnmarshalJSON(data []byte) error {
 
 type computeSpecWire struct {
 	InactivityTimeout *types.Duration `json:"inactivity_timeout,omitempty"`
+	Cpu               *float64        `json:"cpu,omitempty"`
+	MemoryMib         *int            `json:"memory_mib,omitempty"`
 }
 
 func computeSpecToWire(v *ComputeSpec) (*computeSpecWire, error) {
@@ -133,6 +135,8 @@ func computeSpecToWire(v *ComputeSpec) (*computeSpecWire, error) {
 	}
 	return &computeSpecWire{
 		InactivityTimeout: v.InactivityTimeout,
+		Cpu:               v.Cpu,
+		MemoryMib:         v.MemoryMib,
 	}, nil
 }
 
@@ -142,6 +146,8 @@ func computeSpecFromWire(w *computeSpecWire) (*ComputeSpec, error) {
 	}
 	return &ComputeSpec{
 		InactivityTimeout: w.InactivityTimeout,
+		Cpu:               w.Cpu,
+		MemoryMib:         w.MemoryMib,
 	}, nil
 }
 
@@ -1541,6 +1547,7 @@ type sandboxSpecWire struct {
 	Compute     *computeSpecWire     `json:"compute,omitempty"`
 	Environment *environmentSpecWire `json:"environment,omitempty"`
 	Network     *networkSpecWire     `json:"network,omitempty"`
+	Storage     *storageSpecWire     `json:"storage,omitempty"`
 }
 
 func sandboxSpecToWire(v *SandboxSpec) (*sandboxSpecWire, error) {
@@ -1559,10 +1566,15 @@ func sandboxSpecToWire(v *SandboxSpec) (*sandboxSpecWire, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "SandboxSpec.Network", err)
 	}
+	storageWireValue, err := storageSpecToWire(v.Storage)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SandboxSpec.Storage", err)
+	}
 	return &sandboxSpecWire{
 		Compute:     computeWireValue,
 		Environment: environmentWireValue,
 		Network:     networkWireValue,
+		Storage:     storageWireValue,
 	}, nil
 }
 
@@ -1582,10 +1594,15 @@ func sandboxSpecFromWire(w *sandboxSpecWire) (*SandboxSpec, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "SandboxSpec.Network", err)
 	}
+	storagePublicValue, err := storageSpecFromWire(w.Storage)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "SandboxSpec.Storage", err)
+	}
 	return &SandboxSpec{
 		Compute:     computePublicValue,
 		Environment: environmentPublicValue,
 		Network:     networkPublicValue,
+		Storage:     storagePublicValue,
 	}, nil
 }
 
@@ -1744,6 +1761,52 @@ func (v *StopSandboxRequest) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	decoded, err := stopSandboxRequestFromWire(&w)
+	if err != nil {
+		return err
+	}
+	*v = *decoded
+	return nil
+}
+
+type storageSpecWire struct {
+	PersistenceEnabled *bool `json:"persistence_enabled,omitempty"`
+}
+
+func storageSpecToWire(v *StorageSpec) (*storageSpecWire, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return &storageSpecWire{
+		PersistenceEnabled: v.PersistenceEnabled,
+	}, nil
+}
+
+func storageSpecFromWire(w *storageSpecWire) (*StorageSpec, error) {
+	if w == nil {
+		return nil, nil
+	}
+	return &StorageSpec{
+		PersistenceEnabled: w.PersistenceEnabled,
+	}, nil
+}
+
+// MarshalJSON returns the JSON form that the API uses for this message, with
+// fields that a request sends in the URL path or query as regular fields.
+func (v StorageSpec) MarshalJSON() ([]byte, error) {
+	w, err := storageSpecToWire(&v)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(w)
+}
+
+// UnmarshalJSON sets the message from the JSON that MarshalJSON writes.
+func (v *StorageSpec) UnmarshalJSON(data []byte) error {
+	var w storageSpecWire
+	if err := json.Unmarshal(data, &w); err != nil {
+		return err
+	}
+	decoded, err := storageSpecFromWire(&w)
 	if err != nil {
 		return err
 	}

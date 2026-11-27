@@ -1965,10 +1965,9 @@ func (c *internalClient) UpdateModelService(ctx context.Context, req UpdateModel
 }
 
 // Updates a skill. Only fields named in `update_mask` are changed; currently
-// only `comment` is supported. The resource name is immutable. Optionally
-// supply an `etag` to make the update conditional on the skill not having
-// changed since it was read. Bundle files, grants, tags, and ownership are
-// unchanged.
+// `comment` is supported. The resource name is immutable. Optionally supply an
+// `etag` to make the update conditional on the skill not having changed since
+// it was read. Bundle files, grants, and tags are unchanged.
 //
 // To update the bundle, add, overwrite (`overwrite=true`), or delete files
 // under `/Skills/{catalog}/{schema}/{skill}/` with the Files API, then call

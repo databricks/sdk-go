@@ -2,4 +2,4 @@ package internal
 
 const ModuleName = "sdk-go-storageconfigurations"
 
-const Version = "0.6.0"
+const Version = "0.7.0"

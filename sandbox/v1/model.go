@@ -68,6 +68,16 @@ type ComputeSpec struct {
 	// disables inactivity auto-stop. Negative values are rejected. Can be changed
 	// on an existing sandbox with UpdateSandbox.
 	InactivityTimeout *types.Duration `fieldmask:"inactivity_timeout"`
+	// Requested vCPUs, for example 8. If this is unset and memory_mib is set, the
+	// sandbox gets one vCPU per 4096 MiB. Currently, CPU must be a whole number and
+	// CPU and memory must match a supported regional configuration at this ratio.
+	// Supported only for Lakebox MicroVM sandboxes. Cannot be combined with
+	// sandbox_size. Both fields are create-only. Reads return both resolved values
+	// for explicitly sized sandboxes.
+	Cpu *float64 `fieldmask:"cpu"`
+	// Requested memory in MiB. If this is unset and cpu is set, the sandbox gets
+	// 4096 MiB per vCPU. The same restrictions apply as for cpu.
+	MemoryMib *int `fieldmask:"memory_mib"`
 }
 
 // Selects a sandbox directory to create and whether to create its parents..
@@ -368,6 +378,8 @@ type SandboxSpec struct {
 	Environment *EnvironmentSpec `fieldmask:"environment"`
 	// Network configuration requested for the sandbox.
 	Network *NetworkSpec `fieldmask:"network"`
+	// Persistence configuration requested for the sandbox at creation time.
+	Storage *StorageSpec `fieldmask:"storage"`
 }
 
 type SandboxStatus struct {
@@ -393,6 +405,16 @@ type StartSandboxRequest struct {
 type StopSandboxRequest struct {
 	// Resource name of the sandbox to stop, in the form `sandboxes/{sandbox_id}`.
 	Name *string
+}
+
+// Storage configuration for the sandbox..
+type StorageSpec struct {
+	// Whether sandbox files persist across stop and start. If omitted, the service
+	// selects a default for the workspace and sandbox creator. This setting is
+	// fixed when the sandbox is created. When false, no persistent volume is
+	// allocated, and StopSandbox and StartSandbox are unavailable. Use
+	// CreateSandbox and DeleteSandbox for these sandboxes.
+	PersistenceEnabled *bool `fieldmask:"persistence_enabled"`
 }
 
 // A request to update mutable fields on a Sandbox..

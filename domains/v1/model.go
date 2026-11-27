@@ -86,6 +86,8 @@ const (
 )
 
 type CreateDomainRequest struct {
+	// The domain to create. `tag_key` must be set; it binds the domain to an
+	// existing tag policy key.
 	Domain *Domain
 	// Client-supplied resource ID for the new domain. If omitted, the server
 	// generates one.
@@ -149,7 +151,11 @@ type GetDomainRequest struct {
 }
 
 type ListDomainsRequest struct {
-	PageSize  *int
+	// Maximum number of domains to return in a single page. Must be positive and at
+	// most 1000; defaults to 1000 when omitted.
+	PageSize *int
+	// Pagination token from a previous ListDomainsResponse. Returns the first page
+	// when absent.
 	PageToken *string
 	// Filter by parent domain. - Absent: return all domains regardless of
 	// hierarchy. - Present: return only direct children of the specified domain.
@@ -157,11 +163,18 @@ type ListDomainsRequest struct {
 }
 
 type ListDomainsResponse struct {
-	Domains       []Domain
+	// The domains on the requested page.
+	Domains []Domain
+	// Pagination token to request the next page of domains. Absent when no further
+	// pages remain.
 	NextPageToken *string
 }
 
 type UpdateDomainRequest struct {
-	Domain     *Domain
+	// The domain to update. Its `name` field (`domains/{domain_id}`) identifies the
+	// domain; masked fields are replaced with the values supplied here.
+	Domain *Domain
+	// The field mask specifying which fields of the domain to update. Must be
+	// non-empty. Fields not in the mask keep their existing values.
 	UpdateMask *types.FieldMask[Domain]
 }

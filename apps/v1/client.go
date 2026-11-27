@@ -890,7 +890,8 @@ func (c *internalClient) DeleteApp(ctx context.Context, req DeleteAppRequest, op
 	return resp, nil
 }
 
-// Deletes the thumbnail for an app.
+// Deletes the thumbnail for an app. Requires the CAN MANAGE permission on the
+// app.
 func (c *internalClient) DeleteAppThumbnail(ctx context.Context, req DeleteAppThumbnailRequest, opts ...call.Option) error {
 
 	headers := http.Header{}
@@ -2647,7 +2648,9 @@ func (c *internalClient) UpdateAppDeploymentScanFinding(ctx context.Context, req
 	return resp, nil
 }
 
-// Updates the thumbnail for an app.
+// Sets or replaces the thumbnail for an app. Requires the CAN MANAGE permission
+// on the app. The response is an empty object and does not include the stored
+// image.
 func (c *internalClient) UpdateAppThumbnail(ctx context.Context, req UpdateAppThumbnailRequest, opts ...call.Option) (*AppThumbnail, error) {
 	wireReq, err := updateAppThumbnailRequestToWire(&req)
 	if err != nil {

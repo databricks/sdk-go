@@ -329,3 +329,27 @@ func TestNewRetrier_RetryAfterHonored(t *testing.T) {
 		t.Errorf("delay = %v, want >= %v (Retry-After honored)", delay, want)
 	}
 }
+
+func TestNewRetrier_innerExecuteDeadlineNotRetried(t *testing.T) {
+	cfg := RetrierConfig{StatusCodes: []int{http.StatusServiceUnavailable}}
+	unavailable := apierr.FromHTTPError(http.StatusServiceUnavailable, nil, nil)
+
+	// An execution with its own budget, such as a token request, that fails
+	// with a retriable error and runs out of time during the wait.
+	err := ops.Execute(
+		context.Background(),
+		func(context.Context) error { return unavailable },
+		ops.WithTimeout(time.Millisecond),
+		ops.WithRetrier(func() ops.Retrier {
+			return NewRetrier(ops.BackoffPolicy{Initial: time.Hour}, cfg)
+		}),
+	)
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("Execute(): got error %v, want context.DeadlineExceeded", err)
+	}
+
+	// The retrier of an outer execution must not retry the spent budget.
+	if _, ok := NewRetrier(ops.BackoffPolicy{}, cfg).IsRetriable(err); ok {
+		t.Errorf("IsRetriable(%v) = true, want false", err)
+	}
+}
