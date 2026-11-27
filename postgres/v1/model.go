@@ -2090,8 +2090,12 @@ type ListMigrationsResponse struct {
 type ListProjectsRequest struct {
 	// Page token from a previous response. If not provided, returns the first page.
 	PageToken *string
-	// Upper bound for the number of projects returned. Cannot be negative. Values
-	// above the maximum page size are reduced to that maximum.
+	// The requested number of projects in one page. Cannot be negative. If not set
+	// or 0, the default is 10. A value above 100 is lowered to 100 without an
+	// error. A page can contain fewer projects, or none, while `next_page_token` is
+	// set; keep reading pages until `next_page_token` is empty. A page can contain
+	// more projects than this number when several projects were created at the same
+	// time.
 	PageSize *int
 	// Whether to include soft-deleted projects in the response. When true,
 	// soft-deleted projects are included alongside active projects. Hard-deleted

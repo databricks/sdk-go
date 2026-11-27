@@ -1,5 +1,10 @@
 # Version changelog
 
+## Release v0.2.0 (2026-11-27)
+
+### New Features and Improvements
+* `ops.Execute` and `ops.ExecuteWithResult` now keep the error of the last attempt when the context ends, or the limiter fails, after a failed attempt. The message of the returned error names that error, and the new `ops.LastError` returns it. `errors.Is` and `errors.As` still match only the context or limiter error, so error handling that reads the API code or status does not change.
+
 ## Release v0.1.0 (2026-10-02)
 
 ### New Features and Improvements

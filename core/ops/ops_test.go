@@ -3,6 +3,7 @@ package ops
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 )
@@ -248,6 +249,111 @@ func TestExecute_contextCancellation(t *testing.T) {
 
 	if !errors.Is(got, context.Canceled) {
 		t.Errorf("Execute(): got error %v, want %v", got, context.Canceled)
+	}
+}
+
+func TestExecute_endAfterFailedAttempt(t *testing.T) {
+	attemptErr := errors.New("attempt failed")
+	limiterErr := errors.New("limiter failed")
+
+	testCases := []struct {
+		name            string
+		timeout         time.Duration
+		cancelOnAttempt bool
+		limiterErrs     []error // result of each limiter wait; nil means no limiter
+		retryDelay      time.Duration
+		wantCause       error
+		wantMsg         string
+	}{
+		{
+			name:       "deadline during the wait",
+			timeout:    time.Millisecond,
+			retryDelay: time.Hour,
+			wantCause:  context.DeadlineExceeded,
+			wantMsg:    "context deadline exceeded; last attempt: attempt failed",
+		},
+		{
+			name:            "cancellation during the wait",
+			cancelOnAttempt: true,
+			retryDelay:      time.Hour,
+			wantCause:       context.Canceled,
+			wantMsg:         "context canceled; last attempt: attempt failed",
+		},
+		{
+			name:        "limiter fails before the retry",
+			limiterErrs: []error{nil, limiterErr},
+			wantCause:   limiterErr,
+			wantMsg:     "limiter failed; last attempt: attempt failed",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			call := func(ctx context.Context) error {
+				if tc.cancelOnAttempt {
+					cancel()
+				}
+				return attemptErr
+			}
+			opts := []Option{
+				WithTimeout(tc.timeout),
+				WithRetrier(func() Retrier {
+					return &mockRetrier{fn: func(error) (time.Duration, bool) { return tc.retryDelay, true }}
+				}),
+			}
+			if tc.limiterErrs != nil {
+				waits := 0
+				opts = append(opts, WithLimiter(&mockLimiter{fn: func(context.Context) error {
+					err := tc.limiterErrs[waits]
+					waits++
+					return err
+				}}))
+			}
+
+			got := Execute(ctx, call, opts...)
+
+			if !errors.Is(got, tc.wantCause) {
+				t.Errorf("Execute(): got error %v, want it to match %v", got, tc.wantCause)
+			}
+			// The error must classify as its cause only, so that a timeout
+			// does not match as the error of the last attempt.
+			if errors.Is(got, attemptErr) {
+				t.Errorf("Execute(): got error %v, want it not to match %v", got, attemptErr)
+			}
+			if last := LastError(got); last != attemptErr {
+				t.Errorf("LastError(): got %v, want %v", last, attemptErr)
+			}
+			if got == nil || got.Error() != tc.wantMsg {
+				t.Errorf("Execute(): got error %v, want message %q", got, tc.wantMsg)
+			}
+		})
+	}
+}
+
+func TestLastError(t *testing.T) {
+	attemptErr := errors.New("attempt failed")
+	interrupted := withLastAttempt(context.DeadlineExceeded, attemptErr)
+
+	testCases := []struct {
+		name string
+		err  error
+		want error
+	}{
+		{name: "nil", err: nil, want: nil},
+		{name: "error of an attempt", err: attemptErr, want: nil},
+		{name: "context error without a failed attempt", err: withLastAttempt(context.Canceled, nil), want: nil},
+		{name: "interrupted execution", err: interrupted, want: attemptErr},
+		{name: "wrapped interrupted execution", err: fmt.Errorf("get job: %w", interrupted), want: attemptErr},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := LastError(tc.err); got != tc.want {
+				t.Errorf("LastError(%v): got %v, want %v", tc.err, got, tc.want)
+			}
+		})
 	}
 }
 

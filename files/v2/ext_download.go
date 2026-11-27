@@ -329,7 +329,7 @@ func (e *engine) getRangeOnce(ctx, mintCtx context.Context, dc *downloadContext,
 			headers.Set(name, value)
 		}
 		if req, err = http.NewRequestWithContext(ctx, http.MethodGet, url.URL, nil); err != nil {
-			return nil, err
+			return nil, cloudstorage.RedactURLError(err)
 		}
 		req.Header = headers
 		client = dc.cloud
@@ -352,7 +352,7 @@ func (e *engine) getRangeOnce(ctx, mintCtx context.Context, dc *downloadContext,
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, cloudstorage.RedactURLError(err)
 	}
 	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated || resp.StatusCode == http.StatusPartialContent {
 		if err := checkRange(requested, resp, expectedLength); err != nil {

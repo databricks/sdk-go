@@ -6,11 +6,18 @@ package ops
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 )
 
 // Execute executes operation op with the given options. The operation is
 // expected to honor cancellation and deadlines on the context passed to it.
+//
+// When the retrier stops, Execute returns the error of the last attempt. When
+// the context ends, or the limiter fails, after a failed attempt, Execute
+// returns that cause, and the message also names the error of the last
+// attempt. [LastError] returns the error of the last attempt.
 func Execute(ctx context.Context, op func(context.Context) error, opts ...Option) error {
 	options := Options{}
 	for _, opt := range opts {
@@ -71,10 +78,13 @@ func execute(ctx context.Context, fn func(context.Context) error, opts Options, 
 	// lazilly if and if the first call execution returns an error.
 	var retrier Retrier
 
+	// Error of the last failed attempt, if any.
+	var lastErr error
+
 	for {
 		if opts.rateLimiter != nil { // no limiter == no wait
 			if err := opts.rateLimiter.Wait(ctx); err != nil {
-				return err
+				return withLastAttempt(err, lastErr)
 			}
 		}
 
@@ -82,6 +92,7 @@ func execute(ctx context.Context, fn func(context.Context) error, opts Options, 
 		if err == nil {
 			return nil // nothing to retry
 		}
+		lastErr = err
 
 		if retrier == nil {
 			if opts.retrier != nil {
@@ -96,7 +107,47 @@ func execute(ctx context.Context, fn func(context.Context) error, opts Options, 
 			return err // not retriable
 		}
 		if err := sleep(ctx, delay); err != nil {
-			return err
+			return withLastAttempt(err, lastErr)
 		}
 	}
+}
+
+// withLastAttempt returns cause, which ended the execution before its next
+// attempt, together with lastErr, the error of the last attempt, if any. A
+// bare context error would hide what failed before the time ran out.
+func withLastAttempt(cause, lastErr error) error {
+	if lastErr == nil {
+		return cause
+	}
+	return &interruptedError{cause: cause, lastErr: lastErr}
+}
+
+// interruptedError is an execution that ended before its next attempt.
+type interruptedError struct {
+	cause   error // what ended the execution: a context or a limiter error
+	lastErr error // error of the last attempt
+}
+
+func (e *interruptedError) Error() string {
+	return fmt.Sprintf("%v; last attempt: %v", e.cause, e.lastErr)
+}
+
+// Unwrap returns the cause only. An execution that ran out of time must not
+// match as the error of its last attempt: a caller, or the retrier of an outer
+// execution, would otherwise handle a timeout as, for example, an HTTP 503.
+func (e *interruptedError) Unwrap() error {
+	return e.cause
+}
+
+// LastError returns the error of the last attempt of an execution that ended
+// because its context ended, or its limiter failed, after that attempt. It
+// returns nil for every other error.
+//
+// errors.Is and errors.As do not find the error of the last attempt in err;
+// LastError is the only way to read it.
+func LastError(err error) error {
+	if e, ok := errors.AsType[*interruptedError](err); ok {
+		return e.lastErr
+	}
+	return nil
 }

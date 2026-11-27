@@ -773,7 +773,8 @@ func (c *internalClient) Read(ctx context.Context, req ReadRequest, opts ...call
 // Creates an empty directory. If necessary, also creates any parent directories
 // of the new, empty directory (like the shell command `mkdir -p`). If called on
 // an existing directory, returns a success response; this method is idempotent
-// (it will succeed if the directory already exists).
+// (it will succeed if the directory already exists). If the path itself is an
+// existing file, returns 409 RESOURCE_CONFLICT.
 func (c *internalClient) CreateDirectory(ctx context.Context, req CreateDirectoryRequest, opts ...call.Option) (*CreateDirectoryResponse, error) {
 
 	headers := http.Header{}

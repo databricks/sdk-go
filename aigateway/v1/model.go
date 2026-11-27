@@ -204,8 +204,9 @@ type CreateSkillRequest struct {
 	// SKILL.md.
 	SkillId *string
 	// The skill to create. `comment` is the only accepted client input and may be
-	// omitted. Do not set `name`; the server derives it from `parent` and
-	// `skill_id`.
+	// omitted. CreateSkill rejects `owner`; use UpdateSkill with `owner` in the
+	// `update_mask` to transfer ownership. Do not set `name`; the server derives it
+	// from `parent` and `skill_id`.
 	Skill *Skill
 }
 
@@ -1737,9 +1738,10 @@ type UpdateModelProviderServiceRequest struct {
 	// (`model-provider-services/{catalog}.{schema}.{model_provider_service}`); only
 	// fields listed in `update_mask` are applied.
 	ModelProviderService *ModelProviderService
-	// Fields to update. Use `config` to replace the entire configuration. The
-	// replacement must include every required field; any optional field you omit is
-	// cleared. To preserve sibling fields, use one or more granular paths:
+	// Fields to update. Use `config` to replace the configuration's supported
+	// fields. The replacement must include every required field. Omitted optional
+	// fields in the published schema are cleared, except for the authentication
+	// binding described below. To preserve sibling fields, use granular paths:
 	// `comment`; `config.provider` to replace the active provider-specific value
 	// (for example, `config.openai`; the mask path remains `config.provider`);
 	// `config.allow_all_targets`, `config.targets`, `config.forward_headers`,
@@ -1766,9 +1768,9 @@ type UpdateModelServiceRequest struct {
 	// resource (`model-services/{catalog}.{schema}.{model_service}`); only fields
 	// listed in `update_mask` are applied.
 	ModelService *ModelService
-	// Fields to update. Use `config` for a broad configuration replacement. The
-	// replacement must include every required field; optional fields in its
-	// replacement scope are cleared when omitted. To preserve sibling fields, use
+	// Fields to update. Use `config` to replace the configuration's supported
+	// fields. The replacement must include every required field. Omitted optional
+	// fields in the published schema are cleared. To preserve sibling fields, use
 	// one or more granular paths: `comment`, `config.routing.destinations`,
 	// `config.routing.fallback.destinations`, `config.rate_limits`, or
 	// `config.inference_table`. Intermediate paths such as `config.routing` and

@@ -1,5 +1,15 @@
 # Version changelog
 
+## Release v0.26.0 (2026-11-27)
+
+### API Changes
+* Add `IgnoreNulls` field for [features/v1.FirstDistinctFunction](https://pkg.go.dev/github.com/databricks/sdk-go/features/v1#FirstDistinctFunction).
+* Add `IgnoreNulls` field for [features/v1.FirstFunction](https://pkg.go.dev/github.com/databricks/sdk-go/features/v1#FirstFunction).
+* Add `IgnoreNulls` field for [features/v1.FirstNFunction](https://pkg.go.dev/github.com/databricks/sdk-go/features/v1#FirstNFunction).
+* Add `IgnoreNulls` field for [features/v1.LastDistinctFunction](https://pkg.go.dev/github.com/databricks/sdk-go/features/v1#LastDistinctFunction).
+* Add `IgnoreNulls` field for [features/v1.LastFunction](https://pkg.go.dev/github.com/databricks/sdk-go/features/v1#LastFunction).
+* Add `IgnoreNulls` field for [features/v1.LastNFunction](https://pkg.go.dev/github.com/databricks/sdk-go/features/v1#LastNFunction).
+
 ## Release v0.25.0 (2026-11-25)
 
 ## Release v0.24.0 (2026-11-23)

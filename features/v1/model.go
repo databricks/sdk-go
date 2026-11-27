@@ -1471,12 +1471,16 @@ type FirstDistinctFunction struct {
 	Input *string `fieldmask:"input"`
 	// The number of distinct values to return.
 	N *int64 `fieldmask:"n"`
+	// When true, rows whose input is NULL are skipped.
+	IgnoreNulls *bool `fieldmask:"ignore_nulls"`
 }
 
 // Returns the first value..
 type FirstFunction struct {
 	// The input column from which the first value is returned.
 	Input *string `fieldmask:"input"`
+	// When true, rows whose input is NULL are skipped.
+	IgnoreNulls *bool `fieldmask:"ignore_nulls"`
 }
 
 // Returns the first N values, ordered by the feature's timeseries column..
@@ -1485,6 +1489,8 @@ type FirstNFunction struct {
 	Input *string `fieldmask:"input"`
 	// The number of values to return.
 	N *int64 `fieldmask:"n"`
+	// When true, rows whose input is NULL are skipped.
+	IgnoreNulls *bool `fieldmask:"ignore_nulls"`
 }
 
 // A flat (non-nested) schema for request-time fields, defined as an ordered
@@ -1893,12 +1899,16 @@ type LastDistinctFunction struct {
 	Input *string `fieldmask:"input"`
 	// The number of distinct values to return.
 	N *int64 `fieldmask:"n"`
+	// When true, rows whose input is NULL are skipped.
+	IgnoreNulls *bool `fieldmask:"ignore_nulls"`
 }
 
 // Returns the last value..
 type LastFunction struct {
 	// The input column from which the last value is returned.
 	Input *string `fieldmask:"input"`
+	// When true, rows whose input is NULL are skipped.
+	IgnoreNulls *bool `fieldmask:"ignore_nulls"`
 }
 
 // Returns the last N values, ordered by the feature's timeseries column..
@@ -1907,6 +1917,8 @@ type LastNFunction struct {
 	Input *string `fieldmask:"input"`
 	// The number of values to return.
 	N *int64 `fieldmask:"n"`
+	// When true, rows whose input is NULL are skipped.
+	IgnoreNulls *bool `fieldmask:"ignore_nulls"`
 }
 
 // Lineage context information for tracking where an API was invoked. This will
